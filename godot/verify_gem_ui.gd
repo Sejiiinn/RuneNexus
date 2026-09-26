@@ -20,6 +20,10 @@ func run() -> void:
 	fixture.build_selected()
 	panel.main_tab = "turrets"; panel.tab = "gems"; panel.refresh()
 	await settle()
+	if "--light-only" in OS.get_cmdline_user_args():
+		await check_light_weapon_restriction()
+		print("PASS light gem UI: one allowed/five blocked, disabled equip, reward restriction and target feedback")
+		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--empty-only" in OS.get_cmdline_user_args():
 		await check_empty_inventory()
 		print("PASS responsive turret inventory: owned 0/1/6/14 at 320/440, fixed square cells filling row, noninteractive blanks, overflow scrolling; global empty help preserved")
@@ -397,3 +401,49 @@ func check_inventory(width: int) -> void:
 		if absf(icon.global_position.y-first_y)<1: first_row += 1
 		assert(icon.get_global_rect().position.x >= 0 and icon.get_global_rect().end.x <= width)
 	assert(first_row == (3 if width == 440 else 2),"Wrong responsive inventory column count")
+
+func check_light_weapon_restriction() -> void:
+	fixture.run_domain.state.gemInventory = {"lightWeapon":1}
+	panel.selected_slot = 0
+	var original_type: String = turret().type
+	for type in ["arrow","cannon","magic","frost","sniper","lightning"]:
+		turret().type = type
+		panel.configuration_cache._derived = {}
+		panel.selected_gem = "lightWeapon"; panel.body_key = null; panel.refresh(); await settle()
+		var reason: String = panel.gem_panel._gem_block_reason("lightWeapon",turret())
+		assert(reason.is_empty() == (type == "arrow"))
+		assert(find_exact(panel.body,"장착").disabled == (type != "arrow"))
+		if type == "cannon":
+			assert(reason == "경량화기 포탑에만 장착 가능")
+			await capture_light_gem("cannon-equip-blocked")
+			var before: Dictionary = fixture.run_domain.state.duplicate(true)
+			# A repeated inventory click must not bypass the disabled equip action.
+			named_button("GemInventory_lightWeapon").pressed.emit()
+			assert(fixture.run_domain.state == before)
+	turret().type = original_type
+	panel.configuration_cache._derived = {}
+	fixture.run_domain.state.phase = "reward"
+	fixture.run_domain.state.isPurchasedGemReward = false
+	fixture.run_domain.state.rewardOptions = ["lightWeapon","criticalChance","damageOverTime"]
+	fixture.run_domain.state.completedRounds = 15
+	panel.rewards.key = ""; panel.refresh(); await settle()
+	assert(all_text(panel.overlay_body).contains("경량화기 전용"))
+	await capture_light_gem("reward-card")
+	panel.rewards.pending_gem = "lightWeapon"; panel.rewards.key = ""; panel.refresh(); await settle()
+	var targets: String = all_text(panel.rewards.target_layer)
+	assert(targets.contains("기관총 ✓") and targets.contains("대포 ×") and targets.contains("화염 ×") and targets.contains("냉각 ×"))
+	for label in descendants(panel.rewards.target_layer):
+		if label is Label and (label.text.ends_with(" ✓") or label.text.ends_with(" ×")):
+			assert(label.get_line_count() == 1)
+	turret().type = "cannon"
+	var before: Dictionary = fixture.run_domain.state.duplicate(true)
+	panel.rewards.board_tap(fixture.selected); await settle()
+	assert(fixture.run_domain.state == before and panel.rewards.targeting())
+	assert(panel.rewards.target_hint == "경량화기 포탑에만 장착할 수 있습니다")
+	await capture_light_gem("reward-target-blocked")
+
+func capture_light_gem(label: String) -> void:
+	var folder := OS.get_environment("LIGHT_GEM_CAPTURES")
+	if folder.is_empty() or DisplayServer.get_name() == "headless": return
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(folder.path_join(label+".png"))

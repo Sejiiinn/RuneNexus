@@ -67,6 +67,7 @@ func _initialize() -> void:
 	check(is_equal_approx(restored.enemies["100000"].x,runtime.enemies["99999"].x) and is_equal_approx(restored.enemies["100000"].y,runtime.enemies["99999"].y),"position reconstructed from distance")
 	check(restored.turrets["1000"].stats.damage == runtime.turrets["1000"].stats.damage,"growth and gems rebuilt combat stats")
 	check(restored.wave.queue[0].delay == runtime.wave.snapshot().spawnQueue[0].delay,"remaining spawn delay no added gap")
+	_light_weapon_legacy_cases(adapter,service,saved)
 	var before := saved.duplicate(true)
 	var bad := saved.duplicate(true)
 	bad.activeRun.mapSignature = "different-map"
@@ -141,3 +142,46 @@ func _initialize() -> void:
 	check(adapter.capture(state,runtime.snapshot(),124).is_empty(),"capped economy rejected before mutation")
 	print("CONTENT_RUN_SAVE failures=",failures)
 	quit(0 if failures == 0 else 1)
+
+func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
+	for type in service.catalog.data.turrets:
+		var allowed: bool = "light" in service.catalog.data.turrets[type].configuration.statInput.definition.attackTags
+		var legacy := saved.duplicate(true)
+		legacy.activeRun.turrets[0].type = type
+		legacy.activeRun.turrets[0].slotLimit = 3
+		legacy.activeRun.turrets[0].equippedGemSlots = [null,"lightWeapon","attackSpeed"]
+		legacy.activeRun.turrets[0].equippedGems = ["lightWeapon","attackSpeed"]
+		legacy.activeRun.gemInventory = {"lightWeapon":2,"range":3}
+		var original := legacy.duplicate(true)
+		var result: Dictionary = adapter.prepare(legacy)
+		check(not result.is_empty(),type+": old lightWeapon save remains loadable: "+adapter.error)
+		if result.is_empty(): continue
+		var expected_slots: Array = [null,"lightWeapon" if allowed else null,"attackSpeed"]
+		var expected_inventory := {"lightWeapon":2 if allowed else 3,"range":3}
+		check(result.state.turrets[0].equippedGemSlots == expected_slots,type+": only obsolete slot cleared")
+		check(result.state.turrets[0].equippedGems == expected_slots.filter(func(g): return g != null),type+": equipped list follows slots")
+		check(result.state.gemInventory == expected_inventory,type+": obsolete gem returned once")
+		check(("lightWeapon" in result.bootstrap.turrets[0].statInput.gems) == allowed,type+": restored combat respects eligibility")
+		check(legacy == original,type+": loading does not change source save")
+		var again: Dictionary = adapter.prepare(legacy)
+		check(not again.is_empty() and again.state.gemInventory == expected_inventory,type+": repeat source load does not accumulate refund")
+		var runtime = Runtime.new()
+		runtime.process_command({"epoch":1,"sequence":0,"session":result.session,"bootstrap":result.bootstrap})
+		runtime.process_command({"epoch":1,"sequence":1,"ackEvent":runtime.event_id})
+		var resaved: Dictionary = adapter.capture(result.state,runtime.snapshot(),456)
+		check(not resaved.is_empty(),type+": migrated state saves: "+adapter.error)
+		if not resaved.is_empty():
+			var reloaded: Dictionary = adapter.prepare(resaved)
+			check(not reloaded.is_empty() and reloaded.state.gemInventory == expected_inventory and reloaded.state.turrets[0].equippedGemSlots == expected_slots,type+": save and reload does not refund twice")
+		# Saves without explicit slots use the legacy equipped list once.
+		legacy.activeRun.turrets[0].erase("equippedGemSlots")
+		var old_format: Dictionary = adapter.prepare(legacy)
+		check(not old_format.is_empty() and old_format.state.gemInventory == expected_inventory,type+": legacy equipped list refunds once")
+	var invalid := saved.duplicate(true)
+	invalid.activeRun.turrets[0].type = "cannon"
+	invalid.activeRun.turrets[0].equippedGemSlots = ["lightWeapon","lightWeapon"]
+	invalid.activeRun.turrets[0].equippedGems = ["lightWeapon","lightWeapon"]
+	check(adapter.prepare(invalid).is_empty(),"duplicate obsolete gems still rejected")
+	invalid.activeRun.turrets[0].equippedGemSlots = ["lightWeapon","aimSpeed"]
+	invalid.activeRun.turrets[0].equippedGems = ["lightWeapon","aimSpeed"]
+	check(adapter.prepare(invalid).is_empty(),"other incompatible gems still rejected")

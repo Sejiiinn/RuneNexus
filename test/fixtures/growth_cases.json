@@ -16400,7 +16400,7 @@
         "slotIndex": 1,
         "phase": "wave"
       },
-      "ok": true,
+      "ok": false,
       "after": {
         "gold": 97568,
         "gemShards": 964,
@@ -16408,8 +16408,8 @@
           "attackSpeed": 2,
           "range": 2,
           "physicalDamage": 2,
-          "elementalDamage": 2,
-          "lightWeapon": 1,
+          "elementalDamage": 1,
+          "lightWeapon": 2,
           "heavyWeapon": 2,
           "damageOverTime": 2,
           "explosion": 2,
@@ -16428,11 +16428,11 @@
           "slotLimit": 3,
           "cooldown": 0.0,
           "equippedGems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "equippedGemSlots": [
             null,
-            "lightWeapon",
+            "elementalDamage",
             null
           ],
           "investedGold": 2522,
@@ -16485,7 +16485,7 @@
             "aimSpeedIncreaseRate": 0.0
           },
           "gems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "primaryTrait": "shrapnelShell",
           "secondaryTrait": "expandedBlastCore",
@@ -26874,7 +26874,7 @@
         "slotIndex": 1,
         "phase": "wave"
       },
-      "ok": true,
+      "ok": false,
       "after": {
         "gold": 97840,
         "gemShards": 964,
@@ -26882,8 +26882,8 @@
           "attackSpeed": 2,
           "range": 2,
           "physicalDamage": 2,
-          "elementalDamage": 2,
-          "lightWeapon": 1,
+          "elementalDamage": 1,
+          "lightWeapon": 2,
           "heavyWeapon": 2,
           "damageOverTime": 2,
           "explosion": 2,
@@ -26902,11 +26902,11 @@
           "slotLimit": 3,
           "cooldown": 0.0,
           "equippedGems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "equippedGemSlots": [
             null,
-            "lightWeapon",
+            "elementalDamage",
             null
           ],
           "investedGold": 2240,
@@ -26959,7 +26959,7 @@
             "aimSpeedIncreaseRate": 0.0
           },
           "gems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "primaryTrait": "highHeatBurn",
           "secondaryTrait": "ignitionBurst",
@@ -37348,7 +37348,7 @@
         "slotIndex": 1,
         "phase": "wave"
       },
-      "ok": true,
+      "ok": false,
       "after": {
         "gold": 97703,
         "gemShards": 964,
@@ -37356,8 +37356,8 @@
           "attackSpeed": 2,
           "range": 2,
           "physicalDamage": 2,
-          "elementalDamage": 2,
-          "lightWeapon": 1,
+          "elementalDamage": 1,
+          "lightWeapon": 2,
           "heavyWeapon": 2,
           "damageOverTime": 2,
           "explosion": 2,
@@ -37376,11 +37376,11 @@
           "slotLimit": 3,
           "cooldown": 0.0,
           "equippedGems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "equippedGemSlots": [
             null,
-            "lightWeapon",
+            "elementalDamage",
             null
           ],
           "investedGold": 2382,
@@ -37433,7 +37433,7 @@
             "aimSpeedIncreaseRate": 0.0
           },
           "gems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "primaryTrait": "coolingCycle",
           "secondaryTrait": "frostCrack",
@@ -47708,7 +47708,7 @@
         "slotIndex": 1,
         "phase": "wave"
       },
-      "ok": true,
+      "ok": false,
       "after": {
         "gold": 96760,
         "gemShards": 964,
@@ -47716,8 +47716,8 @@
           "attackSpeed": 2,
           "range": 2,
           "physicalDamage": 2,
-          "elementalDamage": 2,
-          "lightWeapon": 1,
+          "elementalDamage": 1,
+          "lightWeapon": 2,
           "heavyWeapon": 2,
           "damageOverTime": 2,
           "explosion": 2,
@@ -47736,11 +47736,11 @@
           "slotLimit": 3,
           "cooldown": 0.0,
           "equippedGems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "equippedGemSlots": [
             null,
-            "lightWeapon",
+            "elementalDamage",
             null
           ],
           "investedGold": 3360,
@@ -47791,7 +47791,7 @@
             "aimSpeedIncreaseRate": 0.0
           },
           "gems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "primaryTrait": "deadeyeFocus",
           "secondaryTrait": "exposedMark",
@@ -58098,7 +58098,7 @@
         "slotIndex": 1,
         "phase": "wave"
       },
-      "ok": true,
+      "ok": false,
       "after": {
         "gold": 96220,
         "gemShards": 964,
@@ -58106,8 +58106,8 @@
           "attackSpeed": 2,
           "range": 2,
           "physicalDamage": 2,
-          "elementalDamage": 2,
-          "lightWeapon": 1,
+          "elementalDamage": 1,
+          "lightWeapon": 2,
           "heavyWeapon": 2,
           "damageOverTime": 2,
           "explosion": 2,
@@ -58126,11 +58126,11 @@
           "slotLimit": 3,
           "cooldown": 0.0,
           "equippedGems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "equippedGemSlots": [
             null,
-            "lightWeapon",
+            "elementalDamage",
             null
           ],
           "investedGold": 3920,
@@ -58183,7 +58183,7 @@
             "aimSpeedIncreaseRate": 0.0
           },
           "gems": [
-            "lightWeapon"
+            "elementalDamage"
           ],
           "primaryTrait": "branchCurrent",
           "secondaryTrait": "lightningRecovery",

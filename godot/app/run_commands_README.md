@@ -9,6 +9,7 @@
 - `initial_state(progression,stage)`는 실제 시작 골드·조각을 적용한다. stage는 0부터 시작한다.
 - `apply(state,{kind:...,id:...})`의 kind는 build/level/link/sell/equipGem/removeGem/primaryTrait/secondaryTrait/targetPriority/runUpgrade/purchaseGemChoice/chooseRewardGem/chooseRewardShards다. build는 type/x/y, 슬롯은 0부터 시작하는 `slot`, 선택 종류는 `type`을 받는다.
 - `quotes(state,id)`, `build_cost(state,type)`, `run_upgrade_quote(state,type)`로 비용을 표시한다. `refresh(state)`는 일반 성장 변화 후 전투 설정을 갱신한다.
+- 젬 장착은 `growth_content.json`의 `turretRules.compatibleGems`를 일반·보상·슬롯 추가 장착에 공통 적용한다. 경량화기 증폭(`lightWeapon`)은 `light` 공격 태그 포탑에만 허용하며 현재는 기관총(`arrow`)이다. 이전 저장의 비경량 포탑에 장착된 경량화기 젬은 `content_run_save.gd` 복원 시 해당 슬롯에서 제거하고 보유 젬으로 반환한다. 원본 저장을 직접 수정하지 않으며 정상 재저장 후 중복 반환하지 않는다.
 - `award_kill(state,enemy)`는 실제 적 정의의 골드·보스 보너스와 소수 골드 지갑을 적용한다. 다이아는 서버 잔액에 지급하지 않고 `pendingEconomyDiamonds`에 누적한다.
 - `complete_wave(state,waveId)`는 골드·조각·5웨이브 젬 선택 및 마지막 성공 단계를 처리한다. 선택지가 뜬 동안 phase=reward로 전투를 멈춘다. 다음 웨이브 설정은 현재 콘텐츠 로더를 사용한다.
 - `growth_rules.execute(progression,command)`는 로컬 성장 명령을 처리한다. 저장·네트워크 I/O를 수행하지 않는다. 연구 시간은 명시적인 `nowMillis`, 성장 효과는 현재 코어 배분·장착·런 업그레이드·전장 종류 수로 계산한다.

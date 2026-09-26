@@ -41,6 +41,11 @@ def verify() -> None:
     enemies, turrets = set(game["enemies"]), set(game["turrets"])
     if enemies != set(game["enemyDefinitions"]) or not enemies or not turrets:
         raise ValueError("Enemy/turret definitions are incomplete")
+    for kind, turret in game["turrets"].items():
+        tags = turret["configuration"]["statInput"]["definition"]["attackTags"]
+        compatible = growth["turretRules"][kind]["compatibleGems"]
+        if ("lightWeapon" in compatible) != ("light" in tags):
+            raise ValueError(f"{kind}: lightWeapon compatibility must match light attack tag")
     stages = game["stages"]
     if not stages or [stage["id"] for stage in stages] != list(range(1, len(stages) + 1)):
         raise ValueError("Stage IDs must be contiguous from 1")

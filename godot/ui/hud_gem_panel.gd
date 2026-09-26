@@ -407,7 +407,7 @@ func _gem_block_reason(type: String,turret: Dictionary) -> String:
 	if type in turret.equippedGemSlots: return "이미 이 포탑에 장착됨"
 	if hud.selected_slot<0 or hud.selected_slot>=int(turret.slotLimit): return "링크 홈을 선택하세요"
 	if type not in hud.app.run_domain.growth.data.turretRules[turret.type].compatibleGems:
-		return {"multipleProjectiles":"투사체 공격 포탑에만 장착 가능","chain":"투사체 공격 또는 기본 연쇄 포탑에만 장착 가능","heavyWeapon":"중화기 포탑에만 장착 가능","aimSpeed":"조준 속도 적용 포탑에만 장착 가능"}.get(type,"이 포탑에는 장착할 수 없습니다")
+		return {"multipleProjectiles":"투사체 공격 포탑에만 장착 가능","chain":"투사체 공격 또는 기본 연쇄 포탑에만 장착 가능","lightWeapon":"경량화기 포탑에만 장착 가능","heavyWeapon":"중화기 포탑에만 장착 가능","aimSpeed":"조준 속도 적용 포탑에만 장착 가능"}.get(type,"이 포탑에는 장착할 수 없습니다")
 	return ""
 
 func _gem_effect(type: String,turret: Dictionary) -> String:
@@ -418,7 +418,7 @@ func _gem_effect(type: String,turret: Dictionary) -> String:
 	if type == "lightWeapon" and "light" not in tags: return "현재 적용되는 경량화기 피해 없음"
 	if type == "damageOverTime" and "damageOverTime" not in tags: return "현재 적용되는 지속피해 없음"
 	if type == "aimSpeed" and (not definition.instantHit or float(definition.aimDuration)<=0): return "현재 적용되는 조준 속도 없음"
-	return {"attackSpeed":"공격 속도 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 피해 40% 증폭","elementalDamage":"원소 피해 40% 증폭","lightWeapon":"경량화기 피해 20% 증폭, 초당 발사 20% 증폭","heavyWeapon":"피해 30% 증폭, 효과 범위 20% 증가 (중화기 전용)","damageOverTime":"지속피해 30% 증가, 지속시간 30% 증가","explosion":"범위 피해 부여, 효과 범위 25% 증가","chain":"연쇄 횟수 +2","multipleProjectiles":"투사체 +2 · 피해 50% 감폭","criticalChance":"치명 확률 +30%p","aimSpeed":"조준 속도 75% 증폭","damageAmplifier":"타격 피해 25% 증폭","armorPiercing":"방어구 감쇄 무시"}.get(type,_gem_description(type))
+	return {"attackSpeed":"공격 속도 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 피해 40% 증폭","elementalDamage":"원소 피해 40% 증폭","lightWeapon":"경량화기 피해 20% 증폭, 초당 발사 20% 증폭 (경량화기 전용)","heavyWeapon":"피해 30% 증폭, 효과 범위 20% 증가 (중화기 전용)","damageOverTime":"지속피해 30% 증가, 지속시간 30% 증가","explosion":"범위 피해 부여, 효과 범위 25% 증가","chain":"연쇄 횟수 +2","multipleProjectiles":"투사체 +2 · 피해 50% 감폭","criticalChance":"치명 확률 +30%p","aimSpeed":"조준 속도 75% 증폭","damageAmplifier":"타격 피해 25% 증폭","armorPiercing":"방어구 감쇄 무시"}.get(type,_gem_description(type))
 
 func _gem_inventory_effect(type: String) -> String:
 	return {"attackSpeed":"공속 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 40% 증폭","elementalDamage":"원소 40% 증폭","lightWeapon":"경량화기 강화","damageOverTime":"지속피해 증가","multipleProjectiles":"투사체 +2\n피해 50% 감폭"}.get(type,_gem_description(type))

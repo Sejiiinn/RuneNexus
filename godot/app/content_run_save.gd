@@ -91,10 +91,18 @@ func prepare(envelope: Dictionary, battle_inputs: Dictionary = {}, spawn_rng: Ra
 		for key in ["primaryTrait","secondaryTrait"]:
 			if t[key] != null and t[key] not in rule.get(key+"s",[]): return _reject("Invalid turret trait")
 		var seen := {}
-		for gem in t.equippedGemSlots:
+		for slot in range(t.equippedGemSlots.size()):
+			var gem = t.equippedGemSlots[slot]
 			if gem == null: continue
-			if seen.has(gem) or gem not in rule.compatibleGems: return _reject("Invalid turret gems")
+			if seen.has(gem): return _reject("Invalid turret gems")
 			seen[gem] = true
+			if gem not in rule.compatibleGems:
+				# Older content allowed lightWeapon on every turret. Return that
+				# obsolete equipment once, using slots as the inventory authority.
+				# Only the copied runtime state changes; the source save stays intact.
+				if gem != "lightWeapon": return _reject("Invalid turret gems")
+				t.equippedGemSlots[slot] = null
+				state.gemInventory[gem] = int(state.gemInventory.get(gem,0)) + 1
 		while t.equippedGemSlots.size() < t.slotLimit: t.equippedGemSlots.append(null)
 		t.equippedGems = t.equippedGemSlots.filter(func(g): return g != null)
 		t.id = state.nextTurretId

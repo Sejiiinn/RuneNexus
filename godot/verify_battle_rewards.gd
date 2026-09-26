@@ -147,6 +147,7 @@ func run() -> void:
 	assert(hud.rewards.replacement_slot == 5 and app.run_domain.state == before_choice)
 	assert(not _confirm_button(hud.overlay_body).disabled)
 	assert(_asset_names(hud.overlay_body).count("gem_socket_selected.png") == 1)
+	await _assert_owned_gem_layout(hud,app)
 	for phase in ["success","failure"]:
 		app.run_domain.state.phase = phase; hud.refresh()
 		assert(hud.overlay.visible and hud.blocks_board_input())
@@ -180,3 +181,40 @@ func _assert_socket_targets(node: Node) -> void:
 		var target := node.get_parent() as Button
 		assert(target != null and target.custom_minimum_size.x >= 52 and target.custom_minimum_size.y >= 52)
 	for child in node.get_children(): _assert_socket_targets(child)
+
+func _assert_owned_gem_layout(hud, app) -> void:
+	var original_size := root.size
+	var original_scale := root.content_scale_size
+	app.run_domain.state.phase = "reward"
+	app.run_domain.state.isPurchasedGemReward = false
+	app.run_domain.state.completedRounds = 15
+	app.run_domain.state.rewardOptions = ["lightWeapon","criticalChance","damageOverTime"]
+	app.run_domain.state.turrets = []
+	hud.rewards.pending_gem = ""
+	hud.rewards.replacement_id = -1
+	for width in [440,320]:
+		root.size = Vector2i(width,900)
+		root.content_scale_size = Vector2i(width,900)
+		for many in [false,true]:
+			app.run_domain.state.gemInventory = {"attackSpeed":1,"chain":1}
+			if many:
+				for type in app.run_domain.growth.data.gems: app.run_domain.state.gemInventory[type] = 12
+			hud.rewards.key = ""; hud.refresh()
+			for i in range(12): await process_frame
+			var chips: HFlowContainer
+			for child in hud.overlay_body.get_children():
+				if child is HFlowContainer: chips = child
+			assert(chips != null)
+			var capture_dir := OS.get_environment("REWARD_LAYOUT_CAPTURES")
+			if not capture_dir.is_empty() and DisplayServer.get_name() != "headless":
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png(capture_dir.path_join("owned-%d-%s.png" % [width,"many" if many else "two"]))
+			for chip in chips.get_children():
+				var label: Label = chip.get_child(1)
+				assert(label.get_line_count() == 1,"Owned gem name/count must stay on one line")
+				assert(label.size.x+0.5 >= label.get_minimum_size().x,"Owned gem label must retain full text width")
+				assert(chip.position.x+chip.size.x <= chips.size.x+0.5,"Owned gem entries must flow within modal width")
+	root.size = original_size; root.content_scale_size = original_scale
+	hud.rewards.key = ""; hud.refresh()
+	for i in range(12): await process_frame
+	print("PASS owned gem labels: two/all gems with quantities, one-line entries at 320/440")

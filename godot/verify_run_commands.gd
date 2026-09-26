@@ -97,6 +97,7 @@ func _initialize() -> void:
 	runtime.process_command({"epoch":1,"sequence":1,"dt":0.0,"commands":upgraded.commands})
 	tower = runtime.turrets[str(built.state.turrets[0].id)]
 	check(tower.cooldown == 0.37 and tower.aimProgress == 0.27 and tower.directDamageDealt == 123.0 and tower.recent == {"77":1.3},"upgrading preserves combat clocks and damage")
+	_light_weapon_equip_cases(service,built.state)
 	_reward_equip_cases(service,built.state)
 	_reward_slot_purchase_cases(service,built.state)
 	_game_cases(service)
@@ -239,3 +240,30 @@ func _build_price_cache_checks(catalog, growth) -> void:
 		check(service.derive_calls == previous + 1, "authoritative build price derives exactly once")
 		previous = service.derive_calls
 	check(service.build_cost(state,"unsupported") == 0, "unknown turret price remains zero")
+
+func _light_weapon_equip_cases(service, built: Dictionary) -> void:
+	for type in service.catalog.data.turrets:
+		var allowed: bool = "light" in service.catalog.data.turrets[type].configuration.statInput.definition.attackTags
+		for kind in ["equipGem","chooseRewardGemEquip"]:
+			for buy_slot in ([false,true] if kind == "chooseRewardGemEquip" else [false]):
+				var state := built.duplicate(true)
+				state.turrets[0].type = type
+				state.turrets[0].equippedGemSlots = ["range"]
+				state.turrets[0].equippedGems = ["range"]
+				state.gemInventory = {"lightWeapon":2}
+				state.gold = 100000
+				if kind == "chooseRewardGemEquip":
+					state.phase = "reward"
+					state.rewardOptions = ["lightWeapon","attackSpeed","range"]
+					state.rewardReturnPhase = "wave"
+				var before := state.duplicate(true)
+				var command := {"kind":kind,"type":"lightWeapon","id":state.turrets[0].id,"slot":1 if buy_slot else 0,"buySlot":buy_slot}
+				var result: Dictionary = service.apply(state,command)
+				var label: String = type+" "+kind+" buySlot="+str(buy_slot)
+				check(result.ok == allowed,label+": only light attack tag can equip")
+				check(state == before,label+": source immutable")
+				if allowed:
+					check("lightWeapon" in result.state.turrets[0].equippedGemSlots and result.commands.size() == 1,label+": accepted equipment reaches combat")
+					check(result.state.gemInventory.lightWeapon == (1 if kind == "equipGem" else 2),label+": inventory charged exactly once")
+				else:
+					check(result.state == before and result.commands.is_empty(),label+": rejection preserves inventory, reward, slots and gold")

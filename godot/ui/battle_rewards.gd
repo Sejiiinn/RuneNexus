@@ -165,7 +165,7 @@ func _cards(state: Dictionary, width: float) -> void:
 		name_label.custom_minimum_size.y = 32
 		var effect := _text(content,_effect(type),10,true)
 		effect.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		_text(content,"중화기 전용" if type == "heavyWeapon" else "",9,true).modulate = Color("9ca3ab")
+		_text(content,{"lightWeapon":"경량화기 전용","heavyWeapon":"중화기 전용"}.get(type,""),9,true).modulate = Color("9ca3ab")
 		var count := int(collection.get(type,0))
 		var pill := _tinted_panel(content,Color("171b20dd"),Color("33d8ff55") if count > 0 else Color("6f778055"),12)
 		pill.custom_minimum_size.y = 22
@@ -197,7 +197,9 @@ func _cards(state: Dictionary, width: float) -> void:
 			var chip := HBoxContainer.new()
 			chips.add_child(chip)
 			_icon(chip,"gems/"+str(type)+".png",16)
-			_text(chip,"%s ×%d" % [hud._gem_name(type),collection[type]],10)
+			# Flow wraps whole entries; the label must retain its natural text width.
+			var label := _text(chip,"%s ×%d" % [hud._gem_name(type),collection[type]],10)
+			label.autowrap_mode = TextServer.AUTOWRAP_OFF
 
 func _target(state: Dictionary, viewport: Vector2) -> void:
 	heading = PanelContainer.new()
@@ -216,7 +218,9 @@ func _target(state: Dictionary, viewport: Vector2) -> void:
 	body.add_child(compatible)
 	for type in hud.app.run_domain.service.derived(state).get("availableTurretTypes",[]):
 		var allowed: bool = pending_gem in hud.app.run_domain.growth.data.turretRules[type].compatibleGems
-		_text(compatible,str(hud.TOWERS.get(type,type))+(" ✓" if allowed else " ×"),11).modulate = Color("a6e9bc") if allowed else Color("77838d")
+		var label := _text(compatible,str(hud.TOWERS.get(type,type))+(" ✓" if allowed else " ×"),11)
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		label.modulate = Color("a6e9bc") if allowed else Color("77838d")
 	_text(body,target_hint if not target_hint.is_empty() else "장착할 타워를 선택하세요 · 전장을 드래그할 수 있습니다",12,true)
 	target_actions = HBoxContainer.new()
 	target_layer.add_child(target_actions)
@@ -232,7 +236,7 @@ func board_tap(tile: Vector2i) -> bool:
 	for turret in state.get("turrets",[]):
 		if int(turret.x) != tile.x or int(turret.y) != tile.y: continue
 		if pending_gem not in hud.app.run_domain.growth.data.turretRules[turret.type].compatibleGems:
-			target_hint = "이 포탑에는 장착할 수 없습니다"
+			target_hint = "경량화기 포탑에만 장착할 수 있습니다" if pending_gem == "lightWeapon" else "이 포탑에는 장착할 수 없습니다"
 		elif pending_gem in turret.equippedGemSlots:
 			target_hint = "이미 같은 젬이 장착되어 있습니다"
 		else:
