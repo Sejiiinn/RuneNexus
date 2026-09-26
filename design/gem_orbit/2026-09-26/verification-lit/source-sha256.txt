@@ -1,0 +1,2 @@
+a45b9f544ea0aefaca06717dd9dccfe41cf78e02226383c01c97ac079dad037b  godot/effects/gem_orbit.gd
+1ad8cd2f91d63309edd07a5b391e2bfcf538cfd72a4aa3c3a9f18d4f43f1ebcd  godot/effects/gem_orbit_ribbon.gdshader

@@ -543,6 +543,8 @@ func _build_terrain(map: Dictionary) -> bool:
 func _sync_turrets(units: Array) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
 	_units._sync_turrets(units)
+	var selection = _presentation_nodes["selection"]
+	_units.sync_gem_orbits(selection._frame, selection.selection_revision, float(last_frame.get("time", 0.0)))
 	_environment.update_occupancy(units, TURRET_MODELS)
 
 

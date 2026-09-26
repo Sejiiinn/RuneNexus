@@ -78,6 +78,13 @@ func _verify() -> void:
 	var revision: int = units.turret_revision
 	overlay.set_turrets(units.turrets, revision)
 	var roots: Array = overlay._turret_roots
+	var equipment := {"turrets":[{"id":42,"orbitGemColors":[Color.CYAN,Color.GOLD]}]}
+	units.sync_gem_orbits(equipment,1,2.0)
+	var orbit = units.turrets[42].gem_orbit
+	var rotor = orbit._rotor
+	units.sync_gem_orbits(equipment,1,3.0)
+	_check(orbit._rotor == rotor and orbit._combat_time == 3.0, "Stable equipment rebuilt orbit or froze clock")
+	_check(orbit.get_meta("exclude_selection_mask",false), "Transparent ribbon enters solid reward mask")
 	var original: Node3D = roots[0]
 	first[3] = 0.5
 	first[7] = 2
@@ -89,6 +96,10 @@ func _verify() -> void:
 	units._sync_turrets([first])
 	overlay.set_turrets(units.turrets, units.turret_revision)
 	_check(units.turret_revision > revision and not is_instance_valid(original) and overlay._mask_tree_dirty, "Same ID type replacement loses root invalidation")
+	units.sync_gem_orbits(equipment,1,3.0)
+	_check(units.turrets[42].has("gem_orbit") and not is_instance_valid(orbit), "New root misses unchanged equipment")
+	units.sync_gem_orbits({},2,3.0)
+	_check(units._gem_orbits.is_empty() and not units.turrets[42].gem_orbit.visible, "Missing equipment leaves stale orbit")
 	var other := Node3D.new()
 	world.add_child(other)
 	var replacement := {42: {"root": other}}

@@ -570,6 +570,7 @@ func _mask_hierarchy_changed(_node: Node) -> void:
 	_mask_tree_dirty = true
 
 func _collect_mask_meshes(source: Node3D) -> void:
+	if source.get_meta("exclude_selection_mask", false): return
 	_mask_observed.append(source)
 	source.child_entered_tree.connect(_mask_hierarchy_changed)
 	source.child_exiting_tree.connect(_mask_hierarchy_changed)

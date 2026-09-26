@@ -80,6 +80,12 @@ func _initialize() -> void:
 	var native: Dictionary = commands[-1].turret.statInput
 	var stats: Dictionary = preload("res://combat/turret_stat_calculation.gd").stats_at(native,int(native.level))
 	assert(is_equal_approx(entries[0].range,stats.range*stats.effectAreaMultiplier))
+	assert(entries[0].orbitGemColors == [Color("69D7FF"),Color("FF8A2A")])
+	assert(not entries[0].has("gemColors"), "3D satellite gems must not also draw legacy arcs")
+	assert(app.selected_run_command("removeGem",{"slot":0}))
+	adapter.apply(app)
+	entries = frame.presentation.selection.state.turrets.filter(func(t): return t.selected)
+	assert(entries[0].orbitGemColors == [Color("FF8A2A")], "Empty slots must not spawn satellites")
 	frame.presentation.selection = {"rewardTargeting":true,"rewardTargets":[{"position":[1.5,1.5]}]}
 	adapter.apply(app)
 	assert(frame.presentation.selection.get("state",frame.presentation.selection).rewardTargets.size() == 1)

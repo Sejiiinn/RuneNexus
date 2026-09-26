@@ -1,6 +1,7 @@
 extends RefCounted
 ## Adapts the native run owner to the existing selection renderer's tile units.
 ## Call after selection/run commands; no simulation or per-frame stat calculation.
+const GemPalette = preload("res://ui/battle_rewards.gd")
 const COLORS := {"arrow":0xffe7c66a,"cannon":0xffff7b2f,"magic":0xffff5e3a,"frost":0xff7fd8ff,"sniper":0xffb7f4ff,"lightning":0xffcfa7ff}
 var level_preview := false
 var _revision := 0
@@ -40,6 +41,11 @@ func _build_state(app) -> void:
 		var stats := _stats(app,derived,turret)
 		var selected: bool = int(turret.id) == selected_id
 		var entry := {"id":int(turret.id),"position":[float(turret.x)+0.5,float(turret.y)+0.5],"range":_range(app,str(turret.type),stats),"selected":selected,"color":COLORS.get(turret.type,0xff8ee6ff),"level":int(turret.level)}
+		# Separate from legacy 2D arcs; the model owner renders these in world space.
+		entry.orbitGemColors = []
+		for gem in turret.get("equippedGemSlots", []):
+			if gem != null:
+				entry.orbitGemColors.append(Color(str(GemPalette.GEM_COLORS.get(gem, "69D7FF"))))
 		if selected and level_preview:
 			var quote: Dictionary = app.run_domain.service.quotes(state,int(turret.id))
 			if int(quote.get("level",0)) > 0 and int(state.gold) >= int(quote.level):

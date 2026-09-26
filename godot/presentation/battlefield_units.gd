@@ -2,6 +2,7 @@ extends RefCounted
 ## Owns battlefield actor models and their frame-driven weapon/status visuals.
 signal failure(message: String)
 
+const GemOrbit = preload("res://effects/gem_orbit.gd")
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
@@ -35,6 +36,10 @@ var turrets := {}
 # Changes only when the rendered turret roots change.
 var turret_revision := 0
 var enemies := {}
+var _gem_selection_revision := -1
+var _gem_turret_revision := -1
+var _gem_selection: Dictionary = {}
+var _gem_orbits: Array[Node3D] = []
 var _build_preview := {}
 var _time := 0.0
 var columns := 8
@@ -55,6 +60,10 @@ func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> vo
 
 
 func clear() -> void:
+	_gem_selection_revision = -1
+	_gem_turret_revision = -1
+	_gem_selection = {}
+	_gem_orbits.clear()
 	if not turrets.is_empty():
 		turret_revision += 1
 	for collection: Dictionary in [turrets, enemies]:
@@ -64,6 +73,33 @@ func clear() -> void:
 	if not _build_preview.is_empty():
 		_build_preview["root"].free()
 		_build_preview.clear()
+
+
+# Static equipment is relayed only on selection/root changes; animation uses
+# the authoritative combat clock, including pause, speed and rewind.
+func sync_gem_orbits(selection: Dictionary, revision: int, time: float) -> void:
+	if revision < 0 or revision != _gem_selection_revision or turret_revision != _gem_turret_revision or not is_same(selection, _gem_selection):
+		_gem_selection_revision = revision
+		_gem_turret_revision = turret_revision
+		_gem_selection = selection
+		_gem_orbits.clear()
+		var colors_by_id := {}
+		for data: Dictionary in selection.get("turrets", []):
+			colors_by_id[int(data.get("id", -1))] = data.get("orbitGemColors", [])
+		for id in turrets:
+			var entry: Dictionary = turrets[id]
+			var colors: Array = colors_by_id.get(int(id), [])
+			if not colors.is_empty() and not entry.has("gem_orbit"):
+				var orbit := GemOrbit.new()
+				# Reward silhouettes must not turn translucent trails into opaque holes.
+				orbit.set_meta("exclude_selection_mask", true)
+				entry["root"].add_child(orbit)
+				entry["gem_orbit"] = orbit
+			if entry.has("gem_orbit"):
+				entry["gem_orbit"].configure(colors)
+				if not colors.is_empty(): _gem_orbits.append(entry["gem_orbit"])
+	for orbit in _gem_orbits:
+		orbit.update_time(time)
 
 
 func camera_changed() -> void:
