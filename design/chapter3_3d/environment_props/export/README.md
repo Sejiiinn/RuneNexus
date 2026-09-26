@@ -1,5 +1,7 @@
 # 벽 일체형 V2 내장 PBR 이관
 
+현재 게임 GLB는 이 형태와 벽 접합을 보존한 [경량본](../optimized-game-distance/README.md)이다. 아래는 고해상도 V2 최초 이관 당시 원본·수치·검증 기록이다.
+
 [승인 멀티뷰](../../environment_concepts/integrated-mounts/multiview-v2.png) → [편집 원본](../foundry-props.blend) → `assets/images/stage1_3d/environment/chapter3_props.glb`. 이전 선반과 외곽 지지 브래킷은 삭제되었다. 새 export는 소품 원본만 평가하며 타일/장착 장면 메시를 섞지 않는다.
 
 ## 계약

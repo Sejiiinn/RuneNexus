@@ -1,0 +1,4 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+FROST_INTEGRATION {"asset_sha256":"15ca26c0f1b634fe6d78ed40d532aaf2d8ec8c94fd4e0ed41edf1c5b98852ac5","engine":{"build":"official","hash":"ed1daf0bf001b61586d9930840f2f1394092c079","hex":263938,"major":4,"minor":7,"patch":2,"status":"stable","string":"4.7.2-stable (official)","timestamp":0},"failures":[],"fired":true,"renderer":"mobile","slowed_observed":true,"user_directory":"/Users/sejin/Library/Application Support/Godot/app_userdata/RuneNexus-Frost-Optimized-Integration","video_frames":13}

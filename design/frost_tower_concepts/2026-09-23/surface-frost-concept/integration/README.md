@@ -4,7 +4,7 @@
 
 ## 실제 구현과 원본
 
-최종 편집 원본은 [production/frost.blend](../../production/frost.blend), 게임용 원본은 [production/frost.glb](../../production/frost.glb)다. 같은 최종 GLB를 `assets/images/stage1_3d/turrets/frost.glb`로 복사하고 [HUD](../../production/hud-frost.png)도 같은 모델에서 다시 렌더했다.
+이 작업의 고해상도 편집 원본은 [production/frost.blend](../../production/frost.blend), 내보내기 원본은 [production/frost.glb](../../production/frost.glb)다. 당시 같은 GLB를 게임에 적용하고 [HUD](../../production/hud-frost.png)도 같은 모델에서 다시 렌더했다. 현재 게임은 이 외형을 유지한 [경량 모델](../../optimized-game-distance/README.md)을 사용하며, 아래 수치와 검증은 표면 서리를 적용했던 당시 기록이다.
 
 Blender에서 기존 금속·청동 재질 5종에 불규칙한 작은 결정 패치, 실제 모서리 주변의 얇은 서리, 미세 표면 법선과 거칠기를 혼합했다. 넓은 금속 면과 청동 중앙은 남겼으며 충전핀·렌즈·광원은 바꾸지 않았다. 균일한 망 무늬가 되던 첫 후보는 채택하지 않았다(`iteration1-too-uniform.png`).
 

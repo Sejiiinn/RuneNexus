@@ -1,0 +1,242 @@
+{
+	"app_reference_logical": [
+		440,
+		760
+	],
+	"body_comparison_vfx": false,
+	"columns": 8,
+	"content_scale_aspect": "expand",
+	"content_scale_mode": "canvas_items",
+	"formal_rect": [
+		8.0,
+		110.0,
+		424.0,
+		651.333312988281
+	],
+	"frost_state": "runtime configure; ready charge=1; mist off; standard light enabled",
+	"hardware": "macOS Godot mobile renderer, not Android screenshot",
+	"head_yaw": 0.0,
+	"host_window_pixels": [
+		440,
+		760
+	],
+	"logical_to_physical_scale": 3.27272727272727,
+	"map": {
+		"columns": 8.0,
+		"rows": 10.0,
+		"tiles": [
+			"spawn",
+			"path",
+			"build",
+			"build",
+			"blocked",
+			"blocked",
+			"blocked",
+			"blocked",
+			"build",
+			"path",
+			"build",
+			"build",
+			"build",
+			"build",
+			"blocked",
+			"blocked",
+			"blocked",
+			"path",
+			"path",
+			"path",
+			"path",
+			"build",
+			"build",
+			"blocked",
+			"blocked",
+			"build",
+			"build",
+			"build",
+			"path",
+			"build",
+			"blocked",
+			"blocked",
+			"blocked",
+			"blocked",
+			"build",
+			"build",
+			"path",
+			"path",
+			"path",
+			"build",
+			"blocked",
+			"blocked",
+			"blocked",
+			"build",
+			"build",
+			"build",
+			"path",
+			"build",
+			"blocked",
+			"path",
+			"path",
+			"path",
+			"path",
+			"path",
+			"path",
+			"build",
+			"build",
+			"path",
+			"build",
+			"build",
+			"build",
+			"build",
+			"build",
+			"build",
+			"build",
+			"path",
+			"build",
+			"build",
+			"blocked",
+			"blocked",
+			"blocked",
+			"blocked",
+			"build",
+			"path",
+			"path",
+			"path",
+			"path",
+			"path",
+			"core",
+			"blocked"
+		]
+	},
+	"msaa_3d": 1,
+	"physical_render_target": [
+		1440,
+		3120
+	],
+	"render_path": "explicit 1440x3120 SubViewport; no PNG resizing",
+	"renderer": "mobile",
+	"rows": 10,
+	"runtime_extra_scale": 1.0,
+	"safe_insets_assumed": [
+		0,
+		0,
+		0,
+		0
+	],
+	"samples": [
+		{
+			"camera_basis": "[X: (0.933346, 0.0, -0.358979), Y: (-0.31903, 0.458459, -0.829479), Z: (0.164577, 0.888716, 0.4279)]",
+			"camera_h_offset": -0.717958450317383,
+			"camera_position": "(5.0, 27.0, 13.0)",
+			"camera_size": 23.2052097320557,
+			"camera_v_offset": -0.838470935821533,
+			"crop_rect_pixels": [
+				716,
+				1291,
+				123,
+				133
+			],
+			"mode": "angled",
+			"physical_capture": [
+				1440,
+				3120
+			],
+			"pixels_per_tile_physical": 134.452566299801,
+			"projected_mesh_rect_pixels": [
+				724.767944335938,
+				1299.36706542969,
+				106.30078125,
+				116.34326171875
+			],
+			"variant": "original"
+		},
+		{
+			"camera_basis": "[X: (1.0, 0.0, 0.0), Y: (0.0, 0.000033, -1.0), Z: (0.0, 1.0, 0.000033)]",
+			"camera_h_offset": 0.0,
+			"camera_position": "(0.0, 30.0, 0.001)",
+			"camera_size": 19.5613212585449,
+			"camera_v_offset": -0.841273605823517,
+			"crop_rect_pixels": [
+				567,
+				1272,
+				147,
+				147
+			],
+			"mode": "drone",
+			"physical_capture": [
+				1440,
+				3120
+			],
+			"pixels_per_tile_physical": 159.498428493786,
+			"projected_mesh_rect_pixels": [
+				575.103393554688,
+				1280.92126464844,
+				130.294738769531,
+				130.294799804688
+			],
+			"variant": "original"
+		},
+		{
+			"camera_basis": "[X: (0.933346, 0.0, -0.358979), Y: (-0.31903, 0.458459, -0.829479), Z: (0.164577, 0.888716, 0.4279)]",
+			"camera_h_offset": -0.717958450317383,
+			"camera_position": "(5.0, 27.0, 13.0)",
+			"camera_size": 23.2052097320557,
+			"camera_v_offset": -0.838470935821533,
+			"crop_rect_pixels": [
+				716,
+				1291,
+				123,
+				133
+			],
+			"mode": "angled",
+			"physical_capture": [
+				1440,
+				3120
+			],
+			"pixels_per_tile_physical": 134.452566299801,
+			"projected_mesh_rect_pixels": [
+				724.767944335938,
+				1299.36706542969,
+				106.30078125,
+				116.34326171875
+			],
+			"variant": "optimized"
+		},
+		{
+			"camera_basis": "[X: (1.0, 0.0, 0.0), Y: (0.0, 0.000033, -1.0), Z: (0.0, 1.0, 0.000033)]",
+			"camera_h_offset": 0.0,
+			"camera_position": "(0.0, 30.0, 0.001)",
+			"camera_size": 19.5613212585449,
+			"camera_v_offset": -0.841273605823517,
+			"crop_rect_pixels": [
+				567,
+				1272,
+				147,
+				147
+			],
+			"mode": "drone",
+			"physical_capture": [
+				1440,
+				3120
+			],
+			"pixels_per_tile_physical": 159.498428493786,
+			"projected_mesh_rect_pixels": [
+				575.103393554688,
+				1280.92126464844,
+				130.294738769531,
+				130.294799804688
+			],
+			"variant": "optimized"
+		}
+	],
+	"scaling_3d_mode": 0,
+	"scaling_3d_scale": 1.0,
+	"tile_center_grid": [
+		3.5,
+		4.5
+	],
+	"viewport_logical": [
+		440.0,
+		953.333312988281
+	],
+	"zoom": 1.0
+}

@@ -1,0 +1,332 @@
+{
+  "variants": [
+    {
+      "variant": "original",
+      "bytes": 12576616,
+      "sha256": "e84d5a97650056d139fd6a61868e621042955937d0584c996416dc6cc59a8544",
+      "meshes": 3,
+      "surfaces": 19,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "Frost fixed body solid"
+        },
+        {
+          "mesh": 1,
+          "name": "Frost fixed iris skin"
+        },
+        {
+          "mesh": 2,
+          "name": "Frost fixed iris solid",
+          "translation": [
+            0.2838260531425476,
+            0.527999997138977,
+            -0.009937970899045467
+          ]
+        },
+        {
+          "name": "muzzle",
+          "translation": [
+            0,
+            0.5119999647140503,
+            0.02500000037252903
+          ]
+        },
+        {
+          "children": [
+            3
+          ],
+          "name": "turret_barrel"
+        },
+        {
+          "children": [
+            1,
+            2,
+            4
+          ],
+          "name": "turret_head"
+        },
+        {
+          "children": [
+            0,
+            5
+          ],
+          "name": "turret_root"
+        }
+      ],
+      "materials": [
+        "Frost | aged bronze pivot and restraint",
+        "Frost | bronze pivot edge",
+        "Frost | cold aluminum fins",
+        "Frost | cold circulating core",
+        "Frost | graphite blue-black machined steel",
+        "Frost | worn edge steel",
+        "Frost | dark deep coolant column",
+        "Frost | recessed cavity",
+        "Frost | basalt housing",
+        "Frost | transparent ice outer skin",
+        "Frost | submerged branching ice fractures",
+        "Frost | crystalline rim hoarfrost",
+        "Frost | deeply fractured blue ice lens"
+      ],
+      "triangles": 72752,
+      "material_triangles": {
+        "Frost | aged bronze pivot and restraint": 1896,
+        "Frost | bronze pivot edge": 10152,
+        "Frost | cold aluminum fins": 4320,
+        "Frost | cold circulating core": 18864,
+        "Frost | graphite blue-black machined steel": 10520,
+        "Frost | worn edge steel": 12816,
+        "Frost | dark deep coolant column": 2280,
+        "Frost | recessed cavity": 5096,
+        "Frost | basalt housing": 1156,
+        "Frost | transparent ice outer skin": 2304,
+        "Frost | submerged branching ice fractures": 288,
+        "Frost | crystalline rim hoarfrost": 756,
+        "Frost | deeply fractured blue ice lens": 2304
+      },
+      "textures": [
+        {
+          "name": "frost_surface_normal",
+          "bytes": 1147880,
+          "sha256": "3f72c6d9d1455ca593f44e79ff01fcf6ea6f17e1319ec7c4f733d417901fd30c",
+          "png_dimensions": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "name": "frost_surface_basecolor",
+          "bytes": 2783445,
+          "sha256": "d92fbad4a1138209d24345d8016eb9394c5e51e0ed797c3e558d00cd16a0a83c",
+          "png_dimensions": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "name": "frost_surface_orm",
+          "bytes": 2664651,
+          "sha256": "7eaad7cd50c7276afc552b622f1db11a8bde8798b47698cfe5283d66cf8802cf",
+          "png_dimensions": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "name": "ice_emission",
+          "bytes": 156758,
+          "sha256": "0dbf949eebdc2bafa54c31b3a207b20c59ed2b2870dd14ad65b74da0809ccc31",
+          "png_dimensions": [
+            512,
+            512
+          ]
+        },
+        {
+          "name": "ice_normal",
+          "bytes": 15960,
+          "sha256": "9d635534e475c7dc60f869767dbd9b0f37a94ddd7aa9a7b98642a6bd4febe8bc",
+          "png_dimensions": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "name": "ice_basecolor",
+          "bytes": 840977,
+          "sha256": "ad403f4e5bbbb30ea4f44abf7e3df4ec9e29102769f0f169b9ac2d2a486c2d45",
+          "png_dimensions": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "name": "ice_roughness",
+          "bytes": 598230,
+          "sha256": "d84f99b576ed01771098828db31b858b279ad6c4d5c7b92cdca9cfe10e9cc78c",
+          "png_dimensions": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "charge_material_names_present": true
+    },
+    {
+      "variant": "optimized",
+      "bytes": 11371160,
+      "sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+      "meshes": 3,
+      "surfaces": 19,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "Frost fixed body solid"
+        },
+        {
+          "mesh": 1,
+          "name": "Frost fixed iris skin"
+        },
+        {
+          "mesh": 2,
+          "name": "Frost fixed iris solid",
+          "translation": [
+            0.2838260531425476,
+            0.527999997138977,
+            -0.009937970899045467
+          ]
+        },
+        {
+          "name": "muzzle",
+          "translation": [
+            0,
+            0.5119999647140503,
+            0.02500000037252903
+          ]
+        },
+        {
+          "children": [
+            3
+          ],
+          "name": "turret_barrel"
+        },
+        {
+          "children": [
+            1,
+            2,
+            4
+          ],
+          "name": "turret_head"
+        },
+        {
+          "children": [
+            0,
+            5
+          ],
+          "name": "turret_root"
+        }
+      ],
+      "materials": [
+        "Frost | aged bronze pivot and restraint",
+        "Frost | bronze pivot edge",
+        "Frost | cold aluminum fins",
+        "Frost | cold circulating core",
+        "Frost | graphite blue-black machined steel",
+        "Frost | worn edge steel",
+        "Frost | dark deep coolant column",
+        "Frost | recessed cavity",
+        "Frost | basalt housing",
+        "Frost | transparent ice outer skin",
+        "Frost | submerged branching ice fractures",
+        "Frost | crystalline rim hoarfrost",
+        "Frost | deeply fractured blue ice lens"
+      ],
+      "triangles": 47912,
+      "material_triangles": {
+        "Frost | aged bronze pivot and restraint": 1896,
+        "Frost | bronze pivot edge": 10152,
+        "Frost | cold aluminum fins": 2016,
+        "Frost | cold circulating core": 8496,
+        "Frost | graphite blue-black machined steel": 4688,
+        "Frost | worn edge steel": 12816,
+        "Frost | dark deep coolant column": 1128,
+        "Frost | recessed cavity": 3368,
+        "Frost | basalt housing": 1156,
+        "Frost | transparent ice outer skin": 576,
+        "Frost | submerged branching ice fractures": 288,
+        "Frost | crystalline rim hoarfrost": 756,
+        "Frost | deeply fractured blue ice lens": 576
+      },
+      "textures": [
+        {
+          "name": "frost_surface_normal",
+          "bytes": 1147880,
+          "sha256": "3f72c6d9d1455ca593f44e79ff01fcf6ea6f17e1319ec7c4f733d417901fd30c",
+          "png_dimensions": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "name": "frost_surface_basecolor",
+          "bytes": 2783445,
+          "sha256": "d92fbad4a1138209d24345d8016eb9394c5e51e0ed797c3e558d00cd16a0a83c",
+          "png_dimensions": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "name": "frost_surface_orm",
+          "bytes": 2664651,
+          "sha256": "7eaad7cd50c7276afc552b622f1db11a8bde8798b47698cfe5283d66cf8802cf",
+          "png_dimensions": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "name": "ice_emission",
+          "bytes": 156758,
+          "sha256": "0dbf949eebdc2bafa54c31b3a207b20c59ed2b2870dd14ad65b74da0809ccc31",
+          "png_dimensions": [
+            512,
+            512
+          ]
+        },
+        {
+          "name": "ice_normal",
+          "bytes": 15960,
+          "sha256": "9d635534e475c7dc60f869767dbd9b0f37a94ddd7aa9a7b98642a6bd4febe8bc",
+          "png_dimensions": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "name": "ice_basecolor",
+          "bytes": 840977,
+          "sha256": "ad403f4e5bbbb30ea4f44abf7e3df4ec9e29102769f0f169b9ac2d2a486c2d45",
+          "png_dimensions": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "name": "ice_roughness",
+          "bytes": 598230,
+          "sha256": "d84f99b576ed01771098828db31b858b279ad6c4d5c7b92cdca9cfe10e9cc78c",
+          "png_dimensions": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "charge_material_names_present": true
+    }
+  ],
+  "triangle_reduction_percent": 34.14339124697603,
+  "file_reduction_percent": 9.584899467392505,
+  "texture_payloads_equal": true,
+  "nodes_exact_equal": true,
+  "material_definitions_exact_equal": true,
+  "texture_binding_definitions_exact_equal": true,
+  "full_png_dimensions": {
+    "optimized-drone-full.png": [
+      1440,
+      3120
+    ],
+    "original-angled-full.png": [
+      1440,
+      3120
+    ],
+    "original-drone-full.png": [
+      1440,
+      3120
+    ],
+    "optimized-angled-full.png": [
+      1440,
+      3120
+    ]
+  }
+}

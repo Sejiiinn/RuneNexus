@@ -1,0 +1,627 @@
+{
+  "sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+  "textured_slot_checks": 31,
+  "pass": true,
+  "checks": [
+    {
+      "mesh": 0,
+      "primitive": 0,
+      "material": "Frost | aged bronze pivot and restraint",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1728,
+      "unique_uvs": 1544,
+      "uv_bounds": [
+        [
+          0.0001445755478926003,
+          0.9998384118080139
+        ],
+        [
+          0.002193927764892578,
+          0.9997885227203369
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 0,
+      "material": "Frost | aged bronze pivot and restraint",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1728,
+      "unique_uvs": 1544,
+      "uv_bounds": [
+        [
+          0.0001445755478926003,
+          0.9998384118080139
+        ],
+        [
+          0.002193927764892578,
+          0.9997885227203369
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 0,
+      "material": "Frost | aged bronze pivot and restraint",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1728,
+      "unique_uvs": 1544,
+      "uv_bounds": [
+        [
+          0.0001445755478926003,
+          0.9998384118080139
+        ],
+        [
+          0.002193927764892578,
+          0.9997885227203369
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 1,
+      "material": "Frost | bronze pivot edge",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 10752,
+      "unique_uvs": 5418,
+      "uv_bounds": [
+        [
+          3.800344483551044e-09,
+          0.9999999403953552
+        ],
+        [
+          0.0020328164100646973,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 1,
+      "material": "Frost | bronze pivot edge",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 10752,
+      "unique_uvs": 5418,
+      "uv_bounds": [
+        [
+          3.800344483551044e-09,
+          0.9999999403953552
+        ],
+        [
+          0.0020328164100646973,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 1,
+      "material": "Frost | bronze pivot edge",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 10752,
+      "unique_uvs": 5418,
+      "uv_bounds": [
+        [
+          3.800344483551044e-09,
+          0.9999999403953552
+        ],
+        [
+          0.0020328164100646973,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 4,
+      "material": "Frost | graphite blue-black machined steel",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 2232,
+      "unique_uvs": 1772,
+      "uv_bounds": [
+        [
+          0.0003230891306884587,
+          0.9726935029029846
+        ],
+        [
+          0.04927760362625122,
+          0.9997852444648743
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 4,
+      "material": "Frost | graphite blue-black machined steel",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 2232,
+      "unique_uvs": 1772,
+      "uv_bounds": [
+        [
+          0.0003230891306884587,
+          0.9726935029029846
+        ],
+        [
+          0.04927760362625122,
+          0.9997852444648743
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 4,
+      "material": "Frost | graphite blue-black machined steel",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 2232,
+      "unique_uvs": 1772,
+      "uv_bounds": [
+        [
+          0.0003230891306884587,
+          0.9726935029029846
+        ],
+        [
+          0.04927760362625122,
+          0.9997852444648743
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 5,
+      "material": "Frost | worn edge steel",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 17760,
+      "unique_uvs": 8990,
+      "uv_bounds": [
+        [
+          1.900172241775522e-09,
+          0.9727411270141602
+        ],
+        [
+          0.026265382766723633,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 5,
+      "material": "Frost | worn edge steel",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 17760,
+      "unique_uvs": 8990,
+      "uv_bounds": [
+        [
+          1.900172241775522e-09,
+          0.9727411270141602
+        ],
+        [
+          0.026265382766723633,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 5,
+      "material": "Frost | worn edge steel",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 17760,
+      "unique_uvs": 8990,
+      "uv_bounds": [
+        [
+          1.900172241775522e-09,
+          0.9727411270141602
+        ],
+        [
+          0.026265382766723633,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 8,
+      "material": "Frost | basalt housing",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1864,
+      "unique_uvs": 1488,
+      "uv_bounds": [
+        [
+          0.0003233067109249532,
+          0.9557144045829773
+        ],
+        [
+          0.04115581512451172,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 8,
+      "material": "Frost | basalt housing",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1864,
+      "unique_uvs": 1488,
+      "uv_bounds": [
+        [
+          0.0003233067109249532,
+          0.9557144045829773
+        ],
+        [
+          0.04115581512451172,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 0,
+      "primitive": 8,
+      "material": "Frost | basalt housing",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1864,
+      "unique_uvs": 1488,
+      "uv_bounds": [
+        [
+          0.0003233067109249532,
+          0.9557144045829773
+        ],
+        [
+          0.04115581512451172,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 0,
+      "material": "Frost | bronze pivot edge",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 9120,
+      "unique_uvs": 4032,
+      "uv_bounds": [
+        [
+          0.030424809083342552,
+          0.993137001991272
+        ],
+        [
+          0.0,
+          0.942721426486969
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 0,
+      "material": "Frost | bronze pivot edge",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 9120,
+      "unique_uvs": 4032,
+      "uv_bounds": [
+        [
+          0.030424809083342552,
+          0.993137001991272
+        ],
+        [
+          0.0,
+          0.942721426486969
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 0,
+      "material": "Frost | bronze pivot edge",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 9120,
+      "unique_uvs": 4032,
+      "uv_bounds": [
+        [
+          0.030424809083342552,
+          0.993137001991272
+        ],
+        [
+          0.0,
+          0.942721426486969
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 3,
+      "material": "Frost | graphite blue-black machined steel",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 5808,
+      "unique_uvs": 3064,
+      "uv_bounds": [
+        [
+          0.00037691532634198666,
+          0.8931738138198853
+        ],
+        [
+          0.04148739576339722,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 3,
+      "material": "Frost | graphite blue-black machined steel",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 5808,
+      "unique_uvs": 3064,
+      "uv_bounds": [
+        [
+          0.00037691532634198666,
+          0.8931738138198853
+        ],
+        [
+          0.04148739576339722,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 3,
+      "material": "Frost | graphite blue-black machined steel",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 5808,
+      "unique_uvs": 3064,
+      "uv_bounds": [
+        [
+          0.00037691532634198666,
+          0.8931738138198853
+        ],
+        [
+          0.04148739576339722,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 4,
+      "material": "Frost | worn edge steel",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 7872,
+      "unique_uvs": 4007,
+      "uv_bounds": [
+        [
+          0.0,
+          0.9803884625434875
+        ],
+        [
+          0.01847541332244873,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 4,
+      "material": "Frost | worn edge steel",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 7872,
+      "unique_uvs": 4007,
+      "uv_bounds": [
+        [
+          0.0,
+          0.9803884625434875
+        ],
+        [
+          0.01847541332244873,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 4,
+      "material": "Frost | worn edge steel",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 7872,
+      "unique_uvs": 4007,
+      "uv_bounds": [
+        [
+          0.0,
+          0.9803884625434875
+        ],
+        [
+          0.01847541332244873,
+          1.0
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 6,
+      "material": "Frost | deeply fractured blue ice lens",
+      "texture_slot": "emissiveTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 290,
+      "unique_uvs": 289,
+      "uv_bounds": [
+        [
+          0.007500012870877981,
+          0.9925000071525574
+        ],
+        [
+          0.007499992847442627,
+          0.9925000071525574
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 6,
+      "material": "Frost | deeply fractured blue ice lens",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 290,
+      "unique_uvs": 289,
+      "uv_bounds": [
+        [
+          0.007500012870877981,
+          0.9925000071525574
+        ],
+        [
+          0.007499992847442627,
+          0.9925000071525574
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 6,
+      "material": "Frost | deeply fractured blue ice lens",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 290,
+      "unique_uvs": 289,
+      "uv_bounds": [
+        [
+          0.007500012870877981,
+          0.9925000071525574
+        ],
+        [
+          0.007499992847442627,
+          0.9925000071525574
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 6,
+      "material": "Frost | deeply fractured blue ice lens",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 290,
+      "unique_uvs": 289,
+      "uv_bounds": [
+        [
+          0.007500012870877981,
+          0.9925000071525574
+        ],
+        [
+          0.007499992847442627,
+          0.9925000071525574
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 8,
+      "material": "Frost | aged bronze pivot and restraint",
+      "texture_slot": "normalTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1440,
+      "unique_uvs": 1008,
+      "uv_bounds": [
+        [
+          0.06728211790323257,
+          0.9930293560028076
+        ],
+        [
+          0.0,
+          0.8154202103614807
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 8,
+      "material": "Frost | aged bronze pivot and restraint",
+      "texture_slot": "pbr.baseColorTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1440,
+      "unique_uvs": 1008,
+      "uv_bounds": [
+        [
+          0.06728211790323257,
+          0.9930293560028076
+        ],
+        [
+          0.0,
+          0.8154202103614807
+        ]
+      ],
+      "pass": true
+    },
+    {
+      "mesh": 2,
+      "primitive": 8,
+      "material": "Frost | aged bronze pivot and restraint",
+      "texture_slot": "pbr.metallicRoughnessTexture",
+      "selected_uv": "TEXCOORD_0",
+      "vertex_count": 1440,
+      "unique_uvs": 1008,
+      "uv_bounds": [
+        [
+          0.06728211790323257,
+          0.9930293560028076
+        ],
+        [
+          0.0,
+          0.8154202103614807
+        ]
+      ],
+      "pass": true
+    }
+  ]
+}

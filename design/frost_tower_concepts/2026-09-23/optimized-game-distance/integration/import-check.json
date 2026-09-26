@@ -1,0 +1,9 @@
+{
+  "game_sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+  "staged_sha256": "15ca26c0f1b634fe6d78ed40d532aaf2d8ec8c94fd4e0ed41edf1c5b98852ac5",
+  "binary_buffer_identical": true,
+  "nodes_meshes_accessors_materials_identical": true,
+  "reason_sha_diff": "standard shared texture URI externalization; BIN bytes unchanged",
+  "runtime_report": "report.json",
+  "game_glb_matches_candidate": true
+}

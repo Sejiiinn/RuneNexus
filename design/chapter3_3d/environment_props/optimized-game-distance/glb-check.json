@@ -1,0 +1,202 @@
+{
+  "original": {
+    "bytes": 8091672,
+    "sha256": "c4eb491ef578b6e91219b75b3a854ad4bb3b4b3e565cd0d866d55a5daacd7952",
+    "nodes": {
+      "elbow_pipe": {
+        "triangles": 38176,
+        "surfaces": 1,
+        "matrix": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "exhaust_vent": {
+        "triangles": 22484,
+        "surfaces": 1,
+        "matrix": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "side_conduit": {
+        "triangles": 37728,
+        "surfaces": 1,
+        "matrix": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          1,
+          1,
+          1
+        ],
+        "emissiveTexture": {
+          "index": 0
+        },
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.200000047683716
+          }
+        },
+        "name": "Chapter3 props approved native PBR",
+        "normalTexture": {
+          "index": 1
+        },
+        "pbrMetallicRoughness": {
+          "baseColorTexture": {
+            "index": 2
+          },
+          "metallicRoughnessTexture": {
+            "index": 3
+          }
+        }
+      }
+    ],
+    "image_count": 4
+  },
+  "optimized": {
+    "bytes": 4026984,
+    "sha256": "00f95bb711cfd703726bd164a73065df6007c10cac6875042d59bc113a8130bd",
+    "nodes": {
+      "elbow_pipe": {
+        "triangles": 6816,
+        "surfaces": 1,
+        "matrix": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "exhaust_vent": {
+        "triangles": 6588,
+        "surfaces": 1,
+        "matrix": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "side_conduit": {
+        "triangles": 9024,
+        "surfaces": 1,
+        "matrix": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "materials": [
+      {
+        "doubleSided": true,
+        "emissiveFactor": [
+          1,
+          1,
+          1
+        ],
+        "emissiveTexture": {
+          "index": 0
+        },
+        "extensions": {
+          "KHR_materials_emissive_strength": {
+            "emissiveStrength": 2.200000047683716
+          }
+        },
+        "name": "Chapter3 props approved native PBR",
+        "normalTexture": {
+          "index": 1
+        },
+        "pbrMetallicRoughness": {
+          "baseColorTexture": {
+            "index": 2
+          },
+          "metallicRoughnessTexture": {
+            "index": 3
+          }
+        }
+      }
+    ],
+    "image_count": 4
+  }
+}

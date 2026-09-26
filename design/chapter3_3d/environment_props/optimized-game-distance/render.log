@@ -1,0 +1,16 @@
+00:00.279  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/environment_props/mounted-scene.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+16:25:35 | INFO: Data are loaded, start creating Blender stuff
+16:25:35 | INFO: Blender create Mesh node elbow hollow upward quarter bend reduced.001
+16:25:35 | INFO: Blender create Mesh node exhaust bronze stack seat reduced.001
+16:25:35 | INFO: Blender create Mesh node conduit bronze end flange reduced.001
+16:25:35 | INFO: glTF import finished in 0.04s
+00:32.895  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/environment_props/optimized-game-distance/optimized-glb-mounted.png'
+REIMPORT_RENDER_READY
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

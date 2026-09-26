@@ -1,0 +1,284 @@
+{
+  "sha256": "e84d5a97650056d139fd6a61868e621042955937d0584c996416dc6cc59a8544",
+  "bytes": 12576616,
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "Frost fixed body solid"
+    },
+    {
+      "mesh": 1,
+      "name": "Frost fixed iris skin"
+    },
+    {
+      "mesh": 2,
+      "name": "Frost fixed iris solid",
+      "translation": [
+        0.2838260531425476,
+        0.527999997138977,
+        -0.009937970899045467
+      ]
+    },
+    {
+      "name": "muzzle",
+      "translation": [
+        0,
+        0.5119999647140503,
+        0.02500000037252903
+      ]
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "turret_barrel"
+    },
+    {
+      "children": [
+        1,
+        2,
+        4
+      ],
+      "name": "turret_head"
+    },
+    {
+      "children": [
+        0,
+        5
+      ],
+      "name": "turret_root"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Frost | aged bronze pivot and restraint",
+      "normalTexture": {
+        "index": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Frost | bronze pivot edge",
+      "normalTexture": {
+        "index": 3
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 4
+        },
+        "metallicRoughnessTexture": {
+          "index": 5
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.0007258599461795398,
+        0.015944198013599253,
+        0.025903259532825795
+      ],
+      "name": "Frost | cold aluminum fins",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.014443843625485897,
+          0.12213877588510513,
+          0.18447498977184296,
+          1
+        ],
+        "metallicFactor": 0.7300000190734863,
+        "roughnessFactor": 0.27000001072883606
+      }
+    },
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.0002428215964558958,
+        0.25851457504204767,
+        0.5436339936201868
+      ],
+      "name": "Frost | cold circulating core",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.002428215928375721,
+          0.18116424977779388,
+          0.30946892499923706,
+          1
+        ],
+        "metallicFactor": 0.3499999940395355,
+        "roughnessFactor": 0.25
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Frost | graphite blue-black machined steel",
+      "normalTexture": {
+        "index": 6
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 7
+        },
+        "metallicRoughnessTexture": {
+          "index": 8
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Frost | worn edge steel",
+      "normalTexture": {
+        "index": 9
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 10
+        },
+        "metallicRoughnessTexture": {
+          "index": 11
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.00021853944223779176,
+        0.02542739343354672,
+        0.05096677446233322
+      ],
+      "name": "Frost | dark deep coolant column",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.002428215928375721,
+          0.04666508734226227,
+          0.09084171056747437,
+          1
+        ],
+        "metallicFactor": 0.3499999940395355,
+        "roughnessFactor": 0.30000001192092896
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Frost | recessed cavity",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.002124688820913434,
+          0.010960093699395657,
+          0.016807375475764275,
+          1
+        ],
+        "metallicFactor": 0.3499999940395355,
+        "roughnessFactor": 0.5600000023841858
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Frost | basalt housing",
+      "normalTexture": {
+        "index": 12
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 13
+        },
+        "metallicRoughnessTexture": {
+          "index": 14
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "extensions": {
+        "KHR_materials_specular": {
+          "specularFactor": 0.30000001192092896
+        }
+      },
+      "name": "Frost | transparent ice outer skin",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.009721217676997185,
+          0.14702726900577545,
+          0.2917706370353699,
+          0.12999999523162842
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.18000000715255737
+      }
+    },
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.0010281750702520812,
+        0.030498250041196107,
+        0.05014620668859315
+      ],
+      "name": "Frost | submerged branching ice fractures",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.11697066575288773,
+          0.6239603757858276,
+          0.8148465752601624,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.30000001192092896
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Frost | crystalline rim hoarfrost",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.33716362714767456,
+          0.6444796919822693,
+          0.7011018991470337,
+          1
+        ],
+        "metallicFactor": 0.019999999552965164,
+        "roughnessFactor": 0.6499999761581421
+      }
+    },
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421
+      ],
+      "emissiveTexture": {
+        "index": 15
+      },
+      "extensions": {
+        "KHR_materials_specular": {
+          "specularFactor": 0.1599999964237213
+        }
+      },
+      "name": "Frost | deeply fractured blue ice lens",
+      "normalTexture": {
+        "index": 16
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 17
+        },
+        "metallicFactor": 0.07999999821186066,
+        "metallicRoughnessTexture": {
+          "index": 18
+        }
+      }
+    }
+  ],
+  "triangles": 72752,
+  "surfaces": 19
+}

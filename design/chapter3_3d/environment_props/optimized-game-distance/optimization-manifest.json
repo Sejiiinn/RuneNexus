@@ -1,0 +1,1534 @@
+{
+  "source": "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/environment_props/foundry-props.blend",
+  "source_sha256": "70a83f2fb2ec93df4b99b86db946ae9b67aa2facbf1ae0a1a665ef40188700d4",
+  "baseline_game_asset": "/Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/environment/chapter3_props.glb",
+  "baseline_game_sha256": "c4eb491ef578b6e91219b75b3a854ad4bb3b4b3e565cd0d866d55a5daacd7952",
+  "before": {
+    "elbow_pipe": {
+      "triangles": 38176,
+      "parts": {
+        "elbow hollow upward quarter bend": 17280,
+        "elbow subtle socket seam": 3072,
+        "elbow upright bronze mounting flange": 3072,
+        "elbow upward iron mouth lip": 3072,
+        "elbow wall cast socket": 3072,
+        "elbow wall flange bolt 0 hex": 284,
+        "elbow wall flange bolt 0 socket lip": 284,
+        "elbow wall flange bolt 0 washer": 508,
+        "elbow wall flange bolt 1 hex": 284,
+        "elbow wall flange bolt 1 socket lip": 284,
+        "elbow wall flange bolt 1 washer": 508,
+        "elbow wall flange bolt 2 hex": 284,
+        "elbow wall flange bolt 2 socket lip": 284,
+        "elbow wall flange bolt 2 washer": 508,
+        "elbow wall flange bolt 3 hex": 284,
+        "elbow wall flange bolt 3 socket lip": 284,
+        "elbow wall flange bolt 3 washer": 508,
+        "elbow wall flange bolt 4 hex": 284,
+        "elbow wall flange bolt 4 socket lip": 284,
+        "elbow wall flange bolt 4 washer": 508,
+        "elbow wall flange bolt 5 hex": 284,
+        "elbow wall flange bolt 5 socket lip": 284,
+        "elbow wall flange bolt 5 washer": 508,
+        "elbow wall flange bolt 6 hex": 284,
+        "elbow wall flange bolt 6 socket lip": 284,
+        "elbow wall flange bolt 6 washer": 508,
+        "elbow wall flange bolt 7 hex": 284,
+        "elbow wall flange bolt 7 socket lip": 284,
+        "elbow wall flange bolt 7 washer": 508
+      },
+      "bounds": [
+        [
+          -0.14499998092651367,
+          0.14499998092651367
+        ],
+        [
+          -0.3089999854564667,
+          0.0
+        ],
+        [
+          -0.34999996423721313,
+          0.1210000067949295
+        ]
+      ],
+      "root_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "nonmanifold_base_meshes": []
+    },
+    "side_conduit": {
+      "triangles": 37728,
+      "parts": {
+        "conduit bronze end flange": 3072,
+        "conduit bronze end flange.001": 3072,
+        "conduit clamp edge": 3072,
+        "conduit clamp edge.001": 3072,
+        "conduit clamp edge.002": 3072,
+        "conduit clamp edge.003": 3072,
+        "conduit flange rivet 00": 188,
+        "conduit flange rivet 00.001": 188,
+        "conduit flange rivet 01": 188,
+        "conduit flange rivet 01.001": 188,
+        "conduit flange rivet 02": 188,
+        "conduit flange rivet 02.001": 188,
+        "conduit flange rivet 03": 188,
+        "conduit flange rivet 03.001": 188,
+        "conduit flange rivet 04": 188,
+        "conduit flange rivet 04.001": 188,
+        "conduit flange rivet 05": 188,
+        "conduit flange rivet 05.001": 188,
+        "conduit flange rivet 06": 188,
+        "conduit flange rivet 06.001": 188,
+        "conduit flange rivet 07": 188,
+        "conduit flange rivet 07.001": 188,
+        "conduit flange rivet 08": 188,
+        "conduit flange rivet 08.001": 188,
+        "conduit flange rivet 09": 188,
+        "conduit flange rivet 09.001": 188,
+        "conduit inspection frame end": 188,
+        "conduit inspection frame end.001": 188,
+        "conduit inspection frame rail": 188,
+        "conduit inspection frame rail.001": 188,
+        "conduit mount bolt hex": 284,
+        "conduit mount bolt hex.001": 284,
+        "conduit mount bolt hex.002": 284,
+        "conduit mount bolt hex.003": 284,
+        "conduit mount bolt socket lip": 284,
+        "conduit mount bolt socket lip.001": 284,
+        "conduit mount bolt socket lip.002": 284,
+        "conduit mount bolt socket lip.003": 284,
+        "conduit mount bolt washer": 508,
+        "conduit mount bolt washer.001": 508,
+        "conduit mount bolt washer.002": 508,
+        "conduit mount bolt washer.003": 508,
+        "conduit open hollow body": 3396,
+        "conduit recessed amber inspection core": 188,
+        "conduit saddle clamp 0": 3072,
+        "conduit saddle clamp 1": 3072,
+        "conduit wall mount ear": 188,
+        "conduit wall mount ear.001": 188,
+        "conduit wall mount ear.002": 188,
+        "conduit wall mount ear.003": 188
+      },
+      "bounds": [
+        [
+          -0.43299999833106995,
+          0.43299999833106995
+        ],
+        [
+          -0.2580000162124634,
+          0.0
+        ],
+        [
+          -0.4300000071525574,
+          -0.06999999284744263
+        ]
+      ],
+      "root_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "nonmanifold_base_meshes": []
+    },
+    "exhaust_vent": {
+      "triangles": 22484,
+      "parts": {
+        "exhaust bronze stack seat": 3072,
+        "exhaust bronze top lip": 3072,
+        "exhaust front housing bolt hex": 284,
+        "exhaust front housing bolt hex.001": 284,
+        "exhaust front housing bolt hex.002": 284,
+        "exhaust front housing bolt hex.003": 284,
+        "exhaust front housing bolt socket lip": 284,
+        "exhaust front housing bolt socket lip.001": 284,
+        "exhaust front housing bolt socket lip.002": 284,
+        "exhaust front housing bolt socket lip.003": 284,
+        "exhaust front housing bolt washer": 508,
+        "exhaust front housing bolt washer.001": 508,
+        "exhaust front housing bolt washer.002": 508,
+        "exhaust front housing bolt washer.003": 508,
+        "exhaust inspection frame sill": 188,
+        "exhaust inspection frame sill.001": 188,
+        "exhaust inspection frame upright": 188,
+        "exhaust inspection frame upright.001": 188,
+        "exhaust integrated full height rounded housing": 2984,
+        "exhaust lip rivet 00": 188,
+        "exhaust lip rivet 01": 188,
+        "exhaust lip rivet 02": 188,
+        "exhaust lip rivet 03": 188,
+        "exhaust lip rivet 04": 188,
+        "exhaust lip rivet 05": 188,
+        "exhaust lip rivet 06": 188,
+        "exhaust lip rivet 07": 188,
+        "exhaust lip rivet 08": 188,
+        "exhaust lip rivet 09": 188,
+        "exhaust recessed furnace core 0": 188,
+        "exhaust recessed furnace core 1": 188,
+        "exhaust recessed furnace core 2": 188,
+        "exhaust short deep open chimney": 3072,
+        "exhaust shoulder reinforcement band": 316,
+        "exhaust shoulder reinforcement band.001": 316,
+        "exhaust top shoulder bolt hex": 284,
+        "exhaust top shoulder bolt hex.001": 284,
+        "exhaust top shoulder bolt socket lip": 284,
+        "exhaust top shoulder bolt socket lip.001": 284,
+        "exhaust top shoulder bolt washer": 508,
+        "exhaust top shoulder bolt washer.001": 508
+      },
+      "bounds": [
+        [
+          -0.21799999475479126,
+          0.21799999475479126
+        ],
+        [
+          -0.26798999309539795,
+          0.0
+        ],
+        [
+          -0.5,
+          0.2529999911785126
+        ]
+      ],
+      "root_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "nonmanifold_base_meshes": []
+    }
+  },
+  "after": {
+    "elbow_pipe": {
+      "triangles": 6816,
+      "parts": {
+        "elbow hollow upward quarter bend": 2688,
+        "elbow subtle socket seam": 512,
+        "elbow upright bronze mounting flange": 512,
+        "elbow upward iron mouth lip": 512,
+        "elbow wall cast socket": 512,
+        "elbow wall flange bolt 0 hex": 68,
+        "elbow wall flange bolt 0 socket lip": 68,
+        "elbow wall flange bolt 0 washer": 124,
+        "elbow wall flange bolt 1 hex": 68,
+        "elbow wall flange bolt 1 socket lip": 68,
+        "elbow wall flange bolt 1 washer": 124,
+        "elbow wall flange bolt 2 hex": 68,
+        "elbow wall flange bolt 2 socket lip": 68,
+        "elbow wall flange bolt 2 washer": 124,
+        "elbow wall flange bolt 3 hex": 68,
+        "elbow wall flange bolt 3 socket lip": 68,
+        "elbow wall flange bolt 3 washer": 124,
+        "elbow wall flange bolt 4 hex": 68,
+        "elbow wall flange bolt 4 socket lip": 68,
+        "elbow wall flange bolt 4 washer": 124,
+        "elbow wall flange bolt 5 hex": 68,
+        "elbow wall flange bolt 5 socket lip": 68,
+        "elbow wall flange bolt 5 washer": 124,
+        "elbow wall flange bolt 6 hex": 68,
+        "elbow wall flange bolt 6 socket lip": 68,
+        "elbow wall flange bolt 6 washer": 124,
+        "elbow wall flange bolt 7 hex": 68,
+        "elbow wall flange bolt 7 socket lip": 68,
+        "elbow wall flange bolt 7 washer": 124
+      },
+      "bounds": [
+        [
+          -0.14499998092651367,
+          0.14499998092651367
+        ],
+        [
+          -0.3089999854564667,
+          0.0
+        ],
+        [
+          -0.34999996423721313,
+          0.1210000067949295
+        ]
+      ],
+      "root_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "nonmanifold_base_meshes": []
+    },
+    "side_conduit": {
+      "triangles": 9024,
+      "parts": {
+        "conduit bronze end flange": 512,
+        "conduit bronze end flange.001": 512,
+        "conduit clamp edge": 512,
+        "conduit clamp edge.001": 512,
+        "conduit clamp edge.002": 512,
+        "conduit clamp edge.003": 512,
+        "conduit flange rivet 00": 92,
+        "conduit flange rivet 00.001": 92,
+        "conduit flange rivet 01": 92,
+        "conduit flange rivet 01.001": 92,
+        "conduit flange rivet 02": 92,
+        "conduit flange rivet 02.001": 92,
+        "conduit flange rivet 03": 92,
+        "conduit flange rivet 03.001": 92,
+        "conduit flange rivet 04": 92,
+        "conduit flange rivet 04.001": 92,
+        "conduit flange rivet 05": 92,
+        "conduit flange rivet 05.001": 92,
+        "conduit flange rivet 06": 92,
+        "conduit flange rivet 06.001": 92,
+        "conduit flange rivet 07": 92,
+        "conduit flange rivet 07.001": 92,
+        "conduit flange rivet 08": 92,
+        "conduit flange rivet 08.001": 92,
+        "conduit flange rivet 09": 92,
+        "conduit flange rivet 09.001": 92,
+        "conduit inspection frame end": 44,
+        "conduit inspection frame end.001": 44,
+        "conduit inspection frame rail": 44,
+        "conduit inspection frame rail.001": 44,
+        "conduit mount bolt hex": 68,
+        "conduit mount bolt hex.001": 68,
+        "conduit mount bolt hex.002": 68,
+        "conduit mount bolt hex.003": 68,
+        "conduit mount bolt socket lip": 68,
+        "conduit mount bolt socket lip.001": 68,
+        "conduit mount bolt socket lip.002": 68,
+        "conduit mount bolt socket lip.003": 68,
+        "conduit mount bolt washer": 124,
+        "conduit mount bolt washer.001": 124,
+        "conduit mount bolt washer.002": 124,
+        "conduit mount bolt washer.003": 124,
+        "conduit open hollow body": 1652,
+        "conduit recessed amber inspection core": 44,
+        "conduit saddle clamp 0": 512,
+        "conduit saddle clamp 1": 512,
+        "conduit wall mount ear": 44,
+        "conduit wall mount ear.001": 44,
+        "conduit wall mount ear.002": 44,
+        "conduit wall mount ear.003": 44
+      },
+      "bounds": [
+        [
+          -0.43299999833106995,
+          0.43299999833106995
+        ],
+        [
+          -0.2580000162124634,
+          0.0
+        ],
+        [
+          -0.4300000071525574,
+          -0.06999999284744263
+        ]
+      ],
+      "root_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "nonmanifold_base_meshes": []
+    },
+    "exhaust_vent": {
+      "triangles": 6588,
+      "parts": {
+        "exhaust bronze stack seat": 512,
+        "exhaust bronze top lip": 512,
+        "exhaust front housing bolt hex": 68,
+        "exhaust front housing bolt hex.001": 68,
+        "exhaust front housing bolt hex.002": 68,
+        "exhaust front housing bolt hex.003": 68,
+        "exhaust front housing bolt socket lip": 68,
+        "exhaust front housing bolt socket lip.001": 68,
+        "exhaust front housing bolt socket lip.002": 68,
+        "exhaust front housing bolt socket lip.003": 68,
+        "exhaust front housing bolt washer": 124,
+        "exhaust front housing bolt washer.001": 124,
+        "exhaust front housing bolt washer.002": 124,
+        "exhaust front housing bolt washer.003": 124,
+        "exhaust inspection frame sill": 44,
+        "exhaust inspection frame sill.001": 44,
+        "exhaust inspection frame upright": 44,
+        "exhaust inspection frame upright.001": 44,
+        "exhaust integrated full height rounded housing": 2096,
+        "exhaust lip rivet 00": 92,
+        "exhaust lip rivet 01": 92,
+        "exhaust lip rivet 02": 92,
+        "exhaust lip rivet 03": 92,
+        "exhaust lip rivet 04": 92,
+        "exhaust lip rivet 05": 92,
+        "exhaust lip rivet 06": 92,
+        "exhaust lip rivet 07": 92,
+        "exhaust lip rivet 08": 92,
+        "exhaust lip rivet 09": 92,
+        "exhaust recessed furnace core 0": 44,
+        "exhaust recessed furnace core 1": 44,
+        "exhaust recessed furnace core 2": 44,
+        "exhaust short deep open chimney": 512,
+        "exhaust shoulder reinforcement band": 84,
+        "exhaust shoulder reinforcement band.001": 84,
+        "exhaust top shoulder bolt hex": 68,
+        "exhaust top shoulder bolt hex.001": 68,
+        "exhaust top shoulder bolt socket lip": 68,
+        "exhaust top shoulder bolt socket lip.001": 68,
+        "exhaust top shoulder bolt washer": 124,
+        "exhaust top shoulder bolt washer.001": 124
+      },
+      "bounds": [
+        [
+          -0.21799999475479126,
+          0.21799999475479126
+        ],
+        [
+          -0.26798999309539795,
+          0.0
+        ],
+        [
+          -0.5,
+          0.2529999911785126
+        ]
+      ],
+      "root_matrix": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "nonmanifold_base_meshes": []
+    }
+  },
+  "changes": [
+    [
+      "elbow hollow upward quarter bend",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow hollow upward quarter bend",
+      "swept_radial/path",
+      [
+        96,
+        39
+      ],
+      [
+        32,
+        19
+      ]
+    ],
+    [
+      "elbow subtle socket seam",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow subtle socket seam",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "elbow upright bronze mounting flange",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow upright bronze mounting flange",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "elbow upward iron mouth lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow upward iron mouth lip",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "elbow wall cast socket",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall cast socket",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "elbow wall flange bolt 0 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 0 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 0 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 0 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 1 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 1 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 1 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 1 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 2 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 2 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 2 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 2 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 3 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 3 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 3 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 3 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 4 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 4 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 4 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 4 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 5 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 5 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 5 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 5 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 6 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 6 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 6 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 6 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "elbow wall flange bolt 7 hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 7 socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 7 washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "elbow wall flange bolt 7 washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "conduit bronze end flange",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit bronze end flange",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit bronze end flange.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit bronze end flange.001",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit clamp edge",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit clamp edge",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit clamp edge.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit clamp edge.001",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit clamp edge.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit clamp edge.002",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit clamp edge.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit clamp edge.003",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit flange rivet 00",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 00.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 01",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 01.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 02",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 02.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 03",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 03.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 04",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 04.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 05",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 05.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 06",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 06.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 07",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 07.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 08",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 08.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 09",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit flange rivet 09.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit inspection frame end",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit inspection frame end.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit inspection frame rail",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit inspection frame rail.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt hex.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt hex.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt hex.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt socket lip.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt socket lip.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt socket lip.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "conduit mount bolt washer.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt washer.001",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "conduit mount bolt washer.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt washer.002",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "conduit mount bolt washer.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit mount bolt washer.003",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "conduit open hollow body",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit recessed amber inspection core",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit saddle clamp 0",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit saddle clamp 0",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit saddle clamp 1",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit saddle clamp 1",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "conduit wall mount ear",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit wall mount ear.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit wall mount ear.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "conduit wall mount ear.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust bronze stack seat",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust bronze stack seat",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "exhaust bronze top lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust bronze top lip",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "exhaust front housing bolt hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt hex.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt hex.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt hex.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt socket lip.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt socket lip.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt socket lip.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "exhaust front housing bolt washer.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt washer.001",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "exhaust front housing bolt washer.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt washer.002",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "exhaust front housing bolt washer.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust front housing bolt washer.003",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "exhaust inspection frame sill",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust inspection frame sill.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust inspection frame upright",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust inspection frame upright.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust integrated full height rounded housing",
+      "bevel_segments",
+      3,
+      2
+    ],
+    [
+      "exhaust lip rivet 00",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 01",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 02",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 03",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 04",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 05",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 06",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 07",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 08",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust lip rivet 09",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust recessed furnace core 0",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust recessed furnace core 1",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust recessed furnace core 2",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust short deep open chimney",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust short deep open chimney",
+      "annulus_radial",
+      96,
+      32
+    ],
+    [
+      "exhaust shoulder reinforcement band",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust shoulder reinforcement band.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt hex",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt hex.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt socket lip",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt socket lip.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt washer",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt washer",
+      "washer_radial",
+      32,
+      16
+    ],
+    [
+      "exhaust top shoulder bolt washer.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "exhaust top shoulder bolt washer.001",
+      "washer_radial",
+      32,
+      16
+    ]
+  ],
+  "bore_checks": {
+    "conduit": {
+      "start": [
+        -0.6,
+        -0.135,
+        -0.25
+      ],
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "first_hit": null,
+      "distance": null
+    },
+    "exhaust": {
+      "start": [
+        0,
+        -0.143,
+        0.5
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "first_hit": [
+        0.0,
+        -0.14300000667572021,
+        -0.46500009298324585
+      ],
+      "distance": 0.9650000929832458
+    },
+    "elbow": {
+      "start": [
+        0,
+        -0.215,
+        0.5
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "first_hit": [
+        0.0,
+        -0.2150000035762787,
+        -0.21319729089736938
+      ],
+      "distance": 0.7131972908973694
+    }
+  },
+  "all_roots_identity": true,
+  "wall_plane_y": 0,
+  "outward": "-Y",
+  "tile_bottom_z": -0.5,
+  "materials_unchanged": true,
+  "whole_model_regenerated": false,
+  "decimate_used": false,
+  "game_files_changed": false,
+  "optimized_glb": "chapter3-props-optimized.glb",
+  "optimized_glb_sha256": "00f95bb711cfd703726bd164a73065df6007c10cac6875042d59bc113a8130bd",
+  "glb_bytes": 4026984,
+  "total_triangles_before": 98388,
+  "total_triangles_after": 22428,
+  "source_and_game_hashes_preserved": true,
+  "export_report": "geometry-check.json",
+  "glb_report": "glb-check.json",
+  "materials": "one shared native PBR material; per-kind one surface;1024 basecolor/normal/ORM/emission;KHR emission strength2.2 preserved",
+  "performance_scope": "Geometry and GLB byte reductions only; FPS/GPU performance unmeasured",
+  "triangle_reduction_percent": 77.20453713867545,
+  "per_kind_reduction_percent": {
+    "elbow_pipe": 82.14585079631182,
+    "side_conduit": 76.08142493638677,
+    "exhaust_vent": 70.69916384984877
+  }
+}

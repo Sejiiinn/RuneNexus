@@ -3,7 +3,7 @@
 승인 참조는 [냉각핀 시안](../iris-variants/03-ribbed-reactor.png)과 [보완 멀티뷰](../cooling-fin-multiview/cooling-fin-multiview.png)다. 멀티뷰의 RIGHT는 FRONT 반복이므로 실제 구조는 6장 셔터·6리브/냉각베이·4지지발로 정합화했다.
 
 - 편집 원본: `frost.blend`. 기존에 열려 있던 다른 원본은 덮어쓰지 않고 독립 Scene으로 제작했다.
-- 게임 적용본: `frost.glb` → `assets/images/stage1_3d/turrets/frost.glb`. 상하 청동 레일과 하부 소켓·발 연결부를 포함한 원본 부품은 개별 편집 가능하게 유지하고 GLB만 고정 몸체/고정 상단부/투명 표피 3메시로 병합했다.
+- 현재 게임 적용본은 [경량 모델](../optimized-game-distance/README.md)이다. 이 폴더의 `frost.blend`와 `frost.glb`는 표면 서리가 적용된 고해상도 원본으로 보관한다. 상하 청동 레일과 하부 소켓·발 연결부를 포함한 원본 부품은 개별 편집 가능하게 유지하고 GLB만 고정 몸체/고정 상단부/투명 표피 3메시로 병합했다.
 - 현재 대표 Blender 렌더와 실제 게임 근거: [표면 서리 적용](../surface-frost-concept/integration/README.md). 형상 기준은 [기둥·상판 디테일 보완](detail-refinement/README.md)이다. `stage2f-hero.png`와 [review.md](review.md)는 보완 전 제작 단계의 기록이다.
 - 수량·크기·해시·재질 목록: [model_audit.json](model_audit.json).
 - HUD: `hud-frost.png`(256×256 RGBA), 편집 검수 Scene `hud-frost.blend`, 조건과 방향 기록 `hud-direction-verification.json`. 다른 다섯 아이콘은 변경하지 않았다.
@@ -35,7 +35,7 @@ Blender Python 경로를 사용한다. 새 작업 환경에서 아래 순서로 
 
 ## 게임 적용 검증
 
-현재 표면 서리·형상과 기존 충전·안개 0.36의 최종 검증은 [표면 서리 적용 결과](../surface-frost-concept/integration/README.md)를 따른다. 아래 최초 적용 기록은 당시 상태의 근거로 보존한다.
+현재 경량 모델의 외형·충전·방출 검증은 [경량화 결과](../optimized-game-distance/README.md)를 따른다. 고해상도 원본의 표면 서리 적용은 [당시 결과](../surface-frost-concept/integration/README.md)에 보관하며, 아래 최초 적용 기록도 당시 상태의 근거다.
 
 최종 GLB와 HUD를 정식 에셋 경로에 반영하고 Godot 프로젝트를 갱신했다. 최종 에셋은 72,752 삼각형, 12,576,616바이트이며 크기는 폭 0.8183 × 높이 0.5344다.
 

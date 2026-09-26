@@ -1,0 +1,10 @@
+{
+  "baseline_git_commit": "0c63df5fa22c1f5b7bcfd5a3f3f9ec8b448aa047",
+  "baseline_sha256": "e84d5a97650056d139fd6a61868e621042955937d0584c996416dc6cc59a8544",
+  "optimized_sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+  "embedded_image_bytes_identical": true,
+  "material_names_identical": true,
+  "rig_transforms_identical": true,
+  "triangles": 47912,
+  "uv_slots_pass": true
+}

@@ -1,0 +1,50 @@
+00:00.429  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/environment_props/optimized-game-distance/foundry-props-optimized.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED basecolor
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED roughness
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED normal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED metallic
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED emission
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/environment_props/optimized-game-distance/export_optimized.py:108: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material=bpy.data.materials.new('Chapter3 props approved native PBR');material.use_nodes=True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+16:24:15 | INFO: Starting glTF 2.0 export
+16:24:15 | INFO: Extracting primitive: elbow hollow upward quarter bend reduced.001
+16:24:15 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+16:24:15 | INFO: Primitives created: 1
+16:24:15 | INFO: Extracting primitive: exhaust bronze stack seat reduced.001
+16:24:15 | INFO: Primitives created: 1
+16:24:15 | INFO: Extracting primitive: conduit bronze end flange reduced.001
+16:24:15 | INFO: Primitives created: 1
+16:24:15 | INFO: Finished glTF 2.0 export in 0.07639718055725098 s
+
+Info: Saved as "chapter3-props-optimized-baked.blend"
+16:24:15 | INFO: Data are loaded, start creating Blender stuff
+16:24:15 | INFO: Blender create Mesh node elbow hollow upward quarter bend reduced.001
+16:24:15 | INFO: Blender create Mesh node exhaust bronze stack seat reduced.001
+16:24:15 | INFO: Blender create Mesh node conduit bronze end flange reduced.001
+16:24:15 | INFO: glTF import finished in 0.04s
+EXPORT_READY {"source_sha256": "9c55ff54580aa70bf2edf43fd461a5ab107435cee00fa2499f488861eca0b4e7", "source_unchanged": true, "tiles": {"elbow_pipe": {"source_parts": 29, "triangles": 6816, "max_position_error": 2.9802322387695312e-08, "bounds": [[-0.14499998092651367, 0.14499998092651367], [-0.3089999854564667, 0.0], [-0.34999996423721313, 0.1210000067949295]]}, "side_conduit": {"source_parts": 50, "triangles": 9024, "max_position_error": 3.332000986233652e-08, "bounds": [[-0.43299999833106995, 0.43299999833106995], [-0.2580000162124634, 0.0], [-0.4300000071525574, -0.06999999284744263]]}, "exhaust_vent": {"source_parts": 41, "triangles": 6588, "max_position_error": 2.9802322387695312e-08, "bounds": [[-0.21799999475479126, 0.21799999475479126], [-0.26798999309539795, 0.0], [-0.5, 0.2529999911785126]]}}, "reimport": {"elbow_pipe": {"max_position_error": 0.0, "surfaces": 1, "wallanchor_aabb_pass": true}, "side_conduit": {"max_position_error": 0.0, "surfaces": 1, "wallanchor_aabb_pass": true}, "exhaust_vent": {"max_position_error": 0.0, "surfaces": 1, "wallanchor_aabb_pass": true}}, "atlas_size": 1024, "channels": ["basecolor", "roughness", "normal", "metallic", "emission"], "glb_bytes": 4026984, "glb_sha256": "00f95bb711cfd703726bd164a73065df6007c10cac6875042d59bc113a8130bd", "source_features": "integrated-mounts multiview-v2; upward wall elbow with no shelf; full-height exhaust housing -.5 to 0, short stack .253; conduit wall-flush; all roots wallanchor at tile outward .45 and height0"}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

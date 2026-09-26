@@ -1,0 +1,91 @@
+{
+  "source_sha256": "9c55ff54580aa70bf2edf43fd461a5ab107435cee00fa2499f488861eca0b4e7",
+  "source_unchanged": true,
+  "tiles": {
+    "elbow_pipe": {
+      "source_parts": 29,
+      "triangles": 6816,
+      "max_position_error": 2.9802322387695312e-08,
+      "bounds": [
+        [
+          -0.14499998092651367,
+          0.14499998092651367
+        ],
+        [
+          -0.3089999854564667,
+          0.0
+        ],
+        [
+          -0.34999996423721313,
+          0.1210000067949295
+        ]
+      ]
+    },
+    "side_conduit": {
+      "source_parts": 50,
+      "triangles": 9024,
+      "max_position_error": 3.332000986233652e-08,
+      "bounds": [
+        [
+          -0.43299999833106995,
+          0.43299999833106995
+        ],
+        [
+          -0.2580000162124634,
+          0.0
+        ],
+        [
+          -0.4300000071525574,
+          -0.06999999284744263
+        ]
+      ]
+    },
+    "exhaust_vent": {
+      "source_parts": 41,
+      "triangles": 6588,
+      "max_position_error": 2.9802322387695312e-08,
+      "bounds": [
+        [
+          -0.21799999475479126,
+          0.21799999475479126
+        ],
+        [
+          -0.26798999309539795,
+          0.0
+        ],
+        [
+          -0.5,
+          0.2529999911785126
+        ]
+      ]
+    }
+  },
+  "reimport": {
+    "elbow_pipe": {
+      "max_position_error": 0.0,
+      "surfaces": 1,
+      "wallanchor_aabb_pass": true
+    },
+    "side_conduit": {
+      "max_position_error": 0.0,
+      "surfaces": 1,
+      "wallanchor_aabb_pass": true
+    },
+    "exhaust_vent": {
+      "max_position_error": 0.0,
+      "surfaces": 1,
+      "wallanchor_aabb_pass": true
+    }
+  },
+  "atlas_size": 1024,
+  "channels": [
+    "basecolor",
+    "roughness",
+    "normal",
+    "metallic",
+    "emission"
+  ],
+  "glb_bytes": 4026984,
+  "glb_sha256": "00f95bb711cfd703726bd164a73065df6007c10cac6875042d59bc113a8130bd",
+  "source_features": "integrated-mounts multiview-v2; upward wall elbow with no shelf; full-height exhaust housing -.5 to 0, short stack .253; conduit wall-flush; all roots wallanchor at tile outward .45 and height0"
+}

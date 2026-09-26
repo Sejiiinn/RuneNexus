@@ -1,0 +1,9 @@
+{
+  "project": "/var/folders/87/4g3_qgvn78s0q1l4dckvf9k00000gn/T/runenexus-props-optimized-integration-n72lanmx/project",
+  "game_asset_sha256": "00f95bb711cfd703726bd164a73065df6007c10cac6875042d59bc113a8130bd",
+  "staged_geometry_bin_unchanged": true,
+  "staged_glb_sha256": "4c363f29d54bd93b9603d9b6da69f00211e316f0d1ed93215f1f360ba2ffa03f",
+  "baseline_git_commit": "0c63df5fa22c1f5b7bcfd5a3f3f9ec8b448aa047",
+  "godot": "/Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot",
+  "save_isolation": "distinct project name; fixture mode; no app session"
+}

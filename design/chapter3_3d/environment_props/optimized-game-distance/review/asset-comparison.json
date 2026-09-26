@@ -1,0 +1,128 @@
+{
+  "variants": [
+    {
+      "path": "assets/images/stage1_3d/environment/chapter3_props.glb",
+      "sha256": "c4eb491ef578b6e91219b75b3a854ad4bb3b4b3e565cd0d866d55a5daacd7952",
+      "bytes": 8091672,
+      "material_count": 1,
+      "props": {
+        "elbow_pipe": {
+          "triangles": 38176,
+          "bounds_min": [
+            -0.14499998092651367,
+            -0.34999996423721313,
+            -0.0
+          ],
+          "bounds_max": [
+            0.14499998092651367,
+            0.1210000067949295,
+            0.3089999854564667
+          ],
+          "identity_transform": true,
+          "bore_depth": 0.7133940126979766
+        },
+        "exhaust_vent": {
+          "triangles": 22484,
+          "bounds_min": [
+            -0.21799999475479126,
+            -0.5,
+            -0.0
+          ],
+          "bounds_max": [
+            0.21799999475479126,
+            0.2529999911785126,
+            0.26798999309539795
+          ],
+          "identity_transform": true,
+          "bore_depth": 0.9650000035762788,
+          "slot_front_z": [
+            0.22900000214576724,
+            0.2290000021457672,
+            0.22900000214576724
+          ]
+        },
+        "side_conduit": {
+          "triangles": 37728,
+          "bounds_min": [
+            -0.43299999833106995,
+            -0.4300000071525574,
+            -0.0
+          ],
+          "bounds_max": [
+            0.43299999833106995,
+            -0.06999999284744263,
+            0.2580000162124634
+          ],
+          "identity_transform": true,
+          "through_bore_hit": null
+        }
+      }
+    },
+    {
+      "path": "design/chapter3_3d/environment_props/optimized-game-distance/chapter3-props-optimized.glb",
+      "sha256": "00f95bb711cfd703726bd164a73065df6007c10cac6875042d59bc113a8130bd",
+      "bytes": 4026984,
+      "material_count": 1,
+      "props": {
+        "elbow_pipe": {
+          "triangles": 6816,
+          "bounds_min": [
+            -0.14499998092651367,
+            -0.34999996423721313,
+            -0.0
+          ],
+          "bounds_max": [
+            0.14499998092651367,
+            0.1210000067949295,
+            0.3089999854564667
+          ],
+          "identity_transform": true,
+          "bore_depth": 0.7131973560562734
+        },
+        "exhaust_vent": {
+          "triangles": 6588,
+          "bounds_min": [
+            -0.21799999475479126,
+            -0.5,
+            -0.0
+          ],
+          "bounds_max": [
+            0.21799999475479126,
+            0.2529999911785126,
+            0.26798999309539795
+          ],
+          "identity_transform": true,
+          "bore_depth": 0.9650000035762788,
+          "slot_front_z": [
+            0.22900000214576724,
+            0.2290000021457672,
+            0.22900000214576724
+          ]
+        },
+        "side_conduit": {
+          "triangles": 9024,
+          "bounds_min": [
+            -0.43299999833106995,
+            -0.4300000071525574,
+            -0.0
+          ],
+          "bounds_max": [
+            0.43299999833106995,
+            -0.06999999284744263,
+            0.2580000162124634
+          ],
+          "identity_transform": true,
+          "through_bore_hit": null
+        }
+      }
+    }
+  ],
+  "game_baseline_preserved": true,
+  "bounds_max_error": 0.0,
+  "stage11_triangles": [
+    174292,
+    38268
+  ],
+  "stage11_reduction_percent": 78.04374268469006,
+  "size_reduction_percent": 50.23298027898313
+}
