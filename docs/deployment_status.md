@@ -6,6 +6,15 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-26 경량화·전투 최적화 Android 0.2.5 / code 6034 — 공개 완료
+
+- [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6034) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6034/rune-nexus.apk). 대상 `9d8d454d7167bbd8bdd6d5f3a80fbfb04a375800`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36229160750). build-only 서명 산출물을 검수한 뒤 같은 파일을 공개했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 서버·DB·웹 변경은 없다.
+- 화염·냉각 타워와 챕터3 파이프·배기구 경량화, 전투 충돌 후보/반복 처리와 HUD 갱신 최적화, 전장 표시 책임 분리, 젬 위성·리본·색광, 로비 버튼 및 업데이트 진행·캐시 개선을 포함했다. 제작 중인 저격 SWIFT와 요청 밖 미커밋 변경은 포함하지 않았다.
+- CI의 Python·콘텐츠·Godot 네이티브·계정/AppServices 검사와 서명 APK 빌드, Android 패치 디코더, 6031/6032/6033 서명 일치·차등 복원을 통과했다. 최종 게임 모델의 동일 조건 QHD 외형과 충전·방출/벽 접합은 기존 최종 검수를 재사용했다. 별도 Astra가 변경 범위·최신 업데이트 진행 Android 근거·최종 APK 패키징·Android 대표 화면을 검수했다.
+- API 37 arm64 테스트 AVD에서 정식 6033 → 6034 덮어 설치와 최초 설치 시각 유지, 스테이지1·2/40 이어하기, 기존 골드148·HP17/20·젬1·기관총 복원을 확인했다. 실제 전투의 적 이동·피해·코어 빔과 일시정지 상태를 확인했다. 실제 Google 계정 로그인과 실기기 성능은 측정하지 않았다.
+- APK **366,949,598 bytes**, SHA-256 `b5f716a4b3ed143b65f9547f5f4a6e7171f39143b02a1ee9342160df4745c64c`. 6033보다 **5,389,820 bytes 감소(-1.4476%)**했다. PCK 138,725,300 bytes·910항목·완전 중복0이며 ABI3종과 네이티브 라이브러리 크기를 유지했다. 감소의 주원인은 chapter3_props·magic·frost의 런타임 메시이고, 새 스크립트·젬/UI 효과를 함께 포함한 최종 크기다. design 편집 원본은 포함하지 않았다. 패치는 6031 기준136,783,101 bytes, 6032 기준136,783,111 bytes, 6033 기준136,783,115 bytes다.
+- 근거: `build/release-verification/apk-6034/`의 `ci-run.json`, `ci.log`, `artifact-verification.json`, `packaging-review.json`, `ci-audit/godot-pack-audit.json`, `review/`, `public-verification.json`. 공개 태그 커밋과 latest/버전별 manifest, 자산5개의 GitHub SHA-256·크기 및 익명 다운로드 응답을 대조했다. 공개 후 전체 파일을 다시 내려받는 대신 로컬 검수 파일과 GitHub 업로드 digest를 대조했다.
+
 ## 2026-09-26 UI 개선 Android 0.2.4 / code 6033 — 공개 완료
 
 - [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6033) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6033/rune-nexus.apk). 대상 `777f24be0e56c9c15cc4ee6ff75444f06d2ee7b5`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36148566717). CI의 build-only 서명 산출물을 검수한 뒤 동일 파일을 공개했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 서버·DB·웹 변경은 없다.
