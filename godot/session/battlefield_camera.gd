@@ -5,6 +5,9 @@ signal pose_changed
 
 const CAMERA_TRANSITION_SECONDS := 0.7
 const CAMERA_DEPTH_MARGIN := 0.5
+# 수직에서 25° 기울여 전장 전체와 모델의 측면을 함께 보여 준다.
+const DRONE_TILT := deg_to_rad(25.0)
+const DRONE_DISTANCE := 30.0
 
 var camera: Camera3D
 var camera_mode := ""
@@ -70,8 +73,8 @@ func update_mode(requested_mode: String, forge: bool) -> void:
 	if requested_mode != camera_mode:
 		var drone := requested_mode == "drone"
 		var angled_position := Vector3(5, 20, 13) if forge else Vector3(5, 27, 13)
-		var target_position := Vector3(0, 30, 0.001) if drone else angled_position
-		var target_basis := Basis.looking_at(-target_position, Vector3.FORWARD if drone else Vector3.UP)
+		var target_position := Vector3(0, DRONE_DISTANCE * cos(DRONE_TILT), DRONE_DISTANCE * sin(DRONE_TILT)) if drone else angled_position
+		var target_basis := Basis.looking_at(-target_position, Vector3.UP)
 		if camera_mode.is_empty():
 			camera.transform = Transform3D(target_basis, target_position)
 		else:

@@ -2,6 +2,8 @@ extends SceneTree
 
 ## 실제 장면의 카메라 전환·재입력·정지 전투 회귀 검사.
 var failures := 0
+# 승인 시점: 거리 30, 수직에서 정면 방향으로 25°. 구현 상수를 재사용하지 않는다.
+var expected_drone := Vector3(0, 27.18923361, 12.67854785)
 
 func _initialize() -> void:
 	call_deferred("_verify")
@@ -63,7 +65,7 @@ func _verify() -> void:
 		_check(camera.global_basis.z.dot(camera.global_position.normalized()) > 0.9999, "전환 중 전장 중심 이탈")
 		_check_depth(scene, "고정→드론 전환 %d" % index)
 	_check(distances[0] > distances[1] and distances[1] > distances[2] and distances[2] > distances[3], "전환 후반 감속 실패")
-	_check(camera.position.distance_to(Vector3(0, 30, 0.001)) < 0.0001, "드론 시점 도착 오차")
+	_check(camera.position.distance_to(expected_drone) < 0.0001, "드론 시점 도착 오차")
 	_check(initial_ray.distance_to(material.get_shader_parameter("u_ray_direction")) > 0.1, "정지 전투의 볼륨 광선 갱신 누락")
 	_check(is_equal_approx(age, material.get_shader_parameter("u_age")), "카메라 이동이 정지한 전투 시계를 변경함")
 	var settled := camera.transform
@@ -90,8 +92,9 @@ func _verify() -> void:
 	transition = scene.camera_transition
 	transition.pause()
 	transition.custom_step(scene.CAMERA_TRANSITION_SECONDS)
-	_check(camera.position.distance_to(Vector3(0, 30, 0.001)) < 0.0001, "재입력 후 목표 시점 도착 실패")
+	_check(camera.position.distance_to(expected_drone) < 0.0001, "재입력 후 목표 시점 도착 실패")
 	_check_depth(scene, "재입력 후 드론")
+	_check(camera.global_basis.y.dot(Vector3.FORWARD) > 0.9, "드론 화면의 지도 상하 방향 반전")
 	scene.options["camera"] = "angled"
 	scene._apply_options()
 	transition = scene.camera_transition
