@@ -83,7 +83,17 @@ func run() -> void:
 	check(normal.burn.get_child(0).mesh != fast.burn.get_child(0).mesh, "Guardian status is not reused on hound skeleton")
 	runtime.events = [{"id": 1, "kind": "kill", "enemyId": 2, "x": 0.0, "y": 0.0}, {"id": 2, "kind": "kill", "enemyId": 1, "x": 0.0, "y": 0.0}]
 	motion.observe_native(runtime, 2.0, Vector2i(8, 8))
-	check(motion.deaths.has(1) and not motion.deaths.has(2), "Fast kill never creates a guardian death mesh")
+	check(motion.deaths.has(1) and motion.deaths.has(2), "Both authored kinds create their own death clip")
+	check(motion.deaths[2].type == "fast" and motion.deaths[2].clip != "Run", "Fast kill uses Death rather than Run")
+	check(is_equal_approx(motion.deaths[2].root.scale.x, 0.48 * Motion.FAST_VISUAL_SCALE), "Fast corpse retains live visual scale")
+	motion.update_deaths(2.30)
+	var corpse: Dictionary = motion.deaths[2]
+	var fade: float = (1.0 - float(corpse.death_bodies[0].get_instance_shader_parameter("death_opacity")))
+	check(fade > 0.0 and fade < 1.0, "Hound fades during its floating curl")
+	motion.update_deaths(2.30)
+	check(is_equal_approx(corpse.player.current_animation_position, 0.30) and is_equal_approx((1.0 - float(corpse.death_bodies[0].get_instance_shader_parameter("death_opacity"))), fade), "Paused combat clock freezes pose and fade")
+	motion.update_deaths(2.56)
+	check(not motion.deaths.has(2) and motion.deaths.has(1), "Fast cleans up at .55 seconds; normal retains its .6 second lifetime")
 	motion.forget_walker(2)
 	fast.root.free()
 	check(not motion.walkers.has(2), "Fast removal clears motion reference and status children")

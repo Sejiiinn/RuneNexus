@@ -1,0 +1,18 @@
+{
+  "clip": "Death",
+  "cycle_seconds": 0.55,
+  "duration_seconds": 0.55,
+  "fps": 60,
+  "frames_per_cycle": 33,
+  "loop": false,
+  "source_width": 1.91560959815979,
+  "normalized_ground_offset": 0.014982159223757006,
+  "author_ground_z": -0.02869996801018715,
+  "runtime_presentation_scale": 0.432,
+  "normalized_runtime_width": 1.0,
+  "root_motion": "No planar translation; baked vertical levitation 0.42 author units",
+  "dissolve": "Godot controls body fade; no alpha, particle, scale animation in GLB",
+  "source_blend_sha256": "dbff55dcc566605bddb8425a1146b3e8ba65412a2d94ae71cbb55fbabddaab7d",
+  "pose": "Low levitation with progressive C curl; head to chest, forelegs inward, hind legs to abdomen, tail curls forward",
+  "geometry": "Original 102 rigid source meshes / 20214 triangles / 24 bones; original PBR atlas reused"
+}

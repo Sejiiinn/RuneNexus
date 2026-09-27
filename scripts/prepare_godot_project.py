@@ -179,7 +179,7 @@ def prepare() -> Path:
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
-    required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
+    required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "fast_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
     required += [SOURCE_ASSETS / "effects" / "enemy_frost" / name
                  for name in ("crystals.glb", "attachments.json", "rime_mask.bin", "grain.png")]
     required += [SOURCE_ASSETS / "effects" / name

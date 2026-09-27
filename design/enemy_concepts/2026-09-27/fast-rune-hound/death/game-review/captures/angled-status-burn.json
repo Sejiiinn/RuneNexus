@@ -1,0 +1,7144 @@
+{
+	"capture_end": 20.0,
+	"capture_start": 8.5,
+	"effect_frames_by_kind": {
+		"fast_burn": 30,
+		"normal_burn": 294
+	},
+	"events": [
+		{
+			"combat": 0.966666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 2,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.63125,
+				"y": 0.5
+			},
+			"wall": 0.966666666666667
+		},
+		{
+			"combat": 1.0,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 3,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.653125,
+				"y": 0.5
+			},
+			"wall": 1.0
+		},
+		{
+			"combat": 1.03333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 4,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.675,
+				"y": 0.5
+			},
+			"wall": 1.03333333333333
+		},
+		{
+			"combat": 1.06666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 5,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.696875,
+				"y": 0.5
+			},
+			"wall": 1.06666666666667
+		},
+		{
+			"combat": 1.1,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 6,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.71875,
+				"y": 0.5
+			},
+			"wall": 1.1
+		},
+		{
+			"combat": 1.13333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 7,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.740625,
+				"y": 0.5
+			},
+			"wall": 1.13333333333333
+		},
+		{
+			"combat": 1.16666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 8,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.7625,
+				"y": 0.5
+			},
+			"wall": 1.16666666666667
+		},
+		{
+			"combat": 1.2,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 9,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.784375,
+				"y": 0.5
+			},
+			"wall": 1.2
+		},
+		{
+			"combat": 1.23333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 10,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.80625,
+				"y": 0.5
+			},
+			"wall": 1.23333333333333
+		},
+		{
+			"combat": 1.23333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 11,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 0.80625,
+				"y": 0.5
+			},
+			"wall": 1.23333333333333
+		},
+		{
+			"combat": 1.26666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 12,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.828125,
+				"y": 0.5
+			},
+			"wall": 1.26666666666667
+		},
+		{
+			"combat": 1.3,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 13,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.85,
+				"y": 0.5
+			},
+			"wall": 1.3
+		},
+		{
+			"combat": 1.33333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 14,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.871875,
+				"y": 0.5
+			},
+			"wall": 1.33333333333333
+		},
+		{
+			"combat": 1.36666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 15,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.89375,
+				"y": 0.5
+			},
+			"wall": 1.36666666666667
+		},
+		{
+			"combat": 1.4,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 16,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.915625,
+				"y": 0.5
+			},
+			"wall": 1.4
+		},
+		{
+			"combat": 1.43333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 17,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.9375,
+				"y": 0.5
+			},
+			"wall": 1.43333333333333
+		},
+		{
+			"combat": 1.46666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 18,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.959375,
+				"y": 0.5
+			},
+			"wall": 1.46666666666667
+		},
+		{
+			"combat": 1.5,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 19,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 0.98125,
+				"y": 0.5
+			},
+			"wall": 1.5
+		},
+		{
+			"combat": 1.53333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 20,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.003125,
+				"y": 0.5
+			},
+			"wall": 1.53333333333333
+		},
+		{
+			"combat": 1.53333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 21,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.003125,
+				"y": 0.5
+			},
+			"wall": 1.53333333333333
+		},
+		{
+			"combat": 1.56666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 22,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.025,
+				"y": 0.5
+			},
+			"wall": 1.56666666666667
+		},
+		{
+			"combat": 1.6,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 23,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.046875,
+				"y": 0.5
+			},
+			"wall": 1.6
+		},
+		{
+			"combat": 1.63333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 24,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.06875,
+				"y": 0.5
+			},
+			"wall": 1.63333333333333
+		},
+		{
+			"combat": 1.66666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 25,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.090625,
+				"y": 0.5
+			},
+			"wall": 1.66666666666667
+		},
+		{
+			"combat": 1.7,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 26,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.1125,
+				"y": 0.5
+			},
+			"wall": 1.7
+		},
+		{
+			"combat": 1.73333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 27,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.134375,
+				"y": 0.5
+			},
+			"wall": 1.73333333333333
+		},
+		{
+			"combat": 1.76666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 28,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.15625,
+				"y": 0.5
+			},
+			"wall": 1.76666666666667
+		},
+		{
+			"combat": 1.8,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 29,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.178125,
+				"y": 0.5
+			},
+			"wall": 1.8
+		},
+		{
+			"combat": 1.83333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 30,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.2,
+				"y": 0.5
+			},
+			"wall": 1.83333333333333
+		},
+		{
+			"combat": 1.83333333333334,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 31,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.2,
+				"y": 0.5
+			},
+			"wall": 1.83333333333333
+		},
+		{
+			"combat": 1.86666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 32,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.221875,
+				"y": 0.5
+			},
+			"wall": 1.86666666666667
+		},
+		{
+			"combat": 1.9,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 33,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.24375,
+				"y": 0.5
+			},
+			"wall": 1.9
+		},
+		{
+			"combat": 1.93333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 34,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.265625,
+				"y": 0.5
+			},
+			"wall": 1.93333333333333
+		},
+		{
+			"combat": 1.96666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 35,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.2875,
+				"y": 0.5
+			},
+			"wall": 1.96666666666667
+		},
+		{
+			"combat": 2.0,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 36,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.309375,
+				"y": 0.5
+			},
+			"wall": 2.0
+		},
+		{
+			"combat": 2.03333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 37,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.33125,
+				"y": 0.5
+			},
+			"wall": 2.03333333333333
+		},
+		{
+			"combat": 2.06666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 38,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.353125,
+				"y": 0.5
+			},
+			"wall": 2.06666666666667
+		},
+		{
+			"combat": 2.1,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 39,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.375,
+				"y": 0.5
+			},
+			"wall": 2.1
+		},
+		{
+			"combat": 2.13333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 40,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.396875,
+				"y": 0.5
+			},
+			"wall": 2.13333333333333
+		},
+		{
+			"combat": 2.13333333333334,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 41,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.396875,
+				"y": 0.5
+			},
+			"wall": 2.13333333333333
+		},
+		{
+			"combat": 2.16666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 42,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.41875,
+				"y": 0.5
+			},
+			"wall": 2.16666666666667
+		},
+		{
+			"combat": 2.2,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 43,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.440625,
+				"y": 0.5
+			},
+			"wall": 2.2
+		},
+		{
+			"combat": 2.23333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 44,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.4625,
+				"y": 0.5
+			},
+			"wall": 2.23333333333333
+		},
+		{
+			"combat": 2.26666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 45,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.484375,
+				"y": 0.5
+			},
+			"wall": 2.26666666666667
+		},
+		{
+			"combat": 2.3,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 46,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.5
+			},
+			"wall": 2.3
+		},
+		{
+			"combat": 2.33333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 47,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.521875
+			},
+			"wall": 2.33333333333333
+		},
+		{
+			"combat": 2.36666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 48,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.54375
+			},
+			"wall": 2.36666666666667
+		},
+		{
+			"combat": 2.4,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 49,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.565625
+			},
+			"wall": 2.4
+		},
+		{
+			"combat": 2.43333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 50,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.5875
+			},
+			"wall": 2.43333333333333
+		},
+		{
+			"combat": 2.43333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 51,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 0.5875
+			},
+			"wall": 2.43333333333333
+		},
+		{
+			"combat": 2.46666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 52,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.609375
+			},
+			"wall": 2.46666666666667
+		},
+		{
+			"combat": 2.5,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100000,
+				"id": 53,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.63125
+			},
+			"wall": 2.5
+		},
+		{
+			"combat": 2.5,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100000,
+				"id": 54,
+				"kind": "kill",
+				"type": "killed",
+				"x": 1.5,
+				"y": 0.653125
+			},
+			"wall": 2.5
+		},
+		{
+			"combat": 4.23333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 55,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.871875
+			},
+			"wall": 4.23333333333333
+		},
+		{
+			"combat": 4.26666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 56,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.89375
+			},
+			"wall": 4.26666666666667
+		},
+		{
+			"combat": 4.29999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 57,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.915625
+			},
+			"wall": 4.3
+		},
+		{
+			"combat": 4.33333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 58,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.9375
+			},
+			"wall": 4.33333333333333
+		},
+		{
+			"combat": 4.36666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 59,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.959375
+			},
+			"wall": 4.36666666666667
+		},
+		{
+			"combat": 4.39999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 60,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 0.98125
+			},
+			"wall": 4.4
+		},
+		{
+			"combat": 4.43333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 61,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.003125
+			},
+			"wall": 4.43333333333333
+		},
+		{
+			"combat": 4.46666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 62,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.025
+			},
+			"wall": 4.46666666666667
+		},
+		{
+			"combat": 4.49999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 63,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.046875
+			},
+			"wall": 4.5
+		},
+		{
+			"combat": 4.49999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 64,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.046875
+			},
+			"wall": 4.5
+		},
+		{
+			"combat": 4.53333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 65,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.06875
+			},
+			"wall": 4.53333333333333
+		},
+		{
+			"combat": 4.56666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 66,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.090625
+			},
+			"wall": 4.56666666666667
+		},
+		{
+			"combat": 4.59999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 67,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.1125
+			},
+			"wall": 4.6
+		},
+		{
+			"combat": 4.63333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 68,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.134375
+			},
+			"wall": 4.63333333333333
+		},
+		{
+			"combat": 4.66666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 69,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.15625
+			},
+			"wall": 4.66666666666667
+		},
+		{
+			"combat": 4.69999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 70,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.178125
+			},
+			"wall": 4.7
+		},
+		{
+			"combat": 4.73333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 71,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.2
+			},
+			"wall": 4.73333333333333
+		},
+		{
+			"combat": 4.76666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 72,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.221875
+			},
+			"wall": 4.76666666666667
+		},
+		{
+			"combat": 4.79999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 73,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.24375
+			},
+			"wall": 4.8
+		},
+		{
+			"combat": 4.79999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 74,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.24375
+			},
+			"wall": 4.8
+		},
+		{
+			"combat": 4.83333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 75,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.265625
+			},
+			"wall": 4.83333333333333
+		},
+		{
+			"combat": 4.86666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 76,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.2875
+			},
+			"wall": 4.86666666666667
+		},
+		{
+			"combat": 4.89999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 77,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.309375
+			},
+			"wall": 4.9
+		},
+		{
+			"combat": 4.93333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 78,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.33125
+			},
+			"wall": 4.93333333333333
+		},
+		{
+			"combat": 4.96666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 79,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.353125
+			},
+			"wall": 4.96666666666667
+		},
+		{
+			"combat": 4.99999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 80,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.375
+			},
+			"wall": 5.0
+		},
+		{
+			"combat": 5.03333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 81,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.396875
+			},
+			"wall": 5.03333333333333
+		},
+		{
+			"combat": 5.06666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 82,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.41875
+			},
+			"wall": 5.06666666666667
+		},
+		{
+			"combat": 5.09999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 83,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.440625
+			},
+			"wall": 5.1
+		},
+		{
+			"combat": 5.09999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 84,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.440625
+			},
+			"wall": 5.1
+		},
+		{
+			"combat": 5.13333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 85,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.4625
+			},
+			"wall": 5.13333333333333
+		},
+		{
+			"combat": 5.16666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 86,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.484375
+			},
+			"wall": 5.16666666666667
+		},
+		{
+			"combat": 5.19999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 87,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5
+			},
+			"wall": 5.2
+		},
+		{
+			"combat": 5.23333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 88,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.521875
+			},
+			"wall": 5.23333333333333
+		},
+		{
+			"combat": 5.26666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 89,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.54375
+			},
+			"wall": 5.26666666666667
+		},
+		{
+			"combat": 5.29999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 90,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.565625
+			},
+			"wall": 5.3
+		},
+		{
+			"combat": 5.33333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 91,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5875
+			},
+			"wall": 5.33333333333333
+		},
+		{
+			"combat": 5.36666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 92,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.609375
+			},
+			"wall": 5.36666666666667
+		},
+		{
+			"combat": 5.39999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 93,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.63125
+			},
+			"wall": 5.4
+		},
+		{
+			"combat": 5.39999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 94,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.63125
+			},
+			"wall": 5.4
+		},
+		{
+			"combat": 5.43333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 95,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.653125
+			},
+			"wall": 5.43333333333333
+		},
+		{
+			"combat": 5.46666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 96,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.675
+			},
+			"wall": 5.46666666666667
+		},
+		{
+			"combat": 5.49999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 97,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.696875
+			},
+			"wall": 5.5
+		},
+		{
+			"combat": 5.53333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 98,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.71875
+			},
+			"wall": 5.53333333333333
+		},
+		{
+			"combat": 5.56666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 99,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.740625
+			},
+			"wall": 5.56666666666667
+		},
+		{
+			"combat": 5.59999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 100,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.7625
+			},
+			"wall": 5.6
+		},
+		{
+			"combat": 5.63333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 101,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.784375
+			},
+			"wall": 5.63333333333333
+		},
+		{
+			"combat": 5.66666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 102,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.80625
+			},
+			"wall": 5.66666666666667
+		},
+		{
+			"combat": 5.69999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 103,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 5.7
+		},
+		{
+			"combat": 5.69999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 104,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 5.7
+		},
+		{
+			"combat": 5.73333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 105,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.85
+			},
+			"wall": 5.73333333333333
+		},
+		{
+			"combat": 5.76666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100001,
+				"id": 106,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.871875
+			},
+			"wall": 5.76666666666667
+		},
+		{
+			"combat": 5.76666666666666,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100001,
+				"id": 107,
+				"kind": "kill",
+				"type": "killed",
+				"x": 1.5,
+				"y": 1.89375
+			},
+			"wall": 5.76666666666667
+		},
+		{
+			"combat": 5.93333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 108,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.046875
+			},
+			"wall": 5.93333333333333
+		},
+		{
+			"combat": 5.96666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 109,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.06875
+			},
+			"wall": 5.96666666666667
+		},
+		{
+			"combat": 5.99999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 110,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.090625
+			},
+			"wall": 6.0
+		},
+		{
+			"combat": 6.03333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 111,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.1125
+			},
+			"wall": 6.03333333333333
+		},
+		{
+			"combat": 6.06666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 112,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.134375
+			},
+			"wall": 6.06666666666667
+		},
+		{
+			"combat": 6.09999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 113,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.15625
+			},
+			"wall": 6.1
+		},
+		{
+			"combat": 6.13333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 114,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.178125
+			},
+			"wall": 6.13333333333333
+		},
+		{
+			"combat": 6.16666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 115,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.2
+			},
+			"wall": 6.16666666666667
+		},
+		{
+			"combat": 6.19999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 116,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.221875
+			},
+			"wall": 6.2
+		},
+		{
+			"combat": 6.19999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 117,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.221875
+			},
+			"wall": 6.2
+		},
+		{
+			"combat": 6.23333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 118,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.24375
+			},
+			"wall": 6.23333333333333
+		},
+		{
+			"combat": 6.26666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 119,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.265625
+			},
+			"wall": 6.26666666666667
+		},
+		{
+			"combat": 6.29999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 120,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.2875
+			},
+			"wall": 6.3
+		},
+		{
+			"combat": 6.33333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 121,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.309375
+			},
+			"wall": 6.33333333333333
+		},
+		{
+			"combat": 6.36666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 122,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.33125
+			},
+			"wall": 6.36666666666667
+		},
+		{
+			"combat": 6.39999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 123,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.353125
+			},
+			"wall": 6.4
+		},
+		{
+			"combat": 6.43333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 124,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.375
+			},
+			"wall": 6.43333333333333
+		},
+		{
+			"combat": 6.46666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 125,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.396875
+			},
+			"wall": 6.46666666666667
+		},
+		{
+			"combat": 6.49999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 126,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.41875
+			},
+			"wall": 6.5
+		},
+		{
+			"combat": 6.49999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 127,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.41875
+			},
+			"wall": 6.5
+		},
+		{
+			"combat": 6.53333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 128,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.440625
+			},
+			"wall": 6.53333333333333
+		},
+		{
+			"combat": 6.56666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 129,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.4625
+			},
+			"wall": 6.56666666666667
+		},
+		{
+			"combat": 6.59999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 130,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.484375
+			},
+			"wall": 6.6
+		},
+		{
+			"combat": 6.63333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 131,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5
+			},
+			"wall": 6.63333333333333
+		},
+		{
+			"combat": 6.66666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 132,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.521875
+			},
+			"wall": 6.66666666666667
+		},
+		{
+			"combat": 6.69999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 133,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.54375
+			},
+			"wall": 6.7
+		},
+		{
+			"combat": 6.73333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 134,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.565625
+			},
+			"wall": 6.73333333333333
+		},
+		{
+			"combat": 6.76666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 135,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5875
+			},
+			"wall": 6.76666666666667
+		},
+		{
+			"combat": 6.79999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 136,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.609375
+			},
+			"wall": 6.8
+		},
+		{
+			"combat": 6.79999999999999,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 137,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.609375
+			},
+			"wall": 6.8
+		},
+		{
+			"combat": 6.83333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 138,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.63125
+			},
+			"wall": 6.83333333333333
+		},
+		{
+			"combat": 6.86666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 139,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.653125
+			},
+			"wall": 6.86666666666667
+		},
+		{
+			"combat": 6.89999999999999,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 140,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.675
+			},
+			"wall": 6.9
+		},
+		{
+			"combat": 6.93333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 141,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.696875
+			},
+			"wall": 6.93333333333333
+		},
+		{
+			"combat": 6.96666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 142,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.71875
+			},
+			"wall": 6.96666666666667
+		},
+		{
+			"combat": 6.99999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 143,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.740625
+			},
+			"wall": 7.0
+		},
+		{
+			"combat": 7.03333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 144,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.7625
+			},
+			"wall": 7.03333333333333
+		},
+		{
+			"combat": 7.06666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 145,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.784375
+			},
+			"wall": 7.06666666666667
+		},
+		{
+			"combat": 7.09999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 146,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.80625
+			},
+			"wall": 7.1
+		},
+		{
+			"combat": 7.09999999999998,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 147,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.80625
+			},
+			"wall": 7.1
+		},
+		{
+			"combat": 7.13333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 148,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 7.13333333333333
+		},
+		{
+			"combat": 7.16666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 149,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.85
+			},
+			"wall": 7.16666666666667
+		},
+		{
+			"combat": 7.19999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 150,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.871875
+			},
+			"wall": 7.2
+		},
+		{
+			"combat": 7.23333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 151,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.89375
+			},
+			"wall": 7.23333333333333
+		},
+		{
+			"combat": 7.26666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 152,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.915625
+			},
+			"wall": 7.26666666666667
+		},
+		{
+			"combat": 7.29999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 153,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.9375
+			},
+			"wall": 7.3
+		},
+		{
+			"combat": 7.33333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 154,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.959375
+			},
+			"wall": 7.33333333333333
+		},
+		{
+			"combat": 7.36666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 155,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.98125
+			},
+			"wall": 7.36666666666667
+		},
+		{
+			"combat": 7.39999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 156,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.003125
+			},
+			"wall": 7.4
+		},
+		{
+			"combat": 7.39999999999998,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 157,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.003125
+			},
+			"wall": 7.4
+		},
+		{
+			"combat": 7.43333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 158,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.025
+			},
+			"wall": 7.43333333333333
+		},
+		{
+			"combat": 7.46666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 159,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.046875
+			},
+			"wall": 7.46666666666667
+		},
+		{
+			"combat": 7.49999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100002,
+				"id": 160,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.06875
+			},
+			"wall": 7.5
+		},
+		{
+			"combat": 7.49999999999998,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100002,
+				"id": 161,
+				"kind": "kill",
+				"type": "killed",
+				"x": 1.5,
+				"y": 2.090625
+			},
+			"wall": 7.5
+		},
+		{
+			"combat": 7.59999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 162,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.221875
+			},
+			"wall": 7.6
+		},
+		{
+			"combat": 7.63333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 163,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.24375
+			},
+			"wall": 7.63333333333333
+		},
+		{
+			"combat": 7.66666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 164,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.265625
+			},
+			"wall": 7.66666666666667
+		},
+		{
+			"combat": 7.69999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 165,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.2875
+			},
+			"wall": 7.7
+		},
+		{
+			"combat": 7.73333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 166,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.309375
+			},
+			"wall": 7.73333333333333
+		},
+		{
+			"combat": 7.76666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 167,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.33125
+			},
+			"wall": 7.76666666666667
+		},
+		{
+			"combat": 7.79999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 168,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.353125
+			},
+			"wall": 7.8
+		},
+		{
+			"combat": 7.83333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 169,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.375
+			},
+			"wall": 7.83333333333333
+		},
+		{
+			"combat": 7.86666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 170,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.396875
+			},
+			"wall": 7.86666666666667
+		},
+		{
+			"combat": 7.86666666666665,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 171,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.396875
+			},
+			"wall": 7.86666666666667
+		},
+		{
+			"combat": 7.89999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 172,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.41875
+			},
+			"wall": 7.9
+		},
+		{
+			"combat": 7.93333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 173,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.440625
+			},
+			"wall": 7.93333333333333
+		},
+		{
+			"combat": 7.96666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 174,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.4625
+			},
+			"wall": 7.96666666666667
+		},
+		{
+			"combat": 7.99999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 175,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.484375
+			},
+			"wall": 8.0
+		},
+		{
+			"combat": 8.03333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 176,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5
+			},
+			"wall": 8.03333333333333
+		},
+		{
+			"combat": 8.06666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 177,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.521875
+			},
+			"wall": 8.06666666666667
+		},
+		{
+			"combat": 8.09999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 178,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.54375
+			},
+			"wall": 8.1
+		},
+		{
+			"combat": 8.13333333333332,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 179,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.565625
+			},
+			"wall": 8.13333333333333
+		},
+		{
+			"combat": 8.16666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 180,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5875
+			},
+			"wall": 8.16666666666667
+		},
+		{
+			"combat": 8.16666666666665,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 181,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.5875
+			},
+			"wall": 8.16666666666667
+		},
+		{
+			"combat": 8.19999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 182,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.609375
+			},
+			"wall": 8.2
+		},
+		{
+			"combat": 8.23333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 183,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.63125
+			},
+			"wall": 8.23333333333333
+		},
+		{
+			"combat": 8.26666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 184,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.653125
+			},
+			"wall": 8.26666666666667
+		},
+		{
+			"combat": 8.29999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 185,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.675
+			},
+			"wall": 8.3
+		},
+		{
+			"combat": 8.33333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 186,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.696875
+			},
+			"wall": 8.33333333333333
+		},
+		{
+			"combat": 8.36666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 187,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.71875
+			},
+			"wall": 8.36666666666667
+		},
+		{
+			"combat": 8.39999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 188,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.740625
+			},
+			"wall": 8.4
+		},
+		{
+			"combat": 8.43333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 189,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.7625
+			},
+			"wall": 8.43333333333333
+		},
+		{
+			"combat": 8.46666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 190,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.784375
+			},
+			"wall": 8.46666666666667
+		},
+		{
+			"combat": 8.46666666666665,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 191,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.784375
+			},
+			"wall": 8.46666666666667
+		},
+		{
+			"combat": 8.49999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 192,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.80625
+			},
+			"wall": 8.5
+		},
+		{
+			"combat": 8.53333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 193,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 8.53333333333333
+		},
+		{
+			"combat": 8.56666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 194,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.85
+			},
+			"wall": 8.56666666666667
+		},
+		{
+			"combat": 8.59999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 195,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.871875
+			},
+			"wall": 8.6
+		},
+		{
+			"combat": 8.63333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 196,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.89375
+			},
+			"wall": 8.63333333333333
+		},
+		{
+			"combat": 8.66666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 197,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.915625
+			},
+			"wall": 8.66666666666667
+		},
+		{
+			"combat": 8.69999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 198,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.9375
+			},
+			"wall": 8.7
+		},
+		{
+			"combat": 8.73333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 199,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.959375
+			},
+			"wall": 8.73333333333333
+		},
+		{
+			"combat": 8.76666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 200,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.98125
+			},
+			"wall": 8.76666666666667
+		},
+		{
+			"combat": 8.76666666666665,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 201,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.98125
+			},
+			"wall": 8.76666666666667
+		},
+		{
+			"combat": 8.79999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 202,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.003125
+			},
+			"wall": 8.8
+		},
+		{
+			"combat": 8.83333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 203,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.025
+			},
+			"wall": 8.83333333333333
+		},
+		{
+			"combat": 8.86666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 204,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.046875
+			},
+			"wall": 8.86666666666667
+		},
+		{
+			"combat": 8.89999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 205,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.06875
+			},
+			"wall": 8.9
+		},
+		{
+			"combat": 8.93333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 206,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.090625
+			},
+			"wall": 8.93333333333333
+		},
+		{
+			"combat": 8.96666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 207,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.1125
+			},
+			"wall": 8.96666666666667
+		},
+		{
+			"combat": 8.99999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 208,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.134375
+			},
+			"wall": 9.0
+		},
+		{
+			"combat": 9.03333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 209,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.15625
+			},
+			"wall": 9.03333333333333
+		},
+		{
+			"combat": 9.06666666666665,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 210,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.178125
+			},
+			"wall": 9.06666666666667
+		},
+		{
+			"combat": 9.06666666666665,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 211,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.178125
+			},
+			"wall": 9.06666666666667
+		},
+		{
+			"combat": 9.09999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 212,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.2
+			},
+			"wall": 9.1
+		},
+		{
+			"combat": 9.13333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 213,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.221875
+			},
+			"wall": 9.13333333333333
+		},
+		{
+			"combat": 9.16666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 214,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.24375
+			},
+			"wall": 9.16666666666667
+		},
+		{
+			"combat": 9.19999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 215,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.265625
+			},
+			"wall": 9.2
+		},
+		{
+			"combat": 9.23333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 216,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.2875
+			},
+			"wall": 9.23333333333333
+		},
+		{
+			"combat": 9.26666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100003,
+				"id": 217,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.309375
+			},
+			"wall": 9.26666666666667
+		},
+		{
+			"combat": 9.26666666666664,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100003,
+				"id": 218,
+				"kind": "kill",
+				"type": "killed",
+				"x": 1.5,
+				"y": 2.33125
+			},
+			"wall": 9.26666666666667
+		},
+		{
+			"combat": 9.36666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 219,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.4625
+			},
+			"wall": 9.36666666666667
+		},
+		{
+			"combat": 9.39999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 220,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.484375
+			},
+			"wall": 9.4
+		},
+		{
+			"combat": 9.43333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 221,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5
+			},
+			"wall": 9.43333333333333
+		},
+		{
+			"combat": 9.46666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 222,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.521875
+			},
+			"wall": 9.46666666666667
+		},
+		{
+			"combat": 9.49999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 223,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.54375
+			},
+			"wall": 9.5
+		},
+		{
+			"combat": 9.53333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 224,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.565625
+			},
+			"wall": 9.53333333333333
+		},
+		{
+			"combat": 9.56666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 225,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.5875
+			},
+			"wall": 9.56666666666667
+		},
+		{
+			"combat": 9.59999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 226,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.609375
+			},
+			"wall": 9.6
+		},
+		{
+			"combat": 9.63333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 227,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.63125
+			},
+			"wall": 9.63333333333333
+		},
+		{
+			"combat": 9.63333333333331,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 228,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.63125
+			},
+			"wall": 9.63333333333333
+		},
+		{
+			"combat": 9.66666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 229,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.653125
+			},
+			"wall": 9.66666666666667
+		},
+		{
+			"combat": 9.69999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 230,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.675
+			},
+			"wall": 9.7
+		},
+		{
+			"combat": 9.73333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 231,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.696875
+			},
+			"wall": 9.73333333333333
+		},
+		{
+			"combat": 9.76666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 232,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.71875
+			},
+			"wall": 9.76666666666667
+		},
+		{
+			"combat": 9.79999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 233,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.740625
+			},
+			"wall": 9.8
+		},
+		{
+			"combat": 9.83333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 234,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.7625
+			},
+			"wall": 9.83333333333333
+		},
+		{
+			"combat": 9.86666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 235,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.784375
+			},
+			"wall": 9.86666666666667
+		},
+		{
+			"combat": 9.89999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 236,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.80625
+			},
+			"wall": 9.9
+		},
+		{
+			"combat": 9.93333333333331,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 237,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 9.93333333333333
+		},
+		{
+			"combat": 9.93333333333331,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 238,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 9.93333333333333
+		},
+		{
+			"combat": 9.96666666666664,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 239,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.85
+			},
+			"wall": 9.96666666666667
+		},
+		{
+			"combat": 9.99999999999998,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 240,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.871875
+			},
+			"wall": 10.0
+		},
+		{
+			"combat": 10.0333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 241,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.89375
+			},
+			"wall": 10.0333333333333
+		},
+		{
+			"combat": 10.0666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 242,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.915625
+			},
+			"wall": 10.0666666666667
+		},
+		{
+			"combat": 10.1,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 243,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.9375
+			},
+			"wall": 10.1
+		},
+		{
+			"combat": 10.1333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 244,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.959375
+			},
+			"wall": 10.1333333333333
+		},
+		{
+			"combat": 10.1666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 245,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.98125
+			},
+			"wall": 10.1666666666667
+		},
+		{
+			"combat": 10.2,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 246,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.003125
+			},
+			"wall": 10.2
+		},
+		{
+			"combat": 10.2333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 247,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.025
+			},
+			"wall": 10.2333333333333
+		},
+		{
+			"combat": 10.2333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 248,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.025
+			},
+			"wall": 10.2333333333333
+		},
+		{
+			"combat": 10.2666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 249,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.046875
+			},
+			"wall": 10.2666666666667
+		},
+		{
+			"combat": 10.3,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 250,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.06875
+			},
+			"wall": 10.3
+		},
+		{
+			"combat": 10.3333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 251,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.090625
+			},
+			"wall": 10.3333333333333
+		},
+		{
+			"combat": 10.3666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 252,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.1125
+			},
+			"wall": 10.3666666666667
+		},
+		{
+			"combat": 10.4,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 253,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.134375
+			},
+			"wall": 10.4
+		},
+		{
+			"combat": 10.4333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 254,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.15625
+			},
+			"wall": 10.4333333333333
+		},
+		{
+			"combat": 10.4666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 255,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.178125
+			},
+			"wall": 10.4666666666667
+		},
+		{
+			"combat": 10.5,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 256,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.2
+			},
+			"wall": 10.5
+		},
+		{
+			"combat": 10.5333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 257,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.221875
+			},
+			"wall": 10.5333333333333
+		},
+		{
+			"combat": 10.5333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 258,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.221875
+			},
+			"wall": 10.5333333333333
+		},
+		{
+			"combat": 10.5666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 259,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.24375
+			},
+			"wall": 10.5666666666667
+		},
+		{
+			"combat": 10.6,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 260,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.265625
+			},
+			"wall": 10.6
+		},
+		{
+			"combat": 10.6333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 261,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.2875
+			},
+			"wall": 10.6333333333333
+		},
+		{
+			"combat": 10.6666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 262,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.309375
+			},
+			"wall": 10.6666666666667
+		},
+		{
+			"combat": 10.7,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 263,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.33125
+			},
+			"wall": 10.7
+		},
+		{
+			"combat": 10.7333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 264,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.353125
+			},
+			"wall": 10.7333333333333
+		},
+		{
+			"combat": 10.7666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 265,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.375
+			},
+			"wall": 10.7666666666667
+		},
+		{
+			"combat": 10.8,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 266,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.396875
+			},
+			"wall": 10.8
+		},
+		{
+			"combat": 10.8333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 267,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.41875
+			},
+			"wall": 10.8333333333333
+		},
+		{
+			"combat": 10.8333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 268,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.41875
+			},
+			"wall": 10.8333333333333
+		},
+		{
+			"combat": 10.8666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 269,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.440625
+			},
+			"wall": 10.8666666666667
+		},
+		{
+			"combat": 10.9,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 270,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.4625
+			},
+			"wall": 10.9
+		},
+		{
+			"combat": 10.9333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 271,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.484375
+			},
+			"wall": 10.9333333333333
+		},
+		{
+			"combat": 10.9666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100004,
+				"id": 272,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.5
+			},
+			"wall": 10.9666666666667
+		},
+		{
+			"combat": 10.9666666666666,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100004,
+				"id": 273,
+				"kind": "kill",
+				"type": "killed",
+				"x": 1.521875,
+				"y": 2.5
+			},
+			"wall": 10.9666666666667
+		},
+		{
+			"combat": 11.1666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 274,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.71875
+			},
+			"wall": 11.1666666666667
+		},
+		{
+			"combat": 11.2,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 275,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.740625
+			},
+			"wall": 11.2
+		},
+		{
+			"combat": 11.2333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 276,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.7625
+			},
+			"wall": 11.2333333333333
+		},
+		{
+			"combat": 11.2666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 277,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.784375
+			},
+			"wall": 11.2666666666667
+		},
+		{
+			"combat": 11.3,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 278,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.80625
+			},
+			"wall": 11.3
+		},
+		{
+			"combat": 11.3333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 279,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.828125
+			},
+			"wall": 11.3333333333333
+		},
+		{
+			"combat": 11.3666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 280,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.85
+			},
+			"wall": 11.3666666666667
+		},
+		{
+			"combat": 11.4,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 281,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.871875
+			},
+			"wall": 11.4
+		},
+		{
+			"combat": 11.4333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 282,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.89375
+			},
+			"wall": 11.4333333333333
+		},
+		{
+			"combat": 11.4333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 283,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 1.89375
+			},
+			"wall": 11.4333333333333
+		},
+		{
+			"combat": 11.4666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 284,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.915625
+			},
+			"wall": 11.4666666666667
+		},
+		{
+			"combat": 11.5,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 285,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.9375
+			},
+			"wall": 11.5
+		},
+		{
+			"combat": 11.5333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 286,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.959375
+			},
+			"wall": 11.5333333333333
+		},
+		{
+			"combat": 11.5666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 287,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 1.98125
+			},
+			"wall": 11.5666666666667
+		},
+		{
+			"combat": 11.6,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 288,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.003125
+			},
+			"wall": 11.6
+		},
+		{
+			"combat": 11.6333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 289,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.025
+			},
+			"wall": 11.6333333333333
+		},
+		{
+			"combat": 11.6666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 290,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.046875
+			},
+			"wall": 11.6666666666667
+		},
+		{
+			"combat": 11.7,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 291,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.06875
+			},
+			"wall": 11.7
+		},
+		{
+			"combat": 11.7333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 292,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.090625
+			},
+			"wall": 11.7333333333333
+		},
+		{
+			"combat": 11.7333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 293,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.090625
+			},
+			"wall": 11.7333333333333
+		},
+		{
+			"combat": 11.7666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 294,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.1125
+			},
+			"wall": 11.7666666666667
+		},
+		{
+			"combat": 11.8,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 295,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.134375
+			},
+			"wall": 11.8
+		},
+		{
+			"combat": 11.8333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 296,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.15625
+			},
+			"wall": 11.8333333333333
+		},
+		{
+			"combat": 11.8666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 297,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.178125
+			},
+			"wall": 11.8666666666667
+		},
+		{
+			"combat": 11.9,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 298,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.2
+			},
+			"wall": 11.9
+		},
+		{
+			"combat": 11.9333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 299,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.221875
+			},
+			"wall": 11.9333333333333
+		},
+		{
+			"combat": 11.9666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 300,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.24375
+			},
+			"wall": 11.9666666666667
+		},
+		{
+			"combat": 12.0,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 301,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.265625
+			},
+			"wall": 12.0
+		},
+		{
+			"combat": 12.0333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 302,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.2875
+			},
+			"wall": 12.0333333333333
+		},
+		{
+			"combat": 12.0333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 303,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 1.5,
+				"y": 2.2875
+			},
+			"wall": 12.0333333333333
+		},
+		{
+			"combat": 12.0666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 304,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.309375
+			},
+			"wall": 12.0666666666667
+		},
+		{
+			"combat": 12.1,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 305,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.33125
+			},
+			"wall": 12.1
+		},
+		{
+			"combat": 12.1333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 306,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.353125
+			},
+			"wall": 12.1333333333333
+		},
+		{
+			"combat": 12.1666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 307,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.375
+			},
+			"wall": 12.1666666666667
+		},
+		{
+			"combat": 12.2,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 308,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.396875
+			},
+			"wall": 12.2
+		},
+		{
+			"combat": 12.2333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 309,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.41875
+			},
+			"wall": 12.2333333333333
+		},
+		{
+			"combat": 12.2666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 310,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.440625
+			},
+			"wall": 12.2666666666667
+		},
+		{
+			"combat": 12.3,
+			"event": {
+				"burnTransfer": {
+					"damageMultiplier": 1.0,
+					"damagePerSecond": 8.0,
+					"ignoreArmorReduction": false,
+					"remaining": 0.83333333333333,
+					"sourceX": 2,
+					"sourceY": 1
+				},
+				"enemyId": 100005,
+				"id": 311,
+				"kind": "kill",
+				"type": "killed",
+				"x": 1.5,
+				"y": 2.4625
+			},
+			"wall": 12.3
+		},
+		{
+			"combat": 12.3,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.141015196570494,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100005,
+				"id": 312,
+				"kind": "damage",
+				"sourceX": 2,
+				"sourceY": 1,
+				"type": "damage",
+				"x": 1.5,
+				"y": 2.4625
+			},
+			"wall": 12.3
+		},
+		{
+			"combat": 12.6666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100007,
+				"id": 313,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 1.955,
+				"y": 2.5
+			},
+			"wall": 12.6666666666667
+		},
+		{
+			"combat": 12.7,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100007,
+				"id": 314,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 1.99291666666667,
+				"y": 2.5
+			},
+			"wall": 12.7
+		},
+		{
+			"combat": 12.7333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100007,
+				"id": 315,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.03083333333333,
+				"y": 2.5
+			},
+			"wall": 12.7333333333333
+		},
+		{
+			"combat": 12.7666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100007,
+				"id": 316,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.06875,
+				"y": 2.5
+			},
+			"wall": 12.7666666666667
+		},
+		{
+			"combat": 12.8,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100007,
+				"id": 317,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.10666666666667,
+				"y": 2.5
+			},
+			"wall": 12.8
+		},
+		{
+			"combat": 12.8333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100007,
+				"id": 318,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.14458333333333,
+				"y": 2.5
+			},
+			"wall": 12.8333333333333
+		},
+		{
+			"combat": 12.8333333333333,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100007,
+				"id": 319,
+				"kind": "kill",
+				"type": "killed",
+				"x": 2.1825,
+				"y": 2.5
+			},
+			"wall": 12.8333333333333
+		},
+		{
+			"combat": 14.3666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 320,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.91708333333334,
+				"y": 2.5
+			},
+			"wall": 14.3666666666667
+		},
+		{
+			"combat": 14.4,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 321,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.955,
+				"y": 2.5
+			},
+			"wall": 14.4
+		},
+		{
+			"combat": 14.4333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 322,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 2.99291666666667,
+				"y": 2.5
+			},
+			"wall": 14.4333333333333
+		},
+		{
+			"combat": 14.4666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 323,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.03083333333334,
+				"y": 2.5
+			},
+			"wall": 14.4666666666667
+		},
+		{
+			"combat": 14.5,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 324,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.06875,
+				"y": 2.5
+			},
+			"wall": 14.5
+		},
+		{
+			"combat": 14.5333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 325,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.10666666666667,
+				"y": 2.5
+			},
+			"wall": 14.5333333333333
+		},
+		{
+			"combat": 14.5666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 326,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.14458333333334,
+				"y": 2.5
+			},
+			"wall": 14.5666666666667
+		},
+		{
+			"combat": 14.6,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 327,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.1825,
+				"y": 2.5
+			},
+			"wall": 14.6
+		},
+		{
+			"combat": 14.6333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 328,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.22041666666667,
+				"y": 2.5
+			},
+			"wall": 14.6333333333333
+		},
+		{
+			"combat": 14.6333333333333,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100008,
+				"id": 329,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 3.22041666666667,
+				"y": 2.5
+			},
+			"wall": 14.6333333333333
+		},
+		{
+			"combat": 14.6333333333333,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100008,
+				"id": 330,
+				"kind": "kill",
+				"type": "killed",
+				"x": 3.25833333333334,
+				"y": 2.5
+			},
+			"wall": 14.6333333333333
+		},
+		{
+			"combat": 16.0333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 331,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.80333333333333,
+				"y": 2.5
+			},
+			"wall": 16.0333333333333
+		},
+		{
+			"combat": 16.0666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 332,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.84125,
+				"y": 2.5
+			},
+			"wall": 16.0666666666667
+		},
+		{
+			"combat": 16.1,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 333,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.87916666666667,
+				"y": 2.5
+			},
+			"wall": 16.1
+		},
+		{
+			"combat": 16.1333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 334,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.91708333333334,
+				"y": 2.5
+			},
+			"wall": 16.1333333333333
+		},
+		{
+			"combat": 16.1666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 335,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.955,
+				"y": 2.5
+			},
+			"wall": 16.1666666666667
+		},
+		{
+			"combat": 16.2,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 336,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 3.99291666666667,
+				"y": 2.5
+			},
+			"wall": 16.2
+		},
+		{
+			"combat": 16.2333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 337,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.03083333333334,
+				"y": 2.5
+			},
+			"wall": 16.2333333333333
+		},
+		{
+			"combat": 16.2666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 338,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.06875,
+				"y": 2.5
+			},
+			"wall": 16.2666666666667
+		},
+		{
+			"combat": 16.3,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 339,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.10666666666667,
+				"y": 2.5
+			},
+			"wall": 16.3
+		},
+		{
+			"combat": 16.3,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 340,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 4.10666666666667,
+				"y": 2.5
+			},
+			"wall": 16.3
+		},
+		{
+			"combat": 16.3333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 341,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.14458333333334,
+				"y": 2.5
+			},
+			"wall": 16.3333333333333
+		},
+		{
+			"combat": 16.3666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 342,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.1825,
+				"y": 2.5
+			},
+			"wall": 16.3666666666667
+		},
+		{
+			"combat": 16.4,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 343,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.22041666666667,
+				"y": 2.5
+			},
+			"wall": 16.4
+		},
+		{
+			"combat": 16.4333333333333,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 344,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.25833333333334,
+				"y": 2.5
+			},
+			"wall": 16.4333333333333
+		},
+		{
+			"combat": 16.4666666666666,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 345,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.29625,
+				"y": 2.5
+			},
+			"wall": 16.4666666666667
+		},
+		{
+			"combat": 16.5,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100009,
+				"id": 346,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.33416666666667,
+				"y": 2.5
+			},
+			"wall": 16.5
+		},
+		{
+			"combat": 16.5,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100009,
+				"id": 347,
+				"kind": "kill",
+				"type": "killed",
+				"x": 4.37208333333334,
+				"y": 2.5
+			},
+			"wall": 16.5
+		},
+		{
+			"combat": 17.7,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 348,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.06875,
+				"y": 2.5
+			},
+			"wall": 17.7
+		},
+		{
+			"combat": 17.7333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 349,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.090625,
+				"y": 2.5
+			},
+			"wall": 17.7333333333333
+		},
+		{
+			"combat": 17.7666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 350,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.1125,
+				"y": 2.5
+			},
+			"wall": 17.7666666666667
+		},
+		{
+			"combat": 17.8,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 351,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.134375,
+				"y": 2.5
+			},
+			"wall": 17.8
+		},
+		{
+			"combat": 17.8333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 352,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.15625,
+				"y": 2.5
+			},
+			"wall": 17.8333333333333
+		},
+		{
+			"combat": 17.8666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 353,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.178125,
+				"y": 2.5
+			},
+			"wall": 17.8666666666667
+		},
+		{
+			"combat": 17.9,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 354,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.2,
+				"y": 2.5
+			},
+			"wall": 17.9
+		},
+		{
+			"combat": 17.9333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 355,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.221875,
+				"y": 2.5
+			},
+			"wall": 17.9333333333333
+		},
+		{
+			"combat": 17.9666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 356,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.24375,
+				"y": 2.5
+			},
+			"wall": 17.9666666666667
+		},
+		{
+			"combat": 17.9666666666667,
+			"event": {
+				"damage": 2.4,
+				"damageMultiplier": 1.0,
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 357,
+				"kind": "damageNumber",
+				"type": "damageNumber",
+				"x": 4.24375,
+				"y": 2.5
+			},
+			"wall": 17.9666666666667
+		},
+		{
+			"combat": 18.0000000000001,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 358,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.265625,
+				"y": 2.5
+			},
+			"wall": 18.0
+		},
+		{
+			"combat": 18.0333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 359,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.2875,
+				"y": 2.5
+			},
+			"wall": 18.0333333333333
+		},
+		{
+			"combat": 18.0666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 360,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.309375,
+				"y": 2.5
+			},
+			"wall": 18.0666666666667
+		},
+		{
+			"combat": 18.1000000000001,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 361,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.33125,
+				"y": 2.5
+			},
+			"wall": 18.1
+		},
+		{
+			"combat": 18.1333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 362,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.353125,
+				"y": 2.5
+			},
+			"wall": 18.1333333333333
+		},
+		{
+			"combat": 18.1666666666667,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 363,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.375,
+				"y": 2.5
+			},
+			"wall": 18.1666666666667
+		},
+		{
+			"combat": 18.2000000000001,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 364,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.396875,
+				"y": 2.5
+			},
+			"wall": 18.2
+		},
+		{
+			"combat": 18.2333333333334,
+			"event": {
+				"bonusDamage": 0.0,
+				"damage": 0.266666666666667,
+				"damageKind": "burn",
+				"effectKind": "burn",
+				"enemyId": 100006,
+				"id": 365,
+				"kind": "damage",
+				"sourceX": 3,
+				"sourceY": 3,
+				"type": "damage",
+				"x": 4.41874999999999,
+				"y": 2.5
+			},
+			"wall": 18.2333333333333
+		},
+		{
+			"combat": 18.2333333333334,
+			"event": {
+				"burnTransfer": {},
+				"enemyId": 100006,
+				"id": 366,
+				"kind": "kill",
+				"type": "killed",
+				"x": 4.44062499999999,
+				"y": 2.5
+			},
+			"wall": 18.2333333333333
+		},
+		{
+			"combat": 18.2333333333334,
+			"event": {
+				"id": 367,
+				"kind": "waveCompleted",
+				"waveId": 4
+			},
+			"wall": 18.2333333333333
+		}
+	],
+	"fast_deaths": [
+		{
+			"age": 0.0,
+			"fade": 0.0,
+			"frame": 130,
+			"id": 100007,
+			"wall": 12.8333333333333
+		},
+		{
+			"age": 0.0333333333333332,
+			"fade": 0.0,
+			"frame": 131,
+			"id": 100007,
+			"wall": 12.8666666666667
+		},
+		{
+			"age": 0.0666666666666664,
+			"fade": 0.0,
+			"frame": 132,
+			"id": 100007,
+			"wall": 12.9
+		},
+		{
+			"age": 0.0999999999999996,
+			"fade": 0.0,
+			"frame": 133,
+			"id": 100007,
+			"wall": 12.9333333333333
+		},
+		{
+			"age": 0.133333333333333,
+			"fade": 0.00282481533188994,
+			"frame": 134,
+			"id": 100007,
+			"wall": 12.9666666666667
+		},
+		{
+			"age": 0.166666666666666,
+			"fade": 0.0327779198570441,
+			"frame": 135,
+			"id": 100007,
+			"wall": 13.0
+		},
+		{
+			"age": 0.199999999999999,
+			"fade": 0.0909605443545836,
+			"frame": 136,
+			"id": 100007,
+			"wall": 13.0333333333333
+		},
+		{
+			"age": 0.233333333333333,
+			"fade": 0.171782684869581,
+			"frame": 137,
+			"id": 100007,
+			"wall": 13.0666666666667
+		},
+		{
+			"age": 0.266666666666666,
+			"fade": 0.269654337447107,
+			"frame": 138,
+			"id": 100007,
+			"wall": 13.1
+		},
+		{
+			"age": 0.299999999999999,
+			"fade": 0.378985498132236,
+			"frame": 139,
+			"id": 100007,
+			"wall": 13.1333333333333
+		},
+		{
+			"age": 0.333333333333332,
+			"fade": 0.494186162970039,
+			"frame": 140,
+			"id": 100007,
+			"wall": 13.1666666666667
+		},
+		{
+			"age": 0.366666666666665,
+			"fade": 0.609666328005589,
+			"frame": 141,
+			"id": 100007,
+			"wall": 13.2
+		},
+		{
+			"age": 0.399999999999999,
+			"fade": 0.719835989283958,
+			"frame": 142,
+			"id": 100007,
+			"wall": 13.2333333333333
+		},
+		{
+			"age": 0.433333333333332,
+			"fade": 0.819105142850217,
+			"frame": 143,
+			"id": 100007,
+			"wall": 13.2666666666667
+		},
+		{
+			"age": 0.466666666666665,
+			"fade": 0.901883784749441,
+			"frame": 144,
+			"id": 100007,
+			"wall": 13.3
+		},
+		{
+			"age": 0.499999999999998,
+			"fade": 0.962581911026699,
+			"frame": 145,
+			"id": 100007,
+			"wall": 13.3333333333333
+		},
+		{
+			"age": 0.533333333333331,
+			"fade": 0.995609517727066,
+			"frame": 146,
+			"id": 100007,
+			"wall": 13.3666666666667
+		},
+		{
+			"age": 0.0,
+			"fade": 0.0,
+			"frame": 184,
+			"id": 100008,
+			"wall": 14.6333333333333
+		},
+		{
+			"age": 0.0333333333333332,
+			"fade": 0.0,
+			"frame": 185,
+			"id": 100008,
+			"wall": 14.6666666666667
+		},
+		{
+			"age": 0.0666666666666664,
+			"fade": 0.0,
+			"frame": 186,
+			"id": 100008,
+			"wall": 14.7
+		},
+		{
+			"age": 0.0999999999999996,
+			"fade": 0.0,
+			"frame": 187,
+			"id": 100008,
+			"wall": 14.7333333333333
+		},
+		{
+			"age": 0.133333333333333,
+			"fade": 0.00282481533188994,
+			"frame": 188,
+			"id": 100008,
+			"wall": 14.7666666666667
+		},
+		{
+			"age": 0.166666666666666,
+			"fade": 0.0327779198570441,
+			"frame": 189,
+			"id": 100008,
+			"wall": 14.8
+		},
+		{
+			"age": 0.199999999999999,
+			"fade": 0.0909605443545836,
+			"frame": 190,
+			"id": 100008,
+			"wall": 14.8333333333333
+		},
+		{
+			"age": 0.233333333333333,
+			"fade": 0.171782684869581,
+			"frame": 191,
+			"id": 100008,
+			"wall": 14.8666666666667
+		},
+		{
+			"age": 0.266666666666666,
+			"fade": 0.269654337447107,
+			"frame": 192,
+			"id": 100008,
+			"wall": 14.9
+		},
+		{
+			"age": 0.299999999999999,
+			"fade": 0.378985498132236,
+			"frame": 193,
+			"id": 100008,
+			"wall": 14.9333333333333
+		},
+		{
+			"age": 0.333333333333332,
+			"fade": 0.494186162970039,
+			"frame": 194,
+			"id": 100008,
+			"wall": 14.9666666666667
+		},
+		{
+			"age": 0.366666666666665,
+			"fade": 0.609666328005589,
+			"frame": 195,
+			"id": 100008,
+			"wall": 15.0
+		},
+		{
+			"age": 0.399999999999999,
+			"fade": 0.719835989283958,
+			"frame": 196,
+			"id": 100008,
+			"wall": 15.0333333333333
+		},
+		{
+			"age": 0.433333333333332,
+			"fade": 0.819105142850217,
+			"frame": 197,
+			"id": 100008,
+			"wall": 15.0666666666667
+		},
+		{
+			"age": 0.466666666666665,
+			"fade": 0.901883784749441,
+			"frame": 198,
+			"id": 100008,
+			"wall": 15.1
+		},
+		{
+			"age": 0.499999999999998,
+			"fade": 0.962581911026699,
+			"frame": 199,
+			"id": 100008,
+			"wall": 15.1333333333333
+		},
+		{
+			"age": 0.533333333333331,
+			"fade": 0.995609517727066,
+			"frame": 200,
+			"id": 100008,
+			"wall": 15.1666666666667
+		},
+		{
+			"age": 0.0,
+			"fade": 0.0,
+			"frame": 240,
+			"id": 100009,
+			"wall": 16.5
+		},
+		{
+			"age": 0.033333333333335,
+			"fade": 0.0,
+			"frame": 241,
+			"id": 100009,
+			"wall": 16.5333333333333
+		},
+		{
+			"age": 0.06666666666667,
+			"fade": 0.0,
+			"frame": 242,
+			"id": 100009,
+			"wall": 16.5666666666667
+		},
+		{
+			"age": 0.100000000000005,
+			"fade": 0.0,
+			"frame": 243,
+			"id": 100009,
+			"wall": 16.6
+		},
+		{
+			"age": 0.13333333333334,
+			"fade": 0.00282481533189294,
+			"frame": 244,
+			"id": 100009,
+			"wall": 16.6333333333333
+		},
+		{
+			"age": 0.166666666666675,
+			"fade": 0.0327779198570561,
+			"frame": 245,
+			"id": 100009,
+			"wall": 16.6666666666667
+		},
+		{
+			"age": 0.20000000000001,
+			"fade": 0.0909605443546061,
+			"frame": 246,
+			"id": 100009,
+			"wall": 16.7
+		},
+		{
+			"age": 0.233333333333345,
+			"fade": 0.171782684869614,
+			"frame": 247,
+			"id": 100009,
+			"wall": 16.7333333333333
+		},
+		{
+			"age": 0.26666666666668,
+			"fade": 0.269654337447152,
+			"frame": 248,
+			"id": 100009,
+			"wall": 16.7666666666667
+		},
+		{
+			"age": 0.300000000000015,
+			"fade": 0.37898549813229,
+			"frame": 249,
+			"id": 100009,
+			"wall": 16.8
+		},
+		{
+			"age": 0.33333333333335,
+			"fade": 0.494186162970101,
+			"frame": 250,
+			"id": 100009,
+			"wall": 16.8333333333333
+		},
+		{
+			"age": 0.366666666666685,
+			"fade": 0.609666328005656,
+			"frame": 251,
+			"id": 100009,
+			"wall": 16.8666666666667
+		},
+		{
+			"age": 0.40000000000002,
+			"fade": 0.719835989284025,
+			"frame": 252,
+			"id": 100009,
+			"wall": 16.9
+		},
+		{
+			"age": 0.433333333333355,
+			"fade": 0.819105142850281,
+			"frame": 253,
+			"id": 100009,
+			"wall": 16.9333333333333
+		},
+		{
+			"age": 0.46666666666669,
+			"fade": 0.901883784749495,
+			"frame": 254,
+			"id": 100009,
+			"wall": 16.9666666666667
+		},
+		{
+			"age": 0.500000000000025,
+			"fade": 0.962581911026738,
+			"frame": 255,
+			"id": 100009,
+			"wall": 17.0
+		},
+		{
+			"age": 0.53333333333336,
+			"fade": 0.995609517727081,
+			"frame": 256,
+			"id": 100009,
+			"wall": 17.0333333333333
+		}
+	],
+	"fps": 30,
+	"frames": 345,
+	"max_burning": 1,
+	"max_frozen": 0,
+	"max_simultaneous_deaths": 2,
+	"mobile_performance": "unmeasured; desktop deterministic capture is not an FPS benchmark",
+	"mode": "angled",
+	"renderer": "mobile",
+	"source": "actual stage1 wave4; actual paid towers relocated to expose corners; fixture build budget1000",
+	"speed": 1.0,
+	"status_case": true,
+	"turns": [
+		{
+			"clock": 0.733333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.733333333333333
+		},
+		{
+			"clock": 0.766666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.766666666666667
+		},
+		{
+			"clock": 0.8,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.8
+		},
+		{
+			"clock": 0.833333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.833333333333333
+		},
+		{
+			"clock": 0.866666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.866666666666667
+		},
+		{
+			"clock": 0.9,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.9
+		},
+		{
+			"clock": 0.933333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.933333333333333
+		},
+		{
+			"clock": 0.966666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 0.966666666666667
+		},
+		{
+			"clock": 1.0,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.0
+		},
+		{
+			"clock": 1.03333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.03333333333333
+		},
+		{
+			"clock": 1.06666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.06666666666667
+		},
+		{
+			"clock": 1.1,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.1
+		},
+		{
+			"clock": 1.13333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.13333333333333
+		},
+		{
+			"clock": 1.16666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.16666666666667
+		},
+		{
+			"clock": 1.2,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.2
+		},
+		{
+			"clock": 1.23333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.23333333333333
+		},
+		{
+			"clock": 1.26666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.26666666666667
+		},
+		{
+			"clock": 1.3,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.3
+		},
+		{
+			"clock": 1.33333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.33333333333333
+		},
+		{
+			"clock": 1.36666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.36666666666667
+		},
+		{
+			"clock": 1.4,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.4
+		},
+		{
+			"clock": 1.43333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.43333333333333
+		},
+		{
+			"clock": 1.46666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.46666666666667
+		},
+		{
+			"clock": 1.5,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.5
+		},
+		{
+			"clock": 1.53333333333333,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.53333333333333
+		},
+		{
+			"clock": 1.56666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.56666666666667
+		},
+		{
+			"clock": 1.6,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.6
+		},
+		{
+			"clock": 1.63333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.63333333333333
+		},
+		{
+			"clock": 1.66666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.66666666666667
+		},
+		{
+			"clock": 1.7,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.7
+		},
+		{
+			"clock": 1.73333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.73333333333333
+		},
+		{
+			"clock": 1.76666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.76666666666667
+		},
+		{
+			"clock": 1.8,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.8
+		},
+		{
+			"clock": 1.83333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.83333333333333
+		},
+		{
+			"clock": 1.86666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.86666666666667
+		},
+		{
+			"clock": 1.9,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.9
+		},
+		{
+			"clock": 1.93333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.93333333333333
+		},
+		{
+			"clock": 1.96666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 1.96666666666667
+		},
+		{
+			"clock": 2.0,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.0
+		},
+		{
+			"clock": 2.03333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.03333333333333
+		},
+		{
+			"clock": 2.06666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.06666666666667
+		},
+		{
+			"clock": 2.1,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.1
+		},
+		{
+			"clock": 2.13333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.13333333333333
+		},
+		{
+			"clock": 2.16666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.16666666666667
+		},
+		{
+			"clock": 2.2,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.2
+		},
+		{
+			"clock": 2.23333333333334,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.23333333333333
+		},
+		{
+			"clock": 2.26666666666667,
+			"shown": 1.57079637050629,
+			"target": 1.5707963267949,
+			"wall": 2.26666666666667
+		},
+		{
+			"clock": 2.3,
+			"shown": 1.57079637050629,
+			"target": 0.0,
+			"wall": 2.3
+		},
+		{
+			"clock": 2.33333333333333,
+			"shown": 0.819335162639618,
+			"target": 0.0,
+			"wall": 2.33333333333333
+		},
+		{
+			"clock": 2.36666666666667,
+			"shown": 0.310280799865723,
+			"target": 0.0,
+			"wall": 2.36666666666667
+		},
+		{
+			"clock": 2.4,
+			"shown": 0.0436332449316978,
+			"target": 0.0,
+			"wall": 2.4
+		},
+		{
+			"clock": 2.43333333333333,
+			"shown": 0.0,
+			"target": 0.0,
+			"wall": 2.43333333333333
+		},
+		{
+			"clock": 2.46666666666667,
+			"shown": 0.0,
+			"target": 0.0,
+			"wall": 2.46666666666667
+		}
+	],
+	"window_size": "(440, 900)"
+}

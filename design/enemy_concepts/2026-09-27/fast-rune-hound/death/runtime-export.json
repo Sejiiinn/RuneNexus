@@ -1,0 +1,91 @@
+{
+  "triangles": 20214,
+  "mesh_count": 1,
+  "skin_count": 1,
+  "joints": 24,
+  "animation_names": [
+    "Death"
+  ],
+  "max_source_vertex_mapping_error": 3.674277024856565e-07,
+  "single_bone_weight_per_vertex": true,
+  "vertex_count": 41862,
+  "bone_vertex_counts": {
+    "root": 0,
+    "body": 3936,
+    "waist": 5216,
+    "pelvis": 3424,
+    "tail_base": 1128,
+    "tail_tip": 192,
+    "rear_upper.L": 1376,
+    "rear_lower.L": 1948,
+    "rear_paw.L": 768,
+    "rear_foot.L": 2200,
+    "rear_upper.R": 1376,
+    "rear_lower.R": 1948,
+    "rear_paw.R": 768,
+    "rear_foot.R": 2200,
+    "neck": 1520,
+    "head": 3526,
+    "scapula.L": 640,
+    "front_upper.L": 768,
+    "front_lower.L": 1320,
+    "front_paw.L": 2440,
+    "scapula.R": 640,
+    "front_upper.R": 768,
+    "front_lower.R": 1320,
+    "front_paw.R": 2440
+  },
+  "glb_bytes": 10011440,
+  "source_static_glb": "../3d/fast-rune-hound.glb",
+  "normalization": "Common parent 1/source_width; z += -author_ground_z/source_width; 0.432 runtime scale gives correct tile size.",
+  "animation_times": [
+    {
+      "min": [
+        0
+      ],
+      "max": [
+        0.55
+      ]
+    }
+  ],
+  "baked_samples_per_second": 240,
+  "source_blend_sha256": "1c147d28fce00d846827f7b8cf324411918ad95c020bd69512cbbda7aef3ea17",
+  "glb_sha256": "9e36ea341d58bb037494e21538d4cdaddefb5b70a559de2692d0081520f158c6",
+  "approved_version": "levitation-curl-death",
+  "target": "assets/images/stage1_3d/enemies/fast_death.glb",
+  "rest_normalized_width": 1.0,
+  "rest_normalized_floor": 0.0,
+  "author_forward": "-Y",
+  "gltf_godot_forward": "+Z; same standard Blender glTF axis conversion as normal guardian",
+  "cycle_seconds": 0.55,
+  "runtime_presentation_scale": 0.432,
+  "loop": false,
+  "materials": [
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        1,
+        1,
+        1
+      ],
+      "emissiveTexture": {
+        "index": 0
+      },
+      "name": "Slate_Cyan_Standard_PBR",
+      "normalTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 2
+        },
+        "metallicFactor": 0,
+        "metallicRoughnessTexture": {
+          "index": 3
+        }
+      }
+    }
+  ],
+  "texture_count": 4,
+  "image_count": 4
+}

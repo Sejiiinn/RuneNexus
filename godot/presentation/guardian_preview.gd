@@ -3,6 +3,9 @@ extends RefCounted
 signal failure(message: String)
 
 const WALK_PATH := "res://assets/enemies/normal.glb"
+const HoundDeath = preload("res://effects/hound_death.gd")
+const FAST_DEATH_PATH := "res://assets/enemies/fast_death.glb"
+const FAST_DEATH_SECONDS := 0.55
 const DEATH_PATH := "res://assets/enemies/normal_death.glb"
 const NORMAL_VISUAL_SCALE := 1.15
 const FAST_VISUAL_SCALE := 0.90
@@ -21,6 +24,7 @@ var _world: Node3D
 var _walk_scene: PackedScene
 var _run_scene: PackedScene
 var _death_scene: PackedScene
+var _fast_death_scene: PackedScene
 var _attempted := false
 var _epoch := -1
 var _last_time := -INF
@@ -95,6 +99,9 @@ func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "norma
 
 func new_walker(kind: String = "normal") -> Dictionary:
 	if kind == "fast":
+		# Load before combat kills, rather than importing the corpse on impact.
+		if _fast_death_scene == null:
+			_fast_death_scene = load(FAST_DEATH_PATH) as PackedScene
 		if _run_scene == null:
 			_run_scene = load(RUN_PATH) as PackedScene
 		if _run_scene == null:
@@ -177,15 +184,24 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		if _killed_ids.has(id): continue
 		_killed_ids[id] = true
 		var enemy: Dictionary = runtime.enemies.get(str(id), {})
-		if enemy.is_empty() or enemy.get("type", "normal") != "normal": continue
-		var entry := _instantiate(_death_scene, DEATH_FLOOR)
+		if enemy.is_empty(): continue
+		var kind: String = enemy.get("type", "normal")
+		if kind not in ["normal", "fast"]: continue
+		if kind == "fast" and _fast_death_scene == null:
+			_fast_death_scene = load(FAST_DEATH_PATH) as PackedScene
+			if _fast_death_scene == null:
+				failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
+				continue
+		var entry := _instantiate(_fast_death_scene if kind == "fast" else _death_scene, 0.0 if kind == "fast" else DEATH_FLOOR, kind)
 		if entry.is_empty(): continue
 		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + runtime._visual_enemy_offset(enemy)) / runtime.tile_size
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
 		# Keep the last visible body direction if death interrupts a turn.
 		var walker: Dictionary = walkers.get(id, {})
 		entry.root.rotation.y = walker.root.rotation.y if not walker.is_empty() and is_instance_valid(walker.root) else PI / 2.0 - float(enemy.facingAngle)
-		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.55)) * NORMAL_VISUAL_SCALE
+		var scale_factor := FAST_VISUAL_SCALE if kind == "fast" else NORMAL_VISUAL_SCALE
+		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.48 if kind == "fast" else 0.55)) * scale_factor
+		if kind == "fast": HoundDeath.attach(entry)
 		entry.born = time
 		deaths[id] = entry
 	update_deaths(time)
@@ -195,9 +211,11 @@ func update_deaths(time: float) -> void:
 	for id in deaths.keys():
 		var entry: Dictionary = deaths[id]
 		var age := time - float(entry.born)
-		if age < 0.0 or age >= DEATH_SECONDS:
+		var duration := FAST_DEATH_SECONDS if entry.type == "fast" else DEATH_SECONDS
+		if age < 0.0 or age >= duration:
 			entry.root.free()
 			deaths.erase(id)
 			continue
 		entry.player.seek(age, true)
 		entry.player.advance(0.0)
+		if entry.type == "fast": HoundDeath.sample(entry, age)

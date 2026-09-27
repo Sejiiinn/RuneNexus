@@ -75,7 +75,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
             ):
                 for name in names:
                     write(assets / kind / f"{name}.glb", b"asset fixture")
-            for name in ("normal_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res",
+            for name in ("normal_death.glb", "fast_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res",
                          "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res",
                          "fast_status_frost_grains.res"):
                 write(assets / "enemies" / name, b"rig fixture")
