@@ -1,0 +1,13 @@
+Independent auto-pagination review: PASS
+2026-09-28; Godot 4.7.2 stable; isolated fake-service project; no live account/save/API writes.
+Initial independent run: 46 checks, 45 PASS / 1 FAIL. Actual ScreenTouch+ScreenDrag on a short no-scroll list failed to request page3 (both headless and GUI). Reported to implementer.
+Fix: modal-owned TouchScrollObserver forwards non-consuming touch drag observation, with pending/busy guards. Independent final headless run: 46 checks, failures=[]. Final GUI run with actual title click and busy gesture checks: 49 checks, failures=[], exit=0.
+GUI renderer: Compatibility OpenGL 4.1 Metal, Apple M4.
+Validated: actual wheel reaches last item and appends; no normal MoreMail button; same-cursor/duplicate/failure no loops; retry one request; short initial page prefetch only once; later short wheel and touch gesture requests page3; no final-cursor requests; read/page pending selection and read-once; no programmatic rerender preload; busy gestures not queued; actual title mouse click unaffected; close/reentry late result no duplicate.
+Direct visual review PASS of mailbox-auto-440-collapsed.png, 440-expanded.png, 320-before-scroll.png, 320-after-scroll.png, 320-last-expanded.png. Previous approved navy/metal/cyan and icons, info, buttons preserved. Last-page footer remains reachable.
+Touch fix changes event observation only; existing final visual captures remain valid. Android physical-device verification not performed (desktop isolated UI scope). No unresolved failures.
+Final source SHA256:
+godot/ui/lobby_services.gd 6b66b5d8c90b02fc0670bae4077aad84d43b64d862f097cd859bc35bd2bdedbd
+godot/ui/mailbox_view.gd 4af2a13ed4d1a4c059c9029b9903aa3ec05981a37611e3845c7b639012d9ee06
+godot/ui/lobby.gd aed23d889c2562e6fbbb216592305da3938f898f5a9e97ffa85a4c671157deec
+godot/ui/app_theme.gd 0eecc5bb58d394c3571cd77e35472721b2f43ae6230dd7b0ffa8a803b29c80fa

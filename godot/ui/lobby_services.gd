@@ -5,6 +5,7 @@ const Frame = preload("res://ui/lobby_frame.gd")
 const GrowthUI = preload("res://ui/lobby_growth.gd")
 const CollectionUI = preload("res://ui/lobby_collection.gd")
 const LeaderboardView = preload("res://ui/leaderboard_view.gd")
+const MailboxView = preload("res://ui/mailbox_view.gd")
 const MODULE_DIAMONDS := {"normal":2,"magic":5,"rare":20,"unique":50}
 var lobby
 var page := ""
@@ -15,6 +16,16 @@ var pending := false
 var view_epoch := 0
 var nickname_draft := ""
 var module_confirmation: Array = []
+var expanded_mail_id := ""
+var read_pending_id := ""
+var mail_scroll_y := 0
+var mail_auto_armed := true
+var mail_short_prefetched := false
+var mail_short_gesture := false
+var mail_auto_loading_cursor := ""
+var mail_page_failed_cursor := ""
+var mail_loaded_cursors := {}
+var mail_last_auto_scroll_y := -1
 
 func _services(): return lobby.app.get("services")
 
@@ -24,6 +35,16 @@ func open(title: String, values: Dictionary = {}) -> void:
 	notice = ""
 	data = {}
 	module_confirmation = []
+	expanded_mail_id = ""
+	read_pending_id = ""
+	mail_scroll_y = 0
+	mail_auto_armed = true
+	mail_short_prefetched = false
+	mail_short_gesture = false
+	mail_auto_loading_cursor = ""
+	mail_page_failed_cursor = ""
+	mail_loaded_cursors = {}
+	mail_last_auto_scroll_y = -1
 	view_epoch += 1
 	pending = false
 	_render()
@@ -44,6 +65,8 @@ func _render() -> void:
 	lobby.modal.set_meta("service_page",page)
 	lobby.modal.set_meta("max_width",480 if page == "우편함" else 420)
 	body.name = "ServiceBody"
+	if page == "우편함" and _connected():
+		MailboxView.header(lobby, _fetch, pending or _services().busy)
 	if page == "리더보드":
 		lobby.modal.set_meta("max_width", 680)
 		lobby.modal.set_meta("height_fraction", 0.84)
@@ -66,6 +89,18 @@ func _render() -> void:
 	else: _command(body)
 	if pending: body.add_child(T.label("처리 중…",12))
 	if not notice.is_empty(): body.add_child(T.label(notice,12))
+	if page == "우편함" and is_instance_valid(lobby.modal_scroll):
+		var scroll_ref: WeakRef = weakref(lobby.modal_scroll)
+		var captured := view_epoch
+		lobby.modal_scroll.gui_input.connect(_mail_scroll_input.bind(scroll_ref, captured))
+		MailboxView.observe_touch_scroll(lobby, _mail_scroll_input.bind(scroll_ref, captured))
+		lobby.modal_scroll.get_v_scroll_bar().value_changed.connect(_mail_scroll_changed.bind(scroll_ref, captured))
+		lobby.modal_scroll.get_tree().process_frame.connect(func():
+			var scroll: ScrollContainer = scroll_ref.get_ref()
+			if scroll != null and scroll.is_inside_tree():
+				scroll.scroll_vertical = mail_scroll_y
+				_mail_maybe_auto_page(scroll_ref, captured)
+		, CONNECT_ONE_SHOT)
 
 func _update(body: VBoxContainer) -> void:
 	var update = _services().updates
@@ -175,6 +210,14 @@ func _nickname() -> void:
 	_render()
 
 func _fetch(cursor := "") -> void:
+	if page == "우편함" and is_instance_valid(lobby.modal_scroll): mail_scroll_y = lobby.modal_scroll.scroll_vertical
+	if page == "우편함" and cursor.is_empty():
+		mail_auto_armed = true
+		mail_short_prefetched = false
+		mail_short_gesture = false
+		mail_page_failed_cursor = ""
+		mail_loaded_cursors.clear()
+		mail_last_auto_scroll_y = -1
 	pending = true
 	var captured := view_epoch
 	_render()
@@ -190,36 +233,130 @@ func _fetch(cursor := "") -> void:
 		notice = ""
 	else: _show_result(result)
 	_render()
+	if page == "우편함": _read_expanded_if_needed()
 
 func _mailbox(body: VBoxContainer) -> void:
-	_button(body,"새로고침",_fetch,"secondary")
-	var mails: Array = data.get("mails",[])
-	if mails.is_empty() and not pending: body.add_child(T.label("도착한 우편이 없습니다.",12))
-	var claimable: Array = []
-	for mail in mails:
-		if not mail is Dictionary: continue
-		var card := VBoxContainer.new()
-		body.add_child(card)
-		card.add_child(T.label(str(mail.get("title","우편")),14))
-		card.add_child(T.label(str(mail.get("body","")),12))
-		card.add_child(T.label("다이아 %d · 모듈권 %d" % [int(mail.get("freeDiamonds",0)),int(mail.get("moduleTickets",0))],12))
-		card.add_child(T.label("만료: "+str(mail.get("expiresAt","")),10))
-		if mail.get("claimedAt") != null: card.add_child(T.label("수령 완료",12))
-		else:
-			claimable.append(mail.id)
-			_button(card,"수령",_perform.bind("mail_claim",{"id":mail.id}))
-		if mail.get("readAt") == null: _button(card,"읽음 표시",_mark_read.bind(str(mail.id)),"secondary")
-	if not claimable.is_empty(): _button(body,"모두 수령 (최대 20개)",_perform.bind("mail_claim_all",{"ids":claimable.slice(0,20)}))
-	if data.get("nextCursor") is String: _button(body,"더 보기",_fetch.bind(data.nextCursor),"secondary")
+	MailboxView.build(lobby, body, data, expanded_mail_id, pending or _services().busy, _toggle_mail,
+		func(id: String): _perform("mail_claim", {"id":id}),
+		func(ids: Array): _perform("mail_claim_all", {"ids":ids}), mail_page_failed_cursor, _mail_retry_page)
+
+func _toggle_mail(id: String) -> void:
+	if is_instance_valid(lobby.modal_scroll): mail_scroll_y = lobby.modal_scroll.scroll_vertical
+	expanded_mail_id = "" if expanded_mail_id == id else id
+	if mail_auto_loading_cursor.is_empty(): _render()
+	else: _mail_refresh_body()
+	_read_expanded_if_needed()
+
+func _mail_scroll_changed(_value: float, scroll_ref: WeakRef, captured: int) -> void:
+	var scroll: ScrollContainer = scroll_ref.get_ref()
+	if scroll == null or scroll != lobby.modal_scroll or not _active_view(captured): return
+	if pending or not mail_auto_loading_cursor.is_empty(): return
+	if scroll.scroll_vertical > mail_last_auto_scroll_y + 2:
+		mail_auto_armed = true
+		_mail_maybe_auto_page(scroll_ref, captured)
+
+func _mail_scroll_input(event: InputEvent, scroll_ref: WeakRef, captured: int) -> void:
+	var scroll: ScrollContainer = scroll_ref.get_ref()
+	if scroll == null or scroll != lobby.modal_scroll or not _active_view(captured): return
+	if pending or not _connected() or _services().busy: return
+	var toward_bottom: bool = (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_DOWN) or (event is InputEventScreenDrag and event.relative.y < 0) or (event is InputEventPanGesture and event.delta.y > 0)
+	if not toward_bottom: return
+	var bar := scroll.get_v_scroll_bar()
+	if bar.max_value - bar.page <= 1:
+		mail_short_gesture = true
+		mail_auto_armed = true
+		_mail_maybe_auto_page.call_deferred(scroll_ref, captured)
+
+func _mail_maybe_auto_page(scroll_ref: WeakRef, captured: int) -> void:
+	var scroll: ScrollContainer = scroll_ref.get_ref()
+	if scroll == null or scroll != lobby.modal_scroll or not _active_view(captured) or page != "우편함": return
+	if not mail_auto_armed or pending or not mail_auto_loading_cursor.is_empty() or not _connected() or _services().busy: return
+	var cursor: Variant = data.get("nextCursor")
+	if not cursor is String or cursor.is_empty() or mail_loaded_cursors.has(cursor) or cursor == mail_page_failed_cursor: return
+	var mails: Array = data.get("mails", [])
+	if mails.is_empty(): return
+	var last_card := lobby.modal.find_child("MailCard%d" % (mails.size() - 1), true, false) as Control
+	if last_card == null or last_card.get_global_rect().end.y > scroll.get_global_rect().end.y + 24: return
+	var bar := scroll.get_v_scroll_bar()
+	if bar.max_value - bar.page <= 1:
+		if mail_short_prefetched and not mail_short_gesture: return
+		mail_short_prefetched = true
+	mail_short_gesture = false
+	mail_auto_armed = false
+	mail_last_auto_scroll_y = scroll.scroll_vertical
+	_mail_load_next(cursor)
+
+func _mail_load_next(cursor: String, retry := false) -> void:
+	if page != "우편함" or pending or not _connected() or _services().busy or cursor != data.get("nextCursor") or mail_loaded_cursors.has(cursor): return
+	if cursor == mail_page_failed_cursor and not retry: return
+	mail_page_failed_cursor = ""
+	mail_auto_loading_cursor = cursor
+	mail_scroll_y = lobby.modal_scroll.scroll_vertical
+	pending = true
+	MailboxView.paging_loading(lobby, true)
+	var captured := view_epoch
+	var result: Dictionary = await _services().request("GET", "v1/mailbox?cursor=" + cursor.uri_encode())
+	if not _active_view(captured): return
+	pending = false
+	mail_auto_loading_cursor = ""
+	if result.get("ok", false):
+		mail_loaded_cursors[cursor] = true
+		data.mails.append_array(result.body.get("mails", []))
+		var next: Variant = result.body.get("nextCursor")
+		data.nextCursor = null if next == cursor else next
+		notice = ""
+	else:
+		mail_page_failed_cursor = cursor
+	_mail_refresh_body()
+	_read_expanded_if_needed()
+
+func _mail_retry_page(cursor: String) -> void:
+	if cursor == mail_page_failed_cursor: _mail_load_next(cursor, true)
+
+func _mail_refresh_body() -> void:
+	if page != "우편함" or not is_instance_valid(lobby.modal_body) or not is_instance_valid(lobby.modal_scroll): return
+	var body: VBoxContainer = lobby.modal_body
+	mail_scroll_y = lobby.modal_scroll.scroll_vertical
+	for child in body.get_children():
+		body.remove_child(child)
+		child.queue_free()
+	_mailbox(body)
+	if not mail_auto_loading_cursor.is_empty(): MailboxView.paging_loading(lobby, true)
+	else:
+		var refresh := lobby.modal.find_child("RefreshMailbox", true, false) as Button
+		if refresh != null: refresh.disabled = pending or _services().busy
+	lobby._layout_modal.call_deferred()
+	var scroll_ref: WeakRef = weakref(lobby.modal_scroll)
+	lobby.modal_scroll.get_tree().process_frame.connect(func():
+		var scroll: ScrollContainer = scroll_ref.get_ref()
+		if scroll != null and scroll.is_inside_tree(): scroll.scroll_vertical = mail_scroll_y
+	, CONNECT_ONE_SHOT)
+
+func _read_expanded_if_needed() -> void:
+	if page != "우편함" or pending or not read_pending_id.is_empty() or expanded_mail_id.is_empty(): return
+	for mail in data.get("mails", []):
+		if mail is Dictionary and str(mail.get("id", "")) == expanded_mail_id and mail.get("readAt") == null:
+			_mark_read(expanded_mail_id)
+			return
 
 func _mark_read(id: String) -> void:
+	if pending or not read_pending_id.is_empty() or not _connected(): return
+	read_pending_id = id
 	var captured := view_epoch
 	pending = true
 	_render()
 	var result: Dictionary = await _services().request("POST","v1/mailbox/"+id.uri_encode()+"/read")
 	if not _active_view(captured): return
+	read_pending_id = ""
 	pending = false
-	if result.get("ok",false): _fetch()
+	if result.get("ok",false):
+		# The read endpoint returns only {read:true}; keep loaded pages and selection.
+		for index in data.get("mails", []).size():
+			if data.mails[index] is Dictionary and str(data.mails[index].get("id", "")) == id:
+				data.mails[index].readAt = Time.get_datetime_string_from_system(true)
+				break
+		_render()
+		_read_expanded_if_needed()
 	else:
 		_show_result(result)
 		_render()

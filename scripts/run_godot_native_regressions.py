@@ -35,6 +35,7 @@ SCRIPTS = {
     "verify_lobby.gd": "LOBBY_SMOKE_OK",
     "verify_modal_input.gd": "PASS modal input:",
     "verify_leaderboard_ui.gd": "failures=[]",
+    "verify_mailbox_ui.gd": '"failures":[]',
     "verify_lobby_growth.gd": "PASS growth pages:",
     "verify_research_stop.gd": "PASS research stop:",
     "verify_ui_confirmations.gd": "PASS ui confirmations:",
