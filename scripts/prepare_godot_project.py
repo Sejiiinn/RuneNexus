@@ -179,6 +179,7 @@ def prepare() -> Path:
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
+    required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res")]
     required += [SOURCE_ASSETS / "effects" / "enemy_frost" / name
                  for name in ("crystals.glb", "attachments.json", "rime_mask.bin", "grain.png")]
     required += [SOURCE_ASSETS / "effects" / name
@@ -211,6 +212,8 @@ def prepare() -> Path:
         target = ASSETS / source.relative_to(SOURCE_ASSETS)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+    for source in sorted((SOURCE_ASSETS / "enemies").glob("normal_status_*.res")):
+        shutil.copy2(source, ASSETS / "enemies" / source.name)
     texture_manifest = externalize_textures(ASSETS)
     (PROJECT.parent / "shared_texture_manifest.json").write_text(
         json.dumps(texture_manifest, ensure_ascii=False, indent=2) + "\n"

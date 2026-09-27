@@ -3,6 +3,9 @@ render_mode blend_mix, depth_prepass_alpha, cull_back, diffuse_burley, specular_
 
 uniform sampler3D rime_mask : filter_linear, repeat_disable;
 uniform sampler2D grain_texture : filter_linear_mipmap, repeat_enable;
+uniform float coordinate_scale = 1.0;
+uniform bool preserve_colored_core = false;
+uniform sampler2D body_albedo : source_color, filter_linear_mipmap;
 instance uniform float frost_amount : hint_range(0.0, 1.0) = 1.0;
 varying vec3 object_position;
 varying vec3 object_normal;
@@ -10,7 +13,7 @@ varying float object_scale;
 
 void vertex() {
 	// Original mesh coordinates, converted back to the Blender authoring axes.
-	object_position = vec3(VERTEX.x, -VERTEX.z, VERTEX.y);
+	object_position = vec3(VERTEX.x, -VERTEX.z, VERTEX.y) * coordinate_scale;
 	object_normal = vec3(NORMAL.x, -NORMAL.z, NORMAL.y);
 	object_scale = length(MODEL_MATRIX[0].xyz);
 	VERTEX += NORMAL * 0.004;
@@ -29,7 +32,9 @@ void fragment() {
 	ALBEDO = mix(vec3(0.10048, 0.38006, 0.57048), vec3(0.74841, 0.93311, 1.0), grain);
 	ROUGHNESS = 0.56;
 	SPECULAR = 0.5;
-	ALPHA = coverage * frost_amount;
+	vec3 body_color = texture(body_albedo, UV).rgb;
+	bool colored_core = preserve_colored_core && ((body_color.g > body_color.r * 1.25 && body_color.b > body_color.r * 1.25) || (body_color.r > body_color.g * 1.25 && body_color.b > body_color.g * 1.25));
+	ALPHA = colored_core ? 0.0 : coverage * frost_amount;
 	// Surface-gradient bump in view space, independent of each enemy's UVs.
 	vec3 dx = dFdx(VERTEX);
 	vec3 dy = dFdy(VERTEX);

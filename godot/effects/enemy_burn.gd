@@ -2,6 +2,7 @@ extends RefCounted
 
 ## Approved V3 Blender fire, baked once; short-lived parcels move on the GPU.
 ## One immutable MultiMesh per enemy kind, one shared material/atlas/clock.
+const GuardianStatus = preload("res://effects/guardian_status.gd")
 const SHADER = preload("res://effects/enemy_burn.gdshader")
 const ATLAS = preload("res://assets/effects/enemy_burn/flame_atlas.png")
 const DATA_PATH := "res://assets/effects/enemy_burn/attachments.json"
@@ -54,6 +55,7 @@ static func set_time(time: float) -> void:
 	if _time == time:
 		return
 	_time = time
+	GuardianStatus.set_burn_time(time)
 	if _material != null:
 		_material.set_shader_parameter("burn_time", time)
 
@@ -63,6 +65,11 @@ static func apply(entry: Dictionary, burning: bool, _combat_time: float) -> void
 		if not burning:
 			return
 		_ensure_shared()
+		if bool(entry.get("guardian_preview", false)):
+			entry["burn"] = GuardianStatus.attach(entry, [_multimeshes["normal"]], [_material], "EnemyBurn")
+			entry["burn_active"] = burning
+			entry["burn"].visible = burning
+			return
 		var effect := MultiMeshInstance3D.new()
 		effect.name = "EnemyBurn"
 		var kind: String = "boss" if entry["type"] == "shieldBoss" else entry["type"]

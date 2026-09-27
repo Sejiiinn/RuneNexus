@@ -1,0 +1,16 @@
+{
+  "required": {
+    "normal.glb": 3924008,
+    "normal_death.glb": 4066136,
+    "normal_status_burn.res": 15889,
+    "normal_status_frost_shards.res": 136961,
+    "normal_status_frost_grains.res": 400121
+  },
+  "retired_json_present": false,
+  "preview_glb_present": [],
+  "status_sha256": {
+    "normal_status_burn.res": "7a944a741a2530522bd365c25e026dbe5e872daafcbfc77a7aecb9e862406454",
+    "normal_status_frost_shards.res": "a1e9f80e95e13ea470db99dc604b44eb0b15db8aa8b3e9999ded231a4037dc5d",
+    "normal_status_frost_grains.res": "a4712b815de83872436266d71747cde6d691e15b34f49afa40ac75b9a1e73744"
+  }
+}

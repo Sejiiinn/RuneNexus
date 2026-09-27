@@ -2,11 +2,13 @@ extends RefCounted
 
 ## 공통 성에 shader를 원래 몸체 재질의 next_pass로 연결한다.
 ## 적별 데이터는 결정 부착 변환뿐이며 모든 종이 같은 두 원형을 사용한다.
+const GuardianStatus = preload("res://effects/guardian_status.gd")
 const CRYSTALS = preload("res://assets/effects/enemy_frost/crystals.glb")
 const COAT_SHADER = preload("res://effects/enemy_frost.gdshader")
 const CRYSTAL_SHADER = preload("res://effects/enemy_frost_crystals.gdshader")
 const GRAIN = preload("res://assets/effects/enemy_frost/grain.png")
 static var _coat: ShaderMaterial
+static var _guardian_coat: ShaderMaterial
 static var _ice: ShaderMaterial
 static var _grain_material: StandardMaterial3D
 static var _shard_mesh: Mesh
@@ -99,9 +101,10 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 		if not slowed:
 			return
 		_ensure_shared()
+		var guardian := bool(entry.get("guardian_preview", false))
 		var frost := Node3D.new()
 		frost.name = "EnemyFrost"
-		entry["root"].add_child(frost)
+		if not guardian: entry["root"].add_child(frost)
 		entry["frost"] = frost
 		var bodies: Array = []
 		for mesh: MeshInstance3D in entry["root"].find_children("*", "MeshInstance3D", true, false):
@@ -111,12 +114,21 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 					continue
 				if not _body_materials.has(original):
 					var coated := original.duplicate() as StandardMaterial3D
-					coated.next_pass = _coat
+					if guardian and _guardian_coat == null:
+						_guardian_coat = _coat.duplicate()
+						_guardian_coat.set_shader_parameter("coordinate_scale", 0.242158934474)
+						_guardian_coat.set_shader_parameter("preserve_colored_core", true)
+						_guardian_coat.set_shader_parameter("body_albedo", original.albedo_texture)
+					coated.next_pass = _guardian_coat if guardian else _coat
 					_body_materials[original] = coated
 				bodies.append([mesh, surface, mesh.get_surface_override_material(surface), _body_materials[original]])
 		entry["frost_bodies"] = bodies
 		var instances := _instances(entry["type"])
-		for i in range(2):
+		if guardian:
+			frost.free()
+			frost = GuardianStatus.attach(entry, instances, [_ice, _grain_material], "EnemyFrost")
+			entry["frost"] = frost
+		for i in range(0 if guardian else 2):
 			var crystals := MultiMeshInstance3D.new()
 			crystals.name = "Shards" if i == 0 else "Grains"
 			crystals.multimesh = instances[i]

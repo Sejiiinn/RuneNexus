@@ -10,6 +10,7 @@ const RunicFire = preload("res://effects/runic_fire.gd")
 const FrostTower = preload("res://effects/frost_tower.gd")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
+const GuardianPreview = preload("res://presentation/guardian_preview.gd")
 const TURRET_MODELS := {
 	"arrow": preload("res://assets/turrets/arrow.glb"),
 	"cannon": preload("res://assets/turrets/cannon.glb"),
@@ -45,11 +46,19 @@ var _time := 0.0
 var columns := 8
 var rows := 10
 var options := {"volume": true}
+var _guardian_preview: GuardianPreview
+
 
 
 func _init(world_root: Node3D, battlefield_camera: Camera3D) -> void:
 	world = world_root
 	camera = battlefield_camera
+	_guardian_preview = GuardianPreview.new(world)
+	_guardian_preview.failure.connect(_forward_guardian_failure)
+
+
+func _forward_guardian_failure(message: String) -> void:
+	failure.emit(message)
 
 
 func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> void:
@@ -59,7 +68,9 @@ func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> vo
 	options = frame_options
 
 
+
 func clear() -> void:
+	_guardian_preview.clear()
 	_gem_selection_revision = -1
 	_gem_turret_revision = -1
 	_gem_selection = {}
@@ -289,6 +300,10 @@ func _update_weapon_camera(entry: Dictionary) -> void:
 		smoke.update_camera(camera)
 
 
+func sync_guardian_events(runtime) -> void:
+	_guardian_preview.observe_native(runtime, _time, Vector2i(columns, rows))
+
+
 func _sync_enemies(units: Array) -> void:
 	var time := _time
 	# 공통 GPU 입자 시계는 전투 프레임마다 한 번만 전달한다.
@@ -301,15 +316,29 @@ func _sync_enemies(units: Array) -> void:
 			failure.emit("스테이지 1에서 지원하지 않는 적: %s" % type)
 			continue
 		alive[id] = true
-		if enemies.has(id) and enemies[id]["type"] != type:
+		var preview := type == "normal"
+		if enemies.has(id) and (enemies[id]["type"] != type or bool(enemies[id].get("guardian_preview", false)) != preview):
 			enemies[id]["root"].free()
 			enemies.erase(id)
 		if not enemies.has(id):
-			var model: Node3D = ENEMY_MODELS[type].instantiate()
-			_prepare_vertex_colors(model)
-			world.add_child(model)
-			enemies[id] = {"root": model, "type": type}
+			if preview:
+				var entry: Dictionary = _guardian_preview.new_walker()
+				if entry.is_empty(): continue
+				enemies[id] = entry
+			else:
+				var model: Node3D = ENEMY_MODELS[type].instantiate()
+				_prepare_vertex_colors(model)
+				world.add_child(model)
+				enemies[id] = {"root": model, "type": type}
 		var root: Node3D = enemies[id]["root"]
+		if preview:
+			# The authored rig supplies grounded motion and body-only turning.
+			root.position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
+			root.scale = Vector3.ONE * float(data[5])
+			_guardian_preview.update_walker(enemies[id], data, time)
+			EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
+			EnemyBurn.apply(enemies[id], data.size() > 8 and bool(data[8]) and bool(options.get("burn_effects", true)), time)
+			continue
 		# 전투 판정의 기존 slowed 필드를 사용하며 부유·회전·크기는 원본 부모를 따른다.
 		EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
 		# Diagnostic A/B switch: visual only; incoming combat burn state stays intact.
@@ -320,6 +349,7 @@ func _sync_enemies(units: Array) -> void:
 		root.scale = Vector3.ONE * float(data[5])
 	for id in enemies.keys():
 		if not alive.has(id):
+			_guardian_preview.forget_walker(id)
 			enemies[id]["root"].free()
 			enemies.erase(id)
 

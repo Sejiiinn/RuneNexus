@@ -1,0 +1,39 @@
+{
+  "normal.glb": {
+    "bytes": 3923832,
+    "matches_approved": true,
+    "sha256": "37957e5e75d7781d0e2ce5a5b1ee1d6c925381d15bc1f5b6b0871d4f2a064d8b"
+  },
+  "normal_death.glb": {
+    "bytes": 4065964,
+    "matches_approved": true,
+    "sha256": "34100c3fa88686f0e81389ba8c085dec5d8d2689888583b7bcdfbcc10e80bb37"
+  },
+  "other_enemy_diff": [],
+  "combat_save_diff": [],
+  "staged_enemy_names": [
+    "armored.glb",
+    "boss.glb",
+    "fast.glb",
+    "normal.glb",
+    "normal_death.glb",
+    "shielded.glb",
+    "tank.glb"
+  ],
+  "status_assets": {
+    "normal_status_burn.res": {
+      "bytes": 15889,
+      "sha256": "7a944a741a2530522bd365c25e026dbe5e872daafcbfc77a7aecb9e862406454"
+    },
+    "normal_status_frost_grains.res": {
+      "bytes": 400121,
+      "sha256": "a4712b815de83872436266d71747cde6d691e15b34f49afa40ac75b9a1e73744"
+    },
+    "normal_status_frost_shards.res": {
+      "bytes": 136961,
+      "sha256": "a1e9f80e95e13ea470db99dc604b44eb0b15db8aa8b3e9999ded231a4037dc5d"
+    }
+  },
+  "retired_json_absent": true,
+  "final_status_staged_identical": true
+}

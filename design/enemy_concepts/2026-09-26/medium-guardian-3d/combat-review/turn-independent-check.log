@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS initial nonzero facing appears immediately
+PASS turn starts from visible heading without a snap
+PASS 90 degree turn reaches 75 percent at 0.06 combat seconds
+PASS 90 degree turn finishes at 0.12 combat seconds
+PASS quarter-step angular increments decrease toward target
+PASS same combat time cannot advance turning
+PASS mid-turn retarget preserves current visible angle
+PASS retarget settles without overshoot
+PASS 179 to -179 takes shortest two degree turn
+PASS wrap crossing samples shortest arc with ease-out
+PASS wrapped target settles exactly
+PASS combat clock rewind resets facing immediately
+INDEPENDENT_TURN {"checks":12,"failures":[],"samples":[0.0,0.687223374843597,1.17809724807739,1.47262156009674,1.57079637050629]}

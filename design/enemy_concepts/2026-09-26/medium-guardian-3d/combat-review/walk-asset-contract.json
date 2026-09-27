@@ -1,0 +1,52 @@
+{
+  "file": "medium-guardian-walk.glb",
+  "sha256": "37957e5e75d7781d0e2ce5a5b1ee1d6c925381d15bc1f5b6b0871d4f2a064d8b",
+  "clip": "Walk",
+  "clip_seconds": 0.43333333333333335,
+  "loop_required_in_engine": true,
+  "phase_contract": "phase = (distance_tiles / 0.284375) mod 1; animation_time_seconds = phase * (26/60)",
+  "glTF_front": "+Z",
+  "glTF_up": "+Y",
+  "rest_width": 1,
+  "ground_y": 0,
+  "presentation_scale": 0.55,
+  "root_node": "Guardian_Walk_Runtime_Rig",
+  "mesh_node": "Guardian_Walk_Runtime_Rig/Guardian_Walk_AtlasMesh",
+  "godot_node_path_note": "These are glTF nodes; engine importer may insert Skeleton3D/AnimationPlayer. Inspect actual packed scene paths during integration.",
+  "animation_bounds_gltf_normalized": {
+    "min": [
+      -0.5135554075241089,
+      -0.00018321316350590098,
+      -0.30158690430901264
+    ],
+    "max": [
+      0.5106647448106245,
+      1.065633947199041,
+      0.27920763600956305
+    ]
+  },
+  "triangles": 15351,
+  "mesh_count": 1,
+  "material_count": 1,
+  "skin_count": 1,
+  "bone_count": 14,
+  "animation_count": 1,
+  "animation_channels": 42,
+  "textures": [
+    "walk-normal",
+    "walk-color",
+    "Walk atlas metallic-Walk atlas roughness"
+  ],
+  "texture_resolution": [
+    1024,
+    1024
+  ],
+  "normal_strength": 4,
+  "v4_death_file_unchanged": "../death/v4-whole-exit/medium-guardian-whole-exit.glb",
+  "v4_death_wrapper_ground_offset_normalized": -0.008475562916664046,
+  "v4_death_wrapper_ground_offset_tiles_at_055": -0.004661559604165226,
+  "max_loop_vertex_error_tiles": 2.6097200571653073e-18,
+  "max_ground_error_pixels_at_48px_tile": 0.004836827516555786,
+  "max_source_vertex_error_model": 0.0018553974105830677,
+  "performance_scope": "Geometry/material consolidated and animation baked. Runtime skinning/interpolation/render cost remains; FPS unmeasured."
+}

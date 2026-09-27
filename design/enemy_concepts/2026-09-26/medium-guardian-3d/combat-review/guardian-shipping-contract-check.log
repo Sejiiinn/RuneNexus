@@ -1,0 +1,39 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS default normal uses approved guardian
+PASS default loads shipping assets
+PASS default Units RefCounted releases
+PASS native normal uses guardian without opt-in
+PASS walk starts at distance zero
+PASS half stride samples half cycle
+PASS guardian shows burn and frost together
+PASS frost coat preserves authored skinned mesh
+PASS statuses retain three draw groups
+PASS merged effect shares authored skin and one surface
+PASS merged effect shares authored skin and one surface
+PASS merged effect shares authored skin and one surface
+PASS all 52 burn particles preserved in merged mesh
+PASS burn retains all 52 distinct source particle rows
+PASS burn has 52 distinct baked surface anchors
+PASS all 40 crystal source variants survive offline merge
+PASS cleared combat status hides both effects
+PASS pause freezes movement and pose
+PASS 4x reaches exactly one authored stride
+PASS one stride wraps walk cycle
+PASS slow scales pose by actual movement
+PASS walk has no sine hover
+PASS quarter turn eases 75 percent by 0.06 combat seconds
+PASS actual native kill swaps walk for death
+PASS death retains presentation scale
+PASS death normalized floor offset is corrected
+PASS death retains visible body direction during turn
+PASS death stays at kill position
+PASS retained journal does not duplicate corpse
+PASS duplicate enemy kill ID does not restart corpse
+PASS pause freezes death animation
+PASS 4x advances death by simulation time
+PASS death removed after 0.6 simulation seconds
+PASS core arrival never creates a corpse
+PASS clear removes presentation state
+PASS Units and helper release without signal-reference cycles
+GUARDIAN_CONTRACT {"checks":36,"failures":[],"result":"PASS"}

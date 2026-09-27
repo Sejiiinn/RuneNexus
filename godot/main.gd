@@ -550,6 +550,7 @@ func _sync_turrets(units: Array) -> void:
 
 func _sync_enemies(units: Array) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
+	_units.sync_guardian_events(_native_combat)
 	_units._sync_enemies(units)
 
 

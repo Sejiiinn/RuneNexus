@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+STATUS_SKIN_BOUNDS time=0.0 mesh=normal_status_frost_shards.res body=[P: (-0.276218, -0.0, -0.145848), S: (0.544271, 0.570666, 0.294283)] effect=[P: (-0.207825, -0.089467, -0.111982), S: (0.432934, 0.702949, 0.307187)]
+STATUS_SKIN_BOUNDS time=0.0 mesh=normal_status_frost_grains.res body=[P: (-0.276218, -0.0, -0.145848), S: (0.544271, 0.570666, 0.294283)] effect=[P: (-0.271257, -0.005673, -0.116878), S: (0.485134, 0.54627, 0.248147)]
+STATUS_SKIN_BOUNDS time=0.0 mesh=normal_status_burn.res body=[P: (-0.276218, -0.0, -0.145848), S: (0.544271, 0.570666, 0.294283)] effect=[P: (-0.212219, -0.00165, -0.112163), S: (0.421885, 0.568926, 0.240607)]
+STATUS_SKIN_BOUNDS time=0.1083 mesh=normal_status_frost_shards.res body=[P: (-0.281824, -0.000346, -0.121016), S: (0.543632, 0.583598, 0.253323)] effect=[P: (-0.230033, -0.072652, -0.11847), S: (0.44099, 0.69821, 0.303983)]
+STATUS_SKIN_BOUNDS time=0.1083 mesh=normal_status_frost_grains.res body=[P: (-0.281824, -0.000346, -0.121016), S: (0.543632, 0.583598, 0.253323)] effect=[P: (-0.281159, -0.006013, -0.124346), S: (0.477317, 0.562263, 0.244664)]
+STATUS_SKIN_BOUNDS time=0.1083 mesh=normal_status_burn.res body=[P: (-0.281824, -0.000346, -0.121016), S: (0.543632, 0.583598, 0.253323)] effect=[P: (-0.221696, 0.015167, -0.119682), S: (0.418663, 0.564196, 0.239012)]
+STATUS_SKIN_BOUNDS time=0.2167 mesh=normal_status_frost_shards.res body=[P: (-0.271976, -0.000548, -0.13576), S: (0.543347, 0.573923, 0.283888)] effect=[P: (-0.215542, -0.086339, -0.1249), S: (0.437141, 0.70241, 0.317006)]
+STATUS_SKIN_BOUNDS time=0.2167 mesh=normal_status_frost_grains.res body=[P: (-0.271976, -0.000548, -0.13576), S: (0.543347, 0.573923, 0.283888)] effect=[P: (-0.269968, -0.006208, -0.118966), S: (0.480164, 0.551857, 0.24658)]
+STATUS_SKIN_BOUNDS time=0.2167 mesh=normal_status_burn.res body=[P: (-0.271976, -0.000548, -0.13576), S: (0.543347, 0.573923, 0.283888)] effect=[P: (-0.208953, 0.001478, -0.114297), S: (0.416566, 0.568343, 0.239873)]
+STATUS_SKIN_BOUNDS time=0.325 mesh=normal_status_frost_shards.res body=[P: (-0.263722, -0.000346, -0.12144), S: (0.5443, 0.583764, 0.253592)] effect=[P: (-0.190157, -0.089801, -0.120538), S: (0.435062, 0.714765, 0.306463)]
+STATUS_SKIN_BOUNDS time=0.325 mesh=normal_status_frost_grains.res body=[P: (-0.263722, -0.000346, -0.12144), S: (0.5443, 0.583764, 0.253592)] effect=[P: (-0.256731, 0.004853, -0.123388), S: (0.488369, 0.545286, 0.247074)]
+STATUS_SKIN_BOUNDS time=0.325 mesh=normal_status_burn.res body=[P: (-0.263722, -0.000346, -0.12144), S: (0.5443, 0.583764, 0.253592)] effect=[P: (-0.196437, -0.001983, -0.11868), S: (0.419643, 0.581056, 0.2404)]
+STATUS_SKIN_BOUNDS time=0.4333 mesh=normal_status_frost_shards.res body=[P: (-0.273398, -0.000005, -0.134919), S: (0.543457, 0.572747, 0.288465)] effect=[P: (-0.203761, -0.089458, -0.115669), S: (0.433446, 0.704472, 0.308289)]
+STATUS_SKIN_BOUNDS time=0.4333 mesh=normal_status_frost_grains.res body=[P: (-0.273398, -0.000005, -0.134919), S: (0.543457, 0.572747, 0.288465)] effect=[P: (-0.267702, -0.003909, -0.118315), S: (0.485867, 0.545264, 0.247537)]
+STATUS_SKIN_BOUNDS time=0.4333 mesh=normal_status_burn.res body=[P: (-0.273398, -0.000005, -0.134919), S: (0.543457, 0.572747, 0.288465)] effect=[P: (-0.208432, -0.001641, -0.113609), S: (0.421086, 0.570579, 0.240393)]
+GUARDIAN_STATUS_SKIN_BOUNDS PASS

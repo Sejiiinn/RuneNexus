@@ -1,10 +1,12 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
 uniform sampler2D face_palette : filter_nearest, repeat_disable;
+uniform bool skinned_status = false;
 varying flat float variant;
 
 void vertex() {
-	variant = INSTANCE_CUSTOM.x;
+	variant = skinned_status ? CUSTOM0.x : INSTANCE_CUSTOM.x;
+	if (!skinned_status) {
 	// Rotate only the two hexagonal rings. The broken tip remains off center.
 	if (UV.y < 0.5) {
 		float x = VERTEX.x;
@@ -17,6 +19,7 @@ void vertex() {
 	NORMAL.x = INSTANCE_CUSTOM.y * nx + 0.68 * INSTANCE_CUSTOM.z * nz;
 	NORMAL.z = -INSTANCE_CUSTOM.z * nx / 0.68 + INSTANCE_CUSTOM.y * nz;
 	NORMAL = normalize(NORMAL);
+	}
 }
 
 void fragment() {
