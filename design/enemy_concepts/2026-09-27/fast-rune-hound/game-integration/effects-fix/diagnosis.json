@@ -1,0 +1,12 @@
+{
+  "old_fast_excluded_surface_fraction": 0.9772231735449,
+  "new_fast_excluded_surface_fraction": 0.00441291088981,
+  "normal_excluded_surface_fraction_unchanged": 0.01714199123621,
+  "old_fast_burn_size_and_rise_multiplier": 2.1557207327043586,
+  "fix": "Protect actual authored emission, distribute unchanged status particles over eligible body, use own rig scale for burn billboard/rise",
+  "particle_count_unchanged": {
+    "burn": 52,
+    "frost_shards": 40,
+    "frost_grains": 95
+  }
+}

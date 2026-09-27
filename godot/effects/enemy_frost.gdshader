@@ -6,6 +6,8 @@ uniform sampler2D grain_texture : filter_linear_mipmap, repeat_enable;
 uniform float coordinate_scale = 1.0;
 uniform bool preserve_colored_core = false;
 uniform sampler2D body_albedo : source_color, filter_linear_mipmap;
+uniform bool preserve_emission_core = false;
+uniform sampler2D body_emission : source_color, filter_linear_mipmap;
 instance uniform float frost_amount : hint_range(0.0, 1.0) = 1.0;
 varying vec3 object_position;
 varying vec3 object_normal;
@@ -34,7 +36,9 @@ void fragment() {
 	SPECULAR = 0.5;
 	vec3 body_color = texture(body_albedo, UV).rgb;
 	bool colored_core = preserve_colored_core && ((body_color.g > body_color.r * 1.25 && body_color.b > body_color.r * 1.25) || (body_color.r > body_color.g * 1.25 && body_color.b > body_color.g * 1.25));
-	ALPHA = colored_core ? 0.0 : coverage * frost_amount;
+	vec3 emission_mask = texture(body_emission, UV).rgb;
+	bool protected_core = preserve_emission_core ? max(emission_mask.r, max(emission_mask.g, emission_mask.b)) > 0.01 : colored_core;
+	ALPHA = protected_core ? 0.0 : coverage * frost_amount;
 	// Surface-gradient bump in view space, independent of each enemy's UVs.
 	vec3 dx = dFdx(VERTEX);
 	vec3 dy = dFdy(VERTEX);

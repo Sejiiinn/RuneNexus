@@ -66,7 +66,7 @@ static func apply(entry: Dictionary, burning: bool, _combat_time: float) -> void
 			return
 		_ensure_shared()
 		if bool(entry.get("guardian_preview", false)):
-			entry["burn"] = GuardianStatus.attach(entry, [_multimeshes["normal"]], [_material], "EnemyBurn")
+			entry["burn"] = GuardianStatus.attach(entry, [_multimeshes[entry["type"]]], [_material], "EnemyBurn")
 			entry["burn_active"] = burning
 			entry["burn"].visible = burning
 			return

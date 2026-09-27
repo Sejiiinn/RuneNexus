@@ -1,11 +1,17 @@
 extends RefCounted
-## Authored normal guardian presentation. Reads combat state; never changes it.
+## Authored guardian and hound motion. Reads combat state; never changes it.
 signal failure(message: String)
 
 const WALK_PATH := "res://assets/enemies/normal.glb"
 const DEATH_PATH := "res://assets/enemies/normal_death.glb"
-const STRIDE_TILES := 0.284375
+const NORMAL_VISUAL_SCALE := 1.15
+const FAST_VISUAL_SCALE := 0.90
+const STRIDE_TILES := 0.284375 * NORMAL_VISUAL_SCALE
 const WALK_SECONDS := 26.0 / 60.0
+const RUN_PATH := "res://assets/enemies/fast.glb"
+const RUN_SECONDS := 34.0 / 60.0
+# Scale the authored contact distance with the body; combat speed stays unchanged.
+const RUN_STRIDE_TILES := (54.6 / 48.0) * RUN_SECONDS * FAST_VISUAL_SCALE
 const DEATH_SECONDS := 0.6
 const QUARTER_TURN_SECONDS := 0.12
 # V4's normalized mesh retains this floor offset; the new walk has Y=0 feet.
@@ -13,6 +19,7 @@ const DEATH_FLOOR := 0.008475561626255512
 
 var _world: Node3D
 var _walk_scene: PackedScene
+var _run_scene: PackedScene
 var _death_scene: PackedScene
 var _attempted := false
 var _epoch := -1
@@ -56,7 +63,7 @@ func clear() -> void:
 	_last_time = -INF
 
 
-func _instantiate(scene: PackedScene, floor_offset: float) -> Dictionary:
+func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "normal") -> Dictionary:
 	var root := Node3D.new()
 	var model := scene.instantiate() as Node3D
 	root.add_child(model)
@@ -82,11 +89,18 @@ func _instantiate(scene: PackedScene, floor_offset: float) -> Dictionary:
 	player.play(clip)
 	player.seek(0.0, true)
 	player.advance(0.0)
-	return {"root": root, "type": "normal", "guardian_preview": true,
+	return {"root": root, "type": kind, "guardian_preview": true,
 		"player": player, "clip": clip, "distance": 0.0, "last_time": -INF}
 
 
-func new_walker() -> Dictionary:
+func new_walker(kind: String = "normal") -> Dictionary:
+	if kind == "fast":
+		if _run_scene == null:
+			_run_scene = load(RUN_PATH) as PackedScene
+		if _run_scene == null:
+			failure.emit("빠른 룬 하운드 GLB를 불러오지 못했습니다.")
+			return {}
+		return _instantiate(_run_scene, 0.0, kind)
 	return _instantiate(_walk_scene, 0.0) if prepare() else {}
 
 
@@ -103,8 +117,10 @@ func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 		entry.distance = 0.0
 	entry.last_position = logical
 	entry.last_time = time
-	var phase := fposmod(float(entry.distance), STRIDE_TILES) / STRIDE_TILES
-	entry.player.seek(phase * WALK_SECONDS, true)
+	var stride := RUN_STRIDE_TILES if entry.type == "fast" else STRIDE_TILES
+	var seconds := RUN_SECONDS if entry.type == "fast" else WALK_SECONDS
+	var phase := fposmod(float(entry.distance), stride) / stride
+	entry.player.seek(phase * seconds, true)
 	entry.player.advance(0.0)
 
 
@@ -169,7 +185,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		# Keep the last visible body direction if death interrupts a turn.
 		var walker: Dictionary = walkers.get(id, {})
 		entry.root.rotation.y = walker.root.rotation.y if not walker.is_empty() and is_instance_valid(walker.root) else PI / 2.0 - float(enemy.facingAngle)
-		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.55))
+		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.55)) * NORMAL_VISUAL_SCALE
 		entry.born = time
 		deaths[id] = entry
 	update_deaths(time)

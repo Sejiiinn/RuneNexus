@@ -316,13 +316,13 @@ func _sync_enemies(units: Array) -> void:
 			failure.emit("스테이지 1에서 지원하지 않는 적: %s" % type)
 			continue
 		alive[id] = true
-		var preview := type == "normal"
+		var preview := type in ["normal", "fast"]
 		if enemies.has(id) and (enemies[id]["type"] != type or bool(enemies[id].get("guardian_preview", false)) != preview):
 			enemies[id]["root"].free()
 			enemies.erase(id)
 		if not enemies.has(id):
 			if preview:
-				var entry: Dictionary = _guardian_preview.new_walker()
+				var entry: Dictionary = _guardian_preview.new_walker(type)
 				if entry.is_empty(): continue
 				enemies[id] = entry
 			else:
@@ -334,7 +334,8 @@ func _sync_enemies(units: Array) -> void:
 		if preview:
 			# The authored rig supplies grounded motion and body-only turning.
 			root.position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
-			root.scale = Vector3.ONE * float(data[5])
+			var visual_scale := GuardianPreview.FAST_VISUAL_SCALE if type == "fast" else GuardianPreview.NORMAL_VISUAL_SCALE
+			root.scale = Vector3.ONE * float(data[5]) * visual_scale
 			_guardian_preview.update_walker(enemies[id], data, time)
 			EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
 			EnemyBurn.apply(enemies[id], data.size() > 8 and bool(data[8]) and bool(options.get("burn_effects", true)), time)

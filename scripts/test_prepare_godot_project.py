@@ -75,6 +75,10 @@ class MaterialPresetSyncTest(unittest.TestCase):
             ):
                 for name in names:
                     write(assets / kind / f"{name}.glb", b"asset fixture")
+            for name in ("normal_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res",
+                         "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res",
+                         "fast_status_frost_grains.res"):
+                write(assets / "enemies" / name, b"rig fixture")
             for name in ("muzzle_flash.png", "gun_smoke.png", "cannon_field.json",
                          "cannon_field.bin", "machinegun_muzzle_noise.bin"):
                 write(assets / "effects" / name, b"asset fixture")
@@ -112,7 +116,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
             write(source / "content/game_content.json", json.dumps(catalog).encode())
             # Texture staging now parses every GLB, even texture-free fixtures.
             for path in assets.rglob("*.glb"):
-                if path.read_bytes() in (b"asset fixture", b"frost fixture"):
+                if path.read_bytes() in (b"asset fixture", b"frost fixture", b"rig fixture"):
                     write_map_glb(path, path.stem)
             png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD1sAAAAASUVORK5CYII=")
             image_document = json.dumps({"buffers": [{"byteLength": len(png)}],
@@ -155,6 +159,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                         expected = set(preparation.ENEMY_TYPES) | ({boss} if boss else set())
                         self.assertEqual({enemy[7] for enemy in frame["enemies"]}, expected)
                 self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")
+                self.assertEqual((project / "assets/enemies/fast_status_burn.res").read_bytes(), b"rig fixture")
                 self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
                 self.assertEqual((project / "assets/ui/NotoSansKR-VF.ttf").read_bytes(), b"font fixture")
                 self.assertEqual((project / "assets/ui/MaterialIcons-Regular.otf").read_bytes(), b"icon font fixture")

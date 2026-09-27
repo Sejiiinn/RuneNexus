@@ -1,0 +1,93 @@
+{
+  "triangles": 20214,
+  "mesh_count": 1,
+  "skin_count": 1,
+  "joints": 24,
+  "animation_names": [
+    "Run"
+  ],
+  "max_source_vertex_mapping_error": 3.674277024856565e-07,
+  "single_bone_weight_per_vertex": true,
+  "vertex_count": 41862,
+  "bone_vertex_counts": {
+    "root": 0,
+    "body": 3936,
+    "waist": 5216,
+    "pelvis": 3424,
+    "tail_base": 1128,
+    "tail_tip": 192,
+    "rear_upper.L": 1376,
+    "rear_lower.L": 1948,
+    "rear_paw.L": 768,
+    "rear_foot.L": 2200,
+    "rear_upper.R": 1376,
+    "rear_lower.R": 1948,
+    "rear_paw.R": 768,
+    "rear_foot.R": 2200,
+    "neck": 1520,
+    "head": 3526,
+    "scapula.L": 640,
+    "front_upper.L": 768,
+    "front_lower.L": 1320,
+    "front_paw.L": 2440,
+    "scapula.R": 640,
+    "front_upper.R": 768,
+    "front_lower.R": 1320,
+    "front_paw.R": 2440
+  },
+  "glb_bytes": 10025016,
+  "source_static_glb": "../../3d/fast-rune-hound.glb",
+  "normalization": "Common parent 1/source_width; z += -author_ground_z/source_width; 0.48 runtime scale gives correct tile size.",
+  "animation_times": [
+    {
+      "min": [
+        0
+      ],
+      "max": [
+        0.5666666666666667
+      ]
+    }
+  ],
+  "baked_samples_per_second": 240,
+  "source_blend_sha256": "dbff55dcc566605bddb8425a1146b3e8ba65412a2d94ae71cbb55fbabddaab7d",
+  "glb_sha256": "9c81ac6b2ed60bbb534f6082e17cf5e79c4d8f231f458915effd268ece41f245",
+  "approved_version": "gallop-kick-v9",
+  "target": "assets/images/stage1_3d/enemies/fast.glb",
+  "rest_normalized_width": 1.0,
+  "rest_normalized_floor": 0.0,
+  "author_forward": "-Y",
+  "gltf_godot_forward": "+Z; same standard Blender glTF axis conversion as normal guardian",
+  "cycle_seconds": 0.5666666666666667,
+  "stride_tiles": 0.6445833333333333,
+  "stride_normalized_units": 1.3428819444444444,
+  "runtime_presentation_scale": 0.48,
+  "tile_speed": 1.1375,
+  "materials": [
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        1,
+        1,
+        1
+      ],
+      "emissiveTexture": {
+        "index": 0
+      },
+      "name": "Slate_Cyan_Standard_PBR",
+      "normalTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 2
+        },
+        "metallicFactor": 0,
+        "metallicRoughnessTexture": {
+          "index": 3
+        }
+      }
+    }
+  ],
+  "texture_count": 4,
+  "image_count": 4
+}

@@ -8,7 +8,9 @@ const COAT_SHADER = preload("res://effects/enemy_frost.gdshader")
 const CRYSTAL_SHADER = preload("res://effects/enemy_frost_crystals.gdshader")
 const GRAIN = preload("res://assets/effects/enemy_frost/grain.png")
 static var _coat: ShaderMaterial
-static var _guardian_coat: ShaderMaterial
+static var _skinned_coats: Dictionary = {}
+# glTF rest normalization, used only to sample the common authored frost volume.
+const COORDINATE_SCALES = GuardianStatus.COORDINATE_SCALES
 static var _ice: ShaderMaterial
 static var _grain_material: StandardMaterial3D
 static var _shard_mesh: Mesh
@@ -114,12 +116,17 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 					continue
 				if not _body_materials.has(original):
 					var coated := original.duplicate() as StandardMaterial3D
-					if guardian and _guardian_coat == null:
-						_guardian_coat = _coat.duplicate()
-						_guardian_coat.set_shader_parameter("coordinate_scale", 0.242158934474)
-						_guardian_coat.set_shader_parameter("preserve_colored_core", true)
-						_guardian_coat.set_shader_parameter("body_albedo", original.albedo_texture)
-					coated.next_pass = _guardian_coat if guardian else _coat
+					if guardian and not _skinned_coats.has(original):
+						var coat := _coat.duplicate() as ShaderMaterial
+						coat.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[entry.type])
+						coat.set_shader_parameter("preserve_colored_core", true)
+						coat.set_shader_parameter("body_albedo", original.albedo_texture)
+						# The hound stone is blue too; its authored emission atlas marks only runes.
+						if original.emission_enabled and original.emission_texture != null:
+							coat.set_shader_parameter("preserve_emission_core", true)
+							coat.set_shader_parameter("body_emission", original.emission_texture)
+						_skinned_coats[original] = coat
+					coated.next_pass = _skinned_coats[original] if guardian else _coat
 					_body_materials[original] = coated
 				bodies.append([mesh, surface, mesh.get_surface_override_material(surface), _body_materials[original]])
 		entry["frost_bodies"] = bodies

@@ -1,9 +1,16 @@
 extends RefCounted
-## Three shared, offline-merged meshes reuse the guardian skin: burn + shards + grains.
+## Each authored rig shares three offline-merged meshes: burn + shards + grains.
 const MESHES := {
-	"EnemyBurn": [preload("res://assets/enemies/normal_status_burn.res")],
-	"EnemyFrost": [preload("res://assets/enemies/normal_status_frost_shards.res"), preload("res://assets/enemies/normal_status_frost_grains.res")],
+	"normal": {
+		"EnemyBurn": [preload("res://assets/enemies/normal_status_burn.res")],
+		"EnemyFrost": [preload("res://assets/enemies/normal_status_frost_shards.res"), preload("res://assets/enemies/normal_status_frost_grains.res")],
+	},
+	"fast": {
+		"EnemyBurn": [preload("res://assets/enemies/fast_status_burn.res")],
+		"EnemyFrost": [preload("res://assets/enemies/fast_status_frost_shards.res"), preload("res://assets/enemies/fast_status_frost_grains.res")],
+	},
 }
+const COORDINATE_SCALES := {"normal": 0.242158934474, "fast": 0.522027035655198}
 static var _materials := {}
 
 
@@ -14,20 +21,24 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 	container.name = label
 	body.get_parent().add_child(container)
 	container.transform = body.transform
-	if not _materials.has(label):
+	var material_key := label + ":" + str(entry.type)
+	if not _materials.has(material_key):
 		var shared: Array = []
 		for material: Material in materials:
 			if material is ShaderMaterial:
 				var adapted := material.duplicate() as ShaderMaterial
 				adapted.set_shader_parameter("skinned_status", true)
+				if label == "EnemyBurn":
+					adapted.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[entry.type])
 				shared.append(adapted)
 			else: shared.append(material)
-		_materials[label] = shared
-	for index in range(MESHES[label].size()):
+		_materials[material_key] = shared
+	var meshes: Array = MESHES[entry.type][label]
+	for index in range(meshes.size()):
 		var effect := MeshInstance3D.new()
-		effect.mesh = MESHES[label][index]
+		effect.mesh = meshes[index]
 		effect.skin = body.skin
-		effect.material_override = _materials[label][index]
+		effect.material_override = _materials[material_key][index]
 		effect.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		effect.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 		container.add_child(effect)
@@ -38,5 +49,6 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 
 
 static func set_burn_time(time: float) -> void:
-	if _materials.has("EnemyBurn"):
-		_materials.EnemyBurn[0].set_shader_parameter("burn_time", time)
+	for key: String in _materials:
+		if key.begins_with("EnemyBurn:"):
+			_materials[key][0].set_shader_parameter("burn_time", time)

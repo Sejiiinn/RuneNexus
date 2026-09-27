@@ -1,0 +1,42 @@
+{
+  "source_glb_sha256": "9c81ac6b2ed60bbb534f6082e17cf5e79c4d8f231f458915effd268ece41f245",
+  "godot": "4.7.2.stable",
+  "isolated_project": "/tmp/runenexus-fast-status",
+  "baker": "scripts/bake_skinned_enemy_status.gd",
+  "kind": "fast",
+  "coordinate_scale": 0.5220270356551979,
+  "run_seconds": 0.5666666666666667,
+  "stride_tiles": 0.6445833333333333,
+  "meshes": {
+    "burn": {
+      "vertices": 208,
+      "triangles": 104,
+      "surfaces": 1,
+      "bytes": 16113,
+      "sha256": "3e568f335a661574d6ef76db63f5b5cc5a327446013b3ab8b786c33d6b4d51fc"
+    },
+    "frost_shards": {
+      "vertices": 1920,
+      "triangles": 880,
+      "surfaces": 1,
+      "bytes": 137185,
+      "sha256": "f27975b8b7af05b5999b09b17449567de93f0927b265827836cbd0755e880137"
+    },
+    "frost_grains": {
+      "vertices": 5700,
+      "triangles": 1900,
+      "surfaces": 1,
+      "bytes": 400401,
+      "sha256": "50b1b77149ff55b4b9f1940f43b91c7a2221f0b4b8c23388a9f6649f2fcce049"
+    }
+  },
+  "checks": {
+    "headless_command": "build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path /tmp/runenexus-fast-status --script res://verify_skinned_enemy_presentation.gd",
+    "headless_result": "SKINNED_ENEMY_PRESENTATION PASS failures=0",
+    "prepare_command": "python3 scripts/test_prepare_godot_project.py",
+    "prepare_result": "3 tests OK",
+    "visual": "Parent actual-game verification pending after effect fix and size adjustment",
+    "headless_log": "design/enemy_concepts/2026-09-27/fast-rune-hound/game-integration/effects-fix/fix-verify.log"
+  },
+  "fix": "Fast status mask now uses authored emission atlas instead of blue/purple albedo ratio; burn shader uses species normalization."
+}

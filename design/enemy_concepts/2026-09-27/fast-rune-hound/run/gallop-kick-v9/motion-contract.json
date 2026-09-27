@@ -1,0 +1,113 @@
+{
+  "cycle_seconds": 0.5666666666666667,
+  "fps": 60,
+  "frames_per_cycle": 34,
+  "loop_endpoint_frame": 35,
+  "source_width": 1.91560959815979,
+  "author_model_to_tile_scale": 0.250572977114495,
+  "normalized_runtime_width": 1.0,
+  "runtime_presentation_scale": 0.48,
+  "speed_content_units": 54.6,
+  "board_distance_scale": 0.020833333333333332,
+  "tile_speed": 1.1375,
+  "stride_model_units": 2.5724375419732595,
+  "stride_tiles": 0.6445833333333333,
+  "stride_normalized_units": 1.3428819444444444,
+  "touchdown_phase": {
+    "rear.L": 0.0,
+    "rear.R": 0.12,
+    "front.R": 0.45,
+    "front.L": 0.59
+  },
+  "root_motion": "in-place; root transform constant",
+  "phase_contract": "phase = (cumulative_actual_distance_tiles / stride_tiles) mod 1; sample Run at phase*cycle_seconds; freeze phase at zero movement; actual distance automatically accounts for slow/haste and 4x time",
+  "geometry": "102 rigid original meshes, 20214 evaluated triangles; no vertex deformation",
+  "binding": "Each source object is rigid-parented to one bone. Runtime vertices each weight 1 to one bone; baked keys, no IK runtime dependency.",
+  "author_ground_z": -0.02869996801018715,
+  "normalized_ground_offset": 0.014982159223757006,
+  "gait": "Rotary canine gallop: LH, RH, RF, LF; hind push, extension, fore catch, gathered suspension; articulated rigid thorax/waist/pelvis.",
+  "leg_stance_fractions": {
+    "front.R": 0.34,
+    "front.L": 0.38,
+    "rear.L": 0.25,
+    "rear.R": 0.3
+  },
+  "toe_roll_start_stance_fraction": 0.5,
+  "forefoot_toeoff_degrees": {
+    "R": 25.0,
+    "L": 20.0
+  },
+  "permitted_overlap": "Temporary fore/hind paw overlap is explicitly allowed; do not weaken motion to force zero intersections.",
+  "events": [
+    {
+      "phase": 0.45,
+      "frame": 16.3,
+      "name": "RF catch"
+    },
+    {
+      "phase": 0.62,
+      "frame": 22.08,
+      "name": "RF mid stance / LF support"
+    },
+    {
+      "phase": 0.73,
+      "frame": 25.82,
+      "name": "RF drive / LF mid stance"
+    },
+    {
+      "phase": 0.788,
+      "frame": 27.792,
+      "name": "RF toe-off / LF support"
+    },
+    {
+      "phase": 0.85,
+      "frame": 29.9,
+      "name": "RF recovery / LF drive"
+    },
+    {
+      "phase": 0.968,
+      "frame": 33.912,
+      "name": "LF toe-off / RF forward recovery"
+    }
+  ],
+  "body_bob_peak_to_peak_model": 0.085,
+  "body_height_added_model": 0.1,
+  "paw_swing_pitch_degrees": {
+    "front.R": [
+      25,
+      -20,
+      -35,
+      -25,
+      -12,
+      -5,
+      0
+    ],
+    "front.L": [
+      20,
+      -20,
+      -45,
+      -25,
+      -12,
+      -5,
+      0
+    ],
+    "rear.R": [
+      0,
+      32,
+      22,
+      -10,
+      -15,
+      -5,
+      0
+    ],
+    "rear.L": [
+      0,
+      27,
+      22,
+      -10,
+      -15,
+      -5,
+      0
+    ]
+  }
+}
