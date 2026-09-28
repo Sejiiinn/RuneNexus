@@ -10,6 +10,8 @@ var replacement_slot := -1
 var shard_selected := false
 var key: Variant = ""
 var _fit_key: Array = []
+var _layout_revision := 0
+var _layout_pending := false
 var _was_visible := false
 var _panel_style_mode := ""
 var _panel_styles: Dictionary = {}
@@ -92,6 +94,8 @@ func refresh(state: Dictionary) -> void:
 		_fit_modal()
 		return
 	key = next_key.duplicate(true)
+	_layout_revision += 1
+	_layout_pending = true
 	_fit_key.clear()
 	hud._clear(hud.overlay_body)
 	hud._clear(target_layer)
@@ -102,7 +106,7 @@ func refresh(state: Dictionary) -> void:
 			else: _target(state,viewport)
 		else: _cards(state,width)
 	else: _result(state)
-	_fit_modal.call_deferred()
+	_fit_after_layout(_layout_revision)
 
 func _text(parent: Node, value: String, size: int = 12, center: bool = false) -> Label:
 	var label: Label = hud._label(parent,value,size)
@@ -488,8 +492,18 @@ func _tinted_panel(parent: Node, fill: Color, border: Color, radius: int) -> Pan
 	parent.add_child(panel)
 	return panel
 
+func _fit_after_layout(revision: int) -> void:
+	# Rebuilt flow rows first measure at their unset width. Keep the existing
+	# frame until native containers have assigned widths and wrapped entries.
+	var tree: SceneTree = hud.get_tree()
+	await tree.process_frame
+	await tree.process_frame
+	if not is_instance_valid(hud) or revision != _layout_revision: return
+	_layout_pending = false
+	_fit_modal()
+
 func _fit_modal() -> void:
-	if not is_instance_valid(hud) or not hud.overlay.visible: return
+	if not is_instance_valid(hud) or not hud.overlay.visible or _layout_pending: return
 	var viewport: Vector2 = hud.get_viewport_rect().size
 	var safe: Vector4 = hud.safe_insets()
 	var style: StyleBox = hud.overlay.get_theme_stylebox("panel")

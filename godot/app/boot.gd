@@ -14,6 +14,7 @@ var _load_progress := 0.0
 var _failure := ""
 var _last_view := {}
 var _first_frame_ready := false
+var _effects_pending := true
 
 func _ready() -> void:
 	if "--fixture" in OS.get_cmdline_user_args() or "--session" in OS.get_cmdline_user_args():
@@ -43,7 +44,7 @@ func attach_services(coordinator) -> void:
 	_refresh()
 
 func blocks_app_ui() -> bool:
-	return updates==null or updates.blocked or services==null or services._startup_pending or not _failure.is_empty()
+	return updates==null or updates.blocked or services==null or services._startup_pending or _effects_pending or not _failure.is_empty()
 
 func _update_changed() -> void:
 	_refresh()
@@ -82,6 +83,17 @@ func _instantiate(packed: PackedScene) -> void:
 	if game is Node3D: game.visible=false
 	add_child(game)
 	_refresh()
+	var preparing_game := game
+	var prepared := true
+	# main's lifecycle has now applied this device's actual graphics options.
+	if game.has_method("prepare_effects"): prepared = await game.prepare_effects()
+	if not is_instance_valid(preparing_game) or game != preparing_game: return
+	if not prepared:
+		fail_preparation("전투 효과를 준비하지 못했습니다. 다시 시도해 주세요.")
+		return
+	_effects_pending = false
+	_refresh()
+	if services != null: services.app._refresh_ui()
 
 func _notification(what: int) -> void:
 	# Before main exists, boot owns installer/settings returns. Afterwards the
@@ -135,7 +147,7 @@ func presentation() -> Dictionary:
 
 func _action() -> void:
 	if not _failure.is_empty():
-		_failure="";_load_started=false
+		_failure="";_load_started=false;_effects_pending=true
 		if is_instance_valid(game): game.queue_free();game=null
 		services=null;_advance()
 	elif updates.blocked: await updates.update()

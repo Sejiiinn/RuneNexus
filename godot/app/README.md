@@ -16,6 +16,8 @@
 
 기본 진입은 `boot.tscn`이다. 기존 배경·로고·코어를 사용하는 `res://ui/startup_screen.gd`가 업데이트 확인·재시도·선택/필수 업데이트·설치 상태를 표시한다. 업데이트를 통과한 뒤에만 `main.tscn`과 전투 리소스를 불러오고 저장·계정 복원을 시작한다. 이 준비가 끝날 때까지 같은 시작 화면을 유지하며, 업데이트 서비스는 앱 수명주기와 공유해 초기 확인을 중복 실행하지 않는다.
 
+전투 효과 준비도 같은 시작 화면의 완료 조건이다. 기기 그래픽 설정 적용 후 [효과 준비](../presentation/effect_preparation.gd)가 별도 3D viewport에서 대포·화염·냉각과 적의 화상·성에를 실제로 렌더한다. 전투·저장·난수를 진행하지 않으며, 준비 실패 시 재시도를 제공한다. 기존에 준비한 폭발 밀도장을 재사용하고, 완료 후 대포 탄환·화염 탄환·착탄을 각각 두 개씩 기존 풀에 넘긴다. 앱의 전장 초기화는 이 소량만 숨김·정지 상태로 유지하고 전체 해제 경로는 모두 정리한다. 개발용 fixture·session 진입은 자동 준비를 생략한다.
+
 Android에서 `RuneNexusPlatform.application_support_path()`가 이전 앱의 `filesDir`를 반환하므로 같은 패키지·서명으로 업데이트할 때 기존 `saves/guest`와 `saves/accounts/<uuid>` 경로를 사용한다. `legacy_save_path()`는 guest v1 임시 파일에만 적용한다. 정식 앱은 저장 원본을 다른 위치로 일괄 복사하거나 기존 파일을 초기화하지 않는다. 다른 플랫폼의 개발 `user://standalone-session` 저장은 Android 설치 데이터와 분리된다.
 
 ```gdscript
@@ -45,3 +47,5 @@ GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py
 ```
 
 네이티브 회귀 실행기는 임시 Godot 프로젝트에 저장 codec fixture·파일 복구·체크포인트·전투와 UI 스크립트를 복사한다. Godot 실행 파일이 없으면 실패한다. 보관된 Dart 기반 기대 fixture는 기존 저장 계약과의 비교 입력이며, 수치나 스키마를 의도적으로 변경할 때 차이를 검토해 갱신한다. 실제 Android 저장 인계·계정·수명주기 검증은 [인앱 가이드](../../.agents/in_app_test_guide.md)를 따른다.
+
+`verify_startup_screen.gd`는 효과 준비 완료·실패·재시도 게이트를 검사한다. 에셋을 준비한 프로젝트의 `verify_effect_preparation.gd`는 풀 인계·재진입·취소·중복 요청·첫 발사와 상태 효과 정리를 검사한다. GPU 준비 여부는 headless 검사로 판정하지 않고 실제 렌더러에서 별도로 확인한다.

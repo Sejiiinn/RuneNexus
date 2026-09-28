@@ -148,6 +148,7 @@ func run() -> void:
 	assert(not _confirm_button(hud.overlay_body).disabled)
 	assert(_asset_names(hud.overlay_body).count("gem_socket_selected.png") == 1)
 	await _assert_owned_gem_layout(hud,app)
+	await _assert_reward_selection_layout(hud,app)
 	for phase in ["success","failure"]:
 		app.run_domain.state.phase = phase; hud.refresh()
 		assert(hud.overlay.visible and hud.blocks_board_input())
@@ -218,3 +219,69 @@ func _assert_owned_gem_layout(hud, app) -> void:
 	hud.rewards.key = ""; hud.refresh()
 	for i in range(12): await process_frame
 	print("PASS owned gem labels: two/all gems with quantities, one-line entries at 320/440")
+
+func _button_text(node: Node,prefix: String) -> Button:
+	for button in node.find_children("*","Button",true,false):
+		if button.text.begins_with(prefix): return button
+	return null
+
+func _record_reward_rects(hud) -> Array[Rect2]:
+	var history: Array[Rect2] = []
+	for frame in range(12):
+		await process_frame
+		if hud.overlay.visible: history.append(hud.overlay.get_global_rect())
+	return history
+
+func _assert_no_reward_overshoot(history: Array[Rect2],before: Rect2,after: Rect2) -> void:
+	for bounds in history:
+		assert(bounds == before or bounds == after,"Reward frame must fit once without a temporary larger or smaller rectangle: "+str(bounds))
+
+func _assert_reward_selection_layout(hud,app) -> void:
+	var original_size := root.size
+	var original_scale := root.content_scale_size
+	for width in [440,320]:
+		root.size = Vector2i(width,760); root.content_scale_size = root.size
+		for purchased in [false,true]:
+			var state: Dictionary = app.run_domain.state
+			state.phase = "reward"; state.isPurchasedGemReward = purchased
+			state.rewardOptions = ["damageOverTime","multipleProjectiles","chain"]
+			for type in app.run_domain.growth.data.gems: state.gemInventory[type] = 12
+			hud.rewards.pending_gem = ""; hud.rewards.replacement_id = -1; hud.rewards.shard_selected = false
+			hud.rewards.key = ""; hud.refresh(); await _record_reward_rects(hud)
+			var initial: Rect2 = hud.overlay.get_global_rect()
+			var before_state: Dictionary = state.duplicate(true)
+			var expanded := initial
+			if not purchased:
+				var shard: Button = _button_text(hud.overlay_body,"젬 대신")
+				shard.pressed.emit()
+				var history: Array[Rect2] = await _record_reward_rects(hud)
+				expanded = hud.overlay.get_global_rect()
+				_assert_no_reward_overshoot(history,initial,expanded)
+				_button_text(hud.overlay_body,"젬 대신").pressed.emit()
+				_assert_no_reward_overshoot(await _record_reward_rects(hud),expanded,expanded)
+			else: assert(_button_text(hud.overlay_body,"젬 대신") == null)
+			for option_index in [0,2]:
+				# The only direct Buttons in the card row are the gem choices.
+				var row: HBoxContainer
+				for child in hud.overlay_body.get_children():
+					if child is HBoxContainer: row = child; break
+				(row.get_child(option_index) as Button).pressed.emit(); await _record_reward_rects(hud)
+				assert(hud.rewards.targeting() and not hud.overlay.visible)
+				assert(hud.rewards.close_back())
+				var history: Array[Rect2] = await _record_reward_rects(hud)
+				_assert_no_reward_overshoot(history,expanded,initial)
+				assert(hud.overlay.get_global_rect() == initial,"Returning to the same options keeps the fitted frame")
+				expanded = initial
+			assert(app.run_domain.state == before_state,"Choice previews must not settle or alter balances")
+			if not purchased:
+				_button_text(hud.overlay_body,"젬 대신").pressed.emit(); await _record_reward_rects(hud)
+				var shards: int = state.gemShards
+				_button_text(hud.overlay_body,"파편 받기").pressed.emit()
+				assert(app.run_domain.state.phase == "preparation")
+				assert(int(app.run_domain.state.gemShards) == shards+int(app.run_domain.growth.data.constants.gemShardRewardFallbackAmount))
+			else:
+				hud.rewards._settle({"kind":"chooseRewardGem","type":"damageOverTime"})
+				assert(app.run_domain.state.phase == "preparation" and int(app.run_domain.state.gemInventory.damageOverTime) == 13)
+			print("PASS reward selection frame width=",width," purchased=",purchased," initial=",initial)
+	root.size = original_size; root.content_scale_size = original_scale
+	hud.rewards.key = ""; hud.refresh()

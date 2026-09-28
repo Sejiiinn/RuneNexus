@@ -25,6 +25,11 @@ func find_text(node: Node, prefix: String) -> Label:
 		if result != null: return result
 	return null
 
+func node_identities(node: Node) -> Array:
+	var result := [node.get_instance_id()]
+	for child in node.get_children(): result.append_array(node_identities(child))
+	return result
+
 func check_first_visible_frames(hud: Control, max_height: float) -> void:
 	for i in range(8):
 		await process_frame
@@ -74,6 +79,58 @@ func run() -> void:
 	root.add_child(battle)
 	var hud := HUD.new(); hud.app = battle; battle.hud = hud; root.add_child(hud)
 	await settle()
+	battle.run_domain.state.gold = 10000; battle.run_domain.state.gemShards = 100
+	var map: Dictionary = battle.catalog.stage(0).map
+	var index: int = map.tiles.find("build")
+	battle.selected = Vector2i(index % int(map.columns),index / int(map.columns))
+	assert(battle.apply_run_command({"kind":"build","x":battle.selected.x,"y":battle.selected.y,"type":"arrow"}))
+	hud.on_board_selection(); hud.refresh(); await settle()
+	for width in [440,320]:
+		await dimensions(width,900)
+		var dock_bounds: Rect2 = hud.dock.get_global_rect()
+		var level: int = battle.run_domain.state.turrets[0].level
+		(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
+		for frame in range(8):
+			await process_frame
+			assert(hud.dock.get_global_rect() == dock_bounds,"Preview must preserve the dock from its first frame")
+		assert(battle.selection_view.level_preview and int(battle.run_domain.state.turrets[0].level) == level)
+		await capture("upgrade-preview-"+str(width))
+		(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
+		for frame in range(8):
+			await process_frame
+			assert(hud.dock.get_global_rect() == dock_bounds,"Confirmation must preserve the dock")
+		assert(not battle.selection_view.level_preview and int(battle.run_domain.state.turrets[0].level) == level+1)
+		(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
+		battle.selection_view.level_preview = false; hud.refresh()
+		for frame in range(8):
+			await process_frame
+			assert(hud.dock.get_global_rect() == dock_bounds,"Cancelling preview must preserve the dock")
+		print("PASS upgrade layout width=",width," dock=",dock_bounds)
+	for width in [440,320]:
+		await dimensions(width,900)
+		hud.turret_panel._open_current_traits(); await create_timer(0.3).timeout; await settle()
+		var panel: PanelContainer = hud.modal_panel
+		var bounds: Rect2 = panel.get_global_rect()
+		var body_ids: Array = node_identities(hud.modal_body)
+		var options: Array = battle.run_domain.service.quotes(battle.run_domain.state,int(battle.run_domain.state.turrets[0].id)).primaryTraits
+		for trait_id in [options[0],options[0],options[1]]:
+			(hud.modal_body.find_child("TraitChoice_"+str(trait_id),true,false) as Button).pressed.emit()
+			for frame in range(8):
+				await process_frame
+				assert(hud.modal_panel == panel and panel.get_global_rect() == bounds,"Trait choice must keep its open frame")
+				assert(is_equal_approx(panel.modulate.a,1),"Trait choice must not replay its entrance")
+			assert(node_identities(hud.modal_body) == body_ids,"Trait selection keeps content nodes and focus")
+			assert(battle.run_domain.state.turrets[0].primaryTrait == null,"Rows only preview traits")
+			assert(not (hud.modal_body.find_child("TraitConfirm",true,false) as Button).disabled)
+			assert((hud.modal_body.find_child("TraitChoice_"+str(trait_id),true,false) as Button).button_pressed)
+		await capture("trait-choice-"+str(width))
+		(hud.modal_body.find_child("TraitTier2",true,false) as Button).pressed.emit(); await settle()
+		assert((hud.modal_body.find_child("TraitConfirm",true,false) as Button).disabled,"Prerequisite remains required")
+		(hud.modal_body.find_child("TraitTier1",true,false) as Button).pressed.emit(); await settle()
+		assert((hud.modal_body.find_child("TraitConfirm",true,false) as Button).disabled,"Tab change clears preview")
+		hud.close_modal(); await create_timer(0.25).timeout
+		print("PASS trait selection layout width=",width," modal=",bounds)
+	await dimensions(440,900)
 	hud.menu_panel._stage_menu(); await check_first_visible_frames(hud,200)
 	for resolution in [Vector2i(440,900),Vector2i(320,568),Vector2i(440,900)]:
 		await dimensions(resolution.x,resolution.y)

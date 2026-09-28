@@ -1,5 +1,5 @@
 extends SceneTree
-## Expected values are from the pre-removal Dart assertions, not this runtime.
+## Fixed historical assertions plus explicitly revised Godot combat contracts.
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Enemy = preload("res://combat/native_enemy_state.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
@@ -13,6 +13,7 @@ func _initialize() -> void:
 	_frost()
 	_multi()
 	_burn_critical()
+	_dot_gem_amplification()
 	_projectiles()
 	_global_attacks()
 	_traits()
@@ -242,6 +243,33 @@ func _multi() -> void:
 	Enemy.step(chained.enemies["2"],1)
 	near(chained.enemies["1"].hp,989,"multi chain burn ticks actual native enemy")
 	near(chained.enemies["2"].hp,994.5,"multi chain splash burn ticks")
+
+func _dot_gem_amplification() -> void:
+	var i := _input("magic")
+	i.primaryTrait = "highHeatBurn"
+	i.moduleEffect.damageOverTimeIncreaseRate = 0.2
+	i.moduleEffect.burnDurationIncreaseRate = 0.1
+	var base := Stats.stats_at(i,1)
+	near(base.damageOverTimeDamageMultiplier,1.45,"DoT trait and module increases still add")
+	i.gems = ["damageOverTime"]
+	var boosted := Stats.stats_at(i,1)
+	near(boosted.damageOverTimeDamageMultiplier,1.885,"DoT gem amplifies combined increases")
+	near(boosted.damageOverTimeDurationMultiplier,1.4,"DoT duration remains additive")
+	near(boosted.damage,base.damage,"DoT gem leaves direct hit unchanged")
+	i.moduleEffect.gemEffectIncreaseRate = 0.5
+	i.passiveNumericGemEffectMultiplier = 1.2
+	boosted = Stats.stats_at(i,1)
+	near(boosted.damageOverTimeDamageMultiplier,2.233,"DoT amplification respects numeric gem scaling")
+	near(boosted.damageOverTimeDurationMultiplier,1.64,"scaled DoT duration remains additive")
+	var r = _runtime(i,[_raw(1)])
+	r._impact(r.turrets["1"],_attack(r),r.enemies["1"],Vector2.ZERO)
+	near(Enemy.snapshot(r.enemies["1"]).burnDamagePerSecond,float(base.damage)*0.5*2.233,"native burn uses amplified damage")
+	near(Enemy.snapshot(r.enemies["1"]).burnRemaining,3.28,"native burn duration keeps additive contract")
+	var non_dot := _input("arrow")
+	non_dot.gems = ["damageOverTime"]
+	var ignored := Stats.stats_at(non_dot,1)
+	near(ignored.damageOverTimeDamageMultiplier,1.0,"DoT gem does not grant damage to unsupported attacks")
+	near(ignored.damageOverTimeDurationMultiplier,1.0,"DoT gem does not grant duration to unsupported attacks")
 
 func _burn_critical() -> void:
 	# Exercise the shared burn path with a non-magic definition too: no type gate.
@@ -510,7 +538,7 @@ func _area() -> void:
 		i.gems=["chain"]
 		s=Stats.stats_at(i,1)
 		near(s.chainCount,4 if type=="lightning" else (0 if type in ["frost","sniper"] else 2),"chain capability "+type)
-	# Preserve all existing fixed Dart stat fixtures, including numeric trait paths.
+	# Fixed fixtures include the approved DoT gem amplification contract.
 	for fixture in fixtures:
 		var actual := Stats.stats_at(fixture.input,int(fixture.input.level))
 		for key in actual:

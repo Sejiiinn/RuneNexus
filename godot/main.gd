@@ -152,6 +152,21 @@ var _units := BattlefieldUnits.new(world, camera)
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
 var _environment := BattlefieldEnvironment.new(terrain, _world_environment, sun, _fill_light)
 var _space_background := CombatSpaceBackground.new()
+var effects_prepared := false
+var _effects_preparing := false
+signal effects_preparation_finished(success: bool)
+
+func prepare_effects() -> bool:
+	if effects_prepared: return true
+	if _effects_preparing: return await effects_preparation_finished
+	_effects_preparing = true
+	var preparation = load("res://presentation/effect_preparation.gd").new()
+	add_child(preparation)
+	effects_prepared = await preparation.prepare(self)
+	preparation.queue_free()
+	_effects_preparing = false
+	effects_preparation_finished.emit(effects_prepared)
+	return effects_prepared
 
 
 func _ready() -> void:
@@ -524,7 +539,7 @@ func _clear_scene() -> void:
 		node.hide()
 	_applied_groups.clear()
 	_units.clear()
-	_projectile_renderer.clear()
+	_projectile_renderer.clear(effects_prepared)
 	_environment.clear()
 	_map_revision = -1
 	_map_request.clear()

@@ -153,7 +153,7 @@ func _run():
 func _boot_checks():
  root.size=Vector2i(440,988)
  var file=FileAccess.open("res://fixtures/startup_game.gd",FileAccess.WRITE)
- file.store_string('extends Node3D\nfunc _ready(): get_tree().get_first_node_in_group("rune_app_boot").get_meta("fixture_ready").call(self)\n');file.close()
+ file.store_string('extends Node3D\nsignal finish_preparation(success: bool)\nfunc prepare_effects() -> bool: return await finish_preparation\nfunc _ready(): get_tree().get_first_node_in_group("rune_app_boot").get_meta("fixture_ready").call(self)\n');file.close()
  file=FileAccess.open("res://fixtures/startup_game.tscn",FileAccess.WRITE)
  file.store_string('[gd_scene load_steps=2 format=3]\n[ext_resource type="Script" path="res://fixtures/startup_game.gd" id="1"]\n[node name="FixtureGame" type="Node3D"]\nscript=ExtResource("1")\n');file.close()
  var boot=Boot.new();boot.game_scene_path="res://fixtures/startup_game.tscn"
@@ -191,6 +191,16 @@ func _boot_checks():
  if coordinator!=null:
   check(coordinator.updates==boot.updates and boot.updates.calls==2,"AppServices reuses boot updater without duplicate check")
   check(application.loads==1 and native.reads==1,"Save and secure restoration start once after gate pass")
+  check(boot.screen.visible and boot.blocks_app_ui() and not boot.game.visible,"Prepared services cannot expose game before effect preparation completes")
+  boot.game.finish_preparation.emit(false);await frames()
+  check(boot.blocks_app_ui() and not boot._failure.is_empty() and boot.screen.primary_button!=null,"Effect preparation failure keeps loading gate and offers retry")
+  var previous_game=weakref(boot.game)
+  boot._action()
+  for frame in 90:
+   await process_frame
+   if created==2 and not coordinator._startup_pending:break
+  check(created==2 and previous_game.get_ref()==null and boot.blocks_app_ui(),"Retry discards failed game and waits for the replacement's effects")
+  boot.game.finish_preparation.emit(true);await frames()
   check(not boot.screen.visible and not boot.blocks_app_ui(),"Preparation ends after services initialize")
   boot._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
   check(boot.updates.calls==2,"After attachment only application lifecycle owns resume checks")

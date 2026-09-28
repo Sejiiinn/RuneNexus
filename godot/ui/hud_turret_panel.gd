@@ -117,7 +117,9 @@ func _stat_cell(grid: GridContainer,spec: Array) -> VBoxContainer:
 
 func _fit_stats(scroll: ScrollContainer,grid: GridContainer) -> void:
 	if not is_instance_valid(scroll) or not is_instance_valid(grid): return
-	scroll.custom_minimum_size.y = minf(maxf(ceilf(float(grid.get_child_count())/2.0)*40.0,grid.get_combined_minimum_size().y),260.0)
+	# Preview labels briefly report a wrapped minimum before their width settles.
+	# Keep the viewport tied to stat rows; excess content scrolls inside it.
+	scroll.custom_minimum_size.y = minf(ceilf(float(grid.get_child_count())/2.0)*40.0,260.0)
 
 func _current_turret() -> Dictionary:
 	return hud.app.run_domain.service.turret(hud.app.run_domain.state,hud.app.run_domain.selected_id(hud.app.selected))
@@ -228,7 +230,7 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 		_trait_row(box,str(value),str(hud.labels.traitNames.get(value,value)),str(hud.labels.traitDescriptions.get(value,"")),hud.trait_preview == value or chosen == value,not blocked.is_empty(),func():
 			if not blocked.is_empty(): return
 			hud.trait_preview = str(value)
-			_traits(turret,q,tier))
+			_update_trait_selection())
 	if not blocked.is_empty():
 		var reason: Label = hud._label(box,blocked,11); reason.name = "TraitBlockedReason"
 		reason.modulate = Color("ffa68a")
@@ -238,7 +240,7 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 	hud.Components.apply(confirm,"primary")
 	var confirm_center := CenterContainer.new(); confirm_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	confirm.add_child(confirm_center); confirm_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var confirm_row := HBoxContainer.new(); confirm_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var confirm_row := HBoxContainer.new(); confirm_row.name = "TraitConfirmContent"; confirm_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	confirm_row.add_theme_constant_override("separation",8); confirm_center.add_child(confirm_row)
 	var confirm_title: Label = hud._label(confirm_row,"선택 확정",16)
 	confirm_title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -273,13 +275,6 @@ func _trait_row(parent: Node,id: String,title: String,description: String,select
 	var button: Button = hud._button(parent,"",on_select)
 	button.name = "TraitChoice_"+id; button.custom_minimum_size.y = 126 if compact else 110
 	button.disabled = locked; button.toggle_mode = true; button.button_pressed = selected
-	for state_name in ["normal","hover","pressed","disabled","focus"]:
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color("123549ef") if selected else Color("0b2030e8")
-		style.border_color = Color("42e4f3") if selected else Color("355a6b")
-		if state_name == "hover" and not locked: style.bg_color = Color("1a3d50")
-		style.set_border_width_all(2 if selected else 1); style.set_corner_radius_all(8)
-		button.add_theme_stylebox_override(state_name,style)
 	var content := MarginContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_theme_constant_override("margin_left",9); content.add_theme_constant_override("margin_right",9)
 	content.add_theme_constant_override("margin_top",8); content.add_theme_constant_override("margin_bottom",8)
@@ -308,16 +303,13 @@ func _trait_row(parent: Node,id: String,title: String,description: String,select
 	detail.name = "TraitDescription"; detail.modulate = Color("b6d0df")
 	var radio := PanelContainer.new(); radio.name = "TraitRadio"; radio.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	radio.custom_minimum_size = Vector2(22,22); radio.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var ring := StyleBoxFlat.new(); ring.bg_color = Color("092131")
-	ring.border_color = Color("42e4f3") if selected else Color("a3c2d5")
-	ring.set_border_width_all(2); ring.set_corner_radius_all(12); ring.set_content_margin_all(4)
-	radio.add_theme_stylebox_override("panel",ring); row.add_child(radio)
-	if selected:
-		var center := CenterContainer.new(); center.mouse_filter = Control.MOUSE_FILTER_IGNORE; radio.add_child(center)
-		var dot := PanelContainer.new(); dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		dot.custom_minimum_size = Vector2(10,10); center.add_child(dot)
-		var fill := StyleBoxFlat.new(); fill.bg_color = Color("42e4f3"); fill.set_corner_radius_all(5)
-		dot.add_theme_stylebox_override("panel",fill)
+	row.add_child(radio)
+	var center := CenterContainer.new(); center.mouse_filter = Control.MOUSE_FILTER_IGNORE; radio.add_child(center)
+	var dot := PanelContainer.new(); dot.name = "TraitSelectedDot"; dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dot.custom_minimum_size = Vector2(10,10); center.add_child(dot)
+	var fill := StyleBoxFlat.new(); fill.bg_color = Color("42e4f3"); fill.set_corner_radius_all(5)
+	dot.add_theme_stylebox_override("panel",fill)
+	_set_trait_selected(button,selected)
 	if locked and not selected: content.modulate.a = 0.52
 	# A Button does not inherit the minimum of its decorative children. Bridge
 	# the native container minimum without estimating text lines or frame timing.
@@ -325,6 +317,32 @@ func _trait_row(parent: Node,id: String,title: String,description: String,select
 	content.minimum_size_changed.connect(fit,CONNECT_DEFERRED)
 	button.resized.connect(fit,CONNECT_DEFERRED)
 	fit.call_deferred()
+
+func _set_trait_selected(button: Button,selected: bool) -> void:
+	button.set_pressed_no_signal(selected)
+	for state_name in ["normal","hover","pressed","disabled","focus"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("123549ef") if selected else Color("0b2030e8")
+		style.border_color = Color("42e4f3") if selected else Color("355a6b")
+		if state_name == "hover" and not button.disabled: style.bg_color = Color("1a3d50")
+		style.set_border_width_all(2 if selected else 1); style.set_corner_radius_all(8)
+		button.add_theme_stylebox_override(state_name,style)
+	(button.find_child("TraitName",true,false) as Label).add_theme_color_override("font_color",Color("f4dfaa") if selected else Color("e8f8ff"))
+	var ring := StyleBoxFlat.new(); ring.bg_color = Color("092131")
+	ring.border_color = Color("42e4f3") if selected else Color("a3c2d5")
+	ring.set_border_width_all(2); ring.set_corner_radius_all(12); ring.set_content_margin_all(4)
+	(button.find_child("TraitRadio",true,false) as PanelContainer).add_theme_stylebox_override("panel",ring)
+	button.find_child("TraitSelectedDot",true,false).visible = selected
+
+func _update_trait_selection() -> void:
+	# Selection changes only presentation. Preserve the open frame, scroll and
+	# focused row instead of replaying the modal entrance and deferred layout.
+	for child in hud.modal_body.get_children():
+		if child is Button and str(child.name).begins_with("TraitChoice_"):
+			_set_trait_selected(child,str(child.name).trim_prefix("TraitChoice_") == hud.trait_preview)
+	var confirm: Button = hud.modal_body.find_child("TraitConfirm",true,false)
+	confirm.disabled = false
+	confirm.find_child("TraitConfirmContent",true,false).modulate = Color.WHITE
 
 func _confirm_trait(turret: Dictionary,kind: String) -> void:
 	var selected := str(hud.trait_preview)

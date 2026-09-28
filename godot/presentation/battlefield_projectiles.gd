@@ -54,7 +54,31 @@ func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> vo
 	options = frame_options
 
 
-func clear() -> void:
+func adopt_prepared(source) -> void:
+	for pair in [[source._ballistic_pool.cannon, _ballistic_pool.cannon],
+		[source._fire_projectile_pool, _fire_projectile_pool], [source.impact_pool, impact_pool]]:
+		while not pair[0].is_empty():
+			var effect: Node3D = pair[0].pop_back()
+			effect.reparent(world, false)
+			pair[1].append(effect)
+
+func clear(keep_prepared: bool = false) -> void:
+	if keep_prepared:
+		# A bounded reserve survives app stage/epoch resets. Never retain old
+		# projectile metadata, ages, transforms, emitting tails, or impact lights.
+		_sync_projectiles([], {})
+		_update_impacts([])
+		for pool: Array in [_ballistic_pool.cannon, _fire_projectile_pool, impact_pool]:
+			while pool.size() > 2:
+				pool.pop_back().free()
+			for effect: Node3D in pool:
+				if effect.has_method("reset"): effect.reset()
+				effect.visible = false
+				effect.transform = Transform3D.IDENTITY
+		for pool: Array in [_ballistic_pool.arrow, _generic_projectile_pool.sniper, _generic_projectile_pool.frost]:
+			for effect: Node3D in pool: effect.free()
+			pool.clear()
+		return
 	for entry: Dictionary in projectiles.values():
 		entry["root"].free()
 	projectiles.clear()

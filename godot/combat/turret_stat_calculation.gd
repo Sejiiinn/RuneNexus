@@ -103,12 +103,12 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 	var dot_duration := 1.0
 	if "damageOverTime" in d.attackTags:
 		var bonus := 0.0
-		if "damageOverTime" in gems:
-			bonus += 0.3 * gem
 		if p == "highHeatBurn":
 			bonus += 0.25
 		bonus += m.damageOverTimeIncreaseRate
 		dot_damage = 1.0 + bonus
+		if "damageOverTime" in gems:
+			dot_damage *= 1.0 + 0.3 * gem
 		bonus = 0.0
 		if "damageOverTime" in gems:
 			bonus += 0.3 * gem
