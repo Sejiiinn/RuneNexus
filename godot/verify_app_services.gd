@@ -367,16 +367,24 @@ func _login_resume_checks() -> void:
 			check(coordinator.connected() and native.value!=null,"Successful login keeps secure account session: "+outcome)
 			check(is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_page","")=="계정 및 저장","Successful login keeps account result visible: "+outcome)
 			check(coordinator.needs_profile() if outcome=="nickname" else coordinator.online_ready,"Nickname or online binding remains intact: "+outcome)
-		# Suppression applies to one picker return only; a later foreground check
-		# and an explicit required gate must still run normally.
+		# Login suppression is consumed once. A later ordinary app return keeps
+		# the passed gate; an existing required gate still refreshes normally.
 		update.accepted=false
 		var prior_checks=update.checks
-		# Non-login work must retain the preexisting foreground update policy.
+		var already_blocked=update.blocked
+		var prior_loads=login_app.retry_count
+		var prior_binding=coordinator.epoch
+		var prior_requests=wire.calls.size()
+		var preserved_modal=lobby.modal
+		if outcome=="success": login_app.in_lobby=false
 		if outcome=="no_pause": coordinator.busy=true
 		await lifecycle._resume_services()
-		check(update.checks==prior_checks+1 and update.blocked,"Later ordinary resume still checks updates: "+outcome)
+		check(update.checks==prior_checks+(1 if already_blocked else 0) and update.blocked==already_blocked,"Later resume only rechecks an existing update gate: "+outcome)
+		if outcome=="success":
+			check(not login_app.in_lobby and login_app.retry_count==prior_loads and coordinator.epoch==prior_binding,"Healthy account foreground preserves route without rebinding or checkpoint reload")
+			check(wire.calls.size()>prior_requests and lobby.modal==preserved_modal,"Healthy account still synchronizes while preserving its open modal")
 		if outcome=="no_pause":
-			check(coordinator.busy and update.checks==prior_checks+1,"Non-login busy operation does not skip foreground update")
+			check(coordinator.busy and update.checks==prior_checks,"Ordinary resume preserves non-login work without opening an update gate")
 			coordinator.busy=false
 		update.require_update()
 		await process_frame;await process_frame

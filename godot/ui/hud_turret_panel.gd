@@ -19,7 +19,7 @@ func _action_spec(turret: Dictionary,q: Dictionary) -> Dictionary:
 		"trait_count":int(turret.get("primaryTrait") != null)+int(turret.get("secondaryTrait") != null),
 		"active_tab":"stats" if hud.app.selection_view.level_preview else hud.tab,"upgrade_callback":_preview_level,
 		"trait_callback":_open_current_traits,"sell_callback":_open_current_sale,
-		"stats_callback":func(): hud.tab = "stats"; hud.refresh(),"gems_callback":func(): hud.tab = "gems"; hud.refresh(),
+		"stats_callback":func(): hud.tab = "stats"; hud.refresh(),"gems_callback":_show_gems,
 	}
 
 func _turret(state: Dictionary,turret: Dictionary) -> void:
@@ -119,7 +119,7 @@ func _fit_stats(scroll: ScrollContainer,grid: GridContainer) -> void:
 	if not is_instance_valid(scroll) or not is_instance_valid(grid): return
 	# Preview labels briefly report a wrapped minimum before their width settles.
 	# Keep the viewport tied to stat rows; excess content scrolls inside it.
-	scroll.custom_minimum_size.y = minf(ceilf(float(grid.get_child_count())/2.0)*40.0,260.0)
+	scroll.custom_minimum_size.y = minf(ceilf(float(grid.get_child_count())/2.0)*40.0,80.0)
 
 func _current_turret() -> Dictionary:
 	return hud.app.run_domain.service.turret(hud.app.run_domain.state,hud.app.run_domain.selected_id(hud.app.selected))
@@ -162,9 +162,18 @@ func _preview_level() -> void:
 	var q: Dictionary = hud.app.run_domain.service.quotes(hud.app.run_domain.state,int(turret.id))
 	if int(q.level) <= 0 or int(hud.app.run_domain.state.gold) < int(q.level): return
 	if hud.app.selection_view.level_preview:
-		hud.app.selection_view.level_preview = false; hud._selected_command("level")
+		hud._selected_command("level")
+		turret = _current_turret()
+		if turret.is_empty() or int(hud.app.run_domain.service.quotes(hud.app.run_domain.state,int(turret.id)).level) <= 0:
+			hud.app.selection_view.level_preview = false
+			hud.app.refresh_selection(); hud.refresh()
 	else:
-		hud.app.selection_view.level_preview = true; hud.app.refresh_selection(); hud.refresh()
+		hud.tab = "stats"; hud.app.selection_view.level_preview = true; hud.app.refresh_selection(); hud.refresh()
+
+func _show_gems() -> void:
+	hud.tab = "gems"
+	hud.app.selection_view.level_preview = false
+	hud.app.refresh_selection(); hud.refresh()
 
 func _sell_confirm(turret: Dictionary,q: Dictionary) -> void:
 	var box = hud.open_modal("포탑 판매")
@@ -184,7 +193,11 @@ func _confirm_sale(id: int,quoted_refund: int) -> void:
 	if int(quote.sell) != quoted_refund:
 		_sell_confirm(turret,quote)
 		return
-	hud._command({"kind":"sell","id":id}); hud.close_modal()
+	hud._command({"kind":"sell","id":id})
+	if _current_turret().is_empty():
+		hud.app.selection_view.level_preview = false
+		hud.app.refresh_selection()
+	hud.close_modal()
 
 func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 	turret = hud.app.run_domain.service.turret(hud.app.run_domain.state,int(turret.id))

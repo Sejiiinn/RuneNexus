@@ -369,7 +369,10 @@ func _resume_services() -> void:
 	if services.consume_login_resume(): return
 	if services.updates != null:
 		if services.updates.busy: return
-		await services.updates.check()
+		# A live session already passed the startup gate. Ordinary app switching
+		# preserves its screen; only an existing update/installer gate needs a
+		# foreground recheck. Server-required updates still open that gate.
+		if services.updates.blocked: await services.updates.check()
 		if services.updates.blocked: return
 	if services.account != null and not services.busy: await services.retry()
 

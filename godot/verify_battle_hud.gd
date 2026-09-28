@@ -129,10 +129,25 @@ func run() -> void:
 	assert(hud.turret_panel._stat_value({"projectileCount":3},"projectileCount") == "3발")
 	assert(hud.turret_panel._stat_value({"aimDuration":0.75},"aimDuration") == "0.75초")
 	var stat_scroll = hud.body.find_child("TurretStatsScroll",true,false)
-	assert(stat_scroll != null and stat_scroll.custom_minimum_size.y > 96)
+	assert(stat_scroll != null and is_equal_approx(stat_scroll.custom_minimum_size.y,80))
 	assert(stat_scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_SHOW_NEVER)
 	(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].level == 2)
+	assert(app.selection_view.level_preview,"Successful confirmation must retain preview for the next level")
+	var next_quote: Dictionary = app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id))
+	assert(level_button.tooltip_text == "강화 확정 · %d G" % int(next_quote.level))
+	var continuous_gold: int = app.run_domain.state.gold
+	level_button.pressed.emit()
+	assert(app.run_domain.state.turrets[0].level == 3)
+	assert(int(app.run_domain.state.gold) == continuous_gold-int(next_quote.level))
+	assert(app.selection_view.level_preview)
+	var after_continuous: int = app.run_domain.state.gold
+	app.run_domain.state.gold = 0; hud.refresh()
+	assert(level_button.disabled)
+	level_button.pressed.emit()
+	assert(app.run_domain.state.turrets[0].level == 3 and int(app.run_domain.state.gold) == 0)
+	assert(app.selection_view.level_preview,"Insufficient funds preserve the next-level comparison")
+	app.run_domain.state.gold = after_continuous; hud.refresh()
 	assert(node_identities(hud.body) == turret_nodes,"Level confirmation must retain action, icons and stat rows")
 	assert_wallet_refresh(app,hud,level_button,"gold",int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level))
 	hud._selected_command("level")
@@ -160,8 +175,7 @@ func run() -> void:
 			button.pressed.emit(); break
 	assert(app.run_domain.state.turrets[0].targetPriority == "strongest")
 	assert(not app.scene._native_combat.session.paused)
-	hud.tab = "gems"
-	hud.refresh()
+	hud.turret_panel._show_gems()
 	var sockets := buttons(hud.body).filter(func(button): return str(button.name).begins_with("EquippedSlot"))
 	var link_cost := int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).link)
 	assert(sockets.size() == int(hud.configuration_cache.derived(app.run_domain.state,app.run_domain.service).get("maxTurretLinkSlots",3)))
@@ -365,12 +379,21 @@ func run() -> void:
 	hud.main_tab = "turrets"; hud.tab = "stats"; hud.refresh()
 	var max_level_button: Button = hud.body.find_child("TurretLevelAction",true,false)
 	var level_nodes := node_identities(hud.body)
+	if not app.selection_view.level_preview:
+		var initial_level: int = app.run_domain.state.turrets[0].level
+		max_level_button.pressed.emit()
+		assert(app.selection_view.level_preview and int(app.run_domain.state.turrets[0].level) == initial_level)
 	while int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level) > 0:
+		var before_level: int = app.run_domain.state.turrets[0].level
+		var before_gold: int = app.run_domain.state.gold
+		var cost: int = app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level
 		max_level_button.pressed.emit()
-		assert(app.selection_view.level_preview)
-		max_level_button.pressed.emit()
-		assert(not app.selection_view.level_preview)
+		assert(int(app.run_domain.state.turrets[0].level) == before_level+1)
+		assert(int(app.run_domain.state.gold) == before_gold-cost)
+		var next_cost: int = app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level
+		assert(app.selection_view.level_preview == (next_cost > 0))
 		assert(node_identities(hud.body) == level_nodes)
+	assert(not app.selection_view.level_preview,"Maximum level ends the comparison without predicting an invalid next level")
 	assert(max_level_button.disabled)
 	# Display abbreviation must not feed the combat-power/core arithmetic.
 	var exact_total := 0.0

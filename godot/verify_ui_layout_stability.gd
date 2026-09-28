@@ -88,6 +88,18 @@ func run() -> void:
 	for width in [440,320]:
 		await dimensions(width,900)
 		var dock_bounds: Rect2 = hud.dock.get_global_rect()
+		var stat_scroll: ScrollContainer = hud.body.find_child("TurretStatsScroll",true,false)
+		assert(is_equal_approx(stat_scroll.size.y,80))
+		stat_scroll.scroll_vertical = 10000; await settle()
+		var last_stat: Control = hud.body.find_child("Stat_projectileCount",true,false)
+		assert(stat_scroll.get_global_rect().intersects(last_stat.get_global_rect()),"The last stat remains reachable through internal scrolling")
+		assert(hud.detail_panel.get_global_rect().encloses(hud.damage_label.get_global_rect()),"Cumulative damage remains visible below the internal list")
+		stat_scroll.scroll_vertical = 0
+		(hud.body.find_child("TurretGemsTab",true,false) as Button).pressed.emit(); await settle()
+		var gem_height: float = hud.dock.size.y
+		(hud.body.find_child("TurretStatsTab",true,false) as Button).pressed.emit(); await settle()
+		assert(absf(hud.dock.size.y-gem_height) <= 8,"Stats dock stays near the existing gem-link height")
+		assert(hud.dock.get_global_rect() == dock_bounds)
 		var level: int = battle.run_domain.state.turrets[0].level
 		(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
 		for frame in range(8):
@@ -99,8 +111,15 @@ func run() -> void:
 		for frame in range(8):
 			await process_frame
 			assert(hud.dock.get_global_rect() == dock_bounds,"Confirmation must preserve the dock")
-		assert(not battle.selection_view.level_preview and int(battle.run_domain.state.turrets[0].level) == level+1)
+		assert(battle.selection_view.level_preview and int(battle.run_domain.state.turrets[0].level) == level+1)
+		var gold_before: int = battle.run_domain.state.gold
+		var quote: Dictionary = battle.run_domain.service.quotes(battle.run_domain.state,int(battle.run_domain.state.turrets[0].id))
 		(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
+		assert(int(battle.run_domain.state.turrets[0].level) == level+2,"One more click must confirm the next upgrade")
+		assert(int(battle.run_domain.state.gold) == gold_before-int(quote.level))
+		for frame in range(8):
+			await process_frame
+			assert(hud.dock.get_global_rect() == dock_bounds,"Continuous upgrades preserve the compact dock")
 		battle.selection_view.level_preview = false; hud.refresh()
 		for frame in range(8):
 			await process_frame

@@ -82,7 +82,8 @@ func _update_changed() -> void:
 	if account != null: account.set_process(not updates.blocked)
 	if boot_host!=null:
 		if updates.blocked and not app.startup_blocked: app.pause_and_save()
-		if updates.blocked: app.in_lobby=true
+		# Boot owns a full-screen overlay. Keep the underlying battle/lobby
+		# route so a successful check or optional skip returns to that screen.
 		app._refresh_ui()
 		if not updates.blocked and _startup_pending and not _initializing: _initialize.call_deferred()
 		changed.emit()
