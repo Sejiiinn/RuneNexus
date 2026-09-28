@@ -21,7 +21,8 @@ VERSION = "4.7.2.stable"
 def input_digest():
     inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py",
               ROOT / "scripts/prepare_shared_gltf_textures.py"]
-    inputs += [ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf",
+    inputs += [ROOT / "assets/images/backgrounds/combat_space_nebula.png",
+               ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf",
                ROOT / "assets/fonts/MaterialIcons-Regular.otf", ROOT / "assets/fonts/MaterialIcons_LICENSE.txt"]
     manifest = ROOT / "godot/ui/assets.json"
     if manifest.is_file():

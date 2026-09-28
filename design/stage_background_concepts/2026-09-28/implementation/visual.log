@@ -1,0 +1,12 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+CAPTURE chapter1-drone25 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE chapter2-drone25 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.20000004768372
+CAPTURE chapter3-drone25 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/forge_reflection_sky.tres sun=1.35000002384186
+CAPTURE chapter1-fixed size=(440.0, 900.0) camera=(-62.71231, 21.03751, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE chapter1-drone25-return size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE lobby-preserved size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE background-time0 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE background-time3 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+PASS common background, actual HUD, cameras, chapters 1/2/3, isolated save=/Users/sejin/Documents/Codex/RuneNexus/design/stage_background_concepts/2026-09-28/implementation/isolated-save

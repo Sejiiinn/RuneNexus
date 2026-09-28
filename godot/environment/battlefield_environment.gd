@@ -114,7 +114,6 @@ func initialize() -> bool:
 
 func apply_stage_lighting() -> void:
 	_world_environment.sky = ForgeReflectionSky if _using_forge else ReflectionSky
-	_world_environment.background_color = Color("203139") if _using_forge else Color("101b20")
 	if _using_forge:
 		sun.light_energy = 1.35
 		sun.light_color = Color(1.0, 0.94, 0.86)
@@ -653,8 +652,9 @@ func _fail(message: String) -> void:
 func attach_lighting(scene_root: Node3D) -> void:
 	var environment_node := WorldEnvironment.new()
 	var environment := _world_environment
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color("101b20")
+	# 배경만 공통 Canvas로 표시하고 PBR 반사와 챕터별 조명은 유지한다.
+	environment.background_mode = Environment.BG_CANVAS
+	environment.background_canvas_max_layer = -1
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.78, 0.86, 1.0)
 	environment.ambient_light_energy = 0.16

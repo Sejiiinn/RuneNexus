@@ -1,0 +1,19 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+CAPTURE chapter1-drone25 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+PALETTE chapterOne tint=(0.38, 0.83, 1.0)
+CAPTURE chapter2-drone25 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.20000004768372
+PALETTE chapterTwoRift tint=(0.76, 0.38, 0.92)
+CAPTURE chapter3-drone25 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/forge_reflection_sky.tres sun=1.35000002384186
+PALETTE chapterThreeForge tint=(0.9, 0.42, 0.2)
+CAPTURE chapter1-return-from3 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+PALETTE chapterOne tint=(0.38, 0.83, 1.0)
+TIME_PAIR original_shader=res://environment/combat_space_twinkle.gdshader tint=(0.9, 0.42, 0.2) mark=0
+CAPTURE background-forge-time0 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+TIME_PAIR original_shader=res://environment/combat_space_twinkle.gdshader tint=(0.9, 0.42, 0.2) mark=3
+CAPTURE background-forge-time3 size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE background-chapterOne-frozen size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE background-chapterTwoRift-frozen size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+CAPTURE background-chapterThreeForge-frozen size=(440.0, 900.0) camera=(-65.0, 0.0, 0.0) bg=3 sky=res://materials/battlefield_reflection_sky.tres sun=1.5
+PASS chapter palettes, 3->1 reset, shared image, star/center protection, actual HUD, isolated save=/Users/sejin/Documents/Codex/RuneNexus/design/stage_background_concepts/2026-09-28/chapter-palettes/isolated-save

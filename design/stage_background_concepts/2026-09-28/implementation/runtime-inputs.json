@@ -1,0 +1,123 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 / Forward Mobile / Apple M4",
+  "viewport": [
+    440,
+    900
+  ],
+  "scene": "res://main.tscn",
+  "source_files": [
+    {
+      "source": "godot/main.gd",
+      "sha256": "eb4a5f753efa44db40b133f381852bf36b8e546e45ec81314940e3b588b9335e",
+      "bytes": 27075,
+      "runtime_resource": "res://main.gd",
+      "runtime_sha256": "eb4a5f753efa44db40b133f381852bf36b8e546e45ec81314940e3b588b9335e",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "godot/environment/battlefield_environment.gd",
+      "sha256": "d9d1fd28fe06bfb8c5888286fcfad5caf95110fc2da80757ee2d7b911fbb17a6",
+      "bytes": 32199,
+      "runtime_resource": "res://environment/battlefield_environment.gd",
+      "runtime_sha256": "d9d1fd28fe06bfb8c5888286fcfad5caf95110fc2da80757ee2d7b911fbb17a6",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "godot/environment/combat_space_background.gd",
+      "sha256": "e7caf336b3c7be4e2bc4cf76b5b61f3de70d137efa9388083dbef92eadae97aa",
+      "bytes": 808,
+      "runtime_resource": "res://environment/combat_space_background.gd",
+      "runtime_sha256": "e7caf336b3c7be4e2bc4cf76b5b61f3de70d137efa9388083dbef92eadae97aa",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "godot/environment/combat_space_twinkle.gdshader",
+      "sha256": "1720313a5d24c5572a9df8a205655a851978219e55089e825253e6aaf6cb2d71",
+      "bytes": 825,
+      "runtime_resource": "res://environment/combat_space_twinkle.gdshader",
+      "runtime_sha256": "1720313a5d24c5572a9df8a205655a851978219e55089e825253e6aaf6cb2d71",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "scripts/prepare_godot_project.py",
+      "sha256": "e0925225c96a00b5e4a0d60600848bf7b026819ac63cc6f5ebd8faabaa98d196",
+      "bytes": 18056
+    },
+    {
+      "source": "scripts/build_godot_pack.py",
+      "sha256": "9ed8b4fb2781a2f96431fa23c349b5dd257b567f2aa0b993bdf6139da431d287",
+      "bytes": 4223
+    },
+    {
+      "source": "scripts/test_prepare_godot_project.py",
+      "sha256": "97205a7cec93f83ed30f6c76cdf19dbc29893f87c09bb24cc096f2fcb749cc7d",
+      "bytes": 15216
+    },
+    {
+      "source": "assets/images/backgrounds/combat_space_nebula.png",
+      "sha256": "3120831e3ab2f627d089746ba6e71884527eaa42d7c7fe191f311d074b6529eb",
+      "bytes": 1833231,
+      "runtime_resource": "res://assets/backgrounds/combat_space_nebula.png",
+      "runtime_sha256": "3120831e3ab2f627d089746ba6e71884527eaa42d7c7fe191f311d074b6529eb",
+      "runtime_matches_source": true
+    }
+  ],
+  "camera_drone_rotation_degrees": [
+    -65.0,
+    0.0,
+    0.0
+  ],
+  "background_mode": "Environment.BG_CANVAS",
+  "background_canvas_max_layer": -1,
+  "reflection_skies": {
+    "chapters1_2": "res://materials/battlefield_reflection_sky.tres",
+    "chapter3": "res://materials/forge_reflection_sky.tres"
+  },
+  "twinkle": {
+    "period_seconds": [
+      7,
+      14
+    ],
+    "selected_spatial_cells_fraction": 0.24,
+    "max_brightness_reduction": 0.22,
+    "uv_motion": false,
+    "cpu_per_frame_processing": false
+  },
+  "isolated_checkpoint_directory": "/Users/sejin/Documents/Codex/RuneNexus/design/stage_background_concepts/2026-09-28/implementation/isolated-save",
+  "time_difference": {
+    "pixels": 396000,
+    "changed_pixels": 19,
+    "changed_fraction": 4.797979797979798e-05,
+    "max_channel_difference": 26,
+    "changed_sample_luminance_min": 166.0,
+    "changed_bounds": [
+      10,
+      26,
+      393,
+      878
+    ]
+  },
+  "checks": {
+    "preparation_tests": "3 PASS",
+    "godot_import": "PASS, no script/parse/runtime errors",
+    "runtime_visual": "PASS chapters 1/2/3, actual HUD, fixed/drone transitions and lobby",
+    "pack_input_digest": "PASS image-only byte change invalidates digest without source mutation or build",
+    "diff_check": "PASS"
+  },
+  "evidence": [
+    "import.log",
+    "visual.log",
+    "preparation-test.log",
+    "pack-digest-check.log",
+    "chapter1-drone25.png",
+    "chapter1-fixed.png",
+    "chapter1-drone25-return.png",
+    "chapter2-drone25.png",
+    "chapter3-drone25.png",
+    "lobby-preserved.png",
+    "background-time0.png",
+    "background-time3.png",
+    "verify_space_visual.gd"
+  ]
+}

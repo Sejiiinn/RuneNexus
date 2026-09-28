@@ -1,0 +1,104 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile Apple M4",
+  "viewport": [
+    440,
+    900
+  ],
+  "source_files": [
+    {
+      "source": "godot/main.gd",
+      "sha256": "c71cb24cd9247ccc176f51ab03c6d8406669505a2468c80c0895883063b13b8b",
+      "runtime_resource": "res://main.gd",
+      "runtime_sha256": "c71cb24cd9247ccc176f51ab03c6d8406669505a2468c80c0895883063b13b8b",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "godot/environment/combat_space_background.gd",
+      "sha256": "01104de68cab672cff0302931ed9c8f43cbd2fb6190f6f93f3ed5d90ba1231a7",
+      "runtime_resource": "res://environment/combat_space_background.gd",
+      "runtime_sha256": "01104de68cab672cff0302931ed9c8f43cbd2fb6190f6f93f3ed5d90ba1231a7",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "godot/environment/combat_space_twinkle.gdshader",
+      "sha256": "5baecc08ae51432f35130745973c29762c76554c241a9e4215e4212b7490bece",
+      "runtime_resource": "res://environment/combat_space_twinkle.gdshader",
+      "runtime_sha256": "5baecc08ae51432f35130745973c29762c76554c241a9e4215e4212b7490bece",
+      "runtime_matches_source": true
+    },
+    {
+      "source": "assets/images/backgrounds/combat_space_nebula.png",
+      "sha256": "3120831e3ab2f627d089746ba6e71884527eaa42d7c7fe191f311d074b6529eb",
+      "runtime_resource": "res://assets/backgrounds/combat_space_nebula.png",
+      "runtime_sha256": "3120831e3ab2f627d089746ba6e71884527eaa42d7c7fe191f311d074b6529eb",
+      "runtime_matches_source": true
+    }
+  ],
+  "palette_comparison": [
+    {
+      "palette": 2,
+      "changed_pixels": 175785,
+      "bright_star_pixels": 162,
+      "bright_star_changed_pixels": 0,
+      "central_pixels": 126000,
+      "central_changed_pixels": 0,
+      "max_luminance_difference": 5.7216,
+      "mean_luminance_difference": 0.7779112065656565,
+      "mean_luminance": 11.879820686868685
+    },
+    {
+      "palette": 3,
+      "changed_pixels": 187174,
+      "bright_star_pixels": 162,
+      "bright_star_changed_pixels": 0,
+      "central_pixels": 126000,
+      "central_changed_pixels": 0,
+      "max_luminance_difference": 5.728399999999999,
+      "mean_luminance_difference": 0.7382924060606061,
+      "mean_luminance": 11.86179297323232
+    }
+  ],
+  "chapter1_mean_luminance": 11.783590356060605,
+  "time_difference": {
+    "seconds": 3,
+    "pixels": 396000,
+    "changed_pixels": 19,
+    "max_channel_difference": 28.0,
+    "changed_min_luminance": 160.9732
+  },
+  "comparison_method": "Actual rendering; production shader and identical chapterThreeForge tint asserted/logged before both time-pair captures. Afterwards only, shader TIME replaced with 0.0 in validation material for palette comparisons",
+  "map_reset": "PASS runtime asserts chapterOne -> chapterTwoRift -> chapterThreeForge -> chapterOne tint reset",
+  "central_region": "Source UV |x-0.5| <=0.12; inspected safe interior screen x 150..289",
+  "isolated_checkpoint_directory": "/Users/sejin/Documents/Codex/RuneNexus/design/stage_background_concepts/2026-09-28/chapter-palettes/isolated-save",
+  "evidence": [
+    "visual.log",
+    "import.log",
+    "chapter1-drone25.png",
+    "chapter2-drone25.png",
+    "chapter3-drone25.png",
+    "chapter1-return-from3.png",
+    "background-chapterOne-frozen.png",
+    "background-chapterTwoRift-frozen.png",
+    "background-chapterThreeForge-frozen.png",
+    "background-forge-time0.png",
+    "background-forge-time3.png",
+    "verify_chapter_palettes.gd",
+    "analyze_palettes.py"
+  ],
+  "evidence_sha256": {
+    "visual.log": "a675988a977d1086eabb87c9bed7acac243c2ad35b2a484c279e4075ed9d612a",
+    "import.log": "0bb74ca61fe3b801c76e1b2ac9059ef98de53d2ec97f53834ba1d8f93f66f5ff",
+    "chapter1-drone25.png": "170916542937c7b283c4fdaec2302e6deb517143bf150367a4eded136aa3a9f6",
+    "chapter2-drone25.png": "bbc291aabd769703aad8c704a1e506b8e7a1bcd86b84707b0554f71820447cc1",
+    "chapter3-drone25.png": "e8509eba22670ef41c13c4ae465692b80a3a1d757058cd0d58d249ae8309a3c3",
+    "chapter1-return-from3.png": "cb4bccc8f8570aa057fd56f9131496eb82dc8dcdb52ff7e562dbea1ce7557809",
+    "background-chapterOne-frozen.png": "c8057a3d429235afad2b00961024908eafc78cf3af8d38c924a1d70ccdf62862",
+    "background-chapterTwoRift-frozen.png": "2481a58275449a2cc1cfda7c8b90b4b05289708b3ad5b0a11743ec92cc62a49f",
+    "background-chapterThreeForge-frozen.png": "cfd2635916b409b1b52efa783310b8f11fdbb1f155ae30fff37d2f62d837573e",
+    "background-forge-time0.png": "f914aae5b087ca2219306ccc24e39b042c4e21739a52e26c249f55bc382d7350",
+    "background-forge-time3.png": "23d95d61dcb8f213f892ed22f065e46e49541621c1764756a45aaf84f0609fbf",
+    "verify_chapter_palettes.gd": "cc0403c993629754641c471da39477f8dee2dc2dba95c9db3fdf4bf92d4c154f",
+    "analyze_palettes.py": "c4b3e679ea5bd7fa0a09d6f24e7391cbca95ebe40ec74c69937130c71af0ea64"
+  }
+}

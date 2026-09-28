@@ -1,0 +1,25 @@
+[
+  {
+    "palette": 2,
+    "changed_pixels": 175785,
+    "bright_star_pixels": 162,
+    "bright_star_changed_pixels": 0,
+    "central_pixels": 126000,
+    "central_changed_pixels": 0,
+    "max_luminance_difference": 5.7216,
+    "mean_luminance_difference": 0.7779112065656565,
+    "mean_luminance": 11.879820686868685
+  },
+  {
+    "palette": 3,
+    "changed_pixels": 187174,
+    "bright_star_pixels": 162,
+    "bright_star_changed_pixels": 0,
+    "central_pixels": 126000,
+    "central_changed_pixels": 0,
+    "max_luminance_difference": 5.728399999999999,
+    "mean_luminance_difference": 0.7382924060606061,
+    "mean_luminance": 11.86179297323232
+  }
+]
+{'seconds': 3, 'pixels': 396000, 'changed_pixels': 19, 'max_channel_difference': 28.0, 'changed_min_luminance': 160.9732}

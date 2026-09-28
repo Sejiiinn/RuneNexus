@@ -9,6 +9,7 @@ const BattlefieldEffects = preload("res://ui/battlefield_effects.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
 const NativeCombatRuntime = preload("res://combat/native_combat_runtime.gd")
 const BattlefieldEnvironment = preload("res://environment/battlefield_environment.gd")
+const CombatSpaceBackground = preload("res://environment/combat_space_background.gd")
 const BattlefieldUnits = preload("res://presentation/battlefield_units.gd")
 const BattlefieldProjectiles = preload("res://presentation/battlefield_projectiles.gd")
 const TURRET_MODELS = BattlefieldUnits.TURRET_MODELS
@@ -150,12 +151,14 @@ var _generic_projectile_pool: Dictionary:
 var _units := BattlefieldUnits.new(world, camera)
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
 var _environment := BattlefieldEnvironment.new(terrain, _world_environment, sun, _fill_light)
+var _space_background := CombatSpaceBackground.new()
 
 
 func _ready() -> void:
 	RuntimeProfile.configure()
 	_frame_metrics.attach(get_viewport())
 	_set_profile_enabled(RuntimeProfile.enabled)
+	add_child(_space_background)
 	add_child(_turret_level_labels)
 	_presentation_layer.layer = 2
 	add_child(_presentation_layer)
@@ -536,6 +539,7 @@ func _clear_scene() -> void:
 func _build_terrain(map: Dictionary) -> bool:
 	if not _environment.build_terrain(map):
 		return false
+	_space_background.apply_theme(str(map.get("theme", "chapterOne")))
 	_battlefield_camera.invalidate_layout()
 	return true
 

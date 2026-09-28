@@ -168,6 +168,18 @@ def _prepare_app_ui() -> None:
         shutil.copy2(source, target)
 
 
+def _prepare_combat_background() -> None:
+    source = ROOT / "assets/images/backgrounds/combat_space_nebula.png"
+    target = ASSETS / "backgrounds" / source.name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+    target.with_suffix(".png.import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+        'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
+    )
+
+
 def prepare() -> Path:
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
@@ -242,6 +254,7 @@ def prepare() -> Path:
     for name in ("MaterialIcons-Regular.otf", "MaterialIcons_LICENSE.txt"):
         shutil.copy2(ROOT / "assets/fonts" / name, ui_target / name)
     _prepare_app_ui()
+    _prepare_combat_background()
     _preserve_foliage_geometry()
     for stage in range(2, 6):
         _preserve_foliage_geometry(f"dressing_stage{stage}.glb")
