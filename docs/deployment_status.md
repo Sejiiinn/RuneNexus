@@ -6,14 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
-## 2026-09-28 Android 0.2.6 / code 6035 — 초안, 공개 보류
+## 2026-09-28 Android 0.2.6 / code 6035 — 공개 완료
 
-- main 대상 `ee52e295a4fc412a3e27f302d0babcfa84de8160`을 푸시하고 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36434707449)의 build-only 검사·서명·최근 3개 버전 패치 복원을 통과했다. 동일 산출물 5개를 `apk-6035` 초안으로 업로드했다. 최신 공개는 6034이며, 6035는 아직 공개하지 않았다. 선택 업데이트·최소 지원 코드 6027을 유지한다.
+- main 대상 `ee52e295a4fc412a3e27f302d0babcfa84de8160`을 푸시하고 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36434707449)의 build-only 검사·서명·최근 3개 버전 패치 복원을 통과했다. 동일 산출물 5개를 [apk-6035 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6035)로 공개하고 최신 릴리스로 지정했다. [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6035/rune-nexus.apk). 선택 업데이트·최소 지원 코드 6027을 유지한다.
 - 일반형/빠른형 몹·사망 모션, 우주 배경·드론 시점, 우편함·젬 수정, 전투 HUD·포탑 강화·저장/복원 최적화를 포함한다. 서버·DB·Android 호스트 변경은 없다. 기존 미커밋 문서·산출물 정리는 포함하지 않았다.
 - 격리 API 37 arm64 AVD에서 정식 6031→6035 덮어 설치와 최초 설치 시각 유지, 스테이지1·웨이브2·골드148·HP17/20·젬1·기관총 복원을 확인했다. 가디언·피해/빔·배경·HUD와 게스트 우편함 안내를 확인했고 별도 Astra가 대표 화면·기존 변경 근거·패키징을 검토했다. 실계정 Google 로그인·우편 목록·실기기 성능은 미검증이다.
 - APK **384,256,826 bytes**, SHA-256 `2565988bc8aa17f35849a18ed112a6020c42a8d083b47beab6f3677786a32577`. 6034 대비 **+17,307,228 bytes(+4.7165%)**이며 증가분은 PCK와 일치한다. PCK 156,032,528 bytes·957항목·완전중복0. 몹 텍스처·메시·상태 효과와 배경이 주원인이며 ABI 3종·네이티브 크기는 유지했다.
-- 공개 직전 사용자가 검수 에뮬레이터의 렉 증가를 제보해 공개를 보류했다. 해당 AVD는 Vulkan `llvmpipe` 소프트웨어 렌더링이며 CPU 약804%를 관측했다. 이전6034 약5.356FPS, 새6035 약4.168FPS를 SurfaceFlinger에서 관측했으나 전투 진행·카메라 상태가 달라 유효한 전후 비교가 아니다. 성능 회귀 여부는 미확인이고 에뮬레이터를 종료했다. 이를 실기기 성능 또는 성능 PASS로 해석하지 않는다.
-- 근거는 로컬 `build/release-verification/apk-6035/`의 CI·APK 감사·해시 검사·Android 캡처와 `review/`, `performance/`에 있다. 공개 후 태그/최신 manifest/업로드 digest 대조는 아직 수행하지 않았다.
+- 검수 에뮬레이터의 렉 증가 제보를 조사한 뒤, 사용자의 명시적인 배포 지시에 따라 공개했다. 해당 AVD는 Vulkan `llvmpipe` 소프트웨어 렌더링이며 CPU 약804%를 관측했다. 이전6034 약5.356FPS, 새6035 약4.168FPS를 SurfaceFlinger에서 관측했으나 전투 진행·카메라 상태가 달라 유효한 전후 비교가 아니다. 성능 회귀 여부는 미확인이고 에뮬레이터를 종료했다. 이를 실기기 성능 또는 성능 PASS로 해석하지 않는다.
+- 근거는 로컬 `build/release-verification/apk-6035/`의 CI·APK 감사·해시 검사·Android 캡처와 `review/`, `performance/`에 있다. 공개 후 태그 SHA, latest/버전별 manifest와 검수 파일의 일치, 자산 5개 크기·SHA-256·익명 다운로드 응답을 확인했다(`public-verification.json`).
 
 ## 2026-09-26 경량화·전투 최적화 Android 0.2.5 / code 6034 — 공개 완료
 
