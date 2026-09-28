@@ -2,7 +2,7 @@ extends RefCounted
 ## Application event owner. Save and reward outbox I/O are checkpoint responsibilities.
 const Growth = preload("res://app/growth_rules.gd")
 const Commands = preload("res://app/run_commands.gd")
-const QuestProgress = preload("res://app/quest_progress.gd")
+const QuestProgress = preload("res://independent-oracle-quest.gd")
 var growth = Growth.new()
 var quests = QuestProgress.new()
 var service
@@ -95,21 +95,16 @@ func collect(runtime) -> Dictionary:
 	if runtime.epoch != epoch:
 		error = "Stale combat epoch"
 		return {"ok": false, "commands": []}
-	# Damage/ACK-only collections update scalar play time, without copying module
-	# inventories and quest histories. Detach nested data only before a writer.
+	# Detach once per collection. Events only mutate scalar run fields and owned
+	# progression; turret/inventory transactions retain their pure API.
 	state = state.duplicate()
-	state.progression = state.progression.duplicate()
-	var progression_owned := false
+	state.progression = state.progression.duplicate(true)
 	var kill_derived: Dictionary = {}
 	var wall: float = runtime.wall_elapsed
 	if wall > collected_wall_time:
 		state.progression = quests.record_play_time_owned(state.progression, wall-collected_wall_time)
 		collected_wall_time = wall
-	var now := int(now_millis.call())
-	if quests.needs_refresh(state.progression,now):
-		state.progression = state.progression.duplicate(true)
-		progression_owned = true
-		state.progression = quests.refresh_owned(state.progression,now)
+	state.progression = quests.refresh_owned(state.progression, int(now_millis.call()))
 	var commands: Array = []
 	for event in runtime.events:
 		if int(event.id) <= event_ack: continue
@@ -129,8 +124,6 @@ func collect(runtime) -> Dictionary:
 			"waveCompleted":
 				if runtime.defense.hp > 0:
 					result = service.complete_wave(state, int(event.waveId))
-					# The pure wave transaction already returns deeply owned state.
-					if result.get("ok",false): progression_owned = true
 					quest_types.append("clearWaves")
 			"coreDefeated":
 				state.phase = "coreDestruction"
@@ -138,9 +131,6 @@ func collect(runtime) -> Dictionary:
 			error = str(result.get("error", "Event rejected; retained"))
 			return {"ok": false, "commands": commands}
 		if result.has("state"): state = result.state
-		if not quest_types.is_empty() and not progression_owned:
-			state.progression = state.progression.duplicate(true)
-			progression_owned = true
 		for type in quest_types: state.progression = quests.record_owned(state.progression,type,1,int(now_millis.call()))
 		if state.phase in ["success", "coreDestruction", "failure"]:
 			finish(state.phase == "success")

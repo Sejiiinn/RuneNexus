@@ -7,17 +7,6 @@ var _play_time_remainder := 0.0
 func refresh(progression: Dictionary, now_millis: int) -> Dictionary:
 	return refresh_owned(progression.duplicate(true), now_millis)
 
-# Cheap no-op guard for shallow-owned progression. A true result still goes
-# through refresh_owned so daily/weekly resets retain one authoritative rule.
-func needs_refresh(p: Dictionary, now_millis: int) -> bool:
-	var day := int(float(now_millis + 14400000) / 86400000.0)
-	if int(p.get("dailyQuestDayKey", -1)) != day: return true
-	var last := int(p.get("lastDailyQuestSeenMillis", 0))
-	if last == 0 or now_millis - last >= 60000: return true
-	if last > 0 and now_millis + 300000 < last and not p.get("dailyQuestClockRollbackDetected", false): return true
-	if int(p.get("weeklyQuestWeekKey", -1)) != int(float(day + 3) / 7.0): return true
-	return not p.has("weeklyAttendanceDayKeys") or not day in p.weeklyAttendanceDayKeys
-
 ## Internal transaction path: caller exclusively owns p and all nested values.
 func refresh_owned(p: Dictionary, now_millis: int) -> Dictionary:
 	var day := int(float(now_millis + 14400000) / 86400000.0)

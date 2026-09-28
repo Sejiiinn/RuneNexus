@@ -1,0 +1,9 @@
+Godot: /Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot
+Traceback (most recent call last):
+  File "<stdin>", line 8, in <module>
+  File "scripts/run_godot_native_regressions.py", line 133, in run_script
+    raise RuntimeError(f"{name} failed (exit {process.returncode}):\n{output}")
+RuntimeError: verify_damage_event_collection.gd failed (exit 1):
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DAMAGE_EVENT_COLLECTION failures=["fractional play time accumulated exactly"]
