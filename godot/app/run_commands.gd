@@ -75,10 +75,12 @@ func run_upgrade_quote(state: Dictionary, type: String) -> Dictionary:
 	var maximum := int(r.maxLevel) + int(d.get("runUpgradeMaxLevelBonuses",{}).get(type,0))
 	return {"level":level,"maxLevel":maximum,"cost":maxi(1,roundi(roundi(float(r.baseCost)*pow(float(r.costMultiplier),level))*float(d.get("runUpgradeCostMultiplier",1)))) if level < maximum else 0}
 
-func runtime_commands(state: Dictionary) -> Array:
+# Even targeted refreshes derive growth from the whole board's types and gems.
+func runtime_commands(state: Dictionary, target_id: Variant = null) -> Array:
 	var result: Array = []
 	var d := derived(state)
 	for t in state.turrets:
+		if target_id != null and int(t.id) != int(target_id): continue
 		var input: Dictionary = d.get("turretStatInputs",{}).get(t.type,{}).duplicate(true)
 		input.merge({"level":t.level,"primaryTrait":t.primaryTrait,"secondaryTrait":t.secondaryTrait,"gems":t.equippedGemSlots.filter(func(g): return g != null)},true)
 		var stat: Dictionary = catalog.turret(t.type,{"tileSize":state.get("tileSize",1.0),"statInput":input})
@@ -174,7 +176,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 				if priority not in ["first","last","strongest","weakest","nearest"]: return _reject(state,"priority")
 				t.targetPriority = priority
 			_: return _reject(state,"command")
-	var commands := runtime_commands(next)
+	var commands := runtime_commands(next, t.id) if kind == "level" else runtime_commands(next)
 	if kind in ["primaryTrait","secondaryTrait"]: commands.append({"kind":"resetTraitState","id":t.id,"primary":kind == "primaryTrait"})
 	if removed >= 0: commands.push_front({"kind":"removeTurret","id":removed})
 	return {"ok":true,"error":"","state":next,"commands":commands}

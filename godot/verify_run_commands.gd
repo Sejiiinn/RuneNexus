@@ -10,6 +10,11 @@ class CountingCommands extends Commands:
 	func derived(state: Dictionary) -> Dictionary:
 		derive_calls += 1
 		return super.derived(state)
+class CountingCatalog extends Catalog:
+	var turret_calls: Array = []
+	func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+		turret_calls.append(type)
+		return super.turret(type, inputs)
 
 var failures: Array = []
 var checks := 0
@@ -97,12 +102,89 @@ func _initialize() -> void:
 	runtime.process_command({"epoch":1,"sequence":1,"dt":0.0,"commands":upgraded.commands})
 	tower = runtime.turrets[str(built.state.turrets[0].id)]
 	check(tower.cooldown == 0.37 and tower.aimProgress == 0.27 and tower.directDamageDealt == 123.0 and tower.recent == {"77":1.3},"upgrading preserves combat clocks and damage")
+	_targeted_level_cases(catalog,growth,built.state)
 	_light_weapon_equip_cases(service,built.state)
 	_reward_equip_cases(service,built.state)
 	_reward_slot_purchase_cases(service,built.state)
 	_game_cases(service)
 	print("RUN_COMMANDS checks=",checks," failures=",failures)
 	quit(0 if failures.is_empty() else 1)
+
+func _targeted_level_cases(catalog, growth, built: Dictionary) -> void:
+	var counted := CountingCatalog.new()
+	counted.data = catalog.data
+	var service := Commands.new(counted,growth)
+	var state := built.duplicate(true)
+	state.phase = "wave"
+	state.tileSize = 48.0
+	state.progression.corePassiveNodeRanks = {"efficiencyDiversity":5,"efficiencyGemSpectrum":5,"efficiencyCombinedFront":1}
+	state.turrets = []
+	var types := ["arrow","cannon","magic","frost"]
+	var gems := ["range","multipleProjectiles","damageOverTime","attackSpeed"]
+	for i in types.size():
+		var turret: Dictionary = built.turrets[0].duplicate(true)
+		turret.id = 200+i
+		turret.type = types[i]
+		turret.x += i
+		turret.equippedGemSlots = [gems[i]]
+		turret.equippedGems = [gems[i]]
+		state.turrets.append(turret)
+	var target_id: int = state.turrets[1].id
+	var before := state.duplicate(true)
+	var cost: int = service.quotes(state,target_id).level
+	var initial_commands: Array = service.runtime_commands(state)
+	check(counted.turret_calls == types,"default refresh calculates every turret in order")
+	var core_config := {"runSkill":"guardianBeam","normalMaxHp":0.0,"guardianBeamInterval":5.0,"guardianDpsRate":0.08,"attackSyncDamageMultiplier":1.2,"attackSyncAttackRateMultiplier":1.15}
+	var bootstrap := {"tileSize":48.0,"turrets":initial_commands.map(func(c): return c.turret),"coreConfig":core_config,"core":{"attackSyncRemaining":1.0,"cooldown":0.0}}
+	var runtime := Runtime.new()
+	var full_runtime := Runtime.new()
+	for current in [runtime,full_runtime]:
+		current.process_command({"epoch":1,"sequence":0,"dt":0.0,"bootstrap":bootstrap})
+		for turret in current.turrets.values():
+			turret.cooldown = 0.37
+			turret.aimProgress = 0.27
+			turret.aimTargetId = 77
+			turret.directDamageDealt = 123.0
+			turret.recent = {"77":1.3}
+	var runtime_before: Dictionary = runtime.turrets.duplicate(true)
+	var core_damage_before: float = runtime._core_base_damage()
+	counted.turret_calls.clear()
+	var result: Dictionary = service.apply(state,{"kind":"level","id":target_id})
+	check(result.ok and result.commands.size() == 1 and result.commands[0].kind == "turret" and result.commands[0].turret.id == target_id,"level emits only the selected turret")
+	check(counted.turret_calls == ["cannon"],"level calculates only the selected turret instead of filtering full results")
+	check(state == before and result.state.gold == state.gold-cost and result.state.turrets[1].investedGold == state.turrets[1].investedGold+cost,"targeted level preserves quote, investment and immutable input")
+	var full_commands: Array = service.runtime_commands(result.state)
+	check(result.commands[0] == full_commands[1],"targeted level has identical full-board growth inputs and combat stats")
+	check(result.commands[0].turret.statInput.passiveNumericGemEffectMultiplier > 1.0,"targeted level retains other turrets' gem diversity bonus")
+	runtime.process_command({"epoch":1,"sequence":1,"dt":0.0,"commands":result.commands})
+	full_runtime.process_command({"epoch":1,"sequence":1,"dt":0.0,"commands":full_commands})
+	for i in types.size():
+		var id := str(state.turrets[i].id)
+		check(runtime.turrets[id] == full_runtime.turrets[id],"targeted level matches full runtime including combat clocks "+id)
+		if i != 1:
+			check(result.state.turrets[i] == state.turrets[i] and runtime.turrets[id] == runtime_before[id],"level leaves other turret configuration and runtime untouched "+id)
+	var core_damage: float = runtime._core_base_damage()
+	check(core_damage > core_damage_before and _near(core_damage,full_runtime._core_base_damage()),"core damage includes all turrets and the selected turret's new stats")
+	for current in [runtime,full_runtime]:
+		current.core.update(0.01,func(): return true,current._core_base_damage,func(_damage): pass,func(_power): pass)
+	check(runtime.core.guardian_beam_tick_damage > 0 and _near(runtime.core.guardian_beam_tick_damage,full_runtime.core.guardian_beam_tick_damage),"guardian activation damage matches full refresh after targeted level")
+	counted.turret_calls.clear()
+	var run_upgrade: Dictionary = service.apply(result.state,{"kind":"runUpgrade","type":"towerDamage"})
+	check(run_upgrade.ok and run_upgrade.commands.size() == types.size() and counted.turret_calls == types,"run upgrade still calculates and updates every turret")
+	for i in types.size():
+		check(run_upgrade.commands[i].turret.statInput.towerDamageMultiplier > full_commands[i].turret.statInput.towerDamageMultiplier,"run upgrade refresh reaches turret "+str(i))
+	for reason in ["gold","requirement","turret","phase"]:
+		var rejected := state.duplicate(true)
+		var command := {"kind":"level","id":target_id}
+		match reason:
+			"gold": rejected.gold = cost-1
+			"requirement": rejected.turrets[1].level = int(growth.data.turretRules.cannon.maxLevel)
+			"turret": command.id = -1
+			"phase": rejected.phase = "reward"
+		var rejected_before := rejected.duplicate(true)
+		counted.turret_calls.clear()
+		var failure: Dictionary = service.apply(rejected,command)
+		check(not failure.ok and failure.error == reason and failure.commands.is_empty() and counted.turret_calls.is_empty() and failure.state == rejected_before and rejected == rejected_before,"failed level leaves state untouched without calculating or emitting turrets: "+reason)
 
 func _near(actual: Variant, expected: Variant) -> bool:
 	if expected is int or expected is float:
