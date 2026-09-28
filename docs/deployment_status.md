@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-29 Android 0.2.7 / code 6036 — 공개 완료
+
+- 대상 `b2ca12bc5c259ce1c2e4a82f5b8b108cca0a7083`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36448316225)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6036). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6036/rune-nexus.apk). 선택 업데이트·최소 지원 코드 6027을 유지한다.
+- 첫 전투 효과 사전 준비, 일반 앱 복귀 시 현재 화면 유지, 연속 강화, 작은 포탑 스탯창, 특성·젬 보상 선택 시 레이아웃 안정화, 지속 고통 젬의 지속피해 증폭과 설명 수정을 포함했다. 서버·DB 변경은 없다.
+- 사용자 요청으로 Android 설치·실행 검증과 추가 로컬 검사를 생략하고 직접 공개했다. 기존 변경별 데스크톱 실행·독립 검증 근거를 유지하며, 배포 CI의 자동 검사·서명 빌드·패치 디코더·6033/6034/6035 차등 복원은 통과했다. Android 수명주기·실기기 성능은 이번 배포에서 미검증이다.
+- APK **384,263,734 bytes**, SHA-256 `2e6dd8a2d023b2e4f99090beeedbaa8574ef530da8e95f2cad57a336ad4dcaa4`. 이전 6035 대비 **+6,908 bytes**이며 PCK 증가분과 일치한다. PCK 156,039,436 bytes·959항목·완전 중복0. 효과 준비 등 스크립트 변경에 따른 증가이며 새 대용량 에셋·네이티브 의존성은 없다.
+- 공개 태그의 커밋, latest/버전별 manifest 일치, APK·패치의 공개 크기·GitHub SHA-256과 manifest 일치를 확인했다. 로컬 근거: `build/release-verification/apk-6036/`.
+
 ## 2026-09-28 Android 0.2.6 / code 6035 — 공개 완료
 
 - main 대상 `ee52e295a4fc412a3e27f302d0babcfa84de8160`을 푸시하고 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36434707449)의 build-only 검사·서명·최근 3개 버전 패치 복원을 통과했다. 동일 산출물 5개를 [apk-6035 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6035)로 공개하고 최신 릴리스로 지정했다. [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6035/rune-nexus.apk). 선택 업데이트·최소 지원 코드 6027을 유지한다.
