@@ -1,5 +1,7 @@
 # Godot 기본 StyleBoxTexture용 원형 에셋
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 `../nine-slice-source-v3.png`의 기존 source_rect로 6개 컴포넌트 전체를 자른 후 GIMP NoHalo로 25% 축소했다. 수동 재작화·재생성·9개 조각 분리는 하지 않았다. 투명 여백은 원형 손실 방지를 위해 유지했으며 축소 후 약 1~2px다. 정수 크기 반올림 때문에 가로·세로 배율에는 극소 차이가 있다.
 
 - 게임 파일: `assets/images/ui/combat_components/native/`
@@ -19,7 +21,7 @@
 - 전투 모달, 특성·판매·공격 목표·젬 교체·결과 버튼에 연결했다. 기존 행동·저장 계약과 하단 도크 배치를 유지한다.
 - 젬 보상·구매 선택 화면은 사용자 피드백에 따라 기존 색상 카드·파편 선택·배경으로 복원했다.
 - 380px 미만에서는 스테이지 메뉴·종료 확인의 두 행동을 세로 배치해 긴 문구 잘림을 방지한다.
-- Godot 4.7.2 macOS, 격리된 `hud-review-v4`에서 [HUD 회귀](hud-test.log) 통과. [440px 모달](../../modals/README.md), [320px 스테이지 메뉴](screens-320/01-stage-menu.png), [320px 특성](screens-320/04-traits.png)에서 프레임·글자 배치를 확인했다. Android는 이번 작업에서 검증하지 않았다.
+- Godot 4.7.2 macOS, 격리된 `hud-review-v4`에서 HUD 회귀 (`hud-test.log`, 로컬 기록) 통과. [440px 모달](../../modals/README.md), [320px 스테이지 메뉴](screens-320/01-stage-menu.png), [320px 특성](screens-320/04-traits.png)에서 프레임·글자 배치를 확인했다. Android는 이번 작업에서 검증하지 않았다.
 
 ## 시각 재검수·수정
 
@@ -34,7 +36,7 @@
 - 보상 선택 카드는 보존하고, 포탑 슬롯이 가득 찼을 때의 교체 창을 재구성했다. 포탑·새 젬·기존 소켓/연결부·선택 젬 효과·교체 요약을 한 창에 표시하고 겹치던 전장 선택 안내와 바닥 버튼을 숨긴다.
 - 슬롯 선택은 상태 미리보기만 수행한다. ‘선택한 젬과 교체’로 확정하며 기존 젬을 보관한다. 뒤로·재진입·정산 완료 시 선택을 초기화한다.
 - ‘슬롯 추가 후 장착’은 기존 link 견적·레벨·최대 슬롯 조건을 따르고 보유 골드·부족액·제한 사유를 표시한다. `chooseRewardGemEquip`의 `buySlot:true`로 슬롯 구매·장착을 원자 처리한다. 실패하면 골드·장착·보상 상태를 변경하지 않는다.
-- 도메인 회귀 4830 checks failures=[] 및 [보상 UI 회귀](replacement-test.log) 통과. [440px](replacement-440/10-gem-replace.png), [교체 선택](replacement-440/10b-gem-replace-selected.png), [320px 3슬롯](replacement-320/10c-gem-replace-full.png) 실제 화면 검수. 기존 사용자 저장과 분리된 미리보기 상태 사용.
+- 도메인 회귀 4830 checks failures=[] 및 보상 UI 회귀 (`replacement-test.log`, 로컬 기록) 통과. [440px](replacement-440/10-gem-replace.png), [교체 선택](replacement-440/10b-gem-replace-selected.png), [320px 3슬롯](replacement-320/10c-gem-replace-full.png) 실제 화면 검수. 기존 사용자 저장과 분리된 미리보기 상태 사용.
 
 ### 소켓 표현 복구 및 독립 UX 검증
 

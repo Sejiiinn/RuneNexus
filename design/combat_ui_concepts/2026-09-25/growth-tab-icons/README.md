@@ -1,5 +1,7 @@
 # 강화 전투·경제 탭 아이콘
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 ## 채택한 아이콘
 
 2026-09-25. [두 번째 시트의 빨간색 버전](concept-sheet-v2/concepts-combat-red.png)에서 전투 1번 쌍검과 경제 5번 저울을 채택했다. 초기 방패·금화 시안은 아래의 과거 탐색 기록이다.
@@ -11,7 +13,7 @@
 
 ### 적용 확인
 
-`godot/ui/lobby_growth.gd`에서 두 PNG를 동일 28px로 표시하고 기존 64×33px 탭 버튼을 유지했다. `godot/ui/assets.json`에 등록했다. Godot 4.7.2 / Compatibility / Apple M4에서 실제 Lobby와 격리된 테스트 진행도로 확인했다. [440px 전투](production/440-combat.png), [440px 경제](production/440-economy.png), [320px 전투](production/320-combat.png), [320px 경제](production/320-economy.png). [검증 스크립트](production/verify.gd)의 실제 포인터 입력으로 양방향 탭 전환을 확인했다([로그](production/verify.log)).
+`godot/ui/lobby_growth.gd`에서 두 PNG를 동일 28px로 표시하고 기존 64×33px 탭 버튼을 유지했다. `godot/ui/assets.json`에 등록했다. Godot 4.7.2 / Compatibility / Apple M4에서 실제 Lobby와 격리된 테스트 진행도로 확인했다. [440px 전투](production/440-combat.png), [440px 경제](production/440-economy.png), [320px 전투](production/320-combat.png), [320px 경제](production/320-economy.png). 검증 스크립트 (`production/verify.gd`, 로컬 기록)의 실제 포인터 입력으로 양방향 탭 전환을 확인했다(로그 (`production/verify.log`, 로컬 기록)).
 
 별도 Astra 검증 PASS: 승인 형태·색상, 외곽 및 저울 내부의 투명 합성, 선택 상태와 기존 UI 보존을 확인했다. 실행 복사본의 두 PNG와 변경 코드 해시가 최종 원본과 일치한다. Android APK 빌드·실기기 검증은 이번 PNG 교체 범위에서 수행하지 않았다.
 

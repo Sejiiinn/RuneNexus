@@ -1,5 +1,7 @@
 # Godot 단독 Android 전환 검증
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 역할: 2026-09-24 전환 구현의 검증 근거와 한계. 기준은 `1ac84a53b1790226e4644841fe7cb99c59f7cc26` 위의 작업 트리이며 커밋·공개 배포하지 않았다. 사용자 기존 변경을 보존했다. 상태 원본은 [이관 로드맵](../../godot_unified_app_roadmap.md), 배포 선행 조건은 [배포 상태](../../deployment_status.md)다.
 
 ## 범위
@@ -26,7 +28,7 @@ Godot 기본 앱 진입, 계정/온라인 저장/경제 서비스, Kotlin OS 어
 
 실제 데스크톱 Godot Mobile/Metal 앱의 로비 (`screenshots/lobby.png`, 로컬 검증 파일), 계정 (`screenshots/account.png`, 로컬 검증 파일), 게스트 우편 (`screenshots/mail-guest.png`, 로컬 검증 파일), 연구 (`screenshots/research.png`, 로컬 검증 파일), 전투 (`screenshots/battle.png`, 로컬 검증 파일)를 구현 담당과 독립 검증자가 직접 검토했다. 보이는 범위에서 잘림·가림·모달 중첩이 없다. 운영 설정 미포함으로 Google 연결 비활성 안내가 표시되는 검수 실행이다.
 
-productionRelease와 inspectionDebug 빌드를 완료했다. production 패키지 ID·3개 ABI·debuggable=false 및 Flutter 파일/DEX 참조 0을 확인했다. 로컬 production APK는 versionCode 1의 구조 검증 산출물이며 **서명되지 않았고 운영 설정이 없어 배포용이 아니다**. 실제 릴리스에는 기존 설치본보다 큰 버전 코드와 기존 서명키가 필요하다. [APK 검사](apk-audit.json), [PCK 검사](pck-audit.json), [manifest 정보](apk-badging.txt)가 근거다.
+productionRelease와 inspectionDebug 빌드를 완료했다. production 패키지 ID·3개 ABI·debuggable=false 및 Flutter 파일/DEX 참조 0을 확인했다. 로컬 production APK는 versionCode 1의 구조 검증 산출물이며 **서명되지 않았고 운영 설정이 없어 배포용이 아니다**. 실제 릴리스에는 기존 설치본보다 큰 버전 코드와 기존 서명키가 필요하다. [APK 검사](apk-audit.json), PCK 검사 (`pck-audit.json`, 로컬 기록), manifest 정보 (`apk-badging.txt`, 로컬 기록)가 근거다.
 
 보관된 공개 6028 APK(431,317,704 bytes, 기존 기록과 SHA-256 일치) 대비 새 unsigned APK는 372,088,818 bytes로 59,228,886 bytes(13.73%) 작다. Flutter native 60,287,340 bytes와 종전 자산 등 기타 엔트리 36,411,612 bytes가 감소했고, Godot 앱/UI를 포함한 PCK는 37,933,764 bytes 증가했다. PCK는 143,889,096 bytes·871항목이며 완전 중복은 0이다. 이 수치는 최종 서명·운영 설정 APK의 실제 크기를 대신하지 않는다.
 

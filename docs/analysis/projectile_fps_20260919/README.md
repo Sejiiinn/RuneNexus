@@ -1,5 +1,7 @@
 # 탄환 표시 최적화 후 기존 FPS 측정 재실행
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-19. [9월 16일 통합 측정](../godot_validation_20260916/README.md)의 같은 실행 도구·조건을 재사용했다. 현재 결과는 대포 44.06, 화염 31.47 Flutter 갱신/초이며 모두 60에 미달한다. 과거 기록과의 비교이고 이번 탄환 변경만을 켰다 끈 A/B는 아니다.
 
 ## 조건
@@ -30,9 +32,9 @@ SurfaceFlinger도 별도로 수집했다. 검수 Activity의 SurfaceView는 대�
 
 기존 `tool/godot_performance/build_validation.py`에 `RN_VALIDATION_SECONDS=60`을 전달했다. 기존 검수 APK를 데이터 삭제 없이 교체하기 위해 Flutter 빌드 인자에 `--build-number=6015`만 추가했다. 실행은 기존 `run_baseline.py`의 결과 디렉터리를 이 폴더로 지정하고 `RN_BASELINE_TAG=projectile`, `RN_BASELINE_STOP_AFTER=fire`로 두 조건까지만 수행했다. Godot 단독 모드는 Flame 잔상·전송 비용을 포함하지 않으므로 이번 통합 비교에 섞지 않았다.
 
-- [원시 로그](projectile-final.log), [복원 JSON](projectile-final.json), [비교 JSON](comparison.json), [집계 스크립트](summarize.py)
-- [대포 SurfaceFlinger](projectile-normal-surfaceflinger.txt), [화염 SurfaceFlinger](projectile-fire-surfaceflinger.txt)
-- [빌드 로그](build.log), [실행 소스·APK 해시](inputs.json)
+- 원시 로그 (`projectile-final.log`, 로컬 기록), 복원 JSON (`projectile-final.json`, 로컬 기록), [비교 JSON](comparison.json), 집계 스크립트 (`summarize.py`, 로컬 기록)
+- 대포 SurfaceFlinger (`projectile-normal-surfaceflinger.txt`, 로컬 기록), 화염 SurfaceFlinger (`projectile-fire-surfaceflinger.txt`, 로컬 기록)
+- 빌드 로그 (`build.log`, 로컬 기록), 실행 소스·APK 해시 (`inputs.json`, 로컬 기록)
 
 60개 표본씩, 6포탑·3표적 유지와 종료 요약을 확인했다. 원하는 두 조건 뒤 검수 프로세스를 종료했으므로 전체 4개 시나리오용 runner의 `complete` 레코드는 의도적으로 없다. 검수 후 일반 본게임을 다시 열었고 production Godot 팩은 빌드 도구가 복원했다.
 

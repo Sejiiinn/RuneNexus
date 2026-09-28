@@ -1,5 +1,7 @@
 # 냉각 포탑 경량화·게임 반영
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 현행 표면 서리 원본의 형태·크기·재질·충전/방출 연결을 보존하면서 삼각형을 **72,752 → 47,912(34.1% 감소)**로 줄였다. 최종 [GLB](frost-optimized.glb)를 게임 `assets/images/stage1_3d/turrets/frost.glb`에 그대로 반영했다. 게임 코드·전투 수치·안개/VFX·HUD 아이콘은 변경하지 않았다. 커밋·APK 빌드는 하지 않았다.
 
 | 항목 | 원본 → 최종 |
@@ -22,7 +24,7 @@
 
 - [QHD 원거리 독립 검수](review/independent-review.md): 실제 게임 카메라 고정/드론 동일 조건에서 원본과 비교.
 - [UV 검사](glb_uv_validation.json): 31개 텍스처 슬롯의 선택 UV가 유효하다.
-- [충전 계약 로그](integration/frost-charge.log): `verify_frost_charge.gd`, 실패 0. 충전 재질 선택, 비회전/무반동, 대기 유지, 전투 시계, 방출 범위·공유 메시 계약 보존.
+- 충전 계약 로그 (`integration/frost-charge.log`, 로컬 기록): `verify_frost_charge.gd`, 실패 0. 충전 재질 선택, 비회전/무반동, 대기 유지, 전투 시계, 방출 범위·공유 메시 계약 보존.
 - [실제 앱 결과](integration/report.json): 실제 건설·발사·적 감속·정지·4배속 모두 실패 0. [충전](integration/detail-charging.png), [서리 안개 방출](integration/detail-release.png).
 - [게임/격리 import 일치](integration/import-check.json): 표준 공유 텍스처 외부화 후 BIN·노드·메시·accessor·재질 동일. 외부화된 GLB SHA는 원본과 달라진다.
 

@@ -1,5 +1,7 @@
 # 냉각 포탑 형상 보완 독립 검증
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-23, Astra 독립 검증. **최종 PASS — 요청한 기둥 하단 연속 구조와 6개 곡선판 형상, Godot 적용.** 이전 구현의 PASS를 이번 지적의 반증으로 사용하지 않았다.
 
 승인 `../../iris-variants/03-ribbed-reactor.png`, 이전 `../stage2f-hero.png`, 이전 게임 `../../charge-mist-concept/integration/detail-release.png`를 직접 비교했다. 이전 모델은 청동 연결이 상·하단 탭으로 분절되고, 상판이 얇고 넓은 겹침 판으로 읽혔다. 이를 실제 수정 대상으로 인정했다.
@@ -14,7 +16,7 @@
 | 충전·안개·비회전 | PASS. `godot/detail-charging.png`는 하단부터 찬 청록 핀과 어두운 상단을, `detail-release.png`는 방전과 부드러운 3D 안개를 보여 준다. .36 알파 셰이더와 비회전 런타임은 그대로다. 계약 검사 실패 0, 실제 앱 발사·감속 결과와 검수 코드를 확인했다. |
 | 실제 표시 크기 | PASS. `godot/app-angled-selected.png`에서 주변 포탑·지형·HUD와 함께 정상 표시된다. 세부 형태 판정은 동일 게임 조명의 근접 화면을 함께 사용했다. |
 
-실제 실행은 Godot 4.7.2 / Apple M4 / Mobile 렌더러, 격리 저장 `RuneNexus-Frost-Detail-Refinement`다. [실행 결과](godot/report.json), [계약 검사](contract.log), [수량 기록](model_audit.json)을 대조했다. 현재 게임 GLB의 SHA-256 `18c4a4843673a1092571daa298f201c83a210c8fa5f35c4f5bdcfae178a0c964`가 실행 결과와 일치한다. 안개 셰이더 해시는 직전 .36 조정과 같은 `c49198d1668a5be9479456e3bb44bb4f40b7484bd16c62a151a1a3b9bfd6557c`다.
+실제 실행은 Godot 4.7.2 / Apple M4 / Mobile 렌더러, 격리 저장 `RuneNexus-Frost-Detail-Refinement`다. [실행 결과](godot/report.json), 계약 검사 (`contract.log`, 로컬 기록), [수량 기록](model_audit.json)을 대조했다. 현재 게임 GLB의 SHA-256 `18c4a4843673a1092571daa298f201c83a210c8fa5f35c4f5bdcfae178a0c964`가 실행 결과와 일치한다. 안개 셰이더 해시는 직전 .36 조정과 같은 `c49198d1668a5be9479456e3bb44bb4f40b7484bd16c62a151a1a3b9bfd6557c`다.
 
 모델은 72,752삼각형으로 이전 60,512보다 12,240 증가했고 런타임 3메시·19표면을 유지한다. 이 수량 확인을 프레임 성능 측정으로 해석하지 않는다. Android와 GPU 성능은 이번 검증에 포함하지 않았다. 제품·Blender 수정과 실행은 구현 담당이 수행했고 검증자는 산출물과 코드를 읽어 판정했다. 필수 미해결 사항은 없다.
 

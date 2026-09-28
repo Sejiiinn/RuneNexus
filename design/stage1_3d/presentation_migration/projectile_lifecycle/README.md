@@ -1,5 +1,7 @@
 # 공통 탄환 표시 이벤트와 재사용
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 확인: 2026-09-19. 대상: Android Godot 탄환 표시와 Flame 2D 잔상. 배포·전투 판정·저장 형식 변경 없음.
 
 ## 변경과 유지한 계약
@@ -12,10 +14,10 @@
 ## 검증
 
 - Flame 잔상 6종의 2D → 3D → 2D 전환 및 이동 보존, 기존 선분 충돌·최대거리·체인 테스트: 11개 PASS.
-- 탄환 이벤트/기존 프레임/충돌 관련 테스트 19개와 적체 복구 추가 후 탄환 표시 테스트 12개 PASS. 두 실행에는 중복된 탄환 검사가 포함된다. [관련 로그](projectile-tests.log), [추가 검사](projectile-tests-final.log).
-- Godot 표시 뷰·수명 테스트 17개 PASS. 미지원·오류의 2D 복귀 포함. [로그](view-lifecycle-tests.log).
-- Godot `verify_projectiles.gd`, `verify_presentation_protocol.gd` PASS. 이동·정지·남은 거리·종료·중복·세대 교체·오래된 이벤트·취소와 저격/냉기 풀 재사용을 확인했다. [탄환](projectile-godot-final.log), [프로토콜](projectile-protocol.log). headless dummy renderer에서는 MultiMesh GPU readback을 제공하지 않아 숨김·초기화 상태를 검사했다.
-- 최종 `flutter analyze`와 Android release APK 빌드/업데이트 설치 PASS. 기존 검수 앱의 저장을 보존하려고 같은 로컬 버전 코드 2008로 설치했다. [분석](analyze-final.log), [빌드](android-build.log), [입력 해시](inputs.json).
+- 탄환 이벤트/기존 프레임/충돌 관련 테스트 19개와 적체 복구 추가 후 탄환 표시 테스트 12개 PASS. 두 실행에는 중복된 탄환 검사가 포함된다. 관련 로그 (`projectile-tests.log`, 로컬 기록), 추가 검사 (`projectile-tests-final.log`, 로컬 기록).
+- Godot 표시 뷰·수명 테스트 17개 PASS. 미지원·오류의 2D 복귀 포함. 로그 (`view-lifecycle-tests.log`, 로컬 기록).
+- Godot `verify_projectiles.gd`, `verify_presentation_protocol.gd` PASS. 이동·정지·남은 거리·종료·중복·세대 교체·오래된 이벤트·취소와 저격/냉기 풀 재사용을 확인했다. 탄환 (`projectile-godot-final.log`, 로컬 기록), 프로토콜 (`projectile-protocol.log`, 로컬 기록). headless dummy renderer에서는 MultiMesh GPU readback을 제공하지 않아 숨김·초기화 상태를 검사했다.
+- 최종 `flutter analyze`와 Android release APK 빌드/업데이트 설치 PASS. 기존 검수 앱의 저장을 보존하려고 같은 로컬 버전 코드 2008로 설치했다. 분석 (`analyze-final.log`, 로컬 기록), 빌드 (`android-build.log`, 로컬 기록), 입력 해시 (`inputs.json`, 로컬 기록).
 - Android 17 ARM64 에뮬레이터(`emulator-5554`, 1080×2424), Godot 4.7.2, 일반 `lib/main.dart` 본게임 스테이지 1 저장 진입. 1배속 기관총·화염·대포 동시 사격과 착탄, 4배속/드론 전환 및 웨이브 종료 후 잔류 없음 확인. [1배속 사격](video-check-2.png), [종료/드론](combat-4x-drone.png), [전투 영상](combat.mp4). 4배속에서도 실제 사격과 착탄을 확인했고([화면](video-4x-2.png), [영상](combat-4x.mp4)), 백그라운드 복귀 후 20웨이브 보상 정지 화면과 탄환 정리를 확인했다([복귀](resumed.png)). 검수 후 보상 선택 상태를 유지했다. 새 실행의 Android 로그에서 Godot 스크립트·표시 오류와 앱 fatal 예외가 발견되지 않았다. 녹화는 시각 확인용이며 FPS 성능 측정 자료가 아니다.
 
 ## 성능 해석

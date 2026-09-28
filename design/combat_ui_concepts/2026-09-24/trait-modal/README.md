@@ -1,5 +1,7 @@
 # 특성 선택 모달 개선 시안
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 역할: 2026-09-24 사용자 요청에 따른 특성 모달 시안과 Godot 적용·검증 근거. 사용자가 02번 시안과 완성한 특성 아이콘을 기준으로 모달 구현을 요청했다.
 
 [현재 시안: 아이콘과 정돈된 행](02-icon-rows.png) · [내장 ImageGen 프롬프트](prompt-02-icon-rows.txt)
@@ -24,9 +26,9 @@ Godot 구현은 행을 눌러 미리 선택하고 별도 ‘선택 확정’ 버
 
 ## 구현 검증 결과
 
-- 별도 Astra가 작성한 [검증 스크립트](implementation/review.gd)를 실제 Godot 앱에서 실행: [614개 검사, 실패 0](implementation/review-result.json). 행 재클릭 미확정, 별도 확정·정확한 단일 차감, 취소, 1·2차 레벨·선행 조건, 재화 부족, 기선택 불변, pause/resume을 확인했다. 6개 포탑×1·2차를 440×900·320×760·320×480에서 검사했다.
+- 별도 Astra가 작성한 검증 스크립트 (`implementation/review.gd`, 로컬 기록)를 실제 Godot 앱에서 실행: 614개 검사, 실패 0 (`implementation/review-result.json`, 로컬 기록). 행 재클릭 미확정, 별도 확정·정확한 단일 차감, 취소, 1·2차 레벨·선행 조건, 재화 부족, 기선택 불변, pause/resume을 확인했다. 6개 포탑×1·2차를 440×900·320×760·320×480에서 검사했다.
 - 최종 실화면: [기관총 440](implementation/arrow-primary-440.png), [기관총 320](implementation/arrow-primary-320.png), [라이트닝 2차](implementation/lightning-secondary-440.png), [짧은 화면 하단](implementation/short-320-bottom.png). 실제 `--app`에서 테스트 상태를 구성한 캡처이며 시안 이미지가 아니다. 포탑 6종과 잠금·재화 부족·기선택 캡처도 같은 폴더에 있다.
 - 부모와 독립 Astra가 대표 최종 화면을 직접 대조했다. 아이콘·정돈된 두 행·선택 라디오·명시적 확정과 현재 금속 테마를 보존하며, 좁은 화면의 가림과 과대 높이를 수정했다. 짧은 화면 하단 안내와 버튼도 스크롤로 접근 가능하다.
-- [관련 HUD 회귀 검사](implementation/hud-regression.log) PASS. 소스·게임용 PNG와 실행 사본의 일치를 [해시 근거](implementation/source-evidence.json)에 기록했다. Godot 4.7.2 / Metal Forward Mobile / Apple M4에서 검증했다.
+- 관련 HUD 회귀 검사 (`implementation/hud-regression.log`, 로컬 기록) PASS. 소스·게임용 PNG와 실행 사본의 일치를 해시 근거 (`implementation/source-evidence.json`, 로컬 기록)에 기록했다. Godot 4.7.2 / Metal Forward Mobile / Apple M4에서 검증했다.
 - 초기 파편 제목 줄바꿈·큰 버튼 아이콘을 수정했다. 모달 높이를 초기 줄 수로 고정하던 방식도 제거하고 최종 폭에 반응하는 컨테이너 이벤트로 수정했다. 검증 중 추가한 내용 대비 48px 여백 상한은 승인된 균일 행 여백을 잘못 거부하는 검사여서 제거했으며, 실제 과대행 재발 검사와 텍스트 경계 검사는 유지했다. 스크롤 경계는 렌더링 소수점에 대해 1px 오차를 허용한다.
 - Android 빌드·기기 검증은 수행하지 않았다. 데스크톱 UI 검증 결과이며 계정·배포·저장 이관의 완료를 뜻하지 않는다.

@@ -1,8 +1,0 @@
-PASS verify_battle_hud.gd
-PASS verify_ui_layout_stability.gd
-PASS verify_run_commands.gd
-Godot /Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot
-Isolated project /var/folders/87/4g3_qgvn78s0q1l4dckvf9k00000gn/T/hud-incremental-ga8odp3d/godot
-PASS verify_battle_hud.gd after multiline price bevel padding
-PASS verify_battle_hud.gd after compact wallet/power/damage/prices + exact transaction boundary/refund
-PASS verify_battle_hud.gd after compact_price three significant digits + one-line price token assertions

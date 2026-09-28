@@ -1,5 +1,7 @@
 # 선택 이관·화염 MultiMesh 후 FPS 재측정
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-19. 기존 60초 통합 측정을 재실행했다. 대포 45.24, 화염 29.93 Flutter 갱신/초. 직전 대비 대포는 소폭 상승하고 화염은 하락하여 **이번 측정에서는 화염 전체 프레임 성능 개선을 확인하지 못했다.**
 
 ## 조건과 비교
@@ -24,8 +26,8 @@ SurfaceFlinger 별도 수집: SurfaceView 대포 44.565 / 화염 39.011 FPS, VRI
 
 기존 `build_validation.py`에 `RN_VALIDATION_SECONDS=60`, Flutter 빌드 인자에 기존 검수 버전 유지용 `--build-number=6015`를 추가했다. 기존 runner `run_baseline.py`는 이 결과 디렉터리와 `RN_BASELINE_TAG=selection`, `RN_BASELINE_STOP_AFTER=fire`로 실행했다. 메모리 저장소의 별도 검수 앱이라 본게임 저장을 변경하지 않는다. production Godot 팩은 빌드 도구가 복원했고 측정 후 일반 본게임으로 복귀했다.
 
-- [원시 로그](selection-final.log), [복원 JSON](selection-final.json), [비교 JSON](comparison.json), [집계 코드](summarize.py)
-- [대포 SurfaceFlinger](selection-normal-surfaceflinger.txt), [화염 SurfaceFlinger](selection-fire-surfaceflinger.txt)
-- [빌드](build.log), [설치](install.log), [실행 입력·APK 해시](inputs.json)
+- 원시 로그 (`selection-final.log`, 로컬 기록), 복원 JSON (`selection-final.json`, 로컬 기록), [비교 JSON](comparison.json), 집계 코드 (`summarize.py`, 로컬 기록)
+- 대포 SurfaceFlinger (`selection-normal-surfaceflinger.txt`, 로컬 기록), 화염 SurfaceFlinger (`selection-fire-surfaceflinger.txt`, 로컬 기록)
+- 빌드 (`build.log`, 로컬 기록), 설치 (`install.log`, 로컬 기록), 실행 입력·APK 해시 (`inputs.json`, 로컬 기록)
 
 각 조건 60개 표본, 6포탑·3표적, 화염 조건의 화상 적 2개, 종료 요약과 탄환 이벤트 입력을 확인했다. snapshot은 stateless encoder로 만든 전체 선택 DTO이므로 실제 view의 ACK 이후 선택 전송량 측정으로 사용하지 않는다. 반복 배열의 projectiles/effects 0도 효과 부재를 뜻하지 않는다. 로그에 SCRIPT ERROR·Parse Error·FATAL EXCEPTION 없음. 두 조건 뒤 의도적으로 종료하여 전체 시나리오용 complete 레코드는 없다.

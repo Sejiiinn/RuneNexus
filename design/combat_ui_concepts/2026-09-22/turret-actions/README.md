@@ -1,5 +1,7 @@
 # 포탑 전용 액션 표시
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-22. [승인 06-v2](../turret-action-proposals/06-v2-upgrade-traits.png)의 한 줄 구성·상대비율을 Godot 표준 UI로 적용한다. 특성 문양은 [후보 10번](../turret-action-proposals/trait-icons-10-candidates.png)이며 포탑 그림은 기존 3D 렌더 아이콘을 유지한다.
 
 - `VBoxContainer` 안에 금속 헤더 `PanelContainer`와 좌우 여백을 둔 두 탭을 연결한다. 헤더 `HBoxContainer`는 좌측 포탑 아이콘·이름·레벨, 청록 강화, 보라 특성, 우측 작은 판매를 한 줄로 배치한다. 화면 폭이 달라져도 이 구성을 유지한다.
@@ -16,17 +18,17 @@
 
 ## 현재 검증
 
-최종 독립 검증은 [엄격 검증 보고서](native/strict-audit/README.md)를 따른다. 큰 비용의 5px 가독성 결함을 수정한 뒤 실제 입력·화면·관련 회귀를 재검증해 데스크톱 범위 PASS를 받았다. [최종 320](native/strict-audit/fixed/base-320.png), [최종 440](native/strict-audit/fixed/base-440.png), [최종 소스 해시](native/strict-audit/final-source-sha256.json). 아래 최초 검증과 구분한다.
+최종 독립 검증은 [엄격 검증 보고서](native/strict-audit/README.md)를 따른다. 큰 비용의 5px 가독성 결함을 수정한 뒤 실제 입력·화면·관련 회귀를 재검증해 데스크톱 범위 PASS를 받았다. [최종 320](native/strict-audit/fixed/base-320.png), [최종 440](native/strict-audit/fixed/base-440.png), 최종 소스 해시 (`native/strict-audit/final-source-sha256.json`, 로컬 기록). 아래 최초 검증과 구분한다.
 
-Godot 4.7.2 macOS Metal Forward Mobile, Apple M4. 기존 격리 프로젝트 `build/godot/hud-review-v4`와 사용자 저장 `RuneNexus-HUD-review-v4`에서 실제 스테이지 1 포탑 HUD를 직접 실행했다. 고정 시점·정지 상태이며 [환경·입력·소스/에셋 해시](native/verification.json), [캡처 하네스](native/capture.gd)를 보관한다.
+Godot 4.7.2 macOS Metal Forward Mobile, Apple M4. 기존 격리 프로젝트 `build/godot/hud-review-v4`와 사용자 저장 `RuneNexus-HUD-review-v4`에서 실제 스테이지 1 포탑 HUD를 직접 실행했다. 고정 시점·정지 상태이며 [환경·입력·소스/에셋 해시](native/verification.json), 캡처 하네스 (`native/capture.gd`, 로컬 기록)를 보관한다.
 
-- 최종 아이콘 배경 확인: [440 전체](native/transparent-icons-440.png), [440 액션 부분](native/panel-transparent-icons-440.png). 투명 공용 골드와 배경 알파를 정리한 승인 화살표·판매 동전을 함께 확인했고 사각 배경이 보이지 않는다. [실행 로그](native/transparent-icons.log).
-- 골드 배경 결함 후속 수정: [320 전체](native/gold-320.png), [440 전체](native/gold-440.png), [비용 부분 포함 440](native/panel-gold-440.png). 기존 투명 동전으로 복구한 최종 모습이며 나머지 구성·동작은 유지한다. [후속 로그](native/gold.log).
+- 최종 아이콘 배경 확인: [440 전체](native/transparent-icons-440.png), [440 액션 부분](native/panel-transparent-icons-440.png). 투명 공용 골드와 배경 알파를 정리한 승인 화살표·판매 동전을 함께 확인했고 사각 배경이 보이지 않는다. 실행 로그 (`native/transparent-icons.log`, 로컬 기록).
+- 골드 배경 결함 후속 수정: [320 전체](native/gold-320.png), [440 전체](native/gold-440.png), [비용 부분 포함 440](native/panel-gold-440.png). 기존 투명 동전으로 복구한 최종 모습이며 나머지 구성·동작은 유지한다. 후속 로그 (`native/gold.log`, 로컬 기록).
 - 최초 native 구조 화면 PASS: [320 전체](native/after-320.png), [440 전체](native/after-440.png), [320 액션](native/panel-after-320.png), [440 액션](native/panel-after-440.png). 기존 3D 포탑 그림, 승인 금속 프레임·청록/보라 색, 한 줄 상대비율, 아래 연결 탭, 10번 특성 문양을 확인했다. 픽셀 동일성 검사가 아니라 원본 구성·비율과 실제 게임 화면을 대조한 결과다.
-- 상태별 확인: [강화 미리보기](native/after-preview-320.png), [골드 부족](native/disabled-320.png), [최대 레벨](native/max-level-320.png), [특성 1개](native/traits-one-440.png), [특성 2개](native/traits-two-440.png), [젬 링크 탭](native/gems-440.png), [긴 이름·라이트닝 320](native/lightning-320.png). 제목·금액·선택 현황·스탯이 잘리지 않는다. 실제 액션 패널은 304×65 / 424×91이다. [실행 로그](native/capture.log), [라이트닝 로그](native/lightning.log).
-- [HUD 회귀 PASS](native/hud-test.log): 강화 미리보기/확정, 판매 모달, 특성 선택, 골드·소켓·젬 장착 회귀. 320/440 폭의 한 줄 배치·버튼 상대폭, `StyleBoxTexture`/고정 코너, 모든 컨트롤의 scale=1, 기존 3D 아이콘과 투명 영역 일치, 스탯 노출을 검사한다. 실제 라벨 폭 대비 문자열 폭을 확인하고 라이트닝·강화 확정·Lv.7→8·123456 G의 좁은 화면 조합도 별도로 검사했다.
+- 상태별 확인: [강화 미리보기](native/after-preview-320.png), [골드 부족](native/disabled-320.png), [최대 레벨](native/max-level-320.png), [특성 1개](native/traits-one-440.png), [특성 2개](native/traits-two-440.png), [젬 링크 탭](native/gems-440.png), [긴 이름·라이트닝 320](native/lightning-320.png). 제목·금액·선택 현황·스탯이 잘리지 않는다. 실제 액션 패널은 304×65 / 424×91이다. 실행 로그 (`native/capture.log`, 로컬 기록), 라이트닝 로그 (`native/lightning.log`, 로컬 기록).
+- HUD 회귀 PASS (`native/hud-test.log`, 로컬 기록): 강화 미리보기/확정, 판매 모달, 특성 선택, 골드·소켓·젬 장착 회귀. 320/440 폭의 한 줄 배치·버튼 상대폭, `StyleBoxTexture`/고정 코너, 모든 컨트롤의 scale=1, 기존 3D 아이콘과 투명 영역 일치, 스탯 노출을 검사한다. 실제 라벨 폭 대비 문자열 폭을 확인하고 라이트닝·강화 확정·Lv.7→8·123456 G의 좁은 화면 조합도 별도로 검사했다.
 - Android 실제 터치·본게임 배포 검증은 미실시이며 APK를 만들지 않았다. 저장·전투 규칙 변경은 없다.
 
 ## 이전 구현 근거
 
-기존 38px 액션의 [320 화면](after-320.png), [440 화면](after-440.png), [당시 회귀](hud-test.log), [당시 UX 검토](ux-review.md)는 비교 이력이다. `v2/`의 두 줄 적응형 구성과 `exact/`의 일괄 스케일 구성은 폐기되었으며 현행 검증 근거로 사용하지 않는다. 현재 근거는 `native/`다.
+기존 38px 액션의 [320 화면](after-320.png), [440 화면](after-440.png), 당시 회귀 (`hud-test.log`, 로컬 기록), [당시 UX 검토](ux-review.md)는 비교 이력이다. `v2/`의 두 줄 적응형 구성과 `exact/`의 일괄 스케일 구성은 폐기되었으며 현행 검증 근거로 사용하지 않는다. 현재 근거는 `native/`다.

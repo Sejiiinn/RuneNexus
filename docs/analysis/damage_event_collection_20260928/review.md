@@ -1,5 +1,7 @@
 # 피해 이벤트 collect 독립 검증
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 판정: **PASS**. 변경 전 원본을 별도 oracle로 실행하여 최종 구현과 53개 collect 시나리오, 951개 assertion을 비교했다. 생산 코드 수정 없이 격리된 Godot 4.7.2 headless 프로젝트에서 실행했다. 실패·미해결 결함 없음.
 
 ## 직접 검증한 계약
@@ -18,10 +20,10 @@
 
 ## 근거
 
-- [독립 실행 로그](independent-run.log): `INDEPENDENT_DAMAGE_COLLECT steps=53 checks=951 failures=[]`, 종료 코드 0.
-- [독립 검사](independent-check.gd), [원본 collect oracle](independent-oracle-run.gd), [원본 quest oracle](independent-oracle-quest.gd).
-- [최종 소스 SHA와 실행 정보](independent-inputs.json).
-- 저장 전 정산과 실제 session/checkpoint 연결은 부모의 [통합 실행 로그](integration-run.log), [최종 소스 SHA](integration-inputs.json)를 결합한다. 해당 run/quest SHA는 독립 검증 최종 소스와 일치한다. 이를 독립 headless 검사가 실제 앱 화면을 재검증한 것으로 표현하지 않는다.
+- 독립 실행 로그 (`independent-run.log`, 로컬 기록): `INDEPENDENT_DAMAGE_COLLECT steps=53 checks=951 failures=[]`, 종료 코드 0.
+- 독립 검사 (`independent-check.gd`, 로컬 기록), 원본 collect oracle (`independent-oracle-run.gd`, 로컬 기록), 원본 quest oracle (`independent-oracle-quest.gd`, 로컬 기록).
+- 최종 소스 SHA와 실행 정보 (`independent-inputs.json`, 로컬 기록).
+- 저장 전 정산과 실제 session/checkpoint 연결은 부모의 통합 실행 로그 (`integration-run.log`, 로컬 기록), 최종 소스 SHA (`integration-inputs.json`, 로컬 기록)를 결합한다. 해당 run/quest SHA는 독립 검증 최종 소스와 일치한다. 이를 독립 headless 검사가 실제 앱 화면을 재검증한 것으로 표현하지 않는다.
 
 ## 한계
 

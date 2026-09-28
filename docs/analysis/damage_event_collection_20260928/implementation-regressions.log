@@ -1,6 +1,0 @@
-Godot: /Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot
-PASS verify_damage_event_collection.gd
-PASS verify_event_batch.gd
-PASS verify_quest_progress.gd
-PASS verify_content_run_save.gd
-PASS verify_run_save_adapter.gd

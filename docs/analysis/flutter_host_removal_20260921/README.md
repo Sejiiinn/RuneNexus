@@ -1,5 +1,7 @@
 # Flutter 전투 호스트 대체 검증 — 2026-09-21
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 [Flutter 제거 로드맵](../../godot_unified_app_roadmap.md)의 1단계를 구현·검증했다. 전체 Flutter 앱 제거 완료를 뜻하지 않는다.
 
 ## 변경과 남은 경계
@@ -15,13 +17,13 @@
 
 | 검사 | 결과·근거 |
 | --- | --- |
-| Flutter 전체 회귀 | 1,148 통과, 11 건너뜀. [전체 로그](flutter-test.log). 이후 생명주기 보강은 아래 관련 검사로 재검증 |
-| 최종 정적 분석 | 문제 없음. [로그](flutter-analyze.log) |
-| 세션·프로토콜·뷰 회귀 | 34 통과. 같은 ACK 새 상태, 이벤트 중복, dt 제거, 배속·정지, 100ms 조회, 백그라운드 5초 초과 후 복귀. [로그](session-tests.log) |
-| UI 차단 추가 검사 | 최신 TickerMode API 변경 후 2 통과. 정지·입력 차단 및 사용자 일시정지 보존. [로그](ui-block-tests.log) |
-| Godot 회귀 | Flutter 하네스 6 통과. 기존 전투·포탑·웨이브·코어·세션 검사. [로그](native-tests.log) |
+| Flutter 전체 회귀 | 1,148 통과, 11 건너뜀. 전체 로그 (`flutter-test.log`, 로컬 기록). 이후 생명주기 보강은 아래 관련 검사로 재검증 |
+| 최종 정적 분석 | 문제 없음. 로그 (`flutter-analyze.log`, 로컬 기록) |
+| 세션·프로토콜·뷰 회귀 | 34 통과. 같은 ACK 새 상태, 이벤트 중복, dt 제거, 배속·정지, 100ms 조회, 백그라운드 5초 초과 후 복귀. 로그 (`session-tests.log`, 로컬 기록) |
+| UI 차단 추가 검사 | 최신 TickerMode API 변경 후 2 통과. 정지·입력 차단 및 사용자 일시정지 보존. 로그 (`ui-block-tests.log`, 로컬 기록) |
+| Godot 회귀 | Flutter 하네스 6 통과. 기존 전투·포탑·웨이브·코어·세션 검사. 로그 (`native-tests.log`, 로컬 기록) |
 | 독립 Godot 세션 | 1/6/11/15 진입·레이 좌표·건설·전투·정지·4배속·종료/재진입 PASS. 첫 진입 300초/복귀 600초 delta 폐기 및 정상 delta 보존 PASS |
-| Android Kotlin/APK | arm64 Kotlin 컴파일, 최종 APK 빌드 PASS. [빌드 로그](android-build.log) |
+| Android Kotlin/APK | arm64 Kotlin 컴파일, 최종 APK 빌드 PASS. 빌드 로그 (`android-build.log`, 로컬 기록) |
 
 ## Android 본게임 확인
 
@@ -33,7 +35,7 @@
 - 스테이지 메뉴 정지 후 백그라운드 복귀에서 같은 적 배치·재화·피해 통계 유지. 메뉴를 닫으면 다시 진행.
 - 진행 중 앱 백그라운드/복귀에서 오류 없이 이어짐. 누적 delta 폐기의 수치 판정은 독립 회귀 검사에서 수행.
 - 메인 화면 이동·앱 강제 종료·재실행 후 24라운드 복원 안내, 새 장면 전투 재개 확인.
-- 테스트 종료 후 작업 전 앱 데이터 98개 파일을 해시 일치로 복원했다. [복원 결과](data-restore.json).
+- 테스트 종료 후 작업 전 앱 데이터 98개 파일을 해시 일치로 복원했다. 복원 결과 (`data-restore.json`, 로컬 기록).
 
 [1배속·포탑 선택](android-combat-1x.png), [4배속 후 다음 라운드·시점 전환](android-combat-4x.png), [메뉴 정지](android-paused.png), [백그라운드 복귀 정지 유지](android-resume-paused.png), [저장 복원](android-save-restored.png).
 
@@ -43,6 +45,6 @@
 
 ## 용량·한계
 
-최종 로컬 debug APK 560,895,910 bytes. Flutter 라이브러리는 arm64, 기존 Godot 라이브러리는 3 ABI가 포함된다. 기존 로컬 APK 562,391,310 bytes와 빌드 조건이 완전히 같지 않아 용량 개선이나 공개 APK 대비 증감을 주장하지 않는다. PCK는 106,014,844→106,075,272 bytes(+60,428)로 세션 스크립트·개발 fixture 등이 추가됐다. PCK 296개 항목의 완전 중복은 0 bytes. [패키지 구성](package-current.json), [팩 감사](pack-audit.json).
+최종 로컬 debug APK 560,895,910 bytes. Flutter 라이브러리는 arm64, 기존 Godot 라이브러리는 3 ABI가 포함된다. 기존 로컬 APK 562,391,310 bytes와 빌드 조건이 완전히 같지 않아 용량 개선이나 공개 APK 대비 증감을 주장하지 않는다. PCK는 106,014,844→106,075,272 bytes(+60,428)로 세션 스크립트·개발 fixture 등이 추가됐다. PCK 296개 항목의 완전 중복은 0 bytes. [패키지 구성](package-current.json), 팩 감사 (`pack-audit.json`, 로컬 기록).
 
 실기기 release/profile FPS·p95/p99·발열·메모리는 미측정이다. 에뮬레이터 Vulkan semaphore 검증 경고가 남아 있으며, 마지막 실행 로그의 GDScript 오류·파싱 오류·fatal exception은 0이다. [로그 집계](android-log-summary.json). 디버그 패널이 켜진 로비에서 하단 14px overflow를 관찰했으며 이번 전투 호스트 범위와 별도로 남긴다. Android 핀치 실조작은 미검증이고 입력 회귀에서 확인했다. Web/iOS/PC 앱 연결·실사용 저장/계정 동등성은 후속 단계다.

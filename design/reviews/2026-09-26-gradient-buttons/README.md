@@ -1,5 +1,7 @@
 # 로비 버튼 금속 스타일 통일
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-26. 코어 장착·해제·닫기의 그라데이션 버튼과 같은 스타일을 조사한 뒤, 사용자가 공통 금속 이미지로 통일하고 눌림 상태까지 정리하도록 승인했다. 기준은 [DESIGNS](../../../DESIGNS.md)와 기존 `assets/images/ui/combat_components/native/` PNG다.
 
 `button_skin.gd`가 기존 금속 표면을 공유한다. 로비 일반 버튼과 GameButton을 여기에 연결하고 `GradientBox`를 제거했다. 주요·보조·위험·비활성·포커스 상태를 구분한다. 전투·시작 화면의 기존 금속 색·여백은 보존했다. 강화 탭은 기존 선택 이미지를, 홈 모달 닫기는 투명 기본과 가벼운 상태 표시를 유지한다. 공통 hover_pressed를 새로 등록해 기존 전투 전용 토글을 덮는 방식은 사용하지 않는다.
@@ -8,8 +10,8 @@
 
 Godot 4.7.2/macOS Apple M4/OpenGL Compatibility, 격리 프로젝트 `/tmp/rune-metal-buttons-20260926/godot`. 기존 로비 fixture를 사용한 실제 UI 실행이며 운영 계정·사용자 저장은 접근하지 않았다. 440×900과 코어 320×720을 확인했다.
 
-- [자동 검사](after/checks.log): 시작 화면·로비·성장·모듈·모달 입력·레이아웃 안정성·전투 HUD·전투 보상 8개 PASS.
-- [GUI 실행](after/runtime.log): 버튼별 실제 스타일 및 자원 조회, mouse로 코어 해제→장착 상태 변경·영역 크기 보존 확인. 실행 오류 없음.
+- 자동 검사 (`after/checks.log`, 로컬 기록): 시작 화면·로비·성장·모듈·모달 입력·레이아웃 안정성·전투 HUD·전투 보상 8개 PASS.
+- GUI 실행 (`after/runtime.log`, 로컬 기록): 버튼별 실제 스타일 및 자원 조회, mouse로 코어 해제→장착 상태 변경·영역 크기 보존 확인. 실행 오류 없음.
 - 코어 [기존](core-skills.png) → [기본](after/core-skills.png), [눌림](after/core-pressed.png), [좁은 화면](after/core-narrow.png).
 - [연구](after/research-details.png), [모듈](after/modules.png), [계정](after/account.png), [주요 눌림](after/account-primary-pressed.png), [위험 눌림](after/account-danger-pressed.png), [비활성](after/disabled-confirm.png).
 - [홈 닫기 눌림](after/home-close-pressed.png), [강화 탭 눌림](after/upgrade-tab-pressed.png).
@@ -24,7 +26,7 @@ Godot 4.7.2/macOS Apple M4/OpenGL Compatibility, 격리 프로젝트 `/tmp/rune-
 
 사용자가 작은 ×에 공용 프레임 모서리가 과하게 보인다고 지적해 코어 스킬·노드 상세의 닫기를 별도 `close_button.gd`로 분리했다. 기존 `stage_details/v2/close_button.png`의 프레임과 ×를 한 장 그대로 32×32에 표시하며 9분할 늘림이나 텍스트 × 중첩을 하지 않는다. 장착·해제 버튼은 유지한다.
 
-[기본](close/core-skills.png)·[눌림](close/close-pressed.png)·[노드 키보드 포커스](close/node-focus.png)·[320px 화면](close/core-narrow.png). 같은 격리 Godot 환경에서 mouse 닫기·키보드 Enter 닫기·상태와 영역 보존을 확인했다([로그](close/run.log)).
+[기본](close/core-skills.png)·[눌림](close/close-pressed.png)·[노드 키보드 포커스](close/node-focus.png)·[320px 화면](close/core-narrow.png). 같은 격리 Godot 환경에서 mouse 닫기·키보드 Enter 닫기·상태와 영역 보존을 확인했다(로그 (`close/run.log`, 로컬 기록)).
 
 후속 변경도 별도 Astra가 원본·최종 캡처 4장·코드·로그를 직접 대조해 독립 검증 PASS. 모서리 비율과 × 중복 문제 없음.
 
@@ -32,6 +34,6 @@ Godot 4.7.2/macOS Apple M4/OpenGL Compatibility, 격리 프로젝트 `/tmp/rune-
 
 사용자 지적으로 기존 시안 crop에 불투명한 패널 배경과 오른쪽 위 장식 일부가 남아 있음을 확인했다. 앞선 닫기 검증은 이 결함을 놓쳤으므로 외곽 투명도 합격 근거로 사용하지 않는다. GIMP에서 기존 프레임·× 픽셀을 유지하고 외곽을 투명하게 제거한 뒤 36×36으로 크롭했다. 전용 `assets/images/ui/components/close_button.png`로 분리해 원래 스테이지 에셋은 보존했다. 편집 원본은 [XCF](close/alpha-clean/close-button.xcf)다.
 
-최종 [기본](close/alpha-clean/core-skills.png)·[눌림](close/alpha-clean/close-pressed.png)·[포커스](close/alpha-clean/node-focus.png)·[320px](close/alpha-clean/core-narrow.png). 실제 Godot 실행에서 닫기 입력·32×32 크기·상태/영역 보존을 다시 확인했다([로그](close/alpha-clean/run.log)).
+최종 [기본](close/alpha-clean/core-skills.png)·[눌림](close/alpha-clean/close-pressed.png)·[포커스](close/alpha-clean/node-focus.png)·[320px](close/alpha-clean/core-narrow.png). 실제 Godot 실행에서 닫기 입력·32×32 크기·상태/영역 보존을 다시 확인했다(로그 (`close/alpha-clean/run.log`, 로컬 기록)).
 
 별도 Astra 독립 검증 PASS: 36×36 RGBA의 외곽 77px 완전 투명, 나머지 1219px은 원본 크롭의 RGB와 동일해 프레임·× 보존을 확인했다. 최종 캡처 4종에서 사각 배경·금색 이물 제거와 상태 표시를 직접 확인했다.

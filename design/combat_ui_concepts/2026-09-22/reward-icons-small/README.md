@@ -1,10 +1,12 @@
 # 작은 스테이지 보상 아이콘
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 현재 적용은 **24종 모두 기존 이미지 재사용**이다. [현재 목록](selected-inventory.json). 저격·라이트닝은 기존 `ui/hud/turrets_3d/` 이미지를 쓰고, 원래 이미지가 있던 나머지 21종도 복원했다. 연구 슬롯 II는 사용자가 선택한 기존 청록 플라스크 `stage_rewards/reward_research.png`를 사용하며 오른쪽 위에 금색 `+`를 별도 Label로 겹쳐 추가 슬롯을 표시한다. 원본 PNG는 유지한다. [플라스크 + 적용 화면](flask-plus-user-live.png).
 
 아래 24종 일괄 제작 기록은 이전 제안의 제작·검수 근거다. 미채택 24종은 `unused-game-exports/`와 `originals/`에 보관하며 게임용 에셋 목록에서 제외했다.
 
-플라스크 선택 전의 [24종 렌더](selected-contact-sheet.png)와 [스테이지 10 모달](selected-user-live.png)은 이전 선택 기록이다. 당시 [보상 계약 회귀](selected-regression.log) 통과, [런타임 이미지 일치](selected-verification.json)를 확인했다. 이후 연구 슬롯의 이미지 경로만 기존 플라스크로 변경했다.
+플라스크 선택 전의 [24종 렌더](selected-contact-sheet.png)와 [스테이지 10 모달](selected-user-live.png)은 이전 선택 기록이다. 당시 보상 계약 회귀 (`selected-regression.log`, 로컬 기록) 통과, [런타임 이미지 일치](selected-verification.json)를 확인했다. 이후 연구 슬롯의 이미지 경로만 기존 플라스크로 변경했다.
 
 ## 제작 기준
 

@@ -1,5 +1,7 @@
 # 냉각 포탑 기둥·상판 디테일 보완
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-23. 사용자가 지적한 상하 기둥 단절과 얇고 겹친 상판을 [승인 시안 03](../../iris-variants/03-ribbed-reactor.png)에 맞춰 수정했다. 최종 편집 원본은 [production/frost.blend](../frost.blend), 게임용 원본은 [production/frost.glb](../frost.glb)이며 이번 결과의 복사본도 이 폴더에 보관한다.
 
 ## 변경
@@ -19,8 +21,8 @@
 | 실제 게임 가까운 형태 | [사선](godot/model-hero.png), [상단](godot/model-top.png), [낮은 구조 시점](godot/structure-low-angle.png) |
 | 하단부터 충전 | [실제 충전 중](godot/detail-charging.png) |
 | 방전·서리 안개 0.36 | [실제 방출](godot/detail-release.png) |
-| 실행·발사·적 감속 | [앱 결과](godot/report.json), [실행 로그](gui.log) |
-| 기존 충전·재사용·표시 계약 | [좁은 계약 검사](contract.log), 실패 0 |
+| 실행·발사·적 감속 | [앱 결과](godot/report.json), 실행 로그 (`gui.log`, 로컬 기록) |
+| 기존 충전·재사용·표시 계약 | 좁은 계약 검사 (`contract.log`, 로컬 기록), 실패 0 |
 | GLB 텍스처 UV | [13개 슬롯 검사](../glb_uv_validation.json), 모두 통과 |
 | 최종 원본·게임 GLB·HUD 일치 | [파일 해시와 일치 검사](artifact-verification.json), [HUD 원본 해시](../hud-direction-verification.json) |
 

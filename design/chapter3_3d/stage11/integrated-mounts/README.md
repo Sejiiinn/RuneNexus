@@ -1,5 +1,7 @@
 # 벽체 연결형 환경 소품 이식
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 사용자가 승인한 [멀티뷰 v2](../../environment_concepts/integrated-mounts/multiview-v2.png)의 벽체 연결 구조를 스테이지 11에 적용한다. 기존 얇은 선반을 제거하고 엘보는 수직 플랜지, 배기구는 기단까지 이어지는 하우징, 연결관은 밀착 고정대를 사용한다.
 
 세 소품은 공통 wallanchor를 사용한다. Blender root=(0,0,0), 벽 Y=0, 바깥 -Y, 타일 하단 Z=-.50. Godot에서는 root=tilecenter+outward*.45, 높이0, 바깥 local+Z. 연결관의 중간 높이도 원본에 포함하므로 런타임 종류별 높이 보정은 없다.
@@ -10,8 +12,8 @@
 
 Android 검수는 이전 환경 장식 검수와 같은 Android17 arm64 에뮬레이터·1080×2424·Godot4.7.2·기본 MSAA2x/높음 그림자, 실제 RuneNexusApp/HUD와 별도 godotpreview 패키지·메모리 저장 진입점을 사용한다. 디버그 패널은 끈다. 공개 배포 없음.
 
-실렌더러 검사 PASS: 53타일·5격자·5환기구·환경소품5개와 기존 부착 칸/방향 유지. 벽 접합면·기단 높이·내측 침범·배치 간섭·메시/PBR 공유·스테이지 전환 검사 0 failures. [로그](runtime-check.log).
+실렌더러 검사 PASS: 53타일·5격자·5환기구·환경소품5개와 기존 부착 칸/방향 유지. 벽 접합면·기단 높이·내측 침범·배치 간섭·메시/PBR 공유·스테이지 전환 검사 0 failures. 로그 (`runtime-check.log`, 로컬 기록).
 
 최종 Android 시각 확인 PASS: [인게임 대표 화면 1장](android-stage11.png). 선반이 사라진 엘보의 열린 상향 입구, 타일 옆벽에서 기단까지 이어지는 배기구 몸체·주황 3슬롯, 밀착 연결관을 확인했다. 기존 길·건설 상면과 5매립 환기구, HUD를 보존했다. 이번 신규 시각 자료는 담당자의 GLB+타일 통합 렌더1장과 부모의 Android 최종1장이며, 메뉴 이동은 XML로 확인했다. 드론 캡처·설치 과정 캡처는 반복하지 않았다. 실기기 장시간 성능은 이번 범위에 포함하지 않았다.
 
-검수 APK 239,387,457 bytes, PCK 105,945,344 bytes로 직전 로컬 버전보다 각각 271,120 bytes 감소했다. 단일 arm64, 원본 GLB/Blender/design 중복 포함 없음, PCK 논리/실제 중복 payload0. 비교는 공개 배포본이 아닌 직전 로컬 검수본 기준이다. [크기 기록](apk-after.json), [팩 감사](apk-audit.json), [입력 해시](asset-inputs.json).
+검수 APK 239,387,457 bytes, PCK 105,945,344 bytes로 직전 로컬 버전보다 각각 271,120 bytes 감소했다. 단일 arm64, 원본 GLB/Blender/design 중복 포함 없음, PCK 논리/실제 중복 payload0. 비교는 공개 배포본이 아닌 직전 로컬 검수본 기준이다. 크기 기록 (`apk-after.json`, 로컬 기록), 팩 감사 (`apk-audit.json`, 로컬 기록), 입력 해시 (`asset-inputs.json`, 로컬 기록).

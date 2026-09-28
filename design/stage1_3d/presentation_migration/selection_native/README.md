@@ -1,5 +1,7 @@
 # 선택 상태·고리 계산의 Godot 이관
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-19. 최종 Flame 제거 방향의 중간 단계. 전투 판정·타깃·사거리 스탯·저장 계약은 변경하지 않았다.
 
 ## 구현
@@ -12,14 +14,14 @@
 
 ## 검증
 
-- Dart 신규/관련 8 tests + 기존 view/frame 회귀 4 tests PASS. [로그](flutter-tests.log), [view/frame](view-frame-tests.log). view의 renderer unavailable/MissingPluginException 출력은 의도한 fallback 검사다.
+- Dart 신규/관련 8 tests + 기존 view/frame 회귀 4 tests PASS. 로그 (`flutter-tests.log`, 로컬 기록), view/frame (`view-frame-tests.log`, 로컬 기록). view의 renderer unavailable/MissingPluginException 출력은 의도한 fallback 검사다.
 - Godot 선택 lifecycle·기존 선택 0 failures, 기존 사거리 투영 캐시 728 checks PASS. [명령·결과](verification-results.txt).
 - 화염 실제 Metal Mobile 변환 동등성·정지·wrap·seek·풀 재사용과 GPU 입자 정지/진행 검사는 [화염 검증 자료](../../../fire_tower_concepts/runic_3d/migration/multimesh-check/)에 기록했다.
-- `flutter analyze` No issues, Android release APK 빌드·업데이트 설치 PASS. [분석](analyze.log), [빌드](android-build.log), [설치](install.log).
+- `flutter analyze` No issues, Android release APK 빌드·업데이트 설치 PASS. 분석 (`analyze.log`, 로컬 기록), 빌드 (`android-build.log`, 로컬 기록), 설치 (`install.log`, 로컬 기록).
 - 일반 `lib/main.dart`, 로컬 검수용 debug panel 포함, versionCode 2008. Android 17 ARM64 emulator-5554, 1080×2424, Godot 4.7.2. 기존 스테이지 1 저장에서 이어 진행했다. MSAA/그림자 등 저장된 그래픽 옵션은 변경하지 않았으며 정확한 설정값은 이번 실행에서 별도 수집하지 않았다. 이전 캡처와 픽셀 A/B로 간주하지 않는다.
 - [보상 대상 강조·교체 표식](reward-target.png), 젬 장착 후 고리, [선택·레벨 변경·업그레이드 예상 범위](selection-level.png), [1배속 화염 사격](combat-fixed.png), [4배속 드론 사격](combat-4x-6s.png), [앱 복귀](resumed.png) 확인. 원본 영상: [1배속](combat.mp4), [4배속](combat-4x.mp4). 시각 검사용 녹화이며 성능 측정이 아니다. 검수 종료 상태는 23웨이브 시작 전 준비 상태다.
-- 이번 실행 [Android 로그](android.log)에서 SCRIPT ERROR·Parse Error·FATAL EXCEPTION이 없었다. 모든 스테이지·실기기 지속 성능 검사 완료를 의미하지 않는다.
+- 이번 실행 Android 로그 (`android.log`, 로컬 기록)에서 SCRIPT ERROR·Parse Error·FATAL EXCEPTION이 없었다. 모든 스테이지·실기기 지속 성능 검사 완료를 의미하지 않는다.
 
-APK는 431,481,576 bytes로 직전 로컬 본게임 APK 대비 +18,304 bytes다. 압축 ZIP 주요 차이는 armeabi-v7a libapp.so +16,384, Godot PCK +1,920 bytes이며 새 에셋·엔진 의존성을 추가하지 않았다. design/ 원본 포함 없음. [용량·해시](apk-size.json), [코드·에셋 입력 해시](inputs.json). 외부 배포는 하지 않았다.
+APK는 431,481,576 bytes로 직전 로컬 본게임 APK 대비 +18,304 bytes다. 압축 ZIP 주요 차이는 armeabi-v7a libapp.so +16,384, Godot PCK +1,920 bytes이며 새 에셋·엔진 의존성을 추가하지 않았다. design/ 원본 포함 없음. 용량·해시 (`apk-size.json`, 로컬 기록), 코드·에셋 입력 해시 (`inputs.json`, 로컬 기록). 외부 배포는 하지 않았다.
 
 후속 요청으로 [60초 FPS를 재측정](../../../../docs/analysis/selection_multimesh_fps_20260919/README.md)했다. 대포 45.24 / 화염 29.93 Flutter 갱신/초로, 직전 대비 +2.7% / -4.9%다. 화염 전체 성능 개선은 확인하지 못했고 GPU 시간은 미측정이다.

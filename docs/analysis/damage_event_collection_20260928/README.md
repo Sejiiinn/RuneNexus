@@ -1,5 +1,7 @@
 # 피해 이벤트 수집의 성장 데이터 복사 축소
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-28. `a414cc60`의 이벤트 수집 동작을 기준으로, 실행 규칙·이벤트 종류·ACK 순서·저장 스키마를 유지하고 불필요한 깊은 복사만 줄였다.
 
 ## 변경
@@ -8,13 +10,13 @@
 
 ## 검증
 
-- [관련 회귀 5개](implementation-regressions.log): 새 피해 이벤트 검사, 기존 이벤트 배치, 퀘스트 fixture, 콘텐츠 저장, 저장 어댑터 통과. 새 검사는 일반 네이티브 회귀 실행기에 등록했다.
-- [독립 원본 대조](independent-run.log): 53단계·951검사에서 반환 결과·상태·ACK·시간 잔여·시계 호출·이전 상태 불변을 비교했다. 일/주/60초/역행 경계, 배치 중 날짜 변경, 실패 후 재시도, 종료·보상 중복을 포함하며 실패 0개였다. [독립 검증 보고](review.md).
-- [실제 Godot 세션 통합](integration-run.log): 격리된 전체 에셋 프로젝트의 `verify_run_session.gd`에서 480프레임 전투, 건설·강화·보상·판매, 중복 ACK, 체크포인트 저장·복원이 통과했다. [검증 소스 SHA-256](integration-inputs.json). 사용자 저장과 운영 API를 사용하지 않았다. headless 검사이며 UI 화면 검수는 아니다.
+- 관련 회귀 5개 (`implementation-regressions.log`, 로컬 기록): 새 피해 이벤트 검사, 기존 이벤트 배치, 퀘스트 fixture, 콘텐츠 저장, 저장 어댑터 통과. 새 검사는 일반 네이티브 회귀 실행기에 등록했다.
+- 독립 원본 대조 (`independent-run.log`, 로컬 기록): 53단계·951검사에서 반환 결과·상태·ACK·시간 잔여·시계 호출·이전 상태 불변을 비교했다. 일/주/60초/역행 경계, 배치 중 날짜 변경, 실패 후 재시도, 종료·보상 중복을 포함하며 실패 0개였다. [독립 검증 보고](review.md).
+- 실제 Godot 세션 통합 (`integration-run.log`, 로컬 기록): 격리된 전체 에셋 프로젝트의 `verify_run_session.gd`에서 480프레임 전투, 건설·강화·보상·판매, 중복 ACK, 체크포인트 저장·복원이 통과했다. 검증 소스 SHA-256 (`integration-inputs.json`, 로컬 기록). 사용자 저장과 운영 API를 사용하지 않았다. headless 검사이며 UI 화면 검수는 아니다.
 
 ## 비용 측정과 한계
 
-[측정 결과](benchmark-result.json) · [측정 코드](benchmark.gd) · [로그](benchmark-run.log).
+[측정 결과](benchmark-result.json) · 측정 코드 (`benchmark.gd`, 로컬 기록) · 로그 (`benchmark-run.log`, 로컬 기록).
 
 실제 native runtime의 화상 적 40개·60step에서 발생한 damage 2,400개와 damageNumber 120개 이벤트를 같은 순서로 재생했다. 5회 교대 배치에서 배치당 collect 1,200회 수행했으며, progression 깊은 복사는 **1,200→0회**로 줄었다. 최종 상태·ACK·소수 플레이 시간 잔여는 원본과 같았다.
 

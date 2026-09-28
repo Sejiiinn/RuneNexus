@@ -1,5 +1,7 @@
 # 강화 레벨업·룬 비용 프레임 재제작
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-25. 사용자 요청에 따라 두 프레임 에셋 자체를 ImageGen으로 다시 만들고 강화 화면에 연결했다. 원본의 오른쪽 금색 테두리 불연속을 정상 장식으로 해석했던 이전 판정은 철회한다.
 
 ## 최종 산출물
@@ -16,7 +18,7 @@
 
 - 실제 Godot UI 렌더: [440 전투](remade/frames-440-전투.png), [320 다섯 자리 비용](remade/frames-320-long.png), [320 경제](remade/frames-320-경제.png), [재화 부족](remade/frames-320-disabled.png), [최대 레벨](remade/frames-440-maximum.png).
 - 부모 및 별도 Astra 시각 검증 PASS. 노드 사각형만이 아니라 금색 테두리 네 변이 숫자 전체를 감싸는지 직접 확인했다. 청록 테두리·양끝 비율·문구 가독성도 확인했다.
-- [배치·실제 클릭 검사](remade/frames.log) PASS: 320/440 전투·경제·65620·부족·최대 상태, 비용 위치 클릭 구매 및 비활성 차단. [기존 강화/연구 회귀](remade/regression.log) PASS. [실행 스크립트](verify.gd), [최종 입력 해시](remade/inputs-sha256.json).
+- 배치·실제 클릭 검사 (`remade/frames.log`, 로컬 기록) PASS: 320/440 전투·경제·65620·부족·최대 상태, 비용 위치 클릭 구매 및 비활성 차단. 기존 강화/연구 회귀 (`remade/regression.log`, 로컬 기록) PASS. 실행 스크립트 (`verify.gd`, 로컬 기록), 최종 입력 해시 (`remade/inputs-sha256.json`, 로컬 기록).
 - 환경: Godot 4.7.2 stable, macOS Apple M4, GL compatibility. `build/godot/upgrade-cost-review/godot` 격리 프로젝트의 실제 Lobby UI/카탈로그와 테스트 진행도를 사용했다. 사용자 플레이 저장을 읽거나 바꾸지 않았다.
 - 별도 확인 창은 `COST_PREVIEW=1`로 동일 스크립트를 실행하며 제목은 `RuneNexus · 강화 프레임 확인 (테스트 저장)`이다. 기존 플레이/편집기 세션은 재시작하지 않았다. Android 빌드·설치·실기기 검증은 수행하지 않았다.
 

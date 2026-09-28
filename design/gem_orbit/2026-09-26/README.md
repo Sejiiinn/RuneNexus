@@ -1,5 +1,7 @@
 # 장착 젬: 위성 젬과 테이퍼 리본
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 승인 기준: 2026-09-26 사용자 선택 **1번 테이퍼 리본**. [컨셉 원본](concept-reference.png)의 **위쪽 01 확대 이미지**를 따른다. 아래쪽 4젬 예시는 젬 앞쪽에도 선이 남아 있는 생성 오류이므로 승인 형태로 사용하지 않는다. 컨셉의 포탑 디자인은 교체 대상이 아니다.
 
 - 작은 입체 젬이 진행 방향의 선두이며, 긴 리본은 뒤쪽으로만 가늘고 투명해진다.
@@ -24,7 +26,7 @@ Godot 4.7.2, macOS Apple M4, Metal Mobile에서 검증한다. 자동 검사 진�
 
 - [실제 게임 크기](verification/review-three.png), [여러 포탑](verification/review-drone-types.png)
 - [동일 앱의 카메라 확대 진단](verification/review-detail-final.png): 꼬리 방향과 가림 확인용이며 실제 기본 배율이 아니다.
-- [독립 실행 로그](verification/independent-review.log), [검증 입력](verification/review.gd)
+- 독립 실행 로그 (`verification/independent-review.log`, 로컬 기록), [검증 입력](verification/review.gd)
 
 이 결과는 데스크톱 동작·외형 확인이며 모바일 성능 향상이나 Android 실기기 통과를 뜻하지 않는다.
 

@@ -1,5 +1,7 @@
 # 대포 착탄 입자 GPU 모션 전환
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-14. 기존 CPU의 불티 56개·금속 파편 34개별 MultiMesh transform 갱신을 vertex shader로 옮겼다. seed 1404의 입자 매개변수는 공유 RGBA32F 3×90 텍스처에 한 번 담고, MultiMesh transform은 identity로 유지한다. 효과마다 별도 재질의 나이·반경·방향 uniform만 갱신한다. 체적 화염의 밀도장·광선 적분 경로는 유지한다.
 
 ## 외형·시간 계약
@@ -14,7 +16,7 @@
 
 Godot 4.7.2 headless에서 seed 데이터·정적 버퍼 불변·시계 정지·되감기·ID와 반경 변경·풀 재사용·카메라 갱신·동시 효과 격리·그룹 가시성·AABB 계약 검사가 통과했다. 실제 GPU vertex 출력, 개별 입자의 생존 표현과 조명은 이 검사로 확인하지 않는다.
 
-[회전 수학 검사](../../../../test/godot/impact_rotation_math.gd)는 Godot의 기존 Basis/Quaternion을 기준으로 GPU float32 식을 비교한다. 23방향·90입자의 시간격자와 생성/소멸/착지 경계에서 188,117회를 비교했다. 불티 quaternion의 길이 보정을 반영했으며 실제 불티 정점의 회전 변위 차이는 반경 1에서 최대 3.95×10⁻⁷타일이다. [실행 결과](rotation-math.log)는 CPU에서 수식을 비교한 값이며 실제 GPU readback 결과가 아니다. 기존 장면·카메라 검사와 관련 Flutter 테스트 14개도 통과했다.
+[회전 수학 검사](../../../../test/godot/impact_rotation_math.gd)는 Godot의 기존 Basis/Quaternion을 기준으로 GPU float32 식을 비교한다. 23방향·90입자의 시간격자와 생성/소멸/착지 경계에서 188,117회를 비교했다. 불티 quaternion의 길이 보정을 반영했으며 실제 불티 정점의 회전 변위 차이는 반경 1에서 최대 3.95×10⁻⁷타일이다. 실행 결과 (`rotation-math.log`, 로컬 기록)는 CPU에서 수식을 비교한 값이며 실제 GPU readback 결과가 아니다. 기존 장면·카메라 검사와 관련 Flutter 테스트 14개도 통과했다.
 
 프로젝트를 준비한 뒤 저장소 루트에서 실행한다. `--benchmark`와 경로를 생략하면 계약 검사만 수행한다. baseline은 위 커밋에서 추출한 전환 전 파일을 지정한다.
 
@@ -34,6 +36,6 @@ Android ARM64 에뮬레이터의 일반 `lib/main.dart` debug APK에서 메모�
 
 - [고정 시점의 정지 착탄](android-paused.png)
 - [4배속 드론 시점의 실제 프레임](video-check-0.png), [8초 영상](android-4x.mp4)
-- [검증 환경·소스 해시](verification.json), [계약 검사](contract.log), [장면 검사](runtime.log), [카메라 검사](camera.log), [Flutter 검사](flutter-tests.log)
+- [검증 환경·소스 해시](verification.json), 계약 검사 (`contract.log`, 로컬 기록), 장면 검사 (`runtime.log`, 로컬 기록), 카메라 검사 (`camera.log`, 로컬 기록), Flutter 검사 (`flutter-tests.log`, 로컬 기록)
 
 운동 계산은 정점마다 실행되므로 CPU 갱신 감소량을 GPU 또는 전체 프레임 개선율로 해석하지 않는다. A34 실기기의 GPU 시간·FPS·지속 부하 성능은 미측정이다. 이번 변경에는 엔진·네이티브 의존성·게임 이미지 추가가 없고, 공개 배포는 수행하지 않았다.

@@ -1,5 +1,7 @@
 # Godot 중복 작업 최적화 전후 비교 — 2026-09-13
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 에뮬레이터의 포탄 4배속 장면에서 Godot 렌더 FPS는 17.6→29.2로 높아졌지만, Flutter raster 평균은 49.5→70.9ms로 악화했고 최대 Godot 프레임 간격도 294ms가 관측됐다. 일부 네이티브 렌더 작업 감소는 확인했으나, 전체 앱이 66% 빨라졌거나 테스터의 끊김이 해결됐다고 판정할 수 없다.
 
 ## 변경 범위
@@ -8,7 +10,7 @@
 
 Godot에서는 카메라 평면 맞춤 계산을 캐시하고, overlay 갱신을 `frame_pre_draw`에서 프레임당 한 번으로 합쳤다. 6~10스테이지 포장 타일은 이웃 타일에 가려지는 면을 제외하는 28종 MultiMesh 변형을 사용한다. 원래 재질의 텍스처 참조를 공유한다. 프레임 sequence가 같아도 카메라 전환에 따른 투영 변화는 반영하며, 실제 적용 응답을 효과 ACK로 사용하는 계약을 유지한다.
 
-기준 소스는 [Godot main](godot_optimization_20260913/baseline/main.gd), [effects](godot_optimization_20260913/baseline/ui/battlefield_effects.gd), [selection](godot_optimization_20260913/baseline/ui/battlefield_selection.gd), [Flutter view](godot_optimization_20260913/baseline/lib/ui/hud/godot_battlefield_view.dart.txt), [Android bridge](godot_optimization_20260913/baseline/android/app/src/main/kotlin/com/example/rune_nexus/GodotBridge.kt)에 보관했다. Flutter 사본은 분석 대상에 포함되지 않도록 `.dart.txt`로 저장했다.
+기준 소스는 Godot main (`godot_optimization_20260913/baseline/main.gd`, 로컬 기록), effects (`godot_optimization_20260913/baseline/ui/battlefield_effects.gd`, 로컬 기록), selection (`godot_optimization_20260913/baseline/ui/battlefield_selection.gd`, 로컬 기록), Flutter view (`godot_optimization_20260913/baseline/lib/ui/hud/godot_battlefield_view.dart.txt`, 로컬 기록), Android bridge (`godot_optimization_20260913/baseline/android/app/src/main/kotlin/com/example/rune_nexus/GodotBridge.kt`, 로컬 기록)에 보관했다. Flutter 사본은 분석 대상에 포함되지 않도록 `.dart.txt`로 저장했다.
 
 ## 측정 조건과 한계
 
@@ -31,7 +33,7 @@ python3 docs/analysis/godot_optimization_20260913/compare_logs.py \
   docs/analysis/godot_optimization_20260913/optimized.log
 ```
 
-원시 로그는 [기준](godot_optimization_20260913/baseline.log)·[최종 개선](godot_optimization_20260913/optimized.log), 전체 집계는 [comparison.json](godot_optimization_20260913/comparison.json)·[상세 표](godot_optimization_20260913/comparison.md)에 보관했다. 잘린 기존 `RN_AB` 로그는 사용하지 않는다. 전체 원시 `frame_intervals_ms`를 합쳐 nearest-rank p50/p95/p99를 계산하며, 창별 분위수를 평균하지 않는다. FPS는 `전체 간격 수 × 1000 / 전체 간격 합(ms)`으로 계산한 **Godot 렌더 프레임 기준**이며 Flutter 합성을 포함한 전체 앱 FPS가 아니다. apply/json/render 시간은 각 지표의 프로파일 표본 수로 가중 평균하고 draw/primitives/메모리는 창별 값의 산술 평균을 사용한다. Flutter/game 종료 요약은 별도 계측 범위이므로 Godot 간격과 더하거나 동일 표본으로 해석하지 않는다.
+원시 로그는 기준 (`godot_optimization_20260913/baseline.log`, 로컬 기록)·최종 개선 (`godot_optimization_20260913/optimized.log`, 로컬 기록), 전체 집계는 [comparison.json](godot_optimization_20260913/comparison.json)·[상세 표](godot_optimization_20260913/comparison.md)에 보관했다. 잘린 기존 `RN_AB` 로그는 사용하지 않는다. 전체 원시 `frame_intervals_ms`를 합쳐 nearest-rank p50/p95/p99를 계산하며, 창별 분위수를 평균하지 않는다. FPS는 `전체 간격 수 × 1000 / 전체 간격 합(ms)`으로 계산한 **Godot 렌더 프레임 기준**이며 Flutter 합성을 포함한 전체 앱 FPS가 아니다. apply/json/render 시간은 각 지표의 프로파일 표본 수로 가중 평균하고 draw/primitives/메모리는 창별 값의 산술 평균을 사용한다. Flutter/game 종료 요약은 별도 계측 범위이므로 Godot 간격과 더하거나 동일 표본으로 해석하지 않는다.
 
 ## 결과
 

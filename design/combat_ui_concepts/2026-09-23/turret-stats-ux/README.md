@@ -1,5 +1,7 @@
 # 포탑 하단 스탯 UX 시안
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 역할: 2026-09-24 사용자 승인에 따른 포탑 탭 UI 기준과 구현·검증 기록. 06번 시안과 후속 젬 색상별 태그 지시를 구현 기준으로 사용한다.
 
 [승인 시안: 특성·강화 순서 변경](06-action-order.png) · [ImageGen 프롬프트](prompt-06-action-order.txt) · [변경 전 실화면](../../2026-09-22/turret-actions/native/strict-audit/fixed/base-440.png)
@@ -31,13 +33,13 @@ Godot UI의 포탑 액션 순서, 태그, 스탯 목록, 목표 버튼과 누적
 실행 환경: Godot 4.7.2, macOS Metal Forward Mobile, 격리 프로젝트 `build/godot/run-upgrades-review`, 전용 저장 `RuneNexus-TurretStats-Review`. 사용자 플레이 및 열린 에디터는 변경하지 않았다. Android APK·실기기·배포는 이번 범위에서 수행하지 않았다.
 
 - [440px 실제 화면](implementation/base-440.png) · [320px 실제 화면](implementation/arrow-320.png) · [320px 강화 미리보기](implementation/arrow-preview-320.png)
-- [실클릭·레이아웃 검사](implementation/verify.gd) · [결과](implementation/result.json) · [로그](implementation/verify.log): 기본 7항목과 조건부 항목, 태그 색·크기, 목표 연구 잠금/해금 및 변경, 강화 미리보기/확정, 젬 링크 왕복, 특성 선택, 판매 취소/환급, 골드 부족·최대 레벨 확인.
-- [누적 피해 검사](implementation/live-damage.gd) · [로그](implementation/live-damage.log): 0이 아닌 직접·범위·연쇄·화상 합계 갱신 및 본문 인스턴스 유지 확인.
-- [긴 가격 검사](implementation/dense.gd) · [로그](implementation/dense.log): 320/440px의 긴 포탑명·강화 미리보기·가격 표시 경계 확인.
+- 실클릭·레이아웃 검사 (`implementation/verify.gd`, 로컬 기록) · [결과](implementation/result.json) · 로그 (`implementation/verify.log`, 로컬 기록): 기본 7항목과 조건부 항목, 태그 색·크기, 목표 연구 잠금/해금 및 변경, 강화 미리보기/확정, 젬 링크 왕복, 특성 선택, 판매 취소/환급, 골드 부족·최대 레벨 확인.
+- 누적 피해 검사 (`implementation/live-damage.gd`, 로컬 기록) · 로그 (`implementation/live-damage.log`, 로컬 기록): 0이 아닌 직접·범위·연쇄·화상 합계 갱신 및 본문 인스턴스 유지 확인.
+- 긴 가격 검사 (`implementation/dense.gd`, 로컬 기록) · 로그 (`implementation/dense.log`, 로컬 기록): 320/440px의 긴 포탑명·강화 미리보기·가격 표시 경계 확인.
 
 최초 실화면 검수에서 발견한 과도한 스탯 영역 높이·320px 누적 피해 가림과 전장 비침을 수정했다. 수정 상태의 실제 캡처에서 기본 항목과 요약 표시, 남색 배경 가독성을 부모와 별도 Astra 검증자가 직접 확인했다.
 
-최종 독립 검증 **PASS**. 실제 클릭·레이아웃 1,218 검사, 누적 피해 갱신 3 검사, 긴 가격 회귀와 기존 `verify_battle_hud.gd`가 통과했다. [독립 검수](implementation/strict-review.md) · [소스·실행 사본 해시](implementation/source-evidence.json) · [기존 HUD 회귀 로그](implementation/battle-hud.log). Android 실기기 터치·밀도는 미검증이다.
+최종 독립 검증 **PASS**. 실제 클릭·레이아웃 1,218 검사, 누적 피해 갱신 3 검사, 긴 가격 회귀와 기존 `verify_battle_hud.gd`가 통과했다. [독립 검수](implementation/strict-review.md) · 소스·실행 사본 해시 (`implementation/source-evidence.json`, 로컬 기록) · 기존 HUD 회귀 로그 (`implementation/battle-hud.log`, 로컬 기록). Android 실기기 터치·밀도는 미검증이다.
 
 ## 강화 전환 크기 후속 수정
 

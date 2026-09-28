@@ -1,5 +1,7 @@
 # 적 표면 서리 효과 시안
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-14. 처음 Blender 전용으로 제작한 뒤, 사용자의 “최대한 똑같은 느낌으로 게임에 이식” 요청으로 채택한 서리 상태 표현이다. 최초 시안 파일과 렌더는 보존한다.
 
 - 편집 원본: [enemy-frost-concept.blend](enemy-frost-concept.blend)
@@ -24,7 +26,7 @@ Blender 컬렉션 `01 Original enemy`는 원래 적, `02 Frost coating`은 성�
 
 ## 첫 종류별 구현 기록
 
-최초 이식은 [export_runtime.py](export_runtime.py)로 6종별 코팅 텍스처와 결정 GLB를 만들었다. 현재 이 생성기의 출력 경로는 `per_kind_archive/`이며 게임 빌드에 포함하지 않는다. `runtime-{kind}.blend`, `bakes/`, [기존 Android 캡처·감사](runtime/pack-audit.json)는 변경 전 비교 자료다. [baked-tank-preview.png](baked-tank-preview.png)는 Blender 베이크 검토 렌더다.
+최초 이식은 [export_runtime.py](export_runtime.py)로 6종별 코팅 텍스처와 결정 GLB를 만들었다. 현재 이 생성기의 출력 경로는 `per_kind_archive/`이며 게임 빌드에 포함하지 않는다. `runtime-{kind}.blend`, `bakes/`, 기존 Android 캡처·감사 (`runtime/pack-audit.json`, 로컬 기록)는 변경 전 비교 자료다. [baked-tank-preview.png](baked-tank-preview.png)는 Blender 베이크 검토 렌더다.
 
 ## 공통 효과 검증
 
@@ -32,13 +34,13 @@ Blender 컬렉션 `01 Original enemy`는 원래 적, `02 Frost coating`은 성�
 
 2초 감속을 4배속으로 진행해 [만료](shared_runtime/android-expired.png)와 [재적용](shared_runtime/android-reapplied.png)을 실제 앱에서 확인했다. 검수 후 메모리 전투를 종료하고 기존 저장소의 앱 진입으로 복귀했다.
 
-- [서리 검사](shared_runtime/frost-test.log): 원래 몸체 mesh·texture·core 보존, 비감속 적 격리, 6종+shieldBoss의 공통 shader/texture/두 원형 공유, 동종 MultiMesh 재사용, 감속 on/off/reapply·종류 교체·제거·초기화 0 failures.
-- [기존 런타임 검사](shared_runtime/runtime-test.log): 모델·카메라·HUD/입력·초기화 0 failures.
-- [텍스처 검사](shared_runtime/textures-test.log): 35 GLB, 167 참조→37 공유 이미지, 불투명 PNG 픽셀 보존, 0 failures. 공통 성에의 별도 noise 입력 검증은 제작 기록과 서리 검사에서 확인한다.
+- 서리 검사 (`shared_runtime/frost-test.log`, 로컬 기록): 원래 몸체 mesh·texture·core 보존, 비감속 적 격리, 6종+shieldBoss의 공통 shader/texture/두 원형 공유, 동종 MultiMesh 재사용, 감속 on/off/reapply·종류 교체·제거·초기화 0 failures.
+- 기존 런타임 검사 (`shared_runtime/runtime-test.log`, 로컬 기록): 모델·카메라·HUD/입력·초기화 0 failures.
+- 텍스처 검사 (`shared_runtime/textures-test.log`, 로컬 기록): 35 GLB, 167 참조→37 공유 이미지, 불투명 PNG 픽셀 보존, 0 failures. 공통 성에의 별도 noise 입력 검증은 제작 기록과 서리 검사에서 확인한다.
 - Flutter/Dart·전투 로직은 변경하지 않았다. 실기기 p95/p99·GPU 프레임 시간·발열은 미측정이며 에뮬레이터 확인을 성능 통과로 해석하지 않는다.
 
 ## 공통화 용량
 
 실제 APK 내부 PCK는 86,698,680B다. 첫 종류별 구현 92,601,776B에서 5,903,096B 줄었다. 서리 추가 전 86,210,120B를 기준으로 추가 용량은 6,391,656B→488,560B(약 0.47MiB)로 92.36% 감소했다. 공통 서리 payload는 487,547B이며 마스크·부착 JSON·공통 질감·두 결정 원형·코드로 구성된다. 이전 6종 서리 씬과 12개 텍스처는 팩에 남아 있지 않다.
 
-논리/물리 중복은 0B이고 제작 원본·검증 스크립트·raw GLB/PNG 및 Flutter GLB 중복이 없다. [실제 APK 감사](shared_runtime/pack-audit.json), [기여도 표](shared_runtime/pack-audit.md). 이 비율은 용량 감소율이며 FPS 개선율이 아니다. 공개 배포는 수행하지 않았다.
+논리/물리 중복은 0B이고 제작 원본·검증 스크립트·raw GLB/PNG 및 Flutter GLB 중복이 없다. 실제 APK 감사 (`shared_runtime/pack-audit.json`, 로컬 기록), [기여도 표](shared_runtime/pack-audit.md). 이 비율은 용량 감소율이며 FPS 개선율이 아니다. 공개 배포는 수행하지 않았다.

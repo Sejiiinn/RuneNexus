@@ -1,5 +1,7 @@
 # 빠른형 부유·웅크림 사망 모션
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 [승인 시안](approved-curl.png)을 기준으로, 낮게 떠오르며 머리·앞발·뒷다리·꼬리를 안쪽으로 모은다. 몸체 스케일을 줄이는 대신 관절 자세로 실루엣이 둥글게 변하며, 몸체는 원래 PBR 텍스처를 공유하는 사망 전용 셰이더의 인스턴스 ALPHA로 0.12~0.55 전투초에 옅어진다. Mobile에서 무시되는 GeometryInstance3D.transparency를 사용하지 않는다. 0.55초에 시체와 잔광을 함께 정리한다.
 
 - 제작: [Blender 원본](../fast-rune-hound-death.blend), [제작 스크립트](../build_death.py), [내보내기](../export_runtime.py).
@@ -12,7 +14,7 @@
 
 - Godot 4.7.2 mobile/Metal 데스크톱에서 실제 스테이지 1 웨이브 4와 화염 포탑 두 대로 확인했다. 건설 자금만 1000으로 둔 격리 검수 저장을 사용했다.
 - [실제 속도 전투 영상](hound-death-combat.mp4), [같은 영상의 확대·절반 속도](hound-death-closeup-half-speed.mp4).
-- 빠른형 100007/100008/100009 모두 사망 클립이 생성되었으며, 마지막 표본은 나이 0.5333초·투명도 0.9956이고 0.55초 이후 제거되었다. [실행 기록](captures/angled-status-burn.json).
+- 빠른형 100007/100008/100009 모두 사망 클립이 생성되었으며, 마지막 표본은 나이 0.5333초·투명도 0.9956이고 0.55초 이후 제거되었다. 실행 기록 (`captures/angled-status-burn.json`, 로컬 기록).
 - `verify_skinned_enemy_presentation.gd`: PASS. 이동/상태 기존 계약, 빠른형 사망 생성·크기·투명도·정지 시계·수명 및 되감기 정리 확인.
 - `test_prepare_godot_project.py`: 3 tests OK. 최종 실행의 스크립트/셰이더 오류 없음.
 - 열린 Blender/Godot 세션과 사용자 저장은 보존했다. 이번 결과는 데스크톱 검증이며 Android 검증이나 성능 측정이 아니다.

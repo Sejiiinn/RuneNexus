@@ -1,5 +1,7 @@
 # 인게임 업그레이드 탭 시안
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 역할: 2026-09-23 인게임 업그레이드 시안과 채택 기준. 사용자는 05를 구현 기준으로 채택하고, 제목·범위 안내 상단바 제거를 추가 요청했다. 01~04는 비교 후보 기록이다.
 
 ## 채택 기준
@@ -27,8 +29,8 @@
 
 - 실제 화면: [440px](implementation/normal-440.png), [320px](implementation/normal-320.png). 본문 높이는 각각 196px·190px로 기존 198px 상한 안에 3행 모두 표시된다.
 - 관련 상태: [골드 부족](implementation/poor-320.png), [구매 후](implementation/purchased-320.png), [최대](implementation/max-320.png), [연구 상한 확장·긴 가격](implementation/research-320.png).
-- [검증 스크립트](implementation/verify.gd)와 [실행 로그](implementation/verify.log): Godot 4.7.2, macOS Metal Forward Mobile 실제 렌더. 320×760·440×900에서 텍스트/행 경계, 제목바 부재, 실제 클릭 구매·골드 차감·레벨/효과/가격 갱신, 골드만 바뀔 때 버튼 객체 유지와 disabled/색 갱신, 기본 MAX, 연구 최대30·비용 할인·확장 MAX 구매를 확인했다. 파서/런타임 오류 없음.
-- 실행 사본은 `build/godot/run-upgrades-review`, `user://`는 `RuneNexus-RunUpgrade-Review`로 분리했다. 기존 준비 사본에 누락된 최신 UI 에셋·냉각 안개 GLB를 동기화한 뒤 최종 캡처했다. 사용자 저장·에디터 세션은 변경하지 않았다. [관련 입력 해시](implementation/inputs-sha256.json).
+- 검증 스크립트 (`implementation/verify.gd`, 로컬 기록)와 실행 로그 (`implementation/verify.log`, 로컬 기록): Godot 4.7.2, macOS Metal Forward Mobile 실제 렌더. 320×760·440×900에서 텍스트/행 경계, 제목바 부재, 실제 클릭 구매·골드 차감·레벨/효과/가격 갱신, 골드만 바뀔 때 버튼 객체 유지와 disabled/색 갱신, 기본 MAX, 연구 최대30·비용 할인·확장 MAX 구매를 확인했다. 파서/런타임 오류 없음.
+- 실행 사본은 `build/godot/run-upgrades-review`, `user://`는 `RuneNexus-RunUpgrade-Review`로 분리했다. 기존 준비 사본에 누락된 최신 UI 에셋·냉각 안개 GLB를 동기화한 뒤 최종 캡처했다. 사용자 저장·에디터 세션은 변경하지 않았다. 관련 입력 해시 (`implementation/inputs-sha256.json`, 로컬 기록).
 - Android·배포·실계정 검증은 이번 변경에 포함하지 않았다. 푸시·배포는 수행하지 않았다.
 
 최종 독립 Astra 검증 **PASS**: 05와 최종 실제 320/440·부족·구매·MAX·연구 화면을 직접 대조했다. 최초 검수에서 지적한 명칭·공용 남색 바탕·아이콘 및 정보 열 비율을 수정한 결과를 재확인했다. 최종 소스와 실행 사본 해시, 저장 격리, 검증 스크립트의 실제 입력·상태 검사 범위와 오류 없는 최종 로그를 자체 확인했다. Android 실기기는 미검증이다.

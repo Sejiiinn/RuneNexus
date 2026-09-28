@@ -1,5 +1,7 @@
 # ThreeJS·ANGLE 제거 검증
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 확인: 2026-09-13. 로컬 구현·검증 기록이며 공개 배포 기록이 아니다.
 
 ## 제거 범위
@@ -32,7 +34,7 @@
 
 ZIP 항목은 압축 후 바이트다. 기존 로컬 팩과 현재 팩의 내용·크기는 다르며 이번 작업은 Godot 소스·제작 자산·팩 빌더를 변경하지 않았다. 따라서 PCK 증가는 이번 제거 변경의 증가로 분류하지 않는다.
 
-arm64-v8a·armeabi-v7a·x86_64를 모두 유지했다. 최종 APK ZIP 무결성을 확인했으며 ANGLE 라이브러리와 `assets/flutter_assets/assets/images/stage1_3d/` 중복 항목은 0개다. [항목 감사](apk-audit.json)를 참고한다. 공개 배포 시에는 당시 최신 공개 APK와 다시 비교해야 한다.
+arm64-v8a·armeabi-v7a·x86_64를 모두 유지했다. 최종 APK ZIP 무결성을 확인했으며 ANGLE 라이브러리와 `assets/flutter_assets/assets/images/stage1_3d/` 중복 항목은 0개다. 항목 감사 (`apk-audit.json`, 로컬 기록)를 참고한다. 공개 배포 시에는 당시 최신 공개 APK와 다시 비교해야 한다.
 
 ## Android 실행
 

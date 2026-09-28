@@ -1,5 +1,7 @@
 # 표면 서리 실제 3D 적용
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-23. [승인 시안](../frost-coated.png)의 얇은 청백색 결정성 서리를 현재 냉각 포탑에 적용했다. [이전 형상](../../production/detail-refinement/README.md)의 두꺼운 곡선판 6장·판 사이 틈·기둥 연속 구조·렌즈·냉각 베이 6개·발 4개를 유지한다.
 
 ## 실제 구현과 원본
@@ -21,7 +23,7 @@ Blender에서 기존 금속·청동 재질 5종에 불규칙한 작은 결정 �
 | 기존 충전 보존 | [충전 중](godot/detail-charging.png) |
 | 기존 안개 알파 0.36 보존 | [방출 중](godot/detail-release.png) |
 | 실제 건설·발사·적 감속 | [앱 결과](godot/report.json), 실패 0 |
-| 기존 충전·시간·재사용 계약 | [계약 검사](contract.log), 실패 0 |
+| 기존 충전·시간·재사용 계약 | 계약 검사 (`contract.log`, 로컬 기록), 실패 0 |
 | 실제 사용하는 UV | [31개 텍스처 슬롯 검사](../../production/glb_uv_validation.json), 모두 PASS |
 | 원본/게임 GLB·HUD 동일 및 런타임 소스 일치 | [해시·일치 검사](artifact-verification.json) |
 

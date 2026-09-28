@@ -1,5 +1,7 @@
 # 공통 우주 배경
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 2026-09-28. 승인 원본은 [25도 비교 이미지의 B안](chapter1-space-25deg-comparison.png), 현행 외형 계약은 [DESIGNS.md](../../../DESIGNS.md)에서 관리한다.
 
 게임용 [배경 이미지](../../../assets/images/backgrounds/combat_space_nebula.png)는 내장 ImageGen으로 제작했다. [제작 원본](combat-space-nebula-source.png)과 [생성 프롬프트](production-prompt.txt)를 보관한다. 앞선 숲·유적 비교는 미채택 탐색 시안이다.
@@ -23,7 +25,7 @@
 
 - Godot 4.7.2, macOS Metal Mobile, 440×900 실제 렌더: [1장 25도](implementation/chapter1-drone25.png), [2장](implementation/chapter2-drone25.png), [3장](implementation/chapter3-drone25.png), [고정 시점](implementation/chapter1-fixed.png), [25도 복귀](implementation/chapter1-drone25-return.png), [로비 보존](implementation/lobby-preserved.png) 확인.
 - [3초 전](implementation/background-time0.png)·[3초 후](implementation/background-time3.png) 캡처의 396,000픽셀 중 밝은 별의 19픽셀만 변화했다. 나머지 배경 좌표·성운은 동일하다.
-- 관련 에셋 준비 검사 3개와 패키징 입력 해시 검사를 통과했다. [실행 로그](implementation/visual.log), [입력 해시·환경·검사 근거](implementation/runtime-inputs.json).
+- 관련 에셋 준비 검사 3개와 패키징 입력 해시 검사를 통과했다. 실행 로그 (`implementation/visual.log`, 로컬 기록), [입력 해시·환경·검사 근거](implementation/runtime-inputs.json).
 - 별도 Astra 검증자가 승인 원본·실제 화면·코드·시간차 픽셀을 독립 대조해 PASS. 부모도 최종 1장·3장 실제 화면을 직접 확인했다.
 
 저장은 검수 전용 경로로 격리했다. Android 기기 검증·APK/PCK 빌드·배포는 수행하지 않았다.

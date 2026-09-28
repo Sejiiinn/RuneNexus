@@ -1,5 +1,7 @@
 # Godot 데스크톱 냉각 안개 성능 측정
 
+> 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
+
 Apple M4 / Godot 4.7.2 / Metal Forward Mobile / 1100×800 GUI 렌더. VSync 해제, 최대 FPS 제한 0, 직교 카메라 크기 9.5. 승인된 시안 씬·셰이더·GLB를 격리 프로젝트에 복사해 사용했다. 배경·포탑·적 위치는 고정하고 안개 복제 노드의 수와 위치만 바꿨다.
 
 조건마다 1초 워밍업 후 3초·300프레임 이상 수집했고 정방향과 역방향으로 1회씩 측정했다. 다음 값은 각 회차의 nearest-rank 중앙값 범위다. 시간 열은 ms, draw·primitive는 건수다. 프레임 간격 p95/p99도 nearest-rank 방식으로 아래에 별도 표시했다.
@@ -41,4 +43,4 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/fros
 python3 design/frost_tower_concepts/2026-09-23/charge-mist-concept/performance/summarize.py
 ```
 
-원시 표본은 [raw.json](raw.json), 집계는 [summary.json](summary.json), 화면 예시는 [중첩](mist_8_overlap.png)·[분산](mist_8_spread.png)이다.
+원시 표본은 raw.json (`raw.json`, 로컬 기록), 집계는 [summary.json](summary.json), 화면 예시는 [중첩](mist_8_overlap.png)·[분산](mist_8_spread.png)이다.

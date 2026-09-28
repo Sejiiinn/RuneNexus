@@ -1,9 +1,0 @@
-Godot: /Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot
-PASS verify_shared_turret_stats.gd
-PASS verify_native_combat_runtime.gd
-PASS verify_native_wave_core.gd
-PASS verify_native_core_defense.gd
-PASS verify_legacy_combat_regressions.gd
-PASS verify_run_commands.gd
-PASS verify_app_selection.gd
-PASS verify_battle_hud.gd
