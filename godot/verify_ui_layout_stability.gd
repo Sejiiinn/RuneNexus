@@ -89,16 +89,16 @@ func run() -> void:
 		await dimensions(width,900)
 		var dock_bounds: Rect2 = hud.dock.get_global_rect()
 		var stat_scroll: ScrollContainer = hud.body.find_child("TurretStatsScroll",true,false)
-		assert(is_equal_approx(stat_scroll.size.y,80))
+		assert(is_equal_approx(stat_scroll.size.y,128),"Removed damage-summary space belongs to the stat viewport")
 		stat_scroll.scroll_vertical = 10000; await settle()
 		var last_stat: Control = hud.body.find_child("Stat_projectileCount",true,false)
 		assert(stat_scroll.get_global_rect().intersects(last_stat.get_global_rect()),"The last stat remains reachable through internal scrolling")
-		assert(hud.detail_panel.get_global_rect().encloses(hud.damage_label.get_global_rect()),"Cumulative damage remains visible below the internal list")
+		assert(hud.detail_panel.get_global_rect().encloses(hud.damage_label.get_global_rect()),"Cumulative damage remains visible beside the category tags")
 		stat_scroll.scroll_vertical = 0
 		(hud.body.find_child("TurretGemsTab",true,false) as Button).pressed.emit(); await settle()
 		var gem_height: float = hud.dock.size.y
 		(hud.body.find_child("TurretStatsTab",true,false) as Button).pressed.emit(); await settle()
-		assert(absf(hud.dock.size.y-gem_height) <= 8,"Stats dock stays near the existing gem-link height")
+		assert(hud.dock.size.y <= gem_height+8,"The enlarged stat viewport preserves the previous dock height near the gem-link panel")
 		assert(hud.dock.get_global_rect() == dock_bounds)
 		var level: int = battle.run_domain.state.turrets[0].level
 		(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()

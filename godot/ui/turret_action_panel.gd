@@ -2,12 +2,15 @@ extends VBoxContainer
 ## Native container layout for the approved 06-v2 action strip.
 const Art = preload("res://ui/app_theme.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const HudChrome = preload("res://ui/hud_chrome.gd")
 const ROOT := "ui/hud/turret_actions/"
 static var _skin: Theme
 static var _turret_icons := {}
 var level_action: Button
 var trait_action: Button
 var sell_action: Button
+var target_action: Button
+var _target_gap: Control
 var _ratio := 1.0
 var _price_row: HBoxContainer
 var _price_label: Label
@@ -80,6 +83,17 @@ func configure(spec: Dictionary) -> void:
 		var content := _margin(button,0,12,0,12,true)
 		var title := _text(content,entry[1],60,106,Color("e8f8ff") if selected else Color("b9d6e4"))
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if spec.has("target_callback"):
+		_target_gap = _space(tabs,20)
+		target_action = Button.new(); target_action.name = "TurretTargetPriority"
+		target_action.custom_minimum_size = Vector2(32,32)
+		target_action.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		target_action.icon = Art.texture("ui/icons/growth_combat_swords.png")
+		target_action.expand_icon = true; target_action.add_theme_constant_override("icon_max_width",20)
+		for state in ["normal","hover","pressed","disabled","focus"]:
+			target_action.add_theme_stylebox_override(state,HudChrome.quiet(state,true,Color("65c9df"),Vector2(4,4)))
+		target_action.pressed.connect(spec.target_callback); tabs.add_child(target_action)
+		_update_target(spec)
 	resized.connect(_fit)
 	_fit()
 
@@ -92,6 +106,13 @@ func update_values(spec: Dictionary) -> void:
 	_price_icon.visible = not _maximum; _price_gap.visible = not _maximum
 	for label in [_level_label,_trait_label,_upgrade_label]: _fit_label(label)
 	_fit_price()
+	_update_target(spec)
+
+func _update_target(spec: Dictionary) -> void:
+	if target_action == null: return
+	target_action.visible = bool(spec.get("target_visible",false))
+	_target_gap.visible = target_action.visible
+	target_action.tooltip_text = str(spec.get("target_tooltip","공격 목표"))
 
 func _fit_upgrade_height() -> void:
 	if not is_instance_valid(level_action): return

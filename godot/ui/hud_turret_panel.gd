@@ -3,6 +3,8 @@ extends RefCounted
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const GemPalette = preload("res://ui/battle_rewards.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const PREVIOUS_STATS_HEIGHT := 80.0
+const PREVIOUS_DAMAGE_ROW_HEIGHT := 34.0
 const CATEGORY_NAMES := {"physical": "물리", "elemental": "원소", "light": "경량화기", "heavy": "중화기", "damageOverTime": "지속피해", "cooling": "냉각"}
 const CATEGORY_GEMS := {"physical": "physicalDamage", "elemental": "elementalDamage", "light": "lightWeapon", "heavy": "heavyWeapon", "damageOverTime": "damageOverTime"}
 var hud: Control
@@ -20,6 +22,8 @@ func _action_spec(turret: Dictionary,q: Dictionary) -> Dictionary:
 		"active_tab":"stats" if hud.app.selection_view.level_preview else hud.tab,"upgrade_callback":_preview_level,
 		"trait_callback":_open_current_traits,"sell_callback":_open_current_sale,
 		"stats_callback":func(): hud.tab = "stats"; hud.refresh(),"gems_callback":_show_gems,
+		"target_callback":_priority,"target_visible":hud.configuration_cache.derived(hud.app.run_domain.state,hud.app.run_domain.service).get("canSetTurretTargetPriority",false),
+		"target_tooltip":"공격 목표: "+hud.PRIORITIES.get(turret.get("targetPriority","first"),"선두"),
 	}
 
 func _turret(state: Dictionary,turret: Dictionary) -> void:
@@ -29,26 +33,23 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	panel.configure(_action_spec(turret,q))
 	_update_actions(panel,turret,q)
 	if not hud.app.selection_view.level_preview and hud.tab == "gems": hud.gem_panel._gems(state,turret,q); return
-	var category_row := HBoxContainer.new(); category_row.name = "TurretCategoryAndTarget"; category_row.custom_minimum_size.y = 34
+	var category_row := HBoxContainer.new(); category_row.name = "TurretCategoryAndDamage"; category_row.custom_minimum_size.y = 34
 	category_row.add_theme_constant_override("separation",6); hud.body.add_child(category_row)
 	var definition: Dictionary = hud.app.catalog.data.turrets[turret.type].configuration.statInput.definition
 	_category_tag(category_row,str(definition.damageFamily))
 	for tag in definition.get("attackTags",[]): _category_tag(category_row,str(tag))
 	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_row.add_child(category_spacer)
-	var priority = hud._button(category_row,"",_priority)
-	priority.name = "TurretTargetPriority"; priority.tooltip_text = "공격 목표 변경"
-	priority.add_theme_font_size_override("font_size",11); priority.custom_minimum_size.y = 32
-	for state_name in ["normal","hover","pressed","disabled","focus"]:
-		priority.add_theme_stylebox_override(state_name,hud.HudChrome.quiet(state_name,true,Color("65c9df"),Vector2(7,4)))
+	var total := HBoxContainer.new(); total.name = "TurretTotalDamage"; total.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	total.add_theme_constant_override("separation",6); category_row.add_child(total)
+	var caption: Label = hud._label(total,"누적 피해",11); caption.modulate = Color("a6bcc8")
+	caption.size_flags_horizontal = Control.SIZE_SHRINK_END; caption.autowrap_mode = TextServer.AUTOWRAP_OFF
+	hud.damage_label = hud._label(total,"0.0",12); hud.damage_label.name = "TurretTotalDamageValue"
+	hud.damage_label.size_flags_horizontal = Control.SIZE_SHRINK_END
+	hud.damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; hud.damage_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var stat_scroll = ScrollContainer.new(); stat_scroll.name = "TurretStatsScroll"; stat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; stat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; hud.body.add_child(stat_scroll)
 	var grid = GridContainer.new(); grid.name = "TurretStatsGrid"; grid.columns = 2; grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL; grid.add_theme_constant_override("h_separation",22); grid.add_theme_constant_override("v_separation",0); stat_scroll.add_child(grid)
 	grid.minimum_size_changed.connect(_fit_stats.bind(stat_scroll,grid),CONNECT_DEFERRED)
-	var total_line := HSeparator.new(); total_line.modulate = Color("70919d88"); hud.body.add_child(total_line)
-	var total := HBoxContainer.new(); total.name = "TurretTotalDamage"; total.custom_minimum_size.y = 34
-	total.add_theme_constant_override("separation",8); hud.body.add_child(total)
-	hud._label(total,"누적 피해",12).modulate = Color("a6bcc8")
-	hud.damage_label = hud._label(total,"0.0",12); hud.damage_label.name = "TurretTotalDamageValue"
-	hud.damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; hud.damage_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	panel.minimum_size_changed.connect(_fit_stats.bind(stat_scroll,grid),CONNECT_DEFERRED)
 	_update_turret(state,turret)
 
 func _update_actions(panel: Control,turret: Dictionary,q: Dictionary) -> void:
@@ -61,9 +62,6 @@ func _update_turret(state: Dictionary,turret: Dictionary) -> void:
 	var q: Dictionary = hud.app.run_domain.service.quotes(state,int(turret.id))
 	var panel: Control = hud.body.get_node("TurretActionPanel")
 	panel.update_values(_action_spec(turret,q)); _update_actions(panel,turret,q)
-	var priority: Button = hud.body.find_child("TurretTargetPriority",true,false)
-	priority.visible = hud.configuration_cache.derived(state,hud.app.run_domain.service).get("canSetTurretTargetPriority",false)
-	priority.text = "공격 목표 · "+hud.PRIORITIES.get(turret.get("targetPriority","first"),"선두")+"  ▾"
 	# Display-only fields belong to this presenter, not the shared raw stat cache.
 	var stats = hud._stats(state,turret).duplicate()
 	var next = {}; var future = turret.duplicate(true); future.level += 1
@@ -119,7 +117,21 @@ func _fit_stats(scroll: ScrollContainer,grid: GridContainer) -> void:
 	if not is_instance_valid(scroll) or not is_instance_valid(grid): return
 	# Preview labels briefly report a wrapped minimum before their width settles.
 	# Keep the viewport tied to stat rows; excess content scrolls inside it.
-	scroll.custom_minimum_size.y = minf(ceilf(float(grid.get_child_count())/2.0)*40.0,80.0)
+	var reclaimed: float = PREVIOUS_DAMAGE_ROW_HEIGHT+hud.body.get_theme_constant("separation","HSeparator")+2*hud.body.get_theme_constant("separation")
+	var panel: Control = hud.body.get_node("TurretActionPanel")
+	if panel.target_action != null and panel.target_action.visible:
+		var tabs: HBoxContainer = panel.target_action.get_parent()
+		var previous_tabs_height := 0.0
+		for child in tabs.get_children():
+			if child != panel.target_action and child.visible:
+				previous_tabs_height = maxf(previous_tabs_height,child.get_combined_minimum_size().y)
+		var added_tab_height := maxf(0,tabs.get_combined_minimum_size().y-previous_tabs_height)
+		var action_height := panel.get_combined_minimum_size().y
+		reclaimed -= ceilf(action_height)-ceilf(action_height-added_tab_height)
+	# Spend the removed summary and two body gaps on readable stat rows,
+	# accounting for the target icon's taller touch area without growing the dock.
+	var previous_height := minf(ceilf(float(grid.get_child_count())/2.0)*40.0,PREVIOUS_STATS_HEIGHT)
+	scroll.custom_minimum_size.y = previous_height+maxf(0,reclaimed)
 
 func _current_turret() -> Dictionary:
 	return hud.app.run_domain.service.turret(hud.app.run_domain.state,hud.app.run_domain.selected_id(hud.app.selected))

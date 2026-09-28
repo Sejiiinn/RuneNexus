@@ -402,8 +402,8 @@ func _fit_dock_to_content() -> void:
 	# Scroll only when content reaches its limit; an unselected picker has no panel.
 	var limit := 198.0 if main_tab == "upgrades" else clampf(get_viewport_rect().size.y*0.28,150,280)
 	var content_height := body.get_combined_minimum_size().y
-	# The selected turret's two-column stat list and cumulative damage need
-	# room below the action strip. Keep the dock bounded on short screens.
+	# The selected turret's enlarged two-column list reuses its previous summary
+	# space below the action strip. Keep the dock bounded on short screens.
 	if turret_stats:
 		limit = maxf(limit,minf(content_height,get_viewport_rect().size.y*0.52))
 	# Socket tags, the reserved detail row and inventory remain visible together.

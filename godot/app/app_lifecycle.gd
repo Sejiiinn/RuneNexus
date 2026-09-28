@@ -163,7 +163,8 @@ func resume_run() -> bool:
 	if startup_blocked or not scene._native_combat.active or run_domain.state.is_empty(): return false
 	if save_failed and not persist_progression(): return false
 	in_lobby = false
-	command([], {"paused":false})
+	# Returning to a saved battle only opens it; the HUD resumes simulation.
+	command([], {"paused":true})
 	_refresh_ui()
 	return true
 

@@ -115,6 +115,11 @@ func run() -> void:
 		for label in panel.find_children("*","Label",true,false):
 			assert(label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x <= label.size.x+0.1)
 		assert(hud.scroll.size.y >= hud.body.get_combined_minimum_size().y)
+		var category: HBoxContainer = hud.body.get_node("TurretCategoryAndDamage")
+		assert(category.get_child(category.get_child_count()-1) == hud.damage_label.get_parent())
+		assert(category.get_global_rect().encloses(hud.damage_label.get_global_rect()) and hud.damage_label.get_line_count() == 1)
+		assert(hud.body.find_child("TurretDamageSummary",true,false) == null)
+		assert(not (hud.body.find_child("TurretTargetPriority",true,false) as Button).visible,"Target action remains research gated")
 	app.scene._native_combat.turrets = {str(app.run_domain.state.turrets[0].id): {"directDamageDealt":123.0,"splashDamageDealt":7.0}}
 	hud.refresh()
 	assert(hud.damage_label.text.ends_with("130.0"))
@@ -129,7 +134,7 @@ func run() -> void:
 	assert(hud.turret_panel._stat_value({"projectileCount":3},"projectileCount") == "3발")
 	assert(hud.turret_panel._stat_value({"aimDuration":0.75},"aimDuration") == "0.75초")
 	var stat_scroll = hud.body.find_child("TurretStatsScroll",true,false)
-	assert(stat_scroll != null and is_equal_approx(stat_scroll.custom_minimum_size.y,80))
+	assert(stat_scroll != null and is_equal_approx(stat_scroll.custom_minimum_size.y,128))
 	assert(stat_scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_SHOW_NEVER)
 	(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].level == 2)
@@ -169,13 +174,32 @@ func run() -> void:
 	hud.close_modal()
 	assert(not app.scene._native_combat.session.paused)
 	app.run_domain.state.progression["researchLevels"] = {"turretTargetPriority":1}
+	hud.refresh()
+	for width in [320,440]:
+		root.content_scale_size.x = width; root.size.x = width; hud.refresh()
+		for frame in range(8): await process_frame
+		var priority: Button = hud.body.find_child("TurretTargetPriority",true,false)
+		var gems: Button = hud.body.find_child("TurretGemsTab",true,false)
+		assert(priority.visible and priority.text.is_empty() and priority.icon.resource_path.ends_with("growth_combat_swords.png"))
+		assert(priority.tooltip_text == "공격 목표: 선두")
+		assert(priority.get_parent() == gems.get_parent() and priority.get_global_rect().position.x >= gems.get_global_rect().end.x)
+		assert(priority.size == Vector2(32,32) and priority.get_global_rect().end.x <= width)
+		assert(absf(priority.get_global_rect().get_center().y-gems.get_global_rect().get_center().y) <= 1.0,"Tab-row controls share a center after pixel rounding")
+		var expanded_stats: ScrollContainer = hud.body.find_child("TurretStatsScroll",true,false)
+		assert(is_equal_approx(expanded_stats.size.y,117 if width == 320 else 124),"Reclaim summary space after compensating for the target touch area")
+		assert(is_equal_approx(hud.dock.size.y,335 if width == 320 else 361),"Preserve the previous selected-turret dock height")
 	hud.turret_panel._priority()
 	for button in buttons(hud.modal_body):
 		if button.text.begins_with("최대 체력"):
 			button.pressed.emit(); break
 	assert(app.run_domain.state.turrets[0].targetPriority == "strongest")
+	assert((hud.body.find_child("TurretTargetPriority",true,false) as Button).tooltip_text == "공격 목표: 최대 체력")
+	hud.turret_panel._priority()
+	assert(find_button(hud.modal_body,"최대 체력").get_child(0).get_child(0).modulate == Color("ffe19a"),"Current priority remains marked in the option list")
+	hud.close_modal()
 	assert(not app.scene._native_combat.session.paused)
 	hud.turret_panel._show_gems()
+	assert((hud.body.find_child("TurretTargetPriority",true,false) as Button).visible,"Target action remains available beside the gem tab")
 	var sockets := buttons(hud.body).filter(func(button): return str(button.name).begins_with("EquippedSlot"))
 	var link_cost := int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).link)
 	assert(sockets.size() == int(hud.configuration_cache.derived(app.run_domain.state,app.run_domain.service).get("maxTurretLinkSlots",3)))
@@ -249,7 +273,7 @@ func run() -> void:
 		assert(hud.top.size.x <= hud.size.x-15,"Resource HUD must stay within its screen margins")
 		assert(hud.enemy_caption.get_line_count() == 1 and hud.reward_caption.get_line_count() == 1)
 		app.selected = Vector2i(index % int(map.columns),index / int(map.columns)); hud.tab = "stats"; hud.body_key = ""; hud.refresh(); await process_frame; await process_frame
-		assert(hud.body.get_child(0).size.y <= 94)
+		assert(hud.body.get_child(0).size.y <= 96,"Keep the action panel compact with the 32px target touch area")
 		app.selected = Vector2i(-1,-1)
 	# Late-wave enemy counts and larger wallets must not wrap the +N marker.
 	root.content_scale_size = Vector2i(320,844); root.size = Vector2i(320,844)
