@@ -1,0 +1,8 @@
+Godot: /Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot
+PASS verify_content_run_save.gd
+PASS verify_run_save_adapter.gd
+PASS verify_save_codec.gd
+PASS verify_run_commands.gd
+PASS verify_native_wave_core.gd
+PASS current verify_content_catalog invalid stage/wave/type/layout/config/enemy values subset
+Supplemental old Dart enemy fixture reports same 128 failures / 52373 checks before/after; see supplemental-catalog-check.log (unchanged existing fixture mismatch).

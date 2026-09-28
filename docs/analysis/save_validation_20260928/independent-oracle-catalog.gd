@@ -140,23 +140,13 @@ func world_path(stage_index: int, inputs: Dictionary = {}) -> Array:
 		result.append({"x": layout.origin[0] + (float(point[0]) + 0.5) * layout.tileSize, "y": layout.origin[1] + (float(point[1]) + 0.5) * layout.tileSize})
 	return result
 
-# Validation-only entry points share every rejection with materialization. They
-# deliberately avoid world paths, enemy dictionaries and randomized spawn rows.
-func _bootstrap_layout(stage_index: int, inputs: Dictionary) -> Dictionary:
+func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
 	if not _valid_stage(stage_index): return {}
 	for key in ["defenseConfig", "coreConfig"]:
 		if inputs.has(key) and not inputs[key] is Dictionary:
 			error = "Configuration must be a dictionary: " + key
 			return {}
-	var layout := _layout(inputs)
-	if layout.is_empty() or data.stages[stage_index].map.path.is_empty(): return {}
-	return layout
-
-func validate_bootstrap(stage_index: int, inputs: Dictionary = {}) -> bool:
-	return not _bootstrap_layout(stage_index,inputs).is_empty()
-
-func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
-	var result := _bootstrap_layout(stage_index,inputs)
+	var result := _layout(inputs)
 	if result.is_empty(): return {}
 	result.path = world_path(stage_index, inputs)
 	if result.path.is_empty(): return {}
@@ -165,28 +155,13 @@ func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
 	if inputs.has("coreConfig"): result.coreConfig = inputs.coreConfig.duplicate(true)
 	return result
 
-func _enemy_layout(stage_index: int, round_index: int, type: String, inputs: Dictionary) -> Dictionary:
+func enemy(stage_index: int, round_index: int, type: String, id: int = 100000, inputs: Dictionary = {}) -> Dictionary:
 	if not _valid_wave(stage_index, round_index): return {}
 	if not data.enemies.has(type):
 		error = "Unknown enemy type"
 		return {}
 	if not _valid_enemy_values(inputs.get("enemyValues", {})): return {}
 	var layout := _layout(inputs)
-	if layout.is_empty() or data.stages[stage_index].map.path.is_empty(): return {}
-	return layout
-
-func validate_enemy(stage_index: int, round_index: int, type: String, inputs: Dictionary = {}) -> bool:
-	return not _enemy_layout(stage_index,round_index,type,inputs).is_empty()
-
-func validate_randomized_enemy(stage_index: int, round_index: int, type: String, inputs: Dictionary = {}) -> bool:
-	# Pending overrides replace caller enemyValues. RNG produces finite phase and
-	# integer rewards; its lane offset is finite exactly when the amplitude is.
-	var pending := inputs.duplicate()
-	pending.enemyValues = {"laneOffsetRatio":float(data.randomization.laneOffsetAmplitudes.get(type,0.0)),"visualPhase":0.0,"diamondReward":0}
-	return validate_enemy(stage_index,round_index,type,pending)
-
-func enemy(stage_index: int, round_index: int, type: String, id: int = 100000, inputs: Dictionary = {}) -> Dictionary:
-	var layout := _enemy_layout(stage_index,round_index,type,inputs)
 	if layout.is_empty(): return {}
 	var result: Dictionary = data.enemies[type].duplicate(true)
 	var durability: Dictionary = data.stages[stage_index].waves[round_index].enemyDurability[type]

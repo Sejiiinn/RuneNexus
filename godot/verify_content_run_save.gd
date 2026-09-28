@@ -5,13 +5,30 @@ const Commands = preload("res://app/run_commands.gd")
 const Adapter = preload("res://app/content_run_save.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Codec = preload("res://app/save_codec.gd")
+class CountingCatalog extends Catalog:
+	var materialization_calls := {"bootstrap":0,"enemy":0,"random":0,"turret":0}
+	func reset_calls() -> void:
+		for key in materialization_calls: materialization_calls[key] = 0
+	func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
+		materialization_calls.bootstrap += 1
+		return super.bootstrap(stage_index,inputs)
+	func enemy(stage_index: int, round_index: int, type: String, id: int = 100000, inputs: Dictionary = {}) -> Dictionary:
+		materialization_calls.enemy += 1
+		return super.enemy(stage_index,round_index,type,id,inputs)
+	func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator) -> Array:
+		materialization_calls.random += 1
+		return super.random_spawn_values(stage_index,round_index,rng)
+	func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+		materialization_calls.turret += 1
+		return super.turret(type,inputs)
+
 var failures := 0
 func check(ok: bool, label: String) -> void:
 	if not ok:
 		failures += 1
 		push_error(label)
 func _initialize() -> void:
-	var catalog = Catalog.new()
+	var catalog = CountingCatalog.new()
 	var growth = Growth.new()
 	check(catalog.load_catalog() and growth.load_catalog(),"catalogs")
 	var service = Commands.new(catalog,growth)
@@ -49,13 +66,16 @@ func _initialize() -> void:
 	state.rewardOptions = ["attackSpeed","range"]
 	check(adapter.capture(state,runtime.snapshot(),1).is_empty(),"unacknowledged events rejected")
 	runtime.process_command({"epoch":1,"sequence":1,"ackEvent":runtime.event_id})
+	catalog.reset_calls()
 	var saved: Dictionary = adapter.capture(state,runtime.snapshot(),123,{"selectedStageNumber":1,"autoStartMode":"fullAuto"})
 	check(not saved.is_empty(),"capture: " + adapter.error)
+	check(catalog.materialization_calls == {"bootstrap":0,"enemy":0,"random":0,"turret":0},"capture validates without restore payload materialization")
 	if saved.is_empty(): quit(1); return
 	check(Codec.is_normalized_v2(saved),"normalized v2")
 	check(saved.activeRun.enemies[0].distanceTravelled == 36.0,"wire distance uses 48px units")
 	var prepared: Dictionary = adapter.prepare(saved)
 	check(not prepared.is_empty(),"prepare: " + adapter.error)
+	check(catalog.materialization_calls.bootstrap == 1 and catalog.materialization_calls.turret == 1 and catalog.materialization_calls.random == 1 and catalog.materialization_calls.enemy > 0,"prepare alone materializes restore payload")
 	if prepared.is_empty(): quit(1); return
 	check(prepared.session.paused and prepared.state.phase == "reward" and prepared.state.rewardReturnPhase == "wave","paused purchased reward resumes")
 	check(prepared.nextRound == 1 and prepared.state.pendingEconomyDiamonds == 7 and prepared.state.economyRunId == "actual-local-run","round and pending economy")

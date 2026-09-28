@@ -1,0 +1,4 @@
+PASS current verify_content_catalog invalid stage/wave/type/layout/config/values rejection cases
+Existing Dart fixture comparison baseline: ['FAIL content catalog: 128 failures / 52373']
+Current Dart fixture comparison: ['FAIL content catalog: 128 failures / 52373']
+Same baseline/current error list: True

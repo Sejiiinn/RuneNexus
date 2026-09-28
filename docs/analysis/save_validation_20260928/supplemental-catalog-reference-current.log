@@ -1,0 +1,209 @@
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+  File "scripts/run_godot_native_regressions.py", line 131, in run_script
+    raise RuntimeError(f"{name} failed (exit {process.returncode}):\n{output}")
+RuntimeError: verify_content_catalog.gd failed (exit 1):
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FAIL content catalog: 128 failures / 52373
+
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)
+ERROR: Dart mapped enemy keys
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://verify_content_catalog.gd:19)

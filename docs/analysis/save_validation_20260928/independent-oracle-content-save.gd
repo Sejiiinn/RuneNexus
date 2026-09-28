@@ -44,15 +44,10 @@ func capture(state: Dictionary, snapshot: Dictionary, saved_at: int, preferences
 	projected.activeRun.phase = "failure" if state.phase == "coreDestruction" else state.phase
 	if not run.has("runCoreCombatSkill"):
 		projected.activeRun.runCoreCombatSkill = snapshot.get("core", {}).get("skill", progression.get("coreCombatSkill", "guardianBeam"))
-	if _validate_checkpoint(projected, {"tileSize":float(state.get("tileSize",1.0))}).is_empty(): return {}
+	if prepare(projected, {"tileSize":float(state.get("tileSize",1.0))}).is_empty(): return {}
 	return projected
 
 func prepare(envelope: Dictionary, battle_inputs: Dictionary = {}, spawn_rng: RandomNumberGenerator = null) -> Dictionary:
-	var validated := _validate_checkpoint(envelope,battle_inputs)
-	if validated.is_empty(): return {}
-	return _materialize_checkpoint(validated,spawn_rng)
-
-func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) -> Dictionary:
 	error = ""
 	var decoded: Variant = Codec.decode(envelope)
 	if decoded == null or not decoded.activeRun is Dictionary: return _reject("No active run")
@@ -127,31 +122,6 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 	inputs.coreConfig = growth.core_config(core_state,stage,mini(round_index,source.waves.size()-1),catalog)
 	# A saved run skill is frozen independently of the current account selection.
 	inputs.coreConfig.runSkill = run.runCoreCombatSkill
-	if not catalog.validate_bootstrap(stage,inputs): return _reject(catalog.error)
-	for saved in run.enemies:
-		if not catalog.validate_enemy(stage,round_index,saved.type,inputs): return _reject(catalog.error)
-	if live or not run.spawnQueue.is_empty():
-		var schedule: Array = source.waves[round_index].spawnQueue
-		var offset: int = schedule.size() - run.spawnQueue.size()
-		if offset < 0: return _reject("Spawn queue exceeds wave schedule")
-		for index in range(run.spawnQueue.size()):
-			if run.spawnQueue[index].enemyType != schedule[offset+index].enemyType: return _reject("Spawn queue does not match remaining wave schedule")
-		for saved in run.spawnQueue:
-			if saved.delay < 0 or not is_finite(saved.delay): return _reject("Invalid spawn delay")
-			if not catalog.validate_randomized_enemy(stage,round_index,saved.enemyType,inputs): return _reject(catalog.error)
-	return {"decoded":decoded,"run":run,"state":state,"source":source,"stage":stage,"roundIndex":round_index,"phase":phase,"live":live,"inputs":inputs,"service":service}
-
-func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGenerator) -> Dictionary:
-	var decoded: Dictionary = validated.decoded
-	var run: Dictionary = validated.run
-	var state: Dictionary = validated.state
-	var source: Dictionary = validated.source
-	var stage: int = validated.stage
-	var round_index: int = validated.roundIndex
-	var phase: String = validated.phase
-	var live: bool = validated.live
-	var inputs: Dictionary = validated.inputs
-	var service = validated.service
 	var bootstrap: Dictionary = catalog.bootstrap(stage,inputs)
 	if bootstrap.is_empty(): return _reject(catalog.error)
 	bootstrap.defense.state = {"hp":run.nexusHp,"roundHpLost":run.roundNexusHpLost,"emergencyChargeUsedThisRound":run.emergencyChargeUsedThisRound,"finalDefenseUsedThisRound":run.finalDefenseUsedThisRound}
@@ -173,12 +143,16 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 		var queue := []
 		var schedule: Array = source.waves[round_index].spawnQueue
 		var offset: int = schedule.size() - run.spawnQueue.size()
+		if offset < 0: return _reject("Spawn queue exceeds wave schedule")
+		for index in range(run.spawnQueue.size()):
+			if run.spawnQueue[index].enemyType != schedule[offset+index].enemyType: return _reject("Spawn queue does not match remaining wave schedule")
 		# v2 stores only pending types/delays. Re-roll their spawn randomness using
 		# the same real-content rules; existing live enemies keep saved values.
 		var rng := spawn_rng if spawn_rng != null else RandomNumberGenerator.new()
 		var spawn_values: Array = catalog.random_spawn_values(stage,round_index,rng)
 		var pending_index := 0
 		for saved in run.spawnQueue:
+			if saved.delay < 0 or not is_finite(saved.delay): return _reject("Invalid spawn delay")
 			var spawn_inputs := inputs.duplicate(true)
 			spawn_inputs.enemyValues = spawn_values[offset+pending_index]
 			var enemy: Dictionary = catalog.enemy(stage,round_index,saved.enemyType,next_enemy_id,spawn_inputs)
