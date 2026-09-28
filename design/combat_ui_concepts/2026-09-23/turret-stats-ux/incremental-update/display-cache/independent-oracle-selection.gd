@@ -6,7 +6,6 @@ const COLORS := {"arrow":0xffe7c66a,"cannon":0xffff7b2f,"magic":0xffff5e3a,"fros
 var level_preview := false
 var _revision := 0
 var _last_state: Dictionary = {}
-var configuration_cache = preload("res://ui/hud_configuration_cache.gd").new()
 
 func apply(app) -> void:
 	_build_state(app)
@@ -35,13 +34,9 @@ func _build_state(app) -> void:
 	frame.presentation.selection = selection
 	var state: Dictionary = app.run_domain.state
 	if state.is_empty(): return
-	var shared_cache = hud.get("configuration_cache") if hud != null else null
-	if shared_cache != null: configuration_cache = shared_cache
-	configuration_cache.bind(app.run_domain,app.catalog,app.run_domain.service)
-	configuration_cache.sync(state,app.run_domain.growth.data)
 	var chosen: Vector2i = app.selected
 	var selected_id: int = app.run_domain.selected_id(chosen)
-	var derived: Dictionary = configuration_cache.derived(state,app.run_domain.service)
+	var derived: Dictionary = app.run_domain.service.derived(state)
 	for turret in state.get("turrets",[]):
 		var stats := _stats(app,derived,turret)
 		var selected: bool = int(turret.id) == selected_id
@@ -82,8 +77,11 @@ func _build_state(app) -> void:
 		frame.buildPreview = [-1,chosen.x+0.5,chosen.y+0.5,0,tile.range,0,type]
 
 func _stats(app, derived: Dictionary, turret: Dictionary) -> Dictionary:
-	# Selection uses world tiles; HUD stats use 48-pixel tiles in a separate entry.
-	return configuration_cache.stats(app.catalog,turret,configuration_cache.stat_input(derived,turret),1.0)
+	var input: Dictionary = derived.get("turretStatInputs",{}).get(turret.type,{}).duplicate(true)
+	input.merge({"level":turret.level,"primaryTrait":turret.get("primaryTrait"),"secondaryTrait":turret.get("secondaryTrait"),"gems":turret.get("equippedGemSlots",[]).filter(func(g): return g != null)},true)
+	# One native world unit per tile, matching the standalone bootstrap. The
+	# catalog applies boardDistanceScale; the renderer accepts tile coordinates.
+	return app.catalog.turret_stats(turret.type,{"tileSize":1.0,"statInput":input})
 
 func _range(app, type: String, stats: Dictionary) -> float:
 	var definition: Dictionary = app.catalog.data.turrets[type].configuration.statInput.definition

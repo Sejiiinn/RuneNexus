@@ -2,7 +2,7 @@ extends RefCounted
 ## Generated Dart definitions are read once; runtime needs no Dart process.
 ## Growth/equipment are already resolved numeric inputs, never purchased here.
 const TypedJson = preload("res://app/save_json.gd")
-const Stats = preload("res://combat/turret_stat_calculation.gd")
+const Stats = preload("res://independent-oracle-stats.gd")
 var data: Dictionary = {}
 var error: String = ""
 
@@ -234,7 +234,7 @@ func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 
 func turret_stats(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 	var input := turret(type, inputs)
-	return {} if input.is_empty() else Stats.shared_stats_at(input, int(input.level))
+	return {} if input.is_empty() else Stats.stats_at(input, int(input.level))
 
 func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator) -> Array:
 	if not _valid_wave(stage_index, round_index): return []

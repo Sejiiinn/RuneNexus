@@ -384,6 +384,7 @@ func run() -> void:
 	assert(is_equal_approx(hud.total_dps,exact_total))
 	assert(hud.resources.text == "전투력 "+HudNumber.compact(exact_total))
 	assert(hud.resources.tooltip_text == "전투력 %.1f" % exact_total)
+	assert(not hud._stats(app.run_domain.state,app.run_domain.state.turrets[0]).has("dps"),"HUD decorations must not mutate cached raw stats")
 	app.run_domain.state.gold = 10000000; hud.refresh()
 	assert(hud.gold_label.text == "10M" and hud.gold_label.tooltip_text == "10000000")
 	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage") == "1.23M")

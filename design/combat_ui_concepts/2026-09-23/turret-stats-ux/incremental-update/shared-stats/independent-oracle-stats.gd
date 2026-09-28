@@ -1,61 +1,5 @@
 extends RefCounted
-## Pure stat calculation. App progression, timers and RNG are inputs.
-# Shared content-addressed neutral results: combat, HUD and selection only differ
-# in distances and transient core/cleanup multipliers. No session/save state lives
-# here, and full input equality guards hash collisions and catalog replacement.
-const SHARED_CACHE_LIMIT := 256
-static var shared_calculation_count := 0
-static var _shared_buckets: Dictionary = {}
-static var _shared_order: Array = []
-
-static func clear_shared_cache() -> void:
-	_shared_buckets.clear()
-	_shared_order.clear()
-
-static func shared_stats_at(i: Dictionary, level: int) -> Dictionary:
-	var neutral := i.duplicate()
-	neutral.level = clampi(level,1,10)
-	neutral.boardDistanceScale = 1.0
-	neutral.corePassiveTurretDamageMultiplier = 1.0
-	neutral.corePassiveTurretAttackRateMultiplier = 1.0
-	neutral.chainCleanupActive = false
-	# This distance belongs to firing_stats, not stats_at, and is already scaled
-	# by the catalog. It cannot split otherwise identical neutral stat inputs.
-	neutral.erase("lightningChainJumpRange")
-	var key := hash(neutral)
-	var bucket: Array = _shared_buckets.get(key,[])
-	var found: Dictionary = {}
-	for entry in bucket:
-		if entry.input == neutral:
-			found = entry
-			break
-	if found.is_empty():
-		var parts := {}
-		var result := stats_at(neutral,int(neutral.level),parts)
-		shared_calculation_count += 1
-		found = {"key":key,"input":neutral.duplicate(true),"stats":result,"parts":parts}
-		if _shared_order.size() >= SHARED_CACHE_LIMIT:
-			var oldest: Dictionary = _shared_order.pop_front()
-			var old_bucket: Array = _shared_buckets[oldest.key]
-			old_bucket.erase(oldest)
-			if old_bucket.is_empty(): _shared_buckets.erase(oldest.key)
-		# The evicted item might belong to this hash bucket.
-		bucket = _shared_buckets.get(key,[])
-		bucket.append(found)
-		_shared_buckets[key] = bucket
-		_shared_order.append(found)
-	# Result fields are scalar; return an owned copy so runtime/UI decoration can
-	# never alter cached neutral values or another consumer's transient buffs.
-	var out: Dictionary = found.stats.duplicate()
-	var m: Dictionary = i.moduleEffect
-	out.damage = float(found.parts.damagePrefix) * ((1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in i.gems else 1.0))
-	if i.chainCleanupActive: out.attackRate *= 1.4
-	out.attackRate *= i.corePassiveTurretAttackRateMultiplier
-	for field in ["range","projectileSpeed","splashRadius"]:
-		out[field] *= i.boardDistanceScale
-	# Preserve the original range-then-effect-area multiplication order.
-	out.centeredAreaRadius = out.range * out.effectAreaMultiplier
-	return out
+## Comparison-only pure port. App progression, timers and RNG are inputs.
 
 static func resolve(i: Dictionary) -> Dictionary:
 	var out := stats_at(i, int(i.level))
@@ -68,9 +12,7 @@ static func resolve(i: Dictionary) -> Dictionary:
 	out.snapshot = firing_stats(i, out, 1.65)
 	return out
 
-# Optional intermediate capture preserves the exact final multiplication order
-# when shared_stats_at applies transient buffs. The public result is unchanged.
-static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) -> Dictionary:
+static func stats_at(i: Dictionary, level: int) -> Dictionary:
 	var d: Dictionary = i.definition
 	var m: Dictionary = i.moduleEffect
 	var gems: Array = i.gems
@@ -91,7 +33,6 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		damage *= 0.9
 	if "damageAmplifier" in gems:
 		damage *= 1.0 + 0.25 * gem
-	intermediates.damagePrefix = damage
 	damage *= (1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in gems else 1.0)
 	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate) * i.boardDistanceScale
 	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.0 + m.attackRateIncreaseRate)

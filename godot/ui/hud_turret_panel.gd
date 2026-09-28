@@ -64,9 +64,10 @@ func _update_turret(state: Dictionary,turret: Dictionary) -> void:
 	var priority: Button = hud.body.find_child("TurretTargetPriority",true,false)
 	priority.visible = hud.configuration_cache.derived(state,hud.app.run_domain.service).get("canSetTurretTargetPriority",false)
 	priority.text = "공격 목표 · "+hud.PRIORITIES.get(turret.get("targetPriority","first"),"선두")+"  ▾"
-	var stats = hud._stats(state,turret)
+	# Display-only fields belong to this presenter, not the shared raw stat cache.
+	var stats = hud._stats(state,turret).duplicate()
 	var next = {}; var future = turret.duplicate(true); future.level += 1
-	if hud.app.selection_view.level_preview: next = hud._stats(state,future)
+	if hud.app.selection_view.level_preview: next = hud._stats(state,future).duplicate()
 	stats.dps = hud._dps(stats,turret.type)
 	if not next.is_empty(): next.dps = hud._dps(next,turret.type)
 	var specs = [["피해","damage"],["초당 피해","dps"],["공격 속도","attackRate"],["사거리","range"],["치명 확률","criticalChance"],["치명 피해","criticalDamageMultiplier"]]

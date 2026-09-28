@@ -10,6 +10,7 @@
 - `inputs.tileSize` 기본 `1.0`, `inputs.origin` 기본 `[0.0,0.0]`. 원본 48px 기준을 `tileSize/48`로 변환한다. 경로는 타일 중심 좌표로 조립한다. 이동 speed는 원본 px/s로 유지하고 runtime의 boardDistanceScale에서 변환한다. 반경·presentationSize·포탑 range/projectileSpeed·lightningChainJumpRange의 실제 단위를 구분한다.
 - `inputs.initialDelay`는 초 단위이며 기본은 포탈 알림 + 추가 대기 시간이다. 앱 세션은 현재 배속을 곱해서 전달한다. `inputs.spawnValues`는 queue와 같은 길이의 `{laneOffsetRatio,visualPhase,diamondReward}` 배열이다. 생략하면 명시적인 영점 입력이다. `random_spawn_values()`는 콘텐츠에 기록된 확률/종류별 진폭으로 이 배열을 만든다. 과거 Dart RNG와 동일 seed 결과를 보장하지 않으며 명시 값으로 비교한다.
 - `turret(type, inputs)`는 native `statInput`을 반환한다. `inputs.statInput`에는 `level`, `gems`, `primaryTrait`, `secondaryTrait`, `moduleEffect`, 일반 성장/코어 보정 배율 등의 **이미 결정된 값**을 전달한다. definition과 boardDistanceScale의 덮어쓰기는 거절한다. moduleEffect는 기존 전체 필드 dictionary 계약이다. 성장 구매·장착 가능 여부·재화·보상 처리는 여기서 수행하지 않는다.
+- `turret_stats()`와 전투 런타임은 `Stats.shared_stats_at()`의 동일한 기본 스탯 결과를 재사용한다. 정의·젬·모듈·성장·레벨 등 전체 입력을 대조하며 미리보기 레벨은 별도 입력이다. 거리 단위 및 일시 코어·연쇄 정리 배율만 기존 연산 순서로 적용한다. 반환값은 호출자 소유이며 공유 캐시는 최대 256개다. 원 `Stats.stats_at()`는 캐시 없는 수치 비교 경로로 유지한다. [공유 계산 검증](../../design/combat_ui_concepts/2026-09-23/turret-stats-ux/incremental-update/shared-stats/README.md).
 - `bootstrap(stage_index, inputs)`는 원본 기본 defense 설정을 사용하며 `inputs.defenseConfig`로 이미 결정된 성장 값을 받는다. 로더는 `inputs.coreConfig`가 없으면 공격 코어를 생성하지 않는다. `inputs.coreConfig`를 전달할 수 있지만 선택/성장 해석과 매 라운드 normalMaxHp 갱신 책임은 호출자에게 있다. 현재 독립 세션은 Godot 성장 도메인의 `core_config()` 결과를 bootstrap과 매 라운드에 전달한다. 최종 본게임 코어 선택 UI는 후속 범위다.
 
 ## 검증과 범위

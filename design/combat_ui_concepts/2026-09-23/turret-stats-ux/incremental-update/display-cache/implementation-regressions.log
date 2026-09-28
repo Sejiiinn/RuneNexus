@@ -1,0 +1,7 @@
+Godot: /Users/sejin/Documents/Codex/RuneNexus/build/godot-preview/tools/Godot.app/Contents/MacOS/Godot
+PASS verify_app_selection.gd
+PASS verify_battle_hud.gd
+PASS verify_overlay_cache_integration.gd
+Overlay scope: HUD configuration/polling and immutable frame only; unrelated native-pan scene check excluded.
+App selection actual stat calls: initial 2; unchanged +0; level preview +1; repeated preview +0. Hot-edited growth explicit invalidation equals uncached stats.
+HUD: original exact total DPS regression and cached raw stats ownership assertion PASS.

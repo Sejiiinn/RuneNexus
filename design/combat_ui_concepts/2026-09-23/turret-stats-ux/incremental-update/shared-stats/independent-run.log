@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+MATRIX comparisons=3384 bounded=256
+CASE initial calls=0 total=83.13
+CASE unchanged calls=0 total=83.13
+CASE level target only calls=1 total=87.2614
+CASE preview distinct calls=1 total=87.2614
+CASE preview unchanged calls=0 total=87.2614
+CASE preview off reuse calls=0 total=87.2614
+CASE preview promoted current calls=0 total=92.466964
+CASE core sync on calls=0 total=92.466964
+CASE chain cleanup core calls=0 total=92.466964
+CASE core sync expired calls=0 total=92.466964
+CASE wallet only calls=0 total=92.466964
+CASE global upgrade calls=6 total=95.24097292
+CASE core growth calls=0 total=95.24097292
+CASE gem diversity calls=1 total=95.24097292
+CASE type diversity calls=1 total=114.42987292
+CASE delete calls=0 total=100.83387292
+CASE recreate same id calls=1 total=128.030985016
+CASE session replaced calls=0 total=128.030985016
+CASE catalog in-place calls=2 total=160.209787696
+CASE catalog replaced calls=0 total=160.209787696
+CASE physical training calls=3 total=162.792558096
+CASE growth object replaced calls=3 total=192.494417696
+CASE growth hotedit explicit invalidate calls=3 total=211.865195696
+INDEPENDENT_SHARED_STATS failures=[]

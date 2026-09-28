@@ -17,6 +17,7 @@ SCRIPTS = {
     "verify_economy_service.gd": "ECONOMY_SERVICE failures=0",
     "verify_update_service.gd": "UPDATE_SERVICE failures=0",
     "verify_legacy_combat_regressions.gd": "PASS legacy combat replacements:",
+    "verify_shared_turret_stats.gd": "SHARED_TURRET_STATS checks=",
     "verify_native_combat_runtime.gd": "PASS native combat runtime:",
     "verify_native_session.gd": "PASS native session:",
     "verify_native_wave_core.gd": "PASS native wave/core:",

@@ -259,6 +259,7 @@ func refresh(polled := false) -> void:
 		scroll.visible = details
 		detail_panel.visible = details
 		_queue_dock_layout()
+	configuration_cache.bind(app.run_domain,app.catalog,app.run_domain.service)
 	var dk: int
 	if polled:
 		dk = configuration_cache.sync_polled(state,app.run_domain.growth.data,app.run_domain.get_instance_id(),app.run_domain.state_revision)
@@ -414,12 +415,10 @@ func _fit_dock_to_content() -> void:
 	dock.offset_bottom = -safe_insets().w
 
 func _stat_input(state: Dictionary, turret: Dictionary) -> Dictionary:
-	var input: Dictionary = configuration_cache.derived(state,app.run_domain.service).get("turretStatInputs",{}).get(turret.type,{}).duplicate(true)
-	input.merge({"level":turret.level,"primaryTrait":turret.get("primaryTrait"),"secondaryTrait":turret.get("secondaryTrait"),"gems":turret.get("equippedGemSlots",[]).filter(func(g): return g != null)},true)
-	return input
+	return configuration_cache.stat_input(configuration_cache.derived(state,app.run_domain.service),turret)
 
 func _stats(state: Dictionary,turret: Dictionary) -> Dictionary:
-	return app.catalog.turret_stats(turret.type,{"tileSize":48.0,"statInput":_stat_input(state,turret)})
+	return configuration_cache.stats(app.catalog,turret,_stat_input(state,turret),48.0)
 
 func _dps(stats: Dictionary,type: String) -> float:
 	return float(stats.damage)*float(stats.attackRate)+(float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) if type == "magic" else 0.0)

@@ -1,7 +1,7 @@
 extends RefCounted
 ## Persistent combat authority. Commands, simulation time and events are ACKed once.
 const Enemy = preload("res://combat/native_enemy_state.gd")
-const Stats = preload("res://combat/turret_stat_calculation.gd")
+const Stats = preload("res://independent-oracle-stats.gd")
 const Wave = preload("res://combat/native_wave_state.gd")
 const Defense = preload("res://combat/native_core_defense_state.gd")
 const CoreSkill = preload("res://combat/native_core_skill_state.gd")
@@ -232,7 +232,7 @@ func _refresh_turret_stats() -> void:
 		var old_rate: float = t.statInput.corePassiveTurretAttackRateMultiplier
 		_apply_sync(t)
 		if old_damage != float(t.statInput.corePassiveTurretDamageMultiplier) or old_rate != float(t.statInput.corePassiveTurretAttackRateMultiplier):
-			t.stats = Stats.shared_stats_at(t.statInput,int(t.statInput.level))
+			t.stats = Stats.stats_at(t.statInput,int(t.statInput.level))
 
 func _has_core_target() -> bool:
 	for e in enemies.values():
@@ -359,7 +359,7 @@ func _turret(raw: Dictionary) -> void:
 	for key in ["cooldown", "aimProgress", "aimTargetId", "aimAngle", "shotSequence", "directDamageDealt", "splashDamageDealt", "chainDamageDealt", "burnDamageDealt", "cleanup", "recent", "overheatTarget", "overheatStacks", "suppressiveTarget", "suppressiveHits", "lastBaseCooldown", "lightningElapsed", "fireFeedback"]:
 		t[key] = old.get(key, raw.get(key, state.get(key, {} if key == "recent" else 0)))
 	_apply_sync(t)
-	t.stats = Stats.shared_stats_at(t.statInput, int(t.statInput.level))
+	t.stats = Stats.stats_at(t.statInput, int(t.statInput.level))
 	turrets[id] = t
 
 func _command(c: Dictionary) -> void:
@@ -399,7 +399,7 @@ func _command(c: Dictionary) -> void:
 				var p := (_vec(t.position)-old_origin)*ratio+origin
 				t.position = [p.x,p.y]
 				t.statInput.boardDistanceScale = board_scale
-				t.stats = Stats.shared_stats_at(t.statInput,int(t.statInput.level))
+				t.stats = Stats.stats_at(t.statInput,int(t.statInput.level))
 			for index in range(wave.next_index,wave.queue.size()):
 				var prepared: Dictionary = wave.queue[index].get("enemy",{})
 				if prepared.is_empty(): continue

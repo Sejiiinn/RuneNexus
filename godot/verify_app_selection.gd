@@ -2,6 +2,11 @@ extends SceneTree
 const Fixture = preload("res://verify_battle_hud.gd")
 const Adapter = preload("res://ui/app_selection.gd")
 const Renderer = preload("res://ui/battlefield_selection.gd")
+class CountingCatalog extends "res://content/content_catalog.gd":
+	var stat_calls := 0
+	func turret_stats(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+		stat_calls += 1
+		return super.turret_stats(type,inputs)
 class RewardPreview extends RefCounted:
 	var pending_gem := "attackSpeed"
 	func targeting() -> bool: return true
@@ -9,6 +14,7 @@ class Hud extends Control:
 	var rewards = RewardPreview.new()
 func _initialize() -> void:
 	var app = Fixture.App.new()
+	app.catalog = CountingCatalog.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.initialize(app.catalog,{},0,100))
 	app.scene._native_combat_base_frame = {"presentation":{}}
@@ -23,13 +29,16 @@ func _initialize() -> void:
 		app.selected = point
 		app.build_selected()
 	app.selected = Vector2i(-1,-1)
+	app.catalog.stat_calls = 0
 	adapter.apply(app)
+	assert(app.catalog.stat_calls == 2,"Initial selection calculates each turret once")
 	var frame: Dictionary = app.scene._native_combat_base_frame
 	renderer.apply_frame(frame.presentation.selection)
 	assert(not renderer._show_all_ranges)
 	var first_revision: int = frame.presentation.selection.revision
 	adapter.apply(app)
 	assert(frame.presentation.selection.revision == first_revision)
+	assert(app.catalog.stat_calls == 2,"Unchanged selection reuses turret stats")
 	assert(frame.presentation.selection.state.preserveLegacyOrnaments)
 	assert(frame.presentation.selection.state.aimKey == "id")
 	assert(frame.presentation.selection.state.turrets.filter(func(t): return t.selected).is_empty())
@@ -41,7 +50,11 @@ func _initialize() -> void:
 	var runtime_stats: Dictionary = app.catalog.turret_stats("arrow",{"tileSize":1.0})
 	assert(is_equal_approx(selected.range,runtime_stats.range))
 	adapter.level_preview = true
+	app.catalog.stat_calls = 0
 	adapter.apply(app)
+	assert(app.catalog.stat_calls == 1,"Only next-level preview needs stats")
+	adapter.apply(app)
+	assert(app.catalog.stat_calls == 1,"Repeated preview preserves current and future stats")
 	assert(frame.presentation.selection.state.turrets[0].previewRange > selected.range)
 	app.selected = positions[2]
 	adapter.apply(app)
@@ -98,6 +111,19 @@ func _initialize() -> void:
 	assert(frame.presentation.selection.state.visualScale == 1.0)
 	app.hud.free()
 	app.hud = null
+	# Content-tool hot edits explicitly invalidate; normal progression uses sync.
+	app.run_domain.state.progression.physicalDamageTrainingUpgradeLevel = 1
+	adapter.apply(app)
+	var turret: Dictionary = app.run_domain.state.turrets[0]
+	var configuration: Dictionary = adapter.configuration_cache.derived(app.run_domain.state,app.run_domain.service)
+	var previous: Dictionary = adapter._stats(app,configuration,turret)
+	app.run_domain.growth.data.constants.familyDamageTrainingBonusPerUpgradeLevel += 0.25
+	adapter.configuration_cache.invalidate()
+	adapter.apply(app)
+	configuration = app.run_domain.service.derived(app.run_domain.state)
+	var fresh: Dictionary = app.catalog.turret_stats(turret.type,{"tileSize":1.0,"statInput":adapter.configuration_cache.stat_input(configuration,turret)})
+	assert(adapter._stats(app,configuration,turret) == fresh)
+	assert(float(fresh.damage) > float(previous.damage),"Explicit invalidation refreshes hot-edited growth catalog")
 	print("PASS app selection: idle, selected-only, build-all+preview, upgrade range, built selection, cancel, portal/core/invalid tiles; catalog tile units")
 	renderer.free()
 	app.free()
