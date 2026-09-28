@@ -5,6 +5,7 @@ const AppTheme = preload("res://ui/app_theme.gd")
 const BattleTheme = preload("res://ui/battle_theme.gd")
 const Components = preload("res://ui/combat_component_theme.gd")
 const HudChrome = preload("res://ui/hud_chrome.gd")
+const HudNumber = preload("res://ui/hud_number.gd")
 const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}
 const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다."}
 const UPGRADES := {"towerDamage":"포탑 화력", "killGold":"처치 보너스", "waveGold":"정비 보급"}
@@ -50,6 +51,7 @@ var selected_slot := -1
 var selected_gem := ""
 var elapsed := 0.0
 var body_key: Variant = ""
+var body_value_key: Array = []
 var body_purchase_buttons: Array[Dictionary] = []
 var overlay_key := ""
 var main_buttons := {}
@@ -268,7 +270,11 @@ func refresh(polled := false) -> void:
 			var stats := _stats(state,turret)
 			var projectile := str(turret.type) in ["arrow","cannon"]
 			total_dps += _dps(stats,str(turret.type)) + float(stats.damage)*float(stats.attackRate)*(int(stats.projectileCount)-1 if projectile else 0)
-	gold_label.text = str(state.gold); shard_label.text = str(state.gemShards); resources.text = "전투력 %.1f" % total_dps
+	# Compact numeric presentation only; all balances, quotes and arithmetic stay exact.
+	gold_label.text = HudNumber.compact(float(state.gold),0); gold_label.tooltip_text = str(state.gold)
+	shard_label.text = HudNumber.compact(float(state.gemShards),0); shard_label.tooltip_text = str(state.gemShards)
+	resources.text = "전투력 "+HudNumber.compact(total_dps); resources.tooltip_text = "전투력 %.1f" % total_dps
+	for label in [gold_label,shard_label,resources]: label.get_parent().tooltip_text = label.tooltip_text
 	var waves: Array = _stage_source().waves
 	_refresh_intel(state,waves)
 	status.text = "♡ %d/%d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
@@ -313,8 +319,16 @@ func refresh(polled := false) -> void:
 				break
 	# Prices depend on turret/gem diversity and upgrades, but not wallet balances.
 	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview]
+	var incremental_turret: bool = main_tab == "turrets" and not chosen.is_empty() and (tab == "stats" or app.selection_view.level_preview)
+	if incremental_turret:
+		# Configuration/preview affect values, not the selected panel's identity.
+		key = [main_tab,chosen.id,chosen.type,"stats",phase]
+	elif main_tab == "upgrades":
+		key = [main_tab,viewport.x < 380,phase]
+	var value_key := [dk,app.selection_view.level_preview]
 	if not body_key is Array or key != body_key:
 		body_key = key.duplicate(true)
+		body_value_key = value_key.duplicate()
 		var previous_scroll := scroll.scroll_vertical
 		var old_picker := body.get_node_or_null("TurretPicker") as ScrollContainer
 		var picker_offset := old_picker.scroll_horizontal if old_picker != null else 0
@@ -329,6 +343,10 @@ func refresh(polled := false) -> void:
 		var picker := body.get_node_or_null("TurretPicker") as ScrollContainer
 		if picker != null: picker.set_deferred("scroll_horizontal",picker_offset)
 		_queue_dock_layout()
+	elif value_key != body_value_key:
+		body_value_key = value_key.duplicate()
+		if incremental_turret: turret_panel._update_turret(state,chosen)
+		elif main_tab == "upgrades": build_panel._update_upgrades(state)
 	_refresh_purchase_buttons(state)
 	if is_instance_valid(damage_label):
 		var damage := float(chosen.get("damageDealt",0))
@@ -336,7 +354,9 @@ func refresh(polled := false) -> void:
 		if live.has(str(chosen.get("id"))):
 			damage = 0
 			for field in ["directDamageDealt","splashDamageDealt","chainDamageDealt","burnDamageDealt"]: damage += float(live[str(chosen.id)].get(field,0))
-		damage_label.text = "%.1f" % damage
+		damage_label.text = HudNumber.compact(damage)
+		damage_label.tooltip_text = "누적 피해 %.1f" % damage
+		damage_label.get_parent().tooltip_text = damage_label.tooltip_text
 	menu_panel._refresh_core()
 	if rewards != null: rewards.refresh(state)
 	RuntimeProfile.finish("hud", hud_tick)
@@ -405,6 +425,10 @@ func _dps(stats: Dictionary,type: String) -> float:
 	return float(stats.damage)*float(stats.attackRate)+(float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) if type == "magic" else 0.0)
 
 func _track_purchase_button(button: Button,currency: String,cost: int,blocked: bool) -> void:
+	for entry in body_purchase_buttons:
+		if entry.button == button:
+			entry.currency = currency; entry.cost = cost; entry.blocked = blocked
+			return
 	body_purchase_buttons.append({"button":button,"currency":currency,"cost":cost,"blocked":blocked})
 
 func _refresh_purchase_buttons(state: Dictionary) -> void:

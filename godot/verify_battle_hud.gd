@@ -1,4 +1,5 @@
 extends SceneTree
+const HudNumber = preload("res://ui/hud_number.gd")
 ## UI smoke with the actual catalog/command owner, no editor or persistent save.
 class App extends Node:
 	var catalog = preload("res://content/content_catalog.gd").new()
@@ -45,6 +46,10 @@ class App extends Node:
 
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
+	for case in [[0,0,"0"],[0,1,"0.0"],[999,0,"999"],[999,1,"999.0"],[1000,1,"1K"],[1250,1,"1.25K"],[1000000,1,"1M"],[999990,1,"999.99K"],[999999,1,"1M"],[-1250,1,"-1.25K"],[-999999,1,"-1M"]]:
+		assert(HudNumber.compact(float(case[0]),int(case[1])) == case[2],"Compact boundary: "+str(case))
+	for case in [[999,"999"],[1000,"1K"],[1250,"1.25K"],[12500,"12.5K"],[123456789,"123M"],[999499,"999K"],[999500,"1M"],[1000000,"1M"],[-999500,"-1M"]]:
+		assert(HudNumber.compact_price(float(case[0])) == case[1],"Compact price boundary: "+str(case))
 	root.content_scale_size = Vector2i(440,880)
 	root.size = Vector2i(440,880)
 	var app := App.new()
@@ -115,7 +120,9 @@ func run() -> void:
 	assert(hud.damage_label.text.ends_with("130.0"))
 	assert(hud.status.autowrap_mode == TextServer.AUTOWRAP_OFF)
 	assert(hud.wave_label.autowrap_mode == TextServer.AUTOWRAP_OFF)
+	var turret_nodes := node_identities(hud.body)
 	(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
+	assert(node_identities(hud.body) == turret_nodes,"Preview must keep every existing node")
 	assert(app.run_domain.state.turrets[0].level == 1)
 	assert(app.selection_view.level_preview)
 	assert(hud.turret_panel._stat_value({"range":96.0},"range") == "2.00칸")
@@ -126,6 +133,8 @@ func run() -> void:
 	assert(stat_scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_SHOW_NEVER)
 	(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].level == 2)
+	assert(node_identities(hud.body) == turret_nodes,"Level confirmation must retain action, icons and stat rows")
+	assert_wallet_refresh(app,hud,level_button,"gold",int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level))
 	hud._selected_command("level")
 	(hud.body.find_child("TurretTraitAction",true,false) as Button).pressed.emit()
 	(hud.modal_body.find_child("TraitChoice_overheatMagazine",true,false) as Button).pressed.emit()
@@ -138,6 +147,7 @@ func run() -> void:
 	assert(hud.modal_active() and app.scene._native_combat.session.paused)
 	assert(hud.modal_panel.get_theme_stylebox("panel") is StyleBoxTexture)
 	var sale := find_button(hud.modal_body,"판매 · ")
+	assert(sale.text == "판매 · +%s 골드" % HudNumber.compact_price(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).sell))
 	assert(sale.get_theme_stylebox("normal") is StyleBoxTexture)
 	assert(sale.get_theme_stylebox("disabled").texture.resource_path.ends_with("native/disabled.png"))
 	assert(sale.get_theme_stylebox("normal").texture_margin_left == 11)
@@ -175,11 +185,23 @@ func run() -> void:
 	hud.refresh()
 	var upgrade_cost := int(app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost)
 	assert_wallet_refresh(app,hud,buttons(hud.body)[0],"gold",upgrade_cost)
+	var upgrade_nodes := node_identities(hud.body)
 	hud._command({"kind":"runUpgrade","type":"towerDamage"})
+	assert(node_identities(hud.body) == upgrade_nodes,"Run upgrade must retain all three rows, icons and buttons")
 	assert(app.run_domain.state.runUpgradeLevels.towerDamage == 1)
 	var updated_purchase: Button = buttons(hud.body)[0]
 	var updated_price: Label = updated_purchase.find_child("PurchasePrice",true,false)
-	assert(updated_price != null and updated_price.text == "%d G" % app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost)
+	assert(updated_price != null and updated_price.text == HudNumber.compact_price(app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost))
+	# Reuse the same purchase callback through rising costs and the maximum.
+	var saved_gold: int = app.run_domain.state.gold
+	app.run_domain.state.gold = 10000000
+	while int(app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost) > 0:
+		updated_purchase.pressed.emit()
+		assert(node_identities(hud.body) == upgrade_nodes)
+	assert(updated_purchase.disabled)
+	assert((updated_purchase.find_child("PurchaseAction",true,false) as Label).text == "최대")
+	assert(not updated_purchase.find_child("PurchasePriceRow",true,false).visible)
+	app.run_domain.state.gold = saved_gold
 	hud.main_tab = "gems"; hud.refresh()
 	assert_wallet_refresh(app,hud,find_button(hud.body,"젬 구매 · "),"gemShards",int(app.run_domain.growth.data.constants.gemChoicePurchaseCost))
 	hud._command({"kind":"purchaseGemChoice"})
@@ -316,12 +338,86 @@ func run() -> void:
 		"stats_callback":func(): pass,"gems_callback":func(): pass})
 	await process_frame; await process_frame; await process_frame
 	for label in dense_panel.find_children("*","Label",true,false):
-		assert(label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x <= label.size.x+0.1)
+		assert_label_fits(label)
 	var dense_price := dense_panel.find_child("TurretUpgradePrice",true,false) as Label
-	assert(dense_price.text == "123456", "Gold icon carries currency; preserve all six digits")
+	assert(dense_price.text.trim_suffix(" G") == "123K", "Use the same compact format for prices")
 	assert(dense_price.get_theme_font_size("font_size") >= 8, "Do not solve narrow prices with unreadable font shrink")
 	assert(dense_price.tooltip_text == "123456 G")
+	var dense_nodes := node_identities(dense_panel)
+	for width in [304,424]:
+		dense_panel.size.x = width
+		for price in ["602 G","1250 G","12500 G","123456 G","123456789 G"]:
+			dense_panel.update_values({"level":"9→10","upgrade_title":"강화 확정","price":price,"maximum":false,"trait_count":2})
+			for frame in range(8): await process_frame
+			assert(node_identities(dense_panel) == dense_nodes)
+			assert(dense_price.text.trim_suffix(" G") == HudNumber.compact_price(price.trim_suffix(" G").to_float()))
+			assert(dense_price.tooltip_text == price)
+			assert(dense_price.get_line_count() == 1,"Keep price and unit together")
+			assert(dense_price.get_theme_font_size("font_size") >= 8)
+			assert_label_fits(dense_price)
+			var safe_padding := 6 if dense_price.get_line_count() > 1 else 0
+			assert(dense_price.get_global_rect().end.y <= dense_panel.level_action.get_global_rect().end.y-safe_padding+0.1)
+			assert(dense_panel.size.x <= width+0.1)
 	dense_panel.queue_free()
+	# Keep the live action and values through every remaining turret level.
+	app.run_domain.state.phase = "preparation"; app.run_domain.state.gold = 10000000
+	app.selected = Vector2i(index % int(map.columns),index / int(map.columns))
+	hud.main_tab = "turrets"; hud.tab = "stats"; hud.refresh()
+	var max_level_button: Button = hud.body.find_child("TurretLevelAction",true,false)
+	var level_nodes := node_identities(hud.body)
+	while int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level) > 0:
+		max_level_button.pressed.emit()
+		assert(app.selection_view.level_preview)
+		max_level_button.pressed.emit()
+		assert(not app.selection_view.level_preview)
+		assert(node_identities(hud.body) == level_nodes)
+	assert(max_level_button.disabled)
+	# Display abbreviation must not feed the combat-power/core arithmetic.
+	var exact_total := 0.0
+	var derived: Dictionary = app.run_domain.service.derived(app.run_domain.state)
+	for turret in app.run_domain.state.turrets:
+		var input: Dictionary = derived.turretStatInputs[turret.type].duplicate(true)
+		input.merge({"level":turret.level,"primaryTrait":turret.primaryTrait,"secondaryTrait":turret.secondaryTrait,"gems":turret.equippedGemSlots.filter(func(g): return g != null)},true)
+		var stats: Dictionary = app.catalog.turret_stats(turret.type,{"tileSize":48.0,"statInput":input})
+		exact_total += float(stats.damage)*float(stats.attackRate)*float(stats.projectileCount if turret.type in ["arrow","cannon"] else 1)
+		if turret.type == "magic": exact_total += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
+	assert(is_equal_approx(hud.total_dps,exact_total))
+	assert(hud.resources.text == "전투력 "+HudNumber.compact(exact_total))
+	assert(hud.resources.tooltip_text == "전투력 %.1f" % exact_total)
+	app.run_domain.state.gold = 10000000; hud.refresh()
+	assert(hud.gold_label.text == "10M" and hud.gold_label.tooltip_text == "10000000")
+	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage") == "1.23M")
+	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage",true) == "1234567.9")
+	app.scene._native_combat.turrets[str(app.run_domain.state.turrets[0].id)].directDamageDealt = 1234560.0
+	hud.refresh()
+	assert(hud.damage_label.text == "1.23M" and hud.damage_label.tooltip_text == "누적 피해 1234567.0")
+	assert((hud.body.find_child("TurretUpgradePrice",true,false) as Label).text == "최대 레벨")
+	# 999999 and 1000000 both display 1M, but affordability/charges stay exact.
+	app.run_domain.growth.data.runUpgrades.towerDamage.baseCost = 1000000
+	app.run_domain.state.runUpgradeLevels.towerDamage = 0
+	app.run_domain.state.gold = 999999; hud.main_tab = "upgrades"; hud.refresh()
+	var exact_purchase: Button = hud.body.get_node("RunUpgradeRows/Upgrade_towerDamage/Purchase")
+	assert(int(app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost) == 1000000)
+	assert(hud.gold_label.text == "1M" and exact_purchase.disabled)
+	assert((exact_purchase.find_child("PurchasePrice",true,false) as Label).text == "1M")
+	assert(exact_purchase.tooltip_text.contains("1000000"))
+	for frame in range(3): await process_frame
+	assert((exact_purchase.find_child("PurchasePrice",true,false) as Label).get_line_count() == 1)
+	exact_purchase.pressed.emit()
+	assert(app.run_domain.state.gold == 999999 and app.run_domain.state.runUpgradeLevels.towerDamage == 0)
+	app.run_domain.state.gold = 1000000; hud.refresh()
+	assert(hud.gold_label.text == "1M" and not exact_purchase.disabled)
+	exact_purchase.pressed.emit()
+	assert(app.run_domain.state.gold == 0 and app.run_domain.state.runUpgradeLevels.towerDamage == 1)
+	# Refund captions may round up; transaction and exact tooltip never do.
+	app.run_domain.state.turrets[0].investedGold = ceili(999999.0*100.0/float(derived.turretRefundPercent))
+	hud.main_tab = "turrets"; hud.refresh()
+	(hud.body.find_child("TurretSellAction",true,false) as Button).pressed.emit()
+	var exact_sale := find_button(hud.modal_body,"판매 · ")
+	assert(exact_sale.text == "판매 · +1M 골드")
+	assert(exact_sale.tooltip_text == "판매 환급 · 999999 골드")
+	exact_sale.pressed.emit()
+	assert(app.run_domain.state.gold == 999999 and app.run_domain.state.turrets.is_empty())
 	print("PASS battle HUD: build, level, trait, slots, equip/remove, run upgrade, reward, results, narrow viewport")
 	hud.queue_free()
 	app.queue_free()
@@ -352,6 +448,17 @@ func assert_wallet_refresh(app: App,hud,button: Button,currency: String,cost: in
 		assert(hud.body.get_child(0) == first_child,"Wallet changes must retain the existing controls")
 		assert(button.text == caption)
 		assert(button.disabled == (balance < cost))
-		assert((hud.gold_label if currency == "gold" else hud.shard_label).text == str(balance))
+		assert((hud.gold_label if currency == "gold" else hud.shard_label).text == HudNumber.compact(float(balance),0))
 	app.run_domain.state[currency] = saved
 	hud.refresh()
+
+func node_identities(node: Node) -> Array:
+	var result := [node.get_instance_id()]
+	for child in node.get_children(): result.append_array(node_identities(child))
+	return result
+
+func assert_label_fits(label: Label) -> void:
+	for index in range(label.text.length()):
+		var bounds := label.get_character_bounds(index)
+		assert(bounds.end.x <= label.size.x+0.1 and bounds.end.y <= label.size.y+0.1,"Overflow: "+label.text)
+	assert(label.get_visible_line_count() == label.get_line_count(),"Clipped text: "+label.text)

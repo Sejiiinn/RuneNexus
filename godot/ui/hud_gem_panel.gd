@@ -2,6 +2,7 @@ extends RefCounted
 ## Equipped sockets and inventory presentation; commands route through the HUD.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const Frame = preload("res://ui/lobby_frame.gd")
+const HudNumber = preload("res://ui/hud_number.gd")
 var hud: Control
 
 func _init(owner: Control) -> void:
@@ -62,7 +63,9 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 		tag.autowrap_mode = TextServer.AUTOWRAP_OFF
 		if locked:
 			var price := _slot_price(state,int(turret.id),i)
-			tag.text = "%d G" % price if price > 0 else "—"
+			tag.text = HudNumber.compact_price(price)+" G" if price > 0 else "—"
+			socket.tooltip_text = "%d G" % price if price > 0 else ""
+			cell.tooltip_text = socket.tooltip_text
 			tag.modulate = Color("f0d28a")
 			continue
 		var gem = turret.equippedGemSlots[i]
@@ -178,7 +181,8 @@ func _unlock_popover(band: Control, socket: Button, state: Dictionary, turret: D
 	content.add_theme_constant_override("separation",0)
 	popup.add_child(content)
 	var display_price := _slot_price(state,turret_id,slot)
-	var tag: Label = hud._label(content,"%d G" % display_price if display_price > 0 else "—",10)
+	var tag: Label = hud._label(content,HudNumber.compact_price(display_price)+" G" if display_price > 0 else "—",10)
+	popup.tooltip_text = "%d G" % display_price if display_price > 0 else ""
 	tag.name = "GemSlotUnlockPrice"
 	tag.custom_minimum_size.y = 16
 	tag.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -388,8 +392,9 @@ func _empty_inventory_slot(parent: Node, minimum: Vector2, index: int) -> void:
 
 func _purchase(parent: Node,state: Dictionary) -> void:
 	var cost: int = hud.app.run_domain.growth.data.constants.gemChoicePurchaseCost
-	var b = hud._button(parent,"젬 구매 · %d 조각" % cost,func(): hud._command({"kind":"purchaseGemChoice"}))
+	var b = hud._button(parent,"젬 구매 · %s 조각" % HudNumber.compact_price(cost),func(): hud._command({"kind":"purchaseGemChoice"}))
 	hud._track_purchase_button(b,"gemShards",cost,state.phase not in ["preparation","wave"])
+	b.tooltip_text = "젬 구매 · %d 조각" % cost
 
 func _gem_name(type: String) -> String:
 	return str(hud.labels.gems.get(type,{}).get("name",type))

@@ -1,6 +1,7 @@
 extends VBoxContainer
 ## Native container layout for the approved 06-v2 action strip.
 const Art = preload("res://ui/app_theme.gd")
+const HudNumber = preload("res://ui/hud_number.gd")
 const ROOT := "ui/hud/turret_actions/"
 static var _skin: Theme
 static var _turret_icons := {}
@@ -13,6 +14,10 @@ var _price_label: Label
 var _price_icon: TextureRect
 var _price_gap: Control
 var _price_text := ""
+var _level_label: Label
+var _trait_label: Label
+var _upgrade_label: Label
+var _maximum := false
 
 func configure(spec: Dictionary) -> void:
 	name = "TurretActionPanel"
@@ -29,7 +34,7 @@ func configure(spec: Dictionary) -> void:
 	_space(identity,26)
 	var identity_text := _vbox(identity); identity_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_text(identity_text,spec.title,60,82,Color("e8f8ff"))
-	_text(identity_text,spec.level,60,80,Color("e7c66a"))
+	_level_label = _text(identity_text,spec.level,60,80,Color("e7c66a"))
 	_image(row,ROOT+"ref_identity_divider.png",8,207); _space(row,26)
 	trait_action = _action(row,"TurretTraitAction","traits",585,225,spec.trait_callback)
 	var trait_content := _margin(trait_action,80,0,59,0,true)
@@ -38,7 +43,7 @@ func configure(spec: Dictionary) -> void:
 	_image(trait_row,ROOT+"ref_trait_divider.png",8,183); _space(trait_row,32)
 	var trait_text := _vbox(trait_row); trait_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_text(trait_text,"특성",60,85,Color("e8f8ff"))
-	_text(trait_text,"%d/2 선택" % spec.trait_count,50,75,Color("bba5ed"))
+	_trait_label = _text(trait_text,"%d/2 선택" % spec.trait_count,50,75,Color("bba5ed"))
 	_space(row,31)
 	level_action = _action(row,"TurretLevelAction","upgrade",570,225,spec.upgrade_callback)
 	var upgrade_content := _margin(level_action,74,0,40,0,true)
@@ -46,14 +51,18 @@ func configure(spec: Dictionary) -> void:
 	_image(upgrade_row,ROOT+"ref_upgrade.png",106,123); _space(upgrade_row,44)
 	_image(upgrade_row,ROOT+"ref_divider.png",7,183); _space(upgrade_row,33)
 	var upgrade_text := _vbox(upgrade_row); upgrade_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_text(upgrade_text,spec.upgrade_title,60,85,Color("e8f8ff"))
+	_upgrade_label = _text(upgrade_text,spec.upgrade_title,60,85,Color("e8f8ff"))
 	_price_row = _hbox(upgrade_text); _minimum(_price_row,Vector2(0,75))
-	if not spec.maximum:
-		_price_icon = _image(_price_row,"ui/hud/icons/gold.png",69,68)
-		_price_gap = _space(_price_row,7)
+	_price_icon = _image(_price_row,"ui/hud/icons/gold.png",69,68)
+	_price_gap = _space(_price_row,7)
+	_maximum = bool(spec.maximum)
+	_price_icon.visible = not _maximum; _price_gap.visible = not _maximum
 	_price_text = spec.price
 	_price_label = _text(_price_row,_price_text,50,75,Color("e7c66a"))
 	_price_label.name = "TurretUpgradePrice"
+	_price_label.clip_text = false
+	_price_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	upgrade_content.minimum_size_changed.connect(_fit_upgrade_height,CONNECT_DEFERRED)
 	_price_row.resized.connect(_fit_price)
 	_space(row,30); _image(row,ROOT+"ref_identity_divider.png",8,207); _space(row,42)
 	sell_action = _action(row,"TurretSellAction","sell",145,167,spec.sell_callback)
@@ -73,6 +82,26 @@ func configure(spec: Dictionary) -> void:
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	resized.connect(_fit)
 	_fit()
+
+func update_values(spec: Dictionary) -> void:
+	_level_label.text = spec.level
+	_trait_label.text = "%d/2 선택" % spec.trait_count
+	_upgrade_label.text = spec.upgrade_title
+	_maximum = bool(spec.maximum)
+	_price_text = spec.price
+	_price_icon.visible = not _maximum; _price_gap.visible = not _maximum
+	for label in [_level_label,_trait_label,_upgrade_label]: _fit_label(label)
+	_fit_price()
+
+func _fit_upgrade_height() -> void:
+	if not is_instance_valid(level_action): return
+	var content: MarginContainer = level_action.get_meta("action_content")
+	# Wrapped exact prices need room inside the textured bevel, not merely
+	# inside the button rectangle. Preserve the approved one-line geometry.
+	var padding := 6 if _price_label.get_line_count() > 1 else 0
+	content.add_theme_constant_override("margin_top",padding)
+	content.add_theme_constant_override("margin_bottom",padding)
+	level_action.custom_minimum_size.y = maxf(225.0*_ratio,content.get_combined_minimum_size().y)
 
 static func _theme() -> Theme:
 	if _skin != null: return _skin
@@ -163,9 +192,11 @@ func _fit() -> void:
 			var margins: Vector4 = node.get_meta("design_margins")*_ratio
 			for pair in [["left",margins.x],["top",margins.y],["right",margins.z],["bottom",margins.w]]: node.add_theme_constant_override("margin_"+pair[0],roundi(pair[1]))
 		if node.has_meta("design_separation"): node.add_theme_constant_override("separation",roundi(float(node.get_meta("design_separation"))*_ratio))
+	_fit_price()
+	_fit_upgrade_height()
 
 func _fit_label(label: Label) -> void:
-	if label == _price_label and _price_icon != null:
+	if label == _price_label:
 		_fit_price(); return
 	if label.size.x <= 0: return
 	var desired := maxi(1,roundi(float(label.get_meta("design_font"))*_ratio))
@@ -177,12 +208,14 @@ func _fit_price() -> void:
 	if _price_label == null or _price_icon == null or _price_row.size.x <= 0: return
 	var desired := maxi(8,roundi(50.0*_ratio))
 	var font := _price_label.get_theme_font("font")
-	var full_width := font.get_string_size(_price_text,HORIZONTAL_ALIGNMENT_LEFT,-1,desired).x
-	var compact := full_width > _price_row.size.x-ceilf(69.0*_ratio)-ceilf(7.0*_ratio)
+	var display := _price_text if _maximum else HudNumber.compact_price(_price_text.trim_suffix(" G").to_float())+" G"
+	var full_width := font.get_string_size(display,HORIZONTAL_ALIGNMENT_LEFT,-1,desired).x
+	var compact := not _maximum and full_width > _price_row.size.x-ceilf(69.0*_ratio)-ceilf(7.0*_ratio)
 	# The gold icon already identifies the currency. When space is tight, keep
-	# every digit at the normal readable price size and reduce only redundant art.
-	_price_label.text = _price_text.trim_suffix(" G") if compact else _price_text
+	# the formatted amount at a readable size and reduce only redundant art.
+	_price_label.text = display.trim_suffix(" G") if compact else display
 	_price_icon.custom_minimum_size = Vector2(42,42)*_ratio if compact else Vector2(69,68)*_ratio
 	_price_gap.custom_minimum_size.x = 0.0 if compact else 7.0*_ratio
 	_price_label.add_theme_font_size_override("font_size",desired)
 	_price_label.tooltip_text = _price_text
+	_fit_upgrade_height.call_deferred()
