@@ -27,7 +27,7 @@ func _build(state: Dictionary) -> void:
 		hud._track_purchase_button(install,"gold",cost,tile != "build")
 		install.tooltip_text = "설치 · %d 골드" % cost
 		hud._label(hud.body,hud.DESCRIPTIONS.get(type,""),11)
-		var definition: Dictionary = hud.app.catalog.data.turrets[type].configuration.statInput.definition
+		var definition: Dictionary = hud.app.catalog.turret_definition(type)
 		hud._label(hud.body,("물리" if definition.damageFamily == "physical" else "원소")+" · "+str({"arrow":"경량화기","cannon":"중화기 · 폭발","magic":"지속 피해","frost":"감속","sniper":"중화기 · 조준","lightning":"연쇄"}.get(type,"")),10)
 		var stats = hud._stats(state,{"type":type,"level":1,"equippedGemSlots":[],"primaryTrait":null,"secondaryTrait":null})
 		hud._label(hud.body,"피해 %.1f     초당 %.2f회     사거리 %.0f" % [stats.damage,stats.attackRate,stats.range],11)

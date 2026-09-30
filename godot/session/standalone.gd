@@ -62,7 +62,7 @@ func stage_source(index: int) -> Dictionary:
 
 func cycle_turret() -> void:
 	if catalog.stage_count() == 0: return
-	var types: Array = catalog.data.turrets.keys()
+	var types: Array = catalog.turret_types()
 	turret_type = types[(types.find(turret_type) + 1) % types.size()]
 	turret_button.text = "Tower: " + turret_type
 	if selected.x >= 0: board_tap(selected)
@@ -70,7 +70,7 @@ func cycle_turret() -> void:
 func cycle_wave() -> void:
 	if not scene._native_combat.active or scene._native_combat.wave.active: return
 	if run_domain.state.get("phase") != "preparation": return
-	var total: int = stage_source(stage).waves.size()
+	var total: int = wave_count(stage)
 	var completed: int = run_domain.state.get("completedRounds", 0)
 	if completed >= total: return
 	next_round = completed + (next_round - completed + 1) % (total - completed)
@@ -86,7 +86,7 @@ func build_selected() -> void:
 	if content_enabled:
 		super.build_selected()
 		return
-	var map: Dictionary = stage_source(stage).map
+	var map: Dictionary = stage_map(stage)
 	if selected.x >= int(map.columns) or selected.y < 0 or selected.y >= int(map.rows): return
 	if map.tiles[selected.y * int(map.columns) + selected.x] != "build": return
 	var runtime = scene._native_combat
@@ -118,7 +118,7 @@ func _process(delta: float) -> void:
 	if not status.is_visible_in_tree(): return
 	status.text = "Stage %d | %s | %.1fs | HP %.1f | selected %s" % [stage+1, runtime.session.get("phase","ended"),runtime.clock,runtime.defense.hp,selected] + " | " + checkpoint.message
 	if content_enabled:
-		var following := str(next_round + 1) if catalog.stage_count() > stage and next_round < catalog.data.stages[stage].waves.size() else "done"
+		var following := str(next_round + 1) if catalog.stage_count() > stage and next_round < catalog.wave_count(stage) else "done"
 		status.text = "Stage %d | Wave %d | %s | HP %.1f | next %s | %s" % [stage+1, runtime.wave.id, runtime.session.get("phase", "ended"), runtime.defense.hp, following, turret_type]
 		if not run_domain.state.is_empty():
 			status.text += "\nGold %d | Shards %d | run commands active; local v2 save" % [run_domain.state.gold, run_domain.state.gemShards]

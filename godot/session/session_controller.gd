@@ -29,6 +29,12 @@ func stage_count() -> int:
 func stage_source(index: int) -> Dictionary:
 	return catalog.stage(index)
 
+func stage_map(index: int) -> Dictionary:
+	return catalog.stage_map(index) if is_content_session() else stage_source(index).map.duplicate(true)
+
+func wave_count(index: int) -> int:
+	return catalog.wave_count(index) if is_content_session() else stage_source(index).waves.size()
+
 func prepare_run_transition() -> bool:
 	if not is_content_session() or run_domain.state.is_empty(): return true
 	if not scene._native_combat.active:
@@ -69,8 +75,8 @@ func settle_pending_rewards(context: Dictionary, sync_save: Callable, transport:
 func enter_next() -> void:
 	if stage_count() <= 0 or not _can_replace_run(): return
 	if is_content_session():
-		var ordinal := StageProgression.ordinal_for(int(catalog.stage(stage).id))
-		if ordinal > 0 and ordinal < StageProgression.ORDER.size(): enter_stage(int(StageProgression.ORDER[ordinal])-1)
+		var ordinal := StageProgression.ordinal_for(catalog.stage_id(stage))
+		if ordinal > 0 and ordinal < StageProgression.ORDER.size(): enter_stage(catalog.stage_index(int(StageProgression.ORDER[ordinal])))
 	else: enter_stage((stage + 1) % stage_count())
 
 func retry_stage() -> bool:
@@ -89,11 +95,12 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	selected = Vector2i(-1, -1)
 	checkpoint.message = ""
 	scene._apply_frame({"reset":true,"sceneEpoch":epoch})
-	var source: Dictionary = stage_source(stage)
-	var frame := {"seq":0,"sceneEpoch":epoch,"mapRevision":stage,"map":source.map.duplicate(true),"time":0.0,"turrets":[],"enemies":[],"projectiles":[],"impacts":[],"presentation":{"effects":{},"labels":{}}}
+	var map: Dictionary = stage_map(stage)
+	var frame := {"seq":0,"sceneEpoch":epoch,"mapRevision":stage,"map":map,"time":0.0,"turrets":[],"enemies":[],"projectiles":[],"impacts":[],"presentation":{"effects":{},"labels":{}}}
 	scene._apply_frame(frame)
 	scene._native_combat_base_frame = frame
-	var initial := {"path":source.path,"tileSize":1.0,"boardDistanceScale":1.0/48.0,"defense":{"config":{"maxHp":100.0}}}
+	var path: Array = catalog.world_path(stage) if is_content_session() else stage_source(stage).path
+	var initial := {"path":path,"tileSize":1.0,"boardDistanceScale":1.0/48.0,"defense":{"config":{"maxHp":100.0}}}
 	if is_content_session():
 		if not run_domain.initialize(catalog, progression_inputs, stage, epoch):
 			checkpoint.message = run_domain.error
@@ -186,12 +193,12 @@ func start_wave() -> void:
 	if scene._native_combat.wave.active: return
 	if not command(): return
 	if run_domain.state.get("phase") != "preparation": return
-	if next_round >= stage_source(stage).waves.size():
+	if next_round >= catalog.wave_count(stage):
 		checkpoint.message = "All content waves complete"
 		return
 	var inputs := battle_inputs.duplicate(true)
 	if not inputs.has("initialDelay"):
-		inputs.initialDelay = catalog.data.defaults.initialDelay * float(scene._native_combat.session.get("speed", 1.0))
+		inputs.initialDelay = catalog.initial_delay() * float(scene._native_combat.session.get("speed", 1.0))
 	if not inputs.has("spawnValues"):
 		inputs.spawnValues = catalog.random_spawn_values(stage, next_round, spawn_rng)
 	var wave: Dictionary = catalog.wave(stage, next_round, next_enemy_id, inputs)

@@ -259,9 +259,9 @@ func core_config(state: Dictionary, stage: int, round_index: int, catalog) -> Di
 	config.powerEveryThirdMultiplier = effects.thirdCoreSkillPowerMultiplier / effects.coreSkillPowerMultiplier
 	config.attackSyncDamageMultiplier = 1.0 + effects.turretDamageAmplification
 	config.attackSyncAttackRateMultiplier = 1.0 + effects.turretAttackRateAmplification
-	var waves: Array = catalog.data.stages[stage].waves
-	if waves.is_empty():
+	var count: int = catalog.wave_count(stage)
+	if count == 0:
 		error = "Stage has no core HP reference"
 		return {}
-	config.normalMaxHp = float(waves[clampi(round_index, 0, waves.size() - 1)].enemyDurability.normal.maxHp)
+	config.normalMaxHp = float(catalog.wave_durability(stage, clampi(round_index, 0, count - 1), "normal").maxHp)
 	return config

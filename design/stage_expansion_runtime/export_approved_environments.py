@@ -6,6 +6,9 @@ import bpy, json, hashlib, os
 from pathlib import Path
 from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[2]
+import sys
+sys.path.insert(0,str(ROOT/'scripts'))
+from content_design_views import load_design_view
 TARGET=ROOT/'assets/images/stage1_3d/environment'
 REPORT=ROOT/'build/stage-expansion-runtime/export.json'
 TARGET.mkdir(parents=True,exist_ok=True);REPORT.parent.mkdir(parents=True,exist_ok=True)
@@ -40,7 +43,7 @@ def batch(name,objects,root):
 
 for chapter in (1,2):
     if os.environ.get("EXPANSION_CHAPTER") and str(chapter)!=os.environ["EXPANSION_CHAPTER"]:continue
-    specs=json.loads((ROOT/f'design/chapter{chapter}_map_expansion/maps.json').read_text())['maps']
+    specs=load_design_view(ROOT/f'design/chapter{chapter}_map_expansion/maps.json')['maps']
     for spec in specs:
         label=spec['chapterStage'];number=int(label.split('-')[1]);fixed=(10+number if chapter==1 else 15+number)
         source=ROOT/(f'design/chapter1_map_expansion/concepts/'+('chapter1-teleport-map-concepts.blend' if number in (7,10) else 'chapter1-five-map-concepts.blend') if chapter==1 else 'design/chapter2_map_expansion/concepts/chapter2-five-map-concepts.blend')

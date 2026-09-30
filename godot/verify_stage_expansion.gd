@@ -117,7 +117,7 @@ func _initialize() -> void:
 			var bootstrap: Dictionary = catalog.bootstrap(index)
 			bootstrap.wave = wave
 			runtime.process_command({"epoch":1,"sequence":0,"session":{"clock":"godot","phase":"wave","paused":false},"bootstrap":bootstrap})
-			runtime._step(float(catalog.data.defaults.initialDelay)+0.01)
+			runtime._step(float(catalog.initial_delay())+0.01)
 			check(not runtime.enemies.is_empty(),"native spawn %d:%d" % [source.id,round_index+1])
 		var state: Dictionary = service.initial_state(p,index)
 		state.phase = "wave"

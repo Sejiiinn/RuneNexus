@@ -10,7 +10,8 @@ var catalog = Catalog.new()
 
 func _initialize() -> void:
 	_check(catalog.load_catalog(), "load: " + catalog.error)
-	if not catalog.data.is_empty():
+	if catalog.is_loaded():
+		_summary_contract()
 		_all_definitions()
 		_dart_cases()
 		_runtime_cases()
@@ -26,6 +27,30 @@ func _initialize() -> void:
 func _check(condition: bool, label: String) -> void:
 	checks += 1
 	if not condition: failures.append(label)
+
+func _summary_contract() -> void:
+	for index in range(catalog.stage_count()):
+		var source: Dictionary = catalog.stage(index)
+		var summary: Dictionary = catalog.stage_summary(index)
+		_check(catalog.stage_id(index) == source.id, "fixed stage ID")
+		_check(catalog.stage_index(source.id) == index, "stage ID/index lookup")
+		_check(catalog.wave_count(index) == source.waves.size(), "wave count")
+		_compare(summary, {"id":source.id, "name":source.name, "waveCount":source.waves.size(),
+			"firstClearCorePointReward":source.firstClearCorePointReward,
+			"firstClearTurretModuleTicketReward":source.firstClearTurretModuleTicketReward}, "stage summary")
+		_check(not summary.has("waves") and not summary.has("map"), "summary excludes compiled battle data")
+		for round_index in range(source.waves.size()):
+			var has_boss := false
+			for group in source.waves[round_index].groups:
+				if str(group.enemyType).to_lower().contains("boss"): has_boss = true
+			_check(catalog.wave_has_boss(index, round_index) == has_boss, "boss metadata preserves group classification")
+		summary.name = "caller-owned preview"
+		_check(source.name != summary.name, "summary changes cannot alter catalog")
+	_check(catalog.stage_index(0) == -1 and catalog.stage_index(999) == -1, "unknown stage ID rejected")
+	for index in [-1, catalog.stage_count()]:
+		_check(catalog.stage_id(index) == 0 and catalog.wave_count(index) == 0 and catalog.stage_summary(index).is_empty(), "unknown summary index rejected")
+		_check(not catalog.wave_has_boss(index, 0), "unknown boss stage rejected")
+	_check(not catalog.wave_has_boss(0, -1) and not catalog.wave_has_boss(0, catalog.wave_count(0)), "unknown boss wave rejected")
 
 func _compare(actual: Variant, expected: Variant, label: String) -> void:
 	_check(typeof(actual) == typeof(expected), label + " type " + type_string(typeof(actual)) + "/" + type_string(typeof(expected)))
@@ -48,26 +73,26 @@ func _all_definitions() -> void:
 	var spawns := 0
 	for si in range(catalog.stage_count()):
 		var stage: Dictionary = catalog.stage(si)
-		_compare(stage.map.theme, catalog.data.stages[si].map.tileTheme, "theme")
+		_compare(stage.map.theme, catalog.stage_map(si).tileTheme, "theme")
 		for wi in range(stage.waves.size()):
 			var actual: Dictionary = catalog.wave(si, wi)
 			var source: Dictionary = stage.waves[wi]
 			_compare(actual.id, source.round, "wave id")
 			var factor := pow(2.0, (source.round - 1) / 10.0) * pow(1.15, Progress.ordinal_for(stage.id) - 1)
-			for kind in catalog.data.enemyDefinitions:
+			for kind in catalog.enemy_types():
 				for field in ["maxHp", "maxShield", "maxArmor"]:
-					_compare(source.enemyDurability[kind][field], catalog.data.enemyDefinitions[kind][field] * factor, "ordinal durability %d:%d:%s:%s" % [stage.id, source.round, kind, field])
+					_compare(source.enemyDurability[kind][field], catalog.enemy_definition(kind)[field] * factor, "ordinal durability %d:%d:%s:%s" % [stage.id, source.round, kind, field])
 			_check(actual.spawnQueue.size() == source.spawnQueue.size(), "wave spawn count")
 			for index in range(source.spawnQueue.size()):
 				var entry: Dictionary = actual.spawnQueue[index]
 				_compare(entry.enemyType, source.spawnQueue[index].enemyType, "spawn type/order")
-				_compare(entry.delay, source.spawnQueue[index].delay + catalog.data.defaults.initialDelay, "spawn seconds/order")
+				_compare(entry.delay, source.spawnQueue[index].delay + catalog.initial_delay(), "spawn seconds/order")
 				_compare(entry.enemy.id, 100000 + index, "enemy id")
 				for key in source.enemyDurability[entry.enemyType]:
 					_compare(entry.enemy[key], source.enemyDurability[entry.enemyType][key], "durability")
 				spawns += 1
 			waves += 1
-	print("Content coverage: ", catalog.stage_count(), " stages, ", waves, " waves, ", spawns, " spawns, ", catalog.data.enemies.size(), " enemy types, ", catalog.data.turrets.size(), " turret types")
+	print("Content coverage: ", catalog.stage_count(), " stages, ", waves, " waves, ", spawns, " spawns, ", catalog.enemy_types().size(), " enemy types, ", catalog.turret_types().size(), " turret types")
 	# Original Dart calculator fixtures exercise growth, equipment, traits and module effects.
 	var cases: Variant = TypedJson.parse(FileAccess.get_file_as_string("res://../test/fixtures/turret_stat_calculation.json"))
 	for case in cases:
@@ -95,7 +120,7 @@ func _dart_cases() -> void:
 		# enemy checkpoint projection. Check it separately without rewriting the
 		# original Dart configurations used for combat parity.
 		for field in ["name","color","rewardGold"]:
-			_compare(actual.get(field),catalog.data.enemyDefinitions[case.enemyType][field],"runtime enemy metadata "+field)
+			_compare(actual.get(field),catalog.enemy_definition(case.enemyType)[field],"runtime enemy metadata "+field)
 			actual.erase(field)
 		# Historical Dart inputs remain immutable. Adapt only the six approved
 		# durability fields from old fixed-ID scaling to current logical order.
@@ -117,7 +142,7 @@ func _dart_cases() -> void:
 func _runtime_cases() -> void:
 	# Existing chapter endpoints plus both expansion endpoints, final boss round.
 	for si in [0, 4, 5, 9, 10, 14, 15, 19, 20, 24]:
-		var wi: int = catalog.data.stages[si].waves.size() - 1
+		var wi: int = catalog.wave_count(si) - 1
 		var initial: Dictionary = catalog.bootstrap(si, {"defenseConfig": {"maxHp": 1000000.0}})
 		initial.wave = catalog.wave(si, wi)
 		var expected_damage := 0.0
@@ -158,7 +183,7 @@ func _invalid_inputs() -> void:
 		_check(catalog.wave(0, 0, 100000, {"initialDelay": delay}).is_empty(), "invalid delay rejected")
 	for spawn in [null, [], {"laneOffsetRatio": NAN}, {"visualPhase": "0"}, {"diamondReward": 1.5}, {"diamondReward": -1}, {"unknown": 1}]:
 		var values: Array = []
-		values.resize(catalog.data.stages[0].waves[0].spawnQueue.size())
+		values.resize(catalog.wave_summary(0, 0).spawnCount)
 		values.fill(spawn)
 		_check(catalog.wave(0, 0, 100000, {"spawnValues": values}).is_empty(), "malformed spawn values reject entire wave")
 	_check(catalog.wave(0, 0, 100000, {"spawnValues": {}}).is_empty(), "spawn values must be array")
@@ -166,7 +191,7 @@ func _invalid_inputs() -> void:
 	_check(catalog.wave(0, 0, 100000, {"enemyValues": null}).is_empty(), "invalid enemy propagates to whole wave")
 	_check(catalog.bootstrap(0, {"defenseConfig": null}).is_empty(), "invalid defense dictionary rejected")
 	var valid_values: Array = []
-	valid_values.resize(catalog.data.stages[0].waves[0].spawnQueue.size())
+	valid_values.resize(catalog.wave_summary(0, 0).spawnCount)
 	valid_values.fill({"laneOffsetRatio": 0.125, "visualPhase": 0.75, "diamondReward": 2})
 	var wave: Dictionary = catalog.wave(0, 0, 100000, {"spawnValues": valid_values, "initialDelay": 2.8})
 	_check(not wave.is_empty(), "valid explicit inputs accepted after invalid inputs")

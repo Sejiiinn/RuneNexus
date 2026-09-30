@@ -1,0 +1,18 @@
+{
+  "sourceSchemaVersion": 1,
+  "durabilityFormula": "ordinal-v1",
+  "catalog": {
+    "schemaVersion": 1,
+    "units": {"tileSize": 48.0, "boardDistanceScale": 1.0, "time": "seconds"},
+    "defaults": {"portalAlertDuration": 0.55, "postPortalAlertSpawnDelay": 0.15, "initialDelay": 0.7000000000000001},
+    "randomization": {
+      "laneOffsetAmplitudes": {"normal": 0.14, "armored": 0.14, "shielded": 0.14, "fast": 0.18, "tank": 0.12, "boss": 0.055, "shieldBoss": 0.055, "forgeBoss": 0.045},
+      "carrierChance": 0.005,
+      "oneDiamondChanceGivenCarrier": 0.7,
+      "twoDiamondChanceGivenCarrier": 0.2,
+      "threeDiamondChanceGivenCarrier": 0.1,
+      "bossTypes": ["boss", "shieldBoss", "forgeBoss"]
+    },
+    "defenseConfig": {"maxHp": 20.0, "impactDispersionRate": 0.0, "threatWeakeningRate": 0.0, "hasFinalDefense": false, "emergencyRecoveryRate": 0.0, "roundRecoveryRate": 0.0, "damageRestorationRate": 0.0}
+  }
+}

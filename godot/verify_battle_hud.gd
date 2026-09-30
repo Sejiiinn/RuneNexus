@@ -1,8 +1,17 @@
 extends SceneTree
 const HudNumber = preload("res://ui/hud_number.gd")
+class QueryCatalog extends "res://content/content_catalog.gd":
+	var stage_queries := 0
+	var wave_queries := 0
+	func stage(index: int) -> Dictionary:
+		stage_queries += 1
+		return super.stage(index)
+	func wave_definition(si: int, wi: int) -> Dictionary:
+		wave_queries += 1
+		return super.wave_definition(si,wi)
 ## UI smoke with the actual catalog/command owner, no editor or persistent save.
 class App extends Node:
-	var catalog = preload("res://content/content_catalog.gd").new()
+	var catalog = QueryCatalog.new()
 	var run_domain = preload("res://session/run_session.gd").new()
 	var hud
 	var selected := Vector2i(-1,-1)
@@ -25,6 +34,8 @@ class App extends Node:
 	func stage_source(index: int) -> Dictionary:
 		stage_source_calls += 1
 		return catalog.stage(index)
+	func stage_map(index: int) -> Dictionary:
+		return catalog.stage_map(index)
 	func apply_run_command(command: Dictionary) -> bool:
 		var result: Dictionary = run_domain.apply(command)
 		checkpoint.message = "" if result.ok else run_domain.error
@@ -69,16 +80,16 @@ func run() -> void:
 	assert(resource_style.content_margin_left == 8 and resource_style.content_margin_top == 8)
 	app.run_domain.state.gold = 10000
 	app.run_domain.state.gemShards = 100
-	var map: Dictionary = app.catalog.stage(0).map
+	var map: Dictionary = app.catalog.stage_map(0)
 	var index: int = map.tiles.find("build")
 	app.selected = Vector2i(index % int(map.columns),index / int(map.columns))
 	hud.refresh()
 	hud.on_board_selection()
 	hud.refresh()
-	assert(app.stage_source_calls == 1)
+	assert(app.stage_source_calls == 0 and app.catalog.stage_queries == 0 and app.catalog.wave_queries == 0)
 	var install := find_button(hud.body,"설치 · ")
 	assert_wallet_refresh(app,hud,install,"gold",app.run_domain.service.build_cost(app.run_domain.state,"arrow"))
-	assert(app.stage_source_calls == 1)
+	assert(app.stage_source_calls == 0 and app.catalog.stage_queries == 0 and app.catalog.wave_queries == 0)
 	var initial_bounds: Rect2 = hud.battlefield_rect()
 	# Re-tapping the selected type installs; the explicit button shares the command.
 	var build_buttons := buttons(hud.body)

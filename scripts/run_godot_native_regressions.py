@@ -11,9 +11,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from content_compiler import check_generated
+from compile_progression import compile_progression
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_runtime_content_format.gd": "PASS runtime content format:",
+    "verify_catalog_session_boundaries.gd": "PASS catalog session boundaries:",
+    "verify_battle_menu_parity.gd": "PASS battle menu parity:",
+    "verify_content_queries.gd": "PASS content queries:",
     "verify_stage_expansion.gd": "STAGE_EXPANSION failures=0",
     "verify_growth_rules.gd": "PASS growth rules",
     "verify_content_catalog.gd": "PASS content catalog:",
@@ -87,6 +93,8 @@ def copy_files(source: Path, target: Path, suffixes: set[str]) -> None:
 
 
 def prepare(directory: Path, executable: str) -> Path:
+    check_generated(ROOT)
+    compile_progression(ROOT, check=True)
     project = directory / "godot"
     for folder in ("combat", "app", "fixtures", "content", "session", "ui", "services"):
         (project / folder).mkdir(parents=True, exist_ok=True)

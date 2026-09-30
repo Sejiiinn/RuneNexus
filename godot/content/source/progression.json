@@ -1,0 +1,459 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "legacyStageCount": 15,
+  "order": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    16,
+    17,
+    18,
+    19,
+    20,
+    6,
+    7,
+    8,
+    9,
+    10,
+    21,
+    22,
+    23,
+    24,
+    25,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "stages": [
+    {
+      "id": 1,
+      "chapter": 1,
+      "chapterStage": 1,
+      "rewardOrdinal": 1
+    },
+    {
+      "id": 2,
+      "chapter": 1,
+      "chapterStage": 2,
+      "rewardOrdinal": 2
+    },
+    {
+      "id": 3,
+      "chapter": 1,
+      "chapterStage": 3,
+      "rewardOrdinal": 3
+    },
+    {
+      "id": 4,
+      "chapter": 1,
+      "chapterStage": 4,
+      "rewardOrdinal": 4
+    },
+    {
+      "id": 5,
+      "chapter": 1,
+      "chapterStage": 5,
+      "rewardOrdinal": 5
+    },
+    {
+      "id": 6,
+      "chapter": 2,
+      "chapterStage": 1,
+      "rewardOrdinal": 6
+    },
+    {
+      "id": 7,
+      "chapter": 2,
+      "chapterStage": 2,
+      "rewardOrdinal": 7
+    },
+    {
+      "id": 8,
+      "chapter": 2,
+      "chapterStage": 3,
+      "rewardOrdinal": 8
+    },
+    {
+      "id": 9,
+      "chapter": 2,
+      "chapterStage": 4,
+      "rewardOrdinal": 9
+    },
+    {
+      "id": 10,
+      "chapter": 2,
+      "chapterStage": 5,
+      "rewardOrdinal": 10
+    },
+    {
+      "id": 11,
+      "chapter": 3,
+      "chapterStage": 1,
+      "rewardOrdinal": 11
+    },
+    {
+      "id": 12,
+      "chapter": 3,
+      "chapterStage": 2,
+      "rewardOrdinal": 12
+    },
+    {
+      "id": 13,
+      "chapter": 3,
+      "chapterStage": 3,
+      "rewardOrdinal": 13
+    },
+    {
+      "id": 14,
+      "chapter": 3,
+      "chapterStage": 4,
+      "rewardOrdinal": 14
+    },
+    {
+      "id": 15,
+      "chapter": 3,
+      "chapterStage": 5,
+      "rewardOrdinal": 15
+    },
+    {
+      "id": 16,
+      "chapter": 1,
+      "chapterStage": 6,
+      "rewardOrdinal": 6
+    },
+    {
+      "id": 17,
+      "chapter": 1,
+      "chapterStage": 7,
+      "rewardOrdinal": 7
+    },
+    {
+      "id": 18,
+      "chapter": 1,
+      "chapterStage": 8,
+      "rewardOrdinal": 8
+    },
+    {
+      "id": 19,
+      "chapter": 1,
+      "chapterStage": 9,
+      "rewardOrdinal": 9
+    },
+    {
+      "id": 20,
+      "chapter": 1,
+      "chapterStage": 10,
+      "rewardOrdinal": 10
+    },
+    {
+      "id": 21,
+      "chapter": 2,
+      "chapterStage": 6,
+      "rewardOrdinal": 16
+    },
+    {
+      "id": 22,
+      "chapter": 2,
+      "chapterStage": 7,
+      "rewardOrdinal": 17
+    },
+    {
+      "id": 23,
+      "chapter": 2,
+      "chapterStage": 8,
+      "rewardOrdinal": 18
+    },
+    {
+      "id": 24,
+      "chapter": 2,
+      "chapterStage": 9,
+      "rewardOrdinal": 19
+    },
+    {
+      "id": 25,
+      "chapter": 2,
+      "chapterStage": 10,
+      "rewardOrdinal": 20
+    }
+  ],
+  "requirements": {
+    "upgrade": {
+      "startingGold": 0,
+      "nexusHp": 0,
+      "supply": 0,
+      "fireTraining": 0,
+      "bossBounty": 5,
+      "killGold": 1,
+      "criticalDamage": 4,
+      "physicalDamageTraining": 17,
+      "elementalDamageTraining": 17,
+      "linkCostOptimization": 9,
+      "turretLevelUpOptimization": 10
+    },
+    "research": {
+      "researchEfficiency": 0,
+      "researchCostEfficiency": 0,
+      "emergencySale": 1,
+      "turretTargetPriority": 2,
+      "criticalChance": 4,
+      "gemAttunement": 16,
+      "linkMaintenance": 18,
+      "crystalRecovery": 19,
+      "linkExpansionOne": 20,
+      "runUpgradeCostOptimization": 6,
+      "runeResonance": 8,
+      "waveGoldLimitExpansion": 11,
+      "killGoldLimitExpansion": 13,
+      "towerDamageLimitExpansion": 15
+    },
+    "turret": {
+      "arrow": 0,
+      "cannon": 0,
+      "magic": 0,
+      "frost": 0,
+      "sniper": 3,
+      "lightning": 7
+    },
+    "gem": {
+      "aimSpeed": 3,
+      "armorPiercing": 21
+    },
+    "core": {
+      "guardianBeam": 0,
+      "riftMark": 20
+    },
+    "feature": {
+      "researchSlotTwo": 25,
+      "researchSlotTwoPreview": 23
+    }
+  },
+  "legacyRequirements": {
+    "upgrade": {
+      "startingGold": 0,
+      "nexusHp": 0,
+      "supply": 0,
+      "fireTraining": 0,
+      "bossBounty": 0,
+      "killGold": 1,
+      "criticalDamage": 4,
+      "physicalDamageTraining": 7,
+      "elementalDamageTraining": 7,
+      "linkCostOptimization": 9,
+      "turretLevelUpOptimization": 9
+    },
+    "research": {
+      "researchEfficiency": 0,
+      "researchCostEfficiency": 0,
+      "emergencySale": 1,
+      "turretTargetPriority": 2,
+      "criticalChance": 4,
+      "gemAttunement": 2,
+      "linkMaintenance": 0,
+      "crystalRecovery": 5,
+      "linkExpansionOne": 5,
+      "runUpgradeCostOptimization": 8,
+      "runeResonance": 8,
+      "waveGoldLimitExpansion": 15,
+      "killGoldLimitExpansion": 15,
+      "towerDamageLimitExpansion": 15
+    },
+    "turret": {
+      "arrow": 0,
+      "cannon": 0,
+      "magic": 0,
+      "frost": 0,
+      "sniper": 3,
+      "lightning": 6
+    },
+    "gem": {
+      "aimSpeed": 3,
+      "armorPiercing": 10
+    },
+    "feature": {
+      "researchSlotTwo": 10,
+      "researchSlotTwoPreview": 8
+    }
+  },
+  "unlockDisplay": [
+    {
+      "kind": "upgrade",
+      "key": "killGold",
+      "title": "처치 보상",
+      "icon": "upgrades/kill_gold.png",
+      "category": "강화"
+    },
+    {
+      "kind": "research",
+      "key": "emergencySale",
+      "title": "긴급 매각",
+      "icon": "upgrades/turret_refund.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "turretTargetPriority",
+      "title": "전술 명령",
+      "icon": "research/turret_target_priority.png",
+      "category": "연구"
+    },
+    {
+      "kind": "turret",
+      "key": "sniper",
+      "title": "저격 포탑",
+      "icon": "material:ef3a",
+      "category": "포탑"
+    },
+    {
+      "kind": "gem",
+      "key": "aimSpeed",
+      "title": "조준경 젬",
+      "icon": "gems/aimSpeed.png",
+      "category": "젬"
+    },
+    {
+      "kind": "research",
+      "key": "criticalChance",
+      "title": "치명 집중",
+      "icon": "upgrades/critical_chance.png",
+      "category": "연구"
+    },
+    {
+      "kind": "upgrade",
+      "key": "criticalDamage",
+      "title": "치명 충격",
+      "icon": "upgrades/critical_damage.png",
+      "category": "강화"
+    },
+    {
+      "kind": "upgrade",
+      "key": "bossBounty",
+      "title": "토벌 보상",
+      "icon": "research/boss_bounty.png",
+      "category": "강화"
+    },
+    {
+      "kind": "research",
+      "key": "gemAttunement",
+      "title": "젬 감응",
+      "icon": "research/gem_attunement.png",
+      "category": "연구"
+    },
+    {
+      "kind": "upgrade",
+      "key": "physicalDamageTraining",
+      "title": "물리 화력 훈련",
+      "icon": "upgrades/physical_damage.png",
+      "category": "강화"
+    },
+    {
+      "kind": "upgrade",
+      "key": "elementalDamageTraining",
+      "title": "원소 화력 훈련",
+      "icon": "upgrades/elemental_damage.png",
+      "category": "강화"
+    },
+    {
+      "kind": "research",
+      "key": "linkMaintenance",
+      "title": "기초 연결 공학",
+      "icon": "research/link_maintenance.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "crystalRecovery",
+      "title": "결정 회수",
+      "icon": "research/crystal_recovery.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "linkExpansionOne",
+      "title": "링크 확장 I",
+      "icon": "research/link_expansion_one.png",
+      "category": "연구"
+    },
+    {
+      "kind": "core",
+      "key": "riftMark",
+      "title": "균열 낙인",
+      "icon": "core_abilities/rift_mark.png",
+      "category": "코어"
+    },
+    {
+      "kind": "research",
+      "key": "runUpgradeCostOptimization",
+      "title": "전투 투자 최적화",
+      "icon": "research/run_upgrade_cost_optimization.png",
+      "category": "연구"
+    },
+    {
+      "kind": "turret",
+      "key": "lightning",
+      "title": "라이트닝 포탑",
+      "icon": "material:eedd",
+      "category": "포탑"
+    },
+    {
+      "kind": "research",
+      "key": "runeResonance",
+      "title": "룬 공명",
+      "icon": "research/rune_resonance.png",
+      "category": "연구"
+    },
+    {
+      "kind": "upgrade",
+      "key": "linkCostOptimization",
+      "title": "연결 공정",
+      "icon": "upgrades/link_cost_optimization.png",
+      "category": "강화"
+    },
+    {
+      "kind": "upgrade",
+      "key": "turretLevelUpOptimization",
+      "title": "강화 공정",
+      "icon": "upgrades/turret_level_up_optimization.png",
+      "category": "강화"
+    },
+    {
+      "kind": "gem",
+      "key": "armorPiercing",
+      "title": "장갑 관통 젬",
+      "icon": "gems/armorPiercing.png",
+      "category": "젬"
+    },
+    {
+      "kind": "feature",
+      "key": "researchSlotTwo",
+      "title": "연구 슬롯 II 구매 권한",
+      "icon": "material:f499",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "waveGoldLimitExpansion",
+      "title": "정비 보급 확장",
+      "icon": "research/wave_gold_limit_expansion.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "killGoldLimitExpansion",
+      "title": "처치 보너스 확장",
+      "icon": "research/kill_gold_limit_expansion.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "towerDamageLimitExpansion",
+      "title": "포탑 화력 확장",
+      "icon": "research/tower_damage_limit_expansion.png",
+      "category": "연구"
+    }
+  ]
+}

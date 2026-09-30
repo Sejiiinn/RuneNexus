@@ -1,0 +1,991 @@
+{
+  "id": 4,
+  "name": "Stage 4",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 9,
+    "rows": 10,
+    "tileTheme": "chapterOne",
+    "tiles": [
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "spawn", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "path", "build", "build", "path", "path", "path", "build", "blocked",
+      "blocked", "path", "path", "path", "path", "build", "path", "path", "blocked",
+      "blocked", "blocked", "blocked", "build", "blocked", "blocked", "build", "path", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "build", "blocked", "blocked", "path", "blocked",
+      "blocked", "core", "blocked", "blocked", "blocked", "blocked", "build", "path", "blocked",
+      "blocked", "path", "build", "build", "blocked", "build", "build", "path", "blocked",
+      "blocked", "path", "path", "path", "path", "path", "path", "path", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "build", "blocked", "blocked", "blocked", "blocked"
+    ],
+    "path": [
+      [1, 1],
+      [1, 2],
+      [1, 3],
+      [2, 3],
+      [3, 3],
+      [4, 3],
+      [4, 2],
+      [5, 2],
+      [6, 2],
+      [6, 3],
+      [7, 3],
+      [7, 4],
+      [7, 5],
+      [7, 6],
+      [7, 7],
+      [7, 8],
+      [6, 8],
+      [5, 8],
+      [4, 8],
+      [3, 8],
+      [2, 8],
+      [1, 8],
+      [1, 7],
+      [1, 6]
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 23,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.7, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [47.90756249999999, -1],
+          "armored.maxHp": [54.75149999999999, -1],
+          "armored.maxArmor": [38.326049999999995, -1],
+          "shielded.maxHp": [49.27634999999999, -1],
+          "shielded.maxShield": [57.489074999999985, -1],
+          "fast.maxHp": [30.113324999999996, -1],
+          "tank.maxHp": [142.35389999999998, -1],
+          "boss.maxHp": [852.7546124999999, -1],
+          "shieldBoss.maxHp": [1122.40575, -1],
+          "shieldBoss.maxShield": [492.7634999999999, -1],
+          "forgeBoss.maxHp": [1040.2785, -1],
+          "forgeBoss.maxArmor": [711.7694999999999, -1]
+        }
+      }
+    },
+    {
+      "round": 2,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 24,
+      "groups": [
+        {"enemyType": "normal", "count": 8, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [51.34605414229886, -1],
+          "armored.maxHp": [58.68120473405584, -1],
+          "armored.maxArmor": [41.076843313839085, -1],
+          "shielded.maxHp": [52.81308426065026, -1],
+          "shielded.maxShield": [61.61526497075863, -1],
+          "fast.maxHp": [32.27466260373072, -1],
+          "tank.maxHp": [152.57113230854517, -1],
+          "boss.maxHp": [913.9597637329198, -1],
+          "forgeBoss.maxHp": [1114.942889947061, -1],
+          "forgeBoss.maxArmor": [762.855661542726, -1]
+        }
+      }
+    },
+    {
+      "round": 3,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 25,
+      "groups": [
+        {"enemyType": "normal", "count": 5, "interval": 1.4, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 4, "interval": 1.35, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [55.03133823566763, -1],
+          "armored.maxHp": [62.89295798362016, -1],
+          "armored.maxArmor": [44.025070588534106, -1],
+          "tank.maxHp": [163.5216907574124, -1],
+          "boss.maxHp": [979.557820594884, -1],
+          "shieldBoss.maxShield": [566.0366218525814, -1],
+          "forgeBoss.maxHp": [1194.966201688783, -1],
+          "forgeBoss.maxArmor": [817.608453787062, -1]
+        }
+      }
+    },
+    {
+      "round": 4,
+      "previewText": "빠른 적 첫 등장",
+      "clearRewardGold": 26,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.4, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.85, "startDelay": 8.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [58.98112792884741, -2],
+          "armored.maxHp": [67.40700334725418, -1],
+          "armored.maxArmor": [47.18490234307792, -1],
+          "shielded.maxHp": [60.66630301252876, -1],
+          "tank.maxHp": [175.25820870286086, -2],
+          "boss.maxHp": [1049.864077133484, -1],
+          "shieldBoss.maxHp": [1381.8435686187106, -1],
+          "shieldBoss.maxShield": [606.6630301252876, -1],
+          "forgeBoss.maxHp": [1280.7330635978294, -1],
+          "forgeBoss.maxArmor": [876.2910435143043, -2]
+        }
+      }
+    },
+    {
+      "round": 5,
+      "previewText": "탱커 첫 등장",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.7, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 8, "interval": 1.25, "startDelay": 1.6, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [63.21440770459684, -1],
+          "armored.maxArmor": [50.571526163677476, -1],
+          "shielded.maxHp": [65.02053363901389, -1],
+          "fast.maxHp": [39.73477055717516, -1],
+          "tank.maxHp": [187.83709717937344, -1],
+          "boss.maxHp": [1125.2164571418239, -1],
+          "shieldBoss.maxHp": [1481.0232662219832, -1],
+          "shieldBoss.maxShield": [650.205336390139, -1],
+          "forgeBoss.maxHp": [1372.65571015696, -1],
+          "forgeBoss.maxArmor": [939.1854858968674, -1]
+        }
+      }
+    },
+    {
+      "round": 6,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.24, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 14.39, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [67.7515246277367, -1],
+          "armored.maxHp": [77.43031386027052, -1],
+          "armored.maxArmor": [54.20121970218935, -1],
+          "shielded.maxHp": [69.68728247424346, -1],
+          "fast.maxHp": [42.58667262314878, -1],
+          "tank.maxHp": [201.31881603670328, -1],
+          "boss.maxHp": [1205.9771383737132, -1],
+          "shieldBoss.maxHp": [1587.3214341355454, -1],
+          "shieldBoss.maxShield": [696.8728247424345, -1],
+          "forgeBoss.maxHp": [1471.1759633451397, -1],
+          "forgeBoss.maxArmor": [1006.5940801835166, -2]
+        }
+      }
+    },
+    {
+      "round": 7,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 6.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 10.629999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [72.6142861423823, -1],
+          "armored.maxHp": [82.98775559129405, -1],
+          "armored.maxArmor": [58.09142891390583, -1],
+          "shielded.maxHp": [74.68898003216464, -1],
+          "shielded.maxShield": [87.13714337085874, -1],
+          "fast.maxHp": [45.64326557521173, -2],
+          "tank.maxHp": [215.76816453736453, -2],
+          "boss.maxHp": [1292.534293334405, -2],
+          "shieldBoss.maxHp": [1701.248989621528, -2],
+          "shieldBoss.maxShield": [746.8898003216465, -2],
+          "forgeBoss.maxHp": [1576.767356234587, -2],
+          "forgeBoss.maxArmor": [1078.8408226868225, -1]
+        }
+      }
+    },
+    {
+      "round": 8,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.24, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [77.82606488842224, -1],
+          "armored.maxHp": [88.94407415819684, -1],
+          "armored.maxArmor": [62.260851910737784, -1],
+          "shielded.maxHp": [80.04966674237716, -1],
+          "shielded.maxShield": [93.39127786610668, -1],
+          "fast.maxHp": [48.91924078700826, -1],
+          "tank.maxHp": [231.25459281131177, -1],
+          "shieldBoss.maxHp": [1823.353520243035, -1],
+          "forgeBoss.maxHp": [1689.93740900574, -1],
+          "forgeBoss.maxArmor": [1156.272964056559, -1]
+        }
+      }
+    },
+    {
+      "round": 9,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 10, "interval": 1.16, "startDelay": 1.9, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.82, "startDelay": 13.09, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [83.41191104103854, -1],
+          "armored.maxHp": [95.32789833261546, -1],
+          "armored.maxArmor": [66.72952883283082, -1],
+          "shielded.maxHp": [85.79510849935392, -1],
+          "shielded.maxShield": [100.09429324924622, -1],
+          "fast.maxHp": [52.430344082938504, -1],
+          "boss.maxHp": [1484.732016530486, -1],
+          "shieldBoss.maxShield": [857.9510849935391, -1],
+          "forgeBoss.maxHp": [1811.2300683196938, -2],
+          "forgeBoss.maxArmor": [1239.262678324001, -1]
+        }
+      }
+    },
+    {
+      "round": 10,
+      "previewText": "보스 호위",
+      "clearRewardGold": 100,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 1.9, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 6.38, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 4, "interval": 1.0, "startDelay": 7.28, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [89.39867271322314, -1],
+          "armored.maxHp": [102.169911672255, -1],
+          "shielded.maxHp": [91.9529205050295, -1],
+          "shielded.maxShield": [107.27840725586775, -1],
+          "fast.maxHp": [56.193451419740256, -2],
+          "boss.maxHp": [1591.2963742953718, -1],
+          "shieldBoss.maxHp": [2094.4831892812276, -1],
+          "shieldBoss.maxShield": [919.529205050295, -1],
+          "forgeBoss.maxHp": [1941.228321772845, -1],
+          "forgeBoss.maxArmor": [1328.208851739315, -1]
+        }
+      }
+    },
+    {
+      "round": 11,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.22, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.8049999999999999, "startDelay": 15.39, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [95.81512499999998, -1],
+          "armored.maxHp": [109.50299999999999, -1],
+          "armored.maxArmor": [76.65209999999999, -1],
+          "shielded.maxHp": [98.55269999999997, -1],
+          "shielded.maxShield": [114.97814999999997, -1],
+          "fast.maxHp": [60.22664999999999, -1],
+          "tank.maxHp": [284.70779999999996, -1],
+          "boss.maxHp": [1705.5092249999998, -1],
+          "shieldBoss.maxHp": [2244.8115, -1],
+          "shieldBoss.maxShield": [985.5269999999998, -1],
+          "forgeBoss.maxHp": [2080.557, -1],
+          "forgeBoss.maxArmor": [1423.5389999999998, -1]
+        }
+      }
+    },
+    {
+      "round": 12,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.8049999999999999, "startDelay": 7.85, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.8049999999999999, "startDelay": 11.82, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [102.69210828459772, -1],
+          "armored.maxHp": [117.36240946811168, -1],
+          "armored.maxArmor": [82.15368662767817, -1],
+          "shielded.maxHp": [105.62616852130051, -1],
+          "shielded.maxShield": [123.23052994151726, -1],
+          "fast.maxHp": [64.54932520746144, -1],
+          "tank.maxHp": [305.14226461709035, -1],
+          "boss.maxHp": [1827.9195274658396, -1],
+          "forgeBoss.maxHp": [2229.885779894122, -1],
+          "forgeBoss.maxArmor": [1525.711323085452, -1]
+        }
+      }
+    },
+    {
+      "round": 13,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.22, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.8049999999999999, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [110.06267647133525, -1],
+          "armored.maxHp": [125.7859159672403, -3],
+          "armored.maxArmor": [88.0501411770682, -1],
+          "shielded.maxHp": [113.20732437051626, -1],
+          "shielded.maxShield": [132.0752117656023, -1],
+          "fast.maxHp": [69.18225378198217, -2],
+          "tank.maxHp": [327.0433815148248, -2],
+          "boss.maxHp": [1959.1156411897678, -2],
+          "shieldBoss.maxHp": [2578.6112773284262, -2],
+          "shieldBoss.maxShield": [1132.0732437051627, -1],
+          "forgeBoss.maxHp": [2389.9324033775656, -1],
+          "forgeBoss.maxArmor": [1635.2169075741238, -1]
+        }
+      }
+    },
+    {
+      "round": 14,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 11, "interval": 1.16, "startDelay": 1.9, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.8049999999999999, "startDelay": 14.25, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [117.96225585769481, -2],
+          "armored.maxHp": [134.81400669450835, -1],
+          "armored.maxArmor": [94.36980468615585, -1],
+          "shielded.maxHp": [121.33260602505752, -1],
+          "tank.maxHp": [350.5164174057217, -2],
+          "boss.maxHp": [2099.728154266968, -1],
+          "shieldBoss.maxHp": [2763.687137237421, -1],
+          "shieldBoss.maxShield": [1213.3260602505752, -1],
+          "forgeBoss.maxHp": [2561.466127195659, -1],
+          "forgeBoss.maxArmor": [1752.5820870286086, -2]
+        }
+      }
+    },
+    {
+      "round": 15,
+      "previewText": "고밀도 압축",
+      "clearRewardGold": 78,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.8049999999999999, "startDelay": 8.99, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.5, "startDelay": 14.17, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [126.42881540919367, -1],
+          "armored.maxArmor": [101.14305232735495, -1],
+          "shielded.maxHp": [130.04106727802778, -1],
+          "fast.maxHp": [79.46954111435032, -1],
+          "tank.maxHp": [375.6741943587469, -1],
+          "boss.maxHp": [2250.4329142836477, -1],
+          "shieldBoss.maxHp": [2962.0465324439665, -1],
+          "shieldBoss.maxShield": [1300.410672780278, -1],
+          "forgeBoss.maxHp": [2745.31142031392, -1],
+          "forgeBoss.maxArmor": [1878.3709717937347, -1]
+        }
+      }
+    },
+    {
+      "round": 16,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "normal", "count": 14, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 16.35, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [135.5030492554734, -1],
+          "armored.maxHp": [154.86062772054103, -1],
+          "armored.maxArmor": [108.4024394043787, -1],
+          "shielded.maxHp": [139.37456494848692, -1],
+          "fast.maxHp": [85.17334524629756, -1],
+          "tank.maxHp": [402.63763207340656, -1],
+          "boss.maxHp": [2411.9542767474263, -1],
+          "shieldBoss.maxHp": [3174.6428682710907, -1],
+          "shieldBoss.maxShield": [1393.745649484869, -1],
+          "forgeBoss.maxHp": [2942.3519266902795, -1],
+          "forgeBoss.maxArmor": [2013.188160367033, -2]
+        }
+      }
+    },
+    {
+      "round": 17,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "normal", "count": 8, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 9.1, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 13.799999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "armored.maxArmor": [116.18285782781166, -1],
+          "boss.maxHp": [2585.06858666881, -1],
+          "shieldBoss.maxShield": [1493.779600643293, -1],
+          "forgeBoss.maxHp": [3153.534712469174, -1]
+        }
+      }
+    },
+    {
+      "round": 18,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 5.4, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [155.65212977684448, -1],
+          "armored.maxHp": [177.88814831639368, -1],
+          "armored.maxArmor": [124.52170382147557, -1],
+          "shielded.maxHp": [160.0993334847543, -1],
+          "shielded.maxShield": [186.78255573221335, -1],
+          "fast.maxHp": [97.83848157401653, -1],
+          "tank.maxHp": [462.50918562262353, -1],
+          "shieldBoss.maxHp": [3646.70704048607, -1],
+          "forgeBoss.maxHp": [3379.87481801148, -1],
+          "forgeBoss.maxArmor": [2312.545928113118, -1]
+        }
+      }
+    },
+    {
+      "round": 19,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 12, "interval": 1.16, "startDelay": 3.45, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.7899999999999999, "startDelay": 16.96, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [166.82382208207707, -1],
+          "armored.maxHp": [190.65579666523092, -1],
+          "armored.maxArmor": [133.45905766566165, -1],
+          "shielded.maxHp": [171.59021699870783, -1],
+          "shielded.maxShield": [200.18858649849244, -1],
+          "fast.maxHp": [104.86068816587701, -1],
+          "boss.maxHp": [2969.464033060972, -1],
+          "shieldBoss.maxShield": [1715.9021699870782, -1],
+          "forgeBoss.maxHp": [3622.4601366393877, -2],
+          "forgeBoss.maxArmor": [2478.525356648002, -1]
+        }
+      }
+    },
+    {
+      "round": 20,
+      "previewText": "보스 호위",
+      "clearRewardGold": 130,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 1.9, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 7.05, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 5, "interval": 1.0, "startDelay": 7.95, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [178.79734542644627, -1],
+          "armored.maxHp": [204.33982334451, -1],
+          "shielded.maxHp": [183.905841010059, -1],
+          "shielded.maxShield": [214.5568145117355, -1],
+          "fast.maxHp": [112.38690283948051, -2],
+          "boss.maxHp": [3182.5927485907437, -1],
+          "shieldBoss.maxHp": [4188.966378562455, -1],
+          "shieldBoss.maxShield": [1839.05841010059, -1],
+          "forgeBoss.maxHp": [3882.45664354569, -1],
+          "forgeBoss.maxArmor": [2656.41770347863, -1]
+        }
+      }
+    },
+    {
+      "round": 21,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "normal", "count": 15, "interval": 1.18, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7749999999999999, "startDelay": 17.27, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [191.63024999999996, -1],
+          "armored.maxHp": [219.00599999999997, -1],
+          "armored.maxArmor": [153.30419999999998, -1],
+          "shielded.maxHp": [197.10539999999995, -1],
+          "shielded.maxShield": [229.95629999999994, -1],
+          "fast.maxHp": [120.45329999999998, -1],
+          "tank.maxHp": [569.4155999999999, -1],
+          "boss.maxHp": [3411.0184499999996, -1],
+          "shieldBoss.maxHp": [4489.623, -1],
+          "shieldBoss.maxShield": [1971.0539999999996, -1],
+          "forgeBoss.maxHp": [4161.114, -1],
+          "forgeBoss.maxArmor": [2847.0779999999995, -1]
+        }
+      }
+    },
+    {
+      "round": 22,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7749999999999999, "startDelay": 10.35, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.7749999999999999, "startDelay": 14.975, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [205.38421656919544, -1],
+          "armored.maxHp": [234.72481893622336, -1],
+          "armored.maxArmor": [164.30737325535634, -1],
+          "shielded.maxHp": [211.25233704260103, -1],
+          "shielded.maxShield": [246.46105988303452, -1],
+          "fast.maxHp": [129.09865041492287, -1],
+          "tank.maxHp": [610.2845292341807, -1],
+          "boss.maxHp": [3655.839054931679, -1],
+          "forgeBoss.maxHp": [4459.771559788244, -1],
+          "forgeBoss.maxArmor": [3051.422646170904, -1]
+        }
+      }
+    },
+    {
+      "round": 23,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.18, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.7749999999999999, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 5.4, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [220.12535294267053, -1],
+          "armored.maxHp": [251.57183193448063, -1],
+          "armored.maxArmor": [176.10028235413643, -1],
+          "tank.maxHp": [654.0867630296495, -1],
+          "boss.maxHp": [3918.231282379536, -1],
+          "shieldBoss.maxShield": [2264.146487410326, -1],
+          "forgeBoss.maxHp": [4779.864806755132, -1],
+          "forgeBoss.maxArmor": [3270.433815148248, -1]
+        }
+      }
+    },
+    {
+      "round": 24,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 13, "interval": 1.16, "startDelay": 3.45, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.7749999999999999, "startDelay": 18.119999999999997, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [235.92451171538957, -2],
+          "armored.maxHp": [269.62801338901664, -1],
+          "armored.maxArmor": [188.73960937231163, -1],
+          "shielded.maxHp": [242.66521205011497, -1],
+          "fast.maxHp": [148.29540736395916, -1],
+          "shieldBoss.maxHp": [5527.3742744748415, -1],
+          "shieldBoss.maxShield": [2426.65212050115, -1],
+          "forgeBoss.maxHp": [5122.932254391316, -1]
+        }
+      }
+    },
+    {
+      "round": 25,
+      "previewText": "고밀도 압축",
+      "clearRewardGold": 98,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 9, "interval": 0.7749999999999999, "startDelay": 11.15, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 3, "interval": 1.5, "startDelay": 17.700000000000003, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [252.85763081838735, -1],
+          "armored.maxArmor": [202.2861046547099, -1],
+          "shielded.maxHp": [260.08213455605556, -1],
+          "fast.maxHp": [158.93908222870064, -1],
+          "tank.maxHp": [751.3483887174938, -1],
+          "boss.maxHp": [4500.8658285672955, -1],
+          "shieldBoss.maxHp": [5924.093064887933, -1],
+          "shieldBoss.maxShield": [2600.821345560556, -1],
+          "forgeBoss.maxHp": [5490.62284062784, -1],
+          "forgeBoss.maxArmor": [3756.7419435874694, -1]
+        }
+      }
+    },
+    {
+      "round": 26,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "normal", "count": 16, "interval": 1.16, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 18.15, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [271.0060985109468, -1],
+          "armored.maxHp": [309.72125544108206, -1],
+          "armored.maxArmor": [216.8048788087574, -1],
+          "shielded.maxHp": [278.74912989697384, -1],
+          "fast.maxHp": [170.34669049259512, -1],
+          "tank.maxHp": [805.2752641468131, -1],
+          "boss.maxHp": [4823.908553494853, -1],
+          "shieldBoss.maxHp": [6349.285736542181, -1],
+          "shieldBoss.maxShield": [2787.491298969738, -1],
+          "forgeBoss.maxHp": [5884.703853380559, -1],
+          "forgeBoss.maxArmor": [4026.376320734066, -2]
+        }
+      }
+    },
+    {
+      "round": 27,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 11.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 16.91, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "armored.maxArmor": [232.36571565562332, -1],
+          "boss.maxHp": [5170.13717333762, -1],
+          "shieldBoss.maxShield": [2987.559201286586, -1],
+          "forgeBoss.maxHp": [6307.069424938348, -1]
+        }
+      }
+    },
+    {
+      "round": 28,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.16, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.76, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 5.4, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [311.304259553689, -1],
+          "armored.maxHp": [355.7762966327874, -1],
+          "armored.maxArmor": [249.04340764295117, -2],
+          "shielded.maxHp": [320.1986669695087, -1],
+          "shielded.maxShield": [373.56511146442676, -1],
+          "fast.maxHp": [195.67696314803308, -1],
+          "shieldBoss.maxHp": [7293.414080972142, -2],
+          "shieldBoss.maxShield": [3201.9866696950867, -1],
+          "forgeBoss.maxHp": [6759.749636022961, -2]
+        }
+      }
+    },
+    {
+      "round": 29,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 14, "interval": 1.16, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.76, "startDelay": 20.83, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [333.6476441641541, -1],
+          "armored.maxHp": [381.3115933304618, -1],
+          "tank.maxHp": [991.4101426592006, -1],
+          "boss.maxHp": [5938.928066121943, -1],
+          "shieldBoss.maxHp": [7816.887663274467, -1]
+        }
+      }
+    },
+    {
+      "round": 30,
+      "previewText": "보스 호위",
+      "clearRewardGold": 160,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 3.45, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 9.21, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 6, "interval": 1.0, "startDelay": 10.110000000000001, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [357.59469085289254, -1],
+          "armored.maxHp": [408.67964668902, -1],
+          "shielded.maxHp": [367.811682020118, -1],
+          "shielded.maxShield": [429.113629023471, -1],
+          "fast.maxHp": [224.77380567896103, -2],
+          "boss.maxHp": [6365.185497181487, -1],
+          "shieldBoss.maxHp": [8377.93275712491, -1],
+          "shieldBoss.maxShield": [3678.11682020118, -1],
+          "forgeBoss.maxHp": [7764.91328709138, -1],
+          "forgeBoss.maxArmor": [5312.83540695726, -1]
+        }
+      }
+    },
+    {
+      "round": 31,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "normal", "count": 17, "interval": 1.14, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 18.99, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [383.2604999999999, -1],
+          "armored.maxHp": [438.01199999999994, -1],
+          "armored.maxArmor": [306.60839999999996, -1],
+          "shielded.maxHp": [394.2107999999999, -1],
+          "shielded.maxShield": [459.9125999999999, -1],
+          "fast.maxHp": [240.90659999999997, -1],
+          "tank.maxHp": [1138.8311999999999, -1],
+          "boss.maxHp": [6822.036899999999, -1],
+          "shieldBoss.maxHp": [8979.246, -1],
+          "shieldBoss.maxShield": [3942.1079999999993, -1],
+          "forgeBoss.maxHp": [8322.228, -1],
+          "forgeBoss.maxArmor": [5694.155999999999, -1]
+        }
+      }
+    },
+    {
+      "round": 32,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.745, "startDelay": 12.85, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.745, "startDelay": 18.07, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [410.7684331383909, -1],
+          "armored.maxHp": [469.4496378724467, -1],
+          "armored.maxArmor": [328.6147465107127, -1],
+          "shielded.maxHp": [422.50467408520205, -1],
+          "shielded.maxShield": [492.92211976606904, -1],
+          "fast.maxHp": [258.19730082984574, -1],
+          "tank.maxHp": [1220.5690584683614, -1],
+          "boss.maxHp": [7311.678109863358, -1],
+          "forgeBoss.maxHp": [8919.543119576489, -1],
+          "forgeBoss.maxArmor": [6102.845292341808, -1]
+        }
+      }
+    },
+    {
+      "round": 33,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "normal", "count": 14, "interval": 1.14, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 9, "interval": 0.745, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 5.4, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [440.25070588534106, -1],
+          "armored.maxHp": [503.14366386896126, -1],
+          "armored.maxArmor": [352.20056470827285, -1],
+          "tank.maxHp": [1308.173526059299, -1],
+          "boss.maxHp": [7836.462564759072, -1],
+          "shieldBoss.maxShield": [4528.292974820652, -1],
+          "forgeBoss.maxHp": [9559.729613510264, -1],
+          "forgeBoss.maxArmor": [6540.867630296496, -1]
+        }
+      }
+    },
+    {
+      "round": 34,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 15, "interval": 1.16, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.745, "startDelay": 21.99, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [471.84902343077914, -2],
+          "armored.maxHp": [539.2560267780333, -1],
+          "armored.maxArmor": [377.47921874462327, -1],
+          "shielded.maxHp": [485.33042410022995, -1],
+          "fast.maxHp": [296.5908147279183, -1],
+          "shieldBoss.maxHp": [11054.748548949683, -1],
+          "shieldBoss.maxShield": [4853.3042410023, -1],
+          "forgeBoss.maxHp": [10245.864508782632, -1]
+        }
+      }
+    },
+    {
+      "round": 35,
+      "previewText": "고밀도 압축",
+      "clearRewardGold": 118,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 11, "interval": 0.745, "startDelay": 13.31, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 4, "interval": 1.5, "startDelay": 21.110000000000003, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [505.7152616367747, -1],
+          "armored.maxArmor": [404.5722093094198, -1],
+          "shielded.maxHp": [520.1642691121111, -1],
+          "fast.maxHp": [317.8781644574013, -1],
+          "tank.maxHp": [1502.6967774349876, -1],
+          "boss.maxHp": [9001.731657134591, -1],
+          "shieldBoss.maxHp": [11848.186129775866, -1],
+          "shieldBoss.maxShield": [5201.642691121112, -1],
+          "forgeBoss.maxHp": [10981.24568125568, -1],
+          "forgeBoss.maxArmor": [7513.483887174939, -1]
+        }
+      }
+    },
+    {
+      "round": 36,
+      "previewText": "기준 혼합",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "normal", "count": 18, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 19.790000000000003, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [542.0121970218936, -1],
+          "armored.maxHp": [619.4425108821641, -1],
+          "armored.maxArmor": [433.6097576175148, -1],
+          "shielded.maxHp": [557.4982597939477, -1],
+          "fast.maxHp": [340.69338098519023, -1],
+          "tank.maxHp": [1610.5505282936263, -1],
+          "boss.maxHp": [9647.817106989705, -1],
+          "shieldBoss.maxHp": [12698.571473084363, -1],
+          "shieldBoss.maxShield": [5574.982597939476, -1],
+          "forgeBoss.maxHp": [11769.407706761118, -1],
+          "forgeBoss.maxArmor": [8052.752641468132, -2]
+        }
+      }
+    },
+    {
+      "round": 37,
+      "previewText": "빠른 적 러시",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.25, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 14.1, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 19.96, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "armored.maxArmor": [464.73143131124664, -1],
+          "boss.maxHp": [10340.27434667524, -1],
+          "shieldBoss.maxShield": [5975.118402573172, -1],
+          "forgeBoss.maxHp": [12614.138849876696, -1]
+        }
+      }
+    },
+    {
+      "round": 38,
+      "previewText": "겹침 압박",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "normal", "count": 15, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 10, "interval": 0.73, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 5.4, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [622.608519107378, -1],
+          "armored.maxHp": [711.5525932655748, -1],
+          "armored.maxArmor": [498.08681528590233, -2],
+          "shielded.maxHp": [640.3973339390174, -1],
+          "shielded.maxShield": [747.1302229288535, -1],
+          "fast.maxHp": [391.35392629606616, -1],
+          "shieldBoss.maxHp": [14586.828161944284, -2],
+          "shieldBoss.maxShield": [6403.973339390173, -1],
+          "forgeBoss.maxHp": [13519.499272045921, -2]
+        }
+      }
+    },
+    {
+      "round": 39,
+      "previewText": "탱커 돌파",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "tank", "count": 5, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 16, "interval": 1.16, "startDelay": 6.55, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.73, "startDelay": 24.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [667.2952883283082, -1],
+          "armored.maxHp": [762.6231866609236, -1],
+          "tank.maxHp": [1982.8202853184011, -1],
+          "boss.maxHp": [11877.856132243885, -1],
+          "shieldBoss.maxHp": [15633.775326548934, -1]
+        }
+      }
+    },
+    {
+      "round": 40,
+      "previewText": "보스 호위",
+      "clearRewardGold": 190,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 11.309999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 7, "interval": 1.0, "startDelay": 12.209999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ],
+      "durabilityOrder": "base-round-stage",
+      "compatibility": {
+        "durabilityUlps": {
+          "normal.maxHp": [715.1893817057851, -1],
+          "armored.maxHp": [817.35929337804, -1],
+          "shielded.maxHp": [735.623364040236, -1],
+          "shielded.maxShield": [858.227258046942, -1],
+          "fast.maxHp": [449.54761135792205, -2],
+          "boss.maxHp": [12730.370994362975, -1],
+          "shieldBoss.maxHp": [16755.86551424982, -1],
+          "shieldBoss.maxShield": [7356.23364040236, -1],
+          "forgeBoss.maxHp": [15529.82657418276, -1],
+          "forgeBoss.maxArmor": [10625.67081391452, -1]
+        }
+      }
+    }
+  ]
+}

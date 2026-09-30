@@ -80,8 +80,17 @@ func _load_map() -> void:
 	units.clear()
 	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(design_root.path_join("maps.json")))
 	map = {}
-	for item: Dictionary in source.maps:
-		if item.chapterStage == stage: map = item.duplicate(true)
+	assert(source.get("view") == "chapter-expansion-maps" and source.get("chapter") == 1)
+	var source_root := design_root.get_base_dir().get_base_dir().path_join("godot/content/source/stages")
+	for stage_id in source.stageIds:
+		var source_path := source_root.path_join("%03d.json" % int(stage_id))
+		var item: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(source_path))
+		if item.design.chapterStage == stage:
+			# Design annotations cannot override editable map geometry.
+			map = item.design.duplicate(true)
+			map.merge(item.map, true)
+			map.name = item.name
+			map.teleportPairs = item.map.get("teleportPairs", []).duplicate(true)
 	assert(not map.is_empty())
 	map.columns = int(map.columns)
 	map.rows = int(map.rows)
@@ -90,6 +99,20 @@ func _load_map() -> void:
 	for pair: Dictionary in map.teleportPairs:
 		for role in ["entrance", "exit"]: pair[role] = [int(pair[role][0]), int(pair[role][1])]
 	assert(Teleports.validate_map(map).is_empty())
+	# Geometry-derived summaries follow edited source paths, never old annotations.
+	map.pathTiles = map.path.size()
+	map.travelEdges = map.path.size() - 1
+	var jumps := {}
+	for pair: Dictionary in map.teleportPairs:
+		jumps[map.path.find(pair.entrance)] = map.path.find(pair.exit)
+	var walking_edges := 0
+	var path_index := 0
+	while path_index < map.path.size() - 1:
+		if jumps.has(path_index): path_index = int(jumps[path_index])
+		else:
+			walking_edges += 1
+			path_index += 1
+	map.walkingEdges = walking_edges
 	assert(battlefield.build_terrain(map))
 	_load_dressing()
 	var base_nodes := terrain.get_child_count()

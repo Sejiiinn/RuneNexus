@@ -12,7 +12,10 @@ TARGET=HERE/'chapter2-five-map-concepts.blend'
 p=argparse.ArgumentParser();p.add_argument('--regenerate',action='store_true');p.add_argument('--render-only',action='store_true');p.add_argument('--stage');args=p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
 if not bpy.app.background:raise RuntimeError('Use independent background Blender')
 if TARGET.exists() and not (args.regenerate or args.render_only):raise RuntimeError('Editable source exists; use --render-only or --regenerate')
-MAPS=json.loads((HERE.parent/'maps.json').read_text())['maps']
+import sys
+sys.path.insert(0,str(ROOT/'scripts'))
+from content_design_views import load_design_view
+MAPS=load_design_view(HERE.parent/'maps.json')['maps']
 if args.stage:MAPS=[s for s in MAPS if s['chapterStage']==args.stage]
 if args.render_only:
  bpy.ops.wm.open_mainfile(filepath=str(TARGET))

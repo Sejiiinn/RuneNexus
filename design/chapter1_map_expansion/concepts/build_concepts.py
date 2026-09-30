@@ -8,7 +8,10 @@ HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[2]
 if not bpy.app.background: raise RuntimeError('Use independent background Blender')
 bpy.ops.wm.read_factory_settings(use_empty=True)
-MAPS=json.loads((HERE.parent/'maps.json').read_text())['maps']
+import sys
+sys.path.insert(0,str(ROOT/'scripts'))
+from content_design_views import load_design_view
+MAPS=load_design_view(HERE.parent/'maps.json')['maps']
 PREVIEW_STAGE=os.environ.get('CONCEPT_STAGE')
 if PREVIEW_STAGE:MAPS=[m for m in MAPS if m['chapterStage']==PREVIEW_STAGE]
 if any(m.get('teleportPairs') for m in MAPS):

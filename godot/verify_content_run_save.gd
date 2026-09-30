@@ -136,7 +136,7 @@ func _initialize() -> void:
 			var expected: Dictionary = expected_values[index+1]
 			check(pending.diamondReward == expected.diamondReward and pending.laneOffsetRatio == expected.laneOffsetRatio and pending.visualPhase == expected.visualPhase,"pending suffix uses real per-type seeded rules")
 			carrier_found = carrier_found or pending.diamondReward > 0
-			if pending.type in catalog.data.randomization.bossTypes:
+			if pending.type in catalog.randomization().bossTypes:
 				boss_found = true
 				check(pending.diamondReward == 0,"boss cannot carry diamonds")
 		check(carrier_found and boss_found,"real seeded sample includes carrier and boss")
@@ -165,8 +165,8 @@ func _initialize() -> void:
 	quit(0 if failures == 0 else 1)
 
 func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
-	for type in service.catalog.data.turrets:
-		var allowed: bool = "light" in service.catalog.data.turrets[type].configuration.statInput.definition.attackTags
+	for type in service.catalog.turret_types():
+		var allowed: bool = "light" in service.catalog.turret_definition(type).attackTags
 		var legacy := saved.duplicate(true)
 		legacy.activeRun.turrets[0].type = type
 		legacy.activeRun.turrets[0].slotLimit = 3
@@ -213,14 +213,15 @@ func _ordinal_durability_save_cases(current, growth) -> void:
 	# These save fields keep their original values; no save schema is changed.
 	var old = Catalog.new()
 	check(old.load_catalog(),"legacy content input loads")
-	old.data = current.data.duplicate(true)
-	for stage in old.data.stages:
+	var fixture: Dictionary = current.domain_snapshot()
+	for stage in fixture.stages:
 		if stage.id > 15: continue
 		for wave in stage.waves:
 			var factor := pow(2.0,(wave.round-1)/10.0) * pow(1.15,stage.id-1)
-			for kind in old.data.enemyDefinitions:
+			for kind in fixture.enemyDefinitions:
 				for field in ["maxHp","maxShield","maxArmor"]:
-					wave.enemyDurability[kind][field] = old.data.enemyDefinitions[kind][field] * factor
+					wave.enemyDurability[kind][field] = fixture.enemyDefinitions[kind][field] * factor
+	check(old.load_fixture_content(fixture),"historical durability fixture loads")
 	for stage_id in [6,11]:
 		var stage: int = stage_id-1
 		var round_index := 9
@@ -270,18 +271,18 @@ func _ordinal_durability_save_cases(current, growth) -> void:
 			var live: Dictionary = restored.enemies[str(100000+index)]
 			for field in ["maxHp","hp","shield","armor","distanceTravelled","slowInstances"]:
 				check(live[field] == before[field],"old live retained "+field)
-			var definition: Dictionary = current.data.stages[stage].waves[round_index].enemyDurability[before.type]
+			var definition: Dictionary = current.wave_durability(stage,round_index,before.type)
 			for field in ["maxShield","maxArmor"]:
 				check(not before.has(field) and live[field] == definition[field],"v2 omitted derived maximum "+field)
 		for index in range(prepared.bootstrap.wave.spawnQueue.size()):
 			var pending: Dictionary = prepared.bootstrap.wave.spawnQueue[index]
 			check(pending.delay == saved.activeRun.spawnQueue[index].delay and pending.enemyType == saved.activeRun.spawnQueue[index].enemyType,"pending type/delay retained")
-			var expected: Dictionary = current.data.stages[stage].waves[round_index].enemyDurability[pending.enemyType]
+			var expected: Dictionary = current.wave_durability(stage,round_index,pending.enemyType)
 			for field in ["maxHp","maxShield","maxArmor"]: check(pending.enemy[field] == expected[field],"pending latest "+field)
 		var next_wave: Dictionary = current.wave(stage,prepared.nextRound,200000,{"tileSize":48.0})
 		check(next_wave.id == round_index+2,"next wave identity")
 		for pending in next_wave.spawnQueue:
-			var expected: Dictionary = current.data.stages[stage].waves[round_index+1].enemyDurability[pending.enemyType]
+			var expected: Dictionary = current.wave_durability(stage,round_index+1,pending.enemyType)
 			for field in ["maxHp","maxShield","maxArmor"]: check(pending.enemy[field] == expected[field],"next latest "+field)
 		var core: Dictionary = growth.core_config(prepared.state,stage,round_index,current)
-		check(core.normalMaxHp == current.data.stages[stage].waves[round_index].enemyDurability.normal.maxHp,"core current normal reference")
+		check(core.normalMaxHp == current.wave_durability(stage,round_index,"normal").maxHp,"core current normal reference")

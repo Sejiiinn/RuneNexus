@@ -11,7 +11,8 @@ import unittest
 from unittest.mock import patch
 
 from apply_stage_expansion import ROOT, materialize
-from stage_progression import stage_ordinals
+from stage_progression import load_progression, stage_ordinals
+from content_runtime_format import load_compiled_content
 import verify_godot_content
 
 FIELDS = ('maxHp', 'maxShield', 'maxArmor')
@@ -20,7 +21,7 @@ FIELDS = ('maxHp', 'maxShield', 'maxArmor')
 class StageDurabilityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = json.loads((ROOT / 'godot/content/game_content.json').read_text())
+        cls.content = load_compiled_content(ROOT / 'godot/content/game_content.json')
         cls.ordinals = stage_ordinals()
 
     def verify_content(self, game):
@@ -79,10 +80,9 @@ class StageDurabilityTests(unittest.TestCase):
                     wave['enemyDurability'][kind] = {f: float(definition[f] * factor) for f in FIELDS}
         repaired = materialize(legacy)
         self.verify_content(repaired)
+        self.assertEqual(repaired, self.content)
         for old, new in zip(legacy['stages'], repaired['stages']):
             for a, b in zip(old['waves'], new['waves']):
-                if old['id'] <= 5 or old['id'] >= 16:
-                    self.assertEqual(a['enemyDurability'], b['enemyDurability'])
                 a.pop('enemyDurability')
                 b.pop('enemyDurability')
         self.assertEqual(legacy, repaired)
@@ -113,10 +113,12 @@ class StageDurabilityTests(unittest.TestCase):
     def test_progression_authority_rejects_duplicate_or_missing_ids(self):
         with tempfile.TemporaryDirectory(prefix='stage-order-test-') as temp:
             root = Path(temp)
-            path = root / 'godot/content/stage_progression.gd'
+            path = root / 'godot/content/source/progression.json'
             path.parent.mkdir(parents=True)
             for order in (list(range(1, 25)), list(range(1, 25)) + [24]):
-                path.write_text('const ORDER := ' + repr(order) + '\n')
+                registry = copy.deepcopy(load_progression())
+                registry['order'] = order
+                path.write_text(json.dumps(registry))
                 with self.assertRaises(ValueError):
                     stage_ordinals(root)
 

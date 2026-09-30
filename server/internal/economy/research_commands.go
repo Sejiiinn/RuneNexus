@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	stageprogression "github.com/Sejiiinn/RuneNexus/server/internal/progression"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -416,10 +417,10 @@ func researchSlotEligible(progressionJSON []byte) bool {
 	if json.Unmarshal(progressionJSON, &progression) != nil {
 		return false
 	}
-	if progression.ProgressionVersion < 1 {
-		return intContains(progression.ClearedStageNumbers, 10)
+	if progression.ProgressionVersion < stageprogression.Version {
+		return intContains(progression.ClearedStageNumbers, stageprogression.Requirement("feature", "researchSlotTwo", true))
 	}
-	return intContains(progression.ClearedStageNumbers, 25) || contains(progression.GrandfatherUnlocks, "feature:researchSlotTwo")
+	return intContains(progression.ClearedStageNumbers, stageprogression.Requirement("feature", "researchSlotTwo", false)) || contains(progression.GrandfatherUnlocks, "feature:researchSlotTwo")
 }
 
 func effectAppliedToProgression(effectJSON []byte, progressionJSON []byte) bool {

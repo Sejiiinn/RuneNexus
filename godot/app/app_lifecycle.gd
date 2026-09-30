@@ -90,7 +90,7 @@ func board_tap(tile: Vector2i) -> void:
 func retry_load() -> bool:
 	if services != null and services.updates != null and services.updates.blocked: return false
 	if not startup_blocked: return true
-	if catalog.data.is_empty() or run_domain.growth.data.is_empty():
+	if not catalog.is_loaded() or run_domain.growth.data.is_empty():
 		if not catalog.load_catalog() or not run_domain.growth.load_catalog(): return false
 	# The store may restore a valid backup. If neither file is readable, preserve
 	# both for explicit repair and never mistake damaged data for a new player.
@@ -147,7 +147,7 @@ func start_stage(index: int) -> bool:
 		return false
 	if startup_blocked or index < 0 or index >= stage_count(): return false
 	var progression: Dictionary = progression_inputs if run_domain.state.is_empty() else run_domain.state.progression
-	if not StageProgression.stage_unlocked(progression,int(catalog.stage(index).id)):
+	if not StageProgression.stage_unlocked(progression,catalog.stage_id(index)):
 		checkpoint.message = "아직 잠긴 스테이지입니다"
 		return false
 	if save_failed and not persist_progression(): return false
@@ -321,18 +321,16 @@ func set_auto_start_mode(value: String) -> void:
 func _maybe_auto_start() -> void:
 	if in_lobby or auto_start_mode == "pauseEachRound" or run_domain.state.is_empty(): return
 	if run_domain.state.phase != "preparation" or bool(scene._native_combat.session.get("paused", false)): return
-	if next_round <= 0 or next_round >= stage_source(stage).waves.size(): return
-	if auto_start_mode == "skipBossRounds":
-		for group in stage_source(stage).waves[next_round].groups:
-			if str(group.enemyType).to_lower().contains("boss"): return
+	if next_round <= 0 or next_round >= catalog.wave_count(stage): return
+	if auto_start_mode == "skipBossRounds" and catalog.wave_has_boss(stage, next_round): return
 	start_wave()
 
 func retry_stage() -> bool:
 	return start_stage(stage)
 
 func enter_next() -> void:
-	var ordinal := StageProgression.ordinal_for(int(catalog.stage(stage).id))
-	if ordinal > 0 and ordinal < StageProgression.ORDER.size(): start_stage(int(StageProgression.ORDER[ordinal])-1)
+	var ordinal := StageProgression.ordinal_for(catalog.stage_id(stage))
+	if ordinal > 0 and ordinal < StageProgression.ORDER.size(): start_stage(catalog.stage_index(int(StageProgression.ORDER[ordinal])))
 
 func exit_stage() -> void:
 	show_lobby()

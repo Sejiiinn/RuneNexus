@@ -23,7 +23,7 @@ func _initialize() -> void:
 					check(actual == Stats.stats_at(input,int(input.level)),fixture.name+": exact raw/shared stats scale/core/cleanup")
 	var catalog := Catalog.new()
 	check(catalog.load_catalog(),"catalog")
-	for type in catalog.data.turrets:
+	for type in catalog.turret_types():
 		Stats.clear_shared_cache()
 		var before := Stats.shared_calculation_count
 		var input: Dictionary = catalog.turret(type,{"tileSize":1.0,"statInput":{"level":4}})

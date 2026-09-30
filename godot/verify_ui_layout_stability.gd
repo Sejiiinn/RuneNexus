@@ -171,7 +171,7 @@ func run() -> void:
 	await capture("battle-content-shrunk")
 	print("PASS battle resize and delayed shrink ",tall," -> ",hud.modal_panel.size.y)
 	hud.close_modal(); await create_timer(0.25).timeout
-	hud.menu_panel._portal_details({"previewText":"포탈의 적 출현 정보입니다.","spawnQueue":[]})
+	hud.menu_panel._portal_details({"previewText":"포탈의 적 출현 정보입니다.","enemyCounts":{}},0)
 	await settle()
 	await dimensions(320,568)
 	assert(hud.modal_panel.size.x <= 296.1)

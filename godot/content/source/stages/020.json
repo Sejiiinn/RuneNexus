@@ -1,0 +1,567 @@
+{
+  "id": 20,
+  "name": "초원의 수호문",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 9,
+    "rows": 10,
+    "tileTheme": "chapterOne",
+    "tiles": [
+      "spawn", "path", "path", "path", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "build", "build", "path", "build", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "blocked", "build", "path", "build", "build", "build", "blocked", "blocked",
+      "blocked", "blocked", "blocked", "path", "blocked", "blocked", "blocked", "path", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "build", "build", "build", "path", "blocked",
+      "blocked", "path", "path", "path", "core", "blocked", "blocked", "path", "blocked",
+      "blocked", "path", "build", "build", "build", "blocked", "build", "path", "blocked",
+      "blocked", "path", "build", "build", "blocked", "build", "build", "path", "blocked",
+      "blocked", "path", "blocked", "blocked", "blocked", "blocked", "blocked", "path", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked"
+    ],
+    "path": [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [3, 1],
+      [3, 2],
+      [3, 3],
+      [7, 3],
+      [7, 4],
+      [7, 5],
+      [7, 6],
+      [7, 7],
+      [7, 8],
+      [1, 8],
+      [1, 7],
+      [1, 6],
+      [1, 5],
+      [2, 5],
+      [3, 5],
+      [4, 5]
+    ],
+    "teleportPairs": [
+      {
+        "color": "blue",
+        "entrance": [3, 3],
+        "exit": [7, 3]
+      },
+      {
+        "color": "orange",
+        "entrance": [7, 8],
+        "exit": [1, 8]
+      }
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "일반 복습",
+      "clearRewardGold": 23,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.7, "startDelay": 0.0}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 입문 웨이브의 수량·간격·출현 시각·보상 그대로 유지."}
+    },
+    {
+      "round": 2,
+      "previewText": "일반 추가 복습",
+      "clearRewardGold": 24,
+      "groups": [
+        {"enemyType": "normal", "count": 8, "interval": 1.55, "startDelay": 0.0}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 입문 웨이브의 수량·간격·출현 시각·보상 그대로 유지."}
+    },
+    {
+      "round": 3,
+      "previewText": "일반 2파동 복습",
+      "clearRewardGold": 25,
+      "groups": [
+        {"enemyType": "normal", "count": 5, "interval": 1.4, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 4, "interval": 1.35, "startDelay": 3.2}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 입문 웨이브의 수량·간격·출현 시각·보상 그대로 유지."}
+    },
+    {
+      "round": 4,
+      "previewText": "빠른 적 복습",
+      "clearRewardGold": 26,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.4, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 3, "interval": 0.85, "startDelay": 8.8}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 입문 웨이브의 수량·간격·출현 시각·보상 그대로 유지."}
+    },
+    {
+      "round": 5,
+      "previewText": "탱커 복습",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.7, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 8, "interval": 1.25, "startDelay": 1.6}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 입문 웨이브의 수량·간격·출현 시각·보상 그대로 유지."}
+    },
+    {
+      "round": 6,
+      "previewText": "기준형",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.24, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 14.39}
+      ],
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 7,
+      "previewText": "러시형",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 6.6},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 12.08}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "rush", "queueSource": "existing-0.18s-normalization", "designNote": "빠른 적 1파 마지막 출현에서 2파 첫 출현까지 2.2초 휴지. 일반과 1파는 기존 유지."}
+    },
+    {
+      "round": 8,
+      "previewText": "겹침형",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.24, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 2.2}
+      ],
+      "design": {"pattern": "overlap", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 9,
+      "previewText": "탱커형",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 10, "interval": 1.16, "startDelay": 1.9},
+        {"enemyType": "fast", "count": 3, "interval": 0.82, "startDelay": 13.09}
+      ],
+      "design": {"pattern": "tank", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 10,
+      "previewText": "보스 호위형",
+      "clearRewardGold": 100,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 1.9},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 6.38},
+        {"enemyType": "normal", "count": 4, "interval": 1.0, "startDelay": 7.28}
+      ],
+      "design": {"pattern": "boss", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 탱커→빠른 적→보스 1→후속 일반 호위 구조와 시각 유지."}
+    },
+    {
+      "round": 11,
+      "previewText": "기준형",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.22, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 4, "interval": 0.805, "startDelay": 15.39}
+      ],
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 12,
+      "previewText": "러시형",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.805, "startDelay": 7.85},
+        {"enemyType": "fast", "count": 6, "interval": 0.805, "startDelay": 13.27}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "rush", "queueSource": "existing-0.18s-normalization", "designNote": "빠른 적 1파 마지막 출현에서 2파 첫 출현까지 2.2초 휴지. 일반과 1파는 기존 유지."}
+    },
+    {
+      "round": 13,
+      "previewText": "겹침형",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.22, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.805, "startDelay": 2.2}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "96960f499615920f42419ef84cd94671f2ac4bdc64b973396440b035c6b62ae9",
+        "spawnDelayUlps": {"4": -1}
+      },
+      "design": {"pattern": "overlap", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 14,
+      "previewText": "탱커형",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 11, "interval": 1.16, "startDelay": 1.9},
+        {"enemyType": "fast", "count": 3, "interval": 0.805, "startDelay": 14.25}
+      ],
+      "design": {"pattern": "tank", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 15,
+      "previewText": "압축형",
+      "clearRewardGold": 78,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.08, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.805, "startDelay": 8.99},
+        {"enemyType": "tank", "count": 2, "interval": 1.5, "startDelay": 14.17}
+      ],
+      "design": {"pattern": "compression", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 16,
+      "previewText": "기준형",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "normal", "count": 14, "interval": 1.2, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.79, "startDelay": 16.35}
+      ],
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 17,
+      "previewText": "러시형",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "normal", "count": 8, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.79, "startDelay": 9.1},
+        {"enemyType": "fast", "count": 6, "interval": 0.79, "startDelay": 13.8}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "310c657604d9caddf39ce9b859f81f875f6905ea7878fe3642cb4b52ba3bdfc6",
+        "spawnDelayUlps": {"9": -1, "13": -1, "14": -1, "15": -1, "16": -1, "17": -1, "18": -1}
+      },
+      "design": {"pattern": "rush", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 18,
+      "previewText": "겹침형",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.2, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.79, "startDelay": 2.2},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 5.4}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "469243e48a99b81265381a46a0d3d21673798ce4d6b2a369d0a48a40661565b6",
+        "spawnDelayUlps": {"9": -1, "10": -1}
+      },
+      "design": {"pattern": "overlap", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 19,
+      "previewText": "탱커형",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 12, "interval": 1.16, "startDelay": 2.25},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 15.71},
+        {"enemyType": "fast", "count": 3, "interval": 0.79, "startDelay": 16.41}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "tank", "queueSource": "existing-0.18s-normalization", "designNote": "탱커 ceil(n/2) 선두→일반→남은 탱커→빠른 적. 각 그룹 마지막 출현 후 다음 그룹까지 0.7초."}
+    },
+    {
+      "round": 20,
+      "previewText": "보스 호위형",
+      "clearRewardGold": 130,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.79, "startDelay": 1.9},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 7.05},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 7.95},
+        {"enemyType": "normal", "count": 2, "interval": 1.0, "startDelay": 12.95}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "기존 보스·선행 호위 유지. 후속 일반을 보스+0.9초와 첫 일반 마지막 출현+3초의 2파동으로 분리."}
+    },
+    {
+      "round": 21,
+      "previewText": "기준형",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "normal", "count": 15, "interval": 1.18, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.775, "startDelay": 17.27}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "02f42f688796512c2e09a4dd14dee21aa95af319df1ba8bbf1477b2f4568d240",
+        "spawnDelayUlps": {"19": -1}
+      },
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 22,
+      "previewText": "러시형",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.775, "startDelay": 10.35},
+        {"enemyType": "fast", "count": 7, "interval": 0.775, "startDelay": 14.975}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "ae93c4473342060b5d332082f39731a8e2964a02c574238de91fdc17944e06bd",
+        "spawnDelayUlps": {"11": -1, "12": -1, "20": -1}
+      },
+      "design": {"pattern": "rush", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 23,
+      "previewText": "겹침형",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.18, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.775, "startDelay": 2.2},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 5.4}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "26d2f3c26a8b30f5e3a9b3ec521138299f2444456086d22f490633bdf71b9d22",
+        "spawnDelayUlps": {"9": -1, "10": -1, "13": -1}
+      },
+      "design": {"pattern": "overlap", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 24,
+      "previewText": "탱커형",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 13, "interval": 1.16, "startDelay": 2.25},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 16.87},
+        {"enemyType": "fast", "count": 4, "interval": 0.775, "startDelay": 17.57}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "tank", "queueSource": "existing-0.18s-normalization", "designNote": "탱커 ceil(n/2) 선두→일반→남은 탱커→빠른 적. 각 그룹 마지막 출현 후 다음 그룹까지 0.7초."}
+    },
+    {
+      "round": 25,
+      "previewText": "압축형",
+      "clearRewardGold": 98,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.08, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 9, "interval": 0.775, "startDelay": 11.15},
+        {"enemyType": "tank", "count": 3, "interval": 1.5, "startDelay": 17.7}
+      ],
+      "queuePrecision": 9,
+      "compatibility": {
+        "queueInputsDigest": "01e1c2ffed03e8f891f59e63a36d8ff027aa2fde6e48d02c24d71b3a4e4f7057",
+        "spawnDelayUlps": {"7": 1, "20": 1, "21": 1, "22": 1}
+      },
+      "design": {"pattern": "compression", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 26,
+      "previewText": "기준형",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "normal", "count": 16, "interval": 1.16, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 18.15}
+      ],
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 27,
+      "previewText": "러시형",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 11.6},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 16.91}
+      ],
+      "design": {"pattern": "rush", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 28,
+      "previewText": "겹침형",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.16, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 8, "interval": 0.76, "startDelay": 6.264},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 8.924}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "overlap", "queueSource": "existing-0.18s-normalization", "designNote": "일반 출현 구간 45% 시점에 빠른 적 시작. 탱커가 있으면 빠른 적 출현 구간 50% 시점에 시작. 겹침형 안에서만 재배치."}
+    },
+    {
+      "round": 29,
+      "previewText": "탱커형",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 14, "interval": 1.16, "startDelay": 5.0},
+        {"enemyType": "fast", "count": 4, "interval": 0.76, "startDelay": 20.83}
+      ],
+      "design": {"pattern": "tank", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 30,
+      "previewText": "보스 호위형",
+      "clearRewardGold": 160,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 3.45},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 9.21},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 10.11},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 15.11}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "기존 보스·선행 호위 유지. 후속 일반을 보스+0.9초와 첫 일반 마지막 출현+3초의 2파동으로 분리."}
+    },
+    {
+      "round": 31,
+      "previewText": "기준형",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "normal", "count": 17, "interval": 1.14, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 18.99}
+      ],
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 32,
+      "previewText": "러시형",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.745, "startDelay": 12.85},
+        {"enemyType": "fast", "count": 8, "interval": 0.745, "startDelay": 18.07}
+      ],
+      "design": {"pattern": "rush", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 33,
+      "previewText": "겹침형",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "normal", "count": 14, "interval": 1.14, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 9, "interval": 0.745, "startDelay": 6.669},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 9.649}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "overlap", "queueSource": "existing-0.18s-normalization", "designNote": "일반 출현 구간 45% 시점에 빠른 적 시작. 탱커가 있으면 빠른 적 출현 구간 50% 시점에 시작. 겹침형 안에서만 재배치."}
+    },
+    {
+      "round": 34,
+      "previewText": "탱커형",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 15, "interval": 1.16, "startDelay": 5.0},
+        {"enemyType": "fast", "count": 4, "interval": 0.745, "startDelay": 21.99}
+      ],
+      "design": {"pattern": "tank", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 35,
+      "previewText": "압축형",
+      "clearRewardGold": 118,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.08, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 11, "interval": 0.745, "startDelay": 13.31},
+        {"enemyType": "tank", "count": 4, "interval": 1.5, "startDelay": 21.11}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "5b9e97d3c68fa61e6670e98780e9181f6128d2afd4dc45ca429bf872e77ca2a7",
+        "spawnDelayUlps": {"24": 1, "25": 1, "26": 1, "27": 1}
+      },
+      "design": {"pattern": "compression", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 36,
+      "previewText": "기준형",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "normal", "count": 18, "interval": 1.12, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 19.79}
+      ],
+      "compatibility": {
+        "queueInputsDigest": "9cb4be77a1ff7413c04d2f06f9ed293cd614e76be2dfd7954dbb04b96066f0e1",
+        "spawnDelayUlps": {"18": 1, "19": 1, "20": 1, "21": 1, "23": 1, "24": 1}
+      },
+      "design": {"pattern": "baseline", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 37,
+      "previewText": "러시형",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.25, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 14.1},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 21.71}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "rush", "queueSource": "existing-0.18s-normalization", "designNote": "빠른 적 1파 마지막 출현에서 2파 첫 출현까지 2.5초 휴지. 일반과 1파는 기존 유지."}
+    },
+    {
+      "round": 38,
+      "previewText": "겹침형",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "normal", "count": 15, "interval": 1.12, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 10, "interval": 0.73, "startDelay": 2.2},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 5.4}
+      ],
+      "design": {"pattern": "overlap", "queueSource": "existing-id5-spawnQueue", "designNote": "기존 1-5 동일 라운드의 그룹 구성과 출현 시각 유지."}
+    },
+    {
+      "round": 39,
+      "previewText": "탱커형",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "tank", "count": 5, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 16, "interval": 1.16, "startDelay": 6.55},
+        {"enemyType": "fast", "count": 5, "interval": 0.73, "startDelay": 25.95}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "tank", "queueSource": "existing-0.18s-normalization", "designNote": "기존 탱커·일반 시각 유지. 마지막 빠른 적 그룹은 일반 마지막 출현+2초에 시작."}
+    },
+    {
+      "round": 40,
+      "previewText": "보스 호위형",
+      "clearRewardGold": 190,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.55, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 5.0},
+        {"enemyType": "boss", "count": 1, "interval": 2.0, "startDelay": 11.31},
+        {"enemyType": "normal", "count": 4, "interval": 1.0, "startDelay": 12.21},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 18.21}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "기존 보스·선행 호위 유지. 후속 일반을 보스+0.9초와 첫 일반 마지막 출현+3초의 2파동으로 분리."}
+    }
+  ],
+  "design": {
+    "chapterStage": "1-10",
+    "intent": "상단 청색 포탈과 하단 주황색 포탈로 두 번 이동해 중앙 코어에 접근한다. 두 포탈 구간 사이의 길 타일을 제거하고 기존 건설 구역은 유지한다.",
+    "buildCells": [
+      [1, 1],
+      [2, 1],
+      [4, 1],
+      [2, 2],
+      [4, 2],
+      [5, 2],
+      [6, 2],
+      [4, 4],
+      [5, 4],
+      [6, 4],
+      [2, 6],
+      [3, 6],
+      [4, 6],
+      [6, 6],
+      [2, 7],
+      [3, 7],
+      [5, 7],
+      [6, 7]
+    ],
+    "pathTiles": 20,
+    "travelEdges": 19,
+    "walkingEdges": 17
+  }
+}

@@ -447,7 +447,7 @@ func _record_text(state: Dictionary,progression: Dictionary,best: int) -> String
 	return "최고 %dR" % best
 
 func _unlocks(body: Node, stage: int) -> void:
-	var items: Array = preload("res://ui/lobby_stages.gd").UNLOCKS.get(stage, [])
+	var items: Array = Progression.unlock_items(stage)
 	if items.is_empty(): return
 	_text(body,"해금 항목",14)
 	var labels: Array[String] = []

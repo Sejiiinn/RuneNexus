@@ -1,0 +1,647 @@
+{
+  "id": 25,
+  "name": "균열의 세 문턱",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 11,
+    "rows": 12,
+    "tileTheme": "chapterTwoRift",
+    "tiles": [
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "spawn", "path", "path", "path", "build", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "blocked", "build", "build", "path", "build", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "blocked", "build", "build", "path", "blocked", "blocked", "blocked", "build", "build", "blocked",
+      "blocked", "blocked", "blocked", "build", "path", "blocked", "blocked", "blocked", "path", "blocked", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "build", "path", "path", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "build", "build", "path", "blocked",
+      "blocked", "blocked", "build", "build", "blocked", "blocked", "blocked", "blocked", "build", "path", "blocked",
+      "blocked", "path", "path", "path", "blocked", "blocked", "blocked", "blocked", "path", "path", "blocked",
+      "blocked", "path", "build", "build", "build", "core", "build", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "path", "path", "path", "path", "path", "build", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked"
+    ],
+    "path": [
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [4, 1],
+      [4, 2],
+      [4, 3],
+      [4, 4],
+      [8, 4],
+      [8, 5],
+      [9, 5],
+      [9, 6],
+      [9, 7],
+      [9, 8],
+      [8, 8],
+      [3, 8],
+      [2, 8],
+      [1, 8],
+      [1, 9],
+      [1, 10],
+      [2, 10],
+      [3, 10],
+      [4, 10],
+      [5, 10],
+      [5, 9]
+    ],
+    "teleportPairs": [
+      {
+        "color": "blue",
+        "entrance": [4, 4],
+        "exit": [8, 4]
+      },
+      {
+        "color": "orange",
+        "entrance": [8, 8],
+        "exit": [3, 8]
+      }
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "보호막·일반 복습",
+      "clearRewardGold": 23,
+      "groups": [
+        {"enemyType": "shielded", "count": 3, "interval": 1.45, "startDelay": 0.0},
+        {"enemyType": "normal", "count": 5, "interval": 1.1, "startDelay": 3.35}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 복습 라운드를 그룹·실행 큐·보상까지 그대로 유지."}
+    },
+    {
+      "round": 2,
+      "previewText": "보호막·빠름 복습",
+      "clearRewardGold": 24,
+      "groups": [
+        {"enemyType": "shielded", "count": 4, "interval": 1.4, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.78, "startDelay": 2.0}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 복습 라운드를 그룹·실행 큐·보상까지 그대로 유지."}
+    },
+    {
+      "round": 3,
+      "previewText": "보호막 2열 복습",
+      "clearRewardGold": 25,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.34, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.28, "startDelay": 2.5}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 복습 라운드를 그룹·실행 큐·보상까지 그대로 유지."}
+    },
+    {
+      "round": 4,
+      "previewText": "일반·빠름·보호막 복습",
+      "clearRewardGold": 26,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.05, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 1.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3, "startDelay": 4.0}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 복습 라운드를 그룹·실행 큐·보상까지 그대로 유지."}
+    },
+    {
+      "round": 5,
+      "previewText": "보호막·탱커 복습",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.32, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.28, "startDelay": 5.63},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 11.35}
+      ],
+      "design": {"pattern": "intro", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 복습 라운드를 그룹·실행 큐·보상까지 그대로 유지."}
+    },
+    {
+      "round": 6,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "shielded", "count": 4, "interval": 1.38, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 4.489999999999999},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 3, "interval": 1.24, "startDelay": 7.999999999999999},
+        {"enemyType": "normal", "count": 3, "interval": 1.24, "startDelay": 12.28}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 7,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "fast", "count": 8, "interval": 0.82, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.38, "startDelay": 6.089999999999999},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 6.489999999999999}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 8,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.38, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.38, "startDelay": 7.249999999999999},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 11.739999999999998},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 6.45}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 9,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.38, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 7.27}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 10,
+      "previewText": "보호막 보스",
+      "clearRewardGold": 100,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.38, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 1.6},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.6, "startDelay": 6.52},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 7.42},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 8.02},
+        {"enemyType": "normal", "count": 2, "interval": 1.0, "startDelay": 11.82}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "보스 1마리 유지. 보스 후속 일반을 2파동으로 나누고 첫 파동 뒤 1.8초 휴지."}
+    },
+    {
+      "round": 11,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.3599999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 5.789999999999999},
+        {"enemyType": "fast", "count": 4, "interval": 0.8049999999999999, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 4, "interval": 1.22, "startDelay": 9.259999999999998},
+        {"enemyType": "normal", "count": 3, "interval": 1.22, "startDelay": 14.72}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 12,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "fast", "count": 9, "interval": 0.8049999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 6.789999999999999},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 7.1899999999999995}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 13,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3599999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 8.51},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 12.94},
+        {"enemyType": "fast", "count": 4, "interval": 0.8049999999999999, "startDelay": 7.71}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 14,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.3599999999999999, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 5, "interval": 0.8049999999999999, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 8.549999999999999}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 15,
+      "previewText": "혼합",
+      "clearRewardGold": 78,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3599999999999999, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.8049999999999999, "startDelay": 1.4},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 6.58},
+        {"enemyType": "normal", "count": 6, "interval": 1.04, "startDelay": 8.51}
+      ],
+      "design": {"pattern": "0", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 16,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.3399999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 7.049999999999999},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 4, "interval": 1.2, "startDelay": 11.819999999999999},
+        {"enemyType": "normal", "count": 4, "interval": 1.2, "startDelay": 17.22}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 17,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "fast", "count": 10, "interval": 0.7899999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3399999999999999, "startDelay": 7.459999999999999},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 7.859999999999999}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 18,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.3399999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3399999999999999, "startDelay": 9.729999999999999},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 15.439999999999998},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 8.93}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 19,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "normal", "count": 8, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.3399999999999999, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 8.45}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 20,
+      "previewText": "보호막 보스",
+      "clearRewardGold": 130,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3399999999999999, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 1.6},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.6, "startDelay": 9.04},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 9.94},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 10.54},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 14.34}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "보스 1마리 유지. 보스 후속 일반을 2파동으로 나누고 첫 파동 뒤 1.8초 휴지."}
+    },
+    {
+      "round": 21,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3199999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 8.27},
+        {"enemyType": "fast", "count": 5, "interval": 0.7749999999999999, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 5, "interval": 1.18, "startDelay": 12.979999999999999},
+        {"enemyType": "normal", "count": 4, "interval": 1.18, "startDelay": 19.5}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 22,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "fast", "count": 11, "interval": 0.7749999999999999, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3199999999999998, "startDelay": 8.1},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 8.5}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 23,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.3199999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3199999999999998, "startDelay": 10.909999999999998},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 16.54},
+        {"enemyType": "fast", "count": 5, "interval": 0.7749999999999999, "startDelay": 10.11}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 24,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 7, "interval": 1.3199999999999998, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 6, "interval": 0.7749999999999999, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 9.669999999999998}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 25,
+      "previewText": "혼합",
+      "clearRewardGold": 98,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.3199999999999998, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 9, "interval": 0.7749999999999999, "startDelay": 1.4},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3199999999999998, "startDelay": 7.949999999999999},
+        {"enemyType": "normal", "count": 8, "interval": 1.04, "startDelay": 10.909999999999998},
+        {"enemyType": "tank", "count": 1, "interval": 1.5, "startDelay": 13.579999999999998}
+      ],
+      "design": {"pattern": "0", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 26,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.2999999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 9.449999999999998},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 5, "interval": 1.16, "startDelay": 15.399999999999997},
+        {"enemyType": "normal", "count": 5, "interval": 1.16, "startDelay": 21.84}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 27,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "fast", "count": 12, "interval": 0.76, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2999999999999998, "startDelay": 8.709999999999999},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 9.11}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 28,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.2999999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2999999999999998, "startDelay": 12.049999999999999},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 18.9},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 11.25}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 29,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 7, "interval": 1.2999999999999998, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 9.549999999999999}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 30,
+      "previewText": "보호막 보스",
+      "clearRewardGold": 160,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.2999999999999998, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 1.6},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.6, "startDelay": 11.399999999999999},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 12.299999999999999},
+        {"enemyType": "normal", "count": 4, "interval": 1.0, "startDelay": 12.899999999999999},
+        {"enemyType": "normal", "count": 3, "interval": 1.0, "startDelay": 17.7},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 13.799999999999999}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "보스 1마리 유지. 보스 후속 일반을 2파동으로 나누고 첫 파동 뒤 1.8초 휴지."}
+    },
+    {
+      "round": 31,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.2799999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 10.589999999999998},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 6, "interval": 1.14, "startDelay": 16.459999999999997},
+        {"enemyType": "normal", "count": 5, "interval": 1.14, "startDelay": 23.96}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 32,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "fast", "count": 13, "interval": 0.745, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2799999999999998, "startDelay": 9.29},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 9.69}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 33,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2799999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2799999999999998, "startDelay": 13.149999999999997},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 19.9},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 12.35}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 34,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 8, "interval": 1.2799999999999998, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 7, "interval": 0.745, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 10.709999999999999}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 35,
+      "previewText": "혼합",
+      "clearRewardGold": 118,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2799999999999998, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 11, "interval": 0.745, "startDelay": 1.4},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2799999999999998, "startDelay": 9.2},
+        {"enemyType": "normal", "count": 10, "interval": 1.04, "startDelay": 13.149999999999997},
+        {"enemyType": "tank", "count": 2, "interval": 1.5, "startDelay": 15.949999999999998}
+      ],
+      "design": {"pattern": "0", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 36,
+      "previewText": "보호막 2열·일반",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.2599999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 11.689999999999998},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 2.2},
+        {"enemyType": "normal", "count": 6, "interval": 1.12, "startDelay": 18.739999999999995},
+        {"enemyType": "normal", "count": 6, "interval": 1.12, "startDelay": 26.14}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "1", "queueSource": "existing-0.18s-normalization", "designNote": "후속 일반을 2파동으로 분리해 후방 화력 비축을 의도. 파동 사이 요청 휴지 1.8초."}
+    },
+    {
+      "round": 37,
+      "previewText": "빠름 선두",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "fast", "count": 14, "interval": 0.73, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 7, "interval": 1.2599999999999998, "startDelay": 9.84},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 10.24}
+      ],
+      "design": {"pattern": "2", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 38,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "shielded", "count": 12, "interval": 1.2599999999999998, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 7, "interval": 1.2599999999999998, "startDelay": 14.209999999999997},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 22.119999999999997},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 13.41}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "3", "queueSource": "existing-0.18s-normalization", "designNote": "빠름을 둘째 보호막병 열 직전부터 투입해 두 포탈 출구 대비를 의도."}
+    },
+    {
+      "round": 39,
+      "previewText": "일반·보호막 겹침",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.06, "startDelay": 0.0},
+        {"enemyType": "shielded", "count": 8, "interval": 1.2599999999999998, "startDelay": 1.4},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 2.2},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 10.569999999999999}
+      ],
+      "design": {"pattern": "4", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
+    },
+    {
+      "round": 40,
+      "previewText": "보호막 보스",
+      "clearRewardGold": 190,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2599999999999998, "startDelay": 0.0},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 1.6},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.6, "startDelay": 13.599999999999998},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 14.499999999999998},
+        {"enemyType": "normal", "count": 4, "interval": 1.0, "startDelay": 15.099999999999998},
+        {"enemyType": "normal", "count": 4, "interval": 1.0, "startDelay": 19.9},
+        {"enemyType": "tank", "count": 2, "interval": 1.55, "startDelay": 15.999999999999998}
+      ],
+      "queuePrecision": 9,
+      "design": {"pattern": "boss", "queueSource": "existing-0.18s-normalization", "designNote": "보스 1마리 유지. 보스 후속 일반을 2파동으로 나누고 첫 파동 뒤 1.8초 휴지."}
+    }
+  ],
+  "design": {
+    "chapterStage": "2-10",
+    "role": "two-portals-three-islands",
+    "intent": "청색·주황 두 전송으로 세 개의 독립 암반을 순회한다. 세 구역에 화력을 배분하는 운영을 의도하며, 두 출구 대응과 후반 자원 배분을 종합한다.",
+    "buildCells": [
+      [2, 2],
+      [3, 2],
+      [3, 3],
+      [2, 3],
+      [3, 4],
+      [5, 1],
+      [5, 2],
+      [9, 3],
+      [8, 3],
+      [7, 5],
+      [7, 6],
+      [8, 6],
+      [8, 7],
+      [2, 9],
+      [3, 9],
+      [4, 9],
+      [2, 7],
+      [3, 7],
+      [6, 10],
+      [6, 9]
+    ],
+    "pathTiles": 24,
+    "travelEdges": 23,
+    "walkingEdges": 21,
+    "walkingSegments": [6, 6, 9],
+    "portalGapCells": [
+      [5, 4],
+      [6, 4],
+      [7, 4],
+      [7, 8],
+      [6, 8],
+      [5, 8],
+      [4, 8]
+    ],
+    "tacticalZones": [
+      {
+        "name": "첫 문턱",
+        "purpose": "상단 초입 6칸에서 기본 보호막 대응을 준비한다.",
+        "buildCells": [
+          [2, 2],
+          [3, 2],
+          [3, 3],
+          [2, 3],
+          [3, 4],
+          [5, 1],
+          [5, 2]
+        ]
+      },
+      {
+        "name": "중간 섬",
+        "purpose": "청색 출구부터 주황 입구까지 6칸의 짧은 핵심 교전을 맡는다.",
+        "buildCells": [
+          [9, 3],
+          [8, 3],
+          [7, 5],
+          [7, 6],
+          [8, 6],
+          [8, 7]
+        ]
+      },
+      {
+        "name": "마지막 섬",
+        "purpose": "두 번째 출구 이후 9칸에서 보스와 누적 후속 적을 마무리한다.",
+        "buildCells": [
+          [2, 9],
+          [3, 9],
+          [4, 9],
+          [2, 7],
+          [3, 7],
+          [6, 10],
+          [6, 9]
+        ]
+      }
+    ]
+  }
+}

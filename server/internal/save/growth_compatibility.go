@@ -1,6 +1,10 @@
 package save
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/Sejiiinn/RuneNexus/server/internal/progression"
+)
 
 // Growth progression is stored in schema v2. Version 1 requires generation 3
 // clients; generation 2 remains usable until this account first migrates.
@@ -9,8 +13,8 @@ const (
 	GrowthClientCompatibilityVersion      = 3
 	CurrentGrowthVersion                  = 1
 	ProgressionClientCompatibilityVersion = 4
-	CurrentProgressionVersion             = 1
-	CurrentStageCount                     = 25
+	CurrentProgressionVersion             = progression.Version
+	CurrentStageCount                     = progression.StageCount
 )
 
 func GrowthVersion(progression []byte) int {

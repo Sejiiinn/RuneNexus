@@ -5,6 +5,9 @@ import ast, json, math, struct
 from pathlib import Path
 import bpy
 ROOT=Path(__file__).resolve().parents[2]
+import sys
+sys.path.insert(0,str(ROOT/'scripts'))
+from content_design_views import load_design_view
 if not bpy.app.background:raise RuntimeError('Use independent background Blender')
 path=ROOT/'design/chapter2_3d/optimization/build_tile_variants.py'
 module=ast.parse(path.read_text());nodes=[]
@@ -19,7 +22,7 @@ original_document=json.loads(original_glb[20:20+struct.unpack_from("<I",original
 existing_names={n.get("name", "") for n in original_document["nodes"]}
 def definitions():
     stages={}
-    for spec in json.loads((ROOT/'design/chapter2_map_expansion/maps.json').read_text())['maps']:
+    for spec in load_design_view(ROOT/'design/chapter2_map_expansion/maps.json')['maps']:
         cols,rows=spec['columns'],spec['rows'];tiles=spec['tiles'];occupied={(i%cols,i//cols) for i,t in enumerate(tiles) if t!='blocked'};placements=[]
         for i,kind in enumerate(tiles):
             if kind=='blocked':continue

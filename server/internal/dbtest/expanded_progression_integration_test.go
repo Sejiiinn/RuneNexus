@@ -9,6 +9,7 @@ import (
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
+	"github.com/Sejiiinn/RuneNexus/server/internal/progression"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -22,7 +23,7 @@ func TestExpandedLeaderboardKeepsFixedIDsAndLogicalOrdering(t *testing.T) {
 	if err := tx.QueryRow(ctx, `INSERT INTO economy_commands(account_id,idempotency_key,command_type,request_hash,resulting_revision,authority_epoch,response_payload) VALUES ($1,uuidv7(),'run_settlement',decode(repeat('00',32),'hex'),1,uuidv7(),'{}') RETURNING id`, account).Scan(&command); err != nil {
 		t.Fatal(err)
 	}
-	order := []int32{1, 2, 3, 4, 5, 16, 17, 18, 19, 20, 6, 7, 8, 9, 10, 21, 22, 23, 24, 25, 11, 12, 13, 14, 15}
+	order := progression.OrderedIDs()
 	for i, stage := range order {
 		var ordinal int
 		if err := tx.QueryRow(ctx, `SELECT stage_progression_ordinal($1)`, stage).Scan(&ordinal); err != nil {

@@ -60,8 +60,8 @@ func _mark_finished() -> void:
 func finish(success: bool) -> void:
 	if is_finished(): return
 	state_revision += 1
-	var stage: Dictionary = service.catalog.stage(int(state.stage))
-	state.completedRounds = stage.waves.size() if success else int(state.roundIndex)
+	var stage: Dictionary = service.catalog.stage_summary(int(state.stage))
+	state.completedRounds = stage.waveCount if success else int(state.roundIndex)
 	# Presentation-only comparisons; old v2 terminal saves may omit them.
 	state.lastRunPreviousBestRound = int(state.progression.get("bestRoundsByStage", {}).get(str(stage.id), 0))
 	state.lastRunWasNewBestRound = int(state.completedRounds) > int(state.lastRunPreviousBestRound)
@@ -125,7 +125,7 @@ func collect(runtime) -> Dictionary:
 					if kill_derived.is_empty(): kill_derived = service.derived(state)
 					result = service.award_kill_owned(state, enemy, kill_derived)
 					quest_types.append("killEnemies")
-					if service.catalog.data.enemyDefinitions.get(enemy.type,{}).get("isBoss",false): quest_types.append("killBosses")
+					if service.catalog.enemy_definition(enemy.type).get("isBoss",false): quest_types.append("killBosses")
 			"waveCompleted":
 				if runtime.defense.hp > 0:
 					result = service.complete_wave(state, int(event.waveId))

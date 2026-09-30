@@ -1,34 +1,22 @@
 extends RefCounted
 ## Fixed save IDs and display/progression order are separate contracts.
-const VERSION := 1
-const ORDER := [1,2,3,4,5,16,17,18,19,20,6,7,8,9,10,21,22,23,24,25,11,12,13,14,15]
-const REQUIREMENTS := {
-	"upgrade": {"startingGold":0,"nexusHp":0,"supply":0,"fireTraining":0,"bossBounty":5,"killGold":1,"criticalDamage":4,"physicalDamageTraining":17,"elementalDamageTraining":17,"linkCostOptimization":9,"turretLevelUpOptimization":10},
-	"research": {"researchEfficiency":0,"researchCostEfficiency":0,"emergencySale":1,"turretTargetPriority":2,"criticalChance":4,"gemAttunement":16,"linkMaintenance":18,"crystalRecovery":19,"linkExpansionOne":20,"runUpgradeCostOptimization":6,"runeResonance":8,"waveGoldLimitExpansion":11,"killGoldLimitExpansion":13,"towerDamageLimitExpansion":15},
-	"turret": {"arrow":0,"cannon":0,"magic":0,"frost":0,"sniper":3,"lightning":7},
-	"gem": {"aimSpeed":3,"armorPiercing":21},
-	"core": {"guardianBeam":0,"riftMark":20},
-	"feature": {"researchSlotTwo":25,"researchSlotTwoPreview":23},
-}
-const LEGACY_REQUIREMENTS := {
-	"upgrade": {"startingGold":0,"nexusHp":0,"supply":0,"fireTraining":0,"bossBounty":0,"killGold":1,"criticalDamage":4,"physicalDamageTraining":7,"elementalDamageTraining":7,"linkCostOptimization":9,"turretLevelUpOptimization":9},
-	"research": {"researchEfficiency":0,"researchCostEfficiency":0,"emergencySale":1,"turretTargetPriority":2,"criticalChance":4,"gemAttunement":2,"linkMaintenance":0,"crystalRecovery":5,"linkExpansionOne":5,"runUpgradeCostOptimization":8,"runeResonance":8,"waveGoldLimitExpansion":15,"killGoldLimitExpansion":15,"towerDamageLimitExpansion":15},
-	"turret": {"arrow":0,"cannon":0,"magic":0,"frost":0,"sniper":3,"lightning":6},
-	"gem": {"aimSpeed":3,"armorPiercing":10},
-	"feature": {"researchSlotTwo":10,"researchSlotTwoPreview":8},
-}
+const Registry = preload("res://content/generated_progression.gd")
+const VERSION := Registry.VERSION
+const ORDER := Registry.ORDER
+const REQUIREMENTS := Registry.REQUIREMENTS
+const LEGACY_REQUIREMENTS := Registry.LEGACY_REQUIREMENTS
 static func ordered_ids() -> Array:
 	return ORDER.duplicate()
 static func ordinal_for(id: int) -> int:
 	return ORDER.find(id) + 1
 static func chapter_for(id: int) -> int:
-	if id in range(1,6) or id in range(16,21): return 1
-	if id in range(6,11) or id in range(21,26): return 2
-	return 3 if id in range(11,16) else 0
+	return int(Registry.STAGES.get(id,{}).get("chapter",0))
 static func chapter_stage_for(id: int) -> int:
-	if id <= 15: return (id - 1) % 5 + 1 if id > 0 else 0
-	if id <= 20: return id - 10
-	return id - 15 if id <= 25 else 0
+	return int(Registry.STAGES.get(id,{}).get("chapterStage",0))
+static func unlock_items(id: int) -> Array:
+	return Registry.UNLOCKS.get(id,[]).duplicate(true)
+static func reward_icons(id: int) -> Array:
+	return Registry.REWARD_ICONS.get(id,[]).duplicate()
 static func stage_label(id: int) -> String:
 	return "%d-%d" % [chapter_for(id),chapter_stage_for(id)]
 static func ids_for_chapter(chapter: int) -> Array:
@@ -62,7 +50,7 @@ static func stage_unlocked(p: Dictionary, id: int) -> bool:
 	var ordinal := ordinal_for(id)
 	if ordinal <= 0: return false
 	if id == 1 or id in p.get("unlockedStageIds",[]) or id in p.get("clearedStageNumbers",[]): return true
-	if int(p.get("progressionVersion",0)) < VERSION and id <= clampi(int(p.get("unlockedStageCount",1)),1,15): return true
+	if int(p.get("progressionVersion",0)) < VERSION and id <= clampi(int(p.get("unlockedStageCount",1)),1,Registry.LEGACY_STAGE_COUNT): return true
 	return ORDER[ordinal-2] in p.get("clearedStageNumbers",[])
 static func migrate_progression(p: Dictionary, run_evidence: Dictionary = {}, inventory: Dictionary = {}) -> Dictionary:
 	var out := p.duplicate(true)
@@ -74,7 +62,7 @@ static func migrate_progression(p: Dictionary, run_evidence: Dictionary = {}, in
 	for right in p.get("grandfatherUnlocks",[]):
 		if right is String and not right in rights: rights.append(right)
 	if int(p.get("progressionVersion",0)) < VERSION:
-		for id in range(1,clampi(int(p.get("unlockedStageCount",1)),1,15)+1):
+		for id in range(1,clampi(int(p.get("unlockedStageCount",1)),1,Registry.LEGACY_STAGE_COUNT)+1):
 			if not id in ids: ids.append(id)
 		for kind in REQUIREMENTS:
 			for key in REQUIREMENTS[kind]:
@@ -104,7 +92,7 @@ static func migrate_progression(p: Dictionary, run_evidence: Dictionary = {}, in
 	return out
 static func reward_ordinal(id: int) -> int:
 	# Existing fifteen maps keep their original economy amounts.
-	return id if id <= 15 else ordinal_for(id)
+	return int(Registry.STAGES[id].rewardOrdinal) if Registry.STAGES.has(id) else (id if id <= Registry.LEGACY_STAGE_COUNT else ordinal_for(id))
 
 static func _migrate_growth(p: Dictionary) -> void:
 	if int(p.get("growthVersion",0)) >= 1: return

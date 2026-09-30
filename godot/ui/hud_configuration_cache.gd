@@ -14,17 +14,14 @@ var _derived: Dictionary = {}
 var _source_id := 0
 var _source_revision := -1
 var _context: Array = []
-var _catalog_inputs: Dictionary = {}
 var _stat_entries: Dictionary = {}
 
 # Called before either polling or explicit sync. A new owner/service/catalog must
 # not inherit the previous run's derived configuration or display stats.
 func bind(owner, catalog, service) -> void:
-	var context := [owner.get_instance_id(), catalog.get_instance_id(), service.get_instance_id(), service.growth.get_instance_id()]
-	var inputs := {"turrets":catalog.data.get("turrets", {}), "units":catalog.data.get("units", {})}
-	if context == _context and inputs == _catalog_inputs: return
+	var context := [owner.get_instance_id(), catalog.get_instance_id(), service.get_instance_id(), service.growth.get_instance_id(), catalog.content_revision()]
+	if context == _context: return
 	_context = context
-	_catalog_inputs = inputs.duplicate(true)
 	invalidate()
 
 # Runtime growth state changes are detected by sync. Tools that hot-edit the

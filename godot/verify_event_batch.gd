@@ -26,11 +26,11 @@ func make_session(script = Session):
 	session.service.growth = counted
 	return session
 func runtime_for(session, count: int) -> Dictionary:
-	var enemy_types: Array = session.service.catalog.data.enemyDefinitions.keys()
+	var enemy_types: Array = session.service.catalog.enemy_types()
 	var ordinary: String = enemy_types[0]
 	var boss := ordinary
 	for type in enemy_types:
-		if session.service.catalog.data.enemyDefinitions[type].get("isBoss",false): boss = type
+		if session.service.catalog.enemy_definition(type).get("isBoss",false): boss = type
 	var events: Array = []
 	var enemies := {}
 	for i in range(count):
@@ -48,7 +48,7 @@ func exercise(script = Session) -> Dictionary:
 	var bonus_gold := 0.37
 	var expected_shards: int = snapshot.gemShards
 	for enemy in runtime.enemies.values():
-		var definition: Dictionary = session.service.catalog.data.enemyDefinitions[enemy.type]
+		var definition: Dictionary = session.service.catalog.enemy_definition(enemy.type)
 		var base: int = definition.rewardGold
 		base_gold += base
 		bonus_gold += base * (float(d.killGoldBonusRate) + (float(d.bossBountyBonusRate) if definition.get("isBoss",false) else 0.0))

@@ -1,0 +1,4 @@
+# Runtime snapshots are generated from godot/content/source/.
+godot/content/game_content.json linguist-generated=true
+godot/content/generated_progression.gd linguist-generated=true
+server/internal/progression/generated.go linguist-generated=true

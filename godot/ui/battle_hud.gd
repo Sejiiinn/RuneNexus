@@ -59,7 +59,8 @@ var overlay_key := ""
 var main_buttons := {}
 var speed_buttons := {}
 var _cached_stage_index := -1
-var _cached_stage_source: Dictionary = {}
+var _cached_catalog_revision := -1
+var _cached_stage_map: Dictionary = {}
 var _cached_insets := Vector4.ZERO
 var _insets_valid := false
 var damage_label: Label
@@ -283,10 +284,10 @@ func refresh(polled := false) -> void:
 	shard_label.text = HudNumber.compact(float(state.gemShards),0); shard_label.tooltip_text = str(state.gemShards)
 	resources.text = "전투력 "+HudNumber.compact(total_dps); resources.tooltip_text = "전투력 %.1f" % total_dps
 	for label in [gold_label,shard_label,resources]: label.get_parent().tooltip_text = label.tooltip_text
-	var waves: Array = _stage_source().waves
-	_refresh_intel(state,waves)
+	var wave_count: int = app.catalog.wave_count(app.stage)
+	_refresh_intel(state,wave_count)
 	status.text = "♡ %d/%d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
-	wave_label.text = "웨이브 %d/%d" % [mini(int(state.get("completedRounds",0))+1,waves.size()),waves.size()]
+	wave_label.text = "웨이브 %d/%d" % [mini(int(state.get("completedRounds",0))+1,wave_count),wave_count]
 	hp.max_value = maxf(1,runtime.defense.max_hp); hp.value = runtime.defense.hp
 	for value in speed_buttons:
 		var selected: bool = int(runtime.session.get("speed",1)) == value
@@ -587,19 +588,20 @@ func _error(error: String) -> String:
 	return str({"gold":"골드가 부족합니다.","gemShards":"젬 조각이 부족합니다.","tile":"건설 가능한 칸을 선택하세요.","occupied":"이미 포탑이 있는 칸입니다.","locked":"연구로 해금해야 합니다.","phase":"현재 단계에서는 사용할 수 없습니다.","gem":"이 포탑에 장착할 수 없는 젬입니다.","research":"연구가 필요합니다.","trait":"특성 선택 조건을 확인하세요.","inventory":"보유 젬이 없습니다.","requirement":"강화 조건을 확인하세요.","turret":"포탑을 선택하세요."}.get(error,error))
 
 func _selected_tile() -> String:
-	var map: Dictionary = _stage_source().map
+	var map: Dictionary = _stage_map()
 	var tile: Vector2i = app.selected
 	if tile.x < 0 or tile.y < 0 or tile.x >= int(map.columns) or tile.y >= int(map.rows): return ""
 	return str(map.tiles[tile.y*int(map.columns)+tile.x])
 
 
-func _stage_source() -> Dictionary:
-	# Catalog stage() returns a defensive deep copy of all waves/spawn queues.
-	# HUD readers share one copy until the selected stage changes.
-	if _cached_stage_index != app.stage or _cached_stage_source.is_empty():
+func _stage_map() -> Dictionary:
+	# HUD owns one map copy; wave summaries never expand all stage schedules.
+	var revision: int = app.catalog.content_revision()
+	if _cached_stage_index != app.stage or _cached_catalog_revision != revision or _cached_stage_map.is_empty():
 		_cached_stage_index = app.stage
-		_cached_stage_source = app.stage_source(app.stage)
-	return _cached_stage_source
+		_cached_catalog_revision = revision
+		_cached_stage_map = app.catalog.stage_map(app.stage)
+	return _cached_stage_map
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_IN: _insets_valid = false
@@ -619,25 +621,24 @@ func _read_safe_insets() -> Vector4:
 		return preload("res://ui/lobby_home.gd")._cutout_insets(DisplayServer.get_display_cutouts(),Vector2(screen))*Vector4(ratio.x,ratio.y,ratio.x,ratio.y)
 	return Vector4(area.position.x*ratio.x,area.position.y*ratio.y,(screen.x-area.end.x)*ratio.x,(screen.y-area.end.y)*ratio.y)
 
-func _refresh_intel(state: Dictionary,waves: Array) -> void:
+func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 	var index := int(state.get("completedRounds",0))
 	var key := [index,state.phase,configuration_cache.revision]
 	if intel_key is Array and key == intel_key: return
 	intel_key = key; _clear(enemy_intel)
-	if index >= waves.size(): reward_label.text = "완료"; return
+	if index >= wave_count: reward_label.text = "완료"; return
+	var wave: Dictionary = app.catalog.wave_summary(app.stage,index)
 	var derived: Dictionary = configuration_cache.derived(state,app.run_domain.service)
-	var gold := roundi((int(waves[index].get("clearRewardGold",0))+int(derived.get("waveClearGoldBonus",0)))*float(derived.get("roundClearGoldMultiplier",1)))
+	var gold := roundi((int(wave.get("clearRewardGold",0))+int(derived.get("waveClearGoldBonus",0)))*float(derived.get("roundClearGoldMultiplier",1)))
 	var shard_rewards: Array = app.run_domain.growth.data.get("roundShardRewards",[])
 	var shards := int(shard_rewards[index+1]) if index+1 < shard_rewards.size() else 0
 	enemy_caption.text = "다음 적" if state.phase == "preparation" else "등장 적"
 	reward_label.text = "+%d G · 파편 %d" % [gold,shards]
-	var types := []
-	for entry in waves[index].get("spawnQueue",[]):
-		if entry.enemyType not in types: types.append(entry.enemyType)
+	var types: Array = wave.enemyCounts.keys()
 	for type in types.slice(0,3):
 		var button := _button(enemy_intel,"",func():
 			app.selected = Vector2i(-1,-1)
-			var map: Dictionary = app.stage_source(app.stage).map
+			var map: Dictionary = _stage_map()
 			var tile: int = map.tiles.find("spawn")
 			app.board_tap(Vector2i(tile % int(map.columns),tile / int(map.columns))))
 		button.custom_minimum_size = Vector2(20,24)

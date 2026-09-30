@@ -10,6 +10,9 @@ import shutil
 import subprocess
 import sys
 
+from content_compiler import check_generated
+from compile_progression import compile_progression
+
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build/godot"
 PROJECT = BUILD / "project"
@@ -20,7 +23,10 @@ VERSION = "4.7.2.stable"
 
 def input_digest():
     inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py",
-              ROOT / "scripts/prepare_shared_gltf_textures.py"]
+              ROOT / "scripts/prepare_shared_gltf_textures.py",
+              ROOT / "scripts/content_compiler.py", ROOT / "scripts/content_runtime_format.py",
+              ROOT / "scripts/stage_progression.py",
+              ROOT / "scripts/compile_progression.py"]
     inputs += [ROOT / "assets/images/backgrounds/combat_space_nebula.png",
                ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf",
                ROOT / "assets/fonts/MaterialIcons-Regular.otf", ROOT / "assets/fonts/MaterialIcons_LICENSE.txt"]
@@ -78,6 +84,9 @@ def run(command):
 
 
 def main():
+    # Cached packs must not hide an edited source or a stale generated snapshot.
+    check_generated(ROOT)
+    compile_progression(ROOT, check=True)
     fingerprint = input_digest()
     if PACK.is_file() and STAMP.is_file():
         saved = json.loads(STAMP.read_text())

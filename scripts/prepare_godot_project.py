@@ -11,6 +11,9 @@ import shutil
 import struct
 
 from prepare_shared_gltf_textures import externalize_textures
+from content_compiler import check_generated
+from content_runtime_format import load_compiled_content
+from compile_progression import compile_progression
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,7 +44,7 @@ def app_config() -> dict[str, str]:
 
 def _prepare_battlefield_verification() -> None:
     """생성된 콘텐츠의 맵으로 검증 입력을 준비한다. Dart SDK/소스는 읽지 않는다."""
-    content = json.loads((SOURCE / "content/game_content.json").read_text())
+    content = load_compiled_content(SOURCE / "content/game_content.json")
     frames = []
     chapter_frames = {"chapterOne": [], "chapterTwoRift": [], "chapterThreeForge": []}
     for stage in content["stages"]:
@@ -108,7 +111,7 @@ def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
 
 
 def _environment_stage_ids(theme: str, minimum: int = 1) -> list[int]:
-    content = json.loads((SOURCE / "content/game_content.json").read_text())
+    content = load_compiled_content(SOURCE / "content/game_content.json")
     return [int(stage["id"]) for stage in content["stages"]
             if int(stage["id"]) >= minimum and stage["map"]["tileTheme"] == theme]
 
@@ -190,6 +193,9 @@ def _prepare_combat_background() -> None:
 
 
 def prepare() -> Path:
+    # Check before any asset staging or copy: stale/manual output cannot enter a build.
+    check_generated(ROOT)
+    compile_progression(ROOT, check=True)
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
     required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb", "landmarks.glb")]
@@ -211,7 +217,14 @@ def prepare() -> Path:
         if not path.is_file():
             raise RuntimeError(f"필수 3D 자산 누락: {path.relative_to(ROOT)}")
 
-    shutil.copytree(SOURCE, PROJECT, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".godot"))
+    def ignore_authoring(path, names):
+        return [name for name in names if name == ".godot" or
+                (name == "source" and Path(path) == SOURCE / "content")]
+    # The staged project contains runtime data only; remove old authoring copies.
+    authoring = PROJECT / "content/source"
+    if authoring.exists():
+        shutil.rmtree(authoring)
+    shutil.copytree(SOURCE, PROJECT, dirs_exist_ok=True, ignore=ignore_authoring)
     (PROJECT / "app_config.json").write_text(json.dumps(app_config()) + "\n")
     # 삭제된 스크립트·장면·재질 프리셋이 이전 빌드에 남지 않도록 소스만 동기화.
     for suffix in ("*.gd", "*.gdshader", "*.gdshaderinc", "*.tscn", "*.tres"):

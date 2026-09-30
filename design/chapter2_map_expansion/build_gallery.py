@@ -3,8 +3,11 @@
 import json
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
-maps = json.loads((HERE / 'maps.json').read_text())
-rounds = json.loads((HERE / 'rounds/rounds.json').read_text())
+import sys
+ROOT = HERE.parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+from content_design_views import chapter_views
+maps, rounds = chapter_views(2)
 page = r'''<!doctype html>
 <html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>챕터 2 · 스테이지 16–20 맵과 라운드</title>

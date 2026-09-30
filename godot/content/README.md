@@ -1,12 +1,44 @@
 # 실제 콘텐츠 설정
 
-역할: Godot 전투 콘텐츠 계약. 2026-09-24에 체크인 JSON과 SDK 독립 검사 경로를 확인했다. `game_content.json`과 `growth_content.json`이 현재 수정 원본이며, 빌드 준비는 이 파일을 그대로 복사한다. 이전 Dart 생성기의 수치를 변경하려면 JSON·관련 fixture를 함께 수정하고 [콘텐츠 검사](../../tool/content/README.md)를 실행한다.
+역할: Godot 전투 콘텐츠와 제작 원본 계약. 스테이지·적·포탑·기본 설정의 수정 원본은 [source/](source/)이며, `game_content.json`은 [컴파일러](../../scripts/content_compiler.py)가 만드는 추적 중인 실행 입력이다. `growth_content.json`은 성장 수치의 수정 원본이다. 빌드·검사 준비는 실행 입력의 최신성을 먼저 확인하고 원본 폴더를 제외해 복사한다. 이전 Dart 생성기는 사용하지 않는다.
 
 `content_catalog.gd`는 `save_json.gd`의 타입 보존 JSON 파서를 사용한다. 스테이지·웨이브·적·포탑 정의와 생성 스폰 순서를 보존하고, 기존 `native_combat_runtime.gd` 및 `turret_stat_calculation.gd`에 입력을 조립한다. 정의 수치나 피해 공식을 별도로 작성하지 않는다. `stage()`의 `map.theme`은 renderer가 요구하는 `tileTheme` 별칭이다.
+
+## 원본에서 실행 입력으로 전개
+
+- `source/settings.json`: 단위·기본 지연·방어·확률과 내구도 산식 버전 `ordinal-v1`.
+- `source/enemies.json`, `source/turrets.json`: 기본 정의와 네이티브 입력 템플릿.
+- `source/stages/001.json`~`025.json`: 고정 ID별 맵·최초 보상·40라운드의 그룹·표시 문구·클리어 보상. 그룹은 한 레코드, 타일은 보드 한 행을 한 줄로 기록한다. `spawnQueue`·`enemyDurability`는 원본에 쓰지 않는다.
+- `source/progression.json`: 진행 순서·표시·해금의 공유 원본. [진행 생성기](../../scripts/compile_progression.py)가 Godot·서버 테이블을 만든다.
+
+스폰은 기존 상대 그룹 지연을 절대 요청 시각으로 펼치고 안정 정렬한 뒤 `max(요청 시각, 직전 실제 시각 + 0.18)`로 전개한다. 동시 요청은 그룹·멤버 순서를 유지한다. `queuePrecision: 9`가 있는 웨이브는 승인 당시의 반올림을 사용한다. 내구도는 기존 라운드·진행 순번 산식을 쓰며 `durabilityOrder: base-round-stage`는 과거 곱셈 순서를 보존한다.
+
+두 규칙으로도 남는 역사적 float 차이만 `compatibility`의 작은 ULP 보정으로 기록한다. 스폰 보정은 그룹·반올림·정규화 버전의 타입 보존 digest가 같은 경우만 적용한다. 내구도 보정은 해당 계산값의 float 비트가 기록된 기준값과 같은 경우만 적용한다. 그룹·기본 정의·진행 순번을 바꾸면 이전 보정이 새 설계를 덮어쓰지 않는다. 기존 전체 입력의 타입·float 비트·적 순서는 [간결한 기준 fixture](../../test/fixtures/content_source_baseline.json)와 [원본 회귀 검사](../../scripts/test_content_compiler.py)로 대조한다.
+
+```sh
+python3 scripts/compile_progression.py
+python3 scripts/content_compiler.py
+python3 scripts/content_compiler.py --check
+python3 scripts/verify_godot_content.py
+```
+
+실행 입력은 `schemaVersion: 2`의 내부 저장 형식이다. 제작 원본과 `compile_content()`의 전개 도메인은 기존 명명 필드 및 `schemaVersion: 1`을 유지한다. 각 웨이브는 이름 있는 메타데이터·그룹과 모든 적 종류의 내구도를 보존한다. 맵·적·포탑 템플릿은 기존 구조 그대로다.
+
+정확히 같은 스폰 큐만 `spawnSchedules`에 공유하고 웨이브는 `spawnSchedule`로 참조한다. ID는 큐 내용의 SHA-256이므로 다른 웨이브를 편집해도 기존 참조가 바뀌지 않는다. 해시 입력은 `rune-spawn-v1\0` 접두사와 각 스폰의 적 이름 UTF-8 길이(uint32 little endian)·바이트·지연(float64 little endian)이다. `runtimeFormat.spawnColumns`는 `["enemyType", "delay"]`, `durabilityColumns`는 `["maxHp", "maxShield", "maxArmor"]`를 명시한다. 적 이름을 숫자 인덱스로 바꾸지 않으며 서로 다른 내구도 표에 별도 공유 참조를 추가하지 않는다. 생성 파일은 스케줄과 웨이브를 레코드별로 기록하고 타일은 보드 행별로 배치한다.
+
+Python 실행 소비자는 [저장 형식 코덱](../../scripts/content_runtime_format.py)의 `load_compiled_content(path)`로 디스크 파일을 검증·전개한다. 내용 해시와 원본 최신성은 Python 제작·빌드 경계에서 확인한다. Godot는 참조 ID를 내부 식별자로 취급하여 스키마·참조·타입·값·순서를 검증하며, 기존 타입 보존 JSON 파서와 네이티브 숫자 해석을 유지한다. 카탈로그는 공유 큐를 내부에 보관하고 필요한 웨이브만 조립한다. UI·저장·전투는 아래 조회 API를 사용하며 내부 저장 형식을 직접 읽지 않는다.
+
+생성은 기존 `game_content.json`과 design 내보내기를 읽지 않는다. 출력이 없거나 수동 수정·원본 편집으로 오래됐으면 준비·검사가 실패하며 위 생성 명령으로 다시 만든다. `apply_stage_expansion.py`는 동일 컴파일러를 부르는 이전 명령의 호환 진입점이다. 생성 결과는 작은 숫자 레코드별로 기록하여 diff를 읽을 수 있게 한다. Godot 직접 실행도 같은 체크인 실행 파일을 사용한다. 직접 `--script` 검사 전에는 `verify_godot_content.py`를 실행한다.
+
+확장 design의 `maps.json`·`rounds/rounds.json`은 원본 ID를 가리키는 작은 뷰 manifest다. [공유 뷰 로더](../../scripts/content_design_views.py)가 원본에서 정확한 맵·그룹·실행 큐를 조립한다. 각 `generate_rounds.py --check`는 쓰기 없이 뷰를 검증하고, 일반 실행은 `build/content_design_views/`의 로컬 파일로 내보낸다. 승인된 Blender·이미지·갤러리는 유지하며 제작 도구는 같은 로더를 사용한다. 뷰의 건설칸·경로 길이·보행 구간·포탈 빈칸 요약은 현재 맵에서 다시 계산하고, 기존 건설칸 배열의 승인된 제작 순서는 유지한다. 챕터 1 Godot 시안도 원본 지형을 직접 읽고 보행 길이를 재계산한다.
 
 ## 값 계약
 
 - `stage(index)` / `wave(stage_index, round_index, first_enemy_id, inputs)`: 인덱스는 0부터 시작한다. 콘텐츠 ID/round는 원본 값을 유지한다. spawn ID는 first_enemy_id부터 순서대로 부여한다.
+- `stage_id(index)` / `stage_index(id)`는 고정 ID와 배열 위치를 변환한다. `stage_summary(index)`는 ID·이름·라운드 수·최초 보상만 반환한다. `wave_count(index)` / `wave_has_boss(index, round_index)`는 전개하지 않는 조회다.
+- `stage_map(index)`는 renderer용 theme 별칭을 포함한 맵을 반환한다. `wave_summary(stage_index, round_index)`는 라운드·표시 문구·골드 보상·스폰 수·보스 여부·적별 개수를 반환한다. 적별 개수의 순서는 스폰에서 처음 등장한 순서다. HUD와 포탈 상세는 전체 스테이지를 복사하지 않는다.
+- `wave_durability(stage_index, round_index, type)`, `enemy_definition(type)`, `enemy_template(type)`, `turret_definition(type)`는 필요한 정의만 반환한다. `enemy_types()` / `turret_types()`는 원래 정의 순서를 유지한다. `tile_size()` / `initial_delay()` / `randomization()`은 기존 기본 설정을 조회한다. 반환 배열·딕셔너리는 호출자 소유이므로 변경해도 다른 웨이브나 카탈로그를 바꾸지 않는다.
+- `wave_definition(stage_index, round_index)`는 한 웨이브의 기존 전개 구조를 반환하고 `stage(index)`는 전체 스테이지가 필요한 도구의 호환 진입점이다. 저장 복원은 현재 웨이브만 요청한다. `domain_snapshot()` / `load_fixture_content(domain)`은 검증용 독립 복사본을 조회·검증해 재로딩한다. 성공·실패를 포함한 로딩마다 `content_revision()`이 바뀌어 같은 객체를 재사용해도 HUD 캐시를 무효화한다.
 - `inputs.tileSize` 기본 `1.0`, `inputs.origin` 기본 `[0.0,0.0]`. 원본 48px 기준을 `tileSize/48`로 변환한다. 경로는 타일 중심 좌표로 조립한다. 이동 speed는 원본 px/s로 유지하고 runtime의 boardDistanceScale에서 변환한다. 반경·presentationSize·포탑 range/projectileSpeed·lightningChainJumpRange의 실제 단위를 구분한다.
 - `inputs.initialDelay`는 초 단위이며 기본은 포탈 알림 + 추가 대기 시간이다. 앱 세션은 현재 배속을 곱해서 전달한다. `inputs.spawnValues`는 queue와 같은 길이의 `{laneOffsetRatio,visualPhase,diamondReward}` 배열이다. 생략하면 명시적인 영점 입력이다. `random_spawn_values()`는 콘텐츠에 기록된 확률/종류별 진폭으로 이 배열을 만든다. 과거 Dart RNG와 동일 seed 결과를 보장하지 않으며 명시 값으로 비교한다.
 - `turret(type, inputs)`는 native `statInput`을 반환한다. `inputs.statInput`에는 `level`, `gems`, `primaryTrait`, `secondaryTrait`, `moduleEffect`, 일반 성장/코어 보정 배율 등의 **이미 결정된 값**을 전달한다. definition과 boardDistanceScale의 덮어쓰기는 거절한다. moduleEffect는 기존 전체 필드 dictionary 계약이다. 성장 구매·장착 가능 여부·재화·보상 처리는 여기서 수행하지 않는다.
@@ -15,7 +47,7 @@
 
 ## 확장 진행과 고정 ID
 
-2026-09-30에 본게임 콘텐츠를 25개 맵·1,000라운드로 연결했다. 기존 15개 맵의 좌표·600웨이브 출현 구성·최초 보상을 보존하며, 신규 10개 맵은 승인된 [챕터 1 설계](../../design/chapter1_map_expansion/README.md)와 [챕터 2 설계](../../design/chapter2_map_expansion/README.md)의 좌표·출현 큐를 사용한다. `scripts/apply_stage_expansion.py`는 신규 맵 정의를 연결하고 전체 25개 맵의 내구도를 진행 순번 기준으로 재생성한다.
+2026-09-30에 본게임 콘텐츠를 25개 맵·1,000라운드로 연결했다. 기존 15개 맵의 좌표·600웨이브 출현 구성·최초 보상을 보존하며, 신규 10개 맵은 승인된 [챕터 1 설계](../../design/chapter1_map_expansion/README.md)와 [챕터 2 설계](../../design/chapter2_map_expansion/README.md)의 좌표·출현 큐를 사용한다. `scripts/content_compiler.py`는 원본의 전체 맵과 그룹에서 실행 큐·진행 순번 내구도를 전개하며, 기존 실행 입력을 재생성 원본으로 읽지 않는다.
 
 | 표시 | 고정 ID | 진행 순번 |
 | --- | --- | --- |

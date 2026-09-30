@@ -105,7 +105,7 @@ func _core_runtime(growth) -> void:
 	runtime.process_command({"epoch":1,"sequence":3,"running":true,"dt":interval})
 	check(runtime.core.activation_count == 3 and near(runtime.enemies["31"].riftMarkDamageAmplification, float(config.riftMarkDamageAmplification) * config.powerMultiplier * config.powerEveryThirdMultiplier), "third activation growth power")
 	var next: Dictionary = growth.core_config({"progression":selected.state}, 0, 1, catalog)
-	check(next.normalMaxHp == float(catalog.data.stages[0].waves[1].enemyDurability.normal.maxHp) and next.normalMaxHp != config.normalMaxHp, "round normal HP source")
+	check(next.normalMaxHp == float(catalog.wave_durability(0,1,"normal").maxHp) and next.normalMaxHp != config.normalMaxHp, "round normal HP source")
 	var timer: float = runtime.core.cooldown
 	runtime.process_command({"epoch":1,"sequence":4,"dt":0.0,"commands":[{"kind":"coreConfig","config":next}]})
 	check(runtime.core.cooldown == timer and runtime.core.activation_count == 3, "round config preserves timers")

@@ -1,0 +1,461 @@
+{
+  "id": 15,
+  "name": "Stage 15",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 9,
+    "rows": 9,
+    "tileTheme": "chapterThreeForge",
+    "tiles": [
+      "blocked", "blocked", "build", "blocked", "blocked", "blocked", "build", "path", "spawn",
+      "blocked", "build", "build", "build", "path", "path", "path", "path", "build",
+      "blocked", "build", "blocked", "build", "path", "build", "blocked", "blocked", "build",
+      "blocked", "path", "path", "path", "path", "build", "build", "blocked", "build",
+      "blocked", "path", "build", "blocked", "blocked", "blocked", "build", "build", "build",
+      "blocked", "path", "path", "path", "path", "path", "path", "build", "blocked",
+      "path", "path", "path", "path", "path", "path", "path", "build", "blocked",
+      "path", "blocked", "build", "build", "build", "build", "blocked", "blocked", "blocked",
+      "core", "blocked", "blocked", "blocked", "build", "blocked", "blocked", "blocked", "blocked"
+    ],
+    "path": [
+      [8, 0],
+      [7, 0],
+      [7, 1],
+      [6, 1],
+      [5, 1],
+      [4, 1],
+      [4, 2],
+      [4, 3],
+      [3, 3],
+      [2, 3],
+      [1, 3],
+      [1, 4],
+      [1, 5],
+      [2, 5],
+      [3, 5],
+      [4, 5],
+      [5, 5],
+      [6, 5],
+      [6, 6],
+      [5, 6],
+      [4, 6],
+      [3, 6],
+      [2, 6],
+      [1, 6],
+      [0, 6],
+      [0, 7],
+      [0, 8]
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 23,
+      "groups": [
+        {"enemyType": "armored", "count": 4, "interval": 1.32, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 5, "interval": 1.04, "startDelay": 1.6, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 2,
+      "previewText": "코어 앞 예열",
+      "clearRewardGold": 24,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 5, "interval": 1.24, "startDelay": 0.0, "startAfterPrevious": true, "followDelay": 0.35}
+      ]
+    },
+    {
+      "round": 3,
+      "previewText": "코어 압박선",
+      "clearRewardGold": 25,
+      "groups": [
+        {"enemyType": "armored", "count": 5, "interval": 1.22, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.26, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 4,
+      "previewText": "보호막 호위",
+      "clearRewardGold": 26,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.42, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.74, "startDelay": 1.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.24, "startDelay": 3.6, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 5,
+      "previewText": "용광로 정예",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.42, "startDelay": 0.0, "startAfterPrevious": true, "followDelay": 0.3},
+        {"enemyType": "shielded", "count": 4, "interval": 1.22, "startDelay": 0.0, "startAfterPrevious": true, "followDelay": 0.35}
+      ]
+    },
+    {
+      "round": 6,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "armored", "count": 5, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 5.869999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 5, "interval": 1.24, "startDelay": 8.979999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 7,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "normal", "count": 5, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 5, "interval": 1.38, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 7.369999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 8,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 6, "interval": 1.38, "startDelay": 0.35, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 7.599999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 9,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "armored", "count": 5, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 3.23, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 10,
+      "previewText": "코어 앞 파쇄자",
+      "clearRewardGold": 100,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.44, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 5, "interval": 1.38, "startDelay": 1.79, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 8.209999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 8.909999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 9.61, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 11,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 7.149999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 6, "interval": 1.22, "startDelay": 10.219999999999997, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 12,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 6, "interval": 1.3599999999999999, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.8049999999999999, "startDelay": 8.649999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 13,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 7, "interval": 1.3599999999999999, "startDelay": 0.35, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 8.86, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 14,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.8049999999999999, "startDelay": 3.23, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 15,
+      "previewText": "코어 앞 압축",
+      "clearRewardGold": 78,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 1.162, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.42, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 2.77, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.8049999999999999, "startDelay": 8.484, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 16,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "armored", "count": 7, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 8.389999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 7, "interval": 1.2, "startDelay": 12.759999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 17,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 7, "interval": 1.3399999999999999, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 9.889999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 18,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 8, "interval": 1.3399999999999999, "startDelay": 0.35, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 10.079999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 19,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "armored", "count": 7, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 2, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 3.23, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 20,
+      "previewText": "코어 앞 파쇄자",
+      "clearRewardGold": 130,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.44, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 6, "interval": 1.3399999999999999, "startDelay": 1.79, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 9.389999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 10.089999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 10.79, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 21,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 9.589999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 8, "interval": 1.18, "startDelay": 13.899999999999997, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 22,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "normal", "count": 8, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 8, "interval": 1.3199999999999998, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7749999999999999, "startDelay": 11.089999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 23,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 9, "interval": 1.3199999999999998, "startDelay": 0.35, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 11.259999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 24,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 3, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7749999999999999, "startDelay": 4.709999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 25,
+      "previewText": "코어 앞 압축",
+      "clearRewardGold": 98,
+      "groups": [
+        {"enemyType": "armored", "count": 10, "interval": 1.126, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 3, "interval": 1.42, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3199999999999998, "startDelay": 4.1899999999999995, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7749999999999999, "startDelay": 10.483999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 26,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "armored", "count": 9, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 10.749999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 9, "interval": 1.16, "startDelay": 16.299999999999997, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 27,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 9, "interval": 1.2999999999999998, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 12.249999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 28,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 10, "interval": 1.2999999999999998, "startDelay": 1.7999999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 13.85, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 29,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "armored", "count": 9, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 3, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 4.709999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 30,
+      "previewText": "코어 앞 파쇄자",
+      "clearRewardGold": 160,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.44, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 7, "interval": 1.2999999999999998, "startDelay": 3.23, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 11.93, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 12.629999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 13.33, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 31,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "armored", "count": 10, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 11.869999999999997, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 10, "interval": 1.14, "startDelay": 17.339999999999996, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 32,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 10, "interval": 1.2799999999999998, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 13.369999999999997, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 33,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 11, "interval": 1.2799999999999998, "startDelay": 1.7999999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 14.949999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 34,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "armored", "count": 10, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 3, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 4.709999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 35,
+      "previewText": "코어 앞 압축",
+      "clearRewardGold": 118,
+      "groups": [
+        {"enemyType": "armored", "count": 12, "interval": 1.0899999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 3, "interval": 1.42, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2799999999999998, "startDelay": 4.1899999999999995, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 12.339999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 36,
+      "previewText": "코어 앞 혼합",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "armored", "count": 11, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 12.949999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 11, "interval": 1.12, "startDelay": 19.599999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 37,
+      "previewText": "장갑 돌입",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.06, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 11, "interval": 1.2599999999999998, "startDelay": 1.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 14.449999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 38,
+      "previewText": "정예 호위선",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 12, "interval": 1.2599999999999998, "startDelay": 1.7999999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 16.009999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 39,
+      "previewText": "분산 내구 압박",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "armored", "count": 11, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 4, "interval": 1.48, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 6.1899999999999995, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 40,
+      "previewText": "코어 앞 파쇄자",
+      "clearRewardGold": 190,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.44, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "armored", "count": 8, "interval": 1.2599999999999998, "startDelay": 4.67, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 14.389999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 15.089999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 15.79, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    }
+  ]
+}

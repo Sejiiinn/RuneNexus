@@ -90,25 +90,23 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 		hud.core_metric = hud._label(hud.body,"",12)
 		return
 	var preparing: bool = state.phase == "preparation"
-	var waves: Array = hud._stage_source().waves
+	var count: int = hud.app.catalog.wave_count(hud.app.stage)
 	var index = int(state.get("completedRounds",0))
-	if index >= waves.size(): hud._label(hud.body,"모든 웨이브를 완료했습니다.",12); return
-	var wave: Dictionary = waves[index]
-	var summary = hud._button(hud.body,("포탈 1" if preparing else "전투 진행 중")+"\n"+(str(wave.get("previewText",""))+" · %d/%d" % [index+1,waves.size()] if preparing else "진행 상태 확인"),func(): _portal_details(wave))
+	if index >= count: hud._label(hud.body,"모든 웨이브를 완료했습니다.",12); return
+	var wave: Dictionary = hud.app.catalog.wave_summary(hud.app.stage,index)
+	var summary = hud._button(hud.body,("포탈 1" if preparing else "전투 진행 중")+"\n"+(str(wave.get("previewText",""))+" · %d/%d" % [index+1,count] if preparing else "진행 상태 확인"),func(): _portal_details(wave,index))
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.disabled = not preparing
 
-func _portal_details(wave: Dictionary) -> void:
-	var box = hud.open_modal("포탈 1 · %d/%d 웨이브" % [int(hud.app.run_domain.state.get("completedRounds",0))+1,hud._stage_source().waves.size()],720,true,true,Color("b16dff"))
+func _portal_details(wave: Dictionary,index: int) -> void:
+	var box = hud.open_modal("포탈 1 · %d/%d 웨이브" % [int(hud.app.run_domain.state.get("completedRounds",0))+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
 	var header: HBoxContainer = box.get_child(0)
 	var icon = hud._material_icon(header,0xe283,20); icon.modulate = Color("e3b7ff"); header.move_child(icon,0)
 	hud._label(box,str(wave.get("previewText","")),13)
-	var counts = {}
-	for spawn in wave.get("spawnQueue",[]):
-		var type = str(spawn.get("enemyType","")); counts[type] = int(counts.get(type,0))+1
+	var counts: Dictionary = wave.enemyCounts
 	for type in counts:
-		var enemy: Dictionary = hud.app.catalog.data.enemies.get(type,{})
-		var durability: Dictionary = wave.get("enemyDurability",{}).get(type,{})
+		var enemy: Dictionary = hud.app.catalog.enemy_template(type)
+		var durability: Dictionary = hud.app.catalog.wave_durability(hud.app.stage,index,type)
 		var panel = PanelContainer.new(); box.add_child(panel)
 		var content = VBoxContainer.new(); panel.add_child(content)
 		var heading = HBoxContainer.new(); content.add_child(heading)

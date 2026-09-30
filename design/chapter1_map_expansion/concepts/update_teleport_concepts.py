@@ -13,7 +13,10 @@ PORTALS = ROOT / 'design/teleport_device_concepts/2026-09-30/production/teleport
 OUTPUT = HERE / 'chapter1-teleport-map-concepts.blend'
 if not bpy.app.background: raise RuntimeError('Use independent background Blender')
 OUT.mkdir(parents=True, exist_ok=True)
-specs = {m['chapterStage']:m for m in json.loads((HERE.parent/'maps.json').read_text())['maps'] if m['chapterStage'] in ['1-7','1-10']}
+import sys
+sys.path.insert(0,str(ROOT/'scripts'))
+from content_design_views import load_design_view
+specs = {m['chapterStage']:m for m in load_design_view(HERE.parent/'maps.json')['maps'] if m['chapterStage'] in ['1-7','1-10']}
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def remove_tree(ob):
     for child in list(ob.children): remove_tree(child)

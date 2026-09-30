@@ -1,0 +1,468 @@
+{
+  "id": 9,
+  "name": "Stage 9",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 9,
+    "rows": 10,
+    "tileTheme": "chapterTwoRift",
+    "tiles": [
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "blocked", "spawn", "blocked",
+      "blocked", "blocked", "build", "build", "build", "path", "path", "path", "blocked",
+      "blocked", "build", "build", "path", "path", "path", "build", "build", "blocked",
+      "blocked", "build", "build", "path", "blocked", "build", "blocked", "build", "blocked",
+      "blocked", "blocked", "build", "path", "path", "path", "blocked", "build", "blocked",
+      "blocked", "build", "build", "build", "blocked", "path", "build", "build", "blocked",
+      "blocked", "build", "path", "path", "path", "path", "build", "blocked", "blocked",
+      "blocked", "core", "path", "build", "build", "build", "blocked", "blocked", "blocked",
+      "blocked", "blocked", "blocked", "blocked", "build", "blocked", "blocked", "blocked", "blocked"
+    ],
+    "path": [
+      [7, 1],
+      [7, 2],
+      [6, 2],
+      [5, 2],
+      [5, 3],
+      [4, 3],
+      [3, 3],
+      [3, 4],
+      [3, 5],
+      [4, 5],
+      [5, 5],
+      [5, 6],
+      [5, 7],
+      [4, 7],
+      [3, 7],
+      [2, 7],
+      [2, 8],
+      [1, 8]
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 23,
+      "groups": [
+        {"enemyType": "normal", "count": 5, "interval": 1.6, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.45, "startDelay": 0.0, "startAfterPrevious": true, "followDelay": 0.5}
+      ]
+    },
+    {
+      "round": 2,
+      "previewText": "보호막 대열",
+      "clearRewardGold": 24,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.42, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 4, "interval": 1.18, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 3,
+      "previewText": "균열 장벽",
+      "clearRewardGold": 25,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.36, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 4,
+      "previewText": "보호막 겹침",
+      "clearRewardGold": 26,
+      "groups": [
+        {"enemyType": "shielded", "count": 4, "interval": 1.36, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.8, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 5,
+      "previewText": "보호막 압축",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.34, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 6, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": true, "followDelay": 0.35},
+        {"enemyType": "shielded", "count": 3, "interval": 1.32, "startDelay": 0.0, "startAfterPrevious": true, "followDelay": 0.45}
+      ]
+    },
+    {
+      "round": 6,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 6, "interval": 1.24, "startDelay": 5.869999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.82, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 7,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "shielded", "count": 4, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.82, "startDelay": 4.489999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.38, "startDelay": 8.94, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 8,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.38, "startDelay": 8.629999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.82, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 9,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.82, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.38, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 5, "interval": 1.24, "startDelay": 5.869999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 10,
+      "previewText": "장벽 호위 보스",
+      "clearRewardGold": 100,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.38, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.82, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.0, "startDelay": 6.52, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.38, "startDelay": 7.319999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.38, "startDelay": 8.12, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 11,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 7, "interval": 1.22, "startDelay": 7.149999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.8049999999999999, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 12,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.8049999999999999, "startDelay": 5.789999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.3599999999999999, "startDelay": 10.969999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 13,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.3599999999999999, "startDelay": 9.87, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 3, "interval": 0.8049999999999999, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 14,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.8049999999999999, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 6, "interval": 1.22, "startDelay": 7.149999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 15,
+      "previewText": "고밀도 보호막",
+      "clearRewardGold": 78,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.8049999999999999, "startDelay": 1.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 5.975, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.3599999999999999, "startDelay": 9.87, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 16,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 8, "interval": 1.2, "startDelay": 8.389999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.7899999999999999, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 17,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.7899999999999999, "startDelay": 7.049999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3399999999999999, "startDelay": 12.929999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 18,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3399999999999999, "startDelay": 11.069999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.7899999999999999, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 19,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7899999999999999, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3399999999999999, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 7, "interval": 1.2, "startDelay": 8.389999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 20,
+      "previewText": "장벽 호위 보스",
+      "clearRewardGold": 130,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.3399999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.7899999999999999, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.0, "startDelay": 7.699999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3399999999999999, "startDelay": 8.5, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 2, "interval": 1.3399999999999999, "startDelay": 9.299999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 21,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 9, "interval": 1.18, "startDelay": 9.589999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.7749999999999999, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 22,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 9, "interval": 0.7749999999999999, "startDelay": 8.27, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3199999999999998, "startDelay": 14.819999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 23,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3199999999999998, "startDelay": 12.229999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 4, "interval": 0.7749999999999999, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 24,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.7749999999999999, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 8, "interval": 1.18, "startDelay": 9.589999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 25,
+      "previewText": "고밀도 보호막",
+      "clearRewardGold": 98,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.7749999999999999, "startDelay": 1.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.3199999999999998, "startDelay": 7.374999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.3199999999999998, "startDelay": 12.229999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 26,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 10, "interval": 1.16, "startDelay": 10.749999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.76, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 27,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 10, "interval": 0.76, "startDelay": 9.449999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2999999999999998, "startDelay": 16.64, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 28,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2999999999999998, "startDelay": 13.349999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.76, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 29,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2999999999999998, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 9, "interval": 1.16, "startDelay": 10.749999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 30,
+      "previewText": "장벽 호위 보스",
+      "clearRewardGold": 160,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.2999999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.0, "startDelay": 8.799999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2999999999999998, "startDelay": 9.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2999999999999998, "startDelay": 10.399999999999999, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 31,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 11, "interval": 1.14, "startDelay": 11.869999999999997, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.745, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 32,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 11, "interval": 0.745, "startDelay": 10.589999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2799999999999998, "startDelay": 18.39, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 33,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "shielded", "count": 12, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2799999999999998, "startDelay": 14.429999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 5, "interval": 0.745, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 34,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.745, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 10, "interval": 1.14, "startDelay": 11.869999999999997, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 35,
+      "previewText": "고밀도 보호막",
+      "clearRewardGold": 118,
+      "groups": [
+        {"enemyType": "shielded", "count": 12, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 10, "interval": 0.745, "startDelay": 1.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2799999999999998, "startDelay": 8.655, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2799999999999998, "startDelay": 14.429999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 14.829999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 36,
+      "previewText": "보호막 밀집",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 12, "interval": 1.12, "startDelay": 12.949999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.73, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 37,
+      "previewText": "보호막 후속 러시",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 12, "interval": 0.73, "startDelay": 11.689999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2599999999999998, "startDelay": 20.07, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 38,
+      "previewText": "균열 보호막선",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "shielded", "count": 13, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 2.6, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2599999999999998, "startDelay": 15.469999999999997, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 6, "interval": 0.73, "startDelay": 1.7, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 39,
+      "previewText": "겹침 장벽",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 8, "interval": 0.73, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 6, "interval": 1.2599999999999998, "startDelay": 3.2, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "normal", "count": 11, "interval": 1.12, "startDelay": 12.949999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    },
+    {
+      "round": 40,
+      "previewText": "장벽 호위 보스",
+      "clearRewardGold": 190,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.2599999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "fast", "count": 7, "interval": 0.73, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shieldBoss", "count": 1, "interval": 2.0, "startDelay": 9.819999999999999, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 5, "interval": 1.2599999999999998, "startDelay": 10.62, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2599999999999998, "startDelay": 11.419999999999998, "startAfterPrevious": false, "followDelay": 0.7},
+        {"enemyType": "tank", "count": 1, "interval": 1.55, "startDelay": 12.419999999999998, "startAfterPrevious": false, "followDelay": 0.7}
+      ]
+    }
+  ]
+}

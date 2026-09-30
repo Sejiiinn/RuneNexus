@@ -1,6 +1,7 @@
 extends Node3D
 ## Isolated rendering fixture; never modifies shipped map content or saves.
 const BattlefieldEnvironment = preload("res://environment/battlefield_environment.gd")
+const Catalog = preload("res://content/content_catalog.gd")
 const TeleportDevice = preload("res://environment/teleport_device.gd")
 
 var terrain := Node3D.new()
@@ -79,13 +80,13 @@ func _ready() -> void:
 
 
 static func stage_fixture(stage: int, with_portals: bool) -> Dictionary:
-	var content: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://content/game_content.json"))
-	var map: Dictionary = content.stages[stage - 1].map.duplicate(true)
-	map.theme = map.tileTheme
-	map.columns = int(map.columns)
-	map.rows = int(map.rows)
-	for i in range(map.path.size()):
-		map.path[i] = [int(map.path[i][0]), int(map.path[i][1])]
+	var catalog = Catalog.new()
+	if not catalog.load_catalog():
+		push_error(catalog.error)
+		return {}
+	var index := catalog.stage_index(stage)
+	if index < 0: return {}
+	var map: Dictionary = catalog.stage_map(index)
 	if with_portals:
 		map.teleportPairs = [{"color": "blue", "entrance": map.path[3], "exit": map.path[6]},
 			{"color": "orange", "entrance": map.path[10], "exit": map.path[14]}]

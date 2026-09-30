@@ -106,7 +106,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		if type not in d.get("availableTurretTypes",["arrow","cannon","magic","frost"]): return _reject(state,"locked")
 		var x := int(command.get("x",-1))
 		var y := int(command.get("y",-1))
-		var map: Dictionary = catalog.stage(int(state.get("stage",0))).get("map",{})
+		var map: Dictionary = catalog.stage_map(int(state.get("stage",0)))
 		if x < 0 or y < 0 or x >= int(map.get("columns",0)) or y >= int(map.get("rows",0)) or map.tiles[y*int(map.columns)+x] != "build": return _reject(state,"tile")
 		for placed in state.turrets:
 			if placed.x == x and placed.y == y: return _reject(state,"occupied")
@@ -192,7 +192,7 @@ func award_kill(state: Dictionary, enemy: Dictionary) -> Dictionary:
 ## d may be shared while progression growth inputs, turrets and upgrades stay fixed.
 func award_kill_owned(state: Dictionary, enemy: Dictionary, d: Dictionary) -> Dictionary:
 	var type := str(enemy.get("type", enemy.get("enemyType","")))
-	var definition: Dictionary = catalog.data.get("enemyDefinitions",{}).get(type,{})
+	var definition: Dictionary = catalog.enemy_definition(type)
 	if definition.is_empty(): return _reject(state,"enemy")
 	var boss := bool(definition.get("isBoss",false))
 	var base := int(definition.get("rewardGold",0))
@@ -214,13 +214,15 @@ func _reward_options(state: Dictionary) -> Array:
 	return options.slice(0,mini(3,options.size()))
 
 func complete_wave(state: Dictionary, wave_id: int) -> Dictionary:
-	var stage: Dictionary = catalog.stage(int(state.stage))
+	var count: int = catalog.wave_count(int(state.stage))
 	var index := int(state.get("roundIndex",0))
-	if index < 0 or index >= stage.waves.size() or int(stage.waves[index].round) != wave_id: return _reject(state,"wave")
+	if index < 0 or index >= count: return _reject(state,"wave")
+	var wave: Dictionary = catalog.wave_summary(int(state.stage), index)
+	if int(wave.round) != wave_id: return _reject(state,"wave")
 	if int(state.get("completedRounds",0)) >= index+1: return _reject(state,"completed")
 	var next := state.duplicate(true)
 	var d := derived(state)
-	var base := int(stage.waves[index].get("clearRewardGold",0))
+	var base := int(wave.get("clearRewardGold",0))
 	next.gold += roundi((base+int(d.get("waveClearGoldBonus",0))) * float(d.get("roundClearGoldMultiplier",1)))
 	var completed := index+1
 	var rewards: Array = growth.data.get("roundShardRewards",[])
@@ -230,7 +232,7 @@ func complete_wave(state: Dictionary, wave_id: int) -> Dictionary:
 	next.rewardOptions = []
 	next.isPurchasedGemReward = false
 	next.rewardReturnPhase = null
-	if completed >= stage.waves.size(): next.phase = "success"
+	if completed >= count: next.phase = "success"
 	elif completed in growth.data.get("rewardRounds",[]):
 		next.phase = "reward"
 		next.rewardOptions = _reward_options(next)

@@ -65,7 +65,7 @@ func _build_state(app) -> void:
 				selection.rewardTargets.append({"position":entry.position,"requiresReplacement":not null in turret.equippedGemSlots})
 	if rewarding: return
 	if selected_id >= 0: return
-	var map: Dictionary = app.stage_source(app.stage).map
+	var map: Dictionary = app.stage_map(app.stage)
 	if chosen.x < 0 or chosen.y < 0 or chosen.x >= int(map.columns) or chosen.y >= int(map.rows): return
 	var kind := str(map.tiles[chosen.y*int(map.columns)+chosen.x])
 	var tile := {"position":[chosen.x+0.5,chosen.y+0.5],"kind":kind}
@@ -86,5 +86,5 @@ func _stats(app, derived: Dictionary, turret: Dictionary) -> Dictionary:
 	return configuration_cache.stats(app.catalog,turret,configuration_cache.stat_input(derived,turret),1.0)
 
 func _range(app, type: String, stats: Dictionary) -> float:
-	var definition: Dictionary = app.catalog.data.turrets[type].configuration.statInput.definition
+	var definition: Dictionary = app.catalog.turret_definition(type)
 	return float(stats.get("range",0)) * (float(stats.get("effectAreaMultiplier",1)) if definition.get("centeredAreaAttack",false) else 1.0)

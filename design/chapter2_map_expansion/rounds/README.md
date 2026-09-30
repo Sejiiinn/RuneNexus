@@ -2,7 +2,7 @@
 
 역할: [신규 맵 배치](../maps.json)에 대응하는 5개 맵 × 40라운드 출현 설계안. 본게임 연결 상태는 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다.
 
-원본은 [rounds.json](rounds.json)이다. 200개 라운드의 모든 출현 그룹과 실행 `spawnQueue`를 명시한다. 이 README의 표는 JSON에서 생성하며 [생성·검사 도구](generate_rounds.py)는 현행 콘텐츠 ID 10과 신규 맵을 읽어 이 폴더만 갱신한다.
+수정 원본은 [고정 ID별 스테이지 JSON](../../../godot/content/source/stages/)이다. [rounds.json](rounds.json)은 챕터 2의 5맵·200라운드를 선택하는 작은 뷰 manifest이며 개별 스폰을 중복 저장하지 않는다. [내보내기·검사 도구](generate_rounds.py)는 공유 컴파일러로 큐를 전개한다. `--check`는 쓰기 없이 검증하고, 일반 실행은 `build/content_design_views/chapter2/`로 JSON을 내보낸다. 아래 표는 승인 당시 설계 요약이며 실행 입력은 원본에서 생성한다.
 
 ```sh
 python3 design/chapter2_map_expansion/rounds/generate_rounds.py --check
@@ -13,7 +13,7 @@ python3 design/chapter2_map_expansion/rounds/generate_rounds.py --check
 - 기준은 `godot/content/game_content.json`의 기존 ID 10(챕터 2의 2-5 맵) 40라운드다. 동일 라운드의 적 종류별 수량·적 종류별 그룹 내 간격 재고·처치 골드·`clearRewardGold`를 유지한다. 1~5라운드는 적·수량·간격·절대 요청 시각과 실행 큐도 원본 그대로다(원본 상대 지연은 절대 시각으로 펼쳐 표기).
 - 일반·빠름·탱커·보호막병·`shieldBoss`만 사용한다. 40라운드와 5라운드마다 기존 젬 보상, 10/20/30/40라운드의 보호막 보스 정확히 한 마리를 유지한다. 포탈 발동은 맵의 타일과 경로에 따른다. 적 스탯·경제·피해식·새 몹·무적 구간·주변 보호 기능은 추가하지 않는다.
 - 보호막병은 자기 보호막만 재생한다(현행 초당 최대 보호막 4%). 보호막 보스도 현행 자기 보호막 규칙을 따른다. 보호막이 깨진 뒤 복구되지 않는 현재 계약을 유지한다. 과거 후보 문서의 코어 노출 phase는 사용하지 않는다.
-- 현행 소스의 모든 1,000웨이브 수치와 대조한 성장식은 `적 정의의 maxHp/maxShield/maxArmor × 2^((round-1)/10) × 1.15^(progressionOrdinal-1)`이다. 신규 순번 16~20의 내구도는 이 공식을 잇는다. 본게임 고정 ID 21~25의 수치는 연결 도구가 생성하며 저장·해금 계약은 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다. 전체 25맵에 `godot/content/stage_progression.gd`의 `ORDER` 순번을 적용한다. 기존 챕터 2·3도 같은 순번으로 내구도를 계산하며 맵·출현·보상은 보존한다.
+- 현행 소스의 모든 1,000웨이브 수치와 대조한 성장식은 `적 정의의 maxHp/maxShield/maxArmor × 2^((round-1)/10) × 1.15^(progressionOrdinal-1)`이다. 신규 순번 16~20의 내구도는 이 공식을 잇는다. 본게임 고정 ID 21~25의 수치는 연결 도구가 생성하며 저장·해금 계약은 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다. 전체 25맵에 `godot/content/source/progression.json`의 `order` 순번을 적용한다. 기존 챕터 2·3도 같은 순번으로 내구도를 계산하며 맵·출현·보상은 보존한다.
 - 맵당 912마리(일반 187 / 빠름 260 / 탱커 17 / 보호막병 444 / 보호막 보스 4), 기본 처치 6,132G + 기본 클리어 2,276G = 8,408G다. 코어 도달·미처치·성장 보정은 합계에 넣지 않았다.
 
 ## 출현 시각과 포탈
@@ -104,6 +104,6 @@ python3 design/chapter2_map_expansion/rounds/generate_rounds.py --check
 
 ## 자동 검사와 한계
 
-`--check`는 현행 25스테이지 × 40라운드 = 1,000웨이브의 상대 `followDelay`를 절대 시각으로 펼쳐 기존 실행 큐를 재현하고, HP·보호막·방어구 성장식을 전체 원본 수치와 대조한다. 신규 200라운드는 각 라운드의 유형·수량·그룹 내 간격 재고·보상, 보스 정확히 한 마리, 1~5라운드 원본 동일, 양수·유한 시각, 최종 큐 0.18초 간격, 맵별 둘 이상 유형 변형과 누적 경제를 검사한다. 기존 `growth_content.json`의 5라운드 보상 일정도 확인하며, 콘텐츠·성장·맵 SHA와 JSON/README 재생성 일치도 검사한다.
+`--check`는 원본만으로 전체 실행 입력을 전개한 뒤 이 챕터의 5맵·200라운드 뷰를 검증한다. [원본 회귀 검사](../../../scripts/test_content_compiler.py)가 전체 1,000웨이브의 타입·정확한 float·적 순서와 기존 기준 digest를 대조하고, 그룹·정의 편집이 이전 호환 보정에 덮이지 않는지 확인한다. [콘텐츠 검사](../../../scripts/verify_godot_content.py)는 실행 입력 최신성·구조·내구도 산식·성장 fixture 정합성을 검사한다. 전체 파일 SHA를 원본으로 되먹이거나 JSON/README를 반복 재생성하지 않는다.
 
 이 검사는 설계 데이터의 정합성이다. 포탑 배치·체감 난이도·실제 전투 공백의 전체 플레이 검증과 구분한다. 본게임 연결·전송·저장 검증 범위는 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다.

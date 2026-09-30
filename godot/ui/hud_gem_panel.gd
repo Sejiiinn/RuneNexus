@@ -416,7 +416,7 @@ func _gem_block_reason(type: String,turret: Dictionary) -> String:
 	return ""
 
 func _gem_effect(type: String,turret: Dictionary) -> String:
-	var definition: Dictionary = hud.app.catalog.data.turrets[turret.type].configuration.statInput.definition
+	var definition: Dictionary = hud.app.catalog.turret_definition(turret.type)
 	var tags: Array = definition.get("attackTags",[])
 	if type == "physicalDamage" and definition.damageFamily != "physical": return "현재 적용되는 물리 피해 없음"
 	if type == "elementalDamage" and definition.damageFamily != "elemental": return "현재 적용되는 원소 피해 없음"

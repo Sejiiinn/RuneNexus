@@ -8,6 +8,9 @@ from pathlib import Path
 import sys
 
 from stage_progression import stage_ordinals
+from content_compiler import check_generated
+from content_runtime_format import load_compiled_content
+from compile_progression import compile_progression
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -23,12 +26,16 @@ def unique_pairs(pairs):
 
 def read(relative: str):
     path = ROOT / relative
+    if relative == "godot/content/game_content.json":
+        return load_compiled_content(path)
     return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs,
                       parse_constant=lambda value: (_ for _ in ()).throw(
                           ValueError(f"Non-finite JSON value: {value}")))
 
 
 def verify() -> None:
+    check_generated(ROOT)
+    compile_progression(ROOT, check=True)
     game = read("godot/content/game_content.json")
     growth = read("godot/content/growth_content.json")
     game_cases = read("test/fixtures/game_content_cases.json")

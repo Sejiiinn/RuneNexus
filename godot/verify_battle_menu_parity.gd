@@ -48,7 +48,7 @@ func run() -> void:
 	assert(app.scene._native_combat.session.paused,"Leaving battle must not accidentally resume")
 	hud.menu_panel._end_stage_confirm(); button(hud.modal_body,"종료").pressed.emit(); assert(app.abandon_count == 1); assert(not hud.modal_active())
 	app.run_domain.state.completedRounds = 0
-	hud.menu_panel._portal_details(app.catalog.stage(0).waves[0]); await process_frame; await process_frame
+	hud.menu_panel._portal_details(app.catalog.wave_summary(0,0),0); await process_frame; await process_frame
 	assert(hud.modal_bottom_sheet)
 	assert(hud.modal_panel.custom_minimum_size.x == 366)
 	var content := all_text(hud.modal_body)

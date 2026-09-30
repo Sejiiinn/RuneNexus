@@ -35,7 +35,7 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	if not hud.app.selection_view.level_preview and hud.tab == "gems": hud.gem_panel._gems(state,turret,q); return
 	var category_row := HBoxContainer.new(); category_row.name = "TurretCategoryAndDamage"; category_row.custom_minimum_size.y = 34
 	category_row.add_theme_constant_override("separation",6); hud.body.add_child(category_row)
-	var definition: Dictionary = hud.app.catalog.data.turrets[turret.type].configuration.statInput.definition
+	var definition: Dictionary = hud.app.catalog.turret_definition(turret.type)
 	_category_tag(category_row,str(definition.damageFamily))
 	for tag in definition.get("attackTags",[]): _category_tag(category_row,str(tag))
 	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_row.add_child(category_spacer)

@@ -13,28 +13,6 @@ const GOLD := Color("e7c66a")
 const CHAPTERS := ["초원 초입", "균열 장막", "공명 용광로"]
 const SECONDARIES := [Color("e7c66a"), Color("b68bff"), Color("5cf9e9")]
 const ACCENTS := [Color("8ee6ff"), Color("5cf9e9"), Color("ff8a3d")]
-# Original stage-details unlock lists, with original item artwork.
-const UNLOCKS := {
-1:[["처치 보상", "upgrades/kill_gold.png", "강화"], ["긴급 매각", "upgrades/turret_refund.png", "연구"]],
-2:[["전술 명령", "research/turret_target_priority.png", "연구"]],
-3:[["저격 포탑", "material:ef3a", "포탑"], ["조준경 젬", "gems/aimSpeed.png", "젬"]],
-4:[["치명 집중", "upgrades/critical_chance.png", "연구"], ["치명 충격", "upgrades/critical_damage.png", "강화"]],
-5:[["토벌 보상", "research/boss_bounty.png", "강화"]],
-16:[["젬 감응", "research/gem_attunement.png", "연구"]],
-17:[["물리 화력 훈련", "upgrades/physical_damage.png", "강화"], ["원소 화력 훈련", "upgrades/elemental_damage.png", "강화"]],
-18:[["기초 연결 공학", "research/link_maintenance.png", "연구"]],
-19:[["결정 회수", "research/crystal_recovery.png", "연구"]],
-20:[["링크 확장 I", "research/link_expansion_one.png", "연구"], ["균열 낙인", "core_abilities/rift_mark.png", "코어"]],
-6:[["전투 투자 최적화", "research/run_upgrade_cost_optimization.png", "연구"]],
-7:[["라이트닝 포탑", "material:eedd", "포탑"]],
-8:[["룬 공명", "research/rune_resonance.png", "연구"]],
-9:[["연결 공정", "upgrades/link_cost_optimization.png", "강화"]],
-10:[["강화 공정", "upgrades/turret_level_up_optimization.png", "강화"]],
-21:[["장갑 관통 젬", "gems/armorPiercing.png", "젬"]],
-25:[["연구 슬롯 II 구매 권한", "material:f499", "연구"]],
-11:[["정비 보급 확장", "research/wave_gold_limit_expansion.png", "연구"]],
-13:[["처치 보너스 확장", "research/kill_gold_limit_expansion.png", "연구"]],
-15:[["포탑 화력 확장", "research/tower_damage_limit_expansion.png", "연구"]]}
 
 var lobby
 var chapter := 0
@@ -62,7 +40,7 @@ func active(stage: int) -> bool:
 
 func rune_reward(stage: int) -> int:
 	# Pure preview of the existing settlement calculation; returned state is discarded.
-	var preview: Dictionary = Quests.new().finish(lobby._p(), {"stageNumber":stage, "completedRounds":lobby.app.catalog.stage(stage - 1).waves.size(), "success":true, "grantEconomyRewardsLocally":false})
+	var preview: Dictionary = Quests.new().finish(lobby._p(), {"stageNumber":stage, "completedRounds":lobby.app.catalog.wave_count(stage - 1), "success":true, "grantEconomyRewardsLocally":false})
 	return int(preview.lastRunRuneReward)
 
 func record(stage: int) -> String:
@@ -210,7 +188,7 @@ func _active_card(stage: int) -> void:
 	_text("룬 +%d" % rune_reward(stage), Rect2(595,346,145,48), 24, GOLD, true)
 	var state := _state()
 	var gold := int(state.get("gold", 0))
-	var values := ["%d/%d" % [int(state.get("roundIndex", 0)) + 1, lobby.app.catalog.stage(stage - 1).waves.size()], str(state.get("turrets", []).size()), "%.1fK" % (float(gold)/1000) if gold >= 1000 else str(gold)]
+	var values := ["%d/%d" % [int(state.get("roundIndex", 0)) + 1, lobby.app.catalog.wave_count(stage - 1)], str(state.get("turrets", []).size()), "%.1fK" % (float(gold)/1000) if gold >= 1000 else str(gold)]
 	for i in range(3):
 		_text(values[i], Rect2(57 + i * 227,436,226,39), 30, GOLD if i == 2 else WHITE, true)
 		_text(["라운드", "포탑", "골드"][i], Rect2(57 + i * 227,475,226,29), 22, Color("b9d6e4"), true, 700)
@@ -246,11 +224,7 @@ func _row(stage: int, top: float) -> void:
 	_hit(Rect2(24,top,740,123), details.bind(stage), "스테이지 %s 상세" % Progression.stage_label(stage))
 
 func _reward_icons(stage: int) -> Array:
-	var result := []
-	for item in UNLOCKS.get(stage, []):
-		var icon := "stage_rewards/reward_%s.png" % {"강화":"upgrade", "연구":"research", "젬":"gem", "코어":"core"}.get(item[2], "research")
-		if item[2] == "포탑": icon = "turret:sniper" if stage == 3 else "turret:lightning"
-		if not icon in result: result.append(icon)
+	var result: Array = Progression.reward_icons(stage)
 	if stage == 11: result.append("stage_rewards/reward_module_ticket.png")
 	return result.slice(0,2)
 
@@ -286,8 +260,8 @@ func _surface(parent: Node, image: String) -> VBoxContainer:
 	return box
 
 func unlock_items(stage: int) -> Array:
-	var items: Array = UNLOCKS.get(stage, []).duplicate(true)
-	if stage == 11: items.push_front(["모듈 티켓 %d장" % int(lobby.app.catalog.stage(stage - 1).get("firstClearTurretModuleTicketReward", 0)), "stage_rewards/reward_module_ticket.png", "티켓"])
+	var items: Array = Progression.unlock_items(stage)
+	if stage == 11: items.push_front(["모듈 티켓 %d장" % int(lobby.app.catalog.stage_summary(stage - 1).get("firstClearTurretModuleTicketReward", 0)), "stage_rewards/reward_module_ticket.png", "티켓"])
 	return items
 
 func _small_icon(path: String, pixels: int = 18) -> Control:
@@ -411,7 +385,7 @@ func details(stage: int) -> void:
 	stat_row.custom_minimum_size.y = 74
 	stat_row.add_theme_constant_override("separation",8)
 	box.add_child(stat_row)
-	var stat_data := [["최고 기록", record(stage), "best_record"], ["총 라운드", "%d라운드" % lobby.app.catalog.stage(stage - 1).waves.size(), "total_rounds"], ["룬 보상", "+%d" % rune_reward(stage), "rune_reward"]]
+	var stat_data := [["최고 기록", record(stage), "best_record"], ["총 라운드", "%d라운드" % lobby.app.catalog.wave_count(stage - 1), "total_rounds"], ["룬 보상", "+%d" % rune_reward(stage), "rune_reward"]]
 	for i in range(stat_data.size()):
 		if i > 0:
 			var separator := VSeparator.new()

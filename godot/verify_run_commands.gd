@@ -112,7 +112,7 @@ func _initialize() -> void:
 
 func _targeted_level_cases(catalog, growth, built: Dictionary) -> void:
 	var counted := CountingCatalog.new()
-	counted.data = catalog.data
+	check(counted.load_fixture_content(catalog.domain_snapshot()),"counting catalog fixture")
 	var service := Commands.new(counted,growth)
 	var state := built.duplicate(true)
 	state.phase = "wave"
@@ -324,8 +324,8 @@ func _build_price_cache_checks(catalog, growth) -> void:
 	check(service.build_cost(state,"unsupported") == 0, "unknown turret price remains zero")
 
 func _light_weapon_equip_cases(service, built: Dictionary) -> void:
-	for type in service.catalog.data.turrets:
-		var allowed: bool = "light" in service.catalog.data.turrets[type].configuration.statInput.definition.attackTags
+	for type in service.catalog.turret_types():
+		var allowed: bool = "light" in service.catalog.turret_definition(type).attackTags
 		for kind in ["equipGem","chooseRewardGemEquip"]:
 			for buy_slot in ([false,true] if kind == "chooseRewardGemEquip" else [false]):
 				var state := built.duplicate(true)

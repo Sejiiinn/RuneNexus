@@ -2,7 +2,7 @@
 
 역할: [확정 맵 배치](../maps.json)에 대응하는 5개 맵 × 40라운드 출현 설계안. 기존 룰을 유지하고 그룹의 순서·시작 시각만 바꾼다. 본게임 연결 상태는 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다.
 
-원본은 [rounds.json](rounds.json)이다. 전체 200개 라운드의 모든 출현 그룹을 명시한다. 이 README의 구성표와 예시는 같은 JSON에서 생성한다. [생성·검사 도구](generate_rounds.py)는 기존 콘텐츠 ID 5의 `groups`와 확정 맵을 읽어 이 폴더의 두 설계 파일만 갱신한다.
+수정 원본은 [고정 ID별 스테이지 JSON](../../../godot/content/source/stages/)이다. [rounds.json](rounds.json)은 챕터 1의 5맵·200라운드를 선택하는 작은 뷰 manifest이며 개별 스폰을 중복 저장하지 않는다. [내보내기·검사 도구](generate_rounds.py)는 공유 컴파일러로 큐를 전개한다. `--check`는 쓰기 없이 검증하고, 일반 실행은 `build/content_design_views/chapter1/`로 JSON을 내보낸다. 아래 표는 승인 당시 설계 요약이며 실행 입력은 원본에서 생성한다.
 
 ```sh
 python3 design/chapter1_map_expansion/rounds/generate_rounds.py --check
@@ -101,7 +101,7 @@ python3 design/chapter1_map_expansion/rounds/generate_rounds.py --check
 
 ## 스폰 시각 검사와 검증 한계
 
-생성·검사는 전체 25스테이지 × 40라운드 = 1,000웨이브 전체를 기존 상대 그룹 지연까지 확장하고 0.18초 정규화를 적용해 기존 `spawnQueue` 재현을 확인한다. 신규 200라운드의 적 종류별 수량·요청 간격·보스 수·기본 경제를 원본과 대조하고, 유한 절대 시각·양수 간격·양수 수량·최종 큐의 0.18초 이상 간격을 확인한다. 변경하지 않는 라운드와 모든 1~5라운드는 원본 `spawnQueue`를 그대로 보존한다. 이 검사는 Godot 실행·게임플레이·Android 검증을 대신하지 않는다.
+공유 컴파일러는 전체 25스테이지 × 40라운드 = 1,000웨이브를 원본 그룹에서 전개한다. 기존 상대 그룹 지연·0.18초 정규화·승인된 float 표현을 유지하며 [원본 회귀 검사](../../../scripts/test_content_compiler.py)가 전체 입력을 타입·비트 단위로 대조한다. `--check`는 원본 뷰를 검증하며, 컴파일러는 유한 절대 시각·양수 간격·양수 수량·최종 큐의 0.18초 이상 간격을 확인한다. 타입·경제·보스 구성의 기존값 보존은 기준 digest 회귀로 대조한다. 변경하지 않는 라운드와 모든 1~5라운드는 원본 `spawnQueue`를 그대로 보존한다. 이 검사는 Godot 실행·게임플레이·Android 검증을 대신하지 않는다.
 
 변형으로 바뀌는 마지막 실제 출현 시각의 범위(해당 맵의 변형 라운드만, 원본 실행 큐 기준):
 

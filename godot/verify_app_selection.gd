@@ -124,6 +124,17 @@ func _initialize() -> void:
 	var fresh: Dictionary = app.catalog.turret_stats(turret.type,{"tileSize":1.0,"statInput":adapter.configuration_cache.stat_input(configuration,turret)})
 	assert(adapter._stats(app,configuration,turret) == fresh)
 	assert(float(fresh.damage) > float(previous.damage),"Explicit invalidation refreshes hot-edited growth catalog")
+	var before_reload: Dictionary = fresh.duplicate(true)
+	var old_revision: int = adapter.configuration_cache.revision
+	var edited: Dictionary = app.catalog.domain_snapshot()
+	edited.turrets.arrow.configuration.statInput.definition.damage += 3.0
+	assert(app.catalog.load_fixture_content(edited),"Catalog reload validates owned fixture")
+	app.scene._native_combat_base_frame.presentation.selection = {}
+	adapter.apply(app)
+	assert(adapter.configuration_cache.revision > old_revision,"Same catalog reload invalidates configuration cache")
+	configuration = adapter.configuration_cache.derived(app.run_domain.state,app.run_domain.service)
+	fresh = adapter.configuration_cache.stats(app.catalog,turret,adapter.configuration_cache.stat_input(configuration,turret),1.0)
+	assert(float(fresh.damage) > float(before_reload.damage),"Catalog reload refreshes definition-dependent stats")
 	print("PASS app selection: idle, selected-only, build-all+preview, upgrade range, built selection, cancel, portal/core/invalid tiles; catalog tile units")
 	renderer.free()
 	app.free()

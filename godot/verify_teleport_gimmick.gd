@@ -49,8 +49,9 @@ func _validation() -> void:
 	var catalog = Catalog.new()
 	check(catalog.load_catalog() and catalog.stage_count() == 25,"real catalog retains existing stages plus expansion")
 	for i in range(15): check(not catalog.stage(i).map.has("teleportPairs") and not catalog.bootstrap(i).has("teleportPairs"),"real stage unchanged " + str(i))
-	catalog.data.stages[0].map.teleportPairs = [{"color":"red"}]
-	check(not catalog.validate_bootstrap(0) and catalog.bootstrap(0).is_empty() and not catalog.error.is_empty(),"invalid metadata rejected at materialization")
+	var invalid: Dictionary = catalog.domain_snapshot()
+	invalid.stages[0].map.teleportPairs = [{"color":"red"}]
+	check(not catalog.load_fixture_content(invalid) and not catalog.is_loaded() and not catalog.error.is_empty(),"invalid metadata rejected at catalog boundary")
 func _movement() -> void:
 	var e := _enemy()
 	Enemy.add_slow(e,0.5,20.0)
@@ -141,7 +142,9 @@ func _disconnected() -> void:
 	check(not Teleports.validate_map(missing).is_empty(),"jump must land at registered OUT")
 	var catalog := Catalog.new()
 	check(catalog.load_catalog(),"gap fixture catalog")
-	catalog.data.stages[0].map = map
+	var fixture: Dictionary = catalog.domain_snapshot()
+	fixture.stages[0].map = map
+	check(catalog.load_fixture_content(fixture),"gap fixture map loaded")
 	var path := catalog.world_path(0,{"tileSize":48.0})
 	var e := _enemy({"path":path,"teleportPairs":Teleports.compile_map(map)})
 	var events := Enemy.step(e,1.0)
@@ -154,12 +157,14 @@ func _save(disconnected: bool = false) -> void:
 	var catalog = Catalog.new()
 	var growth = Growth.new()
 	check(catalog.load_catalog() and growth.load_catalog(),"save catalogs")
-	# Only this in-memory copy has portals; checked-in stages remain untouched.
+	# Only this owned fixture has portals; checked-in stages remain untouched.
+	var fixture: Dictionary = catalog.domain_snapshot()
 	if disconnected:
-		catalog.data.stages[0].map = _gap_map()
+		fixture.stages[0].map = _gap_map()
 	else:
-		var path: Array = catalog.data.stages[0].map.path
-		catalog.data.stages[0].map.teleportPairs = [{"color":"blue","entrance":path[1].duplicate(),"exit":path[3].duplicate()}]
+		var path: Array = fixture.stages[0].map.path
+		fixture.stages[0].map.teleportPairs = [{"color":"blue","entrance":path[1].duplicate(),"exit":path[3].duplicate()}]
+	check(catalog.load_fixture_content(fixture),"owned teleport fixture loaded")
 	var service = Commands.new(catalog,growth)
 	var adapter = Adapter.new(catalog,growth)
 	var state: Dictionary = service.initial_state({"growthVersion":1,"coreCombatSkill":null},0)

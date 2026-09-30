@@ -108,7 +108,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 write_map_glb(assets / f"environment/dressing_stage{stage}.glb", "stage1_dressing")
             for stage in range(6, 11):
                 write_map_glb(assets / f"environment/chapter2_stage{stage}_geology.glb", f"stage{stage}_geology")
-            # Preparation consumes the committed catalog with no Dart sources/SDK.
+            # Asset-only fixture: compiler/freshness has dedicated source tests.
             catalog = {"stages": [{"id": stage, "map": {
                 "columns": 2, "rows": 1, "tiles": ["path", "build"], "path": [[0, 0]],
                 "tileTheme": "chapterOne" if stage <= 5 else
@@ -146,8 +146,17 @@ class MaterialPresetSyncTest(unittest.TestCase):
 
             with patch.multiple(preparation, ROOT=root, SOURCE=source,
                                 PROJECT=project, ASSETS=project / "assets",
-                                SOURCE_ASSETS=assets):
+                                SOURCE_ASSETS=assets), \
+                    patch.object(preparation, "check_generated") as content_check, \
+                    patch.object(preparation, "load_compiled_content", return_value=catalog) as content_load, \
+                    patch.object(preparation, "compile_progression") as progression_check:
+                write(source / "content/source/authoring.json", b"source must not be packaged")
+                write(project / "content/source/old.json", b"old staged source")
                 preparation.prepare()
+                content_check.assert_called_with(root)
+                content_load.assert_called_with(source / "content/game_content.json")
+                progression_check.assert_called_with(root, check=True)
+                self.assertFalse((project / "content/source").exists())
                 self.assertEqual(len(json.loads((project.parent / "chapter_one_frames.json").read_text())), 5)
                 self.assertEqual(len(json.loads((project.parent / "chapter_two_frames.json").read_text())), 5)
                 self.assertEqual(len(json.loads((project.parent / "chapter_three_frames.json").read_text())), 5)

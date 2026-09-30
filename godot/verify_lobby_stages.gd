@@ -1,9 +1,6 @@
 extends SceneTree
 const Stages = preload("res://ui/lobby_stages.gd")
-class Catalog extends RefCounted:
-	var data := {}
-	func stage_count() -> int: return data.stages.size()
-	func stage(index: int) -> Dictionary: return data.stages[index]
+const Catalog = preload("res://content/content_catalog.gd")
 class App extends RefCounted:
 	var catalog
 	var run_domain := {"state":{}}
@@ -33,7 +30,7 @@ func _initialize() -> void: call_deferred("verify")
 func verify() -> void:
 	var host := Host.new()
 	host.app.catalog = Catalog.new()
-	host.app.catalog.data = JSON.parse_string(FileAccess.get_file_as_string("res://content/game_content.json"))
+	assert(host.app.catalog.load_catalog())
 	root.add_child(host)
 	host.theme = preload("res://ui/app_theme.gd").create()
 	host.body = VBoxContainer.new()

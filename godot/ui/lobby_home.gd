@@ -159,8 +159,8 @@ func _build_canvas(w: float, h: float) -> void:
 	var detail := "도전할 스테이지를 선택하세요"
 	if active:
 		var state: Dictionary = lobby.app.run_domain.state
-		var stage: Dictionary = lobby.app.catalog.stage(int(state.stage))
-		detail = "%d / %d 라운드" % [mini(int(state.get("roundIndex", 0)) + 1, stage.waves.size()), stage.waves.size()]
+		var rounds: int = lobby.app.catalog.wave_count(int(state.stage))
+		detail = "%d / %d 라운드" % [mini(int(state.get("roundIndex", 0)) + 1, rounds), rounds]
 	_label(canvas, detail, Rect2(62, top + 26 + title_h, w - 124, detail_h), 12, 700, SECONDARY, true)
 	if active:
 		_stage_button(canvas, "ContinueRun", "이어서 진행", Rect2(62, top + panel_h - 18 - action_h, w - 124, action_h), false, func():

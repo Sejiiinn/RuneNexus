@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	stageprogression "github.com/Sejiiinn/RuneNexus/server/internal/progression"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -375,14 +376,8 @@ func turretUnlocked(turretType string, progressionJSON []byte) bool {
 	if json.Unmarshal(progressionJSON, &progression) != nil {
 		return false
 	}
-	requiredStage := 3
-	if turretType == "lightning" {
-		requiredStage = 6
-		if progression.ProgressionVersion >= 1 {
-			requiredStage = 7 // Fixed ID 7 is chapter 2 stage 2.
-		}
-	}
-	if progression.ProgressionVersion >= 1 && contains(progression.GrandfatherUnlocks, "turret:"+turretType) {
+	requiredStage := stageprogression.Requirement("turret", turretType, progression.ProgressionVersion < stageprogression.Version)
+	if progression.ProgressionVersion >= stageprogression.Version && contains(progression.GrandfatherUnlocks, "turret:"+turretType) {
 		return true
 	}
 	for _, stage := range progression.ClearedStageNumbers {

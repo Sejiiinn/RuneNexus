@@ -20,10 +20,10 @@ func capture(state: Dictionary, snapshot: Dictionary, saved_at: int, preferences
 	var stage := int(state.get("stage", -1))
 	if stage < 0 or stage >= catalog.stage_count(): return _reject("Unknown stage")
 	if not snapshot.get("events", []).is_empty(): return _reject("Unsettled combat events")
-	var source: Dictionary = catalog.stage(stage)
+	var map: Dictionary = catalog.stage_map(stage)
 	var run := state.duplicate(true)
-	run.stageNumber = source.id
-	run.mapSignature = CombatProjection.map_signature(source.map, source.map.path)
+	run.stageNumber = catalog.stage_id(stage)
+	run.mapSignature = CombatProjection.map_signature(map, map.path)
 	var progression: Dictionary = state.get("progression", {}).duplicate(true)
 	var inventory: Dictionary = progression.get("turretModules", {}).duplicate(true)
 	progression.erase("turretModules")
@@ -37,7 +37,7 @@ func capture(state: Dictionary, snapshot: Dictionary, saved_at: int, preferences
 	var projected: Variant = CombatProjection.capture(envelope, snapshot, templates, saved_at)
 	if projected == null: return _reject("Incomplete combat checkpoint")
 	# v2 distance is in Dart logical pixels; native content boards use tile units.
-	var scale := float(state.get("tileSize", 1.0)) / float(catalog.data.units.tileSize)
+	var scale: float = float(state.get("tileSize", 1.0)) / catalog.tile_size()
 	if not is_finite(scale) or scale <= 0: return _reject("Invalid tile size")
 	for enemy in projected.activeRun.enemies: enemy.distanceTravelled /= scale
 	# The application owns reward/return phases; native combat may still be paused.
@@ -58,20 +58,19 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 	if decoded == null or not decoded.activeRun is Dictionary: return _reject("No active run")
 	if not _finite_tree(envelope) or not _compatible(envelope,decoded): return _reject("Unsupported save values")
 	var run: Dictionary = decoded.activeRun
-	var stage := -1
-	for index in range(catalog.stage_count()):
-		if int(catalog.data.stages[index].id) == int(run.stageNumber): stage = index
+	var stage: int = catalog.stage_index(int(run.stageNumber))
 	if stage < 0: return _reject("Unknown stage")
-	var source: Dictionary = catalog.stage(stage)
-	if run.mapSignature != CombatProjection.map_signature(source.map, source.map.path): return _reject("Map signature mismatch")
+	var map: Dictionary = catalog.stage_map(stage)
+	var count: int = catalog.wave_count(stage)
+	if run.mapSignature != CombatProjection.map_signature(map, map.path): return _reject("Map signature mismatch")
 	var phase: String = run.phase
 	if phase == "restored": phase = "preparation"
 	if phase == "coreDestruction": phase = "failure"
 	if phase not in ["preparation","wave","reward","success","failure"]: return _reject("Unsupported run phase")
 	var round_index := int(run.roundIndex)
-	if round_index < 0 or round_index > source.waves.size() or int(run.completedRounds) < 0 or int(run.completedRounds) > source.waves.size(): return _reject("Invalid round")
+	if round_index < 0 or round_index > count or int(run.completedRounds) < 0 or int(run.completedRounds) > count: return _reject("Invalid round")
 	var live: bool = phase == "wave" or (phase == "reward" and run.isPurchasedGemReward and run.rewardReturnPhase == "wave")
-	if (live or not run.enemies.is_empty() or not run.spawnQueue.is_empty()) and round_index >= source.waves.size(): return _reject("No active wave")
+	if (live or not run.enemies.is_empty() or not run.spawnQueue.is_empty()) and round_index >= count: return _reject("No active wave")
 	if not live and phase != "failure" and (not run.enemies.is_empty() or not run.spawnQueue.is_empty()): return _reject("Combat outside active wave")
 	if phase == "failure" and not run.spawnQueue.is_empty(): return _reject("Failed run cannot retain a spawn queue")
 	if phase == "reward" and (run.rewardOptions.is_empty() or (run.isPurchasedGemReward and run.rewardReturnPhase not in ["preparation","wave"])): return _reject("Invalid reward phase")
@@ -88,9 +87,9 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 	var occupied := {}
 	for t in state.turrets:
 		var rule: Dictionary = growth.data.turretRules.get(t.type,{})
-		if rule.is_empty() or t.x < 0 or t.y < 0 or t.x >= source.map.columns or t.y >= source.map.rows: return _reject("Invalid turret tile/type")
-		var cell := int(t.y) * int(source.map.columns) + int(t.x)
-		if occupied.has(cell) or source.map.tiles[cell] != "build": return _reject("Occupied or unbuildable turret tile")
+		if rule.is_empty() or t.x < 0 or t.y < 0 or t.x >= map.columns or t.y >= map.rows: return _reject("Invalid turret tile/type")
+		var cell := int(t.y) * int(map.columns) + int(t.x)
+		if occupied.has(cell) or map.tiles[cell] != "build": return _reject("Occupied or unbuildable turret tile")
 		occupied[cell] = true
 		if t.level < 1 or t.level > int(rule.maxLevel) or t.slotLimit < 1 or t.slotLimit > 4 or t.equippedGemSlots.size() > t.slotLimit: return _reject("Invalid turret level/slots")
 		for key in ["primaryTrait","secondaryTrait"]:
@@ -124,14 +123,15 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 	inputs.defenseConfig = derived.defenseConfig
 	var core_state := state.duplicate(true)
 	core_state.progression.coreCombatSkill = run.runCoreCombatSkill
-	inputs.coreConfig = growth.core_config(core_state,stage,mini(round_index,source.waves.size()-1),catalog)
+	inputs.coreConfig = growth.core_config(core_state,stage,mini(round_index,count-1),catalog)
 	# A saved run skill is frozen independently of the current account selection.
 	inputs.coreConfig.runSkill = run.runCoreCombatSkill
 	if not catalog.validate_bootstrap(stage,inputs): return _reject(catalog.error)
 	for saved in run.enemies:
 		if not catalog.validate_enemy(stage,round_index,saved.type,inputs): return _reject(catalog.error)
+	var definition: Dictionary = catalog.wave_definition(stage,round_index) if live or not run.spawnQueue.is_empty() else {}
 	if live or not run.spawnQueue.is_empty():
-		var schedule: Array = source.waves[round_index].spawnQueue
+		var schedule: Array = definition.spawnQueue
 		var offset: int = schedule.size() - run.spawnQueue.size()
 		if offset < 0: return _reject("Spawn queue exceeds wave schedule")
 		for index in range(run.spawnQueue.size()):
@@ -139,13 +139,13 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 		for saved in run.spawnQueue:
 			if saved.delay < 0 or not is_finite(saved.delay): return _reject("Invalid spawn delay")
 			if not catalog.validate_randomized_enemy(stage,round_index,saved.enemyType,inputs): return _reject(catalog.error)
-	return {"decoded":decoded,"run":run,"state":state,"source":source,"stage":stage,"roundIndex":round_index,"phase":phase,"live":live,"inputs":inputs,"service":service}
+	return {"decoded":decoded,"run":run,"state":state,"wave":definition,"stage":stage,"roundIndex":round_index,"phase":phase,"live":live,"inputs":inputs,"service":service}
 
 func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGenerator) -> Dictionary:
 	var decoded: Dictionary = validated.decoded
 	var run: Dictionary = validated.run
 	var state: Dictionary = validated.state
-	var source: Dictionary = validated.source
+	var definition: Dictionary = validated.wave
 	var stage: int = validated.stage
 	var round_index: int = validated.roundIndex
 	var phase: String = validated.phase
@@ -171,7 +171,7 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 		next_enemy_id += 1
 	if live or not run.spawnQueue.is_empty():
 		var queue := []
-		var schedule: Array = source.waves[round_index].spawnQueue
+		var schedule: Array = definition.spawnQueue
 		var offset: int = schedule.size() - run.spawnQueue.size()
 		# v2 stores only pending types/delays. Re-roll their spawn randomness using
 		# the same real-content rules; existing live enemies keep saved values.
@@ -186,7 +186,7 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 			if enemy.is_empty(): return _reject(catalog.error)
 			queue.append({"enemyType":saved.enemyType,"delay":saved.delay,"enemy":enemy})
 			next_enemy_id += 1
-		bootstrap.wave = {"id":source.waves[round_index].round,"active":live,"spawnQueue":queue}
+		bootstrap.wave = {"id":definition.round,"active":live,"spawnQueue":queue}
 	return {"state":state,"bootstrap":bootstrap,"session":{"clock":"godot","phase":phase,"paused":true,"speed":1.0},"stage":stage,"nextRound":round_index + (1 if live else 0),"nextEnemyId":next_enemy_id,"envelope":decoded}
 
 # Unknown runtime-only keys may be dropped; known v2 values must not normalize

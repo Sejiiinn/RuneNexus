@@ -2,7 +2,7 @@
 
 역할: 챕터 1의 1-6~1-10 지형 배치 설계. 기존 배치에 사용자 요청으로 1-7·1-10의 포탈 도약을 반영한다. 제작·실행 근거는 [3D 배치 안내](concepts/README.md), 200라운드 출현 설계는 [라운드 원본](rounds/README.md)을 따른다.
 
-정확한 타일 배열·이동 순서·건설 좌표의 원본은 [maps.json](maps.json)이다. `chapterStage`는 표시명이며 저장 ID가 아니다. 본게임 고정 ID 16~20을 사용하고 기존 6~10 콘텐츠를 덮어쓰지 않는다.
+정확한 타일 배열·이동 순서·건설 좌표는 [고정 ID별 원본](../../godot/content/source/stages/)에서 관리한다. [maps.json](maps.json)은 승인된 다섯 맵을 선택하는 뷰 manifest이며 [공유 로더](../../scripts/content_design_views.py)가 내용을 조립한다. `chapterStage`는 표시명이며 저장 ID가 아니다. 본게임 고정 ID 16~20을 사용하고 기존 6~10 콘텐츠를 덮어쓰지 않는다.
 
 확장 진행의 강화·연구 해금 배분과 기존 사용자 권한 보존은 [공유 성장 설계](../stage_expansion_progression/README.md)를 따른다. 본게임 연결과 실제 검증 범위는 [본게임 연결·검증 범위](../../godot/content/README.md#확장-진행과-고정-id)를 따른다.
 
