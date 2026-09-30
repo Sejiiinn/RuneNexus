@@ -402,9 +402,29 @@ func _option_button(parent: Node,title: String,description: String,callback: Cal
 	return button
 
 func _priority() -> void:
-	var box = hud.open_modal("공격 목표")
-	var turret: Dictionary = hud.app.run_domain.service.turret(hud.app.run_domain.state,hud.app.run_domain.selected_id(hud.app.selected))
-	for value in hud.PRIORITIES:
-		var b = _option_button(box,hud.PRIORITIES[value],hud.PRIORITY_HELP[value],func(): hud._selected_command("targetPriority",{"type":value}); hud.close_modal(),str(turret.get("targetPriority","first")) == value)
-		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hud._button(box,"취소",hud.close_modal)
+	var turret := _current_turret()
+	var panel = hud.body.get_node_or_null("TurretActionPanel")
+	if turret.is_empty() or panel == null or not panel.target_action.visible: return
+	var popup: PopupPanel = hud.target_priority_popup
+	if popup.visible: popup.hide(); return
+	hud.auto_start_popup.hide()
+	popup.set_meta("turret_id",int(turret.id))
+	var priorities: Array = hud.PRIORITIES.keys()
+	for index in priorities.size():
+		popup.set_item_checked(index,str(turret.get("targetPriority","first")) == priorities[index])
+	popup.size = Vector2i.ZERO
+	var bounds: Rect2 = panel.target_action.get_global_rect()
+	var minimum := popup.get_contents_minimum_size()
+	var insets: Vector4 = hud.safe_insets()
+	var viewport: Vector2 = hud.get_viewport_rect().size
+	var x := clampf(bounds.end.x-minimum.x,insets.x,viewport.x-insets.z-minimum.x)
+	var y := maxf(insets.y,bounds.position.y-minimum.y-4)
+	popup.popup(Rect2i(Vector2i(x,y),Vector2i(minimum)))
+
+func _select_priority(index: int) -> void:
+	var turret := _current_turret()
+	if turret.is_empty() or int(turret.id) != int(hud.target_priority_popup.get_meta("turret_id",-1)): return
+	var priorities: Array = hud.PRIORITIES.keys()
+	if index < 0 or index >= priorities.size(): return
+	hud.target_priority_popup.hide()
+	hud._selected_command("targetPriority",{"type":priorities[index]})

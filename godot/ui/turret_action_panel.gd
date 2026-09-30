@@ -73,7 +73,8 @@ func configure(spec: Dictionary) -> void:
 	var sale := _vbox(sale_content)
 	_image(sale,ROOT+"ref_sell.png",93,70).size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var sale_title := _text(sale,"판매",40,60,Color("b9d6e4")); sale_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var tab_margin := _margin(self,217,0,224,0)
+	var tab_margin := _margin(self,217,0,0 if spec.get("target_visible",false) else 224,0)
+	tab_margin.name = "TurretTabMargin"
 	var tabs := _hbox(tab_margin); _space(tabs,0)
 	for entry in [["stats","스탯",754],["gems","젬 링크",766]]:
 		if entry[0] == "gems": _space(tabs,11)
@@ -112,6 +113,8 @@ func _update_target(spec: Dictionary) -> void:
 	if target_action == null: return
 	target_action.visible = bool(spec.get("target_visible",false))
 	_target_gap.visible = target_action.visible
+	get_node("TurretTabMargin").set_meta("design_margins",Vector4(217,0,0 if target_action.visible else 224,0))
+	get_node("TurretTabMargin").add_theme_constant_override("margin_right",0 if target_action.visible else roundi(224*_ratio))
 	target_action.tooltip_text = str(spec.get("target_tooltip","공격 목표"))
 
 func _fit_upgrade_height() -> void:

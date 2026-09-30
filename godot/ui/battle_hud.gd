@@ -6,11 +6,11 @@ const BattleTheme = preload("res://ui/battle_theme.gd")
 const Components = preload("res://ui/combat_component_theme.gd")
 const HudChrome = preload("res://ui/hud_chrome.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const TargetPriorityPopup = preload("res://ui/target_priority_popup.gd")
 const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}
 const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다."}
 const UPGRADES := {"towerDamage":"포탑 화력", "killGold":"처치 보너스", "waveGold":"정비 보급"}
 const PRIORITIES := {"first":"선두", "last":"후미", "strongest":"최대 체력", "weakest":"최저 체력", "nearest":"가까운 적"}
-const PRIORITY_HELP := {"first":"코어에 가장 가까이 다가간 적을 먼저 공격합니다.","last":"진행 경로의 뒤쪽에 있는 적을 먼저 공격합니다.","strongest":"남은 체력이 가장 높은 적을 공격합니다.","weakest":"남은 체력이 가장 낮은 적을 공격합니다.","nearest":"포탑에서 가장 가까운 적을 공격합니다."}
 var app
 var labels: Dictionary
 var resources: Label
@@ -33,6 +33,7 @@ var camera_button: Button
 var retry_save: Button
 var auto_start: Button
 var auto_start_popup: PopupMenu
+var target_priority_popup: PopupPanel
 const AUTO_MODES := ["pauseEachRound", "skipBossRounds", "fullAuto"]
 const AUTO_LABELS := ["웨이브마다 정지", "보스 제외 자동", "전부 자동"]
 const AUTO_CAPTIONS := ["수동", "보스 대기", "자동"]
@@ -193,6 +194,10 @@ func _ready() -> void:
 	auto_start_popup.popup_hide.connect(func(): if is_inside_tree(): refresh())
 	for index in AUTO_MODES.size(): auto_start_popup.add_radio_check_item(AUTO_LABELS[index],index)
 	auto_start_popup.id_pressed.connect(func(index: int): app.set_auto_start_mode(AUTO_MODES[index]); refresh())
+	target_priority_popup = TargetPriorityPopup.new(); add_child(target_priority_popup)
+	target_priority_popup.theme = theme
+	target_priority_popup.configure(PRIORITIES)
+	target_priority_popup.id_pressed.connect(turret_panel._select_priority)
 	start = _button(actions,"▶ 시작",_primary_action)
 	start.custom_minimum_size = Vector2(76,36)
 	_style_hud_button(start,"primary",false,Vector2(10,0))
@@ -331,6 +336,7 @@ func refresh(polled := false) -> void:
 		key = [main_tab,viewport.x < 380,phase]
 	var value_key := [dk,app.selection_view.level_preview]
 	if not body_key is Array or key != body_key:
+		target_priority_popup.hide()
 		body_key = key.duplicate(true)
 		body_value_key = value_key.duplicate()
 		var previous_scroll := scroll.scroll_vertical
@@ -366,6 +372,7 @@ func refresh(polled := false) -> void:
 	RuntimeProfile.finish("hud", hud_tick)
 
 func _open_auto_start() -> void:
+	target_priority_popup.hide()
 	for index in AUTO_MODES.size(): auto_start_popup.set_item_checked(index,app.auto_start_mode == AUTO_MODES[index])
 	# The original HUD opens its three choices immediately above the mode icon.
 	auto_start_popup.reset_size()
@@ -445,6 +452,7 @@ func _refresh_purchase_buttons(state: Dictionary) -> void:
 			button.get_meta("action_content").modulate = Color("78848a") if button.disabled else Color.WHITE
 
 func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_close := true,accent := Color("8ee6ff"),tone := "standard") -> VBoxContainer:
+	target_priority_popup.hide()
 	if not is_instance_valid(modal):
 		modal_resume = app.begin_modal_pause()
 		modal = ColorRect.new(); modal.color = Color("02070dd9"); add_child(modal); modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -516,9 +524,10 @@ func modal_active() -> bool:
 	return is_instance_valid(modal)
 
 func blocks_board_input() -> bool:
-	return auto_start_popup.visible or modal_active() or (app.run_domain.state.get("phase") in ["reward","success","failure"] and (rewards == null or not rewards.targeting() or rewards.replacing()))
+	return auto_start_popup.visible or target_priority_popup.visible or modal_active() or (app.run_domain.state.get("phase") in ["reward","success","failure"] and (rewards == null or not rewards.targeting() or rewards.replacing()))
 
 func close_back() -> bool:
+	if target_priority_popup.visible: target_priority_popup.hide(); return true
 	if auto_start_popup.visible: auto_start_popup.hide(); return true
 	if modal_active(): close_modal(); return true
 	if rewards != null and rewards.close_back(): return true
