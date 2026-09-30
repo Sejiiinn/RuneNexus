@@ -1,0 +1,303 @@
+{
+  "source": {
+    "bounds": [
+      [
+        -0.39208951592445374,
+        -1.1004999876022339,
+        0.007000000216066837
+      ],
+      [
+        0.39208951592445374,
+        0.29130542278289795,
+        0.9147602319717407
+      ]
+    ],
+    "controls": {
+      "turret_root": {
+        "local": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "world": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "parent": null
+      },
+      "turret_head": {
+        "local": [
+          0.0,
+          0.0,
+          0.44999998807907104
+        ],
+        "world": [
+          0.0,
+          0.0,
+          0.44999998807907104
+        ],
+        "parent": "turret_root"
+      },
+      "turret_barrel": {
+        "local": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "world": [
+          0.0,
+          0.0,
+          0.44999998807907104
+        ],
+        "parent": "turret_head"
+      },
+      "muzzle": {
+        "local": [
+          0.0,
+          -1.0989999771118164,
+          0.32600000500679016
+        ],
+        "world": [
+          0.0,
+          -1.0989999771118164,
+          0.7760000228881836
+        ],
+        "parent": "turret_barrel"
+      }
+    },
+    "materials": {
+      "C | dark mechanical recess.001": "f0d1680e356814bf1b4c500ac5a8fbb2642fcecc8d7d7ff7cbfdddf0118e15d2",
+      "C | worn silver edge armour.001": "c031637beb93cb97c1139fbaeafbb586f54883473f97b14ee06b395ad349d3fb",
+      "C | blue grey forged steel.001": "6f245ae76eedf604f7a633bc5579c82dea2211ff7e05e39787e1765d76e7d058",
+      "C | restrained aged bronze.001": "512f66954619d24fd597bc0f54bb0184739ea031337e46c860325db56d634c3c",
+      "C | cyan runic inlay.001": "3c2ca4c4db10db02941b2b8a068ed7841f585ab439db29b679d5592a213ef095"
+    }
+  },
+  "optimized": {
+    "bounds": [
+      [
+        -0.39052054286003113,
+        -1.1004999876022339,
+        0.007000000216066837
+      ],
+      [
+        0.39052054286003113,
+        0.29130542278289795,
+        0.9147602319717407
+      ]
+    ],
+    "controls": {
+      "turret_root": {
+        "local": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "world": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "parent": null
+      },
+      "turret_head": {
+        "local": [
+          0.0,
+          0.0,
+          0.44999998807907104
+        ],
+        "world": [
+          0.0,
+          0.0,
+          0.44999998807907104
+        ],
+        "parent": "turret_root"
+      },
+      "turret_barrel": {
+        "local": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "world": [
+          0.0,
+          0.0,
+          0.44999998807907104
+        ],
+        "parent": "turret_head"
+      },
+      "muzzle": {
+        "local": [
+          0.0,
+          -1.0989999771118164,
+          0.32600000500679016
+        ],
+        "world": [
+          0.0,
+          -1.0989999771118164,
+          0.7760000228881836
+        ],
+        "parent": "turret_barrel"
+      }
+    },
+    "materials": {
+      "C | dark mechanical recess.001": "f0d1680e356814bf1b4c500ac5a8fbb2642fcecc8d7d7ff7cbfdddf0118e15d2",
+      "C | worn silver edge armour.001": "c031637beb93cb97c1139fbaeafbb586f54883473f97b14ee06b395ad349d3fb",
+      "C | blue grey forged steel.001": "6f245ae76eedf604f7a633bc5579c82dea2211ff7e05e39787e1765d76e7d058",
+      "C | restrained aged bronze.001": "512f66954619d24fd597bc0f54bb0184739ea031337e46c860325db56d634c3c",
+      "C | cyan runic inlay.001": "3c2ca4c4db10db02941b2b8a068ed7841f585ab439db29b679d5592a213ef095"
+    }
+  },
+  "controls_equal": true,
+  "materials_equal": true,
+  "bounds_max_abs_change": 0.0015689730644226074,
+  "original_rest_contacts": [
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "Eight sided rotation drum",
+      "surface_intersections": 40
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 28
+    },
+    {
+      "a": "SWIFT lower receiver saddle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 0
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 37
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 80
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 37
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 80
+    }
+  ],
+  "original_recoil_contacts": [
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "Eight sided rotation drum",
+      "surface_intersections": 40
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 54
+    },
+    {
+      "a": "SWIFT lower receiver saddle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 0
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 37
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 80
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 37
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 80
+    }
+  ],
+  "rest_contacts": [
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "Eight sided rotation drum",
+      "surface_intersections": 24
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 14
+    },
+    {
+      "a": "SWIFT lower receiver saddle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 0
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 18
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 38
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 18
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 38
+    }
+  ],
+  "recoil_048_contacts": [
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "Eight sided rotation drum",
+      "surface_intersections": 24
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 28
+    },
+    {
+      "a": "SWIFT lower receiver saddle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 0
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 18
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 38
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 18
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 38
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "sniper": {
+    "source": "design/sniper_tower_concepts/2026-09-26/production/optimized-game-distance/sniper-swift-optimized.glb",
+    "sha256": "481e15b6f968990521ce39e36585d0674bf7ffc2d17a034cf32fa0a49229e67c",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218287467957,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.193552773029,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -1.0989999771118164,
+      0.0
+    ],
+    "bounds_uv": [
+      -0.026181969791650772,
+      0.10392787307500839,
+      0.7765412330627441,
+      0.8518495559692383
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.6917999982833862,
+    "triangles": 9816,
+    "vertex_bounds_uv": [
+      0.03125675022602081,
+      0.2003353089094162,
+      0.7443869709968567,
+      0.7821146845817566
+    ],
+    "standard_orthographic_scale": 1.45,
+    "fit_margin_pixels": 8
+  }
+}

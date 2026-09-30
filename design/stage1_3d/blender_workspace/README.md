@@ -22,6 +22,10 @@
 
 - [룬 화염 포탑](../../fire_tower_concepts/runic_3d/README.md): 사용자가 선택한 14번 시안의 독립 Blender 제작 원본. 길쭉한 팔각 몸체·주황 룬 홈·청동 음각 지지대·작은 상부 화염구를 따른다. 후속 이관 승인으로 `magic.glb`를 교체했다. **33 Runic Fire Turret**는 [90% 크기 적용 PBR 원본](../../fire_tower_concepts/runic_3d/scale-90/README.md)이며 원형 편집은 링크의 승인 Blender 원본에서 한다. 효과는 Godot 기본 재질·GPU 파티클로 재생한다.
 
+## 신규 저격 C 제작 원본
+
+[저격 C 제작 기준·산출물](../../sniper_tower_concepts/2026-09-26/README.md)은 기존 게임 저격 모델과 분리된 독립 제작 경로다. `sniper-c` workflow로 편집 원본과 준비 GLB를 찾을 수 있다. sniper-c 등록과 기존 허브 Scene은 최초 고해상도 제작/이전 모델 기록이다. 현재 전투용 본체는 [승인 SWIFT 경량본의 게임 적용 기록](../../sniper_tower_concepts/2026-09-26/README.md#전투용-본체-게임-적용)을 따른다. 허브 파일과 열린 원본은 이번 이식에서 변경하지 않았다.
+
 ## 갱신
 
 저장소 루트에서 별도 Blender 백그라운드 프로세스로 다음 스크립트를 실행해야 한다.

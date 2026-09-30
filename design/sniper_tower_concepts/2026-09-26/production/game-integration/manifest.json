@@ -1,0 +1,86 @@
+{
+  "approved_source": "design/sniper_tower_concepts/2026-09-26/production/optimized-game-distance/sniper-swift-optimized.glb",
+  "game_asset": "assets/images/stage1_3d/turrets/sniper.glb",
+  "source_and_game_sha256": "481e15b6f968990521ce39e36585d0674bf7ffc2d17a034cf32fa0a49229e67c",
+  "triangles": 9816,
+  "mesh_count": 3,
+  "materials": [
+    "C | blue grey forged steel.002",
+    "C | worn silver edge armour.002",
+    "C | dark mechanical recess.002",
+    "C | cyan runic inlay.002",
+    "C | restrained aged bronze.002"
+  ],
+  "nodes": [
+    {
+      "name": "muzzle",
+      "translation": [
+        0,
+        0.32600003480911255,
+        1.0989999771118164
+      ]
+    },
+    {
+      "name": "turret_barrel_geometry",
+      "mesh": 0
+    },
+    {
+      "name": "turret_barrel",
+      "children": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "turret_head_geometry",
+      "translation": [
+        0,
+        0.013000011444091797,
+        0
+      ],
+      "mesh": 1
+    },
+    {
+      "name": "turret_head",
+      "children": [
+        2,
+        3
+      ],
+      "translation": [
+        0,
+        0.44999998807907104,
+        0
+      ]
+    },
+    {
+      "name": "turret_root_geometry",
+      "mesh": 2
+    },
+    {
+      "name": "turret_root",
+      "children": [
+        4,
+        5
+      ]
+    }
+  ],
+  "prepared_game_asset": "build/godot/project/assets/turrets/sniper.glb",
+  "prepared_sha256": "aa0b94e548abc0faffe148735407559b4ece470b37473a22f9510c13f3a705b5",
+  "prepared_geometry_rig_materials_unchanged": true,
+  "texture_handling": "existing externalize_textures; same mesh/accessor/BIN data, relative shared texture URIs",
+  "hud_png_sha256": "c28f974630d00e035fb6abaeb30a01e173491f745dc10329fb8d25cf7e786100",
+  "other_game_model_sha256": {
+    "arrow": "eda03b4883a8956360d0032daa522e706f9ef7ae5cd821a86b4046524611b31a",
+    "cannon": "c4e2c2093a653b3aa3b7b1a90945211b0c95d6bec75defc5b63c0a2b12ab1b9e",
+    "magic": "b46a8c2089924e73b38ed06f59039b6e85a8fea009ea4e5507144ef3a71c9a5e",
+    "frost": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+    "lightning": "fbd3c028a067cddb224dc9a3f3db124d94d3a8036e8641a11cdd2ff0010f693b"
+  },
+  "runtime": "Godot 4.7.2 stable / Metal Forward Mobile / 440x900 / normal app mode",
+  "regression": "godot/verify_sniper_model.gd; verify_native_combat_runtime.gd; verify_native_session.gd",
+  "integration_evidence": "build/sniper-game-integration/runtime-report.json and captures/ (local ignored)",
+  "limitations": [
+    "Approved new lens-to-target aiming line and Blender-only firing VFX are not integrated. Existing generic muzzle flash/smoke and frame-driven recoil retained.",
+    "Android device/APK performance unverified; no APK or deployment."
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "source_sha256": "73615d0349e3b87a5ba70397d51cb47e857da965bb37019571b121c14903b8bb",
+  "source": "../sniper-c-editable.blend",
+  "animated_source": "sniper-fire-animated.blend",
+  "action": "sniper_fire",
+  "fps": 30,
+  "frames": 60,
+  "shot_frame": 17,
+  "max_recoil_frame": 18,
+  "restored_frame": 36,
+  "recoil_tile": 0.048,
+  "recoil_keyframes": [
+    [
+      1,
+      0
+    ],
+    [
+      15,
+      0
+    ],
+    [
+      17,
+      0
+    ],
+    [
+      18,
+      0.048
+    ],
+    [
+      21,
+      0.043
+    ],
+    [
+      27,
+      0.018
+    ],
+    [
+      36,
+      0
+    ],
+    [
+      60,
+      0
+    ]
+  ],
+  "root_and_head_animated": false,
+  "effect": "Short solid 3D white/cyan spear and four petals; no beam, billboard or smoke",
+  "static_source_unchanged": true,
+  "video_plan": "2 normal cycles, then one 1.5x-duration slow cycle, total 7 sec",
+  "game_integration": false,
+  "videos": {
+    "sniper-fire-single.mp4": {
+      "size": [
+        800,
+        800
+      ],
+      "fps": 30.0,
+      "duration": 2.0,
+      "decoded_frames": 60,
+      "bytes": 122991
+    },
+    "sniper-fire-preview.mp4": {
+      "size": [
+        800,
+        800
+      ],
+      "fps": 30.0,
+      "duration": 7.0,
+      "decoded_frames": 210,
+      "bytes": 255064
+    }
+  },
+  "animated_sha256": "bd427faa0e44df1149ccac5dc4b1c70ee0b7c2ce7d48ec699821749710fb2775",
+  "motion_only_glb_sha256": "b4ed11dc2de6156389c7ad6b80c56f2f25d1992371a2f71c44af38b25d636443",
+  "glb_limitations": "sniper_fire barrel translation only; muzzle flash and material charge animation are Blender-only",
+  "source_final_sha256": "73615d0349e3b87a5ba70397d51cb47e857da965bb37019571b121c14903b8bb"
+}

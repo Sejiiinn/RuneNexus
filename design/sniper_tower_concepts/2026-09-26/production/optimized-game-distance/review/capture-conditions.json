@@ -1,0 +1,225 @@
+{
+  "columns": 8,
+  "formal_rect": [
+    8.0,
+    110.0,
+    864.0,
+    1498.0
+  ],
+  "head_yaw": 0.0,
+  "map": {
+    "columns": 8.0,
+    "rows": 10.0,
+    "tiles": [
+      "spawn",
+      "path",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "build",
+      "build",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "build",
+      "path",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "path",
+      "path",
+      "path",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "build",
+      "path",
+      "build",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "build",
+      "build",
+      "path",
+      "build",
+      "build",
+      "build",
+      "build",
+      "build",
+      "build",
+      "build",
+      "path",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "core",
+      "blocked"
+    ]
+  },
+  "renderer": "mobile",
+  "rows": 10,
+  "samples": [
+    {
+      "camera_basis": "[X: (0.933346, 0.0, -0.358979), Y: (-0.31903, 0.458459, -0.829479), Z: (0.164577, 0.888716, 0.4279)]",
+      "camera_h_offset": -0.717958450317383,
+      "camera_position": "(5.0, 27.0, 13.0)",
+      "camera_size": 21.5013313293457,
+      "camera_v_offset": -0.330237150192261,
+      "crop_rect_pixels": [
+        212,
+        378,
+        52,
+        66
+      ],
+      "mode": "angled",
+      "physical_capture": [
+        440,
+        900
+      ],
+      "pixels_per_tile_physical": 41.8578731807017,
+      "projected_mesh_rect_pixels": [
+        220.32666015625,
+        386.604858398438,
+        35.089599609375,
+        49.5200500488281
+      ],
+      "variant": "original"
+    },
+    {
+      "camera_basis": "[X: (1.0, 0.0, 0.0), Y: (0.0, 0.000033, -1.0), Z: (0.0, 1.0, 0.000033)]",
+      "camera_h_offset": 0.0,
+      "camera_position": "(0.0, 30.0, 0.001)",
+      "camera_size": 18.125,
+      "camera_v_offset": -0.412847220897675,
+      "crop_rect_pixels": [
+        167,
+        382,
+        55,
+        86
+      ],
+      "mode": "drone",
+      "physical_capture": [
+        440,
+        900
+      ],
+      "pixels_per_tile_physical": 49.6551724137931,
+      "projected_mesh_rect_pixels": [
+        175.703140258789,
+        390.206329345703,
+        38.9385528564453,
+        69.1103515625
+      ],
+      "variant": "original"
+    },
+    {
+      "camera_basis": "[X: (0.933346, 0.0, -0.358979), Y: (-0.31903, 0.458459, -0.829479), Z: (0.164577, 0.888716, 0.4279)]",
+      "camera_h_offset": -0.717958450317383,
+      "camera_position": "(5.0, 27.0, 13.0)",
+      "camera_size": 21.5013313293457,
+      "camera_v_offset": -0.330237150192261,
+      "crop_rect_pixels": [
+        212,
+        378,
+        52,
+        66
+      ],
+      "mode": "angled",
+      "physical_capture": [
+        440,
+        900
+      ],
+      "pixels_per_tile_physical": 41.8578731807017,
+      "projected_mesh_rect_pixels": [
+        220.338150024414,
+        386.604827880859,
+        35.0540008544922,
+        49.48828125
+      ],
+      "variant": "optimized"
+    },
+    {
+      "camera_basis": "[X: (1.0, 0.0, 0.0), Y: (0.0, 0.000033, -1.0), Z: (0.0, 1.0, 0.000033)]",
+      "camera_h_offset": 0.0,
+      "camera_position": "(0.0, 30.0, 0.001)",
+      "camera_size": 18.125,
+      "camera_v_offset": -0.412847220897675,
+      "crop_rect_pixels": [
+        167,
+        382,
+        55,
+        86
+      ],
+      "mode": "drone",
+      "physical_capture": [
+        440,
+        900
+      ],
+      "pixels_per_tile_physical": 49.6551724137931,
+      "projected_mesh_rect_pixels": [
+        175.781051635742,
+        390.206329345703,
+        38.7827301025391,
+        69.1103515625
+      ],
+      "variant": "optimized"
+    }
+  ],
+  "scale": 1.0,
+  "tile_center_grid": [
+    3.5,
+    4.5
+  ],
+  "viewport_logical": [
+    880.0,
+    1800.0
+  ],
+  "window_pixels": [
+    440,
+    900
+  ],
+  "zoom": 1.0,
+  "source_sha256": {
+    "godot/main.gd": "0c3413c0dcaec4981bc36225e9d3f2f2d3a3268eacf1df6a27a380f959e468c7",
+    "godot/session/battlefield_camera.gd": "6369afaba241ca849a9065d41406e9180f7f6fc939a2370be210810b73ac0d40",
+    "godot/ui/battle_hud.gd": "2e4952afe5c75a79c4366095d5beb225291afba201535608b7d4575f7cb4e26a",
+    "godot/environment/battlefield_environment.gd": "708dc5a2ba21f5078492a178d74068db54d62e566fd001e74f6fe2c87a8ce6b4",
+    "godot/project.godot": "fe0b5d3521e4a55bea64ab4984ff6995315744ae1c5231b9cd2da2d532e52a8f"
+  }
+}

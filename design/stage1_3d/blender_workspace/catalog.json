@@ -273,6 +273,30 @@
         "design/fire_tower_concepts/enemy_burn/integration/android-after.json"
       ],
       "limitation": "아틀라스는 체적 원형의 베이크다. CPU 측정은 전체 GPU·프레임 성능 검증이 아니며 실제 화면 판정은 별도다."
+    },
+    "sniper-c": {
+      "source": "design/sniper_tower_concepts/2026-09-26/production/sniper-c-editable.blend",
+      "guide": "design/sniper_tower_concepts/2026-09-26/README.md",
+      "steps": [
+        {
+          "script": "design/sniper_tower_concepts/2026-09-26/production/build_sniper.py",
+          "entrypoint": "build()",
+          "context": "Blender MCP: 기존 장면을 보존한 독립 C 제작. 재생성은 수작업 편집을 덮을 수 있으므로 기존 원본과 구분한다."
+        },
+        {
+          "script": "design/sniper_tower_concepts/2026-09-26/production/export_preview.py",
+          "entrypoint": "module body",
+          "context": "독립 제작 원본에서 준비용 GLB를 내보낸다. 게임 자산 경로를 교체하지 않는다."
+        }
+      ],
+      "outputs": [
+        "design/sniper_tower_concepts/2026-09-26/production/sniper-c-preview.glb"
+      ],
+      "checks": [],
+      "records": [
+        "design/sniper_tower_concepts/2026-09-26/production/manifest.json"
+      ],
+      "limitation": "승인 C의 독립 3D 제작 경로. 준비 GLB이며 게임 이관·인게임·Android 검증과 패키징은 별도 범위다."
     }
   }
 }

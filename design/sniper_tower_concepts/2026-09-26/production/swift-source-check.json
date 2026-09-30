@@ -1,0 +1,80 @@
+{
+  "before": {
+    "fixed_geometry": "a51930403680cd2904b12ccf9311fef37e8597607961a3fd3764b72e1986658a",
+    "barrel_geometry": "5a4695dc4a6e959fdb301133127da1b02daf995da1b17daa4ab586bb2a74a28f",
+    "head": [
+      0.0,
+      0.0,
+      0.44999998807907104
+    ],
+    "barrel": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "muzzle": [
+      0.0,
+      -1.0989999771118164,
+      0.32600000500679016
+    ]
+  },
+  "swift": {
+    "fixed_geometry": "a51930403680cd2904b12ccf9311fef37e8597607961a3fd3764b72e1986658a",
+    "barrel_geometry": "5a4695dc4a6e959fdb301133127da1b02daf995da1b17daa4ab586bb2a74a28f",
+    "head": [
+      0.0,
+      0.0,
+      0.44999998807907104
+    ],
+    "barrel": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "muzzle": [
+      0.0,
+      -1.0989999771118164,
+      0.32600000500679016
+    ]
+  },
+  "fixed_geometry_preserved": true,
+  "barrel_geometry_preserved": true,
+  "contract_positions_preserved": true,
+  "interfaces": [
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "Eight sided rotation drum",
+      "surface_intersections": 40
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 28
+    },
+    {
+      "a": "SWIFT lower receiver saddle",
+      "b": "SWIFT swept teardrop receiver shell",
+      "surface_intersections": 0
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 37
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke",
+      "surface_intersections": 80
+    },
+    {
+      "a": "SWIFT bearing bridge across both yokes",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 37
+    },
+    {
+      "a": "SWIFT continuous trunnion axle",
+      "b": "SWIFT continuous curved silver yoke.001",
+      "surface_intersections": 80
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "approved_reference": "../../receiver-variants/01-swept-wedge.png (01 SWIFT)",
+  "latest_user_revision": "01 SWIFT swept receiver, inset aiming lens, curved yoke; true vertical top view. Lowered column, head pivot .45, long barrel and muzzle retained.",
+  "editable_source": "sniper-swift-optimized.blend",
+  "prepared_export": "sniper-swift-optimized.glb",
+  "not_installed_in_game": true,
+  "blender_version": "5.2.1 LTS",
+  "triangles": 9816,
+  "material_count": 5,
+  "mesh_count": 3,
+  "bounds_blender": [
+    [
+      -0.390521,
+      -1.1005,
+      0.007
+    ],
+    [
+      0.390521,
+      0.291305,
+      0.91476
+    ]
+  ],
+  "fixed_footprint_radius": 0.414863,
+  "rotating_footprint_radius": 1.100504,
+  "head_origin_blender": [
+    0.0,
+    0.0,
+    0.44999998807907104
+  ],
+  "barrel_initial_position": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "muzzle_blender_world": [
+    0.0,
+    -1.0989999771118164,
+    0.7760000228881836
+  ],
+  "coordinates": "Blender Z up/-Y forward => glTF Y up/+Z forward",
+  "material_parameters": {
+    "blue_grey_steel": {
+      "metallic": 0.88,
+      "roughness": 0.34
+    },
+    "silver_armour": {
+      "metallic": 0.94,
+      "roughness": 0.26
+    },
+    "bronze": {
+      "metallic": 0.85,
+      "roughness": 0.33
+    },
+    "dark_recess": {
+      "metallic": 0.8,
+      "roughness": 0.4
+    }
+  },
+  "geometry_sha256": "4b7717b3905322f6d651ff12d60bd2fcebf91a84c3430f96dd0363cac7f0a34d",
+  "render_conditions": {
+    "renderer": "Cycles",
+    "samples": 24,
+    "size": [
+      1200,
+      1200
+    ],
+    "view": "source hero; actual game-distance comparison recorded separately",
+    "exposure": 0.6,
+    "tile": "standalone simple green tile, not game capture"
+  },
+  "limitations": [
+    "No game integration or runtime aim/recoil verification in this model-production scope."
+  ],
+  "glb_bytes": 1350476,
+  "glb_sha256": "481e15b6f968990521ce39e36585d0674bf7ffc2d17a034cf32fa0a49229e67c"
+}

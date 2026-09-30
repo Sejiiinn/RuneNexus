@@ -1,0 +1,224 @@
+{
+  "original": {
+    "bytes": 3228344,
+    "sha256": "ea58d1f16cf6ea3e845d72534a62d3bba8191072ad4ebf93ab10b998d6359e12",
+    "triangles": 43380,
+    "meshes": 3,
+    "materials": 5,
+    "images": [
+      {
+        "mime": "image/png",
+        "dimensions": [
+          1024,
+          1024
+        ]
+      },
+      {
+        "mime": "image/png",
+        "dimensions": [
+          1024,
+          1024
+        ]
+      },
+      {
+        "mime": "image/png",
+        "dimensions": [
+          1024,
+          1024
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "name": "muzzle",
+        "translation": [
+          0,
+          0.32600003480911255,
+          1.0989999771118164
+        ]
+      },
+      {
+        "mesh": 0,
+        "name": "turret_barrel_geometry"
+      },
+      {
+        "children": [
+          0,
+          1
+        ],
+        "name": "turret_barrel"
+      },
+      {
+        "mesh": 1,
+        "name": "turret_head_geometry",
+        "translation": [
+          0,
+          0.013000011444091797,
+          0
+        ]
+      },
+      {
+        "children": [
+          2,
+          3
+        ],
+        "name": "turret_head",
+        "translation": [
+          0,
+          0.44999998807907104,
+          0
+        ]
+      },
+      {
+        "mesh": 2,
+        "name": "turret_root_geometry"
+      },
+      {
+        "children": [
+          4,
+          5
+        ],
+        "name": "turret_root"
+      }
+    ],
+    "material_factors": [
+      {
+        "name": "C | blue grey forged steel.002",
+        "metallic": 0.8799999952316284,
+        "roughness": 1
+      },
+      {
+        "name": "C | worn silver edge armour.002",
+        "metallic": 0.9399999976158142,
+        "roughness": 1
+      },
+      {
+        "name": "C | dark mechanical recess.002",
+        "metallic": 0.800000011920929,
+        "roughness": 1
+      },
+      {
+        "name": "C | cyan runic inlay.002",
+        "metallic": 0,
+        "roughness": 0.4000000059604645
+      },
+      {
+        "name": "C | restrained aged bronze.002",
+        "metallic": 0.8500000238418579,
+        "roughness": 1
+      }
+    ]
+  },
+  "optimized": {
+    "bytes": 1350476,
+    "sha256": "481e15b6f968990521ce39e36585d0674bf7ffc2d17a034cf32fa0a49229e67c",
+    "triangles": 9816,
+    "meshes": 3,
+    "materials": 5,
+    "images": [
+      {
+        "mime": "image/png",
+        "dimensions": [
+          1024,
+          1024
+        ]
+      },
+      {
+        "mime": "image/png",
+        "dimensions": [
+          1024,
+          1024
+        ]
+      },
+      {
+        "mime": "image/png",
+        "dimensions": [
+          1024,
+          1024
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "name": "muzzle",
+        "translation": [
+          0,
+          0.32600003480911255,
+          1.0989999771118164
+        ]
+      },
+      {
+        "mesh": 0,
+        "name": "turret_barrel_geometry"
+      },
+      {
+        "children": [
+          0,
+          1
+        ],
+        "name": "turret_barrel"
+      },
+      {
+        "mesh": 1,
+        "name": "turret_head_geometry",
+        "translation": [
+          0,
+          0.013000011444091797,
+          0
+        ]
+      },
+      {
+        "children": [
+          2,
+          3
+        ],
+        "name": "turret_head",
+        "translation": [
+          0,
+          0.44999998807907104,
+          0
+        ]
+      },
+      {
+        "mesh": 2,
+        "name": "turret_root_geometry"
+      },
+      {
+        "children": [
+          4,
+          5
+        ],
+        "name": "turret_root"
+      }
+    ],
+    "material_factors": [
+      {
+        "name": "C | blue grey forged steel.002",
+        "metallic": 0.8799999952316284,
+        "roughness": 1
+      },
+      {
+        "name": "C | worn silver edge armour.002",
+        "metallic": 0.9399999976158142,
+        "roughness": 1
+      },
+      {
+        "name": "C | dark mechanical recess.002",
+        "metallic": 0.800000011920929,
+        "roughness": 1
+      },
+      {
+        "name": "C | cyan runic inlay.002",
+        "metallic": 0,
+        "roughness": 0.4000000059604645
+      },
+      {
+        "name": "C | restrained aged bronze.002",
+        "metallic": 0.8500000238418579,
+        "roughness": 1
+      }
+    ]
+  },
+  "triangle_reduction_percent": 77.37206085753805,
+  "file_reduction_percent": 58.16815060600729
+}

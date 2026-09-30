@@ -1,0 +1,17 @@
+{
+  "size": [
+    256,
+    256
+  ],
+  "format": "RGBA",
+  "alpha_bbox": [
+    7,
+    55,
+    191,
+    206
+  ],
+  "sha256": "c28f974630d00e035fb6abaeb30a01e173491f745dc10329fb8d25cf7e786100",
+  "source_glb_unchanged": true,
+  "game_glb_unchanged": true,
+  "other_five_pngs_unchanged": true
+}
