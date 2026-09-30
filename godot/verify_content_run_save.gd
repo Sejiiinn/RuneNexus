@@ -160,6 +160,7 @@ func _initialize() -> void:
 	check(not scaled.is_empty() and scaled.bootstrap.enemies[0].distanceTravelled == 1.5,"alternate tile size distance scaled")
 	state.pendingEconomyDiamonds = 1000001
 	check(adapter.capture(state,runtime.snapshot(),124).is_empty(),"capped economy rejected before mutation")
+	_ordinal_durability_save_cases(catalog,growth)
 	print("CONTENT_RUN_SAVE failures=",failures)
 	quit(0 if failures == 0 else 1)
 
@@ -205,3 +206,82 @@ func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 	invalid.activeRun.turrets[0].equippedGemSlots = ["lightWeapon","aimSpeed"]
 	invalid.activeRun.turrets[0].equippedGems = ["lightWeapon","aimSpeed"]
 	check(adapter.prepare(invalid).is_empty(),"other incompatible gems still rejected")
+
+
+func _ordinal_durability_save_cases(current, growth) -> void:
+	# Reconstruct historical fixed-ID scaling solely for pre-alignment v2 input.
+	# These save fields keep their original values; no save schema is changed.
+	var old = Catalog.new()
+	check(old.load_catalog(),"legacy content input loads")
+	old.data = current.data.duplicate(true)
+	for stage in old.data.stages:
+		if stage.id > 15: continue
+		for wave in stage.waves:
+			var factor := pow(2.0,(wave.round-1)/10.0) * pow(1.15,stage.id-1)
+			for kind in old.data.enemyDefinitions:
+				for field in ["maxHp","maxShield","maxArmor"]:
+					wave.enemyDurability[kind][field] = old.data.enemyDefinitions[kind][field] * factor
+	for stage_id in [6,11]:
+		var stage: int = stage_id-1
+		var round_index := 9
+		var commands = Commands.new(old,growth)
+		var old_adapter = Adapter.new(old,growth)
+		var new_adapter = Adapter.new(current,growth)
+		var state: Dictionary = commands.initial_state({"growthVersion":1,"runes":345,"coreCombatSkill":null,"turretModules":{"tickets":8,"items":[]}},stage)
+		state.phase = "wave"
+		state.roundIndex = round_index
+		state.completedRounds = round_index
+		state.tileSize = 48.0
+		state.runCoreCombatSkill = null
+		state.economyRunId = "ordinal-old-run-"+str(stage_id)
+		state.pendingEconomyDiamonds = 7
+		var input := {"tileSize":48.0,"defenseConfig":commands.derived(state).defenseConfig}
+		var bootstrap: Dictionary = old.bootstrap(stage,input)
+		bootstrap.wave = old.wave(stage,round_index,100000,input)
+		bootstrap.enemies = []
+		var kinds := ["normal","shielded","shieldBoss"] if stage_id == 6 else ["armored","shielded","forgeBoss"]
+		for index in range(kinds.size()):
+			var enemy: Dictionary = old.enemy(stage,round_index,kinds[index],90000+index,input)
+			enemy.hp *= 0.45
+			enemy.shield *= 0.25
+			enemy.armor *= 0.6
+			enemy.distanceTravelled = 48.0 * (2.25+index)
+			enemy.slowInstances = [{"multiplier":0.8,"remaining":2.0}]
+			for field in ["x","y","position","targetIndex","facingAngle"]: enemy.erase(field)
+			bootstrap.enemies.append(enemy)
+		var runtime = Runtime.new()
+		runtime.process_command({"epoch":1,"sequence":0,"session":{"clock":"godot","phase":"wave","paused":true},"bootstrap":bootstrap})
+		runtime.process_command({"epoch":1,"sequence":1,"ackEvent":runtime.event_id})
+		var saved: Dictionary = old_adapter.capture(state,runtime.snapshot(),123,{"selectedStageNumber":stage_id})
+		check(not saved.is_empty(),"old capture "+str(stage_id)+": "+old_adapter.error)
+		if saved.is_empty(): continue
+		var untouched := saved.duplicate(true)
+		var prepared: Dictionary = new_adapter.prepare(saved,{"tileSize":48.0})
+		check(not prepared.is_empty(),"new prepare "+str(stage_id)+": "+new_adapter.error)
+		if prepared.is_empty(): continue
+		check(saved == untouched,"source save immutable")
+		check(prepared.envelope == saved,"old v2 fields retained")
+		check(prepared.state.stage == stage and prepared.nextRound == round_index+1 and prepared.session.paused,"same stage,next round,paused")
+		check(prepared.state.economyRunId == state.economyRunId and prepared.state.pendingEconomyDiamonds == 7 and prepared.state.progression.runes == 345,"economy records retained")
+		var restored = Runtime.new()
+		restored.process_command({"epoch":2,"sequence":0,"session":prepared.session,"bootstrap":prepared.bootstrap})
+		for index in range(saved.activeRun.enemies.size()):
+			var before: Dictionary = saved.activeRun.enemies[index]
+			var live: Dictionary = restored.enemies[str(100000+index)]
+			for field in ["maxHp","hp","shield","armor","distanceTravelled","slowInstances"]:
+				check(live[field] == before[field],"old live retained "+field)
+			var definition: Dictionary = current.data.stages[stage].waves[round_index].enemyDurability[before.type]
+			for field in ["maxShield","maxArmor"]:
+				check(not before.has(field) and live[field] == definition[field],"v2 omitted derived maximum "+field)
+		for index in range(prepared.bootstrap.wave.spawnQueue.size()):
+			var pending: Dictionary = prepared.bootstrap.wave.spawnQueue[index]
+			check(pending.delay == saved.activeRun.spawnQueue[index].delay and pending.enemyType == saved.activeRun.spawnQueue[index].enemyType,"pending type/delay retained")
+			var expected: Dictionary = current.data.stages[stage].waves[round_index].enemyDurability[pending.enemyType]
+			for field in ["maxHp","maxShield","maxArmor"]: check(pending.enemy[field] == expected[field],"pending latest "+field)
+		var next_wave: Dictionary = current.wave(stage,prepared.nextRound,200000,{"tileSize":48.0})
+		check(next_wave.id == round_index+2,"next wave identity")
+		for pending in next_wave.spawnQueue:
+			var expected: Dictionary = current.data.stages[stage].waves[round_index+1].enemyDurability[pending.enemyType]
+			for field in ["maxHp","maxShield","maxArmor"]: check(pending.enemy[field] == expected[field],"next latest "+field)
+		var core: Dictionary = growth.core_config(prepared.state,stage,round_index,current)
+		check(core.normalMaxHp == current.data.stages[stage].waves[round_index].enemyDurability.normal.maxHp,"core current normal reference")

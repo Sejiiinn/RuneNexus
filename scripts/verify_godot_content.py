@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 import sys
 
+from stage_progression import stage_ordinals
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -50,6 +52,7 @@ def verify() -> None:
     if not stages or [stage["id"] for stage in stages] != list(range(1, len(stages) + 1)):
         raise ValueError("Stage IDs must be contiguous from 1")
     if len(stages) != 25: raise ValueError("Expansion requires 25 fixed stage IDs")
+    ordinals = stage_ordinals()
     for stage in stages:
         game_map = stage["map"]
         columns, rows = game_map["columns"], game_map["rows"]
@@ -68,6 +71,15 @@ def verify() -> None:
                     raise ValueError(f"Stage {stage['id']} refers to unknown enemy")
             if set(wave["enemyDurability"]) != enemies:
                 raise ValueError(f"Stage {stage['id']} durability coverage differs")
+            factor = 2 ** ((wave["round"] - 1) / 10) * 1.15 ** (ordinals[stage["id"]] - 1)
+            for kind, definition in game["enemyDefinitions"].items():
+                durability = wave["enemyDurability"][kind]
+                if set(durability) != {"maxHp", "maxShield", "maxArmor"}:
+                    raise ValueError(f"Stage {stage['id']} {kind} durability fields differ")
+                for field, actual in durability.items():
+                    if (type(actual) not in (int, float) or not math.isfinite(actual)
+                            or not math.isclose(actual, definition[field] * factor, rel_tol=1e-12, abs_tol=1e-12)):
+                        raise ValueError(f"Stage {stage['id']} round {wave['round']} {kind}.{field}: ordinal durability mismatch")
     if not game_cases["enemies"] or not game_cases["turrets"]:
         raise ValueError("Combat fixture cases are empty")
     if any(case["enemyType"] not in enemies for case in game_cases["enemies"]):
@@ -86,7 +98,7 @@ def verify() -> None:
                 raise ValueError(f"{name} has non-finite number")
         numbers(data)
     print(f"PASS Godot content: {len(stages)} stages, {len(enemies)} enemies, "
-          f"{len(turrets)} turrets, checked-in growth and combat fixtures")
+          f"{len(turrets)} turrets, 25x40x{len(enemies)} ordinal durability, checked-in growth and combat fixtures")
 
 
 if __name__ == "__main__":

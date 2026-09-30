@@ -3,6 +3,7 @@ const Catalog = preload("res://content/content_catalog.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const TypedJson = preload("res://app/save_json.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
+const Progress = preload("res://content/stage_progression.gd")
 var checks := 0
 var failures: Array = []
 var catalog = Catalog.new()
@@ -52,6 +53,10 @@ func _all_definitions() -> void:
 			var actual: Dictionary = catalog.wave(si, wi)
 			var source: Dictionary = stage.waves[wi]
 			_compare(actual.id, source.round, "wave id")
+			var factor := pow(2.0, (source.round - 1) / 10.0) * pow(1.15, Progress.ordinal_for(stage.id) - 1)
+			for kind in catalog.data.enemyDefinitions:
+				for field in ["maxHp", "maxShield", "maxArmor"]:
+					_compare(source.enemyDurability[kind][field], catalog.data.enemyDefinitions[kind][field] * factor, "ordinal durability %d:%d:%s:%s" % [stage.id, source.round, kind, field])
 			_check(actual.spawnQueue.size() == source.spawnQueue.size(), "wave spawn count")
 			for index in range(source.spawnQueue.size()):
 				var entry: Dictionary = actual.spawnQueue[index]
@@ -92,7 +97,14 @@ func _dart_cases() -> void:
 		for field in ["name","color","rewardGold"]:
 			_compare(actual.get(field),catalog.data.enemyDefinitions[case.enemyType][field],"runtime enemy metadata "+field)
 			actual.erase(field)
-		_compare(actual, case.expected, "Dart mapped enemy")
+		# Historical Dart inputs remain immutable. Adapt only the six approved
+		# durability fields from old fixed-ID scaling to current logical order.
+		var expected: Dictionary = case.expected.duplicate(true)
+		var stage_id: int = catalog.stage(case.stageIndex).id
+		var factor := pow(1.15, Progress.ordinal_for(stage_id) - stage_id)
+		for field in ["maxHp", "hp", "maxShield", "shield", "maxArmor", "armor"]:
+			expected[field] *= factor
+		_compare(actual, expected, "Dart mapped enemy with ordinal durability")
 	for case in cases.turrets:
 		var overrides: Dictionary = case.input.duplicate(true)
 		overrides.erase("definition")

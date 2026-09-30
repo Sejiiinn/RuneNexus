@@ -6,7 +6,7 @@
     "referenceChapterStage": "2-5",
     "mapPath": "design/chapter2_map_expansion/maps.json",
     "growthPath": "godot/content/growth_content.json",
-    "contentSha256": "c234d67355f8fcff91be9094d4ef05e2e4067033218adbccdc7f30a087366786",
+    "contentSha256": "c7640837600e15b1f78a0919c59b914625e96362da2aaa3be86c2c7d406b833c",
     "growthSha256": "ce12b30e8259032ea3a12759143cedd1fd58e7864c9179594507557d6a9d7d5c",
     "mapsSha256": "49c59b47e01d8bb72167ad248b506f4293bb22afea4d640c7287dfd8d4d115ef"
   },
@@ -17,7 +17,7 @@
     "groupRest": "next group's first requested spawn minus prior group's last requested spawn",
     "spawnNormalization": "stable sort requested spawn times, then actualDelay = max(requestedDelay, previousActualDelay + 0.18)",
     "queueAuthority": "spawnQueue is execution authority; groups retain requested within-group intervals",
-    "normalizationReferenceCheck": "all 15 existing stages x 40 rounds reproduce existing spawnQueue"
+    "normalizationReferenceCheck": "all 25 stages x 40 rounds reproduce existing spawnQueue"
   },
   "preservedRules": {
     "roundCount": 40,
@@ -58,7 +58,7 @@
       16,
       20
     ],
-    "identityContract": "chapterStage and progressionOrdinal are design fields, not shipping IDs; shipping stages currently end at 15",
+    "identityContract": "chapterStage is a display label; progressionOrdinal comes from stage_progression.gd ORDER; fixed IDs are 21..25",
     "unchanged": [
       "enemy speed",
       "self shield regeneration and shield-break behavior",

@@ -7,11 +7,14 @@ from copy import deepcopy
 import hashlib
 import json
 import math
+import sys
 from pathlib import Path
 
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
+from stage_progression import stage_ordinals
 CONTENT = ROOT / "godot/content/game_content.json"
 GROWTH = ROOT / "godot/content/growth_content.json"
 MAPS = HERE.parent / "maps.json"
@@ -158,13 +161,14 @@ def wave_for(source, chapter_stage):
 
 
 def source_contract(content):
-    stages = [stage for stage in content["stages"] if stage["id"] <= 15]
-    assert [stage["id"] for stage in stages] == list(range(1, 16))
+    stages = content["stages"]
+    ordinals = stage_ordinals()
+    assert [stage["id"] for stage in stages] == list(range(1, 26))
     for stage in stages:
         assert [wave["round"] for wave in stage["waves"]] == list(range(1, 41))
         for wave in stage["waves"]:
             assert same_queue(queue_for(absolute_groups(wave["groups"])), wave["spawnQueue"]), (stage["id"], wave["round"])
-            factor = 2 ** ((wave["round"] - 1) / 10) * 1.15 ** (stage["id"] - 1)
+            factor = 2 ** ((wave["round"] - 1) / 10) * 1.15 ** (ordinals[stage["id"]] - 1)
             for enemy_type, definition in content["enemyDefinitions"].items():
                 durability = wave["enemyDurability"][enemy_type]
                 for field in ("maxHp", "maxShield", "maxArmor"):
@@ -220,13 +224,14 @@ def build():
     assert len(growth["roundShardRewards"]) > 40
     maps = json.loads(MAPS.read_text())["maps"]
     assert [m["chapterStage"] for m in maps] == [f"2-{n}" for n in range(6, 11)]
-    assert [m["progressionOrdinal"] for m in maps] == list(range(16, 21))
+    ordinals = stage_ordinals()
+    assert [m["progressionOrdinal"] for m in maps] == [ordinals[stage_id] for stage_id in range(21, 26)]
     source = next(stage for stage in content["stages"] if stage["id"] == 10)["waves"]
     rewards = {key: content["enemies"][key]["rewardGold"] for key in TYPES}
     stages = [{"chapterStage": m["chapterStage"], "name": m["name"],
-               "progressionOrdinal": m["progressionOrdinal"],
+               "progressionOrdinal": ordinals[21 + offset],
                "rounds": [wave_for(wave, m["chapterStage"]) for wave in source]}
-              for m in maps]
+              for offset, m in enumerate(maps)]
     proposal = {
         "status": "proposal-round-design-only",
         "source": {"contentPath": "godot/content/game_content.json", "referenceStageId": 10,
@@ -241,13 +246,13 @@ def build():
                            "groupRest": "next group's first requested spawn minus prior group's last requested spawn",
                            "spawnNormalization": "stable sort requested spawn times, then actualDelay = max(requestedDelay, previousActualDelay + 0.18)",
                            "queueAuthority": "spawnQueue is execution authority; groups retain requested within-group intervals",
-                           "normalizationReferenceCheck": "all 15 existing stages x 40 rounds reproduce existing spawnQueue"},
+                           "normalizationReferenceCheck": "all 25 stages x 40 rounds reproduce existing spawnQueue"},
         "preservedRules": {"roundCount": 40, "gemRewardRounds": list(range(5, 41, 5)),
                            "bossRounds": [10, 20, 30, 40], "bossType": "shieldBoss", "bossCountPerBossRound": 1,
                            "allowedEnemyTypes": list(TYPES), "enemyKillGold": rewards,
                            "durabilityFormula": "enemyDefinitions.maxHp/maxShield/maxArmor * 2^((round - 1) / 10) * 1.15^(progressionOrdinal - 1)",
                            "progressionOrdinalRange": [16, 20],
-                           "identityContract": "chapterStage and progressionOrdinal are design fields, not shipping IDs; shipping stages currently end at 15",
+                           "identityContract": "chapterStage is a display label; progressionOrdinal comes from stage_progression.gd ORDER; fixed IDs are 21..25",
                            "unchanged": ["enemy speed", "self shield regeneration and shield-break behavior", "damage/resistance/vulnerability rules", "core damage", "kill rewards", "five-round gem reward cadence", "clearRewardGold", "rune reward rules", "portal preserves enemy HP/shield/status"]},
         "stages": stages,
     }
@@ -275,7 +280,7 @@ def render_readme(proposal, source, rewards):
              "- 기준은 `godot/content/game_content.json`의 기존 ID 10(챕터 2의 2-5 맵) 40라운드다. 동일 라운드의 적 종류별 수량·적 종류별 그룹 내 간격 재고·처치 골드·`clearRewardGold`를 유지한다. 1~5라운드는 적·수량·간격·절대 요청 시각과 실행 큐도 원본 그대로다(원본 상대 지연은 절대 시각으로 펼쳐 표기).",
              "- 일반·빠름·탱커·보호막병·`shieldBoss`만 사용한다. 40라운드와 5라운드마다 기존 젬 보상, 10/20/30/40라운드의 보호막 보스 정확히 한 마리를 유지한다. 포탈 발동은 맵의 타일과 경로에 따른다. 적 스탯·경제·피해식·새 몹·무적 구간·주변 보호 기능은 추가하지 않는다.",
              "- 보호막병은 자기 보호막만 재생한다(현행 초당 최대 보호막 4%). 보호막 보스도 현행 자기 보호막 규칙을 따른다. 보호막이 깨진 뒤 복구되지 않는 현재 계약을 유지한다. 과거 후보 문서의 코어 노출 phase는 사용하지 않는다.",
-             "- 현행 소스의 모든 600웨이브 수치와 대조한 성장식은 `적 정의의 maxHp/maxShield/maxArmor × 2^((round-1)/10) × 1.15^(progressionOrdinal-1)`이다. 신규 순번 16~20의 내구도는 이 공식을 잇는다. 본게임 고정 ID 21~25의 수치는 연결 도구가 생성하며 저장·해금 계약은 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다. 기존 15개 맵의 수치는 보존한다.",
+             "- 현행 소스의 모든 1,000웨이브 수치와 대조한 성장식은 `적 정의의 maxHp/maxShield/maxArmor × 2^((round-1)/10) × 1.15^(progressionOrdinal-1)`이다. 신규 순번 16~20의 내구도는 이 공식을 잇는다. 본게임 고정 ID 21~25의 수치는 연결 도구가 생성하며 저장·해금 계약은 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다. 전체 25맵에 `godot/content/stage_progression.gd`의 `ORDER` 순번을 적용한다. 기존 챕터 2·3도 같은 순번으로 내구도를 계산하며 맵·출현·보상은 보존한다.",
              "- 맵당 912마리(일반 187 / 빠름 260 / 탱커 17 / 보호막병 444 / 보호막 보스 4), 기본 처치 6,132G + 기본 클리어 2,276G = 8,408G다. 코어 도달·미처치·성장 보정은 합계에 넣지 않았다.", "",
              "## 출현 시각과 포탈", "",
              "`startDelay`는 웨이브 시작 0초의 절대 요청 시각이며 포탈 준비 지연을 제외한다. 그룹의 i번째 적은 `startDelay + i × interval`에 출현을 요청한다. 마지막 요청은 `(count-1) × interval` 뒤다. 그룹 사이 휴지는 이전 그룹 마지막 요청부터 다음 그룹 첫 요청까지다.", "",
@@ -308,7 +313,7 @@ def render_readme(proposal, source, rewards):
             if wave["round"] in (10, 40):
                 lines.append(f"| {stage['chapterStage']} | {wave['round']} | {schedule(wave)} |")
     lines += ["", "## 자동 검사와 한계", "",
-              "`--check`는 현행 15스테이지 × 40라운드 = 600웨이브의 상대 `followDelay`를 절대 시각으로 펼쳐 기존 실행 큐를 재현하고, HP·보호막·방어구 성장식을 전체 원본 수치와 대조한다. 신규 200라운드는 각 라운드의 유형·수량·그룹 내 간격 재고·보상, 보스 정확히 한 마리, 1~5라운드 원본 동일, 양수·유한 시각, 최종 큐 0.18초 간격, 맵별 둘 이상 유형 변형과 누적 경제를 검사한다. 기존 `growth_content.json`의 5라운드 보상 일정도 확인하며, 콘텐츠·성장·맵 SHA와 JSON/README 재생성 일치도 검사한다.", "",
+              "`--check`는 현행 25스테이지 × 40라운드 = 1,000웨이브의 상대 `followDelay`를 절대 시각으로 펼쳐 기존 실행 큐를 재현하고, HP·보호막·방어구 성장식을 전체 원본 수치와 대조한다. 신규 200라운드는 각 라운드의 유형·수량·그룹 내 간격 재고·보상, 보스 정확히 한 마리, 1~5라운드 원본 동일, 양수·유한 시각, 최종 큐 0.18초 간격, 맵별 둘 이상 유형 변형과 누적 경제를 검사한다. 기존 `growth_content.json`의 5라운드 보상 일정도 확인하며, 콘텐츠·성장·맵 SHA와 JSON/README 재생성 일치도 검사한다.", "",
               "이 검사는 설계 데이터의 정합성이다. 포탑 배치·체감 난이도·실제 전투 공백의 전체 플레이 검증과 구분한다. 본게임 연결·전송·저장 검증 범위는 [본게임 연결과 검증 범위](../../../godot/content/README.md#확장-진행과-고정-id)를 따른다.", ""]
     return "\n".join(lines)
 
@@ -325,7 +330,7 @@ def main():
             assert path.read_text() == expected, f"stale generated file: {path}"
         else:
             path.write_text(expected)
-    print("PASS: 600 existing waves; 200 proposed rounds; source, maps, queues, economy and README" if args.check else "Generated 200 proposed rounds and README")
+    print("PASS: 1000 current waves; 200 proposed rounds; source, maps, queues, economy and README" if args.check else "Generated 200 proposed rounds and README")
 
 
 if __name__ == "__main__":
