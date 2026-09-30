@@ -10,6 +10,8 @@ const Attack = preload("res://combat/attack_calculation.gd")
 # Match the authored 1.1-second cannon impact; generic hits last only 0.28s.
 const BLAST_DURATION: float = 1.1
 const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
+# Extend fired shots without changing turret or chain target acquisition ranges.
+const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
 var epoch: int = -1
 var active: bool = false
 var running: bool = true
@@ -560,7 +562,7 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 			projectile_origin += Vector2.from_angle(t.aimAngle) * tile_size * 0.82 * 0.2
 		for index in range(int(s.projectileCount)):
 			var angle: float = t.aimAngle + (index - (int(s.projectileCount) - 1) / 2.0) * PI / 18.0
-			_projectile(t, attack, projectile_origin, Vector2.from_angle(angle), int(attack.chainCount), [], false, s.range + 64.0 * board_scale)
+			_projectile(t, attack, projectile_origin, Vector2.from_angle(angle), int(attack.chainCount), [], false, (s.range + 64.0 * board_scale) * PROJECTILE_TRAVEL_MULTIPLIER)
 
 func _target(from: Vector2, radius: float, priority: String, excluded: Array = [], body: bool = false) -> Dictionary:
 	var selected: Dictionary = {}
@@ -684,7 +686,7 @@ func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> 
 	if p.chains > 0:
 		var next := _target(p.position, 110.0 * board_scale, "nearest", p.excluded)
 		if not next.is_empty():
-			_projectile(t, p.attack, p.position, _pos(next) - p.position, int(p.chains) - 1, p.excluded, true, 110.0 * board_scale)
+			_projectile(t, p.attack, p.position, _pos(next) - p.position, int(p.chains) - 1, p.excluded, true, 110.0 * board_scale * PROJECTILE_TRAVEL_MULTIPLIER)
 
 func _release(d: Dictionary) -> void:
 	var t: Dictionary = turrets.get(d.owner, {})

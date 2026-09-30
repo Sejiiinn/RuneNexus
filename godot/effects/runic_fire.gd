@@ -4,6 +4,8 @@ extends Node3D
 ## 전투 프레임의 시계만 받는다. _process/TIME/커스텀 셰이더는 사용하지 않는다.
 const ASSET := "res://assets/effects/runic_fire.glb"
 const FLASH_SECONDS := 0.20
+const MUZZLE_FLASH_SCALE := 1.5
+const PROJECTILE_SCALE := 1.5
 static var _meshes: Dictionary = {}
 static var _materials: Dictionary = {}
 static var _flame_noise: NoiseTexture2D
@@ -71,8 +73,8 @@ func _ready() -> void:
 	_sparks.process_material.initial_velocity_min = 0.12
 	_sparks.process_material.initial_velocity_max = 0.40
 	_sparks.process_material.gravity = Vector3(0, 0.20, 0)
-	_sparks.process_material.scale_min = 0.008
-	_sparks.process_material.scale_max = 0.016
+	_sparks.process_material.scale_min = 0.008 * (PROJECTILE_SCALE if projectile else 1.0)
+	_sparks.process_material.scale_max = 0.016 * (PROJECTILE_SCALE if projectile else 1.0)
 	if projectile:
 		_flame.rotation.x = -PI / 2.0
 		var tail := _make_particles("DetachedFireTrail", "fire_tongue_outer", 14, 0.24, false)
@@ -80,8 +82,8 @@ func _ready() -> void:
 		tail.process_material.initial_velocity_min = 0.05
 		tail.process_material.initial_velocity_max = 0.16
 		tail.process_material.gravity = Vector3(0, 0.04, 0)
-		tail.process_material.scale_min = 0.06
-		tail.process_material.scale_max = 0.11
+		tail.process_material.scale_min = 0.06 * PROJECTILE_SCALE
+		tail.process_material.scale_max = 0.11 * PROJECTILE_SCALE
 		tail.process_material.particle_flag_align_y = true
 	else:
 		_muzzle_flame = Node3D.new()
@@ -93,8 +95,8 @@ func _ready() -> void:
 		_burst.process_material.initial_velocity_max = 1.8
 		_burst.process_material.spread = 20.0
 		_burst.process_material.gravity = Vector3(0, -0.35, 0)
-		_burst.process_material.scale_min = 0.010
-		_burst.process_material.scale_max = 0.025
+		_burst.process_material.scale_min = 0.010 * MUZZLE_FLASH_SCALE
+		_burst.process_material.scale_max = 0.025 * MUZZLE_FLASH_SCALE
 	_configured = true
 	reset()
 	_diagnostic_instances.append(weakref(self))
@@ -139,7 +141,7 @@ func update_turret(port: Node3D, muzzle: Node3D, time: float) -> void:
 	_sparks.global_transform = _flame.global_transform
 	_sparks.emitting = _diagnostic_mode == "all"
 	# Keep marker orientation orthogonal; only attached flame geometry follows
-	# the authored turret size. Detached particles and projectiles stay unchanged.
+	# the authored turret size. Detached particles/projectiles use separate sizes.
 	_animate(_tongues, time, Vector3(0.28, 0.35, 0.28) * port.global_basis.get_scale().abs())
 	var age := fposmod(time - _shot_time, 1200.0) if is_finite(_shot_time) else 1.0
 	_burst.emitting = age < 0.24 and _diagnostic_mode == "all"
@@ -147,7 +149,9 @@ func update_turret(port: Node3D, muzzle: Node3D, time: float) -> void:
 	var pulse := pow(maxf(0.0, 1.0 - age / FLASH_SECONDS), 0.65)
 	_muzzle_flame.global_transform = muzzle.global_transform.orthonormalized()
 	_muzzle_flame.rotate_object_local(Vector3.RIGHT, PI / 2.0)
-	_animate(_muzzle_tongues, time + 3.0, Vector3(0.045 + 0.075 * pulse, 0.14 + 0.31 * pulse, 0.045 + 0.075 * pulse) * muzzle.global_basis.get_scale().abs(), 1)
+	var pilot_size := Vector3(0.045, 0.14, 0.045)
+	var shot_size := Vector3(0.12, 0.45, 0.12) * MUZZLE_FLASH_SCALE
+	_animate(_muzzle_tongues, time + 3.0, pilot_size.lerp(shot_size, pulse) * muzzle.global_basis.get_scale().abs(), 1)
 	_advance(time)
 
 
@@ -160,7 +164,7 @@ func update_projectile(time: float, active: bool = true, opacity: float = 1.0) -
 		return
 	visible = opacity > 0.0
 	_flame.visible = active
-	_animate(_tongues, time, Vector3(0.12, 0.30, 0.12))
+	_animate(_tongues, time, Vector3(0.12, 0.30, 0.12) * PROJECTILE_SCALE)
 	for emitter in _particles:
 		emitter.emitting = active and _diagnostic_mode == "all"
 		emitter.transparency = 1.0 - clampf(opacity, 0.0, 1.0)

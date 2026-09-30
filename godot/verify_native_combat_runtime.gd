@@ -39,14 +39,84 @@ func _initialize() -> void:
 	_exact_checks(fixtures)
 	_response_mode_checks()
 	_path_revision_checks()
+	_projectile_travel_checks(fixtures)
 	if failures.is_empty():
-		print("PASS native combat runtime: ", count, " configured turret cases, all six types, damage, ACK idempotency, gap rejection, batched timestep preservation")
+		print("PASS native combat runtime: ", count, " configured turret cases, all six types, damage, ACK idempotency, gap rejection, batched timestep preservation, triple projectile travel and late collision")
 		quit(0)
 	else:
 		for failure in failures: push_error(failure)
 		quit(1)
 func _check(condition: bool, message: String) -> void:
 	if not condition: failures.append(message)
+
+func _projectile_test_runtime(input: Dictionary, scale: float, target_x: float):
+	var r = Runtime.new()
+	r.process_command({"epoch":80,"sequence":0,"dt":0.0,"bootstrap":{"boardDistanceScale":scale,"tileSize":48.0*scale,"enemies":[{"id":1,"hp":1000.0,"maxHp":1000.0,"x":target_x,"y":0.0,"collisionRadius":scale}],"turrets":[{"id":1,"position":[0,0],"statInput":input,"state":{}}]}})
+	r._tick_turret(r.turrets["1"],0.0)
+	return r
+
+func _move_test_projectiles(r, distance: float) -> void:
+	var moving: Array = r.projectiles
+	r.projectiles = []
+	for p in moving:
+		r._move_projectile(p, distance / float(p.attack.projectileSpeed))
+
+func _projectile_travel_checks(fixtures: Array) -> void:
+	for type in ["arrow", "cannon", "magic"]:
+		var base: Dictionary = {}
+		for f in fixtures:
+			if f.input.definition.type == type and f.input.level == 1 and f.input.gems.is_empty():
+				base = f.input.duplicate(true)
+				break
+		_check(not base.is_empty(), "projectile fixture exists: " + type)
+		if base.is_empty(): continue
+		base.definition.criticalChance = 0.0
+		for scale in [0.5, 1.0, 2.0]:
+			var input := base.duplicate(true)
+			input.boardDistanceScale = scale
+			var label: String = type + " scale=" + str(scale)
+			var r = _projectile_test_runtime(input,scale,40.0*scale)
+			_check(r.projectiles.size() == 1, label + " fires one projectile")
+			if r.projectiles.is_empty(): continue
+			var p: Dictionary = r.projectiles[0]
+			var old_limit: float = r.turrets["1"].stats.range + 64.0*scale
+			var launch: Vector2 = p.origin
+			_check(is_equal_approx(p.remaining,3.0*old_limit), label + " has triple distance budget")
+			_check(is_equal_approx(p.attack.projectileSpeed,base.definition.projectileSpeed*scale), label + " retains projectile speed")
+			r.enemies.clear()
+			_move_test_projectiles(r,old_limit+scale)
+			_check(r.projectiles.size() == 1 and is_equal_approx(p.position.distance_to(launch),old_limit+scale), label + " missed shot survives old limit")
+			_move_test_projectiles(r,2.0*old_limit-2.0*scale)
+			_check(r.projectiles.size() == 1, label + " survives just before new limit")
+			_move_test_projectiles(r,2.0*scale)
+			_check(r.projectiles.is_empty() and is_equal_approx(p.position.distance_to(launch),3.0*old_limit), label + " expires exactly at triple limit")
+			# An acquired enemy can leave the line while another crosses it later.
+			var late = _projectile_test_runtime(input,scale,40.0*scale)
+			late.enemies.clear()
+			_move_test_projectiles(late,old_limit+scale)
+			late._spawn({"id":2,"hp":1000.0,"maxHp":1000.0,"x":launch.x+old_limit+30.0*scale,"y":0.0,"collisionRadius":scale})
+			_move_test_projectiles(late,40.0*scale)
+			_check(late.projectiles.is_empty() and is_equal_approx(late.enemies["2"].hp,1000.0-float(late.turrets["1"].stats.damage)), label + " late collision hits once and ends shot")
+			var outside = _projectile_test_runtime(input,scale,float(r.turrets["1"].stats.range)+10.0*scale)
+			_check(outside.projectiles.is_empty() and outside.turrets["1"].shotSequence == 0, label + " acquisition range remains unchanged")
+			# Chain launch and target selection retain their independent contracts.
+			input.gems = ["chain"]
+			var chain = _projectile_test_runtime(input,scale,40.0*scale)
+			chain._spawn({"id":2,"hp":1000.0,"maxHp":1000.0,"x":100.0*scale,"y":0.0,"collisionRadius":scale})
+			_move_test_projectiles(chain,50.0*scale)
+			_check(chain.projectiles.size() == 1 and chain.projectiles[0].chained, label + " hit starts one chain segment")
+			if not chain.projectiles.is_empty():
+				var jump: Dictionary = chain.projectiles[0]
+				_check(jump.chains == 1 and is_equal_approx(jump.remaining,330.0*scale), label + " chain retains count with triple travel")
+				chain.enemies.clear()
+				_move_test_projectiles(chain,111.0*scale)
+				_check(chain.projectiles.size() == 1, label + " missed chain survives old limit")
+				_move_test_projectiles(chain,220.0*scale)
+				_check(chain.projectiles.is_empty(), label + " missed chain expires at new limit")
+			var chain_outside = _projectile_test_runtime(input,scale,40.0*scale)
+			chain_outside._spawn({"id":2,"hp":1000.0,"maxHp":1000.0,"x":151.0*scale,"y":0.0,"collisionRadius":scale})
+			_move_test_projectiles(chain_outside,50.0*scale)
+			_check(chain_outside.projectiles.is_empty(), label + " chain acquisition stays within 110 board units")
 
 func _exact_checks(fixtures: Array) -> void:
 	var input: Dictionary = fixtures[0].input.duplicate(true)
