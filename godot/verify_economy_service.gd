@@ -4,6 +4,15 @@ const Outbox = preload("res://app/reward_outbox.gd")
 const Update = preload("res://services/update_service.gd")
 const Id = preload("res://app/reward_settlement.gd")
 const ACCOUNT := "00000000-0000-4000-8000-000000000001"
+class CountingOutbox extends Outbox:
+	var writes := 0
+	var reject_writes := false
+	func save_state(next: Dictionary) -> Error:
+		if reject_writes: return ERR_FILE_CANT_WRITE
+		return super.save_state(next)
+	func _write_atomic(path: String, contents: String) -> Error:
+		writes += 1
+		return super._write_atomic(path, contents)
 class Session extends Node:
 	var credentials := {"accountId":ACCOUNT}
 	var sent: Array = []
@@ -21,6 +30,8 @@ var receipts: Array = []
 var effects: Array = []
 var synced := true
 var directory := ""
+var local_current := true
+var reject_snapshot := false
 func _initialize(): call_deferred("run")
 func check(value: bool, label: String):
 	if not value: failures.append(label)
@@ -28,7 +39,9 @@ func sync() -> Dictionary:
 	return {"ok":synced,"accountId":ACCOUNT,"sourceSaveRevision":8,"writerGeneration":2}
 func apply(value: Dictionary) -> bool:
 	applied.append(value.duplicate(true))
-	return true
+	return not reject_snapshot
+func snapshot_current(_value: Dictionary) -> bool:
+	return local_current
 func receipt(value: Dictionary) -> bool:
 	receipts.append(value.duplicate(true))
 	return true
@@ -39,6 +52,7 @@ func snapshot(revision: int = 3) -> Dictionary:
 	return {"authorityState":"server_authoritative","authorityEpoch":"epoch","authorityVersion":1,"catalogVersion":1,"economyRevision":revision,"serverTime":"2026-09-24T00:00:00Z","wallet":{"freeDiamonds":42,"paidDiamonds":0,"moduleTickets":0},"turretModules":{"drawCount":0,"ticketPurchaseCount":0,"items":[]},"entitlements":{"researchSlotTwoUnlocked":false},"pendingProgressionEffects":[],"claimedRewardKeys":[]}
 func run():
 	directory = OS.get_cache_dir().path_join("godot-economy-"+Id.uuid())
+	await _snapshot_dedup_tests()
 	var box = Outbox.new(directory,ACCOUNT)
 	check(box.load_state() == OK,"outbox load")
 	var session = Session.new()
@@ -133,3 +147,60 @@ func _remove(path: String):
 	for file in DirAccess.get_files_at(path): DirAccess.remove_absolute(path.path_join(file))
 	for child in DirAccess.get_directories_at(path): _remove(path.path_join(child))
 	DirAccess.remove_absolute(path)
+
+func _snapshot_dedup_tests():
+	var box = CountingOutbox.new(directory.path_join("snapshot"), ACCOUNT)
+	check(box.load_state() == OK and box.save_state(box.state) == OK, "initialize snapshot test outbox")
+	var writes: int = box.writes
+	check(box.save_state(box.state.duplicate(true)) == OK and box.writes == writes, "identical outbox does not flush or rotate backup")
+	var session = Session.new()
+	root.add_child(session)
+	var service = Service.new()
+	root.add_child(service)
+	var hooks := {"sync":sync,"snapshot":apply,"snapshot_current":snapshot_current,"receipt":receipt,"effect":effect}
+	service.configure(session, box, hooks)
+	check((await service._apply(snapshot(), service.generation)).ok, "first live snapshot applies")
+	var count := applied.size()
+	writes = box.writes
+	var unchanged := snapshot()
+	unchanged.serverTime = "2026-09-25T00:00:00Z"
+	check((await service._apply(unchanged, service.generation)).ok and applied.size() == count and box.writes == writes, "time-only snapshot skips local apply and durable writes")
+	check(service.snapshot.serverTime == unchanged.serverTime, "time-only metadata remains current in memory")
+	var invalid := unchanged.duplicate(true)
+	invalid.wallet.freeDiamonds = -1
+	check(not (await service._apply(invalid, service.generation)).ok and applied.size() == count, "unchanged revision still validates complete snapshot")
+	local_current = false
+	check((await service._apply(unchanged, service.generation)).ok and applied.size() == count + 1, "changed local equipment or balance reapplies same economy")
+	local_current = true
+	count = applied.size()
+	service.configure(session, box, hooks)
+	check((await service._apply(unchanged, service.generation)).ok and applied.size() == count + 1, "restored snapshot does not skip first live application")
+	for field in ["authorityEpoch", "authorityVersion", "catalogVersion", "claimedRewardKeys", "pendingProgressionEffects"]:
+		var next: Dictionary = service.snapshot.duplicate(true)
+		match field:
+			"authorityEpoch": next[field] = "new-epoch"
+			"authorityVersion", "catalogVersion": next[field] += 1
+			"claimedRewardKeys": next[field] = ["daily:20260925:attendance"]
+			"pendingProgressionEffects": next[field] = [{"id": Id.uuid(), "effectType":"complete_research", "payload":{"researchType":"bossBounty","targetLevel":1}}]
+		count = applied.size()
+		check((await service._apply(next, service.generation)).ok and applied.size() == count + 1, "same revision change applies " + field)
+	var next: Dictionary = service.snapshot.duplicate(true)
+	next.wallet.freeDiamonds += 1
+	reject_snapshot = true
+	count = applied.size()
+	check(not (await service._apply(next, service.generation)).ok and service.snapshot.wallet != next.wallet, "failed local apply never publishes snapshot")
+	reject_snapshot = false
+	box.reject_writes = true
+	check(not (await service._apply(next, service.generation)).ok and service.snapshot.wallet != next.wallet, "failed outbox write never publishes snapshot")
+	box.reject_writes = false
+	check((await service._apply(next, service.generation)).ok and applied.size() == count + 3, "failed applies retry actual callback")
+	count = applied.size()
+	service.invalidate()
+	check(not (await service._apply(next, service.generation - 1)).ok and applied.size() == count, "stale binding never calls local snapshot callback")
+	# Read corruption even when memory and requested state are identical.
+	var file := FileAccess.open(box.primary_path, FileAccess.WRITE)
+	file.store_string("broken")
+	file.close()
+	check(box.save_state(box.state) == ERR_FILE_CORRUPT, "identical outbox still rejects disk corruption")
+	service.free()
+	session.free()

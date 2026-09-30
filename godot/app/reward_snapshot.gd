@@ -1,9 +1,8 @@
 extends RefCounted
 ## Converts the validated HTTP economy snapshot to local progression + inventory.
 const Codec = preload("res://app/save_codec.gd")
-const Json = preload("res://app/save_json.gd")
+const Modules = preload("res://content/module_catalog.gd")
 var error := ""
-var _catalog: Dictionary = {}
 
 func _invalid(message: String) -> Dictionary:
 	error = message
@@ -14,7 +13,8 @@ func _integer(value: Variant, minimum: int = 0) -> bool:
 
 func apply_authoritative(progression: Dictionary, snapshot: Dictionary) -> Dictionary:
 	error = ""
-	if _catalog.is_empty(): _catalog = Json.parse_record(FileAccess.get_file_as_string("res://content/growth_content.json")).value.module
+	var _catalog := Modules.rules()
+	if _catalog.is_empty(): return _invalid("Invalid module catalog")
 	if not snapshot.get("wallet") is Dictionary or not snapshot.get("turretModules") is Dictionary or not snapshot.get("entitlements") is Dictionary: return _invalid("Missing economy snapshot objects")
 	var wallet: Dictionary = snapshot.wallet
 	var inventory: Dictionary = snapshot.turretModules

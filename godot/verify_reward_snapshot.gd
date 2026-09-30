@@ -1,6 +1,7 @@
 extends SceneTree
 const RewardSnapshot = preload("res://app/reward_snapshot.gd")
 const Json = preload("res://app/save_json.gd")
+const Modules = preload("res://content/module_catalog.gd")
 func _initialize() -> void:
 	var fixture: Dictionary = Json.parse_record(FileAccess.get_file_as_string("res://../test/fixtures/reward_snapshot_cases.json")).value
 	var rules := RewardSnapshot.new()
@@ -12,6 +13,8 @@ func _initialize() -> void:
 				if actual.get(key) != test.after[key]: printerr(key, " expected=", test.after[key], " actual=", actual.get(key))
 			quit(1)
 			return
+		assert(RewardSnapshot.new().apply_authoritative(test.before, test.snapshot) == test.after)
+	assert(Modules.rules().is_read_only() and Modules.rules().pools.is_read_only())
 	var bad: Dictionary = fixture.cases[0].snapshot.duplicate(true)
 	bad.turretModules.items[0].grade = "unknown"
 	assert(rules.apply_authoritative(fixture.cases[0].before, bad).is_empty())

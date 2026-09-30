@@ -63,6 +63,10 @@ func _refresh_ui() -> void:
 		hud.visible = not in_lobby and not gated
 		hud.refresh()
 
+func refresh_economy_ui() -> void:
+	if lobby != null and in_lobby: lobby.refresh_economy()
+	if hud != null and not in_lobby: hud.refresh()
+
 func refresh_selection() -> void:
 	selection_view.apply(self)
 	if not scene._native_combat_base_frame.is_empty(): scene._apply_frame(scene._native_combat_base_frame)

@@ -11,6 +11,7 @@ var snapshot: Dictionary = {}
 var busy := false
 var generation := 0
 var issue := ""
+var _live_snapshot_applied := false
 
 func configure(session, repository, handlers: Dictionary) -> void:
 	generation += 1
@@ -18,9 +19,11 @@ func configure(session, repository, handlers: Dictionary) -> void:
 	outbox = repository
 	callbacks = handlers
 	snapshot = outbox.state.get("lastServerSnapshot", {}).duplicate(true)
+	_live_snapshot_applied = false
 
 func invalidate() -> void:
 	generation += 1
+	_live_snapshot_applied = false
 
 func _failure(code: String) -> Dictionary:
 	issue = code
@@ -122,8 +125,17 @@ func _load(token: int) -> Dictionary:
 	return await _apply(result.get("body",{}), token)
 
 func _apply(value: Dictionary, token: int) -> Dictionary:
+	if not _bound(token): return _failure("STALE_BINDING")
 	if not Settlement.valid_snapshot(value): return _failure("INVALID_ECONOMY_RESPONSE")
 	if not snapshot.is_empty() and snapshot.authorityEpoch == value.authorityEpoch and snapshot.economyRevision > value.economyRevision: return {"ok":true}
+	# Revisions alone do not represent authority, catalog, effects or claim keys.
+	# A recovered outbox also says nothing about the newly loaded local state.
+	if _live_snapshot_applied and _same_economy(snapshot, value) and callbacks.has("snapshot_current") and callbacks.snapshot_current.call(value):
+		if not _bound(token): return _failure("STALE_BINDING")
+		# serverTime is GET metadata, not a durable change to the economy. Keep it
+		# current for consumers without rewriting an unchanged recovery snapshot.
+		snapshot = value.duplicate(true)
+		return {"ok":true}
 	var applied: bool = await callbacks.snapshot.call(value)
 	if not _bound(token): return _failure("STALE_BINDING")
 	if not applied: return _failure("SNAPSHOT_SAVE_FAILED")
@@ -131,7 +143,15 @@ func _apply(value: Dictionary, token: int) -> Dictionary:
 	next.lastServerSnapshot = value.duplicate(true)
 	if outbox.save_state(next) != OK: return _failure("OUTBOX_WRITE_FAILED")
 	snapshot = value.duplicate(true)
+	_live_snapshot_applied = true
 	return {"ok":true}
+
+func _same_economy(a: Dictionary, b: Dictionary) -> bool:
+	var left := a.duplicate()
+	var right := b.duplicate()
+	left.erase("serverTime")
+	right.erase("serverTime")
+	return left == right
 
 func _prepare(kind: String, path: String, body: Dictionary, token: int) -> Dictionary:
 	if not _bound(token): return _failure("STALE_BINDING")

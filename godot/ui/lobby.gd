@@ -184,6 +184,14 @@ func _finish_refresh(kept_modal: Control, scroll_position: int) -> void:
 		restore.call_deferred()
 		get_tree().process_frame.connect(restore,CONNECT_ONE_SHOT)
 
+func refresh_economy() -> void:
+	if page == "로비" and is_instance_valid(home):
+		home.refresh_quest_indicator()
+		if is_instance_valid(modal) and modal.get_meta("quest_dialog",false): collection.quests(modal_body)
+	else:
+		refresh()
+		if is_instance_valid(modal) and modal.get_meta("quest_dialog",false): collection.quests(modal_body)
+
 func _quest_ready() -> bool:
 	var p := _p()
 	if p.get("dailyQuestClockRollbackDetected",false): return false
@@ -349,6 +357,7 @@ func open_quests() -> void:
 	if is_instance_valid(home): home.close_modal()
 	var content := open_modal("임무")
 	modal.set_meta("max_width", 430)
+	modal.set_meta("quest_dialog",true)
 	set_modal_asset("quests/ui/dialog_frame.png")
 	collection.quests(content)
 

@@ -2,6 +2,7 @@ extends SceneTree
 ## Two separate processes with an isolated root exercise real native events and v2.
 const Checkpoint = preload("res://session/session_checkpoint.gd")
 const Json = preload("res://app/save_json.gd")
+const StageProgression = preload("res://content/stage_progression.gd")
 const ACCOUNT := "00000000-0000-4000-8000-000000000123"
 const NOW := 1700000000000
 var failures: Array = []
@@ -46,6 +47,9 @@ func progress(app, period: String, kind: String) -> int:
 
 func write_events(app, directory: String) -> void:
 	app.checkpoint = Checkpoint.new(directory.path_join("events"))
+	# Restart equality checks reward/event idempotence using current progression;
+	# legacy migration is covered by the stage-expansion and save fixtures.
+	app.progression_inputs = StageProgression.migrate_progression({})
 	app.enter_stage(0)
 	app.run_domain.state.gold = 10000
 	var upgrade: String = app.run_domain.growth.data.runUpgrades.keys()[0]
@@ -98,7 +102,9 @@ func read_events(app, directory: String) -> void:
 
 func write_terminal(app, directory: String) -> void:
 	app.checkpoint = Checkpoint.new(directory.path_join("terminal"))
-	app.progression_inputs = {}
+	# Preserve an existing stage-11 access entitlement without inventing clears;
+	# stage 11 remains a first clear and unlocks stage 12 after its rewards.
+	app.progression_inputs = StageProgression.migrate_progression({"unlockedStageCount":11})
 	app.enter_stage(10)
 	var source: Dictionary = app.stage_source(10)
 	app.run_domain.state.phase = "wave"
@@ -181,7 +187,7 @@ func persisted_progression(app) -> Dictionary:
 
 func write_account(app, directory: String) -> void:
 	app.checkpoint = Checkpoint.new(directory.path_join("account"), ACCOUNT)
-	app.progression_inputs = {}
+	app.progression_inputs = StageProgression.migrate_progression({})
 	app.enter_stage(0)
 	app.run_domain.state.pendingEconomyDiamonds = 12
 	check(app.prepare_run_transition(), "account run durably queued")

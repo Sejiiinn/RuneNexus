@@ -120,10 +120,26 @@ func sync(payload: Dictionary = {}) -> Dictionary:
 	else:
 		result = {"ok": true}
 		if not payload.is_empty():
-			if _save_local(payload) != OK: result = _block("LOCAL_SAVE_FAILED")
-			else:
+			if not SaveJson.is_json_value(payload) or not Codec.is_normalized_v2(payload):
+				result = _block("LOCAL_SAVE_FAILED")
+				_unlock()
+				return result
+			var local: Variant = _load_local()
+			var payload_hash := _hash(payload)
+			var represented: Variant = state.inFlight.payloadHash if state.inFlight != null else state.basePayloadHash
+			var next_dirty: bool = payload_hash != represented
+			# A matching journal is insufficient: the local checkpoint may have
+			# changed independently. Check its complete payload before skipping.
+			if _local_error(): result = _block("LOCAL_SAVE_READ_FAILED")
+			elif local == null or local != payload:
+				if _save_local(payload) != OK: result = _block("LOCAL_SAVE_FAILED")
+				else:
+					state.localGeneration += 1
+					state.dirty = next_dirty
+					if not _commit(): result = Http.failure("OUTBOX_WRITE_FAILED")
+			elif state.dirty != next_dirty:
 				state.localGeneration += 1
-				state.dirty = _hash(payload) != (state.inFlight.payloadHash if state.inFlight != null else state.basePayloadHash)
+				state.dirty = next_dirty
 				if not _commit(): result = Http.failure("OUTBOX_WRITE_FAILED")
 		if result.ok: result = await _sync_locked()
 	_unlock()

@@ -3,6 +3,11 @@ const Store = preload("res://app/local_save_store.gd")
 const Slot = preload("res://app/local_save_slot.gd")
 const Codec = preload("res://app/save_codec.gd")
 const WebStore = preload("res://app/web_save_store.gd")
+class CountingStore extends Store:
+	var writes := 0
+	func _write_atomic(path: String, contents: String) -> Error:
+		writes += 1
+		return super._write_atomic(path, contents)
 var failures: Array[String] = []
 var checks := 0
 var test_directory: String
@@ -40,7 +45,7 @@ func _initialize() -> void:
 	b.savedAtMillis = 2
 	var c := a.duplicate(true)
 	c.savedAtMillis = 3
-	var store := Store.new(test_directory)
+	var store := CountingStore.new(test_directory)
 	check(store.primary_path == test_directory.path_join("saves/guest/save_v2.json"), "guest path")
 	check(store.load_save() == null and store.last_error == OK, "empty load")
 	check(store.save_save(a) == OK and store.load_save() == a, "first save and load")
@@ -57,8 +62,12 @@ func _initialize() -> void:
 		check(FileAccess.get_file_as_bytes(store.primary_path) == original_bytes and not FileAccess.file_exists(store.backup_path), "type mismatch cannot damage existing save")
 	check(store.save_save(b) == OK, "second save")
 	check(JSON.parse_string(FileAccess.get_file_as_string(store.backup_path)).savedAtMillis == 1, "backup previous save")
+	var writes: int = store.writes
 	store.save_save(b)
+	check(store.writes == writes, "identical save skips primary and backup writes")
 	check(JSON.parse_string(FileAccess.get_file_as_string(store.backup_path)).savedAtMillis == 1, "identical save preserves backup")
+	write(store.primary_path + ".tmp", JSON.stringify(c))
+	check(store.save_save(b) == OK and store.writes == writes and not FileAccess.file_exists(store.primary_path + ".tmp"), "identical save still recovers stale write artifacts")
 	write(store.primary_path, "{broken")
 	check(store.load_save() == a and store.last_error == OK, "corrupt primary recovers backup")
 	check(JSON.parse_string(FileAccess.get_file_as_string(store.primary_path)).savedAtMillis == 1, "recovery repairs primary")

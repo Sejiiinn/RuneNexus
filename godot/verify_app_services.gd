@@ -203,6 +203,22 @@ func _run():
 	app.persist_progression()
 	result=await service.perform("claim_reward",{"period":"daily","rewardType":"attendance"})
 	check(result.ok and app.progression_inputs.dailyAttendanceRewardClaimed,"Daily receipt updates persisted claim flag")
+	check(service._snapshot_current(server.economy_snapshot()),"Claim-only flags keep current economic projection")
+	app.scene._native_combat.active=true
+	app.run_domain.state={"progression":app.progression_inputs.duplicate(true)}
+	check(service._snapshot_current(server.economy_snapshot()),"Matching active run permits snapshot reuse")
+	app.run_domain.state.progression.freeDiamonds=9999
+	check(not service._snapshot_current(server.economy_snapshot()),"Active run divergence invalidates snapshot reuse")
+	app.scene._native_combat.active=false
+	app.run_domain.state={}
+	app.progression_inputs.freeDiamonds=9999
+	check(not service._snapshot_current(server.economy_snapshot()),"Local wallet divergence invalidates snapshot reuse")
+	result=await service.economy.refresh()
+	check(result.ok and app.progression_inputs.freeDiamonds==45 and app.progression_inputs.dailyAttendanceRewardClaimed,"Same server revision repairs local wallet without losing claim flags")
+	var prior_checkpoint=app.checkpoint
+	app.checkpoint=Checkpoint.new(folder,ACCOUNT_A)
+	check(not service._snapshot_current(server.economy_snapshot()),"Reloaded checkpoint cannot reuse old live projection")
+	app.checkpoint=prior_checkpoint
 	# An automatic remote rebase must replace live progression before unquiescing.
 	server.save.progression.runes=333
 	server.revision+=1

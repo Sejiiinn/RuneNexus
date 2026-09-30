@@ -71,6 +71,10 @@ func save_save(data: Dictionary) -> Error:
 	var current := _read_valid(primary_path)
 	if last_error != OK:
 		return last_error
+	# Read/recover/validate before skipping IO; never trust an in-memory cache of
+	# the destination, which may have been damaged or replaced since the save.
+	if not current.is_empty() and current.raw == raw:
+		return OK
 	if not current.is_empty() and current.raw != raw:
 		if _write_atomic(backup_path, current.raw) != OK:
 			return last_error

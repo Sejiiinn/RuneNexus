@@ -38,8 +38,12 @@ func save_state(next: Dictionary) -> Error:
 	if _recover(primary_path) != OK: return last_error
 	var old: Variant = _read_json(primary_path)
 	if FileAccess.file_exists(primary_path) and not valid_state(old): return _fail(ERR_FILE_CORRUPT, "Refusing to overwrite corrupt outbox")
+	var raw := JSON.stringify(next, "", false, true)
+	if old != null and JSON.stringify(old, "", false, true) == raw:
+		state = next.duplicate(true)
+		return OK
 	if old != null and _write_atomic(backup_path, JSON.stringify(old, "", false, true)) != OK: return last_error
-	if _write_atomic(primary_path, JSON.stringify(next, "", false, true)) != OK: return last_error
+	if _write_atomic(primary_path, raw) != OK: return last_error
 	state = next.duplicate(true)
 	return OK
 

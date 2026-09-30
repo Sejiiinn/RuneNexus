@@ -5,9 +5,15 @@ const Http = preload("res://services/http_transport.gd")
 const Codec = preload("res://app/save_codec.gd")
 const SaveJson = preload("res://app/save_json.gd")
 const Hash = preload("res://services/save_payload_hash.gd")
+const Durable = preload("res://services/durable_record.gd")
 const ACCOUNT = "12345678-1234-4234-8234-123456789abc"
 var failures: Array[String] = []
 var sandbox: String
+class CountingRecord extends Durable:
+	var writes := 0
+	func _write(candidate: String, raw: String) -> Error:
+		writes += 1
+		return super._write(candidate, raw)
 
 class SecureFixture extends RefCounted:
 	var value: Variant = null
@@ -65,6 +71,7 @@ func make_online(label: String, remote: SessionFixture):
 	var online = Online.new()
 	root.add_child(online)
 	online.configure(remote, sandbox.path_join(label), "fixture")
+	online._record = CountingRecord.new(online._record.path, online._valid_state, online._record.backup_path)
 	return online
 
 func _run():
@@ -142,9 +149,27 @@ func _save_tests():
 	var boot: Dictionary = await online.bootstrap(payload(5), true)
 	check(boot.ok and boot.source == "remoteAccount" and online.store.load_save().savedAtMillis == 100, "Remote save takes precedence over guest")
 	check(remote.calls.size() == 3 and remote.calls[2].headers.has("If-None-Match"), "Bootstrap reconciles with conditional revision")
+	var local_generation: int = online.state.localGeneration
+	var record_writes: int = online._record.writes
+	var calls_count := remote.calls.size()
+	var identical: Dictionary = await online.sync(payload(100))
+	check(identical.ok and online.state.localGeneration == local_generation and online._record.writes == record_writes and remote.calls.size() == calls_count, "Clean identical payload preserves generation and skips durable writes and HTTP")
 	remote.responses = [response(0, {}, "NETWORK_UNAVAILABLE", true)]
 	var failed: Dictionary = await online.sync(payload(101))
 	check(not failed.ok and online.state.inFlight != null, "Ambiguous upload remains durable")
+	var journal: Dictionary = online.state.inFlight.duplicate(true)
+	local_generation = online.state.localGeneration
+	record_writes = online._record.writes
+	await online.sync(payload(101))
+	check(online.state.localGeneration == local_generation and online._record.writes == record_writes and online.state.inFlight == journal, "Repeated ambiguous payload preserves exact dirty journal without new writes")
+	await online.sync(payload(102))
+	check(online.state.dirty and online.state.inFlight == journal and online.store.load_save() == payload(102), "New local progress while request is pending retains request bytes and dirty state")
+	local_generation = online.state.localGeneration
+	record_writes = online._record.writes
+	await online.sync(payload(102))
+	check(online.state.dirty and online.state.localGeneration == local_generation and online._record.writes == record_writes, "Identical dirty payload preserves pending progress")
+	await online.sync(payload(101))
+	check(not online.state.dirty and online.state.inFlight == journal and online.store.load_save() == payload(101), "Requested payload is restored when actual local save differs from journal")
 	online.state.inFlight.encodedRequestBody = "  " + online.state.inFlight.encodedRequestBody + "  "
 	online._commit()
 	var exact: String = online.state.inFlight.encodedRequestBody

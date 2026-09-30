@@ -198,16 +198,18 @@ func _build_canvas(w: float, h: float) -> void:
 		line.size = Vector2(1, 20)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		canvas.add_child(line)
-	if _claimable():
-		var dot := Panel.new()
-		var dot_style := StyleBoxFlat.new()
-		dot_style.bg_color = Color("8ee6ff")
-		dot_style.set_corner_radius_all(4)
-		dot.add_theme_stylebox_override("panel", dot_style)
-		dot.position = Vector2(16 + third + 28, shortcuts_y + 8)
-		dot.size = Vector2(7, 7)
-		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		canvas.add_child(dot)
+	# Keep the indicator so receipt updates can change it without rebuilding home.
+	var dot := Panel.new()
+	dot.name = "QuestReadyDot"
+	dot.visible = _claimable()
+	var dot_style := StyleBoxFlat.new()
+	dot_style.bg_color = Color("8ee6ff")
+	dot_style.set_corner_radius_all(4)
+	dot.add_theme_stylebox_override("panel", dot_style)
+	dot.position = Vector2(16 + third + 28, shortcuts_y + 8)
+	dot.size = Vector2(7, 7)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(dot)
 	_stage_button(canvas, "StageSelect", "스테이지 선택", Rect2(44, stage_y, w - 88, stage_height), true, lobby.open_page.bind("스테이지"), "stage_rewards/reward_stage.png").disabled = blocked
 	_surface(canvas, Rect2(16, bottom_y, w - 32, bottom_h), "panel")
 	var entries := [["Core", "넥서스 코어", "core", "코어"], ["Upgrades", "영구 강화", "upgrade", "강화"], ["Research", "연구", "research", "연구"], ["Modules", "포탑 모듈", "turret", "포탑"]]
@@ -225,6 +227,10 @@ func _build_canvas(w: float, h: float) -> void:
 			_stage_button(canvas, "RetryLoad", "다시 불러오기", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.app.retry_load())
 	elif not lobby.message.is_empty():
 		_label(canvas, lobby.message, Rect2(44, top + panel_h + 8, w - 88, 45), 12, 700, SECONDARY, true)
+
+func refresh_quest_indicator() -> void:
+	var dot := canvas.get_node_or_null("QuestReadyDot")
+	if dot != null: dot.visible = _claimable()
 
 func _claimable() -> bool:
 	var p: Dictionary = lobby._p()

@@ -28,6 +28,9 @@ var _session_end_pending := false
 var _login_resume_pending := false
 var _login_in_progress := false
 var boot_host
+var _snapshot_checkpoint: WeakRef
+var _snapshot_projection: Dictionary = {}
+var _economy_ui_pending := false
 
 func setup(application, native_platform: Object = null, settings: Dictionary = {}) -> void:
 	app = application
@@ -233,7 +236,7 @@ func _bind(interactive: bool) -> Dictionary:
 	online.acknowledge_reload()
 	online_ready = true
 	_interactive_login = false
-	economy.configure(account,app.checkpoint.rewards(),{"sync":sync,"snapshot":_apply_snapshot,"receipt":_apply_receipt,"effect":_apply_effect})
+	economy.configure(account,app.checkpoint.rewards(),{"sync":sync,"snapshot":_apply_snapshot,"snapshot_current":_snapshot_current,"receipt":_apply_receipt,"effect":_apply_effect})
 	return await economy.refresh()
 
 func _load_slot(owner: String) -> bool:
@@ -311,9 +314,13 @@ func retry() -> Dictionary:
 func perform(action: String, values: Dictionary = {}) -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if busy or not online_ready: return {"ok":false,"code":"ACCOUNT_REQUIRED" if not connected() else "SAVE_SYNC_REQUIRED"}
+	var binding := epoch
 	var result: Dictionary = await economy.execute(action,values)
+	if binding != epoch: return {"ok":false,"code":"STALE_BINDING"}
 	issue = "" if result.get("ok",false) else str(result.get("code","REQUEST_FAILED"))
-	app._refresh_ui()
+	_economy_ui_pending = false
+	if action == "claim_reward": _refresh_economy_ui()
+	else: app._refresh_ui()
 	changed.emit()
 	return result
 
@@ -360,8 +367,36 @@ func _resume() -> void:
 
 func _apply_snapshot(value: Dictionary) -> bool:
 	if not app.checkpoint.apply_economy_snapshot(app,value): return false
-	app._refresh_ui()
+	_snapshot_checkpoint = weakref(app.checkpoint)
+	_snapshot_projection = _economy_projection().duplicate(true)
+	if not _economy_ui_pending:
+		_economy_ui_pending = true
+		_flush_economy_ui.call_deferred()
 	return true
+
+# Server snapshot equality alone does not imply that the live checkpoint still
+# represents it (a slot reload or a local equipment edit may have intervened).
+func _economy_projection() -> Dictionary:
+	return _economy_projection_of(app.progression_inputs)
+
+func _economy_projection_of(p: Dictionary) -> Dictionary:
+	return {"freeDiamonds":p.get("freeDiamonds",0),"paidDiamonds":p.get("paidDiamonds",0),
+		"turretModules":p.get("turretModules",{}),"researchSlotTwoUnlocked":p.get("researchSlotTwoUnlocked",false)}
+
+func _snapshot_current(_value: Dictionary) -> bool:
+	if _snapshot_checkpoint == null or _snapshot_checkpoint.get_ref() != app.checkpoint or _snapshot_projection != _economy_projection(): return false
+	if app.scene._native_combat.active and not app.run_domain.state.is_empty():
+		return _snapshot_projection == _economy_projection_of(app.run_domain.state.get("progression",{}))
+	return true
+
+func _flush_economy_ui() -> void:
+	if not _economy_ui_pending: return
+	_economy_ui_pending = false
+	_refresh_economy_ui()
+
+func _refresh_economy_ui() -> void:
+	if app.has_method("refresh_economy_ui"): app.refresh_economy_ui()
+	else: app._refresh_ui()
 
 func _store_progression(value: Dictionary) -> bool:
 	if app.run_domain.state.is_empty() or not app.scene._native_combat.active:

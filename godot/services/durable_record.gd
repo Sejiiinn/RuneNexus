@@ -29,6 +29,7 @@ func save_record(value: Dictionary) -> Error:
 		if _recover(candidate) != OK: return last_error
 	var raw := JSON.stringify(value, "", false, true)
 	var old := _read(path)
+	if not old.is_empty() and old.raw == raw: return OK
 	if not old.is_empty() and old.raw != raw:
 		if _write(backup_path, old.raw) != OK: return last_error
 	return _write(path, raw)
