@@ -935,6 +935,13 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 	for t in turrets.values():
 		var p := (_vec(t.position)-origin)/tile_size
 		var row := [t.id,p.x,p.y,t.aimAngle,t.shotSequence,t.fireFeedback/0.18,t.statInput.definition.type,t.statInput.level]
+		if t.statInput.definition.type == "sniper":
+			# Optional visual state only; damage, targeting and saved state stay native.
+			var target: Dictionary=enemies.get(str(t.aimTargetId),{})
+			var aiming: bool=running and session.get("phase","")=="wave" and float(t.aimProgress)>0 and float(t.cooldown)<=0
+			aiming=aiming and not target.is_empty() and _alive(target) and _vec(t.position).distance_to(_pos(target))<=float(t.stats.range)+_target_radius(target)
+			var ratio := clampf(float(t.aimProgress)/maxf(.000001,float(t.stats.aimDuration)),0.0,1.0) if aiming else 0.0
+			row.append({"aimActive":aiming,"aimTargetId":int(t.aimTargetId),"aimProgress":float(t.aimProgress),"aimRatio":ratio})
 		if t.statInput.definition.type == "frost":
 			# Presentation extension only. Older eight-field consumers remain valid.
 			# Saves retain remaining cooldown but not lastBaseCooldown; derive a safe

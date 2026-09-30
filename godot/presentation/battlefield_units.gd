@@ -5,6 +5,8 @@ signal failure(message: String)
 const GemOrbit = preload("res://effects/gem_orbit.gd")
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
+const SniperVfx = preload("res://effects/sniper_vfx.gd")
+const SniperTargetSurface = preload("res://effects/sniper_target_surface.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
 const FrostTower = preload("res://effects/frost_tower.gd")
@@ -46,6 +48,7 @@ var _time := 0.0
 var columns := 8
 var rows := 10
 var options := {"volume": true}
+var _sniper_pose_revision := 0
 var _guardian_preview: GuardianPreview
 
 
@@ -141,6 +144,13 @@ func _new_turret(type: String) -> Dictionary:
 		"last_shot": -1, "last_time": -INF, "fire_start": -INF, "active_port": 0,
 	}
 	entry["level_bounds"] = TurretLevelLabels.base_bounds(root, entry["head"], root.transform.affine_inverse())
+	if type == "sniper":
+		var effect := SniperVfx.new()
+		root.add_child(effect)
+		effect.configure(barrel,muzzle)
+		entry["sniper_effect"] = effect
+		entry["aim_state"] = {}
+		return entry
 	if type == "frost":
 		var effect := FrostTower.new()
 		root.add_child(effect)
@@ -207,6 +217,8 @@ func _sync_turrets(units: Array) -> void:
 			entry["frost_effect"].update_state(_time, int(data[4]), float(data[5]), state, bool(options["volume"]), frost_lights < 4)
 			frost_lights += 1
 		else:
+			if type == "sniper":
+				entry["aim_state"] = data[8] if data.size()>8 and data[8] is Dictionary else {}
 			_update_fire(entry, int(data[4]), float(data[5]))
 	for id in turrets.keys():
 		if not alive.has(id):
@@ -228,8 +240,13 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 			entry["fire_effect"].reset()
 			entry["last_shot"] = -1
 			entry.erase("shot_pose")
+		if entry.has("sniper_effect"):
+			entry["sniper_effect"].reset()
+			entry["last_shot"] = shot_sequence
 	var previous := int(entry["last_shot"])
 	var fired := (previous >= 0 and previous != shot_sequence) or (previous < 0 and shot_sequence > 0 and feedback > 0.0)
+	if entry.has("sniper_effect"):
+		fired = previous >= 0 and shot_sequence > previous
 	if fired:
 		entry["fire_start"] = time
 		entry["active_port"] = posmod(shot_sequence, 2)
@@ -252,6 +269,9 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 		if fired:
 			entry["fire_effect"].fire(entry["muzzle"], time, shot_sequence)
 		entry["fire_effect"].update_turret(entry["flame_port"], entry["muzzle"], time)
+		return
+	if entry.has("sniper_effect"):
+		entry["sniper_effect"].update_flash(age)
 		return
 	if machine_gun:
 		# 최신 조준·반동 위치에서 이번 한 발만 기록. 건너뛴 순번은 재연하지 않음.
@@ -284,7 +304,7 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 
 
 func _update_weapon_camera(entry: Dictionary) -> void:
-	if entry.has("fire_effect"):
+	if entry.has("fire_effect") or entry.has("sniper_effect"):
 		return
 	if entry.has("muzzle_effect"):
 		entry["muzzle_effect"].update_camera(camera)
@@ -374,3 +394,21 @@ func _sync_build_preview(data) -> void:
 	_build_preview["barrel"].position.z = _build_preview["barrel_rest_z"]
 	if _build_preview.has("fire_effect"):
 		_build_preview["fire_effect"].update_turret(_build_preview["flame_port"], _build_preview["muzzle"], _time)
+
+
+# Called after enemy poses/teleports are current; no previous-frame target position.
+func sync_sniper_aim() -> void:
+	_sniper_pose_revision += 1
+	for entry: Dictionary in turrets.values():
+		if not entry.has("sniper_effect"): continue
+		var effect: SniperVfx=entry.sniper_effect
+		var state: Dictionary=entry.aim_state
+		var target: Dictionary=enemies.get(int(state.get("aimTargetId",-1)),{})
+		if not bool(state.get("aimActive",false)) or target.is_empty():
+			effect.hide_aim();continue
+		if not target.has("sniper_surface"):
+			target.sniper_surface=SniperTargetSurface.new(target.root)
+		var surface: SniperTargetSurface=target.sniper_surface
+		surface.update_pose(_sniper_pose_revision)
+		var from: Vector3=entry.barrel.to_global(SniperVfx.LENS_ORIGIN)
+		effect.show_aim(surface.first_hit(from,surface.aim_point()),float(state.get("aimRatio",0.0)),_time)

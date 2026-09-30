@@ -1,0 +1,11 @@
+{
+  "flash_source_sha256": "bd427faa0e44df1149ccac5dc4b1c70ee0b7c2ce7d48ec699821749710fb2775",
+  "line_source_sha256": "85eef3200f3feac242716f23825975859a6ed7e27c4f85ca319d57269299482e",
+  "flash_triangles": 56,
+  "line_triangles": 20,
+  "outputs": [
+    "assets/images/stage1_3d/effects/sniper/flash.glb",
+    "assets/images/stage1_3d/effects/sniper/aim_line.glb"
+  ],
+  "source_preserved": true
+}

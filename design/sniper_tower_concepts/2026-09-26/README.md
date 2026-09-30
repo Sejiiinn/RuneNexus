@@ -52,4 +52,6 @@ SWIFT 정적 원본의 외형을 유지한 별도 [애니메이션 원본](produ
 
 2026-09-30 사용자 승인에 따라 SWIFT 9,816삼각형 경량 GLB를 assets/images/stage1_3d/turrets/sniper.glb에 적용했다. 게임 본체와 [공유 HUD 아이콘](../../hud_turret_icons_fixed/README.md)은 모두 SWIFT를 사용한다. 고해상도·경량·애니메이션 제작 원본과 다른 포탑은 보존했다.
 
-기존 native 조준 타이밍·헤드 회전·포신 반동·포구 섬광/연기·즉시 타격을 유지한다. 승인된 신규 렌즈→대상 표면 조준선과 Blender 전용 발사 VFX는 아직 게임에 연결하지 않았다. 본체 이식을 전체 애니메이션·VFX 이식 완료로 해석하지 않는다. 실제 Godot 설치·추적·발사·복귀·정지·격리 저장 복원·판매/초기화 검사와 입력 해시는 [게임 이식 검증](production/game-integration/README.md)에 있다. Android 실기기 검증·APK·커밋·배포는 이번 범위에 포함하지 않았다.
+기존 native 조준 타이밍·헤드 회전·포신 반동·즉시 타격을 유지한다. 본체를 먼저 연결한 당시의 포구 섬광/연기·설치·추적·복원 검사는 [본체 이식 기록](production/game-integration/README.md)에 있다.
+
+이후 사용자 가독성 피드백에 따라 승인된 렌즈→실제 대상 첫 표면 조준선과 흰청록 바늘/네 날 발사 VFX를 게임에 연결했다. 최신 조준 표현은 [승인 에너지 응축 시안 v2](production/aim-vfx-concepts/2026-09-30-energy-charge-v2.png)의 얇은 중심광·부드러운 청록 광채·미세 glints·작은 렌즈/표면 광점을 따른다. 저격의 작은 공용 포구 효과를 전용 입체 효과로 교체했으며, 현재 표현·크기·수명·검사 결과는 [VFX 게임 이식](production/game-vfx/README.md)을 따른다. SWIFT 본체·공유 아이콘·전투 수치·저장 계약은 보존했다. Android 실기기 검증과 APK·배포는 수행하지 않았다.
