@@ -211,12 +211,19 @@ func _confirm_sale(id: int,quoted_refund: int) -> void:
 		hud.app.refresh_selection()
 	hud.close_modal()
 
-func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
+func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: PanelContainer = null) -> void:
 	turret = hud.app.run_domain.service.turret(hud.app.run_domain.state,int(turret.id))
 	if turret.is_empty(): hud.close_modal(); return
 	q = hud.app.run_domain.service.quotes(hud.app.run_domain.state,int(turret.id))
 	if tier == 0: tier = 2 if turret.get("primaryTrait") != null else 1
-	var box: VBoxContainer = hud.open_modal(hud.TOWERS.get(turret.type,turret.type)+" 특성",410,false,true,Color("63e6a5"),"reward")
+	var box: VBoxContainer
+	if refresh_panel != null:
+		box = hud.refresh_modal_body(refresh_panel)
+		if box == null: return
+	else: box = hud.open_modal(hud.TOWERS.get(turret.type,turret.type)+" 특성",410,false,true,Color("63e6a5"),"reward")
+	hud.modal_panel.set_meta("trait_turret_id", int(turret.id))
+	hud.modal_panel.set_meta("trait_tier", tier)
+	var panel_ref: WeakRef = weakref(hud.modal_panel)
 	box.add_theme_constant_override("separation",10)
 	var wallet := HBoxContainer.new(); wallet.name = "TraitWallet"; wallet.custom_minimum_size.y = 28
 	wallet.add_theme_constant_override("separation",7); box.add_child(wallet)
@@ -232,12 +239,15 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 	wallet_amount.add_theme_font_override("font",hud.AppTheme.font(900))
 	var tabs := HBoxContainer.new(); tabs.name = "TraitTierTabs"
 	tabs.add_theme_constant_override("separation",2); box.add_child(tabs)
+	var tier_group := ButtonGroup.new()
+	tier_group.allow_unpress = false
 	for value in [1,2]:
 		var caption := "1차 · 무기 개조" if value == 1 else "2차 · 전투 교리"
 		if value == 2 and turret.get("primaryTrait") == null: caption += "\n1차 선택 후"
-		var button: Button = hud._button(tabs,caption,func(): hud.trait_preview = ""; _traits(turret,q,value))
+		var button: Button = hud._button(tabs,caption,_switch_trait_tier.bind(int(turret.id), value, panel_ref))
 		button.name = "TraitTier%d" % value; button.custom_minimum_size.y = 43
 		button.toggle_mode = true; button.button_pressed = value == tier; button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.button_group = tier_group
 		hud._style_hud_button(button,"secondary",value == tier,Vector2(6,5),true)
 		if value == 2 and turret.get("primaryTrait") == null: button.modulate = Color("b5c4d2")
 	var kind := "primaryTrait" if tier == 1 else "secondaryTrait"
@@ -289,6 +299,16 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 	var bottom_pad := Control.new(); bottom_pad.name = "TraitBottomPad"
 	bottom_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom_pad.custom_minimum_size.y = 14; box.add_child(bottom_pad)
+
+func _switch_trait_tier(turret_id: int, tier: int, panel_ref: WeakRef) -> void:
+	var panel: PanelContainer = panel_ref.get_ref()
+	if panel == null or panel != hud.modal_panel or not panel.is_inside_tree() or panel.is_queued_for_deletion() \
+		or not is_instance_valid(hud.modal) or panel.get_meta("trait_turret_id", -1) != turret_id \
+		or panel.get_meta("trait_tier", 0) == tier: return
+	var turret: Dictionary = hud.app.run_domain.service.turret(hud.app.run_domain.state, turret_id)
+	if turret.is_empty(): hud.close_modal(); return
+	hud.trait_preview = ""
+	_traits(turret, {}, tier, panel)
 
 func _fit_trait_row(button: Button,content: MarginContainer,minimum_height: float) -> void:
 	if not is_instance_valid(button) or not is_instance_valid(content) or button.size.x <= 0: return

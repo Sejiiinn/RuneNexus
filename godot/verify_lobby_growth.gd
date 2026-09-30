@@ -24,6 +24,10 @@ class Host extends Control:
 			remove_child(modal)
 			modal.queue_free()
 			modal = null
+	func refresh_modal_body(expected_modal: Control) -> VBoxContainer:
+		if not is_instance_valid(expected_modal) or expected_modal != modal: return null
+		for child in modal.get_children(): modal.remove_child(child); child.queue_free()
+		return modal
 	func _change(command: Dictionary) -> void:
 		commands.append(command)
 		var result: Dictionary = app.run_domain.growth.execute(state, command)
@@ -59,7 +63,7 @@ func verify() -> void:
 	assert(host.modal.get_meta("refresh",Callable()).is_valid(),"Detail opts into progression refresh")
 	var old_modal := host.modal
 	host.modal.get_meta("refresh").call()
-	assert(host.modal != old_modal,"Progression refresh replaces stale detail")
+	assert(host.modal == old_modal,"Progression refresh updates detail in the existing modal")
 	assert(_texts(host.modal).contains(ui.RESEARCH_DESCRIPTIONS.researchEfficiency))
 	assert(host.commands.is_empty())
 	ui._submit("startResearch", "researchEfficiency")

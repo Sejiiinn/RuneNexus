@@ -57,15 +57,16 @@ func _notification(what: int) -> void:
 		# Focus notifications traverse children; rebuilding here mutates a busy tree.
 		if _focus_refresh_pending: return
 		_focus_refresh_pending = true
-		_refresh_after_focus.call_deferred()
+		_refresh_after_focus.call_deferred(weakref(modal) if is_instance_valid(modal) else null)
 
-func _refresh_after_focus() -> void:
+func _refresh_after_focus(modal_ref: WeakRef = null) -> void:
 	_focus_refresh_pending = false
-	if not is_inside_tree() or not is_instance_valid(canvas): return
-	var title := str(modal.get_meta("home_dialog_title", "")) if is_instance_valid(modal) else ""
+	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(canvas): return
 	_layout()
-	if title == "설정": open_settings()
-	elif title == "이벤트": open_events()
+	if modal_ref == null or modal_ref.get_ref() != modal or not _dialog_active(): return
+	var title := str(modal.get_meta("home_dialog_title", ""))
+	if title == "설정": open_settings(true)
+	elif title == "이벤트": open_events(true)
 
 
 func _ready() -> void:
@@ -332,7 +333,33 @@ func close_modal() -> bool:
 	modal_frame = null
 	return true
 
-func _dialog(title: String, _height: float) -> VBoxContainer:
+func _dialog_active(title := "") -> bool:
+	return is_inside_tree() and not is_queued_for_deletion() and is_instance_valid(modal) \
+		and modal.is_inside_tree() and not modal.is_queued_for_deletion() \
+		and (title.is_empty() or modal.get_meta("home_dialog_title", "") == title)
+
+func _dialog(title: String, _height: float, refresh := false) -> VBoxContainer:
+	if refresh:
+		if not _dialog_active(title): return null
+		var scroll_y := modal_scroll.scroll_vertical
+		var current_ref: WeakRef = weakref(modal)
+		var scroll_ref: WeakRef = weakref(modal_scroll)
+		for child in modal_content.get_children():
+			modal_content.remove_child(child)
+			child.queue_free()
+		get_tree().process_frame.connect(func():
+			if _dialog_active(title) and current_ref.get_ref() == modal and scroll_ref.get_ref() == modal_scroll:
+				modal_scroll.scroll_vertical = scroll_y
+		, CONNECT_ONE_SHOT)
+	else:
+		_create_dialog(title)
+	_dialog_header(title)
+	_layout_modal()
+	_layout_modal.call_deferred()
+	if not refresh: Assets.animate_modal(modal_frame)
+	return modal_content
+
+func _create_dialog(title: String) -> void:
 	close_modal()
 	modal = Control.new()
 	modal.name = "HomeModal"
@@ -360,6 +387,9 @@ func _dialog(title: String, _height: float) -> VBoxContainer:
 	modal_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	modal_content.add_theme_constant_override("separation", 16)
 	modal_scroll.add_child(modal_content)
+	modal_content.minimum_size_changed.connect(_layout_modal)
+
+func _dialog_header(title: String) -> void:
 	var header := HBoxContainer.new()
 	modal_content.add_child(header)
 	var heading := _modal_label(title, 20, 900)
@@ -381,11 +411,6 @@ func _dialog(title: String, _height: float) -> VBoxContainer:
 		close.add_theme_stylebox_override(state, highlight)
 	close.pressed.connect(close_modal)
 	header.add_child(close)
-	modal_content.minimum_size_changed.connect(_layout_modal)
-	_layout_modal()
-	_layout_modal.call_deferred()
-	Assets.animate_modal(modal_frame)
-	return modal_content
 
 func _modal_label(value: String, pixels := 12, weight := 700) -> Label:
 	var result := Label.new()
@@ -435,8 +460,9 @@ static func _draw_modal(frame: Control) -> void:
 	var style: StyleBox = frame.get_meta("frame_style")
 	style.draw(frame.get_canvas_item(),Rect2(Vector2.ZERO,frame.size))
 
-func open_events() -> void:
-	var frame := _dialog("이벤트", 172)
+func open_events(refresh := false) -> void:
+	var frame := _dialog("이벤트", 172, refresh)
+	if frame == null: return
 	frame.add_child(_modal_label("출석과 일일·주간 퀘스트 보상을 확인하세요."))
 	_modal_button(frame, "Quests", "출석 · 퀘스트", func(): lobby.open_page("퀘스트"))
 
@@ -444,14 +470,16 @@ func open_service(service: String) -> void:
 	close_modal()
 	lobby.open_service(service)
 
-func open_settings() -> void:
-	var frame := _dialog("설정", 362)
+func open_settings(refresh := false) -> void:
+	var frame := _dialog("설정", 362, refresh)
+	if frame == null: return
 	_choices(frame, "MSAA · 테두리 부드럽게", "끄면 물체의 가장자리가 거칠어질 수 있습니다.", "msaa", [0, 2], ["끄기", "2배"], 2)
 	frame.add_child(HSeparator.new())
 	_choices(frame, "그림자 품질", "낮추면 그림자가 흐릿해지고, 끄면 사라집니다.", "shadow", [0, 512, 1024, 2048], ["끄기", "낮음", "중간", "높음"], 2048)
 	_modal_button(frame, "Account", "계정 및 저장", open_service.bind("계정 및 저장"))
 
 func _choices(frame: Control, title: String, description: String, key: String, values: Array, labels: Array, fallback: int) -> void:
+	var dialog_ref: WeakRef = weakref(modal)
 	var section := VBoxContainer.new()
 	section.add_theme_constant_override("separation", 4)
 	frame.add_child(section)
@@ -483,12 +511,13 @@ func _choices(frame: Control, title: String, description: String, key: String, v
 			if radio.button_pressed: radio.draw_circle(center, 3.5, color)
 		)
 		radio.pressed.connect(func():
+			if not _dialog_active("설정") or dialog_ref.get_ref() != modal or not radio.is_inside_tree() or radio.is_queued_for_deletion(): return
 			var settings: Dictionary = Device.read()
+			if settings.get(key, fallback) == values[i]: return
 			settings[key] = values[i]
 			if Device.write(settings):
 				Device.apply(lobby.app.scene.options)
 				lobby.app.scene._apply_options()
-				open_settings()
 			else:
 				var error_frame := _dialog("저장 실패", 172)
 				error_frame.add_child(_modal_label("설정을 저장하지 못했습니다. 다시 시도해 주세요."))

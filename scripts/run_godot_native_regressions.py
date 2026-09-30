@@ -58,6 +58,7 @@ SCRIPTS = {
     "verify_lobby_collection.gd": "PASS lobby_collection:",
     "verify_quest_claim_ui.gd": "QUEST_CLAIM_UI checks=",
     "verify_ui_layout_stability.gd": "PASS UI_LAYOUT_STABILITY",
+    "verify_modal_refresh.gd": "MODAL_REFRESH checks=",
     "verify_lobby_stages.gd": "PASS stage restoration:",
     "verify_app_selection.gd": "PASS app selection:",
     "verify_app_presentation.gd": "PASS independent presentation:",

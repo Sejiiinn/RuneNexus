@@ -95,7 +95,9 @@ func _update_changed() -> void:
 		if not app.startup_blocked: app.pause_and_save()
 		app.in_lobby = true
 		app._refresh_ui()
-		app.lobby._service("업데이트")
+		if app.lobby._services != null and app.lobby._services.page == "업데이트" and app.lobby._services._active_view(app.lobby._services.view_epoch):
+			app.lobby._services._render()
+		else: app.lobby._service("업데이트")
 	elif not updates.blocked:
 		# Home refresh deliberately preserves open modals. Retire this gate's
 		# stale busy view when the check succeeds, without closing another dialog.

@@ -496,6 +496,25 @@ func _queue_modal_fit() -> void:
 	_modal_fit_pending = true
 	_fit_modal.call_deferred()
 
+func refresh_modal_body(expected_panel: PanelContainer) -> VBoxContainer:
+	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(modal) \
+		or not modal.is_inside_tree() or modal.is_queued_for_deletion() \
+		or not is_instance_valid(expected_panel) or expected_panel != modal_panel \
+		or expected_panel.is_queued_for_deletion(): return null
+	var scroll_y := modal_scroll.scroll_vertical
+	var panel_ref: WeakRef = weakref(expected_panel)
+	var scroll_ref: WeakRef = weakref(modal_scroll)
+	# Preserve the title, close action and separator along with the modal shell.
+	for child in modal_body.get_children().slice(2):
+		modal_body.remove_child(child)
+		child.queue_free()
+	_queue_modal_fit()
+	get_tree().process_frame.connect(func():
+		var scroll: ScrollContainer = scroll_ref.get_ref()
+		if scroll != null and scroll.is_inside_tree() and panel_ref.get_ref() == modal_panel and is_instance_valid(modal): scroll.scroll_vertical = scroll_y
+	, CONNECT_ONE_SHOT)
+	return modal_body
+
 func _fit_modal() -> void:
 	_modal_fit_pending = false
 	if not is_instance_valid(modal) or not is_instance_valid(modal_scroll): return

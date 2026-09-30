@@ -429,8 +429,17 @@ func _submit(kind: String, id: String) -> void:
 func _details(id: String) -> void:
 	selected_research = id
 	var box: VBoxContainer = lobby.open_modal(str(TITLES.get(id, id)))
-	lobby.modal.set_meta("refresh", _details.bind(id))
+	lobby.modal.set_meta("refresh", _refresh_details.bind(id, weakref(lobby.modal)))
 	lobby.modal.set_meta("max_width",380)
+	_build_details(box, id)
+
+func _refresh_details(id: String, modal_ref: WeakRef) -> void:
+	var current: Control = modal_ref.get_ref()
+	if current == null: return
+	var box: VBoxContainer = lobby.refresh_modal_body(current)
+	if box != null: _build_details(box, id)
+
+func _build_details(box: VBoxContainer, id: String) -> void:
 	var d: Dictionary = _growth().data.research[id]
 	var q: Dictionary = _growth().research_quote(lobby._p(), id)
 	_heading(box, id, int(q.level), int(d.maxLevel))

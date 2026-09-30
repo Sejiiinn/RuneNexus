@@ -175,7 +175,12 @@ func _finish_refresh(kept_modal: Control, scroll_position: int) -> void:
 	if kept_modal != null:
 		add_child(kept_modal)
 		var update: Callable = kept_modal.get_meta("refresh",Callable())
-		if update.is_valid(): update.call_deferred()
+		if update.is_valid():
+			var kept_ref: WeakRef = weakref(kept_modal)
+			(func():
+				var current: Control = kept_ref.get_ref()
+				if current != null and current == modal and current.is_inside_tree() and not current.is_queued_for_deletion(): update.call()
+			).call_deferred()
 	if is_instance_valid(_page_scroll):
 		var weak_scroll: WeakRef = weakref(_page_scroll)
 		var restore := func():
@@ -444,6 +449,23 @@ func set_modal_header(header: Control) -> void:
 	column.add_child(header)
 	column.move_child(header,0)
 	_layout_modal.call_deferred()
+
+func refresh_modal_body(expected_modal: Control) -> VBoxContainer:
+	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(expected_modal) \
+		or expected_modal != modal or not modal.is_inside_tree() or modal.is_queued_for_deletion() \
+		or not is_instance_valid(modal_body) or not is_instance_valid(modal_scroll): return null
+	var scroll_y := modal_scroll.scroll_vertical
+	var modal_ref: WeakRef = weakref(modal)
+	var scroll_ref: WeakRef = weakref(modal_scroll)
+	for child in modal_body.get_children():
+		modal_body.remove_child(child)
+		child.queue_free()
+	_layout_modal.call_deferred()
+	get_tree().process_frame.connect(func():
+		var scroll: ScrollContainer = scroll_ref.get_ref()
+		if scroll != null and scroll.is_inside_tree() and modal_ref.get_ref() == modal: scroll.scroll_vertical = scroll_y
+	, CONNECT_ONE_SHOT)
+	return modal_body
 
 func _layout_modal() -> void:
 	if not is_instance_valid(modal_frame): return

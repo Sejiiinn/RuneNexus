@@ -294,6 +294,9 @@ func _update_modal_checks() -> void:
 	update.accepted=false
 	await update.check()
 	check(update.blocked and is_instance_valid(lobby.modal) and update.message in _labels(lobby.modal),"Failed check keeps retryable failure modal")
+	var failed_modal_id: int = lobby.modal.get_instance_id()
+	update.changed.emit()
+	check(lobby.modal.get_instance_id() == failed_modal_id,"Repeated blocked update notification reuses the same modal")
 	lobby.close_modal()
 	check(is_instance_valid(lobby.modal),"Failed gate remains mandatory")
 	update.accepted=true
