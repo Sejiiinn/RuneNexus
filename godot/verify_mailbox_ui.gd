@@ -12,6 +12,8 @@ class Service extends RefCounted:
 	var requests: Array = []
 	var claims: Array = []
 	var hold_read := false
+	var hold_fetch := false
+	var hold_claim := false
 	var hold_page := false
 	var fail_page := false
 	var repeat_cursor := false
@@ -23,7 +25,9 @@ class Service extends RefCounted:
 		requests.append(method + " " + path)
 		await tree.process_frame
 		if method == "GET":
-			if path == "v1/mailbox": return {"ok": true, "body": {"mails": mails.slice(0, page_size).duplicate(true), "nextCursor": "page2" if mails.size() > page_size else null}}
+			if path == "v1/mailbox":
+				while hold_fetch: await tree.process_frame
+				return {"ok": true, "body": {"mails": mails.slice(0, page_size).duplicate(true), "nextCursor": "page2" if mails.size() > page_size else null}}
 			if path == "v1/mailbox?cursor=page2":
 				while hold_page: await tree.process_frame
 				if fail_page: return {"ok": false, "code": "REQUEST_FAILED"}
@@ -43,6 +47,7 @@ class Service extends RefCounted:
 			if mail.id == str(values.get("id", "")) or mail.id in values.get("ids", []):
 				mail.claimedAt = "2026-09-27T12:00:00Z"
 		await tree.process_frame
+		while hold_claim: await tree.process_frame
 		return {"ok": true, "body": {}}
 
 var failures: Array[String] = []
@@ -64,6 +69,10 @@ func settle() -> void:
 
 func find_node(name: String) -> Node:
 	return lobby.modal.find_child(name, true, false) if is_instance_valid(lobby.modal) else null
+
+func modal_ids() -> Array:
+	return [lobby.modal.get_instance_id(), lobby.modal_frame.get_instance_id(),
+		lobby.modal_visual.get_instance_id(), lobby.modal_scroll.get_instance_id(), lobby.modal_body.get_instance_id()]
 
 func labels(node: Node) -> String:
 	if node is CanvasItem and not node.is_visible_in_tree(): return ""
@@ -135,7 +144,9 @@ func run() -> void:
 	if int(Time.get_time_zone_from_system().get("bias", 0)) == 540:
 		check(MailboxView._expires("2026-10-05T00:00:00Z") == "2026.10.05 09:00까지", "UTC expiry is converted to Korea local time")
 	lobby.open_service("우편함")
+	var opened_ids := modal_ids()
 	await settle()
+	check(modal_ids() == opened_ids, "Initial response retains the modal, frame, visual, scroll, and body")
 	check(service.requests.count("GET v1/mailbox") == 1, "Opening fetches the first page once")
 	check(service.requests.count("GET v1/mailbox?cursor=page2") == 1, "Short first page auto-loads one continuation")
 	check(find_node("MailCard2") != null and find_node("MoreMail") == null, "Continued page appears without a more button")
@@ -155,6 +166,8 @@ func run() -> void:
 	await settle()
 	check(find_node("MailBody1") != null and find_node("MailBody0") == null, "Delayed first read does not replace new selection")
 	check(service.requests.count("POST v1/mailbox/mail-1/read") == 1 and service.requests.count("POST v1/mailbox/mail-2/read") == 1, "Delayed reads do not duplicate")
+	check(modal_ids() == opened_ids, "Read and selection updates retain the existing modal shell")
+	check(lobby.modal.find_children("MailboxTouchScrollObserver", "Node", true, false).size() == 1, "Rerenders retain a single touch scroll observer")
 	find_node("MailTitle0").pressed.emit()
 	await settle()
 	await capture("mailbox-auto-440-expanded")
@@ -163,12 +176,19 @@ func run() -> void:
 	check(find_node("MailBody0") == null, "Second title press collapses the body")
 	check(find_node("MailCard2") != null, "Reading a mail preserves auto-loaded pages")
 	check(service.requests.count("GET v1/mailbox?cursor=page2") == 1, "Read does not duplicate the next page")
+	ProjectSettings.set_setting("accessibility/disable_animations", false)
+	find_node("RefreshMailbox").pressed.emit()
+	check(modal_ids() == opened_ids and is_equal_approx(lobby.modal_visual.modulate.a, 1.0), "Refresh keeps the visible modal without restarting entrance animation")
+	await settle()
+	check(modal_ids() == opened_ids, "Refresh response keeps the same modal shell")
+	await capture("mailbox-refresh-440-stable")
+	ProjectSettings.set_setting("accessibility/disable_animations", true)
 
 	service.fail_page = true
 	lobby.open_service("우편함")
 	await settle()
 	var failed_count := service.requests.count("GET v1/mailbox?cursor=page2")
-	check(find_node("RetryMailPage") != null and failed_count == 2, "Failed continuation exposes retry")
+	check(find_node("RetryMailPage") != null and failed_count == 3, "Failed continuation exposes retry")
 	await settle()
 	check(service.requests.count("GET v1/mailbox?cursor=page2") == failed_count, "Failure does not auto-retry forever")
 	service.fail_page = false
@@ -223,9 +243,29 @@ func run() -> void:
 	check(find_node("MailBody7") != null, "Last-page mail can expand")
 	await capture("mailbox-auto-320-last-expanded")
 	find_node("ClaimAllMail").pressed.emit()
+	var claim_ids := modal_ids()
 	await settle()
+	check(modal_ids() == claim_ids, "Claim and its refetch retain the existing modal shell")
 	check(service.claims.size() == 1 and service.claims[0].action == "mail_claim_all", "Bulk claim action retains service contract")
 	check(service.claims[0].values.ids.size() == 8, "Bulk claim passes loaded mail IDs")
+
+	service.hold_fetch = true
+	find_node("RefreshMailbox").pressed.emit()
+	lobby.close_modal()
+	service.hold_fetch = false
+	await settle()
+	check(not is_instance_valid(lobby.modal), "Late refresh response cannot reopen a dismissed mailbox")
+	service.mails[0].claimedAt = null
+	lobby.open_service("우편함")
+	await settle()
+	service.hold_claim = true
+	find_node("ClaimMail0").pressed.emit()
+	var fetches_before_claim := service.requests.count("GET v1/mailbox")
+	lobby.open_modal("다른 대화상자")
+	var replacement_id: int = lobby.modal.get_instance_id()
+	service.hold_claim = false
+	await settle()
+	check(lobby.modal.get_instance_id() == replacement_id and service.requests.count("GET v1/mailbox") == fetches_before_claim, "Late claim cannot replace another modal or start a mailbox refetch")
 
 	service.page_size = 2
 	service.mails = service.mails.slice(0, 3)

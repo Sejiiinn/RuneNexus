@@ -160,8 +160,11 @@ func run() -> void:
 	dimensions(Vector2i(440,900))
 	await settle()
 	lobby.open_service("리더보드")
+	var opened_modal: int = lobby.modal.get_instance_id()
+	var opened_frame: int = lobby.modal_frame.get_instance_id()
 	check(not labels(lobby.modal).contains("별빛수호자"),"Initial loading never shows fabricated rankings")
 	await settle()
+	check(lobby.modal.get_instance_id() == opened_modal and lobby.modal_frame.get_instance_id() == opened_frame,"Initial leaderboard response retains the modal frame")
 	check(service.requests == 1,"Opening leaderboard fetches once")
 	check(labels(lobby.modal).contains("TOP 100"),"Board scope remains visible")
 	check(labels(lobby.modal).contains("서버 확정"),"Tie ordering is explained")
@@ -174,6 +177,7 @@ func run() -> void:
 		var previous := service.requests
 		await click(refresh)
 		check(service.requests == previous+1,"Refresh input performs exactly one request")
+		check(lobby.modal.get_instance_id() == opened_modal and lobby.modal_frame.get_instance_id() == opened_frame,"Leaderboard refresh retains the modal frame")
 	var first := find_node("LeaderboardRow1") as Control
 	check(first != null,"Top ranking row is present")
 	if first != null:

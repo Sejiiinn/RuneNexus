@@ -422,26 +422,33 @@ func _ui_checks() -> void:
 	var prior: Dictionary=service.profile.duplicate(true)
 	service.profile={"nickname":null}
 	ui.open("계정 및 저장")
+	var account_modal: int = lobby.modal.get_instance_id()
 	ui._render();ui._render()
 	await process_frame
 	await process_frame
 	check(lobby.get_children().filter(func(node):return node is Control).size()==1,"Mandatory nickname rerenders keep one modal")
+	check(lobby.modal.get_instance_id()==account_modal,"Mandatory nickname rerenders reuse the existing modal")
 	lobby.close_modal()
 	check(is_instance_valid(lobby.modal),"Nickname modal cannot be dismissed before profile exists")
 	service.profile=prior
 	service.updates.blocked=true
-	ui.open("업데이트");ui._render()
+	ui.open("업데이트")
+	var update_modal: int = lobby.modal.get_instance_id()
+	ui._render()
 	await process_frame
 	await process_frame
 	check(lobby.get_children().filter(func(node):return node is Control).size()==1,"Mandatory update replacement keeps one modal")
+	check(lobby.modal.get_instance_id()==update_modal and update_modal!=account_modal,"Update changes page once then reuses its modal")
 	lobby.close_modal()
 	check(is_instance_valid(lobby.modal),"Required update modal cannot be dismissed")
 	service.updates.blocked=false
 	check(lobby.diamonds()==44,"Paid and free wallet fields supply UI balance")
 	ui.open("모듈 뽑기",{"count":1,"turretType":"arrow"})
+	var draw_modal: int = lobby.modal.get_instance_id()
 	check("모듈 1개를 획득합니다. 모듈권 0장 · 다이아 40개" in _labels(lobby.modal),"Draw confirmation displays server contract cost")
 	ui.data={"economy":server.economy_snapshot(),"drawnModules":[{"grade":"rare","turretType":"arrow","part":"core"}]}
 	ui._render()
+	check(lobby.modal.get_instance_id()==draw_modal,"Command results reuse their confirmation modal")
 	check("희귀 · 기관총 · 코어" in _labels(lobby.modal) and not "확인" in _labels(lobby.modal),"Draw success shows localized result without duplicate purchase button")
 	ui.open("연구 슬롯 구매")
 	check("사용 다이아" in _labels(lobby.modal) and _labels(lobby.modal).any(func(text):return text.begins_with("보유 44")),"Research service displays actual cost and combined balance")

@@ -47,7 +47,7 @@ func open(title: String, values: Dictionary = {}) -> void:
 	mail_last_auto_scroll_y = -1
 	view_epoch += 1
 	pending = false
-	_render()
+	_render(true)
 	if title in ["우편함", "리더보드"] and _connected(): _fetch()
 
 func _connected() -> bool:
@@ -59,22 +59,35 @@ func _button(body: Node, text: String, callback: Callable, role := "primary") ->
 	body.add_child(button)
 	return button
 
-func _render() -> void:
-	var body: VBoxContainer = lobby.open_modal(page)
-	lobby.modal.set_meta("service_view_epoch",view_epoch)
-	lobby.modal.set_meta("service_page",page)
-	lobby.modal.set_meta("max_width",480 if page == "우편함" else 420)
-	body.name = "ServiceBody"
+func _render(opening := false) -> void:
+	# Only explicit navigation opens a modal; request/state updates reuse its shell.
+	if not opening and not _active_view(view_epoch): return
+	var body: VBoxContainer
+	if opening:
+		body = lobby.open_modal(page)
+		lobby.modal.set_meta("service_view_epoch",view_epoch)
+		lobby.modal.set_meta("service_page",page)
+		lobby.modal.set_meta("max_width",480 if page == "우편함" else 420)
+		body.name = "ServiceBody"
+	else:
+		body = lobby.modal_body
+		for child in body.get_children():
+			body.remove_child(child)
+			child.queue_free()
 	if page == "우편함" and _connected():
-		MailboxView.header(lobby, _fetch, pending or _services().busy)
+		if opening: MailboxView.header(lobby, _fetch, pending or _services().busy)
+		else:
+			var refresh := lobby.modal.find_child("RefreshMailbox", true, false) as Button
+			if refresh != null: refresh.disabled = pending or _services().busy
 	if page == "리더보드":
-		lobby.modal.set_meta("max_width", 680)
-		lobby.modal.set_meta("height_fraction", 0.84)
-		var column: VBoxContainer = lobby.modal_frame.get_child(0)
-		lobby.modal_scroll.remove_child(body)
-		lobby.modal_scroll.queue_free()
-		column.add_child(body)
-		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		if opening:
+			lobby.modal.set_meta("max_width", 680)
+			lobby.modal.set_meta("height_fraction", 0.84)
+			var column: VBoxContainer = lobby.modal_frame.get_child(0)
+			lobby.modal_scroll.remove_child(body)
+			lobby.modal_scroll.queue_free()
+			column.add_child(body)
+			body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		LeaderboardView.build(lobby, body, data, pending, notice, _fetch, open.bind("계정 및 저장"), _connected())
 		lobby._layout_modal.call_deferred()
 		return
@@ -92,9 +105,10 @@ func _render() -> void:
 	if page == "우편함" and is_instance_valid(lobby.modal_scroll):
 		var scroll_ref: WeakRef = weakref(lobby.modal_scroll)
 		var captured := view_epoch
-		lobby.modal_scroll.gui_input.connect(_mail_scroll_input.bind(scroll_ref, captured))
-		MailboxView.observe_touch_scroll(lobby, _mail_scroll_input.bind(scroll_ref, captured))
-		lobby.modal_scroll.get_v_scroll_bar().value_changed.connect(_mail_scroll_changed.bind(scroll_ref, captured))
+		if opening:
+			lobby.modal_scroll.gui_input.connect(_mail_scroll_input.bind(scroll_ref, captured))
+			MailboxView.observe_touch_scroll(lobby, _mail_scroll_input.bind(scroll_ref, captured))
+			lobby.modal_scroll.get_v_scroll_bar().value_changed.connect(_mail_scroll_changed.bind(scroll_ref, captured))
 		lobby.modal_scroll.get_tree().process_frame.connect(func():
 			var scroll: ScrollContainer = scroll_ref.get_ref()
 			if scroll != null and scroll.is_inside_tree():
@@ -120,7 +134,9 @@ func _update_action() -> void:
 	if _active_view(captured): _render()
 
 func _active_view(captured: int) -> bool:
-	return captured == view_epoch and is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_view_epoch", -1) == captured
+	return captured == view_epoch and is_instance_valid(lobby) and lobby.is_inside_tree() \
+		and is_instance_valid(lobby.modal) and lobby.modal.is_inside_tree() and not lobby.modal.is_queued_for_deletion() \
+		and lobby.modal.get_meta("service_view_epoch", -1) == captured and lobby.modal.get_meta("service_page", "") == page
 
 func _account(body: VBoxContainer) -> void:
 	var service = _services()
@@ -210,6 +226,7 @@ func _nickname() -> void:
 	_render()
 
 func _fetch(cursor := "") -> void:
+	if pending or not _active_view(view_epoch) or not _connected() or _services().busy: return
 	if page == "우편함" and is_instance_valid(lobby.modal_scroll): mail_scroll_y = lobby.modal_scroll.scroll_vertical
 	if page == "우편함" and cursor.is_empty():
 		mail_auto_armed = true
@@ -574,6 +591,7 @@ func _disassembly_confirmation(body: VBoxContainer) -> void:
 
 func _perform(action: String, values: Dictionary) -> void:
 	if pending or _services() == null or _services().busy: return
+	if page == "우편함" and is_instance_valid(lobby.modal_scroll): mail_scroll_y = lobby.modal_scroll.scroll_vertical
 	var request := values.duplicate(true)
 	if action == "disassemble_modules":
 		var current := _module_plan()
