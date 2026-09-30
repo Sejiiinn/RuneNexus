@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -30,7 +31,7 @@ func (service *Service) SettleRun(
 		return CommandResult{}, fmt.Errorf("parse run settlement session ID: %w", err)
 	}
 	if _, err := parseUUID(request.RunID); err != nil || request.StageNumber < 1 ||
-		request.StageNumber > 15 || request.CompletedRounds < 0 || request.CompletedRounds > 40 ||
+		request.StageNumber > gamesave.CurrentStageCount || request.CompletedRounds < 0 || request.CompletedRounds > 40 ||
 		request.PendingDiamonds < 0 || request.PendingDiamonds > int64(request.CompletedRounds+1)*300 ||
 		request.FirstClearModuleTickets < 0 ||
 		request.FirstClearModuleTickets > StageElevenModuleTicketGift ||

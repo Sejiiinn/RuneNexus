@@ -18,7 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = 3
+	CurrentClientCompatibilityVersion       = 4
 )
 
 var (
@@ -427,7 +427,7 @@ func (service *Service) Update(
 		CompletedRounds int `json:"completedRounds"`
 	}
 	if json.Unmarshal(request.Data.ActiveRun, &activeRun) == nil &&
-		activeRun.StageNumber >= 1 && activeRun.StageNumber <= 15 &&
+		activeRun.StageNumber >= 1 && activeRun.StageNumber <= CurrentStageCount &&
 		activeRun.CompletedRounds >= 1 && activeRun.CompletedRounds <= 40 {
 		if err := txQueries.UpsertProgressionLeaderboardRecord(ctx, dbgen.UpsertProgressionLeaderboardRecordParams{
 			AccountID: databaseAccountID, StageNumber: int32(activeRun.StageNumber),

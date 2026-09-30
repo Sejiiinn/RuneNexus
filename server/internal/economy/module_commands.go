@@ -14,7 +14,9 @@ import (
 )
 
 type progressionUnlocks struct {
-	ClearedStageNumbers []int `json:"clearedStageNumbers"`
+	ClearedStageNumbers []int    `json:"clearedStageNumbers"`
+	ProgressionVersion  int      `json:"progressionVersion"`
+	GrandfatherUnlocks  []string `json:"grandfatherUnlocks"`
 }
 
 func (service *Service) DrawModules(
@@ -376,6 +378,12 @@ func turretUnlocked(turretType string, progressionJSON []byte) bool {
 	requiredStage := 3
 	if turretType == "lightning" {
 		requiredStage = 6
+		if progression.ProgressionVersion >= 1 {
+			requiredStage = 7 // Fixed ID 7 is chapter 2 stage 2.
+		}
+	}
+	if progression.ProgressionVersion >= 1 && contains(progression.GrandfatherUnlocks, "turret:"+turretType) {
+		return true
 	}
 	for _, stage := range progression.ClearedStageNumbers {
 		if stage == requiredStage {

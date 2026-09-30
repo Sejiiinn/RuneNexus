@@ -273,7 +273,7 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 		return gamesave.UpdateRequest{IdempotencyKey: fmt.Sprintf("0198b955-3656-7c40-b3cb-%012d", key), ExpectedRevision: revision, WriterGeneration: fixture.writerGeneration, RawBody: []byte(fmt.Sprintf(`{"request":%d}`, key)), Data: gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"bestRoundsByStage":{"15":40}}`), TurretModules: json.RawMessage(`{}`), ActiveRun: run}}
 	}
 	// 과거 최고·시작만 한 런·이전 저장·범위 밖 기록은 집계 제외.
-	for i, active := range []string{"", `{"stageNumber":4,"completedRounds":0,"roundIndex":30}`, `{"stageNumber":4,"roundIndex":30}`, `{"stageNumber":16,"completedRounds":1}`, `{"stageNumber":4,"completedRounds":41}`, `{"stageNumber":4,"completedRounds":"2"}`} {
+	for i, active := range []string{"", `{"stageNumber":4,"completedRounds":0,"roundIndex":30}`, `{"stageNumber":4,"roundIndex":30}`, `{"stageNumber":26,"completedRounds":1}`, `{"stageNumber":4,"completedRounds":41}`, `{"stageNumber":4,"completedRounds":"2"}`} {
 		result, err := fixture.Update(ctx, accountID, update(i+1, active))
 		if err != nil {
 			t.Fatal(err)

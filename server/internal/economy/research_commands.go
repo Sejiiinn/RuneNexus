@@ -210,7 +210,7 @@ func (service *Service) UnlockResearchSlotTwo(
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
 	}
-	if economy.ResearchSlotTwoUnlocked || !stageCleared(saveSnapshot.Progression, 10) {
+	if economy.ResearchSlotTwoUnlocked || !researchSlotEligible(saveSnapshot.Progression) {
 		return CommandResult{}, ErrInvalidCommand
 	}
 	freeAfter, paidAfter, freeSpent, paidSpent, err := spendDiamonds(economy.FreeDiamonds, economy.PaidDiamonds, ResearchSlotTwoUnlockCost)
@@ -409,6 +409,17 @@ func stageCleared(progressionJSON []byte, stage int) bool {
 		}
 	}
 	return false
+}
+
+func researchSlotEligible(progressionJSON []byte) bool {
+	var progression progressionUnlocks
+	if json.Unmarshal(progressionJSON, &progression) != nil {
+		return false
+	}
+	if progression.ProgressionVersion < 1 {
+		return intContains(progression.ClearedStageNumbers, 10)
+	}
+	return intContains(progression.ClearedStageNumbers, 25) || contains(progression.GrandfatherUnlocks, "feature:researchSlotTwo")
 }
 
 func effectAppliedToProgression(effectJSON []byte, progressionJSON []byte) bool {
