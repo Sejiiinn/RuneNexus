@@ -479,6 +479,7 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 			if group == "effects":
 				group_frame["targets"] = frame.get("enemies", [])
 				group_frame["turrets"] = frame.get("turrets", [])
+				group_frame["playbackSpeed"] = float(_native_combat.session.get("speed", 1.0))
 			var node: Node2D = _presentation_nodes[group]
 			var canvas_enabled: bool = world.visible and int(frame.get("presentationVersion", 0)) == 2 and options.get("presentation_groups", []).has(group) and node.supported_groups().has(group) and not RuntimeProfile.options.get("hide_canvas", false)
 			if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)

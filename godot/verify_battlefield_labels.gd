@@ -34,6 +34,12 @@ func _verify() -> void:
 	check(labels.supported_groups() == ["labels"], "원본 상태 자산 로딩 실패")
 	check(labels.labels.size() == 1 and labels.core.visible, "적 정보/코어 누락")
 	var node: Node2D = labels.labels[7]
+	check(node.carrier != null and node.carrier.visible, "보상 적의 머리 위 다이아 표식 누락")
+	check(is_equal_approx(node.carrier.global_scale.x, 1.0), "표식은 적 크기와 별도로 최소 화면 크기를 유지")
+	check(node.carrier.position.y < -13.0 - 9.0, "표식은 체력/보호막 위에 위치")
+	var carrier_phase: float = node.carrier.phase
+	labels.apply_frame({"logicalTileSize": 48, "enemies": [enemy], "core": core})
+	check(node.carrier.phase == carrier_phase, "정지 프레임에서 표식 펄스가 진행함")
 	var initial := node.position
 	var segments := Labels.EnemyLabel.durability_segments(enemy)
 	check(segments.is_equal_approx(Vector3(0.2, 0.15, 0.5)), "HP+장갑 분모 또는 보호막 분할 변경")
@@ -59,6 +65,7 @@ func _verify() -> void:
 	labels.apply_frame({"enemies": []})
 	labels.present(camera, Vector2(8, 6), world)
 	check(labels.labels.is_empty() and not labels.core.visible, "제거된 적/코어 잔상")
+	check(not node.carrier.visible, "사망 후 보상 적 표식 잔상")
 	labels.apply_frame({"enemies": [enemy]})
 	labels.clear()
 	check(labels.labels.is_empty() and not labels.core.visible, "장면 초기화 누락")

@@ -47,13 +47,18 @@ func _verify() -> void:
 		var pose: Transform2D = effects.effect_transform(reference)
 		assert(pose.origin.is_equal_approx(origin), "effects must retain source height 0")
 		assert(pose.x.is_equal_approx(bx) and pose.y.is_equal_approx(by), "%s must preserve the original ground Canvas transform" % kind)
-	for kind in ["damage", "diamond"]:
+	for kind in ["damage"]:
 		reference["kind"] = kind
 		reference["screenOffset"] = [12.0, -18.0]
 		var pose: Transform2D = effects.effect_transform(reference)
 		var moving_anchor := camera.unproject_position(world.to_global(Vector3(12.0 / 48.0, 0, -18.0 / 48.0)))
 		assert(pose.origin.is_equal_approx(moving_anchor), "%s moving source coordinates must use ground projection" % kind)
 		assert(pose.x.is_equal_approx(Vector2(bx.length(), 0)) and pose.y.is_equal_approx(Vector2(0, bx.length())), "%s glyph alone must remain billboard" % kind)
+	reference["kind"] = "diamond"
+	var receipt_pose: Transform2D = effects.effect_transform(reference)
+	var receipt_factor := maxf(0.85, bx.length())
+	assert(receipt_pose.origin.is_equal_approx(origin + Vector2(12, -50) * receipt_factor), "reward rises above the kill directly in screen space")
+	assert(is_equal_approx(receipt_pose.x.length(), receipt_factor), "reward icon/text has a readable screen size floor")
 	var original_age: float = effects.items[0]["age"]
 	effects.apply_frame({"items": items})
 	assert(effects.items.size() == 14, "repeated frame must not duplicate effects")

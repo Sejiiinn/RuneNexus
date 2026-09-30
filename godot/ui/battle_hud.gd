@@ -28,6 +28,7 @@ var message: Label
 var home: Button
 var start: Button
 var pause_button: Button
+var pause_indicator: Control
 var camera_button: Button
 var retry_save: Button
 var auto_start: Button
@@ -212,6 +213,7 @@ func _ready() -> void:
 		b.custom_minimum_size.y = 34
 		b.toggle_mode = true; b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; main_buttons[spec[0]] = b
 		b.icon = AppTheme.texture("ui/hud/icons/"+spec[0]+".png"); b.expand_icon = true; b.add_theme_constant_override("icon_max_width",18)
+	pause_indicator = preload("res://ui/pause_indicator.gd").new(); add_child(pause_indicator)
 	overlay = PanelContainer.new(); add_child(overlay); overlay.hide()
 	var modal_scroll := ScrollContainer.new(); modal_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; modal_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; overlay.add_child(modal_scroll)
 	overlay_body = VBoxContainer.new(); overlay_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL; modal_scroll.add_child(overlay_body)
@@ -296,6 +298,7 @@ func refresh(polled := false) -> void:
 		button.disabled = phase not in ["preparation","wave"]
 	var paused: bool = bool(runtime.session.get("paused",false))
 	var resumable := phase == "wave" and paused
+	pause_indicator.set_paused(resumable and not is_instance_valid(modal))
 	start.text = "▶ 재개" if resumable else ("진행 중" if phase == "wave" else "▶ 시작")
 	start.disabled = phase not in ["preparation","wave"] or (phase == "wave" and not paused) or app.get("save_failed") == true
 	pause_button.visible = phase == "wave" and not paused
@@ -445,6 +448,7 @@ func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_
 	if not is_instance_valid(modal):
 		modal_resume = app.begin_modal_pause()
 		modal = ColorRect.new(); modal.color = Color("02070dd9"); add_child(modal); modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		pause_indicator.set_paused(false)
 		modal.gui_input.connect(func(event):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT: close_modal()
 			elif event is InputEventScreenTouch and event.pressed: close_modal())

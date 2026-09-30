@@ -107,6 +107,7 @@ func present(camera: Camera3D, map_size: Vector2, world: Node3D) -> void:
 					label.scale = Vector2.ONE * factor
 		if not label.visible: continue
 		label.flush_redraw()
+		label.present_carrier(factor)
 	if core.data.is_empty():
 		core.hide()
 		return
@@ -147,15 +148,20 @@ class EnemyLabel extends Node2D:
 	var _rift_key: Array = []
 	var decoration: StaticDecoration
 	var rift: RiftDecoration
+	var carrier: DiamondCarrier
+	var carrier_dirty := true
+	var _carrier_key: Array = []
 
 	func reset() -> void:
 		hide()
 		projection_revision = -1
 		data = {}
 		_bar_key.clear(); _static_key.clear(); _rift_key.clear()
+		_carrier_key.clear(); carrier_dirty = true
 		dirty = true; static_dirty = true; rift_dirty = true
 		if decoration != null: decoration.hide(); decoration.data = {}
 		if rift != null: rift.hide(); rift.data = {}
+		if carrier != null: carrier.hide()
 
 	func set_data(value: Dictionary) -> void:
 		data = value
@@ -168,8 +174,31 @@ class EnemyLabel extends Node2D:
 		var marked: bool = data.get("riftMarked", false)
 		var rift_key := [size, marked, data.get("effectTime", 0.0) if marked else 0.0]
 		if rift_key != _rift_key: rift_dirty = true; _rift_key = rift_key
+		var carries: bool = data.get("diamondCarrier", false)
+		var carrier_key := [carries, data.get("effectTime", 0.0) if carries else 0.0]
+		if carrier_key != _carrier_key: carrier_dirty = true; _carrier_key = carrier_key
+
+	func present_carrier(factor: float) -> void:
+		if carrier == null or not carrier.visible: return
+		var dimensions: Array = data["size"]
+		var inverse_factor := 1.0 / maxf(0.001, factor)
+		# Keep the icon above health/shield bars and legible on small mobs.
+		carrier.position = Vector2(0, -float(dimensions[1]) / 2.0 - 28.0 * inverse_factor)
+		carrier.scale = Vector2.ONE * inverse_factor
 
 	func flush_redraw() -> void:
+		if carrier_dirty:
+			var enabled: bool = data.get("diamondCarrier", false)
+			if enabled and carrier == null:
+				carrier = DiamondCarrier.new()
+				carrier.texture = textures.get("diamond_currency")
+				carrier.z_index = 1
+				add_child(carrier)
+			if carrier != null:
+				carrier.visible = enabled
+				carrier.phase = float(data.get("effectTime", 0.0))
+				if enabled: carrier.queue_redraw()
+			carrier_dirty = false
 		if dirty: queue_redraw(); dirty = false
 		if static_dirty:
 			var enabled: bool = data.get("diamondCarrier", false) or data.get("poisoned", false)
@@ -231,10 +260,24 @@ class StaticDecoration extends Node2D:
 		var w := size.x
 		var center := size / 2.0
 		draw_set_transform(-size / 2.0)
-		if data.get("diamondCarrier", false) and textures.has("diamond_currency"):
-			draw_texture_rect(textures["diamond_currency"], Rect2(Vector2.ZERO, size * 0.32), false)
 		if data.get("poisoned", false):
 			draw_arc(center, w * 0.5, 0, TAU, 64, Color("9dff4a66"), 2.0, true)
+
+class DiamondCarrier extends Node2D:
+	var texture: Texture2D
+	var phase := 0.0
+	func _draw() -> void:
+		if texture == null: return
+		var pulse := 0.5 + 0.5 * sin(phase * 2.6)
+		var extent := 22.0 + pulse * 1.5
+		draw_circle(Vector2.ZERO, 14.0 + pulse, Color(0.08, 0.65, 0.9, 0.12))
+		draw_circle(Vector2.ZERO, 11.5, Color("071624d9"))
+		draw_texture_rect(texture, Rect2(Vector2.ONE * -extent / 2.0, Vector2.ONE * extent), false)
+		for i in range(3):
+			var angle := -PI / 2 + i * TAU / 3 + phase * 0.22
+			draw_circle(Vector2(cos(angle), sin(angle)) * 15.0, 0.8, Color(0.7, 0.95, 1.0, 0.4 + pulse * 0.25))
+		draw_line(Vector2(-3, 15), Vector2(0, 18), Color("b8efffc7"), 1.3, true)
+		draw_line(Vector2(0, 18), Vector2(3, 15), Color("b8efffc7"), 1.3, true)
 
 class RiftDecoration extends Node2D:
 	var data := {}

@@ -809,6 +809,7 @@ func _collect(items: Array, burn_sources: Dictionary = {}) -> void:
 		var type: String = event.get("type", "")
 		if type == "killed":
 			event.kind = "kill"
+			_diamond_reward_visual(enemies.get(str(event.enemyId), {}))
 			_spread_burn(event)
 			for t in turrets.values():
 				if float(t.recent.get(str(event.enemyId), 0)) > 0:
@@ -974,7 +975,13 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 	if frame.has("presentation") and frame.presentation.has("effects"):
 		var effects: Dictionary = frame.presentation.effects
 		var items: Array = effects.get("items", []).duplicate(true)
+		var presentation_events: Array = effects.get("events", []).duplicate(true)
 		for v in visual_effects:
+			if v.kind == "diamond":
+				# The receiver owns receipt display time after first delivery, even
+				# when the source's short combat-time journal has already expired.
+				presentation_events.append(v.duplicate(true))
+				continue
 			var item: Dictionary = v.duplicate(true)
 			item.age = clock - float(v.born)
 			if item.kind == "damage":
@@ -1000,7 +1007,17 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 						item.points.append([end.x,end.y])
 			items.append(item)
 		effects.items = items
+		effects.events = presentation_events
 	return frame
+
+func _diamond_reward_visual(enemy: Dictionary) -> void:
+	var amount := maxi(0, int(enemy.get("diamondReward", 0)))
+	if amount == 0 or bool(enemy.get("isDebug", false)): return
+	var at := (_pos(enemy) + _visual_enemy_offset(enemy) - origin) / tile_size
+	visual_id += 1
+	visual_effects.append({"id":visual_id,"kind":"diamond","born":clock,"bornSquared":effect_squared,
+		"duration":1.05,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,
+		"text":"+%d" % amount,"hasImage":true,"points":[],"screenOffset":[0,0]})
 
 func _visual(kind: String, at: Vector2, t: Dictionary, extra: Dictionary = {}) -> void:
 	visual_id += 1

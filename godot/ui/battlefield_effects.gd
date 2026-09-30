@@ -1,8 +1,10 @@
 extends Node2D
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 
-## Presentation-only: every effect uses the authoritative simulation age.
-## Creation events use the shared component clock; no wall timer or combat callback.
+## Presentation-only: effects use the authoritative simulation clock.
+## Diamond receipts divide its delta by playback speed for readable feedback;
+## they still freeze on pause/reward and never use a wall timer or combat callback.
+const DIAMOND_DISPLAY_SECONDS := 1.45
 const WEIGHT_AXIS := 0x77676874 # OpenType wght tag; string keys are ignored.
 var items: Array = []
 # Routed to main's existing 3D Impact pool; never creates a Canvas surface.
@@ -121,7 +123,13 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 		_generation = generation
 	# Clock only advances with authoritative combat dt. Camera redraws and
 	# repeated bridge frames never advance it, including pause/reward/reconnect.
-	_event_clock = maxf(_event_clock, float(frame.get("clock", _event_clock)))
+	var next_clock := maxf(_event_clock, float(frame.get("clock", _event_clock)))
+	var playback_speed := clampf(float(frame.get("playbackSpeed", 1.0)), 0.1, 4.0)
+	var receipt_delta := (next_clock - _event_clock) / playback_speed
+	for event: Dictionary in _events.values():
+		if event.get("kind") == "diamond":
+			event["presentationAge"] = float(event.get("presentationAge", 0)) + receipt_delta
+	_event_clock = next_clock
 	_event_squared = maxf(_event_squared, float(frame.get("squaredSteps", _event_squared)))
 	for event in frame.get("events", []):
 		var id := int(event.get("id", -1))
@@ -133,7 +141,13 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 		# tombstones. Retries after expiry or capacity eviction cannot restart.
 		_last_event_id = id
 		_events[id] = event.duplicate(true)
-		if _event_clock - float(event.get("born", 0)) >= float(event.get("duration", 0)):
+		if event.get("kind") == "diamond":
+			var source_age := maxf(0, _event_clock - float(event.get("born", 0)))
+			if source_age >= float(event.get("duration", 0)):
+				source_age = float(event.get("retainedAge", 0))
+			_events[id]["presentationAge"] = source_age / playback_speed
+			_events[id]["duration"] = DIAMOND_DISPLAY_SECONDS
+		elif _event_clock - float(event.get("born", 0)) >= float(event.get("duration", 0)):
 			_events[id]["deliverySample"] = event.get("kind") != "charge"
 		while _events.size() > 256:
 			_events.erase(_events.keys()[0])
@@ -149,6 +163,7 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 	for id in _events.keys():
 		var event: Dictionary = _events[id]
 		var age := maxf(0, _event_clock - float(event["born"]))
+		if event.get("kind") == "diamond": age = float(event["presentationAge"])
 		var steps := maxf(0, _event_squared - float(event["bornSquared"]))
 		if age >= float(event["duration"]):
 			if not bool(event.get("deliverySample", false)):
@@ -206,7 +221,7 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 					-28 * age + 48 / float(event["duration"]) * (age * age + steps))
 			event["screenOffset"] = [offset.x, offset.y]
 		elif event.get("kind") == "diamond":
-			event["screenOffset"] = [0.0, -24.0 * float(event.get("scale", 1.0)) * age]
+			event["screenOffset"] = [0.0, -24.0 * age]
 		if event.get("kind") == "blast":
 			blast_impacts.append([id, float(event.get("x", 0)), float(event.get("y", 0)),
 				float(event.get("radius", 0)) / maxf(0.001, float(event.get("tileSize", 48))),
@@ -522,7 +537,14 @@ func _ground_transform(effect: Dictionary) -> Transform2D:
 
 
 func _effect_basis(effect: Dictionary, ground: Transform2D) -> Transform2D:
-	if effect.get("kind") in ["damage", "diamond"]:
+	if effect.get("kind") == "diamond":
+		# The reward must remain readable at board zoom-out and rise vertically
+		# on screen, rather than along the tilted ground-plane projection.
+		var factor := maxf(0.85, ground.x.length())
+		var offset: Array = effect.get("screenOffset", [0, 0])
+		var anchor := ground.origin + Vector2(float(offset[0]), float(offset[1]) - 32.0) * factor
+		return Transform2D(Vector2(factor, 0), Vector2(0, factor), anchor)
+	if effect.get("kind") == "damage":
 		var offset: Array = effect.get("screenOffset", [0, 0])
 		var anchor := ground.origin + ground.x * float(offset[0]) + ground.y * float(offset[1])
 		return Transform2D(Vector2(ground.x.length(), 0), Vector2(0, ground.x.length()), anchor)
@@ -584,19 +606,21 @@ func _damage(e: Dictionary, p: float, c: Color) -> void:
 		c = c.lerp(_color(0xff7e8b96), 0.72)
 
 func _reward(e: Dictionary, p: float, s: float) -> void:
-	var appear := clampf(p / 0.16, 0, 1)
-	var alpha := 1 - pow(p, 2.4)
-	var sc := 0.78 + appear * 0.3 - p * 0.08
+	s = clampf(s, 1.0, 1.25)
+	var appear := _ease_out(clampf(p / 0.12, 0, 1))
+	var alpha := 1 - smoothstep(0.68, 1.0, p)
+	var sc := 0.7 + appear * 0.36 - clampf(p / 0.35, 0, 1) * 0.06
 	# Soft source glow uses concentric, low-alpha ellipses instead of a hard disk.
 	for i in range(7, 0, -1):
 		_oval(Vector2(-22, 0) * s, Vector2(40 + i * 2, 30 + i * 2) * s, _color(0xff5ed8ff, 0.28 * appear * alpha / 7))
 	if _diamond != null and bool(e.get("hasImage", false)):
-		_surface.draw_texture_rect(_diamond, Rect2(Vector2(-34, -16) * s, Vector2.ONE * 30 * s * sc), false, Color(1, 1, 1, alpha))
+		_surface.draw_texture_rect(_diamond, Rect2(Vector2(-22, 0) * s - Vector2.ONE * 16 * s * sc, Vector2.ONE * 32 * s * sc), false, Color(1, 1, 1, alpha))
 	for i in range(5):
-		var at := Vector2(-20, 0) * s + _polar(i * TAU / 5 - PI / 2, (12 + p * 18) * s)
-		_circle(at, (1.7 - p * 0.7) * s, _color(0xffcff4ff, 0.85 * alpha * alpha))
+		var burst := clampf(p / 0.4, 0, 1)
+		var at := Vector2(-22, 0) * s + _polar(i * TAU / 5 - PI / 2, (13 + _ease_out(burst) * 18) * s)
+		_circle(at, (1.8 - burst * 0.6) * s, _color(0xffcff4ff, 0.9 * (1 - burst)))
 	if _font != null:
-		var size := maxi(1, int(round(22 * s)))
+		var size := maxi(1, int(round(28 * s)))
 		var text := str(e.get("text", ""))
 		var extent := _metrics(text, size)
 		_text(text, Vector2(-4 * s + extent.x / 2, 0), size, _color(0xffeafbff, alpha), _color(0xff02070d, 0.9 * alpha), Vector2(1, 1.5) * s)

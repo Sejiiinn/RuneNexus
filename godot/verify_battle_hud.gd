@@ -322,11 +322,22 @@ func run() -> void:
 	hud.start.pressed.emit()
 	assert(app.run_domain.state.phase == "wave")
 	assert(hud.start.text == "진행 중" and hud.start.disabled and hud.pause_button.visible)
+	assert(not hud.pause_indicator.visible)
 	hud.pause_button.pressed.emit()
 	assert(app.scene._native_combat.session.paused)
 	assert(hud.start.text == "▶ 재개" and not hud.start.disabled and not hud.pause_button.visible)
+	assert(hud.pause_indicator.visible and hud.pause_indicator.mouse_filter == Control.MOUSE_FILTER_IGNORE)
+	var bright_alpha: float = hud.pause_indicator.modulate.a
+	for frame in range(30): await process_frame
+	assert(hud.pause_indicator.modulate.a < bright_alpha - 0.05,"Pause indicator must keep blinking while combat is paused")
+	assert(hud.pause_indicator.get_global_rect().get_center().distance_to(hud.get_global_rect().get_center()) < 1.0)
+	hud.open_modal("확인")
+	assert(not hud.pause_indicator.visible,"Modal owns the center while open")
+	hud.close_modal()
+	assert(hud.pause_indicator.visible)
 	hud.start.pressed.emit()
 	assert(not app.scene._native_combat.session.paused)
+	assert(not hud.pause_indicator.visible)
 	hud.camera_button.pressed.emit()
 	assert(app.scene.options.camera == "drone" and hud.camera_button.text == "드론 ↔")
 	# Locked models are absent; stage clears reveal them in the same picker.
