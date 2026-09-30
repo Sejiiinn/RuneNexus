@@ -1,0 +1,10 @@
+/_frames/
+/_*.log
+/_*.json
+/_*.py
+/_*-pass.blend
+/*.blend1
+
+/_before-tile-boundary.blend
+
+/__pycache__/

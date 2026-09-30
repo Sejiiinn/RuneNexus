@@ -1,0 +1,6 @@
+# Local render diagnostics; the final images and editable source stay trackable.
+verification.json
+verification-preview.json
+one-map-preview.blend
+
+/chapter1-teleport-map-concepts.blend1

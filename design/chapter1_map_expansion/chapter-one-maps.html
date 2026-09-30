@@ -1,0 +1,113 @@
+<div id="chapter-one-map-layout">
+  <div class="viz-controls">
+    <label class="form-label" for="chapter-one-stage">챕터 1 · 맵 배치안
+      <select class="form-select" id="chapter-one-stage" aria-label="스테이지 선택"></select>
+    </label>
+  </div>
+  <div class="viz-row tabular-nums" id="chapter-one-counts" aria-live="polite"></div>
+  <div id="chapter-one-grid" role="img"></div>
+  <div class="viz-row text-small" id="chapter-one-legend" aria-label="맵 범례">
+    <span><span class="map-key spawn">S</span> 포탈</span>
+    <span><span class="map-key core">C</span> 코어</span>
+    <span><span class="map-key build">B</span> 건설칸</span>
+    <span><span class="map-key path">→</span> 이동 경로</span>
+    <span><span class="map-key teleport-blue">●</span> 청색 포탈</span>
+    <span><span class="map-key teleport-orange">●</span> 주황색 포탈</span>
+    <span><span class="map-key blocked">·</span> 빈칸</span>
+    <span>IN 입구 → 같은 색 OUT 출구</span>
+  </div>
+</div>
+<style>
+  #chapter-one-map-layout { display: grid; gap: 16px; color: var(--foreground); }
+  #chapter-one-grid { display: grid; gap: 2px; width: 100%; max-width: 580px; justify-self: center; }
+  #chapter-one-map-layout .map-cell { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; min-width: 0; font-weight: 500; border: 1px solid var(--border); color: var(--foreground); }
+  #chapter-one-map-layout .blocked { background: color-mix(in srgb, var(--muted) 50%, transparent); color: var(--muted-foreground); }
+  #chapter-one-map-layout .path { background: color-mix(in srgb, var(--viz-series-1) 18%, transparent); }
+  #chapter-one-map-layout .build { background: color-mix(in srgb, var(--viz-series-2) 20%, transparent); }
+  #chapter-one-map-layout .spawn { background: color-mix(in srgb, var(--viz-series-3) 30%, transparent); }
+  #chapter-one-map-layout .core { background: color-mix(in srgb, var(--viz-series-4) 30%, transparent); }
+  #chapter-one-map-layout .teleport-blue { background: #07254b; color: #7bd9ff; border-color: #47b4ff; }
+  #chapter-one-map-layout .teleport-orange { background: #442409; color: #ffd08a; border-color: #ff9b38; }
+  #chapter-one-map-layout .map-cell[class*="teleport-"] { font-size: clamp(10px, 2vw, 16px); font-weight: 700; }
+  #chapter-one-legend { justify-content: center; }
+  #chapter-one-legend > span { display: inline-flex; align-items: center; gap: 5px; }
+  #chapter-one-map-layout .map-key { display: inline-flex; justify-content: center; align-items: center; width: 22px; height: 22px; font-weight: 500; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('chapter-one-map-layout');
+  const maps = [{"chapterStage":"1-6","name":"돌아오는 초원길","columns":9,"rows":10,"path":[[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[7,8],[6,8],[5,8],[4,8],[3,8],[2,8],[2,7],[2,6],[2,5],[2,4],[2,3]],"buildCells":[[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[6,2],[3,3],[3,4],[5,4],[6,4],[3,5],[4,6],[6,6],[3,7],[4,7],[5,7]]},{"chapterStage":"1-7","name":"바위 사이 고갯길","columns":10,"rows":10,"path":[[0,0],[1,0],[2,0],[3,0],[3,1],[3,2],[3,3],[3,4],[8,4],[8,5],[8,6],[8,7],[8,8],[7,8],[6,8],[5,8],[4,8],[3,8],[2,8],[1,8]],"buildCells":[[1,1],[2,1],[1,2],[2,2],[4,1],[4,2],[2,3],[4,3],[5,3],[7,3],[9,4],[9,5],[7,6],[6,7],[5,7],[3,7],[2,7]],"teleportPairs":[{"color":"blue","entrance":[3,4],"exit":[8,4]}]},{"chapterStage":"1-8","name":"굽이진 들판","columns":9,"rows":10,"path":[[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[6,2],[6,3],[6,4],[5,4],[4,4],[3,4],[2,4],[2,5],[2,6],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7],[8,7],[8,8],[8,9]],"buildCells":[[1,0],[2,2],[3,2],[4,2],[5,2],[3,3],[4,3],[5,3],[7,3],[1,4],[3,5],[4,5],[5,6],[6,6],[7,6],[7,8]]},{"chapterStage":"1-9","name":"마지막 직선","columns":9,"rows":10,"path":[[0,0],[1,0],[2,0],[3,0],[4,0],[4,1],[4,2],[3,2],[2,2],[1,2],[1,3],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9]],"buildCells":[[1,1],[2,1],[3,1],[5,1],[2,3],[3,3],[4,3],[5,3],[6,3],[2,5],[4,5],[6,5],[8,5],[6,7],[8,7],[6,8]]},{"chapterStage":"1-10","name":"초원의 수호문","columns":9,"rows":10,"path":[[0,0],[1,0],[2,0],[3,0],[3,1],[3,2],[3,3],[7,3],[7,4],[7,5],[7,6],[7,7],[7,8],[1,8],[1,7],[1,6],[1,5],[2,5],[3,5],[4,5]],"buildCells":[[1,1],[2,1],[4,1],[2,2],[4,2],[5,2],[6,2],[4,4],[5,4],[6,4],[2,6],[3,6],[4,6],[6,6],[2,7],[3,7],[5,7],[6,7]],"teleportPairs":[{"color":"blue","entrance":[3,3],"exit":[7,3]},{"color":"orange","entrance":[7,8],"exit":[1,8]}]}];
+  const select = root.querySelector('#chapter-one-stage');
+  const grid = root.querySelector('#chapter-one-grid');
+  const counts = root.querySelector('#chapter-one-counts');
+  for (const map of maps) {
+    const option = document.createElement('option');
+    option.value = map.chapterStage;
+    option.textContent = `${map.chapterStage} · ${map.name}`;
+    select.append(option);
+  }
+  function render(stage) {
+    const map = maps.find(item => item.chapterStage === stage) || maps[0];
+    select.value = map.chapterStage;
+    const pairs = map.teleportPairs || [];
+    counts.textContent = `${map.columns} × ${map.rows} · 보행 ${map.path.length - 1 - pairs.length}칸${pairs.length ? ` · 순간이동 ${pairs.length}회` : ""} · 건설 ${map.buildCells.length}칸`;
+    grid.style.gridTemplateColumns = `repeat(${map.columns}, minmax(0, 1fr))`;
+    grid.setAttribute('aria-label', `${map.chapterStage} ${map.name}. ${counts.textContent}. 스폰에서 화살표를 따라 이동하고 IN에서 같은 색 OUT으로 순간이동해 코어에 도착하는 배치도.`);
+    const pathIndices = new Map(map.path.map(([x,y], index) => [`${x},${y}`, index]));
+    const builds = new Set(map.buildCells.map(([x,y]) => `${x},${y}`));
+    const portals = new Map();
+    for (const pair of pairs) {
+      portals.set(pair.entrance.join(","), {color: pair.color, role: "IN", target: pair.exit});
+      portals.set(pair.exit.join(","), {color: pair.color, role: "OUT", target: pair.entrance});
+    }
+    const cells = document.createDocumentFragment();
+    for (let y = 0; y < map.rows; y++) {
+      for (let x = 0; x < map.columns; x++) {
+        const key = `${x},${y}`;
+        const index = pathIndices.get(key);
+        let type = 'blocked', symbol = '·', label = '빈칸';
+        if (builds.has(key)) { type = 'build'; symbol = 'B'; label = '건설칸'; }
+        if (index !== undefined) {
+          type = index === 0 ? 'spawn' : index === map.path.length - 1 ? 'core' : 'path';
+          if (type === 'spawn') { symbol = 'S'; label = '포탈'; }
+          else if (type === 'core') { symbol = 'C'; label = '코어'; }
+          else {
+            const [nx,ny] = map.path[index + 1];
+            symbol = nx > x ? '→' : nx < x ? '←' : ny > y ? '↓' : '↑';
+            label = `이동 경로 ${index}번째 칸, ${symbol}`;
+          }
+        }
+        const portal = portals.get(key);
+        if (portal) {
+          type = `teleport-${portal.color}`;
+          symbol = portal.role;
+          label = `${portal.color === "blue" ? "청색" : "주황색"} ${portal.role === "IN" ? "입구 → 같은 색 출구로 순간이동" : "출구 → 화살표 경로로 복귀"}`;
+        }
+        const cell = document.createElement('div');
+        cell.className = `map-cell ${type}`;
+        cell.textContent = symbol;
+        cell.setAttribute('aria-hidden', 'true');
+        cell.setAttribute('data-column', x);
+        cell.setAttribute('data-row', y);
+        cell.setAttribute('data-tile', type);
+        cell.setAttribute('data-tooltip', `${x + 1}열 ${y + 1}행 · ${label}`);
+        cells.append(cell);
+      }
+    }
+    grid.replaceChildren(cells);
+  }
+  function savedStage(state) {
+    return state?.privateContent?.stage || state?.modelContent?.stage;
+  }
+  render(savedStage(window.openai?.widgetState));
+  select.addEventListener('change', () => {
+    render(select.value);
+    if (window.openai?.setWidgetState) {
+      window.openai.setWidgetState({modelContent:{stage:select.value},privateContent:{stage:select.value}}).catch(() => {});
+    }
+  });
+  window.addEventListener('openai:set_globals', event => {
+    if (event.detail?.globals?.widgetState) render(savedStage(event.detail.globals.widgetState));
+  });
+})();
+</script>
