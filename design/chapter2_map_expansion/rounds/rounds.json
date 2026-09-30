@@ -6,8 +6,8 @@
     "referenceChapterStage": "2-5",
     "mapPath": "design/chapter2_map_expansion/maps.json",
     "growthPath": "godot/content/growth_content.json",
-    "contentSha256": "d32ed8323d2aac49edef4789e59bdd558b7affe0807cccc088de4d148fcc2b5c",
-    "growthSha256": "5a3822edea87480d248fbd5fce9ed25f556422e5607e3df0ad2bb0442ca1043c",
+    "contentSha256": "c234d67355f8fcff91be9094d4ef05e2e4067033218adbccdc7f30a087366786",
+    "growthSha256": "ce12b30e8259032ea3a12759143cedd1fd58e7864c9179594507557d6a9d7d5c",
     "mapsSha256": "49c59b47e01d8bb72167ad248b506f4293bb22afea4d640c7287dfd8d4d115ef"
   },
   "timeConvention": {

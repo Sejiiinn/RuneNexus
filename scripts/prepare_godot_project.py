@@ -43,6 +43,7 @@ def _prepare_battlefield_verification() -> None:
     """생성된 콘텐츠의 맵으로 검증 입력을 준비한다. Dart SDK/소스는 읽지 않는다."""
     content = json.loads((SOURCE / "content/game_content.json").read_text())
     frames = []
+    chapter_frames = {"chapterOne": [], "chapterTwoRift": [], "chapterThreeForge": []}
     for stage in content["stages"]:
         definition = stage["map"]
         theme = definition["tileTheme"]
@@ -57,19 +58,21 @@ def _prepare_battlefield_verification() -> None:
             ("shieldBoss",) if theme == "chapterTwoRift" else
             ("forgeBoss",) if theme == "chapterThreeForge" else ()
         )
-        frames.append({
+        frame = {
             "seq": 0, "time": 0,
-            "map": {"columns": columns, "rows": rows, "tiles": tiles, "theme": theme},
+            "map": {"columns": columns, "rows": rows, "tiles": tiles, "theme": theme,
+                    "teleportPairs": definition.get("teleportPairs", [])},
             "turrets": [[index, *build[index % len(build)], 0, 0, 0, kind, 1]
                         for index, kind in enumerate(TURRET_TYPES)],
             "enemies": [[index + 10, *path[index % len(path)], 0, 0, 1, 0, kind]
                         for index, kind in enumerate(enemy_types)],
             "projectiles": [], "impacts": [], "buildPreview": None,
             "verificationPath": path,
-        })
-    (PROJECT.parent / "chapter_one_frames.json").write_text(json.dumps(frames[:5]) + "\n")
-    (PROJECT.parent / "chapter_two_frames.json").write_text(json.dumps(frames[5:10]) + "\n")
-    (PROJECT.parent / "chapter_three_frames.json").write_text(json.dumps(frames[10:]) + "\n")
+        }
+        frames.append(frame)
+        chapter_frames[theme].append(frame)
+    for name, theme in (("one", "chapterOne"), ("two", "chapterTwoRift"), ("three", "chapterThreeForge")):
+        (PROJECT.parent / f"chapter_{name}_frames.json").write_text(json.dumps(chapter_frames[theme]) + "\n")
 
 
 def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
@@ -104,9 +107,15 @@ def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
     path.write_text(contents)
 
 
+def _environment_stage_ids(theme: str, minimum: int = 1) -> list[int]:
+    content = json.loads((SOURCE / "content/game_content.json").read_text())
+    return [int(stage["id"]) for stage in content["stages"]
+            if int(stage["id"]) >= minimum and stage["map"]["tileTheme"] == theme]
+
+
 def _prepare_dressing_manifests() -> None:
     manifests = []
-    for stage in range(2, 6):
+    for stage in _environment_stage_ids("chapterOne", 2):
         resource = f"environment/dressing_stage{stage}.glb"
         glb = (ASSETS / resource).read_bytes()
         document = json.loads(glb[20:20 + struct.unpack_from("<I", glb, 12)[0]])
@@ -124,7 +133,7 @@ def _prepare_dressing_manifests() -> None:
 
 def _prepare_chapter_environment_manifests() -> None:
     manifests = []
-    for stage in range(6, 11):
+    for stage in _environment_stage_ids("chapterTwoRift"):
         glb = (ASSETS / f"environment/chapter2_stage{stage}_geology.glb").read_bytes()
         document = json.loads(glb[20:20 + struct.unpack_from("<I", glb, 12)[0]])
         root = next((node for node in document["nodes"]
@@ -187,7 +196,9 @@ def prepare() -> Path:
     required += [SOURCE_ASSETS / "environment" / f"dressing_stage{stage}.glb" for stage in range(2, 6)]
     required += [SOURCE_ASSETS / "environment" / name for name in ("chapter2_tiles.glb", "chapter2_tiles_optimized.glb", "chapter2_props.glb", "chapter3_tiles.glb", "chapter3_props.glb")]
     required += [SOURCE_ASSETS / "environment" / f"chapter2_stage{stage}_{kind}.glb"
-                 for stage in range(6, 11) for kind in ("geology", "props")]
+                 for stage in _environment_stage_ids("chapterTwoRift") for kind in ("geology", "props")]
+    if any(stage >= 21 for stage in _environment_stage_ids("chapterTwoRift")):
+        required += [SOURCE_ASSETS / "environment/chapter2_tiles_expansion.glb"]
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
@@ -256,7 +267,7 @@ def prepare() -> Path:
     _prepare_app_ui()
     _prepare_combat_background()
     _preserve_foliage_geometry()
-    for stage in range(2, 6):
+    for stage in _environment_stage_ids("chapterOne", 2):
         _preserve_foliage_geometry(f"dressing_stage{stage}.glb")
     _prepare_dressing_manifests()
     _prepare_chapter_environment_manifests()

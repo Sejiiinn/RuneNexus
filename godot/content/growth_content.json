@@ -9,7 +9,7 @@
     "criticalChanceBonusPerResearchLevel": 0.02,
     "baseInitialGold": 170,
     "baseNexusHp": 20,
-    "maxStageCount": 15,
+    "maxStageCount": 25,
     "maxStartingGoldUpgradeLevel": 50,
     "maxNexusHpUpgradeLevel": 30,
     "maxSupplyUpgradeLevel": 50,
@@ -23,7 +23,7 @@
     "maxLinkCostOptimizationUpgradeLevel": 30,
     "maxTurretLevelUpOptimizationUpgradeLevel": 30,
     "researchSlotCount": 1,
-    "researchSlotTwoUnlockRequiredStage": 10,
+    "researchSlotTwoUnlockRequiredStage": 25,
     "researchSlotTwoUnlockCost": 600,
     "gemShardsPerGemAttunementLevel": 2,
     "turretModuleTicketDiamondCost": 40,
@@ -86,11 +86,12 @@
     "economyUpgradeUnlockStage": 1,
     "sniperUnlockStage": 3,
     "aimSpeedGemUnlockStage": 3,
-    "armorPiercingGemUnlockStage": 10,
+    "armorPiercingGemUnlockStage": 21,
     "primaryTraitCost": 12,
     "secondaryTraitCost": 24,
     "gemChoicePurchaseCost": 20,
-    "gemShardRewardFallbackAmount": 10
+    "gemShardRewardFallbackAmount": 10,
+    "lightningUnlockStage": 7
   },
   "defaultProgression": {
     "runes": 0,
@@ -137,7 +138,12 @@
     "corePassiveTreeRevision": 4,
     "corePassiveNodeRanks": {},
     "claimedCorePointStageRewards": [],
-    "claimedEventIds": []
+    "claimedEventIds": [],
+    "progressionVersion": 1,
+    "unlockedStageIds": [
+      1
+    ],
+    "grandfatherUnlocks": []
   },
   "core": {
     "revision": 4,
@@ -4640,7 +4646,7 @@
     },
     "linkExpansionOne": {
       "maxLevel": 1,
-      "requiredClearedStage": 5,
+      "requiredClearedStage": 20,
       "costs": [
         250,
         250
@@ -4652,7 +4658,7 @@
     },
     "gemAttunement": {
       "maxLevel": 5,
-      "requiredClearedStage": 2,
+      "requiredClearedStage": 16,
       "costs": [
         105,
         137,
@@ -4722,7 +4728,7 @@
     },
     "linkMaintenance": {
       "maxLevel": 10,
-      "requiredClearedStage": 0,
+      "requiredClearedStage": 18,
       "costs": [
         30,
         34,
@@ -4752,7 +4758,7 @@
     },
     "crystalRecovery": {
       "maxLevel": 5,
-      "requiredClearedStage": 5,
+      "requiredClearedStage": 19,
       "costs": [
         150,
         207,
@@ -4822,7 +4828,7 @@
     },
     "runUpgradeCostOptimization": {
       "maxLevel": 10,
-      "requiredClearedStage": 8,
+      "requiredClearedStage": 6,
       "costs": [
         150,
         177,
@@ -4882,7 +4888,7 @@
     },
     "killGoldLimitExpansion": {
       "maxLevel": 10,
-      "requiredClearedStage": 15,
+      "requiredClearedStage": 13,
       "costs": [
         150,
         177,
@@ -4912,7 +4918,7 @@
     },
     "waveGoldLimitExpansion": {
       "maxLevel": 10,
-      "requiredClearedStage": 15,
+      "requiredClearedStage": 11,
       "costs": [
         150,
         177,

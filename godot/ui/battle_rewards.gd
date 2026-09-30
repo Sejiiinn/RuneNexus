@@ -1,4 +1,5 @@
 extends RefCounted
+const Progression = preload("res://content/stage_progression.gd")
 ## Reward preview is presentation state. Settlement and equip are one domain transaction.
 const Art = preload("res://ui/app_theme.gd")
 const GEM_COLORS := {"attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
@@ -392,7 +393,7 @@ func _result(state: Dictionary) -> void:
 	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	icon.offset_left = 7; icon.offset_right = -7; icon.offset_top = 7; icon.offset_bottom = -7
 	_text(body,"Nexus 방어 성공" if success else "Nexus 붕괴",20,true)
-	_text(body,"스테이지 %d %s" % [hud.app.stage+1,"클리어" if success else "종료"],12,true)
+	_text(body,"스테이지 %s %s" % [Progression.stage_label(hud.app.stage+1),"클리어" if success else "종료"],12,true)
 	var p: Dictionary = state.get("progression",{})
 	var rewards := _surface(body,"reward_summary_frame")
 	_text(rewards,"보상 획득",11,true)
@@ -446,10 +447,12 @@ func _record_text(state: Dictionary,progression: Dictionary,best: int) -> String
 	return "최고 %dR" % best
 
 func _unlocks(body: Node, stage: int) -> void:
-	var items := {1:"강화 · 처치 보상\n연구 · 긴급 매각",2:"연구 · 전술 명령 / 젬 감응",3:"포탑 · 저격 포탑\n젬 · 조준경 젬",4:"강화 · 치명 충격\n연구 · 치명 집중",5:"연구 · 링크 확장 I / 결정 회수\n코어 · 균열 낙인",6:"포탑 · 라이트닝 포탑",7:"강화 · 물리 화력 훈련 / 원소 화력 훈련",8:"연구 · 룬 공명 / 전투 투자 최적화",9:"강화 · 연결 공정 / 강화 공정",10:"젬 · 장갑 관통 젬\n연구 · 연구 슬롯 II 구매 권한",15:"연구 · 포탑 화력 확장 / 처치 보너스 확장 / 정비 보급 확장"}
-	if not items.has(stage): return
+	var items: Array = preload("res://ui/lobby_stages.gd").UNLOCKS.get(stage, [])
+	if items.is_empty(): return
 	_text(body,"해금 항목",14)
-	_text(_surface(body,"unlock_chip_frame"),items[stage],12)
+	var labels: Array[String] = []
+	for item in items: labels.append("%s · %s" % [item[2], item[0]])
+	_text(_surface(body,"unlock_chip_frame"),"\n".join(labels),12)
 
 func _effect(type: String) -> String:
 	# battle_labels is exported from the Flutter gem catalog; only layout changes here.

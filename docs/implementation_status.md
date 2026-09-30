@@ -42,6 +42,8 @@ Go API·PostgreSQL의 Google 인증·영속 세션·온라인 저장·서버 권
 
 ### 콘텐츠 데이터
 
+파랑·주황 전송 포탈 기믹의 선택적 연결·이동·저장 계약과 맵 배치 상태는 [콘텐츠 계약](../godot/content/README.md#선택적-전송-기믹)을 따른다. 모델·효과의 제작 원본과 게임 이관 확인 범위는 [포탈 제작 안내](../design/teleport_device_concepts/2026-09-30/production/README.md)에 둔다.
+
 포탑·적·젬·웨이브의 종류와 수치는 [밸런스 참조](gameplay_balance_reference.md)에 둔다. 독립 Godot 콘텐츠의 원본·생성물 관계는 [콘텐츠 이관 기록](analysis/godot_content_migration_20260921/README.md)을 따른다.
 
 ### 젬/포탑 성장

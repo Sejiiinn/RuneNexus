@@ -29,8 +29,14 @@ func _init() -> void:
 	var fixtures: Dictionary = Json.parse_record(FileAccess.get_file_as_string(path)).value
 	for sample in fixtures.cases:
 		var outcome := growth.execute(sample.before, sample.command)
-		check(outcome.ok == sample.ok, sample.name + ": accepted")
-		check(near(outcome.state, sample.after), sample.name + ": complete state")
+		# Original fixtures retain historical acquired levels and effects. Six
+		# permanent commands formerly bypassed their UI gate; the approved
+		# progression contract now rejects those unqualified level-zero buys.
+		var old_ui_gates := {"physicalDamageTraining":7,"elementalDamageTraining":7,"criticalDamage":4,"killGold":1,"linkCostOptimization":9,"turretLevelUpOptimization":9}
+		var gate_key := str(sample.command.get("id",sample.command.get("type","")))
+		var gated: bool = sample.ok and sample.command.get("kind",sample.command.get("type")) in ["upgradePermanent","permanentUpgrade"] and old_ui_gates.has(gate_key) and int(sample.before.get(gate_key+"UpgradeLevel",0)) == 0 and int(old_ui_gates[gate_key]) not in sample.before.get("clearedStageNumbers",[])
+		check(outcome.ok == (false if gated else sample.ok), sample.name + ": accepted")
+		check(near(outcome.state, sample.before if gated else sample.after), sample.name + ": complete state")
 		for pair in [[sample.before, sample.derived], [sample.after, sample.afterDerived]]:
 			var d := growth.derive(pair[0])
 			for key in ["initialGold", "maxNexusHp", "startingGemShards", "maxTurretLinkSlots", "canSetTurretTargetPriority", "firstLinkUpgradeDiscountRate", "bossKillGemShardBonus", "runeResonanceBonusRate", "runUpgradeCostMultiplier", "bossBountyBonusRate", "permanentLinkCostMultiplier", "permanentTurretLevelUpCostMultiplier", "waveClearGoldBonus"]:
@@ -76,7 +82,8 @@ func _core_runtime(growth) -> void:
 	check(growth.data.get("coreConfig") is Dictionary, "core configuration source exported")
 	if not growth.data.get("coreConfig") is Dictionary: return
 	var p: Dictionary = growth.data.defaultProgression.duplicate(true)
-	p.unlockedStageCount = 6
+	p.unlockedStageCount = 11
+	p.clearedStageNumbers = [20] # New progression reaches chapter two after fixed ID20.
 	p.totalCorePoints = 10000
 	var allocation: Dictionary = {}
 	for key in growth.data.core.nodes: allocation[key] = int(growth.data.core.nodes[key].maxRank)

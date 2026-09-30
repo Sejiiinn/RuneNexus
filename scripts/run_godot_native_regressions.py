@@ -2,6 +2,7 @@
 """Run the former Dart native regression matrix with an isolated Godot project."""
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,9 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_stage_expansion.gd": "STAGE_EXPANSION failures=0",
+    "verify_growth_rules.gd": "PASS growth rules",
+    "verify_content_catalog.gd": "PASS content catalog:",
     "verify_startup_screen.gd": "STARTUP_SCREEN failures=0",
     "verify_economy_service.gd": "ECONOMY_SERVICE failures=0",
     "verify_update_service.gd": "UPDATE_SERVICE failures=0",
@@ -23,6 +27,7 @@ SCRIPTS = {
     "verify_native_wave_core.gd": "PASS native wave/core:",
     "verify_native_core_defense.gd": "PASS native core defense:",
     "verify_native_enemy_state.gd": None,
+    "verify_teleport_gimmick.gd": None,
     "verify_save_codec.gd": "SAVE_CODEC_FIXTURES count=",
     "verify_local_save_store.gd": None,
     "verify_run_save_adapter.gd": "failures=[]",
@@ -52,7 +57,7 @@ SCRIPTS = {
 FIXTURES = (
     "turret_stat_calculation.json", "native_wave_core_timing.json",
     "quest_progress_cases.json", "reward_snapshot_cases.json",
-    "growth_cases.json", "growth_game_cases.json",
+    "growth_cases.json", "growth_game_cases.json", "growth_progression_cases.json", "game_content_cases.json",
 )
 ERROR = re.compile(r"(^|\n)\s*(?:SCRIPT ERROR:|ERROR:|Parse Error|Assertion failed)", re.I)
 
@@ -144,14 +149,21 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("scripts", nargs="*", help="Run only named cases (default: all)")
+    args = parser.parse_args()
+    selected = args.scripts or list(SCRIPTS)
+    unknown = set(selected) - SCRIPTS.keys()
+    if unknown:
+        parser.error("Unknown regression scripts: " + ", ".join(sorted(unknown)))
     executable = godot_executable()
     with tempfile.TemporaryDirectory(prefix="native-regressions-") as directory:
         temporary = Path(directory)
         project = prepare(temporary, executable)
-        for name, expected in SCRIPTS.items():
-            run_script(executable, project, name, expected, temporary)
+        for name in selected:
+            run_script(executable, project, name, SCRIPTS[name], temporary)
             print(f"PASS {name}")
-    print(f"PASS {len(SCRIPTS)} Godot native regressions")
+    print(f"PASS {len(selected)} Godot native regressions")
 
 
 if __name__ == "__main__":

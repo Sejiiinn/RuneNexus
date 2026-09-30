@@ -1,4 +1,5 @@
 extends Control
+const Progression = preload("res://content/stage_progression.gd")
 ## Home-only port of main_menu_lobby.dart. Other menu pages keep their own theme.
 const ModalFrame = preload("res://ui/game_modal_frame.gd")
 const Assets = preload("res://ui/app_theme.gd")
@@ -153,7 +154,7 @@ func _build_canvas(w: float, h: float) -> void:
 	var action_h := maxf(48, 20 + detail_h)
 	var panel_h: float = 79.4 + title_h - 21 + detail_h - 15 + (18 + action_h if active else 0)
 	_surface(canvas, Rect2(44, top, w - 88, panel_h), "panel")
-	var title := "스테이지 %d" % (int(lobby.app.run_domain.state.get("stage", 0)) + 1) if active else "전투 준비"
+	var title := "스테이지 %s" % Progression.stage_label(int(lobby.app.run_domain.state.get("stage", 0)) + 1) if active else "전투 준비"
 	_label(canvas, title, Rect2(62, top + 18, w - 124, title_h), 20, 900, PRIMARY, true)
 	var detail := "도전할 스테이지를 선택하세요"
 	if active:

@@ -1,5 +1,6 @@
 extends RefCounted
 ## Persistent combat authority. Commands, simulation time and events are ACKed once.
+const Teleports = preload("res://combat/teleport_pairs.gd")
 const Enemy = preload("res://combat/native_enemy_state.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const Wave = preload("res://combat/native_wave_state.gd")
@@ -27,6 +28,7 @@ var event_id: int = 0
 var projectile_id: int = 0
 var clock: float = 0.0
 var path: Array = []
+var teleport_pairs: Array = []
 var _path_revision := 0
 var origin := Vector2.ZERO
 var tile_size: float = 1.0
@@ -102,11 +104,19 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	if epoch != packet.get("epoch"):
 		if not packet.has("bootstrap"):
 			return {"accepted": false, "reason": "bootstrapRequired", "epoch": packet.get("epoch"), "ackSequence": -1}
+		var teleport_error := Teleports.validate_compiled(packet.bootstrap.get("teleportPairs",[]),packet.bootstrap.get("path",[]))
+		if not teleport_error.is_empty():
+			return {"accepted":false,"reason":"invalidTeleportPairs","detail":teleport_error}
 		_reset(packet)
 	if int(packet.get("sequence", -1)) <= sequence:
 		return snapshot() if include_snapshot else {"accepted":true,"epoch":epoch,"ackSequence":sequence}
 	if sequence >= 0 and int(packet.sequence) != sequence + 1:
 		return {"accepted": false, "reason": "sequenceGap", "epoch": epoch, "ackSequence": sequence}
+	for command in packet.get("commands",[]):
+		if command.get("kind") == "layout":
+			var teleport_error := Teleports.validate_compiled(teleport_pairs,command.get("path",path))
+			if not teleport_error.is_empty():
+				return {"accepted":false,"reason":"invalidTeleportPairs","detail":teleport_error}
 	var ack_event := int(packet.get("ackEvent", 0))
 	for event in events:
 		if int(event.id) <= ack_event and event.kind in ["kill","arrival"]:
@@ -166,6 +176,7 @@ func _reset(packet: Dictionary) -> void:
 	var b: Dictionary = packet.bootstrap
 	rng.seed = int(b.get("seed", 71423))
 	path = _path(b.get("path", []))
+	teleport_pairs = b.get("teleportPairs",[]).duplicate(true)
 	_path_revision += 1
 	origin = _vec(b.get("origin", [0, 0]))
 	tile_size = maxf(0.001, b.get("tileSize", 1.0))
@@ -347,6 +358,8 @@ func _spawn(raw: Dictionary) -> void:
 	var value: Dictionary = raw.get("state", {}).duplicate(true)
 	value.merge(raw, true)
 	value.path = _path(raw.get("path", path))
+	value.erase("teleportPairs")
+	if not teleport_pairs.is_empty(): value.teleportPairs = teleport_pairs
 	value.boardDistanceScale = board_scale
 	value.collisionRadius = raw.get("radius", raw.get("collisionRadius", 8.0))
 	enemies[str(raw.id)] = Enemy.create(value)
@@ -915,6 +928,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 		var poisoned: bool = float(e.poisonRemaining) > 0
 		var diamond: bool = int(e.get("diamondReward", 0)) > 0
 		rows.append([e.id, p.x,p.y,e.facingAngle,e.visualPhase,e.get("presentationScale",_radius(e)*2.0/tile_size),e.hitFlashTimer,e.get("type","normal"),burning,slowed,poisoned,diamond,logical.x,logical.y])
+		if not teleport_pairs.is_empty(): rows[-1].append({"teleportSerial":int(e.get("teleportSerial",0))})
 		labels.append({"id":e.id,"position":[p.x,p.y],"size":e.get("presentationSize",[_radius(e)*2,_radius(e)*2]),"hp":e.hp,"maxHp":e.maxHp,"armor":e.armor,"maxArmor":e.maxArmor,"shield":e.shield,"maxShield":e.maxShield,"effectTime":e.statusEffectTime,"enemyCount":enemies.size(),"burning":burning,"slowed":slowed,"poisoned":poisoned,"riftMarked":e.riftMarkRemaining>0,"diamondCarrier":diamond})
 	frame.enemies = rows
 	frame.turrets = []

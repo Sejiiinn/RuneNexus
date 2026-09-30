@@ -1,4 +1,5 @@
 extends Control
+const Progression = preload("res://content/stage_progression.gd")
 ## Independent Godot lobby shell; original Flutter game pages share saved progression.
 const AppTheme = preload("res://ui/app_theme.gd")
 const MenuTheme = preload("res://ui/battle_theme.gd")
@@ -490,10 +491,10 @@ func _change(command: Dictionary) -> void:
 	refresh()
 
 func _start(index: int) -> void:
-	if index < 0 or index >= int(_p().get("unlockedStageCount", 1)) or app.get("startup_blocked") == true: return
+	if index < 0 or not Progression.stage_unlocked(_p(), index + 1) or app.get("startup_blocked") == true: return
 	if _has_run():
 		var content := open_modal("새 전투 시작")
-		content.add_child(AppTheme.label("진행 중인 전투를 종료하고 스테이지 %d에 도전할까요?" % (index + 1), 13))
+		content.add_child(AppTheme.label("진행 중인 전투를 종료하고 스테이지 %s에 도전할까요?" % Progression.stage_label(index + 1), 13))
 		var confirm := AppTheme.button("새 전투 시작", func():
 			close_modal()
 			if not app.start_stage(index): _failure()

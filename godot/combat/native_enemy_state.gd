@@ -32,6 +32,7 @@ static func create(raw: Dictionary) -> Dictionary:
 	elif raw.has("position"): _set_position(e,float(raw.position.x),float(raw.position.y))
 	if raw.has("targetIndex"): e.targetIndex = int(raw.targetIndex)
 	if raw.has("facingAngle"): e.facingAngle = float(raw.facingAngle)
+	_restore_teleport_exit(e)
 	return e
 
 static func _set_position(e: Dictionary,x: float,y: float) -> void:
@@ -68,6 +69,7 @@ static func update_path(e: Dictionary,path: Array) -> void:
 	_rebuild_path(e,path)
 	e.distanceTravelled=e._total*ratio
 	_place_at_distance(e,e.distanceTravelled)
+	_restore_teleport_exit(e)
 
 static func _place_at_distance(e: Dictionary,distance: float) -> void:
 	if e.path.is_empty():
@@ -221,6 +223,42 @@ static func _max_burn_multiplier(e: Dictionary) -> float:
 	for b in e.burnInstances: value=maxf(value,b.damageMultiplier)
 	return value
 
+# Teleports preserve original-path progress, so v2 distance alone restores the
+# exit without a new save field or replaying the entrance. Walking still discards
+# waypoint overshoot exactly as the existing combat contract requires.
+static func _waypoint_distance(e: Dictionary,index: int) -> float:
+	var segment: int = e._ends.find(index)
+	return float(e._cumulative[segment]) if segment >= 0 else 0.0
+
+static func _face_after_exit(e: Dictionary,index: int) -> void:
+	if index + 1 < e.path.size():
+		e.facingAngle = atan2(_py(e.path[index+1])-_py(e.path[index]),_px(e.path[index+1])-_px(e.path[index]))
+
+static func _restore_teleport_exit(e: Dictionary) -> void:
+	for pair in e.get("teleportPairs",[]):
+		var index := int(pair.exitIndex)
+		if index < e.path.size() and int(e.targetIndex) == index and is_equal_approx(float(e.distanceTravelled),_waypoint_distance(e,index)):
+			e.targetIndex = index+1
+			_face_after_exit(e,index)
+
+static func _teleport_at(e: Dictionary,index: int,events: Array) -> bool:
+	for pair in e.get("teleportPairs",[]):
+		if int(pair.entranceIndex) != index: continue
+		var exit_index := int(pair.exitIndex)
+		var from_x := float(e.x)
+		var from_y := float(e.y)
+		_set_position(e,_px(e.path[exit_index]),_py(e.path[exit_index]))
+		e.distanceTravelled = _waypoint_distance(e,exit_index)
+		e.targetIndex = exit_index+1
+		e.teleportSerial = int(e.get("teleportSerial",0))+1
+		_face_after_exit(e,exit_index)
+		events.append(_event(e,"teleport",{"color":pair.color,"fromX":from_x,"fromY":from_y,"teleportSerial":e.teleportSerial}))
+		if e.targetIndex >= e.path.size():
+			e.arrived = true
+			events.append(_event(e,"coreArrival"))
+		return true
+	return false
+
 static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -> Array:
 	var events: Array=[]
 	if dt<0 or not is_finite(dt) or e.arrived: return events
@@ -275,6 +313,10 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 			e[prefix+"Remaining"]=maxf(0,e[prefix+"Remaining"]-dt)
 			if e[prefix+"Remaining"]==0: e[prefix+("DamageAmplification" if prefix=="riftMark" else "Bonus")]=0.0
 	if e.hp<=0 or int(e.targetIndex)>=e.path.size(): return events
+	# Includes a portal at the spawn waypoint, without advancing a paused frame.
+	if dt > 0 and not e.get("teleportPairs",[]).is_empty():
+		var previous := int(e.targetIndex)-1
+		if previous >= 0 and is_equal_approx(float(e.distanceTravelled),_waypoint_distance(e,previous)) and _teleport_at(e,previous,events): return events
 	var target = e.path[int(e.targetIndex)]
 	var dx := _px(target)-float(e.x)
 	var dy := _py(target)-float(e.y)
@@ -287,6 +329,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 		e.distanceTravelled+=distance
 		_set_position(e,_px(target),_py(target))
 		e.targetIndex+=1
+		if dt > 0 and _teleport_at(e,int(e.targetIndex)-1,events): return events
 		if e.targetIndex>=e.path.size():
 			e.arrived=true
 			events.append(_event(e,"coreArrival"))

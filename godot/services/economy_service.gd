@@ -2,7 +2,7 @@ extends Node
 ## One durable account command at a time. Previously sent request bytes are immutable.
 const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
-const COMPATIBILITY := 3
+const COMPATIBILITY := 4
 signal changed
 var account
 var outbox

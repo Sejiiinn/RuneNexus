@@ -1,6 +1,6 @@
 # 한 칸 텔레포트 — Blender 제작 원본
 
-승인 원본은 [12번 IN/OUT 소용돌이](../12-in-out-vortex-single-tile.png)이다. 이 폴더는 모델·재질·루프 애니메이션 원본과 Godot용 변환 원본을 보관한다. 게임 기믹은 선택 필드로 연결하며 출시 맵에는 배치하지 않았다.
+승인 원본은 [12번 IN/OUT 소용돌이](../12-in-out-vortex-single-tile.png)이다. 이 폴더는 모델·재질·루프 애니메이션 원본과 Godot용 변환 원본을 보관한다. 게임 기믹은 선택 필드로 연결한다. 최초 시안 제작 때는 출시 맵에 배치하지 않았으며, 현재 맵 배치와 이동·저장 계약은 [콘텐츠 계약](../../../../godot/content/README.md#선택적-전송-기믹)을 따른다.
 
 - [편집 원본](teleport-four-variants.blend): `Teleport • Four Variant Comparison` 장면. `BLUE IN`, `BLUE OUT`, `ORANGE IN`, `ORANGE OUT` 컬렉션을 각각 편집한다. 각 컬렉션의 같은 이름 루트 Empty를 이동하면 독립 배치할 수 있다.
 - [네 변형 비교](four-variants.png): Blender Cycles 실제 렌더, 1600×1080, frame 17.

@@ -106,11 +106,12 @@ func run() -> void:
 		core._resize()
 		check(core.zoom>0 and core.offset.is_finite(),"viewport %s" % dimensions)
 	host.state.unlockedStageCount = 6
+	host.state.clearedStageNumbers = [20]
 	core.skills()
 	var equip: Button
 	for child in core.inline_body.get_children():
 		if child is Button and child.text == "장착": equip = child
-	check(is_instance_valid(equip) and not equip.disabled,"rift skill unlocked at stage six")
+	check(is_instance_valid(equip) and not equip.disabled,"rift skill unlocked after fixed ID20 / 1-10 clear")
 	equip.pressed.emit()
 	check(host.state.coreCombatSkill=="riftMark","rift equip command")
 	for child in core.inline_body.get_children():

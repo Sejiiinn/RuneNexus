@@ -85,7 +85,14 @@ func _dart_cases() -> void:
 	var cases: Variant = TypedJson.parse(FileAccess.get_file_as_string(path))
 	for case in cases.enemies:
 		var inputs := {"tileSize": case.tileSize, "origin": case.origin, "enemyValues": case.spawnValues}
-		_compare(catalog.enemy(case.stageIndex, case.roundIndex, case.enemyType, case.id, inputs), case.expected, "Dart mapped enemy")
+		var actual: Dictionary = catalog.enemy(case.stageIndex, case.roundIndex, case.enemyType, case.id, inputs)
+		# Native runtime carries presentation/economy metadata omitted by Dart's
+		# enemy checkpoint projection. Check it separately without rewriting the
+		# original Dart configurations used for combat parity.
+		for field in ["name","color","rewardGold"]:
+			_compare(actual.get(field),catalog.data.enemyDefinitions[case.enemyType][field],"runtime enemy metadata "+field)
+			actual.erase(field)
+		_compare(actual, case.expected, "Dart mapped enemy")
 	for case in cases.turrets:
 		var overrides: Dictionary = case.input.duplicate(true)
 		overrides.erase("definition")
@@ -96,8 +103,8 @@ func _dart_cases() -> void:
 		_compare(Stats.resolve(actual), case.expected, "actual Dart turret stats")
 
 func _runtime_cases() -> void:
-	# Each chapter's first and last stage, final round: all three bosses and maps.
-	for si in [0, 4, 5, 9, 10, 14]:
+	# Existing chapter endpoints plus both expansion endpoints, final boss round.
+	for si in [0, 4, 5, 9, 10, 14, 15, 19, 20, 24]:
 		var wi: int = catalog.data.stages[si].waves.size() - 1
 		var initial: Dictionary = catalog.bootstrap(si, {"defenseConfig": {"maxHp": 1000000.0}})
 		initial.wave = catalog.wave(si, wi)

@@ -718,6 +718,10 @@ static func decode(v: Variant) -> Variant:
 
 static func _progression(v: Dictionary) -> Dictionary:
 	var out := _fields("SavedProgression", v)
+	if v.has("progressionVersion"):
+		out.progressionVersion = maxi(0, _int(v.get("progressionVersion")))
+		out.unlockedStageIds = _list(v.get("unlockedStageIds"),"int",true)
+		out.grandfatherUnlocks = _list(v.get("grandfatherUnlocks"),"string",true)
 	for key in ["dailyQuestProgress", "weeklyQuestProgress"]: out[key] = _enum_map("DailyQuestType", v.get(key))
 	for key in ["claimedDailyQuestRewards", "claimedWeeklyQuestRewards"]: out[key] = _list(v.get(key), "DailyQuestType", true)
 	for key in ["weeklyAttendanceDayKeys", "clearedStageNumbers", "claimedCorePointStageRewards"]: out[key] = _list(v.get(key), "int", true)

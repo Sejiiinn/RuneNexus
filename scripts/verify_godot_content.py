@@ -49,6 +49,7 @@ def verify() -> None:
     stages = game["stages"]
     if not stages or [stage["id"] for stage in stages] != list(range(1, len(stages) + 1)):
         raise ValueError("Stage IDs must be contiguous from 1")
+    if len(stages) != 25: raise ValueError("Expansion requires 25 fixed stage IDs")
     for stage in stages:
         game_map = stage["map"]
         columns, rows = game_map["columns"], game_map["rows"]
@@ -59,6 +60,8 @@ def verify() -> None:
             for point in game_map["path"]
         ):
             raise ValueError(f"Stage {stage['id']} path invalid")
+        if [wave["round"] for wave in stage["waves"]] != list(range(1,41)):
+            raise ValueError(f"Stage {stage['id']} requires rounds 1..40")
         for wave in stage["waves"]:
             for entry in wave["groups"] + wave["spawnQueue"]:
                 if entry["enemyType"] not in enemies:

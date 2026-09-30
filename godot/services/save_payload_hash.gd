@@ -49,7 +49,10 @@ const ORDERS = {
 		"corePassiveTreeRevision",
 		"corePassiveNodeRanks",
 		"claimedCorePointStageRewards",
-		"claimedEventIds"
+		"claimedEventIds",
+		"progressionVersion",
+		"unlockedStageIds",
+		"grandfatherUnlocks"
 	],
 	"SavedActiveResearch": [
 		"type",

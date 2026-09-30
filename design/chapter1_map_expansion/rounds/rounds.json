@@ -5,7 +5,7 @@
     "referenceStageId": 5,
     "referenceChapterStage": "1-5",
     "mapPath": "design/chapter1_map_expansion/maps.json",
-    "contentSha256": "d32ed8323d2aac49edef4789e59bdd558b7affe0807cccc088de4d148fcc2b5c"
+    "contentSha256": "c234d67355f8fcff91be9094d4ef05e2e4067033218adbccdc7f30a087366786"
   },
   "timeConvention": {
     "startDelay": "absolute seconds from wave start, excluding portal startup delay",

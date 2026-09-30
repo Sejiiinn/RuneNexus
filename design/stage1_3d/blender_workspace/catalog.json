@@ -297,6 +297,48 @@
         "design/sniper_tower_concepts/2026-09-26/production/manifest.json"
       ],
       "limitation": "승인 C의 독립 3D 제작 경로. 준비 GLB이며 게임 이관·인게임·Android 검증과 패키징은 별도 범위다."
+    },
+    "teleport-floor-pairs": {
+      "source": "design/teleport_device_concepts/2026-09-30/production/teleport-four-variants.blend",
+      "guide": "design/teleport_device_concepts/2026-09-30/production/README.md",
+      "steps": [
+        {
+          "script": "design/teleport_device_concepts/2026-09-30/production/build_teleport.py",
+          "entrypoint": "build()",
+          "context": "Blender MCP에서 독립 제작 프로세스로 실행. 기존 원본이 있으면 중단하며, 재생성 전에 수동 편집을 별도 보관한다."
+        },
+        {
+          "script": "design/teleport_device_concepts/2026-09-30/production/build_teleport.py",
+          "entrypoint": "render_still() / render_loop()",
+          "context": "저장된 원본을 --render-still / --render-loop로 열어 비교 렌더와 루프 프레임을 생성한다. 영상 인코딩은 제작 안내를 따른다."
+        },
+        {
+          "script": "design/teleport_device_concepts/2026-09-30/production/encode_loop.py",
+          "entrypoint": "module body",
+          "context": "렌더된 로컬 _frames/를 4초 MP4로 인코딩한다. --ffmpeg 경로는 제작 안내를 따른다."
+        },
+        {
+          "script": "design/teleport_device_concepts/2026-09-30/production/export_game.py",
+          "entrypoint": "main()",
+          "context": "저장한 승인 원본에서 금속 본체·얕은 입출구 곡면을 GLB로 내보낸다. host 타일의 측면은 게임 타일을 사용하며 효과는 Godot 재질과 전투 시간으로 재현한다."
+        }
+      ],
+      "outputs": [
+        "design/teleport_device_concepts/2026-09-30/production/teleport-four-variants.blend",
+        "design/teleport_device_concepts/2026-09-30/production/four-variants.png",
+        "design/teleport_device_concepts/2026-09-30/production/four-variants-loop.mp4",
+        "assets/images/stage1_3d/teleport/teleport_device.glb",
+        "design/teleport_device_concepts/2026-09-30/production/teleport-game-export.blend",
+        "design/teleport_device_concepts/2026-09-30/production/godot-four-variants.png"
+      ],
+      "checks": [
+        "godot/verify_teleport_gimmick.gd",
+        "godot/previews/teleport_device/preview.gd"
+      ],
+      "records": [
+        "design/teleport_device_concepts/2026-09-30/production/README.md"
+      ],
+      "limitation": "승인된 파랑·주황 IN/OUT 전송 포탈의 Blender 원본과 Godot 이식 경로. 현재 맵 배치와 이동·저장 계약은 godot/content/README.md의 선택적 전송 기믹을 따른다. Blender 절차 효과는 Godot 재질·전투 시계로 재현하며 Android 실기기·공개 배포 상태는 별도다."
     }
   }
 }

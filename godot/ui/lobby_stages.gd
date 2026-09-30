@@ -1,5 +1,6 @@
 extends RefCounted
 ## Reference coordinates match main_menu_stage.dart (789 x 1566).
+const Progression = preload("res://content/stage_progression.gd")
 const T = preload("res://ui/app_theme.gd")
 const DetailTheme = preload("res://ui/stage_detail_theme.gd")
 const RewardArt = preload("res://ui/stage_reward_art.gd")
@@ -15,21 +16,34 @@ const ACCENTS := [Color("8ee6ff"), Color("5cf9e9"), Color("ff8a3d")]
 # Original stage-details unlock lists, with original item artwork.
 const UNLOCKS := {
 1:[["처치 보상", "upgrades/kill_gold.png", "강화"], ["긴급 매각", "upgrades/turret_refund.png", "연구"]],
-2:[["전술 명령", "research/turret_target_priority.png", "연구"], ["젬 감응", "research/gem_attunement.png", "연구"]],
+2:[["전술 명령", "research/turret_target_priority.png", "연구"]],
 3:[["저격 포탑", "material:ef3a", "포탑"], ["조준경 젬", "gems/aimSpeed.png", "젬"]],
 4:[["치명 집중", "upgrades/critical_chance.png", "연구"], ["치명 충격", "upgrades/critical_damage.png", "강화"]],
-5:[["링크 확장 I", "research/link_expansion_one.png", "연구"], ["결정 회수", "research/crystal_recovery.png", "연구"], ["균열 낙인", "core_abilities/rift_mark.png", "코어"]],
-6:[["라이트닝 포탑", "material:eedd", "포탑"]],
-7:[["물리 화력 훈련", "upgrades/physical_damage.png", "강화"], ["원소 화력 훈련", "upgrades/elemental_damage.png", "강화"]],
-8:[["룬 공명", "research/rune_resonance.png", "연구"], ["전투 강화 비용 최적화", "research/run_upgrade_cost_optimization.png", "연구"]],
-9:[["연결 공정", "upgrades/link_cost_optimization.png", "강화"], ["강화 공정", "upgrades/turret_level_up_optimization.png", "강화"]],
-10:[["장갑 관통 젬", "gems/armorPiercing.png", "젬"], ["연구 슬롯 II 구매 권한", "material:f499", "연구"]],
-15:[["화력 한계 확장", "research/tower_damage_limit_expansion.png", "연구"], ["처치 보상 한계 확장", "research/kill_gold_limit_expansion.png", "연구"], ["보급 한계 확장", "research/wave_gold_limit_expansion.png", "연구"]]}
+5:[["토벌 보상", "research/boss_bounty.png", "강화"]],
+16:[["젬 감응", "research/gem_attunement.png", "연구"]],
+17:[["물리 화력 훈련", "upgrades/physical_damage.png", "강화"], ["원소 화력 훈련", "upgrades/elemental_damage.png", "강화"]],
+18:[["기초 연결 공학", "research/link_maintenance.png", "연구"]],
+19:[["결정 회수", "research/crystal_recovery.png", "연구"]],
+20:[["링크 확장 I", "research/link_expansion_one.png", "연구"], ["균열 낙인", "core_abilities/rift_mark.png", "코어"]],
+6:[["전투 투자 최적화", "research/run_upgrade_cost_optimization.png", "연구"]],
+7:[["라이트닝 포탑", "material:eedd", "포탑"]],
+8:[["룬 공명", "research/rune_resonance.png", "연구"]],
+9:[["연결 공정", "upgrades/link_cost_optimization.png", "강화"]],
+10:[["강화 공정", "upgrades/turret_level_up_optimization.png", "강화"]],
+21:[["장갑 관통 젬", "gems/armorPiercing.png", "젬"]],
+25:[["연구 슬롯 II 구매 권한", "material:f499", "연구"]],
+11:[["정비 보급 확장", "research/wave_gold_limit_expansion.png", "연구"]],
+13:[["처치 보너스 확장", "research/kill_gold_limit_expansion.png", "연구"]],
+15:[["포탑 화력 확장", "research/tower_damage_limit_expansion.png", "연구"]]}
+
 var lobby
 var chapter := 0
 var active_stage_seen := 0
 var canvas: Control
 var scale_factor := Vector2.ONE
+var list_canvas: Control
+var list_origin := 0.0
+var list_scroll := {}
 
 func setup(owner) -> void:
 	lobby = owner
@@ -41,7 +55,7 @@ func _stage_number() -> int:
 	return int(_state().get("stage", 0)) + 1
 
 func unlocked(stage: int) -> bool:
-	return stage <= int(lobby._p().get("unlockedStageCount", 1)) and stage <= lobby.app.catalog.stage_count()
+	return Progression.stage_unlocked(lobby._p(), stage) and stage <= lobby.app.catalog.stage_count()
 
 func active(stage: int) -> bool:
 	return lobby._has_run() and stage == _stage_number()
@@ -69,10 +83,14 @@ func reset_navigation() -> void:
 
 func render() -> void:
 	if chapter == 0:
-		chapter = (clampi(_stage_number() if not _state().is_empty() else int(lobby._p().get("unlockedStageCount", 1)), 1, 15) - 1) / 5 + 1
+		var current := _stage_number() if lobby._has_run() else 1
+		if not lobby._has_run():
+			for id in Progression.ordered_ids():
+				if unlocked(id): current = id
+		chapter = Progression.chapter_for(current)
 	if lobby._has_run() and _stage_number() != active_stage_seen:
 		active_stage_seen = _stage_number()
-		chapter = (active_stage_seen - 1) / 5 + 1
+		chapter = Progression.chapter_for(active_stage_seen)
 	canvas = Control.new()
 	canvas.name = "StageReferenceBoard"
 	canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -87,8 +105,10 @@ func _rect(rect: Rect2) -> Rect2:
 	return Rect2(rect.position * scale_factor, rect.size * scale_factor)
 
 func _place(control: Control, rect: Rect2) -> void:
-	canvas.add_child(control)
-	var scaled := _rect(rect)
+	(list_canvas if is_instance_valid(list_canvas) else canvas).add_child(control)
+	var adjusted := rect
+	if is_instance_valid(list_canvas): adjusted.position.y -= list_origin
+	var scaled := _rect(adjusted)
 	control.position = scaled.position
 	control.size = scaled.size
 
@@ -138,6 +158,7 @@ func select_chapter(value: int) -> void:
 
 func _layout() -> void:
 	if not is_instance_valid(canvas) or canvas.size.x <= 0: return
+	list_canvas = null
 	for child in canvas.get_children(): canvas.remove_child(child); child.queue_free()
 	scale_factor = canvas.size / REFERENCE
 	_asset("stage_shell_fill", Rect2(Vector2.ZERO, REFERENCE))
@@ -150,26 +171,41 @@ func _layout() -> void:
 	_image("chapter_%d_banner.png" % chapter, Rect2(35,135,724,134))
 	_asset("chapter_banner_frame", Rect2(35,135,724,134))
 	_text(CHAPTERS[chapter - 1], Rect2(62,164,360,52), 42)
-	var first := (chapter - 1) * 5 + 1
-	_text("스테이지 %d–%d" % [first, first + 4], Rect2(62,211,280,35), 24, Color("b9d6e4"), false, 700)
-	var active_here: bool = lobby._has_run() and _stage_number() >= first and _stage_number() < first + 5
+	var stages: Array = Progression.ids_for_chapter(chapter)
+	_text("스테이지 %d-1–%d-%d" % [chapter, chapter, stages.size()], Rect2(62,211,380,35), 24, Color("b9d6e4"), false, 700)
+	var active_here: bool = lobby._has_run() and _stage_number() in stages
 	if active_here: _active_card(_stage_number())
 	else: _asset("chapter_bridge", Rect2(338,280,114,36))
+	list_origin = 658 if active_here else 289
+	var scroll := ScrollContainer.new()
+	scroll.name = "StageRowsScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	_place(scroll, Rect2(0,list_origin,REFERENCE.x,REFERENCE.y-list_origin-20))
+	list_canvas = Control.new()
+	list_canvas.name = "StageRows"
+	list_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_canvas.custom_minimum_size = Vector2(0, (stages.size() - (1 if active_here else 0)) * 131 * scale_factor.y)
+	scroll.add_child(list_canvas)
 	var i := 0
-	for stage in range(first, mini(first + 5, lobby.app.catalog.stage_count() + 1)):
+	for stage in stages:
 		if active_here and stage == _stage_number(): continue
-		_row(stage, (658 if active_here else 289) + i * 131)
+		_row(stage, list_origin + i * 131)
 		i += 1
+	list_canvas = null
+	scroll.set_deferred("scroll_vertical",int(list_scroll.get(chapter,0)))
+	var visible_chapter := chapter
+	scroll.get_v_scroll_bar().value_changed.connect(func(value): list_scroll[visible_chapter] = value)
 
 func _active_card(stage: int) -> void:
 	_asset("active_stage_panel", Rect2(24,282,740,366))
 	_asset("stage_number_socket", Rect2(24,296,145,150))
 	_asset("stage_stat_strip", Rect2(56,431,682,81))
 	_asset("continue_button_idle", Rect2(57,527,678,84))
-	_text("%02d" % stage, Rect2(61,340,72,65), 34, WHITE, true)
+	_text(Progression.stage_label(stage), Rect2(61,340,72,65), 34, WHITE, true)
 	_badge(Rect2(157,326,80,34), Color("087f78cc"), Color.TRANSPARENT, 5)
 	_text("진행 중", Rect2(157,326,80,34), 20, Color("68fff0"), true)
-	_text("스테이지 %d" % stage, Rect2(157,370,330,53), 34)
+	_text("스테이지 %s" % Progression.stage_label(stage), Rect2(157,370,330,53), 34)
 	_badge(Rect2(595,346,145,48), Color("28261fb9"), Color.TRANSPARENT, 7)
 	_text("룬 +%d" % rune_reward(stage), Rect2(595,346,145,48), 24, GOLD, true)
 	var state := _state()
@@ -188,8 +224,8 @@ func _row(stage: int, top: float) -> void:
 	var tint := Color.WHITE if enabled else Color(1,1,1,0.76)
 	_asset("locked_stage_row", Rect2(24,top,740,123), tint)
 	_asset("stage_number_plate", Rect2(42,top + 18,114,90), tint)
-	_text("%02d" % stage, Rect2(57.5,top+26,74,70), 38, Color("b9d6e4") if enabled else MUTED, true)
-	_text("스테이지 %d" % stage, Rect2(169,top+17,270,48), 34, WHITE if enabled else MUTED)
+	_text(Progression.stage_label(stage), Rect2(57.5,top+26,74,70), 38, Color("b9d6e4") if enabled else MUTED, true)
+	_text("스테이지 %s" % Progression.stage_label(stage), Rect2(169,top+17,270,48), 34, WHITE if enabled else MUTED)
 	if not enabled: _glyph("f888", Rect2(169,top+68,22,22), 22, Color("667987"))
 	_text(status(stage), Rect2(169 if enabled else 198,top+61,180 if enabled else 151,36), 23, ACCENTS[chapter-1] if enabled else Color("667987"), false, 700)
 	_text("룬 +%d" % rune_reward(stage), Rect2(409,top+35,180,52), 24, SECONDARIES[chapter-1] if enabled else Color("667987"), true)
@@ -207,18 +243,16 @@ func _row(stage: int, top: float) -> void:
 			_place(shape, Rect2(rect.position + Vector2(3,4 if shape.kind == "sniper" else 3) * badge_scale, Vector2(18,16 if shape.kind == "sniper" else 18) * badge_scale))
 		else: _image(icons[i], Rect2(rect.position + Vector2.ONE * 4 * badge_scale, Vector2.ONE * 16 * badge_scale))
 	_glyph("f63b", Rect2(714,top+32,44,60), 36, Color(ACCENTS[chapter-1],0.84) if enabled else Color("536675"))
-	_hit(Rect2(24,top,740,123), details.bind(stage), "스테이지 %d 상세" % stage)
+	_hit(Rect2(24,top,740,123), details.bind(stage), "스테이지 %s 상세" % Progression.stage_label(stage))
 
 func _reward_icons(stage: int) -> Array:
-	match stage:
-		1,4,7,9: return ["stage_rewards/reward_upgrade.png"]
-		2,8,15: return ["stage_rewards/reward_research.png"]
-		3: return ["turret:sniper", "stage_rewards/reward_gem.png"]
-		5: return ["stage_rewards/reward_research.png", "stage_rewards/reward_core.png"]
-		6: return ["turret:lightning"]
-		10: return ["stage_rewards/reward_gem.png", "stage_rewards/reward_research.png"]
-		11: return ["stage_rewards/reward_module_ticket.png"]
-	return []
+	var result := []
+	for item in UNLOCKS.get(stage, []):
+		var icon := "stage_rewards/reward_%s.png" % {"강화":"upgrade", "연구":"research", "젬":"gem", "코어":"core"}.get(item[2], "research")
+		if item[2] == "포탑": icon = "turret:sniper" if stage == 3 else "turret:lightning"
+		if not icon in result: result.append(icon)
+	if stage == 11: result.append("stage_rewards/reward_module_ticket.png")
+	return result.slice(0,2)
 
 func _continue() -> void:
 	lobby.close_modal()
@@ -252,8 +286,9 @@ func _surface(parent: Node, image: String) -> VBoxContainer:
 	return box
 
 func unlock_items(stage: int) -> Array:
-	if stage == 11: return [["모듈 티켓 %d장" % int(lobby.app.catalog.stage(stage - 1).get("firstClearTurretModuleTicketReward", 0)), "stage_rewards/reward_module_ticket.png", "티켓"]]
-	return UNLOCKS.get(stage, [])
+	var items: Array = UNLOCKS.get(stage, []).duplicate(true)
+	if stage == 11: items.push_front(["모듈 티켓 %d장" % int(lobby.app.catalog.stage(stage - 1).get("firstClearTurretModuleTicketReward", 0)), "stage_rewards/reward_module_ticket.png", "티켓"])
+	return items
 
 func _small_icon(path: String, pixels: int = 18) -> Control:
 	if path.begins_with("material:"):
@@ -290,12 +325,15 @@ func _glyph(code: String, rect: Rect2, pixels: int, color: Color) -> void:
 	_place(icon,rect)
 
 func reward_highlighted(stage: int) -> bool:
-	if stage == 3:
-		var inputs: Dictionary = lobby._p()
-		if inputs.has("availableTurretTypes"): return "sniper" in inputs.availableTurretTypes
-		if lobby.app.run_domain is Object and lobby.app.run_domain.get("growth") != null:
-			return "sniper" in lobby.app.run_domain.growth.derive(inputs).get("availableTurretTypes", [])
-	return stage in lobby._p().get("clearedStageNumbers", [])
+	if stage == 3 and lobby._p().has("availableTurretTypes"):
+		return "sniper" in lobby._p().availableTurretTypes
+	var found := false
+	for kind in Progression.REQUIREMENTS:
+		for key in Progression.REQUIREMENTS[kind]:
+			if Progression.requirement(kind,key) != stage: continue
+			found = true
+			if not Progression.has_unlock(lobby._p(),kind,key): return false
+	return found or stage in lobby._p().get("clearedStageNumbers", [])
 
 func _detail_label(value: String, pixels := 12, color := WHITE, weight := 700) -> Label:
 	var label := T.label(value,pixels)
@@ -339,7 +377,7 @@ func _detail_header(stage: int) -> Control:
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.add_theme_constant_override("separation",4)
 	row.add_child(titles)
-	var title := _detail_label("스테이지 %d" % stage,DetailTheme.FONT_TITLE,WHITE if unlocked(stage) else Color("899faa"),900)
+	var title := _detail_label("스테이지 %s" % Progression.stage_label(stage),DetailTheme.FONT_TITLE,WHITE if unlocked(stage) else Color("899faa"),900)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	titles.add_child(title)
 	var chip := PanelContainer.new()
@@ -360,7 +398,7 @@ func _detail_header(stage: int) -> Control:
 	return panel
 
 func details(stage: int) -> void:
-	var box: VBoxContainer = lobby.open_modal("스테이지 %d" % stage)
+	var box: VBoxContainer = lobby.open_modal("스테이지 %s" % Progression.stage_label(stage))
 	box.add_theme_constant_override("separation",0)
 	if is_instance_valid(lobby.modal): lobby.modal.set_meta("max_width",390)
 	if lobby.has_method("set_modal_stylebox"): lobby.set_modal_stylebox(DetailTheme.box("dialog_frame",16))
@@ -402,7 +440,7 @@ func details(stage: int) -> void:
 		stat.add_child(value)
 	box.add_child(_detail_divider())
 	if not unlocked(stage):
-		var label := _detail_label("스테이지 %d 클리어 후 입장할 수 있습니다." % (stage-1),DetailTheme.FONT_SECONDARY,Color("b9d6e4"))
+		var label := _detail_label("스테이지 %s 클리어 후 입장할 수 있습니다." % Progression.stage_label(Progression.ordered_ids()[maxi(0,Progression.ordinal_for(stage)-2)]),DetailTheme.FONT_SECONDARY,Color("b9d6e4"))
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		box.add_child(label)
 	var items := unlock_items(stage)
@@ -452,7 +490,7 @@ func details(stage: int) -> void:
 			text.add_theme_constant_override("separation",1)
 			row.add_child(text)
 			text.add_child(_detail_label(item[2],DetailTheme.FONT_SECONDARY,DetailTheme.CYAN,800))
-			var name := _detail_label(item[0],DetailTheme.FONT_PRIMARY,SECONDARIES[(stage-1)/5] if highlighted else WHITE,900)
+			var name := _detail_label(item[0],DetailTheme.FONT_PRIMARY,SECONDARIES[Progression.chapter_for(stage)-1] if highlighted else WHITE,900)
 			name.name = "RewardName"
 			name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			text.add_child(name)

@@ -1,4 +1,5 @@
 extends RefCounted
+const Progression = preload("res://content/stage_progression.gd")
 ## Flutter main_menu_permanent_upgrades / main_menu_research native counterpart.
 const Frame = preload("res://ui/lobby_frame.gd")
 const ProgressVisual = preload("res://ui/research_progress.gd")
@@ -153,11 +154,7 @@ func _button(box: Node, text: String, callback: Callable, disabled := false) -> 
 	return b
 
 func upgrade_requirement(id: String) -> int:
-	if id in ["physicalDamageTraining", "elementalDamageTraining"]: return 7
-	if id == "criticalDamage": return 4
-	if id == "killGold": return int(_growth().data.constants.economyUpgradeUnlockStage)
-	if id in ["linkCostOptimization", "turretLevelUpOptimization"]: return 9
-	return 0
+	return Progression.requirement("upgrade", id)
 
 func upgrades_tabs(parent: Node) -> void:
 	var center := CenterContainer.new()
@@ -198,8 +195,7 @@ func upgrades_tabs(parent: Node) -> void:
 func upgrades() -> void:
 	var grid := _grid(lobby.body)
 	for id in COMBAT if category == "전투" else ECONOMY:
-		var requirement := upgrade_requirement(id)
-		if requirement > 0 and not requirement in lobby._p().get("clearedStageNumbers", []): continue
+		if not Progression.has_unlock(lobby._p(), "upgrade", id): continue
 		var d: Dictionary = _growth().data.permanentUpgrades[id]
 		if not d.get("enabled", true): continue
 		var level := int(lobby._p().get(d.field, 0))
@@ -316,7 +312,7 @@ func research_status(id: String) -> String:
 	var q: Dictionary = _growth().research_quote(lobby._p(), id)
 	if not _active(id).is_empty(): return "연구 중"
 	if int(q.level) >= int(d.maxLevel): return "연구 완료"
-	if int(d.requiredClearedStage) > 0 and not int(d.requiredClearedStage) in lobby._p().get("clearedStageNumbers", []): return "스테이지 %d 클리어 필요" % int(d.requiredClearedStage)
+	if not Progression.has_unlock(lobby._p(), "research", id): return "스테이지 %s 클리어 필요" % Progression.stage_label(Progression.requirement("research", id))
 	if lobby._p().get("activeResearches", []).size() >= (2 if lobby._p().get("researchSlotTwoUnlocked", false) else 1): return "빈 연구 슬롯 필요"
 	if int(lobby._p().get("runes", 0)) < int(q.cost): return "룬 부족"
 	return "연구 가능"
@@ -359,13 +355,13 @@ func research() -> void:
 			empty.add_child(row)
 			row.add_child(_glyph(0xe050, 18, Color("607587")))
 			row.add_child(_inline("빈 연구 슬롯", 13))
-	var cleared: Array = lobby._p().get("clearedStageNumbers", [])
-	if count == 1 and (8 in cleared or 10 in cleared):
+	var slot_available := Progression.has_unlock(lobby._p(), "feature", "researchSlotTwo")
+	if count == 1 and (Progression.has_unlock(lobby._p(), "feature", "researchSlotTwoPreview") or slot_available):
 		var cost := int(_growth().data.constants.researchSlotTwoUnlockCost)
-		_button(slots, "두 번째 슬롯 · 다이아 %d" % cost if 10 in cleared else "두 번째 슬롯 · 스테이지 10 클리어 필요", _slot_confirm, not 10 in cleared)
+		_button(slots, "두 번째 슬롯 · 다이아 %d" % cost if slot_available else "두 번째 슬롯 · 스테이지 2-10 클리어 필요", _slot_confirm, not slot_available)
 	var groups := {"가능한 연구":[], "잠긴 연구":[], "완료한 연구":[]}
 	var ids: Array = _growth().data.research.keys()
-	ids.sort_custom(func(a, b): return int(_growth().data.research[a].requiredClearedStage) < int(_growth().data.research[b].requiredClearedStage))
+	ids.sort_custom(func(a, b): return Progression.ordinal_for(Progression.requirement("research", a)) < Progression.ordinal_for(Progression.requirement("research", b)))
 	for id in ids:
 		var status := research_status(id)
 		groups["완료한 연구" if status == "연구 완료" else ("잠긴 연구" if status.begins_with("스테이지") else "가능한 연구")].append(id)
@@ -442,7 +438,7 @@ func _details(id: String) -> void:
 	if not description.is_empty():
 		var explanation := _surface(box,"ui/components/row_frame.png",9)
 		explanation.add_child(T.label(description,12))
-	box.add_child(T.label("해금 조건  " + ("기본 해금" if int(d.requiredClearedStage)<=0 else "스테이지 %d 클리어" % int(d.requiredClearedStage)),12))
+	box.add_child(T.label("해금 조건  " + ("기본 해금" if int(d.requiredClearedStage)<=0 else "스테이지 %s 클리어" % Progression.stage_label(Progression.requirement("research", id))),12))
 	_effect(box, id, int(q.level), int(d.maxLevel))
 	var active := _active(id)
 	if not active.is_empty():

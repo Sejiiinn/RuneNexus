@@ -2,6 +2,7 @@ extends RefCounted
 ## Generated Dart definitions are read once; runtime needs no Dart process.
 ## Growth/equipment are already resolved numeric inputs, never purchased here.
 const TypedJson = preload("res://app/save_json.gd")
+const Teleports = preload("res://combat/teleport_pairs.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 var data: Dictionary = {}
 var error: String = ""
@@ -51,6 +52,10 @@ func load_catalog(path: String = "res://content/game_content.json") -> bool:
 			if not point is Array or point.size() != 2 or not point[0] is int or not point[1] is int:
 				error = "Invalid path tile coordinates"
 				return false
+		var teleport_error := Teleports.validate_map(map)
+		if not teleport_error.is_empty():
+			error = teleport_error
+			return false
 		var round_ids := {}
 		for definition in source.waves:
 			if not definition is Dictionary or not definition.has_all(["round", "spawnQueue", "enemyDurability"]) or not definition.spawnQueue is Array or not definition.enemyDurability is Dictionary or not definition.get("round") is int or round_ids.has(definition.round):
@@ -148,6 +153,10 @@ func _bootstrap_layout(stage_index: int, inputs: Dictionary) -> Dictionary:
 		if inputs.has(key) and not inputs[key] is Dictionary:
 			error = "Configuration must be a dictionary: " + key
 			return {}
+	var teleport_error := Teleports.validate_map(data.stages[stage_index].map)
+	if not teleport_error.is_empty():
+		error = teleport_error
+		return {}
 	var layout := _layout(inputs)
 	if layout.is_empty() or data.stages[stage_index].map.path.is_empty(): return {}
 	return layout
@@ -160,6 +169,8 @@ func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
 	if result.is_empty(): return {}
 	result.path = world_path(stage_index, inputs)
 	if result.path.is_empty(): return {}
+	var pairs := Teleports.compile_map(data.stages[stage_index].map)
+	if not pairs.is_empty(): result.teleportPairs = pairs
 	result.defense = {"config": data.defenseConfig.duplicate(true)}
 	if inputs.has("defenseConfig"): result.defense.config.merge(inputs.defenseConfig, true)
 	if inputs.has("coreConfig"): result.coreConfig = inputs.coreConfig.duplicate(true)

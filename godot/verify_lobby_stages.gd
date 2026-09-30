@@ -46,7 +46,11 @@ func verify() -> void:
 	host.p.researchLevels.runeResonance = 10
 	assert(ui.rune_reward(1) == 180)
 	host.p.researchLevels = {}
-	assert(ui.unlock_items(5).size() == 3)
+	assert(ui.unlock_items(5).size() == 1)
+	assert(ui.unlock_items(5)[0][0] == "토벌 보상")
+	assert(ui.unlock_items(17).size() == 2)
+	assert(ui.unlock_items(20).size() == 2)
+	assert(ui.unlock_items(25)[0][0] == "연구 슬롯 II 구매 권한")
 	assert(ui.unlock_items(11)[0][0] == "모듈 티켓 5장")
 	host.p.availableTurretTypes = ["sniper"]
 	host.p.clearedStageNumbers.erase(3)
@@ -91,7 +95,7 @@ func verify() -> void:
 			assert(host.modal.get_combined_minimum_size().x <= width - 52)
 			assert(host.modal.find_child("StageDetailsHeader",true,false) != null)
 			var chips := host.modal.find_children("UnlockChip*", "PanelContainer",true,false)
-			assert(chips.size() == 3)
+			assert(chips.size() == 1)
 			for chip in chips:
 				assert(chip.get_child(0) is HBoxContainer, "Unlock chip icon and label must be horizontal")
 				assert(chip.custom_minimum_size.y == 52)

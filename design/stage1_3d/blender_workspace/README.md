@@ -26,6 +26,10 @@
 
 [저격 C 제작 기준·산출물](../../sniper_tower_concepts/2026-09-26/README.md)은 기존 게임 저격 모델과 분리된 독립 제작 경로다. `sniper-c` workflow로 편집 원본과 준비 GLB를 찾을 수 있다. sniper-c 등록과 기존 허브 Scene은 최초 고해상도 제작/이전 모델 기록이다. 현재 전투용 본체는 [승인 SWIFT 경량본의 게임 적용 기록](../../sniper_tower_concepts/2026-09-26/README.md#전투용-본체-게임-적용)을 따른다. 허브 파일과 열린 원본은 이번 이식에서 변경하지 않았다.
 
+## 전송 포탈 제작 원본
+
+[파랑·주황 IN/OUT 전송 포탈](../../teleport_device_concepts/2026-09-30/production/README.md)은 승인된 타일 상면 전체형 시안의 Blender 원본·루프 미리보기·Godot용 GLB를 관리한다. `teleport-floor-pairs` workflow에서 제작·내보내기 경로를 찾는다. 선택적 연결과 실제 맵 배치 상태는 [콘텐츠 계약](../../../godot/content/README.md#선택적-전송-기믹)을 따른다.
+
 ## 갱신
 
 저장소 루트에서 별도 Blender 백그라운드 프로세스로 다음 스크립트를 실행해야 한다.

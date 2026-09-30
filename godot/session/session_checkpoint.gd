@@ -1,4 +1,5 @@
 extends RefCounted
+const StageProgression = preload("res://content/stage_progression.gd")
 ## Local v2 checkpoints for the independent content session and legacy fixture.
 ## Account settlement and existing-installation data handoff remain separate.
 const Codec = preload("res://app/save_codec.gd")
@@ -220,6 +221,13 @@ func _load_content(app) -> Error:
 	if saved == null:
 		message = "No checkpoint" if store.last_error == OK else store.last_error_message
 		return ERR_FILE_NOT_FOUND if store.last_error == OK else store.last_error
+	# Persist migration and rights together before the restored state is playable.
+	var migrated := StageProgression.migrate_progression(saved.progression,saved.activeRun if saved.activeRun is Dictionary else {},saved.turretModules)
+	if migrated != saved.progression:
+		saved.progression = migrated
+		if store.save_save(saved) != OK:
+			message = store.last_error_message
+			return store.last_error
 	# A local checkpoint is only a cache of server-owned balances. Restore the
 	# durable newest receipt before allowing an older v2 file to become live.
 	if owner != "guest":

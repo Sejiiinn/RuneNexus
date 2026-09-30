@@ -1,4 +1,5 @@
 extends RefCounted
+const Progression = preload("res://content/stage_progression.gd")
 ## Stage menus and board details; modal lifetime remains HUD-owned.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 var hud: Control
@@ -39,7 +40,7 @@ func _end_stage_confirm() -> void:
 	var header: HBoxContainer = box.get_child(0)
 	var flag = hud._material_icon(header,0xf07b,20); flag.modulate = Color("ff7043"); header.move_child(flag,0)
 	var reward = _projected_failure_reward()
-	hud._label(box,"스테이지 %d 진행을 종료하고 +%d 룬을 정산합니다." % [hud.app.stage+1,reward],12)
+	hud._label(box,"스테이지 %s 진행을 종료하고 +%d 룬을 정산합니다." % [Progression.stage_label(hud.app.stage+1),reward],12)
 	var panel = PanelContainer.new(); panel.add_theme_stylebox_override("panel",hud.BattleTheme.box(Color("272116"),Color("88785835"),14)); box.add_child(panel)
 	var summary = VBoxContainer.new(); panel.add_child(summary)
 	var reward_title = HBoxContainer.new(); summary.add_child(reward_title)

@@ -2,7 +2,7 @@ extends Node
 ## Inject authenticated context from account/save ownership. No login, bootstrap,
 ## credentials on disk, or guest-to-account adoption. All callbacks may be async.
 const SaveJson = preload("res://app/save_json.gd")
-const COMPATIBILITY_VERSION := 3
+const COMPATIBILITY_VERSION := 4
 var outbox
 var busy := false
 var binding_generation := 0

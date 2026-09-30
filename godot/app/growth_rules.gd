@@ -1,4 +1,5 @@
 extends RefCounted
+const StageProgression = preload("res://content/stage_progression.gd")
 ## Local session progression rules. Never performs network or persistent writes.
 const Json = preload("res://app/save_json.gd")
 var data: Dictionary = {}
@@ -16,11 +17,11 @@ func _c(key: String) -> float:
 	return float(data.constants.get(key, 0))
 
 func _research(p: Dictionary, key: String) -> int:
-	return clampi(int(p.get("researchLevels", {}).get(key, 0)), 0, int(data.research.get(key, {}).get("maxLevel", 0)))
+	return clampi(int(p.get("researchLevels", {}).get(key, 0)) if StageProgression.has_unlock(p,"research",key) else 0, 0, int(data.research.get(key, {}).get("maxLevel", 0)))
 
 func _level(p: Dictionary, key: String) -> int:
 	var definition: Dictionary = data.permanentUpgrades.get(key, {})
-	return clampi(int(p.get(definition.get("field", key + "UpgradeLevel"), 0)), 0, int(definition.get("maxLevel", 0)))
+	return clampi(int(p.get(definition.get("field", key + "UpgradeLevel"), 0)) if StageProgression.has_unlock(p,"upgrade",key) else 0, 0, int(definition.get("maxLevel", 0)))
 
 func core_effects(p: Dictionary) -> Dictionary:
 	var out: Dictionary = {}
@@ -61,8 +62,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	var count := int(context.get("distinctTurretTypeCount", 0))
 	var gems := int(context.get("distinctEquippedGemTypeCount", 0))
 	var combined: float = core.combinedFrontMultiplier if count >= 4 else 1.0
-	var cleared: Array = p.get("clearedStageNumbers", [])
-	var economy_unlocked: bool = int(data.constants.get("economyUpgradeUnlockStage", 1)) in cleared
+	var economy_unlocked: bool = StageProgression.has_unlock(p,"upgrade","killGold")
 	var result := {
 		"initialGold": int(_c("baseInitialGold") + _level(p, "startingGold") * _c("startingGoldPerUpgradeLevel")),
 		"maxNexusHp": (_c("baseNexusHp") + _level(p, "nexusHp")) * core.nexusMaxHpMultiplier,
@@ -97,12 +97,11 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	var wave_level := clampi(int(run_levels.get("waveGold", 0)), 0, int(data.runUpgrades.waveGold.maxLevel) + result.runUpgradeMaxLevelBonuses.waveGold)
 	result.waveClearGoldBonus += int(data.runUpgrades.waveGold.effects[wave_level])
 	result.availableTurretTypes = ["arrow", "cannon", "magic", "frost"]
-	if int(data.constants.get("sniperUnlockStage", 3)) in cleared: result.availableTurretTypes.append("sniper")
-	if 6 in cleared: result.availableTurretTypes.append("lightning")
+	if StageProgression.has_unlock(p,"turret","sniper"): result.availableTurretTypes.append("sniper")
+	if StageProgression.has_unlock(p,"turret","lightning"): result.availableTurretTypes.append("lightning")
 	result.availableGemTypes = []
 	for gem in data.gems:
-		if gem == "aimSpeed" and not int(data.constants.get("aimSpeedGemUnlockStage", 3)) in cleared: continue
-		if gem == "armorPiercing" and not int(data.constants.get("armorPiercingGemUnlockStage", 3)) in cleared: continue
+		if not StageProgression.has_unlock(p,"gem",gem): continue
 		result.availableGemTypes.append(gem)
 	for type in data.module.pools:
 		var physical: bool = type in ["arrow", "cannon", "sniper"]
@@ -110,8 +109,8 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		result.turretStatInputs[type] = {
 			"moduleEffect": module_effect(p, type),
 			"towerDamageMultiplier": 1.0 + run_bonus + _level(p, "fireTraining") * _c("fireTrainingDamagePerUpgradeLevel") + _level(p, "physicalDamageTraining" if physical else "elementalDamageTraining") * _c("familyDamageTrainingBonusPerUpgradeLevel"),
-			"criticalChanceProgressionBonusRate": _research(p, "criticalChance") * _c("criticalChanceBonusPerResearchLevel") if 4 in cleared else 0.0,
-			"criticalDamageProgressionBonusRate": _level(p, "criticalDamage") * _c("criticalDamageBonusPerUpgradeLevel") if 4 in cleared else 0.0,
+			"criticalChanceProgressionBonusRate": _research(p, "criticalChance") * _c("criticalChanceBonusPerResearchLevel") if StageProgression.has_unlock(p,"research","criticalChance") else 0.0,
+			"criticalDamageProgressionBonusRate": _level(p, "criticalDamage") * _c("criticalDamageBonusPerUpgradeLevel") if StageProgression.has_unlock(p,"upgrade","criticalDamage") else 0.0,
 			"passiveNumericGemEffectMultiplier": result.passiveNumericGemEffectMultiplier,
 			"corePassiveTurretDamageMultiplier": 1.0 + (core.turretDamageAmplification if context.get("attackSyncActive", false) else 0.0),
 			"corePassiveTurretAttackRateMultiplier": 1.0 + (core.turretAttackRateAmplification if context.get("attackSyncActive", false) else 0.0),
@@ -160,7 +159,7 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 	if action == "permanentUpgrade": action = "upgradePermanent"
 	match action:
 		"upgradePermanent":
-			if not data.permanentUpgrades.has(id): return rejected
+			if not data.permanentUpgrades.has(id) or not StageProgression.has_unlock(state,"upgrade",id): return rejected
 			var d: Dictionary = data.permanentUpgrades[id]
 			var level := _level(state, id)
 			if not d.get("enabled", true) or level >= int(d.maxLevel): return rejected
@@ -181,7 +180,7 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 			state.corePassiveNodeRanks = ranks
 			state.corePassiveTreeRevision = data.core.revision
 		"equipCoreCombatSkill":
-			if not id in ["guardianBeam", "riftMark"] or (id == "riftMark" and int(state.get("unlockedStageCount", 1)) < 6): return rejected
+			if not id in ["guardianBeam", "riftMark"] or not StageProgression.has_unlock(state,"core",id): return rejected
 			state.coreCombatSkill = id
 		"unequipCoreCombatSkill":
 			if state.get("coreCombatSkill", "guardianBeam") == null: return rejected
@@ -212,7 +211,7 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 				if action == "startResearch":
 					var d: Dictionary = data.research[id]
 					if active_index >= 0 or quote.level >= int(d.maxLevel) or state.activeResearches.size() >= (2 if state.get("researchSlotTwoUnlocked", false) else 1): return rejected
-					if int(d.requiredClearedStage) > 0 and not int(d.requiredClearedStage) in state.get("clearedStageNumbers", []): return rejected
+					if not StageProgression.has_unlock(state,"research",id): return rejected
 					if int(state.get("runes", 0)) < quote.cost: return rejected
 					state.runes = int(state.get("runes", 0)) - quote.cost
 					state.activeResearches.append({"type": id, "targetLevel": quote.level + 1, "startedAtMillis": now, "durationMillis": quote.remainingMillis, "initialElapsedMillis": int(state.researchElapsedMillis.get(id, 0))})
@@ -252,7 +251,7 @@ func core_config(state: Dictionary, stage: int, round_index: int, catalog) -> Di
 	var effects := core_effects(p)
 	var config: Dictionary = data.coreConfig.duplicate(true)
 	var skill: Variant = state.get("runCoreCombatSkill", p.get("coreCombatSkill", "guardianBeam"))
-	if not state.has("runCoreCombatSkill") and skill == "riftMark" and int(p.get("unlockedStageCount", 1)) < 6: skill = "guardianBeam"
+	if not state.has("runCoreCombatSkill") and skill == "riftMark" and not StageProgression.has_unlock(p,"core","riftMark"): skill = "guardianBeam"
 	if skill != null and not skill in ["guardianBeam", "riftMark"]: skill = "guardianBeam"
 	config.runSkill = skill
 	config.cooldownRecoveryMultiplier = 1.0 + effects.cooldownRecoveryRate

@@ -114,10 +114,26 @@ func new_walker(kind: String = "normal") -> Dictionary:
 func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 	var logical := Vector2(float(data[12]), float(data[13])) if data.size() > 13 else Vector2(float(data[1]), float(data[2]))
 	var id := int(data[0])
+	var teleported := false
+	if data.size() > 14 and data[14] is Dictionary and data[14].has("teleportSerial"):
+		var serial := int(data[14]["teleportSerial"])
+		teleported = entry.has("teleport_serial") and serial != int(entry.teleport_serial)
+		if teleported:
+			# A path skip is not a stride. Preserve the current gait phase and snap
+			# body facing at the exit instead of easing across an unrelated corner.
+			entry.erase("turn_target")
+			if distances.has(id):
+				entry.teleport_distance_offset = float(distances[id]) - float(entry.distance)
+		entry.teleport_serial = serial
+	else:
+		entry.erase("teleport_serial")
+		entry.erase("teleport_distance_offset")
 	walkers[id] = entry
 	update_facing(entry, PI / 2.0 - float(data[3]), time)
 	if distances.has(id):
-		entry.distance = float(distances[id])
+		entry.distance = float(distances[id]) - float(entry.get("teleport_distance_offset", 0.0))
+	elif teleported:
+		pass
 	elif entry.has("last_position") and time >= float(entry.last_time):
 		entry.distance += logical.distance_to(entry.last_position)
 	else:

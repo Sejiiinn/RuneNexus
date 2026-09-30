@@ -112,7 +112,7 @@ func retry_load() -> bool:
 		return false
 	var result: Error = checkpoint.load_session(self)
 	if result == ERR_FILE_NOT_FOUND:
-		var empty: Dictionary = SaveCodec.decode({"version":2,"progression":{},"turretModules":{},"preferences":{},"activeRun":null})
+		var empty: Dictionary = SaveCodec.decode({"version":2,"progression":run_domain.growth.data.defaultProgression,"turretModules":{},"preferences":{},"activeRun":null})
 		progression_inputs = empty.progression.duplicate(true)
 		progression_inputs.turretModules = empty.turretModules.duplicate(true)
 		if checkpoint.owner != "guest" and not queue.state.get("lastServerSnapshot", {}).is_empty():
@@ -143,7 +143,7 @@ func start_stage(index: int) -> bool:
 		return false
 	if startup_blocked or index < 0 or index >= stage_count(): return false
 	var progression: Dictionary = progression_inputs if run_domain.state.is_empty() else run_domain.state.progression
-	if int(catalog.stage(index).id) > int(progression.get("unlockedStageCount", 1)):
+	if not StageProgression.stage_unlocked(progression,int(catalog.stage(index).id)):
 		checkpoint.message = "아직 잠긴 스테이지입니다"
 		return false
 	if save_failed and not persist_progression(): return false
@@ -327,7 +327,8 @@ func retry_stage() -> bool:
 	return start_stage(stage)
 
 func enter_next() -> void:
-	start_stage(stage + 1)
+	var ordinal := StageProgression.ordinal_for(int(catalog.stage(stage).id))
+	if ordinal > 0 and ordinal < StageProgression.ORDER.size(): start_stage(int(StageProgression.ORDER[ordinal])-1)
 
 func exit_stage() -> void:
 	show_lobby()

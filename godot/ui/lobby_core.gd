@@ -1,4 +1,5 @@
 extends RefCounted
+const Progression = preload("res://content/stage_progression.gd")
 ## Flutter's 720-unit core tree, with persistent viewport and uncommitted ranks.
 const AppTheme = preload("res://ui/app_theme.gd")
 const ROOT := "core_passive_tree/"
@@ -440,7 +441,7 @@ func skills() -> void:
 	var box := _open_inline("코어 스킬 선택")
 	var current := str(lobby._p().get("coreCombatSkill",""))
 	for id in ["guardianBeam","riftMark"]:
-		var unlocked: bool = id == "guardianBeam" or int(lobby._p().get("unlockedStageCount",1)) >= 6
+		var unlocked: bool = Progression.has_unlock(lobby._p(), "core", id)
 		var row := HBoxContainer.new()
 		box.add_child(row)
 		var image := TextureRect.new()
@@ -453,7 +454,7 @@ func skills() -> void:
 		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(text)
 		text.add_child(AppTheme.label(lobby._title(id) + (" · 장착 중" if current == id else ""),15))
-		var description := "5초마다 자동 발동\n가장 앞선 적에게 광선을 발사하며 포탑 화력에 비례해 피해가 증가합니다." if id == "guardianBeam" else ("10초마다 자동 발동\n내구도가 높은 적 4명의 받는 모든 피해를 기본 25% 증폭합니다. 코어 스킬 위력에 비례하며 보스는 절반입니다." if unlocked else "챕터 2 해금\n스테이지 6에 도달하면 균열 낙인을 장착할 수 있습니다.")
+		var description := "5초마다 자동 발동\n가장 앞선 적에게 광선을 발사하며 포탑 화력에 비례해 피해가 증가합니다." if id == "guardianBeam" else ("10초마다 자동 발동\n내구도가 높은 적 4명의 받는 모든 피해를 기본 25% 증폭합니다. 코어 스킬 위력에 비례하며 보스는 절반입니다." if unlocked else "챕터 2 해금\n스테이지 1-10을 클리어하면 균열 낙인을 장착할 수 있습니다.")
 		text.add_child(AppTheme.label(description,12))
 		action(box,"해제" if current == id else ("장착" if unlocked else "잠김 · 챕터 2 해금"),func():
 			lobby._change({"kind":"unequipCoreCombatSkill" if current == id else "equipCoreCombatSkill","id":id})

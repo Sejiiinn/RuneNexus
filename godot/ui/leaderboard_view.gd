@@ -1,4 +1,5 @@
 extends RefCounted
+const Progression = preload("res://content/stage_progression.gd")
 ## The leaderboard keeps its header and own rank outside the scrolling list.
 const T = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/game_modal_frame.gd")
@@ -136,7 +137,7 @@ static func _record_row(lobby, parent: Control, entry: Dictionary, mine := false
 		progress.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		content.add_child(progress)
 	else: cells.add_child(progress)
-	for value in ["스테이지 %d" % int(entry.get("stageNumber", 0)), "%d / 40 라운드" % int(entry.get("completedRounds", 0))]:
+	for value in ["스테이지 %s" % Progression.stage_label(int(entry.get("stageNumber", 0))), "%d / 40 라운드" % int(entry.get("completedRounds", 0))]:
 		var value_label := _label(lobby, value, 12, Color("d5e9f2"), 700)
 		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		progress.add_child(value_label)

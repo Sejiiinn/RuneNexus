@@ -11,6 +11,9 @@ const ChapterThreeProps = preload("res://environment/chapter_three_props.gd")
 const ChapterThreeTiles = preload("res://environment/chapter_three_tiles.gd")
 const ChapterTwoEnvironment = preload("res://environment/chapter_two_environment.gd")
 const BattlefieldCamera = preload("res://session/battlefield_camera.gd")
+const TeleportDevice = preload("res://environment/teleport_device.gd")
+const TeleportHostCut = preload("res://environment/teleport_host_cut.gd")
+const TeleportPairs = preload("res://combat/teleport_pairs.gd")
 const REFLECTION_TERRAIN_LAYER := 1 << 1
 const REFLECTION_CRYSTAL_LAYER := 1 << 2
 
@@ -28,6 +31,7 @@ var _chapter_three_props_library: Node3D
 var _chapter_three_terrain_library: Node3D
 var _chapter_two_terrain_library: Node3D
 var _chapter_two_paving_library: Node3D
+var _chapter_two_expansion_paving_loaded := false
 var _chapter_two_props_library: Node3D
 var _environment_geology_library: Node3D
 var _environment_props_library: Node3D
@@ -50,6 +54,8 @@ var _current_map := {}
 var _using_authored := false
 var _portals: Array[Node3D] = []
 var _cores: Array[Dictionary] = []
+var _teleport_devices: Array[Node3D] = []
+var _teleport_cut_report := {}
 
 func _init(terrain_node: Node3D, environment: Environment, sun_light: DirectionalLight3D, fill_light: DirectionalLight3D) -> void:
 	terrain = terrain_node
@@ -170,6 +176,10 @@ func build_terrain(map: Dictionary) -> bool:
 	if next_columns <= 0 or next_rows <= 0 or tiles.size() != next_columns * next_rows:
 		_fail("3D 전장의 맵 크기와 타일 수가 맞지 않습니다.")
 		return false
+	var teleport_error := TeleportPairs.validate_map(map)
+	if not teleport_error.is_empty():
+		_fail("텔레포트 맵 계약 오류: " + teleport_error)
+		return false
 	var theme := str(map.get("theme", "chapterOne"))
 	if theme not in ["chapterOne", "chapterTwoRift", "chapterThreeForge"]:
 		_fail("지원하지 않는 3D 전장 테마: " + theme)
@@ -200,6 +210,8 @@ func build_terrain(map: Dictionary) -> bool:
 		child.free()
 	_portals.clear()
 	_cores.clear()
+	_teleport_devices.clear()
+	_teleport_cut_report.clear()
 	# 이전 맵의 인스턴스를 해제한 뒤 다음 원본을 읽어 대형 지형 캐시가 누적되지 않게 한다.
 	if matched_manifest.is_empty():
 		_release_chapter_environment()
@@ -303,8 +315,36 @@ func build_terrain(map: Dictionary) -> bool:
 	if chapter_two and not _using_chapter_environment and not ChapterTwoEnvironment.populate(terrain, _chapter_two_props_library, map):
 		_fail("챕터 2 환경 소품의 배치 계약을 확인하지 못했습니다.")
 		return false
+	if not _build_teleport_devices(map):
+		return false
 	# JSON 숫자형까지 보존해 같은 맵을 매 프레임 재생성하지 않음.
 	_current_map = map.duplicate(true)
+	return true
+
+
+func _build_teleport_devices(map: Dictionary) -> bool:
+	var pairs: Array = map.get("teleportPairs", [])
+	if pairs.is_empty(): return true
+	var centers: Array[Vector3] = []
+	for pair: Dictionary in pairs:
+		for role in ["entrance", "exit"]:
+			var cell: Array = pair[role]
+			centers.append(Vector3(float(cell[0]) + 0.5 - columns / 2.0, 0.0, float(cell[1]) + 0.5 - rows / 2.0))
+	_teleport_cut_report = TeleportHostCut.apply(terrain, centers)
+	var endpoint := 0
+	for pair: Dictionary in pairs:
+		for role in ["entrance", "exit"]:
+			var device := TeleportDevice.new()
+			device.name = "Teleport_%s_%s" % [str(pair.color), role]
+			if not device.configure(str(pair.color), role == "exit"):
+				device.free()
+				_fail("텔레포트 모델을 준비하지 못했습니다.")
+				return false
+			device.position = centers[endpoint]
+			device.set_meta("grid_cell", Vector2i(int(pair[role][0]), int(pair[role][1])))
+			terrain.add_child(device)
+			_teleport_devices.append(device)
+			endpoint += 1
 	return true
 
 
@@ -395,6 +435,10 @@ func _prepare_chapter_environment(manifest: Dictionary) -> bool:
 				var material := mesh.get_active_material(surface) as StandardMaterial3D
 				if material:
 					material.refraction_enabled = false
+					if stage >= 21 and material.resource_name == "ch2_crystal_mineral_facets":
+						# 승인 원본 IOR Level=.28 → KHR specularFactor=.56.
+						# Godot importer가 이 확장을 무시해 기본 .5로 읽는 손실만 복원한다.
+						material.metallic_specular = 0.28
 	return true
 
 
@@ -496,6 +540,23 @@ func _build_chapter_two_paving(tiles: Array) -> bool:
 		var variant := "%s_tile_mask_%d" % [kind, mask]
 		if not groups.has(variant):
 			var root := _chapter_two_paving_library.find_child(variant, true, false) as Node3D
+			if root == null and not _chapter_two_expansion_paving_loaded:
+				# 기존 맵 마스크·재질을 유지하고 새 맵의 인접 형태만 저장된 타일 파생 원본에서 읽는다.
+				var expansion := load("res://assets/environment/chapter2_tiles_expansion.glb") as PackedScene
+				if expansion != null:
+					var extra := expansion.instantiate()
+					prepare_vertex_colors(extra)
+					_prepare_terrain_surfaces(extra)
+					for mesh: MeshInstance3D in extra.find_children("*", "MeshInstance3D", true, false):
+						for surface in range(mesh.mesh.get_surface_count()):
+							var material := mesh.get_active_material(surface) as StandardMaterial3D
+							if material:
+								material.refraction_enabled = false
+								material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+								mesh.mesh.surface_set_material(surface,material)
+					_chapter_two_paving_library.add_child(extra)
+					_chapter_two_expansion_paving_loaded = true
+					root = _chapter_two_paving_library.find_child(variant,true,false) as Node3D
 			if root == null or root.get_child_count() != 1 or not root.get_child(0) is MeshInstance3D:
 				_fail("챕터 2 병합 타일 노드 누락: " + variant)
 				return false
@@ -589,6 +650,8 @@ func update_occupancy(units: Array, supported_types: Dictionary) -> void:
 
 func update_frame(frame: Dictionary) -> void:
 	var time := float(frame.get("time", 0.0))
+	for device in _teleport_devices:
+		device.update_time(time)
 	_portal_material.set_shader_parameter("battle_time", time)
 	_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
 	var core_hit := clampf(float(frame.get("nexusHit", 0.0)), 0.0, 1.0)
@@ -605,6 +668,8 @@ func clear() -> void:
 		child.free()
 	_portals.clear()
 	_cores.clear()
+	_teleport_devices.clear()
+	_teleport_cut_report.clear()
 	_current_map = {}
 	_using_authored = false
 	_using_dressing = false

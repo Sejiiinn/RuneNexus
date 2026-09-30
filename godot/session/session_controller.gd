@@ -1,4 +1,5 @@
 extends Node
+const StageProgression = preload("res://content/stage_progression.gd")
 ## Shared content session orchestration; app and development UI own their lifecycle.
 const Catalog = preload("res://content/content_catalog.gd")
 var progression_inputs: Dictionary = {}
@@ -66,7 +67,11 @@ func settle_pending_rewards(context: Dictionary, sync_save: Callable, transport:
 	return await reward_worker.settle_next(context, sync_save, apply_snapshot, transport)
 
 func enter_next() -> void:
-	if stage_count() > 0 and _can_replace_run(): enter_stage((stage + 1) % stage_count())
+	if stage_count() <= 0 or not _can_replace_run(): return
+	if is_content_session():
+		var ordinal := StageProgression.ordinal_for(int(catalog.stage(stage).id))
+		if ordinal > 0 and ordinal < StageProgression.ORDER.size(): enter_stage(int(StageProgression.ORDER[ordinal])-1)
+	else: enter_stage((stage + 1) % stage_count())
 
 func retry_stage() -> bool:
 	if not _can_replace_run(): return false

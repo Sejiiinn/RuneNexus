@@ -1,4 +1,5 @@
 extends RefCounted
+const StageProgression = preload("res://content/stage_progression.gd")
 ## Pure progression transitions. Account currency is only granted by economy receipts.
 const DAILY := {"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5}
 const WEEKLY := {"clearWaves": 150, "killBosses": 15, "killEnemies": 500, "buyRunUpgrades": 25}
@@ -83,7 +84,7 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 	var reward := 0
 	if rounds > 0:
 		var progress := (pow(1.04, clampi(rounds, 0, 40)) - 1.0) / (pow(1.04, 40) - 1.0)
-		reward = maxi(1, int(round(150.0 * progress * pow(1.18, clampi(stage, 1, 15) - 1) * (1.0 + resonance))))
+		reward = maxi(1, int(round(150.0 * progress * pow(1.18, maxi(1, StageProgression.reward_ordinal(stage)) - 1) * (1.0 + resonance))))
 	p.lastRunRuneReward = reward
 	p.runes = int(p.get("runes", 0)) + reward
 	p.lastRunCorePointReward = 0
@@ -100,8 +101,12 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 			p.bestRoundsByStage[str(stage)] = maxi(int(p.bestRoundsByStage.get(str(stage), 0)), rounds)
 		if success and not stage in cleared: cleared.append(stage)
 	p.clearedStageNumbers = cleared
-	var unlocked := int(p.get("unlockedStageCount", 1))
-	if success and stage >= unlocked and unlocked < 15: p.unlockedStageCount = mini(15, stage + 1)
+	if p.has("progressionVersion"):
+		p = StageProgression.migrate_progression(p)
+	else:
+		# Historical fixture/save compatibility; formal app migrates before play.
+		var unlocked := int(p.get("unlockedStageCount", 1))
+		if success and stage >= unlocked and unlocked < 15: p.unlockedStageCount = mini(15, stage + 1)
 	p.lastRunTurretModuleTicketReward = maxi(0, int(event.get("firstClearTurretModuleTicketReward", 0))) if first else 0
 	if bool(event.get("grantEconomyRewardsLocally", false)):
 		if not p.has("turretModules"): p.turretModules = {}
