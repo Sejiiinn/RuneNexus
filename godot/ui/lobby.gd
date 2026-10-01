@@ -474,7 +474,12 @@ func _layout_modal() -> void:
 	var width := minf(float(modal.get_meta("max_width", 420)), available.x - 32)
 	var header: Control = modal_frame.get_child(0).get_child(0)
 	var header_height := header.get_combined_minimum_size().y + 8 if header.visible else 0.0
-	var height := minf(maxf(100, modal_body.get_combined_minimum_size().y + 32 + header_height), available.y - 32)
+	var body_height := modal_body.get_combined_minimum_size().y
+	# A list with fixed surrounding controls has no intrinsic scroll height.
+	var content_height_source: Control = modal.get_meta("content_height_source") if modal.has_meta("content_height_source") else null
+	if is_instance_valid(content_height_source):
+		body_height += content_height_source.get_combined_minimum_size().y
+	var height := minf(maxf(100, body_height + 32 + header_height), available.y - 32)
 	if modal.has_meta("height_fraction"):
 		height = minf(available.y * float(modal.get_meta("height_fraction")), available.y - 32)
 	modal_frame.size = Vector2(width, height)

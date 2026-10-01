@@ -4,6 +4,7 @@ const T = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const GrowthUI = preload("res://ui/lobby_growth.gd")
 const CollectionUI = preload("res://ui/lobby_collection.gd")
+const ModuleDrawResults = preload("res://ui/module_draw_results.gd")
 const LeaderboardView = preload("res://ui/leaderboard_view.gd")
 const MailboxView = preload("res://ui/mailbox_view.gd")
 const MODULE_DIAMONDS := {"normal":2,"magic":5,"rare":20,"unique":50}
@@ -384,6 +385,9 @@ func _command(body: VBoxContainer) -> void:
 		body.add_child(T.label("계정 메뉴에서 이용할 기능을 선택해 주세요.",12))
 		return
 	if data.has("economy"):
+		if page == "모듈 뽑기":
+			ModuleDrawResults.build(lobby, body, data.get("drawnModules", []))
+			return
 		body.add_child(T.label({"모듈 뽑기":"모듈을 획득했습니다.","모듈 분해":"모듈을 분해했습니다.","모듈 일괄 분해":"모듈을 분해했습니다.","연구 즉시 완료":"연구를 즉시 완료했습니다.","연구 슬롯 구매":"연구 슬롯을 해금했습니다."}.get(page,"완료했습니다."),16))
 		if data.has("drawnModules"):
 			for item in data.drawnModules:

@@ -54,6 +54,7 @@ SCRIPTS = {
     "verify_lobby_growth.gd": "PASS growth pages:",
     "verify_research_stop.gd": "PASS research stop:",
     "verify_ui_confirmations.gd": "PASS ui confirmations:",
+    "verify_module_draw_results.gd": "PASS module draw results:",
     "verify_lobby_core.gd": "PASS lobby core:",
     "verify_lobby_collection.gd": "PASS lobby_collection:",
     "verify_quest_claim_ui.gd": "QUEST_CLAIM_UI checks=",
@@ -100,7 +101,7 @@ def prepare(directory: Path, executable: str) -> Path:
     for folder in ("combat", "app", "fixtures", "content", "session", "ui", "services"):
         (project / folder).mkdir(parents=True, exist_ok=True)
     for folder in ("session", "ui", "content", "services"):
-        copy_files(ROOT / "godot" / folder, project / folder, {".gd", ".json"})
+        copy_files(ROOT / "godot" / folder, project / folder, {".gd", ".gdshader", ".json"})
     copy_files(ROOT / "godot/app", project / "app", {".gd"})
     copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
     for name in ("inputs", "expected"):
