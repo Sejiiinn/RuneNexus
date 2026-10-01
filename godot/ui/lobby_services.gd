@@ -7,6 +7,7 @@ const CollectionUI = preload("res://ui/lobby_collection.gd")
 const ModuleDrawResults = preload("res://ui/module_draw_results.gd")
 const LeaderboardView = preload("res://ui/leaderboard_view.gd")
 const MailboxController = preload("res://ui/mailbox_controller.gd")
+const EconomyService = preload("res://services/economy_service.gd")
 const MODULE_DIAMONDS := {"normal":2,"magic":5,"rare":20,"unique":50}
 var lobby
 var page := ""
@@ -147,7 +148,7 @@ func _show_result(result: Dictionary) -> void:
 	notice = "완료했습니다" if result.get("ok",false) else _error(str(result.get("code","REQUEST_FAILED")))
 
 func _error(code: String) -> String:
-	return {"ACCOUNT_REQUIRED":"계정 연결이 필요합니다.","BUSY":"이전 요청을 처리하고 있습니다.","NICKNAME_REQUIRED":"닉네임을 먼저 설정해 주세요.","NICKNAME_ALREADY_SET":"이미 닉네임이 설정되었습니다. 계정 상태를 다시 확인해 주세요.","SAVE_SYNC_REQUIRED":"진행 상황 동기화 후 다시 시도해 주세요.","SAVE_WRITER_REPLACED":"다른 기기에서 접속했습니다. 동기화 다시 시도를 눌러 주세요.","CLIENT_UPDATE_REQUIRED":"새 버전으로 업데이트해야 합니다.","GOOGLE_SIGN_IN_CANCELLED":"계정 연결을 취소했습니다.","sign_in_cancelled":"계정 연결을 취소했습니다.","invalid_credential":"Google 인증 정보를 확인하지 못했습니다. Google 계정을 다시 선택해 주세요.","sign_in_unavailable":"Google 로그인 요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.","SAVE_RELOAD_REQUIRED":"서버 진행 상황을 불러오고 있습니다.","INSUFFICIENT_DIAMONDS":"다이아가 부족합니다.","INSUFFICIENT_MODULE_TICKETS":"모듈권이 부족합니다.","ECONOMY_REVISION_CONFLICT":"재화 정보가 갱신되었습니다. 확인 후 다시 시도해 주세요.","MAIL_UNAVAILABLE":"수령할 수 없는 우편입니다."}.get(code,"요청을 완료하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
+	return {"ACCOUNT_REQUIRED":"계정 연결이 필요합니다.","BUSY":"이전 요청을 처리하고 있습니다.","NICKNAME_REQUIRED":"닉네임을 먼저 설정해 주세요.","NICKNAME_ALREADY_SET":"이미 닉네임이 설정되었습니다. 계정 상태를 다시 확인해 주세요.","SAVE_SYNC_REQUIRED":"진행 상황 동기화 후 다시 시도해 주세요.","SAVE_WRITER_REPLACED":"다른 기기에서 접속했습니다. 동기화 다시 시도를 눌러 주세요.","CLIENT_UPDATE_REQUIRED":"새 버전으로 업데이트해야 합니다.","GOOGLE_SIGN_IN_CANCELLED":"계정 연결을 취소했습니다.","sign_in_cancelled":"계정 연결을 취소했습니다.","invalid_credential":"Google 인증 정보를 확인하지 못했습니다. Google 계정을 다시 선택해 주세요.","sign_in_unavailable":"Google 로그인 요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.","SAVE_RELOAD_REQUIRED":"서버 진행 상황을 불러오고 있습니다.","INSUFFICIENT_DIAMONDS":"다이아가 부족합니다.","INSUFFICIENT_MODULE_TICKETS":"모듈권이 부족합니다.","DRAW_QUOTE_CHANGED":"모듈권 사용량이나 다이아 비용이 변경되었습니다. 새 비용을 확인한 뒤 다시 확인을 눌러 주세요.","ECONOMY_REVISION_CONFLICT":"재화 정보가 갱신되었습니다. 확인 후 다시 시도해 주세요.","MAIL_UNAVAILABLE":"수령할 수 없는 우편입니다."}.get(code,"요청을 완료하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
 
 func _login() -> void:
 	var captured := view_epoch
@@ -241,10 +242,13 @@ func _command(body: VBoxContainer) -> void:
 	if page == "모듈 뽑기":
 		var count := int(values.get("count",1))
 		var tickets := int(lobby._p().get("turretModules",{}).get("tickets",0))
-		var diamonds := maxi(0,count-tickets)*40
-		body.add_child(T.label("모듈 %d개를 획득합니다. 모듈권 %d장%s" % [count,mini(tickets,count)," · 다이아 %d개" % diamonds if diamonds > 0 else ""],14))
+		var quote := EconomyService.draw_quote(count,tickets)
+		var diamonds := int(quote.diamonds)
+		body.add_child(T.label("모듈 %d개를 획득합니다. 모듈권 %d장%s" % [count,quote.moduleTickets," · 다이아 %d개" % diamonds if diamonds > 0 else ""],14))
 		values.buyMissingTicketsWithDiamonds = diamonds > 0
+		values.approvedDrawQuote = quote
 		var confirm := _button(body,"확인",_perform.bind(actions[page],values))
+		confirm.name = "DrawModulesConfirm"
 		confirm.disabled = confirm.disabled or lobby.diamonds() < diamonds
 
 func _framed_row(parent: Node) -> HBoxContainer:
@@ -432,7 +436,17 @@ func _disassembly_confirmation(body: VBoxContainer) -> void:
 func _perform(action: String, values: Dictionary) -> void:
 	if pending or _services() == null or _services().busy: return
 	var request := values.duplicate(true)
-	if action == "disassemble_modules":
+	if action == "draw_modules":
+		var quote := EconomyService.draw_quote(int(values.get("count",1)),int(lobby._p().get("turretModules",{}).get("tickets",0)))
+		if values.get("approvedDrawQuote") != quote:
+			notice = _error("DRAW_QUOTE_CHANGED")
+			_render()
+			return
+		if lobby.diamonds() < quote.diamonds:
+			notice = _error("INSUFFICIENT_DIAMONDS")
+			_render()
+			return
+	elif action == "disassemble_modules":
 		var current := _module_plan()
 		if current.signature != module_confirmation or current.items.is_empty():
 			notice = "분해 대상이 변경되었습니다. 새 목록을 확인해 주세요."

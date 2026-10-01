@@ -48,8 +48,8 @@ func prepare_run_transition() -> bool:
 		run_domain.state.phase = "failure"
 	var terminal: Dictionary = run_domain.state.duplicate(true)
 	run_domain.state = previous
-	# Both durable writes precede scene replacement. On failure the live run stays.
-	if checkpoint.persist_state(self, terminal, abandoning) != OK: return false
+	# A slot-local journal commits both resources or restores the resumable run.
+	if checkpoint.persist_state(self, terminal, abandoning, previous) != OK: return false
 	run_domain.state = terminal
 	progression_inputs = terminal.progression.duplicate(true)
 	if abandoning:

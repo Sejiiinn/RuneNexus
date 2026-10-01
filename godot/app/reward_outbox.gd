@@ -8,20 +8,30 @@ var loaded := false
 func _init(base_directory: String = "user://", account_owner: String = "guest") -> void:
 	super(base_directory)
 	owner = account_owner.to_lower()
+	transition_owner = owner
 	_valid_slot = owner == "guest" or Slot.account(owner) != null
 	var directory := base_directory.path_join("saves/guest" if owner == "guest" else "saves/accounts/" + owner)
 	primary_path = directory.path_join("godot_reward_outbox.json" if owner == "guest" else "economy_outbox.json")
 	backup_path = primary_path + ".backup"
 
+func _begin() -> bool:
+	var ok: bool = super._begin()
+	if not ok:
+		loaded = false
+		state = {}
+	return ok
+
 func load_state() -> Error:
 	if not _begin(): return last_error
 	loaded = false
+	state = {}
 	var existed := false
 	for path in [primary_path, backup_path]:
 		for suffix in ["", ".tmp", ".replace"]:
 			existed = existed or FileAccess.file_exists(path + suffix)
 		if _recover(path) != OK: return last_error
 		var value: Variant = _read_json(path)
+		if last_error != OK: return last_error
 		if valid_state(value):
 			if path == backup_path and _write_atomic(primary_path, JSON.stringify(value)) != OK: return last_error
 			state = value
@@ -37,6 +47,7 @@ func save_state(next: Dictionary) -> Error:
 	if not loaded or not valid_state(next): return _fail(ERR_INVALID_DATA, "Invalid or unread reward outbox")
 	if _recover(primary_path) != OK: return last_error
 	var old: Variant = _read_json(primary_path)
+	if last_error != OK: return last_error
 	if FileAccess.file_exists(primary_path) and not valid_state(old): return _fail(ERR_FILE_CORRUPT, "Refusing to overwrite corrupt outbox")
 	var raw := JSON.stringify(next, "", false, true)
 	if old != null and JSON.stringify(old, "", false, true) == raw:
@@ -90,10 +101,15 @@ static func valid_reward(value: Variant) -> bool:
 func _recover(path: String) -> Error:
 	if not FileAccess.file_exists(path):
 		for suffix in [".replace", ".tmp"]:
-			if FileAccess.file_exists(path + suffix) and valid_state(_read_json(path + suffix)):
+			if not FileAccess.file_exists(path + suffix): continue
+			var pending: Variant = _read_json(path + suffix)
+			if last_error != OK: return last_error
+			if valid_state(pending):
 				if _rename(path + suffix, path) != OK: return last_error
 				break
-	if FileAccess.file_exists(path) and valid_state(_read_json(path)):
+	var current: Variant = _read_json(path)
+	if last_error != OK: return last_error
+	if current != null and valid_state(current):
 		for suffix in [".replace", ".tmp"]:
 			if _remove(path + suffix) != OK: return last_error
 	return OK

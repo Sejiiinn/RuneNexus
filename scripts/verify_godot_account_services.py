@@ -38,7 +38,8 @@ def main():
         project = Path(directory)
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Isolated account checks"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         for folder, files in {
-            "app": ["save_codec.gd", "save_json.gd", "local_save_slot.gd", "local_save_store.gd"],
+            "app": ["save_codec.gd", "save_json.gd", "local_save_slot.gd", "local_save_store.gd",
+                    "run_transition_journal.gd", "reward_outbox.gd", "reward_settlement.gd"],
             "services": ["http_transport.gd", "durable_record.gd", "account_session.gd", "online_save.gd", "save_payload_hash.gd"],
         }.items():
             (project / folder).mkdir()

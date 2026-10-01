@@ -139,13 +139,15 @@ def prepare(directory: Path, executable: str) -> Path:
 
 def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
+    # Transition durability cases deliberately restart isolated Godot processes.
+    timeout = 60 if name == "verify_run_transition.gd" else 20
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],
                                  env={**os.environ, "TMPDIR": str(temporary)},
-                                 text=True, capture_output=True, timeout=20)
+                                 text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
-        raise RuntimeError(f"{name} timed out after 20s: {error.stdout} {error.stderr}") from error
+        raise RuntimeError(f"{name} timed out after {timeout}s: {error.stdout} {error.stderr}") from error
     output = f"{process.stdout}\n{process.stderr}"
     if process.returncode or ERROR.search(output):
         raise RuntimeError(f"{name} failed (exit {process.returncode}):\n{output}")

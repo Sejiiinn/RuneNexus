@@ -92,6 +92,12 @@ func retry_load() -> bool:
 	if not startup_blocked: return true
 	if not catalog.is_loaded() or run_domain.growth.data.is_empty():
 		if not catalog.load_catalog() or not run_domain.growth.load_catalog(): return false
+	# Resolve a durable transition before probing individual files: an interrupted
+	# first checkpoint may only have a partial .tmp, with valid undo in the journal.
+	if not checkpoint.store._begin():
+		checkpoint.message = checkpoint.store.last_error_message
+		_refresh_ui()
+		return false
 	# The store may restore a valid backup. If neither file is readable, preserve
 	# both for explicit repair and never mistake damaged data for a new player.
 	var existing := false

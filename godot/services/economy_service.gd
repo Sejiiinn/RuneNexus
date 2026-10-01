@@ -3,6 +3,7 @@ extends Node
 const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
 const COMPATIBILITY := 4
+const MODULE_TICKET_DIAMONDS := 40
 signal changed
 var account
 var outbox
@@ -41,7 +42,8 @@ func execute(action: String, values: Dictionary = {}) -> Dictionary:
 	if outbox.owner == "guest" or not _bound(generation): return _failure("ACCOUNT_REQUIRED")
 	busy = true
 	var token := generation
-	var result: Dictionary = await _run(action, values, token)
+	# A caller's confirmation must remain immutable across refresh and sync awaits.
+	var result: Dictionary = await _run(action, values.duplicate(true), token)
 	busy = false
 	if not _bound(token): return _failure("STALE_BINDING")
 	issue = "" if result.get("ok", false) else str(result.get("code", "REQUEST_FAILED"))
@@ -67,6 +69,15 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 	if action == "refresh": return {"ok": true, "body": snapshot}
 	var sync: Dictionary = await _sync(token)
 	if not sync.get("ok", false): return sync
+	if action == "draw_modules":
+		# _load, recovered commands, run settlements and save synchronization may
+		# change the wallet after the user approved a price. Compare before a new
+		# outbox command/key exists; an already persisted command replays unchanged.
+		var quote := draw_quote(int(values.get("count",1)), int(snapshot.wallet.moduleTickets))
+		if values.get("approvedDrawQuote") != quote or values.get("buyMissingTicketsWithDiamonds",false) != (quote.diamonds > 0):
+			return _failure("DRAW_QUOTE_CHANGED")
+		if int(snapshot.wallet.freeDiamonds) + int(snapshot.wallet.paidDiamonds) < quote.diamonds:
+			return _failure("INSUFFICIENT_DIAMONDS")
 	var body := {"expectedEconomyRevision":snapshot.economyRevision,"expectedCatalogVersion":snapshot.catalogVersion,"clientCompatibilityVersion":COMPATIBILITY}
 	var kind := action
 	var path := ""
@@ -103,6 +114,10 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 		var applied: Dictionary = await _effects(token)
 		if not applied.get("ok",false): return applied
 	return result
+
+static func draw_quote(count: int, tickets: int) -> Dictionary:
+	var used := mini(count,maxi(0,tickets))
+	return {"moduleTickets":used,"diamonds":maxi(0,count-used)*MODULE_TICKET_DIAMONDS}
 
 func _sync(token: int) -> Dictionary:
 	var result: Dictionary = await callbacks.sync.call()

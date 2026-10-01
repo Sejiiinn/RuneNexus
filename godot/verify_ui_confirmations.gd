@@ -52,6 +52,7 @@ func _verify() -> void:
 	await _slot_checks(lobby, app)
 	await _module_checks(lobby, app)
 	await _module_identity_checks(lobby, app)
+	await _draw_checks(lobby, app)
 	print("PASS ui confirmations: preview, explicit confirm, single flight, stale state, module target/refund, 320x568")
 	lobby.free()
 	quit()
@@ -329,3 +330,53 @@ func _labels(node: Node) -> Array[Label]:
 	if node is Label: result.append(node)
 	for child in node.get_children(): result.append_array(_labels(child))
 	return result
+
+func _draw_checks(lobby: Control, app: FakeApp) -> void:
+	app.services.calls.clear()
+	app.progression_inputs.freeDiamonds = 1000
+	app.progression_inputs.turretModules.tickets = 4
+	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
+	await _settle(lobby)
+	assert(_text(lobby.modal_body).contains("모듈권 4장 · 다이아 40개"))
+	var confirm := _button(lobby.modal_body,"확인")
+	app.progression_inputs.turretModules.tickets = 2
+	confirm.pressed.emit()
+	assert(app.services.calls.is_empty(),"Changed local draw quote requires review before service invocation")
+	await _settle(lobby)
+	assert(_text(lobby.modal_body).contains("모듈권 2장 · 다이아 120개") and _text(lobby.modal_body).contains("새 비용을 확인"))
+	assert(Rect2(Vector2.ZERO,Vector2(320,568)).encloses(lobby.modal_frame.get_global_rect()),"Reconfirmation modal remains inside 320x568")
+	assert(_button(lobby.modal_body,"확인").size.y >= 32,"Draw confirmation preserves its existing button size")
+	confirm = _button(lobby.modal_body,"확인")
+	confirm.pressed.emit()
+	assert(app.services.calls.size()==1 and app.services.calls.back().values.approvedDrawQuote == {"moduleTickets":2,"diamonds":120},"Confirmed ticket usage and diamond cost survive internal service invocation")
+	confirm.pressed.emit()
+	assert(app.services.calls.size()==1,"Draw pending ignores duplicate confirmation")
+	# The service publishes a new wallet after loading or settlement and refuses
+	# the old quote. The existing modal must display that wallet for reconfirmation.
+	app.progression_inputs.turretModules.tickets = 5
+	app.services.response = {"ok":false,"code":"DRAW_QUOTE_CHANGED"}
+	app.services.release_request.emit()
+	await _settle(lobby)
+	assert(_text(lobby.modal_body).contains("모듈권 5장") and not _text(lobby.modal_body).contains("다이아 120개") and _text(lobby.modal_body).contains("다시 확인"))
+	confirm = _button(lobby.modal_body,"확인")
+	confirm.pressed.emit()
+	assert(app.services.calls.size()==2 and app.services.calls.back().values.approvedDrawQuote == {"moduleTickets":5,"diamonds":0} and not app.services.calls.back().values.buyMissingTicketsWithDiamonds,"Paid to free reconfirmation preserves the new free quote")
+	lobby.close_modal()
+	app.services.release_request.emit()
+	await _settle(lobby)
+	assert(lobby.modal == null,"Quote change cannot reopen a closed draw view")
+	app.services.calls.clear()
+	app.progression_inputs.turretModules.tickets = 4
+	app.progression_inputs.freeDiamonds = 39
+	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
+	await _settle(lobby)
+	assert(_button(lobby.modal_body,"확인").disabled,"Insufficient balance disables draw confirmation")
+	assert(app.services.calls.is_empty())
+	app.progression_inputs.freeDiamonds = 40
+	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
+	await _settle(lobby)
+	confirm = _button(lobby.modal_body,"확인")
+	app.progression_inputs.freeDiamonds = 39
+	confirm.pressed.emit()
+	assert(app.services.calls.is_empty() and _text(lobby.modal_body).contains("다이아가 부족"),"Balance loss after preview cannot spend")
+	lobby.close_modal()

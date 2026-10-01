@@ -13,6 +13,9 @@ var backup_path: String
 var conflict_path: String
 var legacy_path: String
 var _valid_slot: bool = true
+var transition_recovery_enabled := true
+var transition_directory: String
+var transition_owner: String
 
 func _init(base_directory: String = "user://", slot = null, legacy_file: String = "") -> void:
 	if slot == null:
@@ -20,6 +23,8 @@ func _init(base_directory: String = "user://", slot = null, legacy_file: String 
 	_valid_slot = slot.is_valid()
 	if not _valid_slot:
 		return
+	transition_directory = base_directory
+	transition_owner = "guest" if slot.is_guest() else slot.account_id.to_lower()
 	var directory: String = base_directory.path_join("saves/guest" if slot.is_guest() else "saves/accounts/" + slot.account_id.to_lower())
 	primary_path = directory.path_join("save_v2.json")
 	backup_path = directory.path_join("save_v2.backup.json")
@@ -31,7 +36,11 @@ func _begin() -> bool:
 	last_error_message = ""
 	if not _valid_slot:
 		_fail(ERR_INVALID_PARAMETER, "Invalid account save slot")
-	return _valid_slot
+	if _valid_slot and transition_recovery_enabled:
+		var journal = load("res://app/run_transition_journal.gd").new(transition_directory, transition_owner)
+		if journal.recover_transaction(self) != OK:
+			_fail(journal.last_error, journal.last_error_message)
+	return _valid_slot and last_error == OK
 
 func _fail(code: Error, context: String) -> Error:
 	if last_error == OK:

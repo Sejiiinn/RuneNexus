@@ -7,7 +7,9 @@ const ACCOUNT := "00000000-0000-4000-8000-000000000001"
 class CountingOutbox extends Outbox:
 	var writes := 0
 	var reject_writes := false
+	var draw_commands := 0
 	func save_state(next: Dictionary) -> Error:
+		if next.get("inFlight") is Dictionary and next.inFlight.kind == "draw_modules" and state.get("inFlight") == null: draw_commands += 1
 		if reject_writes: return ERR_FILE_CANT_WRITE
 		return super.save_state(next)
 	func _write_atomic(path: String, contents: String) -> Error:
@@ -32,10 +34,12 @@ var synced := true
 var directory := ""
 var local_current := true
 var reject_snapshot := false
+var sync_hook: Callable
 func _initialize(): call_deferred("run")
 func check(value: bool, label: String):
 	if not value: failures.append(label)
 func sync() -> Dictionary:
+	if sync_hook.is_valid(): sync_hook.call()
 	return {"ok":synced,"accountId":ACCOUNT,"sourceSaveRevision":8,"writerGeneration":2}
 func apply(value: Dictionary) -> bool:
 	applied.append(value.duplicate(true))
@@ -53,6 +57,7 @@ func snapshot(revision: int = 3) -> Dictionary:
 func run():
 	directory = OS.get_cache_dir().path_join("godot-economy-"+Id.uuid())
 	await _snapshot_dedup_tests()
+	await _draw_quote_tests()
 	var box = Outbox.new(directory,ACCOUNT)
 	check(box.load_state() == OK,"outbox load")
 	var session = Session.new()
@@ -63,7 +68,7 @@ func run():
 	root.add_child(service)
 	var hooks := {"sync":sync,"snapshot":apply,"receipt":receipt,"effect":effect}
 	service.configure(session,box,hooks)
-	var result: Dictionary = await service.execute("draw_modules",{"count":1,"turretType":"arrow"})
+	var result: Dictionary = await service.execute("draw_modules",{"count":1,"turretType":"arrow","buyMissingTicketsWithDiamonds":true,"approvedDrawQuote":{"moduleTickets":0,"diamonds":40}})
 	check(not result.ok and box.state.inFlight != null,"lost response durable request")
 	var pending: Dictionary = box.state.inFlight.duplicate(true)
 	var original_bytes: String = pending.encodedBody
@@ -82,7 +87,7 @@ func run():
 	# Every economic command requires successful real save synchronization first.
 	synced = false
 	session.sent.clear()
-	result = await service.execute("draw_modules",{"count":1,"turretType":"arrow"})
+	result = await service.execute("draw_modules",{"count":1,"turretType":"arrow","buyMissingTicketsWithDiamonds":true,"approvedDrawQuote":{"moduleTickets":0,"diamonds":40}})
 	check(not result.ok and session.sent.all(func(item):return item.method == "GET") and recovered.state.inFlight == null,"failed save prohibits spending")
 	synced = true
 	# A server already-claimed receipt updates local flags and refreshes wallet.
@@ -204,3 +209,54 @@ func _snapshot_dedup_tests():
 	check(box.save_state(box.state) == ERR_FILE_CORRUPT, "identical outbox still rejects disk corruption")
 	service.free()
 	session.free()
+
+func _draw_quote_tests():
+	var cases := [
+		{"name":"same quote", "approved":4, "latest":4, "send":true},
+		{"name":"tickets decrease", "approved":4, "latest":2, "send":false},
+		{"name":"tickets increase", "approved":2, "latest":4, "send":false},
+		{"name":"free to paid", "approved":5, "latest":4, "send":false},
+		{"name":"paid to free", "approved":4, "latest":5, "send":false},
+		{"name":"surplus tickets same usage", "approved":5, "latest":8, "send":true},
+		{"name":"same quote newer revision", "approved":4, "latest":4, "revision":8, "send":true},
+		{"name":"insufficient balance", "approved":4, "latest":4, "diamonds":39, "send":false, "code":"INSUFFICIENT_DIAMONDS"},
+		{"name":"final sync changes quote", "approved":4, "latest":4, "syncTickets":2, "send":false},
+		{"name":"pending settlement changes quote", "approved":4, "latest":4, "settledTickets":5, "send":false},
+		{"name":"missing approval", "approved":4, "latest":4, "missing":true, "send":false},
+	]
+	for test in cases:
+		var box = CountingOutbox.new(directory.path_join(test.name.replace(" ","-")),ACCOUNT)
+		check(box.load_state() == OK, test.name + " outbox loads")
+		var session = Session.new()
+		root.add_child(session)
+		var service = Service.new()
+		root.add_child(service)
+		session.economy = snapshot(int(test.get("revision",3)))
+		session.economy.wallet.moduleTickets = test.latest
+		session.economy.wallet.freeDiamonds = test.get("diamonds",1000)
+		session.response = {"ok":true,"status":200,"body":{"economy":session.economy.duplicate(true),"drawnModules":[]}}
+		if test.has("settledTickets"):
+			check(box.enqueue({"runId":Id.uuid(),"stageNumber":11,"completedRounds":5,"success":true,"pendingDiamonds":0,"firstClearModuleTickets":5,"createdAtMillis":1}) == OK,"queue quote settlement")
+			session.response.body.economy.wallet.moduleTickets = test.settledTickets
+			session.response.body.economy.economyRevision += 1
+		service.configure(session,box,{"sync":sync,"snapshot":apply,"receipt":receipt,"effect":effect})
+		if test.has("syncTickets"):
+			sync_hook = func(): service.snapshot.wallet.moduleTickets = test.syncTickets
+		var used: int = mini(5,test.approved)
+		var values := {"count":5,"turretType":"arrow","buyMissingTicketsWithDiamonds":used < 5,"approvedDrawQuote":{"moduleTickets":used,"diamonds":(5-used)*40}}
+		if test.get("missing",false): values.erase("approvedDrawQuote")
+		var result: Dictionary = await service.execute("draw_modules",values)
+		sync_hook = Callable()
+		var draws: Array = session.sent.filter(func(item): return item.path == "v1/economy/turret-modules/draw")
+		if test.send:
+			check(result.ok and draws.size()==1 and box.draw_commands==1,test.name + " sends one draw")
+			if not draws.is_empty():
+				var body: Dictionary = JSON.parse_string(draws[0].body)
+				check(not body.has("approvedDrawQuote") and body.buyMissingTicketsWithDiamonds == values.buyMissingTicketsWithDiamonds,test.name + " keeps HTTP contract")
+				check(body.expectedEconomyRevision == test.get("revision",3),test.name + " pins checked economy revision")
+		else:
+			check(not result.ok and result.get("code") == test.get("code","DRAW_QUOTE_CHANGED"),test.name + " asks for review")
+			check(draws.is_empty() and box.state.inFlight == null and box.draw_commands==0,test.name + " creates no draw command")
+		if test.has("settledTickets"): check(box.state.pendingRewards.is_empty(),"quote checked after pending settlement completes")
+		service.free()
+		session.free()

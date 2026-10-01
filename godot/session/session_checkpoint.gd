@@ -8,6 +8,7 @@ const ContentSave = preload("res://app/content_run_save.gd")
 const Store = preload("res://app/local_save_store.gd")
 const Slot = preload("res://app/local_save_slot.gd")
 const RewardOutbox = preload("res://app/reward_outbox.gd")
+const TransitionJournal = preload("res://app/run_transition_journal.gd")
 const RewardSnapshot = preload("res://app/reward_snapshot.gd")
 var store
 var message := ""
@@ -28,7 +29,7 @@ func _init(directory: String = "user://standalone-session", account_owner: Strin
 func rewards():
 	if reward_queue == null:
 		reward_queue = RewardOutbox.new(base_directory, owner)
-		if reward_queue.load_state() != OK: message = reward_queue.last_error_message
+	if not reward_queue.loaded and reward_queue.load_state() != OK: message = reward_queue.last_error_message
 	return reward_queue
 
 func enqueue_saved(saved: Dictionary) -> Error:
@@ -38,36 +39,56 @@ func enqueue_saved(saved: Dictionary) -> Error:
 	if not queue.loaded:
 		message = queue.last_error_message
 		return queue.last_error
-	var result: Error = queue.enqueue({"runId":run.economyRunId,"stageNumber":run.stageNumber,
-		"completedRounds":run.completedRounds,"success":run.phase == "success",
-		"pendingDiamonds":run.pendingEconomyDiamonds,
-		"firstClearModuleTickets":int(saved.progression.get("lastRunTurretModuleTicketReward",0)) if run.phase == "success" else 0,
-		"createdAtMillis":saved.savedAtMillis})
+	var result: Error = queue.enqueue(_saved_reward(saved))
 	if result != OK: message = queue.last_error_message
 	else: queued_run_id = run.economyRunId
 	return result
 
+func _saved_reward(saved: Dictionary) -> Dictionary:
+	var run: Dictionary = saved.activeRun
+	return {"runId":run.economyRunId,"stageNumber":run.stageNumber,
+		"completedRounds":run.completedRounds,"success":run.phase == "success",
+		"pendingDiamonds":run.pendingEconomyDiamonds,
+		"firstClearModuleTickets":int(saved.progression.get("lastRunTurretModuleTicketReward",0)) if run.phase == "success" else 0,
+		"createdAtMillis":saved.savedAtMillis}
+
 func enqueue_finished(app) -> Error:
 	return _save_content(app)
 
-func persist_state(app, candidate: Dictionary, abandoning: bool = false) -> Error:
+func persist_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Error:
 	var runtime = app.scene._native_combat
 	if not runtime.active or not is_equal_approx(runtime.tile_size, 1.0) or runtime.origin != Vector2.ZERO:
 		message = "Unsupported checkpoint coordinate configuration"
 		return ERR_UNAVAILABLE
 	var snapshot: Dictionary = app.scene._native_combat.snapshot()
+	var adapter = ContentSave.new(app.catalog, app.run_domain.growth)
+	var before: Dictionary = {}
+	if not previous.is_empty():
+		before = adapter.capture(previous, snapshot, int(app.run_domain.now_millis.call()), preferences)
+		if before.is_empty():
+			message = adapter.error
+			return ERR_INVALID_DATA
 	if abandoning:
 		snapshot.session.phase = "failure"
 		snapshot.wave.spawnQueue = []
-	var adapter = ContentSave.new(app.catalog, app.run_domain.growth)
 	var saved: Dictionary = adapter.capture(candidate, snapshot, int(app.run_domain.now_millis.call()), preferences)
 	if saved.is_empty():
 		message = adapter.error
 		return ERR_INVALID_DATA
-	var result: Error = store.save_save(saved)
-	if result == OK:
-		preferences = saved.preferences.duplicate(true)
-		result = enqueue_saved(saved)
+	var result: Error
+	if not before.is_empty():
+		var queue = rewards()
+		if not queue.loaded:
+			message = queue.last_error_message
+			return queue.last_error
+		var journal = TransitionJournal.new(base_directory, owner)
+		result = journal.persist(store, queue, before, saved, _saved_reward(saved))
+		if result != OK: message = journal.last_error_message
+		else: queued_run_id = saved.activeRun.economyRunId
+	else:
+		result = store.save_save(saved)
+		if result == OK: result = enqueue_saved(saved)
+	if result == OK: preferences = saved.preferences.duplicate(true)
 	message = "Saved v2 checkpoint and retained run reward" if result == OK else (message if store.last_error == OK else store.last_error_message)
 	return result
 
