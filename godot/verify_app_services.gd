@@ -452,7 +452,7 @@ func _ui_checks() -> void:
 	ui.data={"economy":server.economy_snapshot(),"drawnModules":[{"grade":"rare","turretType":"arrow","part":"core"}]}
 	ui._render()
 	check(lobby.modal.get_instance_id()==draw_modal,"Command results reuse their confirmation modal")
-	check("희귀 · 기관총 · 코어" in _labels(lobby.modal) and not "확인" in _labels(lobby.modal),"Draw success shows localized result without duplicate purchase button")
+	check("모듈 1개를 획득했습니다." in _labels(lobby.modal) and "희귀 · 과열 연산 코어" in _labels(lobby.modal) and not "확인" in _labels(lobby.modal),"Draw success shows localized result without duplicate purchase button")
 	ui.open("연구 슬롯 구매")
 	check("사용 다이아" in _labels(lobby.modal) and _labels(lobby.modal).any(func(text):return text.begins_with("보유 44")),"Research service displays actual cost and combined balance")
 	lobby.queue_free()
