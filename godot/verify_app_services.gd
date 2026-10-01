@@ -448,7 +448,9 @@ func _ui_checks() -> void:
 	check(lobby.diamonds()==44,"Paid and free wallet fields supply UI balance")
 	ui.open("모듈 뽑기",{"count":1,"turretType":"arrow"})
 	var draw_modal: int = lobby.modal.get_instance_id()
-	check("모듈 1개를 획득합니다. 모듈권 0장 · 다이아 40개" in _labels(lobby.modal),"Draw confirmation displays server contract cost")
+	var ticket_amount = lobby.modal.find_child("ModuleTicketAmount", true, false)
+	var diamond_amount = lobby.modal.find_child("DrawDiamondAmount", true, false)
+	check(ticket_amount is Label and ticket_amount.text == "0장" and diamond_amount is Label and diamond_amount.text == "40개", "Draw confirmation displays server contract cost")
 	ui.data={"economy":server.economy_snapshot(),"drawnModules":[{"grade":"rare","turretType":"arrow","part":"core"}]}
 	ui._render()
 	check(lobby.modal.get_instance_id()==draw_modal,"Command results reuse their confirmation modal")
