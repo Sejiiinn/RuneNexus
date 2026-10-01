@@ -543,6 +543,28 @@ func (q *Queries) GetEconomySystemState(ctx context.Context) (EconomySystemState
 	return i, err
 }
 
+const getLegacyRunSettlementReceipt = `-- name: GetLegacyRunSettlementReceipt :one
+SELECT economy_commands.response_payload
+FROM economy_reward_claims
+JOIN economy_commands ON economy_commands.id = economy_reward_claims.command_id
+WHERE economy_reward_claims.account_id = $1
+  AND lower(economy_reward_claims.reward_key) = $2::text
+ORDER BY economy_reward_claims.claimed_at, economy_reward_claims.reward_key
+LIMIT 1
+`
+
+type GetLegacyRunSettlementReceiptParams struct {
+	AccountID pgtype.UUID `db:"account_id"`
+	RewardKey string      `db:"reward_key"`
+}
+
+func (q *Queries) GetLegacyRunSettlementReceipt(ctx context.Context, arg GetLegacyRunSettlementReceiptParams) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getLegacyRunSettlementReceipt, arg.AccountID, arg.RewardKey)
+	var response_payload []byte
+	err := row.Scan(&response_payload)
+	return response_payload, err
+}
+
 const getPlayerEconomy = `-- name: GetPlayerEconomy :one
 SELECT account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at FROM player_economies WHERE account_id = $1
 `

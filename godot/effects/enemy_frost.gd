@@ -2,6 +2,7 @@ extends RefCounted
 
 ## 공통 성에 shader를 원래 몸체 재질의 next_pass로 연결한다.
 ## 적별 데이터는 결정 부착 변환뿐이며 모든 종이 같은 두 원형을 사용한다.
+const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
 const CRYSTALS = preload("res://assets/effects/enemy_frost/crystals.glb")
 const COAT_SHADER = preload("res://effects/enemy_frost.gdshader")
@@ -64,7 +65,7 @@ static func _transform(values: Array) -> Transform3D:
 
 
 static func _instances(kind: String) -> Array:
-	var key := "boss" if kind == "shieldBoss" else kind
+	var key := AttachmentKind.resolve(kind)
 	if _multimeshes.has(key):
 		return _multimeshes[key]
 	var shards := MultiMesh.new()

@@ -1,7 +1,9 @@
 extends SceneTree
 
 const Burn = preload("res://effects/enemy_burn.gd")
+const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 var failures := 0
+var checks := 0
 
 
 func _initialize() -> void:
@@ -9,6 +11,7 @@ func _initialize() -> void:
 
 
 func check(value: bool, message: String) -> void:
+	checks += 1
 	if not value:
 		failures += 1
 		push_error(message)
@@ -21,6 +24,8 @@ func unit(id: int, kind: String, burning: bool, slowed := false) -> Array:
 func original_surfaces(entry: Dictionary) -> Array:
 	var result: Array = []
 	for node: MeshInstance3D in entry["root"].find_children("*", "MeshInstance3D", true, false):
+		if node.get_parent().name in ["EnemyBurn", "EnemyFrost"]:
+			continue
 		for surface in range(node.mesh.get_surface_count()):
 			var material := node.get_active_material(surface)
 			result.append([node, node.mesh, surface, material, material.next_pass])
@@ -40,7 +45,12 @@ func _verify() -> void:
 	root.add_child(scene)
 	scene.set_process(false)
 	scene._sync_enemies([])
-	var kinds := ["normal", "armored", "shielded", "fast", "tank", "boss", "shieldBoss"]
+	var definitions: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Burn.DATA_PATH))["enemies"]
+	for kind: String in scene.ENEMY_MODELS:
+		var key := AttachmentKind.resolve(kind)
+		check(definitions.has(key), "모델 지원종의 burn 부착 데이터 누락: " + kind)
+		check(scene.ENEMY_MODELS.has(key) and scene.ENEMY_MODELS[kind] == scene.ENEMY_MODELS[key], "모델과 burn 부착 별칭 불일치: " + kind)
+	var kinds := ["normal", "armored", "shielded", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]
 	var units: Array = []
 	var originals: Dictionary = {}
 	for i in range(kinds.size()):
@@ -61,7 +71,14 @@ func _verify() -> void:
 		check(entry.has("burn"), "화상 적에 효과가 생성되지 않음: " + kinds[i])
 		if not entry.has("burn"):
 			continue
-		var burn: MultiMeshInstance3D = entry["burn"]
+		var burn: Node3D = entry["burn"]
+		if bool(entry.get("guardian_preview", false)):
+			check(burn.visible and entry["root"].is_ancestor_of(burn), "움직이는 적에 화상이 붙지 않음")
+			var meshes := burn.find_children("*", "MeshInstance3D", true, false)
+			check(meshes.size() == 1, "움직이는 적의 공통 화상 메시 누락")
+			check_surfaces(originals[i])
+			continue
+		check(burn is MultiMeshInstance3D, "정적 적의 GPU 화상 MultiMesh 누락")
 		check(burn.visible and burn.get_parent() == entry["root"], "화상 효과가 원본 적에 붙지 않음")
 		check(burn.transform.is_equal_approx(Transform3D.IDENTITY), "화상 로컬 좌표/단위가 변경됨")
 		check(burn.global_transform.is_equal_approx(entry["root"].global_transform), "화상이 부모 부유·방향·크기를 따르지 않음")
@@ -85,7 +102,8 @@ func _verify() -> void:
 	scene._sync_enemies(units)
 	var other: MultiMeshInstance3D = scene.enemies[10]["burn"]
 	check(first.multimesh == other.multimesh and first.material_override == other.material_override, "동종 적마다 화상 리소스를 복제함")
-	check(scene.enemies[5]["burn"].multimesh == scene.enemies[6]["burn"].multimesh, "shieldBoss가 boss 부착 데이터를 공유하지 않음")
+	for index in [6, 7]:
+		check(scene.enemies[5]["burn"].multimesh == scene.enemies[index]["burn"].multimesh, "보스 변형이 boss 화상 데이터를 공유하지 않음: " + kinds[index])
 	check(not scene.enemies[11].has("burn"), "다른 적의 화상이 비화상 적에도 효과를 생성함")
 	check_surfaces(unaffected)
 	Burn.set_time(4.0)
@@ -120,7 +138,7 @@ func _verify() -> void:
 	units[4][7] = "fast"
 	scene._sync_enemies(units)
 	check(not is_instance_valid(first) and scene.enemies[4]["burn"].visible, "같은 ID 유형 교체 후 이전 화상 잔류")
-	var replaced: MultiMeshInstance3D = scene.enemies[4]["burn"]
+	var replaced: Node3D = scene.enemies[4]["burn"]
 	units[4] = [4, 3.5, 4.0, 0.7, 0.8, 0.62, 0.0, "fast"]
 	scene._sync_enemies(units)
 	check(not replaced.visible, "화상 필드 없는 이전 프레임에서 효과 잔류")
@@ -130,6 +148,31 @@ func _verify() -> void:
 	var reset_burn: MultiMeshInstance3D = scene.enemies[20]["burn"]
 	scene._clear_scene()
 	check(not is_instance_valid(reset_burn) and scene.enemies.is_empty(), "장면 초기화 뒤 화상 잔류")
+	check_boss_lifecycle(scene)
 	scene.free()
+	print("Enemy burn checks: %d" % checks)
 	print("Enemy burn verification: %d failures" % failures)
 	quit(1 if failures else 0)
+
+
+func check_boss_lifecycle(scene: Node3D) -> void:
+	for kind: String in ["boss", "shieldBoss", "forgeBoss"]:
+		scene._sync_enemies([unit(81, kind, true)])
+		var entry: Dictionary = scene.enemies[81]
+		var burn: MultiMeshInstance3D = entry["burn"]
+		check(burn.visible and not entry.has("frost"), kind + " 최초 화상 단독 적용")
+		scene._sync_enemies([unit(81, kind, true, true)])
+		var frost: Node3D = entry["frost"]
+		check(burn.visible and frost.visible, kind + " 화상·냉각 중첩")
+		scene._sync_enemies([unit(81, kind, false, true)])
+		check(not burn.visible and frost.visible, kind + " 화상 해제가 냉각 보존")
+		scene._sync_enemies([unit(81, kind, true, false)])
+		check(burn.visible and not frost.visible, kind + " 화상 재적용·냉각 해제")
+		check(entry["burn"] == burn and entry["frost"] == frost, kind + " 재적용 리소스 재사용")
+		scene._sync_enemies([])
+		check(not is_instance_valid(burn) and not is_instance_valid(frost), kind + " 제거 시 상태 노드 정리")
+		scene._sync_enemies([unit(81, kind, true, true)])
+		var reset_root: Node3D = scene.enemies[81]["root"]
+		scene._apply_frame({"sceneEpoch": scene._scene_epoch + 1, "reset": true})
+		check(scene.enemies.is_empty() and not is_instance_valid(reset_root), kind + " epoch reset 시 상태 노드 정리")
+		print("Boss burn lifecycle: ", kind, " first/overlap/expire/reapply/remove/epoch reset checked")

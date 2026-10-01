@@ -113,6 +113,15 @@ JOIN economy_commands ON economy_commands.id = economy_reward_claims.command_id
 WHERE economy_reward_claims.account_id = $1
   AND economy_reward_claims.reward_key = $2;
 
+-- name: GetLegacyRunSettlementReceipt :one
+SELECT economy_commands.response_payload
+FROM economy_reward_claims
+JOIN economy_commands ON economy_commands.id = economy_reward_claims.command_id
+WHERE economy_reward_claims.account_id = sqlc.arg(account_id)
+  AND lower(economy_reward_claims.reward_key) = sqlc.arg(reward_key)::text
+ORDER BY economy_reward_claims.claimed_at, economy_reward_claims.reward_key
+LIMIT 1;
+
 -- name: ListEconomyRewardClaimKeys :many
 SELECT reward_key FROM economy_reward_claims
 WHERE account_id = $1 AND reward_key NOT LIKE 'mail:%'

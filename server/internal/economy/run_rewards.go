@@ -9,6 +9,7 @@ import (
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type runSettlementProgression struct {
@@ -30,7 +31,8 @@ func (service *Service) SettleRun(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("parse run settlement session ID: %w", err)
 	}
-	if _, err := parseUUID(request.RunID); err != nil || request.StageNumber < 1 ||
+	runUUID, err := parseUUID(request.RunID)
+	if err != nil || request.StageNumber < 1 ||
 		request.StageNumber > gamesave.CurrentStageCount || request.CompletedRounds < 0 || request.CompletedRounds > 40 ||
 		request.PendingDiamonds < 0 || request.PendingDiamonds > int64(request.CompletedRounds+1)*300 ||
 		request.FirstClearModuleTickets < 0 ||
@@ -40,6 +42,9 @@ func (service *Service) SettleRun(
 				request.FirstClearModuleTickets != StageElevenModuleTicketGift)) {
 		return CommandResult{}, ErrInvalidCommand
 	}
+	// UUID의 표기 대소문자는 보상 동일성에 영향을 주지 않는다.
+	// RawBody는 기존 exact 재전송 영수증의 해시 계약을 그대로 보존한다.
+	request.RunID = formatUUID(runUUID)
 	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
@@ -53,10 +58,10 @@ func (service *Service) SettleRun(
 		return CommandResult{}, fmt.Errorf("get run settlement receipt: %w", err)
 	}
 	rewardKey := "run:" + request.RunID + ":settlement"
-	claimed, err := queries.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{AccountID: accountUUID, RewardKey: rewardKey})
+	receipt, err := runSettlementReceipt(ctx, queries, accountUUID, rewardKey)
 	if err == nil {
 		var result CommandResult
-		if decodeErr := json.Unmarshal(claimed.ResponsePayload, &result); decodeErr != nil {
+		if decodeErr := json.Unmarshal(receipt, &result); decodeErr != nil {
 			return CommandResult{}, fmt.Errorf("decode run settlement receipt: %w", decodeErr)
 		}
 		return result, nil
@@ -89,10 +94,10 @@ func (service *Service) SettleRun(
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return CommandResult{}, fmt.Errorf("recheck run settlement receipt: %w", err)
 	}
-	claimed, err = txQueries.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{AccountID: accountUUID, RewardKey: rewardKey})
+	receipt, err = runSettlementReceipt(ctx, txQueries, accountUUID, rewardKey)
 	if err == nil {
 		var result CommandResult
-		if decodeErr := json.Unmarshal(claimed.ResponsePayload, &result); decodeErr != nil {
+		if decodeErr := json.Unmarshal(receipt, &result); decodeErr != nil {
 			return CommandResult{}, fmt.Errorf("decode locked run receipt: %w", decodeErr)
 		}
 		return result, nil
@@ -203,6 +208,20 @@ func (service *Service) SettleRun(
 		return CommandResult{}, fmt.Errorf("commit run settlement: %w", err)
 	}
 	return result, nil
+}
+
+func runSettlementReceipt(ctx context.Context, queries *dbgen.Queries, accountID pgtype.UUID, rewardKey string) ([]byte, error) {
+	claim, err := queries.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{
+		AccountID: accountID, RewardKey: rewardKey,
+	})
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return claim.ResponsePayload, err
+	}
+	// 기존 서버가 원문 UUID로 저장한 영수증도 계정 내 같은 UUID의 정산이다.
+	// 영속 key/hash/응답은 바꾸지 않고 기존 응답을 그대로 복구한다.
+	return queries.GetLegacyRunSettlementReceipt(ctx, dbgen.GetLegacyRunSettlementReceiptParams{
+		AccountID: accountID, RewardKey: rewardKey,
+	})
 }
 
 func intContains(values []int, target int) bool {

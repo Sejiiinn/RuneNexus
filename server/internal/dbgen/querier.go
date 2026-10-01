@@ -51,6 +51,7 @@ type Querier interface {
 	GetEconomyProgressionEffectForUpdate(ctx context.Context, arg GetEconomyProgressionEffectForUpdateParams) (EconomyProgressionEffect, error)
 	GetEconomyRewardClaim(ctx context.Context, arg GetEconomyRewardClaimParams) (GetEconomyRewardClaimRow, error)
 	GetEconomySystemState(ctx context.Context) (EconomySystemState, error)
+	GetLegacyRunSettlementReceipt(ctx context.Context, arg GetLegacyRunSettlementReceiptParams) ([]byte, error)
 	GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash []byte) (LegacySaveTransfer, error)
 	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
 	GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)

@@ -96,6 +96,8 @@ func preserve_conflict_backup(envelope: Dictionary) -> Error:
 	if _recover(conflict_path) != OK:
 		return last_error
 	var existing: Variant = _read_json(conflict_path)
+	if last_error != OK:
+		return last_error
 	if existing is Dictionary and existing.get("version") == 1 and Codec.is_canonical_v2(existing.get("data")) and existing.get("rebaseId") == envelope.rebaseId:
 		return OK
 	return _write_atomic(conflict_path, JSON.stringify(envelope, "", false, true))
@@ -112,20 +114,43 @@ func clear() -> Error:
 	return OK
 
 func _read_json(path: String) -> Variant:
-	if not FileAccess.file_exists(path):
-		return null
+	var raw: Variant = _read_text(path)
+	return null if raw == null else SaveJson.parse(raw)
+
+func _open_read(path: String):
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
+		var error := FileAccess.get_open_error()
+		if error != ERR_FILE_NOT_FOUND:
+			_fail(error, "Open save: " + path)
+	return file
+
+func _read_text(path: String) -> Variant:
+	# file_exists() also returns false when a parent directory is inaccessible.
+	# Opening distinguishes a missing save from those I/O failures.
+	var file = _open_read(path)
+	if file == null:
 		return null
-	return SaveJson.parse(file.get_as_text())
+	var length: int = file.get_length()
+	var bytes: PackedByteArray = file.get_buffer(length)
+	var error: Error = file.get_error()
+	file.close()
+	# Check before text decoding (and any seek that may clear the read error).
+	# EOF is harmless only if the requested bytes were all read.
+	if error != OK and error != ERR_FILE_EOF:
+		_fail(error, "Read save: " + path)
+		return null
+	if bytes.size() != length:
+		_fail(ERR_FILE_CANT_READ, "Incomplete save read: " + path)
+		return null
+	return bytes.get_string_from_utf8()
 
 func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = true) -> Dictionary:
-	if _recover(path) != OK or not FileAccess.file_exists(path):
+	if _recover(path) != OK:
 		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
+	var raw: Variant = _read_text(path)
+	if raw == null:
 		return {}
-	var raw := file.get_as_text()
 	var parsed := SaveJson.parse_record(raw)
 	if not parsed.ok:
 		return {}
@@ -159,8 +184,11 @@ func _recover(path: String) -> Error:
 		if FileAccess.file_exists(displaced):
 			if _rename(displaced, path) != OK:
 				return last_error
-		elif FileAccess.file_exists(temporary) and Codec.decode(_read_json(temporary)) != null:
-			if _rename(temporary, path) != OK:
+		elif FileAccess.file_exists(temporary):
+			var pending: Variant = _read_json(temporary)
+			if last_error != OK:
+				return last_error
+			if Codec.decode(pending) != null and _rename(temporary, path) != OK:
 				return last_error
 	if FileAccess.file_exists(path):
 		for artifact in [displaced, temporary]:

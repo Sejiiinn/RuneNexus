@@ -224,10 +224,11 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
 		Data: gamesave.Data{
-			Version:       gamesave.CurrentSchemaVersion,
-			Preferences:   json.RawMessage(`{}`),
-			Progression:   progression,
-			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
+			Version:     gamesave.CurrentSchemaVersion,
+			Preferences: json.RawMessage(`{}`),
+			Progression: progression,
+			// 분해 성공 흐름은 unique가 나올 수 있는 무작위 뽑기 대신 유효한 normal 원본을 사용한다.
+			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":1,"items":[{"id":"disassembly-fixture","turretType":"arrow","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1}]}`),
 		},
 	}); err != nil {
 		t.Fatalf("save weekly progression: %v", err)
@@ -266,13 +267,17 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	if err != nil || draw.Snapshot.EconomyRevision != 2 || len(draw.DrawnModules) != 1 || draw.Snapshot.Wallet.ModuleTickets != 1 {
 		t.Fatalf("draw authoritative module: %#v, %v", draw, err)
 	}
+	disassemblyModuleID := bootstrap.ImportedLegacyIDMap["disassembly-fixture"]
+	if disassemblyModuleID == "" {
+		t.Fatal("normal disassembly fixture was not imported")
+	}
 	disassembled, err := drawService.DisassembleModules(ctx, accountID, economy.DisassembleRequest{
 		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bec",
-		RawBody:          []byte(`{"expectedEconomyRevision":2,"moduleIds":["` + draw.DrawnModules[0].ID + `"]}`),
+		RawBody:          []byte(`{"expectedEconomyRevision":2,"moduleIds":["` + disassemblyModuleID + `"]}`),
 		ExpectedRevision: 2, ExpectedCatalogVersion: economy.CatalogVersion,
-		ModuleIDs: []string{draw.DrawnModules[0].ID},
+		ModuleIDs: []string{disassemblyModuleID},
 	})
-	if err != nil || disassembled.Snapshot.EconomyRevision != 3 || len(disassembled.Snapshot.TurretModules.Items) != 0 {
+	if err != nil || disassembled.Snapshot.EconomyRevision != 3 || len(disassembled.Snapshot.TurretModules.Items) != 1 || disassembled.Snapshot.TurretModules.Items[0].ID != draw.DrawnModules[0].ID {
 		t.Fatalf("disassemble authoritative module: %#v, %v", disassembled, err)
 	}
 
