@@ -40,7 +40,7 @@ func results(lobby, app, count: int) -> void:
 	await settle()
 	var modal_id: int = lobby.modal.get_instance_id()
 	var confirm: Button = lobby.modal_body.find_children("*", "Button", true, false)[0]
-	check(confirm.text == "확인", "Draw preview retains its explicit confirmation")
+	check(confirm.text == "%d개 뽑기" % count, "Draw preview retains its explicit confirmation")
 	confirm.pressed.emit()
 	check(app.services.calls.back().action == "draw_modules", "The existing server command receives the draw")
 	check(app.services.calls.back().values == {"count":count,"turretType":"cannon","buyMissingTicketsWithDiamonds":false,"approvedDrawQuote":{"moduleTickets":count,"diamonds":0}}, "Internal draw request preserves the approved ticket and diamond quote")

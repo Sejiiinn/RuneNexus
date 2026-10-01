@@ -337,16 +337,30 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	app.progression_inputs.turretModules.tickets = 4
 	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
-	assert(_text(lobby.modal_body).contains("모듈권 4장 · 다이아 40개"))
-	var confirm := _button(lobby.modal_body,"확인")
+	assert(_text(lobby.modal_body).contains("대포 포탑 모듈 5개"))
+	assert(lobby.modal_frame.size.y >= 568 * 0.32 and lobby.modal_frame.size.y <= 568 * 0.36, "Compact preview occupies 32–36% of portrait height")
+	assert(_buttons(lobby.modal_body).size() == 1 and _button(lobby.modal_body,"뽑기").text == "5개 뽑기", "Only the requested draw CTA is shown")
+	for label in _labels(lobby.modal_body):
+		if label.text == "+" or label.name in ["ModuleTicketAmount", "DrawDiamondAmount"]:
+			assert(label.get_line_count() == 1, "Draw currencies and plus stay on one line")
+	for icon in lobby.modal_body.find_children("*", "TextureRect", true, false):
+		assert(icon.size == Vector2(25,25), "Draw cost icons keep a small equal optical extent")
+	assert(_text(lobby.modal_body).contains("4장") and _text(lobby.modal_body).contains("40개"))
+	var confirm := _button(lobby.modal_body,"뽑기")
 	app.progression_inputs.turretModules.tickets = 2
 	confirm.pressed.emit()
 	assert(app.services.calls.is_empty(),"Changed local draw quote requires review before service invocation")
 	await _settle(lobby)
-	assert(_text(lobby.modal_body).contains("모듈권 2장 · 다이아 120개") and _text(lobby.modal_body).contains("새 비용을 확인"))
+	assert(_text(lobby.modal_body).contains("2장") and _text(lobby.modal_body).contains("120개") and lobby.warning_toast.visible and not _text(lobby.modal_body).contains("다시 확인"))
+	assert(not lobby.warning_toast.get_global_rect().intersects(lobby.modal_frame.get_global_rect()), "Cost change warning stays outside the compact modal")
+	assert(lobby.warning_toast.size.y <= 60, "Warning remains a compact two-line strip")
+	var toast: Control = lobby.warning_toast
+	lobby.refresh()
+	await _settle(lobby)
+	assert(lobby.warning_toast == toast and toast.visible, "Lobby refresh preserves transient warning lifetime")
 	assert(Rect2(Vector2.ZERO,Vector2(320,568)).encloses(lobby.modal_frame.get_global_rect()),"Reconfirmation modal remains inside 320x568")
-	assert(_button(lobby.modal_body,"확인").size.y >= 32,"Draw confirmation preserves its existing button size")
-	confirm = _button(lobby.modal_body,"확인")
+	assert(_button(lobby.modal_body,"뽑기").size.y >= 44,"Draw confirmation preserves its existing button size")
+	confirm = _button(lobby.modal_body,"뽑기")
 	confirm.pressed.emit()
 	assert(app.services.calls.size()==1 and app.services.calls.back().values.approvedDrawQuote == {"moduleTickets":2,"diamonds":120},"Confirmed ticket usage and diamond cost survive internal service invocation")
 	confirm.pressed.emit()
@@ -357,8 +371,8 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	app.services.response = {"ok":false,"code":"DRAW_QUOTE_CHANGED"}
 	app.services.release_request.emit()
 	await _settle(lobby)
-	assert(_text(lobby.modal_body).contains("모듈권 5장") and not _text(lobby.modal_body).contains("다이아 120개") and _text(lobby.modal_body).contains("다시 확인"))
-	confirm = _button(lobby.modal_body,"확인")
+	assert(_text(lobby.modal_body).contains("5장") and not _text(lobby.modal_body).contains("120개") and lobby.warning_toast.visible)
+	confirm = _button(lobby.modal_body,"뽑기")
 	confirm.pressed.emit()
 	assert(app.services.calls.size()==2 and app.services.calls.back().values.approvedDrawQuote == {"moduleTickets":5,"diamonds":0} and not app.services.calls.back().values.buyMissingTicketsWithDiamonds,"Paid to free reconfirmation preserves the new free quote")
 	lobby.close_modal()
@@ -370,12 +384,12 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	app.progression_inputs.freeDiamonds = 39
 	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
-	assert(_button(lobby.modal_body,"확인").disabled,"Insufficient balance disables draw confirmation")
+	assert(_button(lobby.modal_body,"뽑기").disabled,"Insufficient balance disables draw confirmation")
 	assert(app.services.calls.is_empty())
 	app.progression_inputs.freeDiamonds = 40
 	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
-	confirm = _button(lobby.modal_body,"확인")
+	confirm = _button(lobby.modal_body,"뽑기")
 	app.progression_inputs.freeDiamonds = 39
 	confirm.pressed.emit()
 	assert(app.services.calls.is_empty() and _text(lobby.modal_body).contains("다이아가 부족"),"Balance loss after preview cannot spend")

@@ -4,6 +4,7 @@ const Progression = preload("res://content/stage_progression.gd")
 const AppTheme = preload("res://ui/app_theme.gd")
 const MenuTheme = preload("res://ui/battle_theme.gd")
 const ModalFrame = preload("res://ui/game_modal_frame.gd")
+const WarningToast = preload("res://ui/lobby_warning_toast.gd")
 const Home = preload("res://ui/lobby_home.gd")
 const Device = preload("res://app/device_preferences.gd")
 const Growth = preload("res://ui/lobby_growth.gd")
@@ -24,6 +25,7 @@ var core = Core.new()
 var collection = Collection.new()
 var stages = Stages.new()
 var modal: Control
+var warning_toast: Control
 var modal_position: Control
 var modal_visual: Control
 var modal_frame: PanelContainer
@@ -62,6 +64,20 @@ func _safe_layout() -> void:
 		var inset := _insets()
 		for i in range(4): safe.add_theme_constant_override(["margin_left", "margin_top", "margin_right", "margin_bottom"][i], int(inset[i]))
 	_layout_modal.call_deferred()
+	_layout_warning_toast.call_deferred()
+
+func show_draw_quote_warning() -> void:
+	if not is_instance_valid(warning_toast):
+		warning_toast = WarningToast.new()
+		add_child(warning_toast)
+	warning_toast.present()
+	_layout_warning_toast()
+
+func _layout_warning_toast() -> void:
+	if is_instance_valid(warning_toast): warning_toast.place(size, _insets())
+
+func dismiss_draw_quote_warning() -> void:
+	if is_instance_valid(warning_toast): warning_toast.dismiss()
 
 func _image(path: String, dimensions: Vector2) -> TextureRect:
 	var image := TextureRect.new()
@@ -103,6 +119,7 @@ func refresh() -> void:
 	_page_scroll = null
 	_rendered_page = page
 	for child in get_children():
+		if child == warning_toast: continue
 		remove_child(child)
 		child.queue_free()
 	home = null
@@ -472,6 +489,7 @@ func _layout_modal() -> void:
 	var inset := _insets()
 	var available := size - Vector2(inset.x+inset.z, inset.y+inset.w)
 	var width := minf(float(modal.get_meta("max_width", 420)), available.x - 32)
+	if modal.has_meta("width_fraction"): width = minf(width, available.x * float(modal.get_meta("width_fraction")))
 	var header: Control = modal_frame.get_child(0).get_child(0)
 	var header_height := header.get_combined_minimum_size().y + 8 if header.visible else 0.0
 	var body_height := modal_body.get_combined_minimum_size().y
@@ -482,6 +500,8 @@ func _layout_modal() -> void:
 	var height := minf(maxf(100, body_height + 32 + header_height), available.y - 32)
 	if modal.has_meta("height_fraction"):
 		height = minf(available.y * float(modal.get_meta("height_fraction")), available.y - 32)
+	if modal.get_meta("compact_draw_confirmation", false):
+		height = minf(maxf(height, body_height + 20 + header_height), available.y - 32)
 	modal_frame.size = Vector2(width, height)
 	modal_position.position = Vector2(inset.x,inset.y) + (available - modal_frame.size) / 2
 	modal_position.size = modal_frame.size

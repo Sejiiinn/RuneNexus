@@ -5,6 +5,7 @@ const Frame = preload("res://ui/lobby_frame.gd")
 const GrowthUI = preload("res://ui/lobby_growth.gd")
 const CollectionUI = preload("res://ui/lobby_collection.gd")
 const ModuleDrawResults = preload("res://ui/module_draw_results.gd")
+const DrawConfirmation = preload("res://ui/module_draw_confirmation.gd")
 const LeaderboardView = preload("res://ui/leaderboard_view.gd")
 const MailboxController = preload("res://ui/mailbox_controller.gd")
 const EconomyService = preload("res://services/economy_service.gd")
@@ -18,6 +19,7 @@ var pending := false
 var view_epoch := 0
 var nickname_draft := ""
 var module_confirmation: Array = []
+var draw_confirmation_epoch := 0
 var mailbox = MailboxController.new()
 
 func _services(): return lobby.app.get("services")
@@ -219,6 +221,13 @@ func _command(body: VBoxContainer) -> void:
 		return
 	if data.has("economy"):
 		if page == "모듈 뽑기":
+			if lobby.modal.get_meta("compact_draw_confirmation", false):
+				for key in ["compact_draw_confirmation", "width_fraction", "height_fraction"]: lobby.modal.remove_meta(key)
+				lobby.set_modal_stylebox(lobby.ModalFrame.create(Color("8fa8ba"), "standard", 16))
+				var header: HBoxContainer = lobby.modal_frame.get_child(0).get_child(0)
+				header.get_child(0).add_theme_font_size_override("font_size", 20)
+				header.get_child(0).add_theme_font_override("font", T.font(900))
+				header.get_child(1).custom_minimum_size = Vector2(32, 32)
 			ModuleDrawResults.build(lobby, body, data.get("drawnModules", []))
 			return
 		body.add_child(T.label({"모듈 뽑기":"모듈을 획득했습니다.","모듈 분해":"모듈을 분해했습니다.","모듈 일괄 분해":"모듈을 분해했습니다.","연구 즉시 완료":"연구를 즉시 완료했습니다.","연구 슬롯 구매":"연구 슬롯을 해금했습니다."}.get(page,"완료했습니다."),16))
@@ -244,12 +253,14 @@ func _command(body: VBoxContainer) -> void:
 		var tickets := int(lobby._p().get("turretModules",{}).get("tickets",0))
 		var quote := EconomyService.draw_quote(count,tickets)
 		var diamonds := int(quote.diamonds)
-		body.add_child(T.label("모듈 %d개를 획득합니다. 모듈권 %d장%s" % [count,quote.moduleTickets," · 다이아 %d개" % diamonds if diamonds > 0 else ""],14))
 		values.buyMissingTicketsWithDiamonds = diamonds > 0
 		values.approvedDrawQuote = quote
-		var confirm := _button(body,"확인",_perform.bind(actions[page],values))
-		confirm.name = "DrawModulesConfirm"
-		confirm.disabled = confirm.disabled or lobby.diamonds() < diamonds
+		draw_confirmation_epoch += 1
+		DrawConfirmation.build(lobby, body, count, str(values.get("turretType", "arrow")), quote, _confirm_draw.bind(values, view_epoch, draw_confirmation_epoch), not pending and not _services().busy and lobby.diamonds() >= diamonds)
+
+func _confirm_draw(values: Dictionary, captured_view: int, captured_confirmation: int) -> void:
+	if not _active_view(captured_view) or captured_confirmation != draw_confirmation_epoch: return
+	_perform("draw_modules", values)
 
 func _framed_row(parent: Node) -> HBoxContainer:
 	var frame := PanelContainer.new()
@@ -439,7 +450,8 @@ func _perform(action: String, values: Dictionary) -> void:
 	if action == "draw_modules":
 		var quote := EconomyService.draw_quote(int(values.get("count",1)),int(lobby._p().get("turretModules",{}).get("tickets",0)))
 		if values.get("approvedDrawQuote") != quote:
-			notice = _error("DRAW_QUOTE_CHANGED")
+			notice = ""
+			lobby.show_draw_quote_warning()
 			_render()
 			return
 		if lobby.diamonds() < quote.diamonds:
@@ -475,7 +487,11 @@ func _perform(action: String, values: Dictionary) -> void:
 	if not _active_view(captured): return
 	pending = false
 	_show_result(result)
+	if action == "draw_modules" and result.get("code", "") == "DRAW_QUOTE_CHANGED":
+		notice = ""
+		lobby.show_draw_quote_warning()
 	if result.get("ok",false):
 		data = result.get("body",{})
+		if action == "draw_modules": lobby.dismiss_draw_quote_warning()
 		if action in ["draw_modules","disassemble_modules","complete_research","unlock_research_slot_two"]: notice = ""
 	_render()
