@@ -122,7 +122,7 @@ func collect(runtime) -> Dictionary:
 					error = "Missing enemy for reward; event retained"
 					return {"ok": false, "commands": commands}
 				if not bool(enemy.get("isDebug",false)):
-					if kill_derived.is_empty(): kill_derived = service.derived(state)
+					if kill_derived.is_empty(): kill_derived = service.kill_rewards(state)
 					result = service.award_kill_owned(state, enemy, kill_derived)
 					quest_types.append("killEnemies")
 					if service.catalog.enemy_definition(enemy.type).get("isBoss",false): quest_types.append("killBosses")

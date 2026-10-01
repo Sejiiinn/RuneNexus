@@ -56,6 +56,16 @@ func module_effect(p: Dictionary, type: String) -> Dictionary:
 			for field in data.module.effects[key]: result[field] += value * float(data.module.effects[key][field])
 	return result
 
+## Shared by full configuration and kill settlement; these rewards do not depend
+## on board diversity or module equipment, so do not build turret configurations.
+func kill_rewards(p: Dictionary, run_levels: Dictionary = {}) -> Dictionary:
+	if data.is_empty(): return {}
+	var kill_gold := _level(p, "killGold") * _c("killGoldBonusPerUpgradeLevel") if StageProgression.has_unlock(p,"upgrade","killGold") else 0.0
+	return {
+		"killGoldBonusRate":kill_gold + int(run_levels.get("killGold", 0)) * float(data.runUpgrades.killGold.effectPerLevel),
+		"bossBountyBonusRate":_level(p, "bossBounty") * _c("bossBountyBonusPerUpgradeLevel"),
+		"bossKillGemShardBonus":int(_research(p, "crystalRecovery") * _c("bossGemShardsPerCrystalRecoveryLevel"))}
+
 func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	if data.is_empty(): return {}
 	var core := core_effects(p)
@@ -63,6 +73,8 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	var gems := int(context.get("distinctEquippedGemTypeCount", 0))
 	var combined: float = core.combinedFrontMultiplier if count >= 4 else 1.0
 	var economy_unlocked: bool = StageProgression.has_unlock(p,"upgrade","killGold")
+	var run_levels: Dictionary = context.get("runUpgradeLevels", {})
+	var rewards := kill_rewards(p, run_levels)
 	var result := {
 		"initialGold": int(_c("baseInitialGold") + _level(p, "startingGold") * _c("startingGoldPerUpgradeLevel")),
 		"maxNexusHp": (_c("baseNexusHp") + _level(p, "nexusHp")) * core.nexusMaxHpMultiplier,
@@ -80,9 +92,9 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"passiveTraitShardCostMultiplier": core.traitShardCostMultiplier,
 		"passiveNumericGemEffectMultiplier": 1.0 + (core.gemSpectrumPerType * mini(gems, 6) if gems >= 3 else 0.0),
 		"waveClearGoldBonus": int(_level(p, "supply") * _c("supplyGoldPerUpgradeLevel")),
-		"killGoldBonusRate": _level(p, "killGold") * _c("killGoldBonusPerUpgradeLevel") if economy_unlocked else 0.0,
-		"bossBountyBonusRate": _level(p, "bossBounty") * _c("bossBountyBonusPerUpgradeLevel"),
-		"bossKillGemShardBonus": int(_research(p, "crystalRecovery") * _c("bossGemShardsPerCrystalRecoveryLevel")),
+		"killGoldBonusRate": rewards.killGoldBonusRate,
+		"bossBountyBonusRate": rewards.bossBountyBonusRate,
+		"bossKillGemShardBonus": rewards.bossKillGemShardBonus,
 		"runeResonanceBonusRate": _research(p, "runeResonance") * _c("runeResonanceBonusPerLevel"),
 		"roundClearGoldMultiplier": core.roundClearGoldMultiplier,
 		"coreEffects": core,
@@ -92,8 +104,6 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	for key in ["roundRecoveryRate", "damageRestorationRate", "impactDispersionRate", "threatWeakeningRate", "emergencyRecoveryRate", "hasFinalDefense"]: result.defenseConfig[key] = core[key]
 	for type in ["towerDamage", "killGold", "waveGold"]:
 		result.runUpgradeMaxLevelBonuses[type] = int(_research(p, type + "LimitExpansion") * _c("runUpgradeLimitExpansionMaxLevelPerLevel"))
-	var run_levels: Dictionary = context.get("runUpgradeLevels", {})
-	result.killGoldBonusRate += int(run_levels.get("killGold", 0)) * float(data.runUpgrades.killGold.effectPerLevel)
 	var wave_level := clampi(int(run_levels.get("waveGold", 0)), 0, int(data.runUpgrades.waveGold.maxLevel) + result.runUpgradeMaxLevelBonuses.waveGold)
 	result.waveClearGoldBonus += int(data.runUpgrades.waveGold.effects[wave_level])
 	result.availableTurretTypes = ["arrow", "cannon", "magic", "frost"]

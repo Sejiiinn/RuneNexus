@@ -279,9 +279,7 @@ func sync() -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if not connected() or not online_ready: return {"ok":false,"code":"ACCOUNT_REQUIRED"}
 	if not app.persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
-	var payload: Variant = app.checkpoint.store.load_save()
-	if not payload is Dictionary: return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
-	var result: Dictionary = await online.sync(payload)
+	var result: Dictionary = await online.sync_checkpoint()
 	if online.requires_reload and online.state.get("rebase") == null:
 		if not _load_slot(str(account.credentials.accountId)): return {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
 		economy.outbox = app.checkpoint.rewards()

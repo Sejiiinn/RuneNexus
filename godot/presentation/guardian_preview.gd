@@ -91,8 +91,8 @@ func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "norma
 		return {}
 	player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	player.play(clip)
+	# seek(update=true) applies the pose immediately, including manual players.
 	player.seek(0.0, true)
-	player.advance(0.0)
 	return {"root": root, "type": kind, "guardian_preview": true,
 		"player": player, "clip": clip, "distance": 0.0, "last_time": -INF}
 
@@ -144,7 +144,6 @@ func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 	var seconds := RUN_SECONDS if entry.type == "fast" else WALK_SECONDS
 	var phase := fposmod(float(entry.distance), stride) / stride
 	entry.player.seek(phase * seconds, true)
-	entry.player.advance(0.0)
 
 
 # A finite ease-out turn, measured only by the combat clock. Retarget from the
@@ -233,5 +232,4 @@ func update_deaths(time: float) -> void:
 			deaths.erase(id)
 			continue
 		entry.player.seek(age, true)
-		entry.player.advance(0.0)
 		if entry.type == "fast": HoundDeath.sample(entry, age)

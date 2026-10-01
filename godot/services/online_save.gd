@@ -113,18 +113,38 @@ func _bootstrap_locked(guest_payload: Dictionary, interactive: bool) -> Dictiona
 	return result
 
 func sync(payload: Dictionary = {}) -> Dictionary:
+	return await _sync(payload, false)
+
+# Read the durable checkpoint once inside the coordinator lock. The app has
+# already persisted it; accepting a caller-owned copy would require another
+# validation and comparison against the same file.
+func sync_checkpoint() -> Dictionary:
+	return await _sync({}, true)
+
+func _sync(payload: Dictionary, from_checkpoint: bool) -> Dictionary:
 	await _lock()
 	var result: Dictionary
+	var local_snapshot := {}
 	if not _initialized or not _bound() or _disabled: result = Http.failure("ACCOUNT_SESSION_MISMATCH")
-	elif not payload.is_empty() and (requires_reload or state.get("syncState") in ["rebasing", "blocked", "suspended"]): result = Http.failure(str(state.get("issueCode", "SAVE_RELOAD_REQUIRED")))
+	elif (from_checkpoint or not payload.is_empty()) and (requires_reload or state.get("syncState") in ["rebasing", "blocked", "suspended"]): result = Http.failure(str(state.get("issueCode", "SAVE_RELOAD_REQUIRED")))
 	else:
 		result = {"ok": true}
-		if not payload.is_empty():
-			if not SaveJson.is_json_value(payload) or not Codec.is_normalized_v2(payload):
+		if from_checkpoint or not payload.is_empty():
+			if not from_checkpoint and (not SaveJson.is_json_value(payload) or not Codec.is_normalized_v2(payload)):
 				result = _block("LOCAL_SAVE_FAILED")
 				_unlock()
 				return result
 			var local: Variant = _load_local()
+			if from_checkpoint:
+				if _local_error() or not local is Dictionary:
+					result = Http.failure("LOCAL_SAVE_FAILED")
+					_unlock()
+					return result
+				if callbacks.has("load") and (not SaveJson.is_json_value(local) or not Codec.is_normalized_v2(local)):
+					result = _block("LOCAL_SAVE_FAILED")
+					_unlock()
+					return result
+				payload = local
 			var payload_hash := _hash(payload)
 			var represented: Variant = state.inFlight.payloadHash if state.inFlight != null else state.basePayloadHash
 			var next_dirty: bool = payload_hash != represented
@@ -134,6 +154,7 @@ func sync(payload: Dictionary = {}) -> Dictionary:
 			elif local == null or local != payload:
 				if _save_local(payload) != OK: result = _block("LOCAL_SAVE_FAILED")
 				else:
+					local = payload
 					state.localGeneration += 1
 					state.dirty = next_dirty
 					if not _commit(): result = Http.failure("OUTBOX_WRITE_FAILED")
@@ -141,7 +162,11 @@ func sync(payload: Dictionary = {}) -> Dictionary:
 				state.localGeneration += 1
 				state.dirty = next_dirty
 				if not _commit(): result = Http.failure("OUTBOX_WRITE_FAILED")
-		if result.ok: result = await _sync_locked()
+			# Custom persistence hooks may transform the saved payload. Retain
+			# their existing reread behavior rather than assume typed-store bytes.
+			if result.ok and not callbacks.has("load") and not callbacks.has("save"):
+				local_snapshot = {"data": local, "hash": payload_hash}
+		if result.ok: result = await _sync_locked(local_snapshot)
 	_unlock()
 	return result
 
@@ -185,7 +210,10 @@ func dispose() -> void:
 	_disabled = true
 	set_process(false)
 
-func _sync_locked() -> Dictionary:
+func _sync_locked(local_snapshot: Dictionary = {}) -> Dictionary:
+	# Reuse only before any network await or rebase. Once authority/revision
+	# reconciliation can yield, reread the file to include concurrent progress.
+	var reuse_local: bool = not local_snapshot.is_empty() and state.get("rebase") == null and state.get("inFlight") == null and state.get("writerClaim") == null and state.get("writerGeneration") != null and not _reconcile and not requires_reload
 	if not _bound() or _disabled: return Http.failure("ACCOUNT_SESSION_MISMATCH")
 	if state.syncState == "blocked": return Http.failure(str(state.issueCode))
 	if state.syncState == "retryWaiting" and _retry_time() > Time.get_unix_time_from_system(): return Http.failure(str(state.issueCode), 0, true)
@@ -206,9 +234,10 @@ func _sync_locked() -> Dictionary:
 		if not reconciled.ok: return reconciled
 	if requires_reload: return _success()
 	if state.dirty:
-		var local: Variant = _load_local()
+		var local: Variant = local_snapshot.data if reuse_local else _load_local()
 		if local == null or _local_error(): return _block("LOCAL_SAVE_NOT_FOUND")
-		var entry := {"idempotencyKey": Http.uuid(), "writerGeneration": state.writerGeneration, "expectedRevision": state.baseRevision, "encodedRequestBody": JSON.stringify({"expectedRevision": state.baseRevision, "clientCompatibilityVersion": COMPATIBILITY, "data": local}, "", false, true), "payloadHash": _hash(local), "localGeneration": state.localGeneration}
+		var local_hash: String = local_snapshot.hash if reuse_local else _hash(local)
+		var entry := {"idempotencyKey": Http.uuid(), "writerGeneration": state.writerGeneration, "expectedRevision": state.baseRevision, "encodedRequestBody": JSON.stringify({"expectedRevision": state.baseRevision, "clientCompatibilityVersion": COMPATIBILITY, "data": local}, "", false, true), "payloadHash": local_hash, "localGeneration": state.localGeneration}
 		state.inFlight = entry
 		state.dirty = false
 		state.syncState = "sending"

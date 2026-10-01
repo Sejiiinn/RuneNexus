@@ -4,9 +4,13 @@ const Catalog = preload("res://content/content_catalog.gd")
 const Quests = preload("res://app/quest_progress.gd")
 class CountingGrowth extends "res://app/growth_rules.gd":
 	var derive_calls := 0
+	var reward_calls := 0
 	func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		derive_calls += 1
 		return super.derive(p, context)
+	func kill_rewards(p: Dictionary, run_levels: Dictionary = {}) -> Dictionary:
+		reward_calls += 1
+		return super.kill_rewards(p, run_levels)
 var failures: Array = []
 var fixed_now := 1720000000000
 func check(ok: bool, label: String) -> void:
@@ -54,8 +58,10 @@ func exercise(script = Session) -> Dictionary:
 		bonus_gold += base * (float(d.killGoldBonusRate) + (float(d.bossBountyBonusRate) if definition.get("isBoss",false) else 0.0))
 		if definition.get("isBoss",false): expected_shards += int(d.bossKillGemShardBonus)
 	session.growth.derive_calls = 0
+	session.growth.reward_calls = 0
 	check(session.collect(runtime).ok, "kill batch accepted")
-	check(session.growth.derive_calls == (1 if script == Session else 120), "one growth derivation per kill batch")
+	check(session.growth.derive_calls == (0 if script == Session else 120), "kill batch skips full turret growth derivation")
+	check(session.growth.reward_calls == (1 if script == Session else 120), "one scalar reward derivation per kill batch")
 	check(session.state.gold == snapshot.gold + base_gold + floori(bonus_gold), "fractional and boss bonus gold paid exactly")
 	check(is_equal_approx(session.state.killGoldFractionWallet, bonus_gold-floori(bonus_gold)), "fractional wallet expected remainder")
 	check(session.state.gemShards == expected_shards, "boss shard reward exact")

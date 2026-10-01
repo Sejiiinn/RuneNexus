@@ -6,9 +6,16 @@ const Codec = preload("res://app/save_codec.gd")
 const SaveJson = preload("res://app/save_json.gd")
 const Hash = preload("res://services/save_payload_hash.gd")
 const Durable = preload("res://services/durable_record.gd")
+const LocalStore = preload("res://app/local_save_store.gd")
+const Slot = preload("res://app/local_save_slot.gd")
 const ACCOUNT = "12345678-1234-4234-8234-123456789abc"
 var failures: Array[String] = []
 var sandbox: String
+class CountingStore extends LocalStore:
+	var loads := 0
+	func load_save() -> Variant:
+		loads += 1
+		return super.load_save()
 class CountingRecord extends Durable:
 	var writes := 0
 	func _write(candidate: String, raw: String) -> Error:
@@ -41,9 +48,11 @@ class SessionFixture extends RefCounted:
 	var responses: Array = []
 	var calls: Array = []
 	var tree: SceneTree
+	var request_hook: Callable
 	func request(method, path, body = "", headers = {}):
 		calls.append({"method": method, "path": path, "body": body, "headers": headers.duplicate(true)})
 		await tree.process_frame
+		if request_hook.is_valid(): request_hook.call(method, path)
 		if responses.is_empty(): return {"ok": false, "code": "NO_FIXTURE", "status": 500, "body": {}}
 		return responses.pop_front()
 
@@ -77,6 +86,7 @@ func make_online(label: String, remote: SessionFixture):
 func _run():
 	await _auth_tests()
 	await _save_tests()
+	await _checkpoint_sync_tests()
 	_hash_tests()
 	var local_url := OS.get_environment("RUNE_ACCOUNT_HTTP_FIXTURE")
 	if not local_url.is_empty():
@@ -209,6 +219,42 @@ func _save_tests():
 	check(restored.ok and restored.source == "newAccount" and fresh.store.load_save() == null, "Automatic restore never adopts guest progress")
 	fresh.dispose()
 	fresh.queue_free()
+
+func _checkpoint_sync_tests():
+	var remote := SessionFixture.new()
+	remote.tree = self
+	remote.responses = [response(200, {"revision":4,"serverSavedAt":"2026-01-01T00:00:00Z","data":payload(100)}), response(200, {"writerGeneration":7,"claimedAt":"2026-01-01T00:00:00Z"}), response(304)]
+	var online = make_online("checkpoint-sync", remote)
+	check((await online.bootstrap({}, false)).ok, "Checkpoint fixture bootstraps")
+	var counted := CountingStore.new(online.root_path, Slot.account(ACCOUNT))
+	online.store = counted
+	var before_calls := remote.calls.size()
+	check((await online.sync_checkpoint()).ok and counted.loads == 1 and remote.calls.size() == before_calls, "Clean durable checkpoint loads once without upload")
+	check(counted.save_save(payload(101)) == OK, "Changed checkpoint persists before sync")
+	counted.loads = 0
+	remote.responses = [response(200, {"revision":5,"serverSavedAt":"2026-01-01T00:00:01Z"})]
+	check((await online.sync_checkpoint()).ok and counted.loads == 1, "Dirty checkpoint reuses its read before network wait")
+	check(SaveJson.parse(remote.calls[-1].body).data == payload(101) and online.state.basePayloadHash == Hash.hash_payload(payload(101)), "Checkpoint request and journal represent durable data")
+	# Authority acquisition yields. A newer external checkpoint written during
+	# that wait must replace the snapshot read at the start of this operation.
+	counted.save_save(payload(102))
+	counted.loads = 0
+	online.state.writerGeneration = null
+	remote.request_hook = func(method, path):
+		if method == "POST" and path == "/v1/save/writer":
+			counted.save_save(payload(103))
+			remote.request_hook = Callable()
+	remote.responses = [response(200, {"writerGeneration":8,"claimedAt":"2026-01-01T00:00:02Z"}), response(200, {"revision":6,"serverSavedAt":"2026-01-01T00:00:02Z"})]
+	check((await online.sync_checkpoint()).ok and counted.loads == 2, "Checkpoint is reread after authority wait")
+	check(SaveJson.parse(remote.calls[-1].body).data == payload(103) and online.state.basePayloadHash == Hash.hash_payload(payload(103)), "Post-wait upload includes concurrently replaced checkpoint")
+	counted.clear()
+	var journal: Dictionary = online.state.duplicate(true)
+	before_calls = remote.calls.size()
+	var missing: Dictionary = await online.sync_checkpoint()
+	check(not missing.ok and missing.code == "LOCAL_SAVE_FAILED" and online.state == journal and remote.calls.size() == before_calls, "Missing checkpoint cannot mutate journal or send HTTP")
+	online.dispose()
+	online.queue_free()
+	await process_frame
 
 func _hash_tests():
 	var fixture_path := OS.get_environment("RUNE_ACCOUNT_HASH_FIXTURE")

@@ -51,6 +51,7 @@ func _verify() -> void:
 	await _research_checks(lobby, app)
 	await _slot_checks(lobby, app)
 	await _module_checks(lobby, app)
+	await _module_identity_checks(lobby, app)
 	print("PASS ui confirmations: preview, explicit confirm, single flight, stale state, module target/refund, 320x568")
 	lobby.free()
 	quit()
@@ -241,6 +242,47 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	await process_frame
 	confirm = _button(lobby.modal_body, "분해")
 	assert(confirm != null and lobby.modal_scroll.get_global_rect().encloses(confirm.get_global_rect()), "Confirm remains reachable after preview scrolling")
+
+func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
+	# Duplicate persisted IDs retain the first item, while request order and
+	# normalized duplicate removal define the reviewed/sent target sequence.
+	var first := _module("duplicate", "normal", false)
+	var items: Array = [first, _module("duplicate", "unique", true),
+		_module("locked", "rare", true), _module("last", "magic", false),
+		_module("17", "unique", false)]
+	app.progression_inputs.turretModules.items = items
+	lobby._service("모듈 일괄 분해", {"ids": ["last", "duplicate", "locked", "missing", 17, "17", "duplicate"]})
+	await _settle(lobby)
+	var before := var_to_bytes(items)
+	var plan: Dictionary = lobby._services._module_plan()
+	assert(plan.items == [items[3], first, items[4]], "Plan retains requested order and first persisted ID match")
+	assert(plan.signature == [["last", "magic", "arrow", "core", false],
+		["duplicate", "normal", "arrow", "core", false],
+		["locked", "rare", "arrow", "core", true], ["missing", "missing"],
+		["17", "unique", "arrow", "core", false]], "Signature retains normalized dedupe, missing and equipment state")
+	assert(plan.excluded == 2 and plan.diamonds == 57 and plan.counts == {"normal":1,"magic":1,"rare":0,"unique":1}, "Quote excludes equipped/missing targets and keeps grade refunds")
+	assert(var_to_bytes(items) == before, "Planning never mutates persisted inventory")
+	lobby._services.context = {"id":"duplicate", "ids":["last"]}
+	assert(lobby._services._module_plan().items == [first], "Single-ID selection takes precedence over bulk IDs")
+	lobby._services.context = {"ids":[]}
+	assert(lobby._services._module_plan() == {"items":[],"signature":[],"excluded":0,"counts":{"normal":0,"magic":0,"rare":0,"unique":0},"diamonds":0}, "Empty selection produces an empty quote")
+	lobby._service("모듈 일괄 분해", {"ids":["last","duplicate"]})
+	await _settle(lobby)
+	var confirm := _button(lobby.modal_body, "분해")
+	# Replacing the inventory object (not only editing it in place) must cause a
+	# new live quote. An index from the initial preview must never be reused.
+	app.progression_inputs.turretModules.items = [_module("duplicate", "unique", false)]
+	confirm.pressed.emit()
+	assert(app.services.calls.is_empty(), "Removed targets and changed grade reject the previous quote after inventory replacement")
+	await _settle(lobby)
+	plan = lobby._services._module_plan()
+	assert(plan.items.size() == 1 and plan.items[0].grade == "unique" and plan.diamonds == 50 and plan.excluded == 1, "New quote reads current inventory and refund")
+	confirm = _button(lobby.modal_body, "분해")
+	confirm.pressed.emit()
+	assert(app.services.calls.size() == 1 and app.services.calls[0] == {"action":"disassemble_modules","values":{"ids":["duplicate"]}}, "Reconfirmation sends only current eligible IDs through the service contract")
+	app.services.release_request.emit()
+	await process_frame
+	app.services.calls.clear()
 
 func _module(id: String, grade: String, equipped: bool) -> Dictionary:
 	return {"id": id, "grade": grade, "equipped": equipped, "turretType": "arrow", "part": "core", "options": []}

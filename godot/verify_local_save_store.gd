@@ -66,6 +66,18 @@ func _initialize() -> void:
 	store.save_save(b)
 	check(store.writes == writes, "identical save skips primary and backup writes")
 	check(JSON.parse_string(FileAccess.get_file_as_string(store.backup_path)).savedAtMillis == 1, "identical save preserves backup")
+	# External replacement remains authoritative, even when this instance has
+	# previously written the requested payload. Backup bytes are never normalized.
+	var permissive := {"version":2,"savedAtMillis":"41","preferences":{},"progression":{"runes":"17"},"turretModules":{},"activeRun":null,"extra":"preserve"}
+	var permissive_raw := JSON.stringify(permissive, "  ")
+	write(store.primary_path, permissive_raw)
+	check(store.save_save(b) == OK, "save revalidates external canonical replacement")
+	check(FileAccess.get_file_as_string(store.backup_path) == permissive_raw, "backup preserves exact permissive canonical bytes")
+	write(store.primary_path, "{broken")
+	check(store.save_save(b) == OK and FileAccess.get_file_as_string(store.backup_path) == permissive_raw, "invalid external primary cannot rotate over valid backup")
+	write(store.primary_path, JSON.stringify(a))
+	check(store.save_save(b) == OK, "restore previous-save fixture")
+	writes = store.writes
 	write(store.primary_path + ".tmp", JSON.stringify(c))
 	check(store.save_save(b) == OK and store.writes == writes and not FileAccess.file_exists(store.primary_path + ".tmp"), "identical save still recovers stale write artifacts")
 	write(store.primary_path, "{broken")

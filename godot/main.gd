@@ -417,7 +417,7 @@ func _apply_frame(frame: Dictionary) -> void:
 	var whole_tick := RuntimeProfile.begin()
 	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
 		var decorate_tick := RuntimeProfile.begin()
-		frame = _native_combat.decorate_frame(frame, true)
+		frame = _native_combat.decorate_frame(frame, true, _app_mode)
 		owned_snapshot = true
 		RuntimeProfile.finish("decorate", decorate_tick)
 		if _app_mode:

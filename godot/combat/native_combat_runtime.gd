@@ -7,6 +7,7 @@ const Wave = preload("res://combat/native_wave_state.gd")
 const Defense = preload("res://combat/native_core_defense_state.gd")
 const CoreSkill = preload("res://combat/native_core_skill_state.gd")
 const Attack = preload("res://combat/attack_calculation.gd")
+const EffectFormat = preload("res://combat/effect_presentation.gd")
 # Match the authored 1.1-second cannon impact; generic hits last only 0.28s.
 const BLAST_DURATION: float = 1.1
 const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
@@ -24,6 +25,9 @@ var projectiles: Array = []
 var delayed: Array = []
 var events: Array = []
 var visual_effects: Array = []
+# Canonical static payloads are immutable; raw journal units stay compatible
+# with public frames, 3D impacts and development sessions.
+var _prepared_effects: Dictionary = {}
 var visual_id: int = 1000000000
 var damage_number_index: int = 0
 var event_id: int = 0
@@ -172,6 +176,7 @@ func _reset(packet: Dictionary) -> void:
 	delayed.clear()
 	events.clear()
 	visual_effects.clear()
+	_prepared_effects.clear()
 	event_id = 0
 	clock = 0
 	damage_number_index = 0
@@ -313,7 +318,7 @@ func _core_visual(kind: String, targets: Array, color: int) -> void:
 		var p := (_pos(target)-origin)/tile_size
 		points.append([p.x,p.y])
 		ids.append(target.id)
-	visual_effects.append({"id":visual_id,"kind":kind,"born":clock,"duration":0.14 if kind == "coreBeam" else 0.42,"x":start.x,"y":start.y,"tileSize":tile_size,"scale":board_scale,"color":color,"points":points,"targetIds":ids,"screenOffset":[0,0]})
+	_append_visual({"id":visual_id,"kind":kind,"born":clock,"duration":0.14 if kind == "coreBeam" else 0.42,"x":start.x,"y":start.y,"tileSize":tile_size,"scale":board_scale,"color":color,"points":points,"targetIds":ids,"screenOffset":[0,0]})
 
 func _core_damage_number(target: Dictionary, damage: float) -> void:
 	var at := _pos(target)
@@ -329,13 +334,13 @@ func _core_damage_number(target: Dictionary, damage: float) -> void:
 	at += Vector2.from_angle(angle)*8.0*board_scale
 	at = (at-origin)/tile_size
 	visual_id += 1
-	visual_effects.append({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff8ee6ff,"text":str(roundi(damage)),"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
+	_append_visual({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff8ee6ff,"text":str(roundi(damage)),"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
 
 func _nexus_health_number(change: float) -> void:
 	visual_id += 1
 	var at := (_vec(path[-1])-origin)/tile_size if not path.is_empty() else Vector2.ZERO
 	var value := ("+" if change>0 else "-")+String.num(absf(change),1)
-	visual_effects.append({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff72e0a2 if change>0 else 0xffff7043,"text":value,"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
+	_append_visual({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff72e0a2 if change>0 else 0xffff7043,"text":value,"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
 
 func _check_native_wave_complete() -> void:
 	if terminal: return
@@ -467,7 +472,10 @@ func _command(c: Dictionary) -> void:
 func _step(dt: float) -> void:
 	clock += dt
 	if not visual_effects.is_empty():
-		visual_effects = visual_effects.filter(func(v): return clock - float(v.born) < float(v.duration))
+		visual_effects = visual_effects.filter(func(v):
+			if clock - float(v.born) < float(v.duration): return true
+			_prepared_effects.erase(int(v.id))
+			return false)
 	# Local to this step: commands and direct fixture edits cannot stale the index.
 	var burn_sources: Dictionary = {}
 	for e in enemies.values():
@@ -887,7 +895,7 @@ func snapshot() -> Dictionary:
 	var wave_state: Dictionary = wave.snapshot()
 	return {"stateRevision":state_revision,"session":session_snapshot(),"defense":defense.snapshot(),"wave":wave_state,"core":core.snapshot(),"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
 
-func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
+func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effects: bool = false) -> Dictionary:
 	if not active:
 		return base
 	# Internal presentation owns fresh dynamic values; static map/selection is read-only.
@@ -898,8 +906,6 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 		for group in ["effects", "selection", "labels"]:
 			if frame.presentation.get(group) is Dictionary:
 				frame.presentation[group] = frame.presentation[group].duplicate()
-		if frame.presentation.get("effects", {}).has("events"):
-			frame.presentation.effects.events = frame.presentation.effects.events.duplicate(true)
 	if native_session():
 		frame.time = effect_time
 		frame.nexusHit = nexus_alert/0.65
@@ -982,23 +988,30 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 		var effects: Dictionary = frame.presentation.effects
 		var items: Array = effects.get("items", []).duplicate(true)
 		var presentation_events: Array = effects.get("events", []).duplicate(true)
+		effects.erase("_canonicalNativeEffects")
+		if canonical_effects:
+			# Mixed base/legacy entries are owned copies, never cached or skipped.
+			for legacy in items + presentation_events: EffectFormat.normalize(legacy)
+			effects._canonicalNativeEffects = true
 		for v in visual_effects:
 			if v.kind == "diamond":
 				# The receiver owns receipt display time after first delivery, even
 				# when the source's short combat-time journal has already expired.
-				presentation_events.append(v.duplicate(true))
+				presentation_events.append(_effect_frame(v, reuse_static, canonical_effects))
 				continue
-			var item: Dictionary = v.duplicate(true)
+			var item: Dictionary = _effect_frame(v, reuse_static, canonical_effects)
 			item.age = clock - float(v.born)
 			if item.kind == "damage":
 				item.screenOffset = [0,-34.0*float(item.age)]
 			elif item.kind == "chain":
+				item.points = v.points.duplicate(not reuse_static)
 				var linked: Dictionary = enemies.get(str(item.targetIds[-1]),{})
 				if not linked.is_empty() and _alive(linked):
 					var end := (_pos(linked)-origin)/tile_size
 					item.points[-1] = [end.x,end.y]
 					v.points[-1] = [end.x,end.y]
 			elif item.kind == "coreBeam":
+				item.points = v.points.duplicate(not reuse_static)
 				var linked: Dictionary = enemies.get(str(item.targetIds[0]),{})
 				if not linked.is_empty() and _alive(linked):
 					var end := (_pos(linked)-origin)/tile_size
@@ -1021,7 +1034,7 @@ func _diamond_reward_visual(enemy: Dictionary) -> void:
 	if amount == 0 or bool(enemy.get("isDebug", false)): return
 	var at := (_pos(enemy) + _visual_enemy_offset(enemy) - origin) / tile_size
 	visual_id += 1
-	visual_effects.append({"id":visual_id,"kind":"diamond","born":clock,"bornSquared":effect_squared,
+	_append_visual({"id":visual_id,"kind":"diamond","born":clock,"bornSquared":effect_squared,
 		"duration":1.05,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,
 		"text":"+%d" % amount,"hasImage":true,"points":[],"screenOffset":[0,0]})
 
@@ -1038,7 +1051,21 @@ func _visual(kind: String, at: Vector2, t: Dictionary, extra: Dictionary = {}) -
 		var p := (_vec(point) - origin) / tile_size
 		points.append([p.x,p.y])
 	v.points = points
-	visual_effects.append(v)
+	_append_visual(v)
+
+func _append_visual(effect: Dictionary) -> void:
+	visual_effects.append(effect)
+	_prepared_effects[int(effect.id)] = {"source":effect,"payload":EffectFormat.prepare(effect)}
+
+func _effect_frame(effect: Dictionary, reuse_static: bool, canonical: bool) -> Dictionary:
+	if not canonical: return effect.duplicate(not reuse_static)
+	var prepared: Dictionary = _prepared_effects.get(int(effect.id), {})
+	if not prepared.is_empty() and is_same(prepared.source, effect):
+		return prepared.payload.duplicate(not reuse_static)
+	# Directly supplied fixture/legacy entries preserve their current values.
+	var item := effect.duplicate(true)
+	EffectFormat.normalize(item)
+	return item
 
 func _visual_enemy_offset(e: Dictionary) -> Vector2:
 	var lane: float = e.get("laneOffsetRatio", 0.0)

@@ -25,6 +25,9 @@ func initial_state(progression: Dictionary = {}, stage: int = 0) -> Dictionary:
 	state.gemShards = int(d.get("startingGemShards", 0))
 	return state
 
+func kill_rewards(state: Dictionary) -> Dictionary:
+	return growth.kill_rewards(state.get("progression", {}), state.get("runUpgradeLevels", {}))
+
 func _rule(type: String) -> Dictionary:
 	return growth.data.get("turretRules", {}).get(type, {})
 
@@ -183,7 +186,7 @@ func _success(state: Dictionary, commands: Array = []) -> Dictionary:
 	return {"ok":true,"error":"","state":state,"commands":commands}
 
 func award_kill(state: Dictionary, enemy: Dictionary) -> Dictionary:
-	var result := award_kill_owned(state.duplicate(true), enemy, derived(state))
+	var result := award_kill_owned(state.duplicate(true), enemy, kill_rewards(state))
 	return result if result.ok else _reject(state, result.error)
 
 ## Internal transaction path: only scalar wallet fields are changed after validation.

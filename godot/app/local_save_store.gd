@@ -68,7 +68,7 @@ func save_save(data: Dictionary) -> Error:
 		if _recover(path) != OK:
 			return last_error
 	var raw := JSON.stringify(data, "", false, true)
-	var current := _read_valid(primary_path)
+	var current := _read_valid(primary_path, false, false)
 	if last_error != OK:
 		return last_error
 	# Read/recover/validate before skipping IO; never trust an in-memory cache of
@@ -83,7 +83,7 @@ func save_save(data: Dictionary) -> Error:
 func preserve_current_as_backup() -> Error:
 	if not _begin():
 		return last_error
-	var current := _read_valid(primary_path)
+	var current := _read_valid(primary_path, false, false)
 	if last_error != OK or current.is_empty():
 		return last_error
 	return _write_atomic(backup_path, current.raw)
@@ -119,7 +119,7 @@ func _read_json(path: String) -> Variant:
 		return null
 	return SaveJson.parse(file.get_as_text())
 
-func _read_valid(path: String, legacy_only: bool = false) -> Dictionary:
+func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = true) -> Dictionary:
 	if _recover(path) != OK or not FileAccess.file_exists(path):
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
@@ -135,6 +135,10 @@ func _read_valid(path: String, legacy_only: bool = false) -> Dictionary:
 			return {}
 	elif not Codec.is_canonical_v2(value):
 		return {}
+	# The v2 reader accepts every canonical envelope and normalizes its fields.
+	# Backup rotation only needs validated bytes, not a discarded normalized tree.
+	if not decode_data and not legacy_only:
+		return {"raw": raw}
 	var decoded: Variant = Codec.decode(value)
 	return {} if decoded == null else {"data": decoded, "raw": raw}
 

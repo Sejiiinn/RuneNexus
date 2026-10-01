@@ -39,6 +39,11 @@ func _init() -> void:
 		check(near(outcome.state, sample.before if gated else sample.after), sample.name + ": complete state")
 		for pair in [[sample.before, sample.derived], [sample.after, sample.afterDerived]]:
 			var d := growth.derive(pair[0])
+			for run_level in [0, 1, 10]:
+				var levels := {"killGold":run_level}
+				var rewards: Dictionary = growth.kill_rewards(pair[0], levels)
+				var full: Dictionary = growth.derive(pair[0], {"runUpgradeLevels":levels,"distinctTurretTypeCount":4,"distinctEquippedGemTypeCount":3})
+				for key in rewards: check(rewards[key] == full[key],sample.name+": reward subset " + key + " level=" + str(run_level))
 			for key in ["initialGold", "maxNexusHp", "startingGemShards", "maxTurretLinkSlots", "canSetTurretTargetPriority", "firstLinkUpgradeDiscountRate", "bossKillGemShardBonus", "runeResonanceBonusRate", "runUpgradeCostMultiplier", "bossBountyBonusRate", "permanentLinkCostMultiplier", "permanentTurretLevelUpCostMultiplier", "waveClearGoldBonus"]:
 				check(near(d[key], pair[1][key]), sample.name + ": " + key)
 	for sample in growth.data.core.verificationCases:

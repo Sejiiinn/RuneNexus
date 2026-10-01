@@ -351,6 +351,12 @@ func _slot_confirmation(body: VBoxContainer) -> void:
 
 func _module_plan() -> Dictionary:
 	var requested: Array = [context.id] if context.has("id") else context.get("ids",[]).duplicate()
+	# Rebuild from live inventory for every quote and confirmation. Keep the first
+	# occurrence of an ID, matching the former per-request linear search.
+	var by_id := {}
+	for item in lobby._p().get("turretModules",{}).get("items",[]):
+		var id := str(item.get("id",""))
+		if not by_id.has(id): by_id[id] = item
 	var seen := {}
 	var eligible: Array = []
 	var signature: Array = []
@@ -361,9 +367,7 @@ func _module_plan() -> Dictionary:
 		var id := str(raw_id)
 		if seen.has(id): continue
 		seen[id] = true
-		var matched: Dictionary = {}
-		for item in lobby._p().get("turretModules",{}).get("items",[]):
-			if str(item.get("id","")) == id: matched = item; break
+		var matched: Dictionary = by_id.get(id,{})
 		if matched.is_empty():
 			signature.append([id,"missing"])
 			excluded += 1

@@ -6,6 +6,17 @@ const Frost = preload("res://effects/enemy_frost.gd")
 const Status = preload("res://effects/guardian_status.gd")
 var failures := 0
 
+class PoseProbe:
+	extends Node
+	var writes := 0
+	var value := 0.0:
+		set(next):
+			value = next
+			writes += 1
+	func _ready() -> void:
+		# Exclude PackedScene property restoration from animation evaluation.
+		writes = 0
+
 class Runtime:
 	extends RefCounted
 	var epoch := 1
@@ -24,9 +35,65 @@ func check(condition: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+func check_single_evaluation(world: Node3D) -> void:
+	var model := Node3D.new()
+	var probe := PoseProbe.new()
+	probe.name = "PoseProbe"
+	model.add_child(probe)
+	probe.owner = model
+	var player := AnimationPlayer.new()
+	model.add_child(player)
+	player.owner = model
+	var animation := Animation.new()
+	animation.length = 1.0
+	var track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(track, NodePath("PoseProbe:value"))
+	animation.track_insert_key(track, 0.0, 0.0)
+	animation.track_insert_key(track, 1.0, 1.0)
+	var library := AnimationLibrary.new()
+	library.add_animation("Walk", animation)
+	player.add_animation_library("", library)
+	var scene := PackedScene.new()
+	check(scene.pack(model) == OK, "Evaluation probe packs")
+	model.free()
+	var motion := Motion.new(world)
+	var entry := motion._instantiate(scene, 0.0)
+	var sampled: PoseProbe = entry.root.get_child(0).get_node("PoseProbe")
+	# First seek also restores the newly captured property cache once.
+	check(sampled.writes == 2, "Initial seek restores cache then applies one pose")
+	sampled.writes = 0
+	motion.distances[10] = Motion.STRIDE_TILES * 0.25
+	motion.update_walker(entry, [10, 0.0, 0.0, 0.0], 1.0)
+	check(sampled.writes == 1, "Living manual pose evaluates once")
+	sampled.writes = 0
+	entry.born = 1.0
+	motion.deaths[10] = entry
+	motion.update_deaths(1.3)
+	check(sampled.writes == 1, "Death manual pose evaluates once")
+	motion.clear()
+
+func pose_snapshot(entry: Dictionary) -> Array[Transform3D]:
+	var poses: Array[Transform3D] = [entry.root.transform]
+	for node: Node3D in entry.root.find_children("*", "Node3D", true, false):
+		poses.append(node.transform)
+		if node is Skeleton3D:
+			for bone in range(node.get_bone_count()):
+				poses.append(node.get_bone_pose(bone))
+	return poses
+
+func check_legacy_pose(entry: Dictionary, label: String) -> void:
+	var single := pose_snapshot(entry)
+	# The removed second evaluation must not change any authored node/bone pose.
+	entry.player.advance(0.0)
+	var legacy := pose_snapshot(entry)
+	check(single.size() == legacy.size(), label + " pose topology stays identical")
+	for index in range(single.size()):
+		check(single[index].is_equal_approx(legacy[index]), label + " pose matches legacy at transform " + str(index))
+
 func run() -> void:
 	var world := Node3D.new()
 	root.add_child(world)
+	check_single_evaluation(world)
 	var motion := Motion.new(world)
 	var runtime := Runtime.new()
 	var normal := motion.new_walker()
@@ -39,6 +106,7 @@ func run() -> void:
 	check(fast.type == "fast" and fast.player.get_animation(fast.clip).length > 0.56, "Fast Run imported")
 	check(is_equal_approx(Motion.RUN_STRIDE_TILES, 0.6445833333333333 * Motion.FAST_VISUAL_SCALE), "Fast stride follows visual scale without changing combat speed")
 	for entry: Dictionary in [normal, fast]:
+		check_legacy_pose(entry, entry.type + " initial")
 		var id := 1 if entry.type == "normal" else 2
 		var stride: float = Motion.STRIDE_TILES if id == 1 else Motion.RUN_STRIDE_TILES
 		var seconds: float = Motion.WALK_SECONDS if id == 1 else Motion.RUN_SECONDS
@@ -47,6 +115,7 @@ func run() -> void:
 		motion.observe_native(runtime, 1.0, Vector2i(8, 8))
 		motion.update_walker(entry, data, 1.0)
 		check(is_equal_approx(entry.player.current_animation_position, seconds * 0.25), entry.type + " native distance drives phase")
+		check_legacy_pose(entry, entry.type + " quarter stride")
 		data[1] = 12.0 # Smoothed/display movement must not advance a paused logical rig.
 		motion.update_walker(entry, data, 1.0)
 		check(is_equal_approx(entry.player.current_animation_position, seconds * 0.25), entry.type + " paused phase ignores display displacement")
@@ -54,12 +123,23 @@ func run() -> void:
 		motion.observe_native(runtime, 1.1, Vector2i(8, 8))
 		motion.update_walker(entry, data, 1.1)
 		check(is_equal_approx(entry.player.current_animation_position, seconds * 0.5), entry.type + " slow/4x clock uses traveled distance")
+		check_legacy_pose(entry, entry.type + " half stride")
 		var before: float = entry.root.rotation.y
 		data[3] = PI / 2.0
 		motion.update_walker(entry, data, 1.1)
 		check(is_equal_approx(entry.root.rotation.y, before), entry.type + " corner starts without snapping")
 		motion.update_walker(entry, data, 1.16)
 		check(entry.root.rotation.y < before and entry.root.rotation.y > 0.0, entry.type + " corner eases with combat clock")
+		var phase_before: float = entry.player.current_animation_position
+		data.append({"teleportSerial": 1})
+		motion.update_walker(entry, data, 1.16)
+		data[14].teleportSerial = 2
+		data[3] = PI
+		motion.distances[id] += stride * 3.25
+		motion.update_walker(entry, data, 1.16)
+		check(is_equal_approx(entry.player.current_animation_position, phase_before), entry.type + " teleport preserves gait phase")
+		check(is_equal_approx(entry.root.rotation.y, -PI / 2.0), entry.type + " teleport snaps exit facing")
+		check_legacy_pose(entry, entry.type + " teleport")
 		var body: MeshInstance3D = entry.root.find_children("*", "MeshInstance3D", true, false)[0]
 		var original := body.get_active_material(0)
 		Burn.apply(entry, true, 1.16)
@@ -86,7 +166,11 @@ func run() -> void:
 	check(motion.deaths.has(1) and motion.deaths.has(2), "Both authored kinds create their own death clip")
 	check(motion.deaths[2].type == "fast" and motion.deaths[2].clip != "Run", "Fast kill uses Death rather than Run")
 	check(is_equal_approx(motion.deaths[2].root.scale.x, 0.48 * Motion.FAST_VISUAL_SCALE), "Fast corpse retains live visual scale")
+	for entry: Dictionary in motion.deaths.values():
+		check_legacy_pose(entry, entry.type + " death initial")
 	motion.update_deaths(2.30)
+	for entry: Dictionary in motion.deaths.values():
+		check_legacy_pose(entry, entry.type + " death mid")
 	var corpse: Dictionary = motion.deaths[2]
 	var fade: float = (1.0 - float(corpse.death_bodies[0].get_instance_shader_parameter("death_opacity")))
 	check(fade > 0.0 and fade < 1.0, "Hound fades during its floating curl")
