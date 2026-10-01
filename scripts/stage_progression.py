@@ -38,7 +38,7 @@ def load_progression(root: Path = ROOT) -> dict:
     for stage in stages:
         if not isinstance(stage, dict):
             raise ValueError("Progression stage must be an object")
-        for key in ("id", "chapter", "chapterStage", "rewardOrdinal"):
+        for key in ("id", "chapter", "chapterStage"):
             if type(stage.get(key)) is not int or stage[key] < 1:
                 raise ValueError(f"Progression stage {key} must be a positive integer")
         label = (stage["chapter"], stage["chapterStage"])

@@ -33,152 +33,127 @@
     {
       "id": 1,
       "chapter": 1,
-      "chapterStage": 1,
-      "rewardOrdinal": 1
+      "chapterStage": 1
     },
     {
       "id": 2,
       "chapter": 1,
-      "chapterStage": 2,
-      "rewardOrdinal": 2
+      "chapterStage": 2
     },
     {
       "id": 3,
       "chapter": 1,
-      "chapterStage": 3,
-      "rewardOrdinal": 3
+      "chapterStage": 3
     },
     {
       "id": 4,
       "chapter": 1,
-      "chapterStage": 4,
-      "rewardOrdinal": 4
+      "chapterStage": 4
     },
     {
       "id": 5,
       "chapter": 1,
-      "chapterStage": 5,
-      "rewardOrdinal": 5
+      "chapterStage": 5
     },
     {
       "id": 6,
       "chapter": 2,
-      "chapterStage": 1,
-      "rewardOrdinal": 6
+      "chapterStage": 1
     },
     {
       "id": 7,
       "chapter": 2,
-      "chapterStage": 2,
-      "rewardOrdinal": 7
+      "chapterStage": 2
     },
     {
       "id": 8,
       "chapter": 2,
-      "chapterStage": 3,
-      "rewardOrdinal": 8
+      "chapterStage": 3
     },
     {
       "id": 9,
       "chapter": 2,
-      "chapterStage": 4,
-      "rewardOrdinal": 9
+      "chapterStage": 4
     },
     {
       "id": 10,
       "chapter": 2,
-      "chapterStage": 5,
-      "rewardOrdinal": 10
+      "chapterStage": 5
     },
     {
       "id": 11,
       "chapter": 3,
-      "chapterStage": 1,
-      "rewardOrdinal": 11
+      "chapterStage": 1
     },
     {
       "id": 12,
       "chapter": 3,
-      "chapterStage": 2,
-      "rewardOrdinal": 12
+      "chapterStage": 2
     },
     {
       "id": 13,
       "chapter": 3,
-      "chapterStage": 3,
-      "rewardOrdinal": 13
+      "chapterStage": 3
     },
     {
       "id": 14,
       "chapter": 3,
-      "chapterStage": 4,
-      "rewardOrdinal": 14
+      "chapterStage": 4
     },
     {
       "id": 15,
       "chapter": 3,
-      "chapterStage": 5,
-      "rewardOrdinal": 15
+      "chapterStage": 5
     },
     {
       "id": 16,
       "chapter": 1,
-      "chapterStage": 6,
-      "rewardOrdinal": 6
+      "chapterStage": 6
     },
     {
       "id": 17,
       "chapter": 1,
-      "chapterStage": 7,
-      "rewardOrdinal": 7
+      "chapterStage": 7
     },
     {
       "id": 18,
       "chapter": 1,
-      "chapterStage": 8,
-      "rewardOrdinal": 8
+      "chapterStage": 8
     },
     {
       "id": 19,
       "chapter": 1,
-      "chapterStage": 9,
-      "rewardOrdinal": 9
+      "chapterStage": 9
     },
     {
       "id": 20,
       "chapter": 1,
-      "chapterStage": 10,
-      "rewardOrdinal": 10
+      "chapterStage": 10
     },
     {
       "id": 21,
       "chapter": 2,
-      "chapterStage": 6,
-      "rewardOrdinal": 16
+      "chapterStage": 6
     },
     {
       "id": 22,
       "chapter": 2,
-      "chapterStage": 7,
-      "rewardOrdinal": 17
+      "chapterStage": 7
     },
     {
       "id": 23,
       "chapter": 2,
-      "chapterStage": 8,
-      "rewardOrdinal": 18
+      "chapterStage": 8
     },
     {
       "id": 24,
       "chapter": 2,
-      "chapterStage": 9,
-      "rewardOrdinal": 19
+      "chapterStage": 9
     },
     {
       "id": 25,
       "chapter": 2,
-      "chapterStage": 10,
-      "rewardOrdinal": 20
+      "chapterStage": 10
     }
   ],
   "requirements": {

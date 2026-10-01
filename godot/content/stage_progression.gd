@@ -91,8 +91,8 @@ static func migrate_progression(p: Dictionary, run_evidence: Dictionary = {}, in
 	_migrate_growth(out)
 	return out
 static func reward_ordinal(id: int) -> int:
-	# Existing fifteen maps keep their original economy amounts.
-	return int(Registry.STAGES[id].rewardOrdinal) if Registry.STAGES.has(id) else (id if id <= Registry.LEGACY_STAGE_COUNT else ordinal_for(id))
+	# Every map uses the same logical progression order for future run rewards.
+	return ordinal_for(id)
 
 static func _migrate_growth(p: Dictionary) -> void:
 	if int(p.get("growthVersion",0)) >= 1: return

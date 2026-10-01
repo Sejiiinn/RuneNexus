@@ -60,7 +60,7 @@ func _initialize() -> void:
 	check(ancient == Progress.migrate_progression(ancient),"old growth idempotence")
 	var quest = Quest.new()
 	check(quest.finish(fresh,{"stageNumber":16,"completedRounds":40,"success":false}).lastRunRuneReward == 343,"new ID16 uses logical sixth-stage rune amount")
-	check(quest.finish(fresh,{"stageNumber":11,"completedRounds":40,"success":false}).lastRunRuneReward == 785,"existing ID11 rune reward stays original")
+	check(quest.finish(fresh,{"stageNumber":11,"completedRounds":40,"success":false}).lastRunRuneReward == 4109,"existing ID11 uses logical twenty-first-stage rune amount")
 	var reward := {"runId":"11111111-1111-4111-8111-111111111111","stageNumber":25,"completedRounds":40,"pendingDiamonds":0,"success":true,"createdAtMillis":123,"firstClearModuleTickets":0}
 	check(Outbox.valid_reward(reward),"new fixed ID25 settlement accepted")
 	reward.firstClearModuleTickets = 5

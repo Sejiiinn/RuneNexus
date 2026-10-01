@@ -124,6 +124,8 @@ func _text(value: String, rect: Rect2, font_size: float, color := WHITE, centere
 func _hit(rect: Rect2, callback: Callable, hint: String) -> Button:
 	var button := Button.new()
 	button.tooltip_text = hint
+	# Row touches must reach the native scroll container; it cancels taps on drag.
+	if is_instance_valid(list_canvas): button.mouse_filter = Control.MOUSE_FILTER_PASS
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for state in ["normal", "hover", "pressed", "disabled"]: button.add_theme_stylebox_override(state, StyleBoxEmpty.new())
 	button.pressed.connect(callback)
@@ -157,12 +159,17 @@ func _layout() -> void:
 	list_origin = 658 if active_here else 289
 	var scroll := ScrollContainer.new()
 	scroll.name = "StageRowsScroll"
+	scroll.scroll_deadzone = 10
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_place(scroll, Rect2(0,list_origin,REFERENCE.x,REFERENCE.y-list_origin-20))
 	list_canvas = Control.new()
 	list_canvas.name = "StageRows"
+	list_canvas.mouse_filter = Control.MOUSE_FILTER_PASS
 	list_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Keep rows readable when a short viewport or active card reduces list space.
+	var shell_scale := scale_factor
+	scale_factor.y = maxf(scale_factor.y, scale_factor.x)
 	list_canvas.custom_minimum_size = Vector2(0, (stages.size() - (1 if active_here else 0)) * 131 * scale_factor.y)
 	scroll.add_child(list_canvas)
 	var i := 0
@@ -171,6 +178,7 @@ func _layout() -> void:
 		_row(stage, list_origin + i * 131)
 		i += 1
 	list_canvas = null
+	scale_factor = shell_scale
 	scroll.set_deferred("scroll_vertical",int(list_scroll.get(chapter,0)))
 	var visible_chapter := chapter
 	scroll.get_v_scroll_bar().value_changed.connect(func(value): list_scroll[visible_chapter] = value)

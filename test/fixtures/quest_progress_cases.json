@@ -3961,7 +3961,7 @@
         }
       },
       "after": {
-        "runes": 2172,
+        "runes": 9132,
         "growthVersion": 1,
         "bossBountyUpgradeLevel": 0,
         "totalPlayTimeMillis": 1231,
@@ -3982,7 +3982,7 @@
           20724
         ],
         "weeklyAttendanceRewardClaimed": false,
-        "lastRunRuneReward": 1644,
+        "lastRunRuneReward": 8604,
         "startingGoldUpgradeLevel": 0,
         "nexusHpUpgradeLevel": 0,
         "supplyUpgradeLevel": 0,

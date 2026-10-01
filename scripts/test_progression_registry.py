@@ -80,7 +80,7 @@ class ProgressionRegistryTests(unittest.TestCase):
 
     def test_new_registry_stage_does_not_require_python_hardcode(self):
         data = copy.deepcopy(load_progression())
-        data['stages'].append(dict(id=26, chapter=3, chapterStage=6, rewardOrdinal=26))
+        data['stages'].append(dict(id=26, chapter=3, chapterStage=6))
         data['order'].append(26)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
