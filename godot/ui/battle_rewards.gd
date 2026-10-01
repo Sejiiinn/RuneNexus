@@ -257,41 +257,49 @@ func _replacement(state: Dictionary) -> void:
 	var turret: Dictionary = hud.app.run_domain.service.turret(state,replacement_id)
 	if turret.is_empty(): replacement_id = -1; replacement_slot = -1; return
 	var body: VBoxContainer = hud.overlay_body
-	body.add_theme_constant_override("separation",9)
-	var header := HBoxContainer.new(); body.add_child(header)
-	_text(header,"젬 장착",18)
-	var close: Button = hud._button(header,"×",func(): close_back())
-	close.tooltip_text = "포탑 다시 선택"; close.custom_minimum_size = Vector2(30,30)
-	hud._style_hud_button(close,"quiet",false,Vector2(3,0))
-	var tower := HBoxContainer.new(); body.add_child(tower)
-	_icon(tower,"ui/hud/turrets_3d/"+str(turret.type)+".png",32)
-	_text(tower,"%s · Lv.%d" % [hud.TOWERS.get(turret.type,turret.type),turret.level],13)
-	var incoming := PanelContainer.new(); body.add_child(incoming)
-	incoming.add_theme_stylebox_override("panel",hud.BattleTheme.box(Color("103140"),Color("4eb7d088"),10))
-	var incoming_row := HBoxContainer.new(); incoming_row.add_theme_constant_override("separation",10); incoming.add_child(incoming_row)
-	_icon(incoming_row,"gems/"+pending_gem+".png",34)
-	var incoming_text := VBoxContainer.new(); incoming_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL; incoming_row.add_child(incoming_text)
-	_text(incoming_text,"새 젬 · "+hud._gem_name(pending_gem),14).modulate = Color("8ee6ff")
-	_text(incoming_text,hud._gem_effect(pending_gem,turret),12)
-	var q: Dictionary = hud.app.run_domain.service.quotes(state,replacement_id)
-	var cost := int(q.get("link",0))
+	body.add_theme_constant_override("separation",8)
+	var safe: Vector4 = hud.safe_insets()
+	var modal_width := minf(hud.get_viewport_rect().size.x-safe.x-safe.z-24,420)
+	var narrow: bool = modal_width < 340
 	var maximum := int(hud.app.run_domain.service.derived(state).get("maxTurretLinkSlots",3))
-	_text(body,"장착할 슬롯을 선택하세요",13)
+	var opened := int(turret.slotLimit)
+	var cost := int(hud.app.run_domain.service.quotes(state,replacement_id).get("link",0))
+	var buying := replacement_slot == opened
+	var header := HBoxContainer.new(); body.add_child(header)
+	_text(header,"젬 장착",20)
+	var close: Button = hud._button(header,"×",func(): close_back())
+	close.name = "ReplacementClose"; close.tooltip_text = "포탑 다시 선택"; close.custom_minimum_size = Vector2(30,30)
+	hud._style_hud_button(close,"quiet",false,Vector2(3,0))
+	var tower := HBoxContainer.new(); tower.add_theme_constant_override("separation",6); body.add_child(tower)
+	_icon(tower,"ui/hud/turrets_3d/"+str(turret.type)+".png",28)
+	_text(tower,"%s · Lv.%d" % [hud.TOWERS.get(turret.type,turret.type),turret.level],11 if narrow else 13)
+	var capacity := _text(tower,"장착 %d개 · 최대 %d개" % [opened,maximum],10 if narrow else 12)
+	capacity.name = "ReplacementCapacity"; capacity.size_flags_horizontal = Control.SIZE_SHRINK_END
+	capacity.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; capacity.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_replacement_rule(body)
+	var incoming_row := HBoxContainer.new(); incoming_row.add_theme_constant_override("separation",10); body.add_child(incoming_row)
+	_icon(incoming_row,"gems/"+pending_gem+".png",40)
+	var incoming_text := VBoxContainer.new(); incoming_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL; incoming_row.add_child(incoming_text)
+	_text(incoming_text,"새 젬 · "+hud._gem_name(pending_gem),15).modulate = Color("8ee6ff")
+	_text(incoming_text,hud._gem_effect(pending_gem,turret),12)
 	var center := CenterContainer.new(); body.add_child(center)
-	var rows := VBoxContainer.new(); rows.name = "ReplacementSockets"; rows.add_theme_constant_override("separation",8); center.add_child(rows)
+	var rows := VBoxContainer.new(); rows.name = "ReplacementSockets"; rows.add_theme_constant_override("separation",10); center.add_child(rows)
+	var column_width := clampf((modal_width-28-32)/3.0,68,96)
+	var extent := minf(82,column_width)
 	var sockets: HBoxContainer
-	for slot in int(turret.slotLimit):
+	for slot in opened:
 		if slot % 3 == 0:
 			sockets = HBoxContainer.new(); sockets.alignment = BoxContainer.ALIGNMENT_CENTER
-			sockets.add_theme_constant_override("separation",2); rows.add_child(sockets)
+			sockets.add_theme_constant_override("separation",0); rows.add_child(sockets)
 		else:
-			var link_area := Control.new(); link_area.custom_minimum_size = Vector2(24,64)
+			var link_area := Control.new(); link_area.custom_minimum_size = Vector2(16,extent)
 			link_area.size_flags_vertical = Control.SIZE_SHRINK_BEGIN; sockets.add_child(link_area)
-			var link := _icon(link_area,"ui/components/gem_link_active.png",0)
-			link.position = Vector2(0,26); link.size = Vector2(24,12)
-		var column := VBoxContainer.new(); column.custom_minimum_size.x = 64; sockets.add_child(column)
+			var link := _icon(link_area,"ui/components/gem_link_locked.png",0)
+			link.position = Vector2(-3,(extent-8)/2); link.size = Vector2(22,8)
+		var column := VBoxContainer.new(); column.custom_minimum_size.x = column_width
+		column.add_theme_constant_override("separation",3); sockets.add_child(column)
 		var socket: Button = hud._button(column,"",func(): _select_replacement_slot(slot))
-		socket.name = "Slot%d" % slot; socket.custom_minimum_size = Vector2(64,64)
+		socket.name = "Slot%d" % slot; socket.custom_minimum_size = Vector2(extent,extent)
 		socket.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		for style in ["normal","hover","pressed","disabled","focus"]: socket.add_theme_stylebox_override(style,StyleBoxEmpty.new())
 		var art := _icon(socket,"ui/components/"+("gem_socket_selected.png" if replacement_slot == slot else "gem_socket_empty.png"),0)
@@ -299,45 +307,99 @@ func _replacement(state: Dictionary) -> void:
 		var gem := str(turret.equippedGemSlots[slot])
 		var icon := _icon(socket,"gems/"+gem+".png",0)
 		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon.offset_left = 14; icon.offset_right = -14; icon.offset_top = 14; icon.offset_bottom = -14
-		var socket_name: String = hud._gem_name(gem)
-		if socket_name.length() > 5 and socket_name.contains(" "):
-			var split_at := socket_name.rfind(" ")
-			socket_name = socket_name.substr(0,split_at)+"\n"+socket_name.substr(split_at+1)
-		var gem_label: Label = _text(column,socket_name,11,true)
-		gem_label.custom_minimum_size.x = 64
-		gem_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		icon.offset_left = extent*0.22; icon.offset_right = -extent*0.22; icon.offset_top = extent*0.22; icon.offset_bottom = -extent*0.22
+		if replacement_slot == slot:
+			var check := _text(socket,"✓",14,true)
+			check.name = "SelectedSocketCheck"; check.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+			check.offset_left = -22; check.offset_right = -2; check.offset_top = -23; check.offset_bottom = -2
+			check.add_theme_color_override("font_color",Color("8ee6ff"))
+		var gem_label := _text(column,hud._gem_name(gem),11 if narrow else 12,true)
+		gem_label.name = "SlotName%d" % slot; gem_label.custom_minimum_size.x = column_width
+		gem_label.add_theme_color_override("font_color",Color("e8f8ff"))
+		var effect := _text(column,_replacement_effect(gem,turret),10 if narrow else 11,true)
+		effect.autowrap_mode = TextServer.AUTOWRAP_WORD
+		effect.name = "SlotEffect%d" % slot; effect.custom_minimum_size.x = column_width
 		socket.tooltip_text = hud._gem_name(gem)+" · "+hud._gem_effect(gem,turret)
-	if cost > 0:
-		var buy: Button = hud._button(body,("✓ " if replacement_slot == int(turret.slotLimit) else "+ ")+"슬롯 추가 · %d G" % cost,func(): _select_replacement_slot(int(turret.slotLimit)))
-		hud.Components.apply(buy,"selected" if replacement_slot == int(turret.slotLimit) else "secondary")
-		buy.disabled = int(state.gold) < cost
-	_text(body,"보유 %d G" % state.gold,11,true).modulate = Color("b2c5d0")
-	var buying: bool = replacement_slot == int(turret.slotLimit)
-	if replacement_slot >= 0 and not buying and replacement_slot < turret.equippedGemSlots.size():
-		var old := str(turret.equippedGemSlots[replacement_slot])
-		_text(body,"%s → %s" % [hud._gem_name(old),hud._gem_name(pending_gem)],14,true).modulate = Color("ffe19a")
-		_text(body,"효과 제거 · "+hud._gem_effect(old,turret),12)
-		_text(body,"기존 젬은 보관함으로 돌아갑니다.",11).modulate = Color("a6c2cb")
-	elif buying:
-		_text(body,"새 슬롯에 %s 장착" % hud._gem_name(pending_gem),14,true).modulate = Color("8ee6ff")
-		_text(body,"기존 젬 유지 · %d G 사용 후 %d G 남음" % [cost,int(state.gold)-cost],11,true)
-	elif int(turret.slotLimit) >= maximum:
-		_text(body,"모든 슬롯이 사용 중입니다. 교체할 젬을 선택하세요.",11)
-	elif cost <= 0:
-		_text(body,"다음 슬롯은 포탑 Lv.5부터 추가할 수 있습니다.
-기존 젬을 선택하면 교체할 수 있습니다.",11)
-	elif int(state.gold) < cost:
-		_text(body,"슬롯 추가에 %d G 부족합니다.
-기존 젬을 선택하면 교체할 수 있습니다." % (cost-int(state.gold)),11)
-	else:
-		_text(body,"장착 젬 선택 → 교체
-슬롯 추가 선택 → 기존 젬을 유지하고 장착",11)
-	var caption := "장착할 슬롯을 선택하세요" if replacement_slot < 0 else ("슬롯 추가 후 장착 · %d G" % cost if buying else "선택한 젬과 교체")
-	var confirm: Button = hud._button(body,caption,_confirm_replacement)
-	hud.Components.apply(confirm,"primary"); confirm.custom_minimum_size.y = 44; confirm.disabled = replacement_slot < 0
+	_replacement_rule(body)
+	var guide := _text(body,"선택한 젬은 보관함으로 돌아갑니다." if replacement_slot >= 0 and not buying else "장착 방법을 선택하세요.",11,true)
+	guide.name = "ReplacementGuide"; guide.custom_minimum_size.y = 34; guide.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if opened < maximum:
+		var display_cost: int = cost if cost > 0 else hud.gem_panel._slot_price(state,replacement_id,opened)
+		var buy: Button = hud._button(body,"",func(): _select_replacement_slot(opened))
+		buy.name = "ReplacementAddSlot"; buy.custom_minimum_size.y = 84 if narrow else 68
+		hud.Components.apply(buy,"primary" if buying else "secondary")
+		buy.disabled = cost <= 0 or int(state.gold) < cost
+		var content := _replacement_button_body(buy,Vector2(8,6))
+		content.add_theme_constant_override("separation",5)
+		var mark := _text(content,"✓" if buying else "○",18,true)
+		mark.name = "AddSlotSelection"; mark.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; mark.custom_minimum_size.x = 18
+		mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		mark.add_theme_color_override("font_color",Color("8ee6ff") if buying else Color("90a9b6"))
+		var plus_area := Control.new(); plus_area.custom_minimum_size = Vector2(32,32)
+		plus_area.size_flags_vertical = Control.SIZE_SHRINK_CENTER; content.add_child(plus_area)
+		var plus_socket := _icon(plus_area,"ui/components/gem_socket_empty.png",0); plus_socket.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var plus := _text(plus_area,"+",22,true); plus.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var detail := VBoxContainer.new(); detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		detail.size_flags_vertical = Control.SIZE_SHRINK_CENTER; detail.add_theme_constant_override("separation",2); content.add_child(detail)
+		if narrow:
+			_text(detail,"새 슬롯 추가",12)
+			_replacement_money(detail,"",display_cost,"SlotPrice",11)
+		else:
+			_replacement_money(detail,"새 슬롯 추가 ·",display_cost,"SlotPrice",14)
+		var reason := "기존 젬 유지 · 새 슬롯에 장착"
+		if cost <= 0: reason = "포탑 Lv.5부터 추가 가능"
+		elif int(state.gold) < cost: reason = "골드 %d 부족" % (cost-int(state.gold))
+		var description := _text(detail,reason,10 if narrow else 11)
+		description.name = "AddSlotDescription"
+		var owned := _replacement_money(content,"보유",int(state.gold),"OwnedGold",10 if narrow else 11)
+		owned.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		buy.tooltip_text = reason
+		if buy.disabled: content.modulate = Color("889ba7")
+	var confirm: Button = hud._button(body,"",_confirm_replacement)
+	confirm.name = "ReplacementConfirm"; confirm.custom_minimum_size.y = 44
+	hud.Components.apply(confirm,"primary")
+	confirm.disabled = replacement_slot < 0 or (buying and (opened >= maximum or cost <= 0 or int(state.gold) < cost))
+	var confirm_content := _replacement_button_body(confirm,Vector2(6,4)); confirm_content.alignment = BoxContainer.ALIGNMENT_CENTER
+	var caption := "장착 방법을 선택하세요" if replacement_slot < 0 else ("슬롯 추가 후 장착 ·" if buying else "선택한 젬과 교체")
+	var confirm_label := _text(confirm_content,caption,14 if not narrow else 12,true)
+	confirm_label.name = "ConfirmCaption"; confirm_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	confirm_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	if buying: _replacement_money(confirm_content,"",cost,"ConfirmPrice",14 if not narrow else 12)
+	confirm.tooltip_text = caption
+	if confirm.disabled: confirm_content.modulate = Color("788b98")
 	var back: Button = hud._button(body,"포탑 다시 선택",func(): close_back())
+	back.name = "ReplacementBack"; back.custom_minimum_size.y = 34
 	hud._style_hud_button(back,"quiet",false,Vector2(8,6))
+
+func _replacement_effect(gem: String, turret: Dictionary) -> String:
+	# Keep Korean words and the value/unit together at compact socket widths.
+	var split := RegEx.new(); split.compile("\\s(?=[+−-]?\\d)")
+	return split.sub(hud._gem_effect(gem,turret),"\n",true).replace(", ",",\n").replace(" (","\n(")
+
+func _replacement_rule(parent: Node) -> void:
+	var line := HSeparator.new()
+	var style := StyleBoxLine.new(); style.color = Color("347c9066"); style.thickness = 1
+	line.add_theme_stylebox_override("separator",style); parent.add_child(line)
+
+func _replacement_button_body(button: Button, padding: Vector2) -> HBoxContainer:
+	var content := HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.offset_left = padding.x; content.offset_right = -padding.x
+	content.offset_top = padding.y; content.offset_bottom = -padding.y
+	return content
+
+func _replacement_money(parent: Node, prefix: String, amount: int, node_name: String, font_size: int) -> HBoxContainer:
+	var row := HBoxContainer.new(); row.name = node_name; row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation",3); parent.add_child(row)
+	if parent is HBoxContainer: row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	if not prefix.is_empty():
+		var label := _text(row,prefix,font_size)
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var icon := _icon(row,"ui/hud/icons/gold.png",14); icon.name = "GoldIcon"
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var value := _text(row,str(amount),font_size); value.name = "Amount"
+	value.autowrap_mode = TextServer.AUTOWRAP_OFF; value.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return row
 
 func _select_replacement_slot(slot: int) -> void:
 	var state: Dictionary = hud.app.run_domain.state
@@ -509,6 +571,9 @@ func _fit_modal() -> void:
 	if not is_instance_valid(hud) or not hud.overlay.visible or _layout_pending: return
 	var viewport: Vector2 = hud.get_viewport_rect().size
 	var safe: Vector4 = hud.safe_insets()
+	# The removed body may have constrained the eager width to its old minimum.
+	# Apply the requested width again after the replacement body has laid out.
+	hud.overlay.size.x = minf(viewport.x-safe.x-safe.z-24,420)
 	var style: StyleBox = hud.overlay.get_theme_stylebox("panel")
 	var padding := style.get_content_margin(SIDE_TOP)+style.get_content_margin(SIDE_BOTTOM)
 	var available := maxf(1,viewport.y-safe.y-safe.w-24)

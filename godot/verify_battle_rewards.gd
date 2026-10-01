@@ -117,7 +117,8 @@ func run() -> void:
 	before_choice = app.run_domain.state.duplicate(true)
 	hud.rewards._select_replacement_slot(2)
 	assert(hud.rewards.replacement_slot == 2 and app.run_domain.state == before_choice)
-	assert(_confirm_button(hud.overlay_body).text == "슬롯 추가 후 장착 · %d G" % slot_cost)
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text == "슬롯 추가 후 장착 ·")
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmPrice",true,false).get_node("Amount").text == str(slot_cost))
 	assert(not _confirm_button(hud.overlay_body).disabled)
 	hud.rewards._confirm_replacement()
 	assert(app.run_domain.state.phase == "preparation")
@@ -147,6 +148,8 @@ func run() -> void:
 	assert(hud.rewards.replacement_slot == 5 and app.run_domain.state == before_choice)
 	assert(not _confirm_button(hud.overlay_body).disabled)
 	assert(_asset_names(hud.overlay_body).count("gem_socket_selected.png") == 1)
+	await _assert_replacement_layout(hud,app)
+	_assert_invalidated_purchase(hud,app)
 	await _assert_owned_gem_layout(hud,app)
 	await _assert_reward_selection_layout(hud,app)
 	for phase in ["success","failure"]:
@@ -157,11 +160,7 @@ func run() -> void:
 	hud.queue_free(); app.queue_free(); await process_frame; quit()
 
 func _confirm_button(node: Node) -> Button:
-	for child in node.get_children():
-		if child is Button and (child.text in ["선택한 젬과 교체","장착할 슬롯을 선택하세요"] or child.text.begins_with("슬롯 추가 후 장착")): return child
-		var found := _confirm_button(child)
-		if found != null: return found
-	return null
+	return node.find_child("ReplacementConfirm",true,false) as Button
 
 func _asset_names(node: Node) -> Array[String]:
 	var result: Array[String] = []
@@ -171,11 +170,12 @@ func _asset_names(node: Node) -> Array[String]:
 	return result
 
 func _assert_socket_assets(node: Node, occupied: int) -> void:
-	var names := _asset_names(node)
+	var sockets: Node = node.find_child("ReplacementSockets",true,false)
+	var names := _asset_names(sockets)
 	assert(names.count("gem_socket_empty.png") == occupied)
 	assert(names.count("gem_socket_locked.png") == 0)
 	assert(names.count("gem_link_active.png")+names.count("gem_link_locked.png") == occupied-int(ceil(occupied/3.0)))
-	_assert_socket_targets(node)
+	_assert_socket_targets(sockets)
 
 func _assert_socket_targets(node: Node) -> void:
 	if node is TextureRect and node.texture != null and node.texture.resource_path.get_file().begins_with("gem_socket_"):
@@ -285,3 +285,82 @@ func _assert_reward_selection_layout(hud,app) -> void:
 			print("PASS reward selection frame width=",width," purchased=",purchased," initial=",initial)
 	root.size = original_size; root.content_scale_size = original_scale
 	hud.rewards.key = ""; hud.refresh()
+
+func _assert_replacement_layout(hud,app) -> void:
+	var original_size := root.size
+	var original_scale := root.content_scale_size
+	var before: Dictionary = app.run_domain.state.duplicate(true)
+	for width in [440,320]:
+		root.size = Vector2i(width,760); root.content_scale_size = root.size
+		# Viewport scaling changes become visible on the following frame.
+		await process_frame
+		for count in [1,3,6]:
+			var state: Dictionary = app.run_domain.state
+			var turret: Dictionary = state.turrets[0]
+			turret.level = 7; turret.slotLimit = count
+			turret.equippedGemSlots = ["attackSpeed","physicalDamage","criticalChance","lightWeapon","damageAmplifier","multipleProjectiles"].slice(0,count)
+			turret.equippedGems = turret.equippedGemSlots.duplicate()
+			state.phase = "reward"; state.gold = 10000
+			hud.rewards.pending_gem = "range"; hud.rewards.replacement_id = int(turret.id)
+			hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+			await _record_reward_rects(hud)
+			var frame: Rect2 = hud.overlay.get_global_rect()
+			var footer: Rect2 = _confirm_button(hud.overlay_body).get_global_rect()
+			var original: Dictionary = state.duplicate(true)
+			var maximum: int = app.run_domain.service.derived(state).get("maxTurretLinkSlots",3)
+			assert(hud.overlay_body.find_child("ReplacementCapacity",true,false).text == "장착 %d개 · 최대 %d개" % [count,maximum])
+			assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false) != null if count < maximum else hud.overlay_body.find_child("ReplacementAddSlot",true,false) == null)
+			assert(_asset_names(hud.overlay_body).count("gold.png") == (2 if count < maximum else 0))
+			for slot in count:
+				assert(hud.overlay_body.find_child("SlotEffect%d" % slot,true,false).text == hud.rewards._replacement_effect(str(turret.equippedGemSlots[slot]),turret))
+			for choice in [0,count-1,count]:
+				hud.rewards._select_replacement_slot(choice)
+				await _record_reward_rects(hud)
+				assert(state == original,"Replacement choices only preview")
+				assert(hud.overlay.get_global_rect() == frame,"Replacement selection must keep modal height and position: width=%d count=%d choice=%d before=%s after=%s" % [width,count,choice,frame,hud.overlay.get_global_rect()])
+				assert(_confirm_button(hud.overlay_body).get_global_rect() == footer,"Replacement selection must keep footer stable")
+				_assert_replacement_content(hud.overlay_body,frame)
+				if choice < count: assert(hud.overlay_body.find_child("SelectedSocketCheck",true,false) != null)
+			print("PASS replacement layout width=",width," count=",count," frame=",frame," footer=",footer)
+	app.run_domain.state = before
+	root.size = original_size; root.content_scale_size = original_scale
+	hud.rewards.key = ""; hud.refresh()
+	await _record_reward_rects(hud)
+
+func _assert_replacement_content(node: Node,frame: Rect2) -> void:
+	if node is Label:
+		assert(not node.text.contains(" G") and not node.text.contains(" g"),"Gold units use the existing PNG")
+		assert(not node.text.contains("남음") and not node.text.contains("효과 제거"),"Do not restore the removed explanation band")
+		assert(node.get_global_rect().position.x >= frame.position.x-0.5)
+		assert(node.get_global_rect().end.x <= frame.end.x+0.5,"Replacement content fits 320/440 width: "+node.text)
+	for child in node.get_children(): _assert_replacement_content(child,frame)
+
+func _assert_invalidated_purchase(hud,app) -> void:
+	var original: Dictionary = app.run_domain.state.duplicate(true)
+	var state: Dictionary = original.duplicate(true)
+	var turret: Dictionary = state.turrets[0]
+	state.phase = "reward"; state.gold = 10000
+	state.progression.grandfatherUnlocks = ["research:linkExpansionOne"]
+	state.progression.researchLevels = {"linkExpansionOne":1}
+	turret.level = 7; turret.slotLimit = 3
+	turret.equippedGemSlots = ["attackSpeed","physicalDamage","criticalChance"]
+	turret.equippedGems = turret.equippedGemSlots.duplicate()
+	var cost: int = app.run_domain.service.quotes(state,int(turret.id)).link
+	assert(cost > 0)
+	for reason in ["gold","level","research"]:
+		app.run_domain.state = state.duplicate(true)
+		hud.rewards.pending_gem = "range"; hud.rewards.replacement_id = int(turret.id)
+		hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+		hud.rewards._select_replacement_slot(3)
+		assert(not _confirm_button(hud.overlay_body).disabled)
+		match reason:
+			"gold": app.run_domain.state.gold = cost-1
+			"level": app.run_domain.state.turrets[0].level = 4
+			"research": app.run_domain.state.progression.researchLevels = {}
+		hud.rewards.key = ""; hud.refresh()
+		assert(_confirm_button(hud.overlay_body).disabled,"Invalid purchase preview must disable confirm: "+reason)
+		var invalid: Dictionary = app.run_domain.state.duplicate(true)
+		hud.rewards._confirm_replacement()
+		assert(app.run_domain.state == invalid,"Invalid confirmation must not mutate the reward: "+reason)
+	app.run_domain.state = original
+	print("PASS invalidated reward purchase: gold, level and research changes disable confirmation")

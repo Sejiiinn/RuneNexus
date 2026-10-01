@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>보상 젬 교체 모달 — 4개 제안</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#071116;color:#d8e5e9;font:15px/1.6 system-ui,sans-serif}main{max-width:1360px;margin:auto;padding:28px}h1{font-size:24px;margin:0 0 8px}p{margin:8px 0;color:#a8c2cc}a{color:#70d8eb}.concepts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:24px}figure{margin:0}h2{font-size:17px;margin:0 0 5px}figure p{min-height:52px;font-size:13px}img{display:block;width:100%;height:auto}small{color:#95b6c2}.note{border-top:1px solid #25424d;margin-top:24px;padding-top:12px}@media(max-width:1050px){.concepts{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){main{padding:16px}.concepts{grid-template-columns:1fr}figure p{min-height:0}}
+</style>
+<main>
+<h1>보상 젬 교체 모달 — 4개 제안</h1>
+<p>현재 코드와 격리된 Godot 렌더에서 기존 젬 효과 비교의 불편함, 선택 시 창 높이·버튼 위치 변화, 최대 슬롯에서도 표시되는 골드, 교체 상황이 불명확한 제목을 확인했습니다.</p>
+<p>슬롯 확장 연구 완료, 장착 3개·최대 4개인 포탑입니다. 기존 젬 교체와 180 G로 새 슬롯을 추가하는 선택을 함께 표시합니다. 3번 수정본이 구현 기준으로 승인됐으며, 골드 단위는 공용 골드 아이콘으로 대체합니다. 아래 이미지는 ImageGen 시안이며 게임 적용 화면이 아닙니다.</p>
+<div class="concepts">
+<figure><h2>01 · 비교 중심</h2><p>반환할 젬과 장착할 젬을 나란히 비교합니다. 교체 대상을 확정 버튼에도 표시합니다.</p><a href="01-comparison-focus-v2.png"><img src="01-comparison-focus-v2.png" alt="1번: 연결된 소켓 아래 기존 급소와 새 사거리의 효과를 좌우로 비교하는 모달"></a></figure>
+<figure><h2>02 · 새 젬 우선</h2><p>획득한 젬을 먼저 보여주고, 소켓 선택 아래에 반환할 젬의 효과를 표시합니다.</p><a href="02-incoming-first-v2.png"><img src="02-incoming-first-v2.png" alt="2번: 새 젬을 상단에 강조하고 하단에 반환 젬을 표시하는 모달"></a></figure>
+<figure><h2>03 · 승인 시안 · 슬롯 추가 선택</h2><p>슬롯 추가 선택 바로 아래에 확정 버튼을 둡니다. 중복 설명칸과 연결선을 제거하고 비용·보유 골드·기존 젬 유지 안내는 선택 명패에 남겼습니다.</p><a href="03-socket-anchored-v3.png"><img src="03-socket-anchored-v3.png" alt="3번: 중복 설명칸 없이 슬롯 추가 선택 아래에 장착 확정 버튼을 둔 모달"></a></figure>
+<figure><h2>04 · 효과 변화 중심</h2><p>빠지는 효과와 추가되는 효과를 정렬된 두 행으로 보여주어 판단을 돕습니다.</p><a href="04-effect-table-v2.png"><img src="04-effect-table-v2.png" alt="4번: 제거 효과와 추가 효과를 두 행으로 비교하는 모달"></a></figure>
+</div>
+<section style="margin-top:28px"><h2>승인 3번 실제 Godot 적용 화면</h2><p>설명칸 제거, 기존 젬 효과 상시 표시, 슬롯 추가 선택과 확정 분리, 비용·보유·확정 금액의 공용 골드 아이콘을 적용했습니다. 아래는 격리 저장으로 실행한 실제 앱·전장 렌더이며 이미지 시안이 아닙니다.</p><p>데스크톱 Godot에서 보상 UI·보상 정산·런 명령 회귀를 통과했습니다. 별도 검증 에이전트가 실제 좌표 입력, 구매·반환·취소, 조건 변화, 320/440 배치와 긴 문구를 독립 확인해 최종 통과했습니다. 6개 소켓은 표시용 fixture이며 현재 실제 최대치는 기본 3개·연구 후 4개입니다.</p><div class="concepts" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:1000px"><figure><a href="implemented-godot-440.png"><img src="implemented-godot-440.png" alt="440px 실제 Godot 앱에서 골드 아이콘과 슬롯 추가 선택을 표시하는 최종 모달"></a></figure><figure><a href="implemented-godot-battlefield.png"><img src="implemented-godot-battlefield.png" alt="실제 전장과 HUD 위에 표시한 최종 젬 장착 모달"></a></figure></div></section>
+<div class="note"><p>공통 설계 방향: 비교 영역과 하단 버튼 위치 유지, 소켓 선택은 미리보기, 별도 확정으로 교체, 기존 젬은 보관함으로 반환. 정지 시안은 실제 고정 높이·터치·반응형 동작의 검증 근거가 아닙니다.</p>
+<p>4개 시안 모두 새 슬롯 추가 선택과 비용·보유 골드를 표시합니다. 예시의 실제 도메인 견적은 180 G이며, 보유 3000 G에서 구매 후 2820 G가 남습니다. 구매와 장착의 원자 처리, 최대 6개 소켓의 3개씩 두 줄 배치, 닫기·포탑 다시 선택의 보상 보존 계약도 유지합니다. 최대 슬롯 도달·레벨 제한·골드 부족 상태는 실제 조건에 따라 구매 선택을 숨기거나 비활성으로 안내해야 합니다.</p>
+<small>2026-10-02 · 3번 수정본 승인, 나머지 미선택 제안 · <a href="prompts-v2.json">ImageGen 생성 프롬프트 4종</a> · <a href="03-socket-anchored-v3.prompt.txt">3번 설명칸 제거 프롬프트</a> · 기준: DESIGNS.md 보상 젬 장착·교체</small></div>
+</main>
+</html>
