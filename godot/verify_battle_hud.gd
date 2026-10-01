@@ -353,6 +353,24 @@ func run() -> void:
 	assert(app.scene._native_combat.session.paused)
 	assert(hud.start.text == "▶ 재개" and not hud.start.disabled and not hud.pause_button.visible)
 	assert(hud.pause_indicator.visible and hud.pause_indicator.mouse_filter == Control.MOUSE_FILTER_IGNORE)
+	assert(not hud.blocks_board_input(), "Manual pause keeps the battlefield interactive")
+	var paused_build := Vector2i(-1,-1)
+	for tile_index in range(map.tiles.size()):
+		var tile := Vector2i(tile_index % int(map.columns),tile_index / int(map.columns))
+		if map.tiles[tile_index] == "build" and app.run_domain.selected_id(tile) < 0:
+			paused_build = tile; break
+	assert(paused_build.x >= 0)
+	var paused_state: Dictionary = app.run_domain.state.duplicate(true)
+	var paused_count: int = app.run_domain.state.turrets.size()
+	app.board_tap(paused_build)
+	var paused_install := find_button(hud.body,"설치 · ")
+	assert(paused_install != null and not paused_install.disabled, "Paused wave exposes the existing install action")
+	paused_install.pressed.emit()
+	assert(app.run_domain.state.turrets.size() == paused_count+1 and app.run_domain.selected_id(paused_build) >= 0, "Install action builds during a paused wave")
+	assert(app.scene._native_combat.session.paused and app.run_domain.state.phase == "wave", "Installing preserves paused wave")
+	app.run_domain.state = paused_state
+	app.board_tap(Vector2i(-1,-1))
+	hud.main_tab = "turrets"; hud.refresh()
 	var bright_alpha: float = hud.pause_indicator.modulate.a
 	for frame in range(30): await process_frame
 	assert(hud.pause_indicator.modulate.a < bright_alpha - 0.05,"Pause indicator must keep blinking while combat is paused")

@@ -19,11 +19,14 @@ func reset() -> void:
 func blocked() -> bool:
 	var state: Dictionary = scene._native_combat.session
 	var app = scene._standalone_session
-	var reward_targeting := false
-	if is_instance_valid(app) and app.get("hud") != null:
-		var rewards = app.hud.get("rewards")
-		reward_targeting = rewards != null and rewards.targeting() and not rewards.replacing() and not bool(app.get("save_failed"))
-	return bool(scene._native_combat_base_frame.get("inputBlocked", false)) or (bool(state.get("paused", false)) and not reward_targeting) or bool(state.get("loading", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
+	# Pause stops simulation, while camera/selection/build input stays available.
+	# Save failures and reward replacement still require a blocked board.
+	if is_instance_valid(app):
+		if bool(app.get("save_failed")): return true
+		if app.get("hud") != null:
+			var rewards = app.hud.get("rewards")
+			if rewards != null and rewards.targeting() and rewards.replacing(): return true
+	return bool(scene._native_combat_base_frame.get("inputBlocked", false)) or bool(state.get("loading", false)) or bool(state.get("backgrounded", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
 
 func handle(event: InputEvent) -> void:
 	# Android touch can also synthesize a mouse event; consume the native touch once.
@@ -31,6 +34,8 @@ func handle(event: InputEvent) -> void:
 	if not scene._native_combat.native_session() or blocked():
 		contacts.clear()
 		return
+	var previous_pan := pan
+	var previous_zoom := zoom
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			contacts[event.index] = event.position
@@ -64,6 +69,9 @@ func handle(event: InputEvent) -> void:
 		if event.position.distance_to(start) > 8: dragged = true
 		if dragged: pan += event.relative / scene.get_viewport().get_visible_rect().size
 	pan = pan.clamp(Vector2(-0.75, -0.75), Vector2(0.75, 0.75))
+	# Paused combat does not publish simulation frames; show camera input now.
+	if bool(scene._native_combat.session.get("paused", false)) and (pan != previous_pan or not is_equal_approx(zoom, previous_zoom)) and not scene._native_combat_base_frame.is_empty():
+		scene._apply_frame(scene._native_combat_base_frame)
 
 func set_zoom(value: float) -> void:
 	zoom = clampf(value, 1.0, 2.5)

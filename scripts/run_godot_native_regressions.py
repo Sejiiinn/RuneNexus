@@ -46,6 +46,7 @@ SCRIPTS = {
     "verify_reward_settlement.gd": '"ok":true',
     "verify_run_commands.gd": "failures=[]",
     "verify_battle_hud.gd": "PASS battle HUD:",
+    "verify_battlefield_input.gd": "PASS battlefield input:",
     "verify_diamond_event.gd": "PASS diamond event:",
     "verify_battle_rewards.gd": "PASS battle rewards:",
     "verify_lobby.gd": "LOBBY_SMOKE_OK",
