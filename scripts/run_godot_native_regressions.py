@@ -40,6 +40,7 @@ SCRIPTS = {
     "verify_content_run_save.gd": "CONTENT_RUN_SAVE failures=0",
     "verify_damage_event_collection.gd": "DAMAGE_EVENT_COLLECTION failures=[]",
     "verify_event_batch.gd": "EVENT_BATCH failures=[]",
+    "verify_run_transition.gd": "RUN_TRANSITION failures=[]",
     "verify_quest_progress.gd": "quest progression Dart parity PASS:",
     "verify_reward_snapshot.gd": "authoritative snapshot Dart parity PASS:",
     "verify_reward_settlement.gd": '"ok":true',

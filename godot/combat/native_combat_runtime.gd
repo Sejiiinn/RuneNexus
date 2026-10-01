@@ -381,6 +381,10 @@ func _command(c: Dictionary) -> void:
 	match c.get("kind", ""):
 		"waveStart":
 			_start_wave(c.wave, true)
+		"waveCancel":
+			wave.cancel()
+			running = false
+			pending_steps.clear()
 		"coreConfig":
 			core.configure(c.config,c.get("state",{}))
 			_refresh_turret_stats()

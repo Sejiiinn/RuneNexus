@@ -52,6 +52,10 @@ func prepare_run_transition() -> bool:
 	if checkpoint.persist_state(self, terminal, abandoning) != OK: return false
 	run_domain.state = terminal
 	progression_inputs = terminal.progression.duplicate(true)
+	if abandoning:
+		# Commit the live cancellation only after both checkpoint and outbox succeed.
+		# Otherwise a later save would capture failure with the old spawn schedule.
+		command([{"kind":"waveCancel"}], {"phase":terminal.phase,"paused":true})
 	return true
 
 func _can_replace_run() -> bool:
