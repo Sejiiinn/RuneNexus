@@ -88,6 +88,7 @@ func _initialize() -> void:
 	check(restored.turrets["1000"].stats.damage == runtime.turrets["1000"].stats.damage,"growth and gems rebuilt combat stats")
 	check(restored.wave.queue[0].delay == runtime.wave.snapshot().spawnQueue[0].delay,"remaining spawn delay no added gap")
 	_light_weapon_legacy_cases(adapter,service,saved)
+	_gem_slot_restore_cases(adapter,saved)
 	var before := saved.duplicate(true)
 	var bad := saved.duplicate(true)
 	bad.activeRun.mapSignature = "different-map"
@@ -207,6 +208,28 @@ func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 	invalid.activeRun.turrets[0].equippedGems = ["lightWeapon","aimSpeed"]
 	check(adapter.prepare(invalid).is_empty(),"other incompatible gems still rejected")
 
+
+func _gem_slot_restore_cases(adapter, saved: Dictionary) -> void:
+	var short_slots := saved.duplicate(true)
+	short_slots.activeRun.turrets[0].slotLimit = 3
+	short_slots.activeRun.turrets[0].equippedGemSlots = [null]
+	# Explicit slots remain authoritative over the legacy derived list.
+	short_slots.activeRun.turrets[0].equippedGems = ["attackSpeed"]
+	var original := short_slots.duplicate(true)
+	var result: Dictionary = adapter.prepare(short_slots)
+	check(not result.is_empty(),"short slot array remains loadable: "+adapter.error)
+	if not result.is_empty():
+		check(result.state.turrets[0].equippedGemSlots == [null,null,null] and result.state.turrets[0].equippedGems.is_empty(),"restore pads empty slots and derives equipped list from slots")
+		check(result.state.gemInventory == original.activeRun.gemInventory,"stale derived list does not refund inventory")
+	check(short_slots == original,"slot padding and list derivation preserve source save")
+	for gems in [["attackSpeed","attackSpeed"],["lightWeapon","lightWeapon"],["lightWeapon","aimSpeed"]]:
+		var invalid := saved.duplicate(true)
+		invalid.activeRun.turrets[0].type = "cannon"
+		invalid.activeRun.turrets[0].equippedGemSlots = gems.duplicate()
+		invalid.activeRun.turrets[0].equippedGems = gems.duplicate()
+		original = invalid.duplicate(true)
+		check(adapter.prepare(invalid).is_empty() and adapter.error == "Invalid turret gems","duplicate or incompatible restore retains exact gem error: "+str(gems))
+		check(invalid == original,"rejected restore does not refund or clear source slots: "+str(gems))
 
 func _ordinal_durability_save_cases(current, growth) -> void:
 	# Reconstruct historical fixed-ID scaling solely for pre-alignment v2 input.

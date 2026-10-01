@@ -3,6 +3,7 @@ extends RefCounted
 const Codec = preload("res://app/save_codec.gd")
 const CombatProjection = preload("res://app/run_save_adapter.gd")
 const Commands = preload("res://app/run_commands.gd")
+const GemSlots = preload("res://app/gem_slot_rules.gd")
 var catalog
 var growth
 var error := ""
@@ -94,21 +95,18 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 		if t.level < 1 or t.level > int(rule.maxLevel) or t.slotLimit < 1 or t.slotLimit > 4 or t.equippedGemSlots.size() > t.slotLimit: return _reject("Invalid turret level/slots")
 		for key in ["primaryTrait","secondaryTrait"]:
 			if t[key] != null and t[key] not in rule.get(key+"s",[]): return _reject("Invalid turret trait")
-		var seen := {}
+		if GemSlots.has_duplicates(t.equippedGemSlots): return _reject("Invalid turret gems")
 		for slot in range(t.equippedGemSlots.size()):
 			var gem = t.equippedGemSlots[slot]
 			if gem == null: continue
-			if seen.has(gem): return _reject("Invalid turret gems")
-			seen[gem] = true
-			if gem not in rule.compatibleGems:
+			if not GemSlots.is_compatible(gem, rule.compatibleGems):
 				# Older content allowed lightWeapon on every turret. Return that
 				# obsolete equipment once, using slots as the inventory authority.
 				# Only the copied runtime state changes; the source save stays intact.
 				if gem != "lightWeapon": return _reject("Invalid turret gems")
-				t.equippedGemSlots[slot] = null
-				state.gemInventory[gem] = int(state.gemInventory.get(gem,0)) + 1
+				GemSlots.replace_owned(t, slot, null, state.gemInventory)
 		while t.equippedGemSlots.size() < t.slotLimit: t.equippedGemSlots.append(null)
-		t.equippedGems = t.equippedGemSlots.filter(func(g): return g != null)
+		GemSlots.sync_equipped(t)
 		t.id = state.nextTurretId
 		state.nextTurretId += 1
 	for type in state.runUpgradeLevels:

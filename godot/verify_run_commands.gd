@@ -104,6 +104,7 @@ func _initialize() -> void:
 	check(tower.cooldown == 0.37 and tower.aimProgress == 0.27 and tower.directDamageDealt == 123.0 and tower.recent == {"77":1.3},"upgrading preserves combat clocks and damage")
 	_targeted_level_cases(catalog,growth,built.state)
 	_light_weapon_equip_cases(service,built.state)
+	_gem_slot_boundary_cases(service,built.state)
 	_reward_equip_cases(service,built.state)
 	_reward_slot_purchase_cases(service,built.state)
 	_game_cases(service)
@@ -261,6 +262,46 @@ func _reward_equip_cases(service, built: Dictionary) -> void:
 	command.type = "heavyWeapon"
 	result = service.apply(state,command)
 	check(not result.ok and result.state == state,"incompatible reward preserves choice")
+
+func _gem_slot_boundary_cases(service, built: Dictionary) -> void:
+	# Slot selection differs intentionally between ordinary equip and removal.
+	var cases := [
+		{"name":"negative equip clamps first","slots":["range",null],"command":{"kind":"equipGem","type":"attackSpeed","slot":-9},"expected":["attackSpeed",null]},
+		{"name":"large equip clamps last","slots":["range",null],"command":{"kind":"equipGem","type":"attackSpeed","slot":99},"expected":["range","attackSpeed"]},
+		{"name":"implicit equip fills empty slot","slots":["range",null],"command":{"kind":"equipGem","type":"attackSpeed"},"expected":["range","attackSpeed"]},
+		{"name":"implicit equip replaces first when full","slots":["range","criticalChance"],"command":{"kind":"equipGem","type":"attackSpeed"},"expected":["attackSpeed","criticalChance"]},
+		{"name":"remove returns existing gem","slots":["range",null],"command":{"kind":"removeGem","slot":0},"expected":[null,null]},
+		{"name":"negative remove stays strict","slots":["range",null],"command":{"kind":"removeGem","slot":-1},"error":"slot"},
+		{"name":"large remove stays strict","slots":["range",null],"command":{"kind":"removeGem","slot":99},"error":"slot"},
+		{"name":"implicit remove stays strict","slots":["range",null],"command":{"kind":"removeGem"},"error":"slot"},
+		{"name":"empty removal rejected","slots":["range",null],"command":{"kind":"removeGem","slot":1},"error":"emptySlot"},
+		{"name":"duplicate across slots rejected","slots":["attackSpeed",null],"command":{"kind":"equipGem","type":"attackSpeed","slot":1},"error":"gem"},
+		{"name":"duplicate in replaced slot rejected","slots":["attackSpeed",null],"command":{"kind":"equipGem","type":"attackSpeed","slot":0},"error":"gem"},
+		{"name":"incompatible replacement rejected","slots":["range",null],"command":{"kind":"equipGem","type":"heavyWeapon","slot":0},"error":"gem"}
+	]
+	for example in cases:
+		var state := built.duplicate(true)
+		state.turrets[0].slotLimit = 2
+		state.turrets[0].equippedGemSlots = example.slots.duplicate()
+		state.turrets[0].equippedGems = example.slots.filter(func(g): return g != null)
+		state.gemInventory = {"attackSpeed":1,"heavyWeapon":1,"range":2}
+		var command: Dictionary = example.command.duplicate()
+		command.id = state.turrets[0].id
+		var before := state.duplicate(true)
+		var result: Dictionary = service.apply(state,command)
+		check(state == before,example.name+": source immutable")
+		if example.has("error"):
+			check(not result.ok and result.error == example.error and result.state == before and result.commands.is_empty(),example.name+": exact atomic rejection")
+			continue
+		var expected: Dictionary = before.duplicate(true)
+		var selected: int = example.expected.find("attackSpeed") if command.kind == "equipGem" else 0
+		var old = example.slots[selected]
+		if command.kind == "equipGem": expected.gemInventory.erase("attackSpeed")
+		if old != null: expected.gemInventory[old] = int(expected.gemInventory.get(old,0))+1
+		expected.turrets[0].equippedGemSlots = example.expected.duplicate()
+		expected.turrets[0].equippedGems = example.expected.filter(func(g): return g != null)
+		check(result.ok and result.error == "" and result.state == expected,example.name+": only slots and inventory change")
+		check(result.commands == service.runtime_commands(expected),example.name+": synchronous combat update unchanged")
 
 func _reward_slot_purchase_cases(service, built: Dictionary) -> void:
 	var state := built.duplicate(true)

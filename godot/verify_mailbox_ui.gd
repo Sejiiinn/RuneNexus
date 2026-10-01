@@ -6,6 +6,7 @@ const MailboxView = preload("res://ui/mailbox_view.gd")
 
 class Service extends RefCounted:
 	var tree: SceneTree
+	var epoch := 0
 	var busy := false
 	var updates := {"blocked": false}
 	var mails: Array = []
@@ -200,7 +201,7 @@ func run() -> void:
 	service.repeat_cursor = true
 	lobby.open_service("우편함")
 	await settle()
-	check(lobby._services.data.get("nextCursor") == null, "Repeated server cursor stops pagination")
+	check(lobby._services.mailbox.data.get("nextCursor") == null, "Repeated server cursor stops pagination")
 	var repeated_count := service.requests.count("GET v1/mailbox?cursor=page2")
 	await settle()
 	check(service.requests.count("GET v1/mailbox?cursor=page2") == repeated_count, "Repeated cursor never loops")
@@ -272,12 +273,103 @@ func run() -> void:
 	service.hold_page = true
 	lobby.open_service("우편함")
 	await settle()
-	check(not lobby._services.mail_auto_loading_cursor.is_empty(), "Short page continuation is in flight")
+	check(not lobby._services.mailbox.mail_auto_loading_cursor.is_empty(), "Short page continuation is in flight")
 	lobby.close_modal()
 	service.hold_page = false
 	lobby.open_service("우편함")
 	await settle()
-	check(lobby._services.data.get("mails", []).size() == 3, "Late response from closed view cannot duplicate reentered list")
+	check(lobby._services.mailbox.data.get("mails", []).size() == 3, "Late response from closed view cannot duplicate reentered list")
+
+	# Claims stay server-authoritative and preserve the expanded mail after refetch.
+	service.mails[0].claimedAt = null
+	lobby.open_service("우편함")
+	await settle()
+	find_node("MailTitle0").pressed.emit()
+	await settle()
+	find_node("ClaimMail0").pressed.emit()
+	await settle()
+	check(service.claims.back().action == "mail_claim" and service.claims.back().values == {"id": "mail-1"}, "Single claim uses the authoritative perform contract")
+	check(find_node("MailBody0") != null and find_node("ClaimMail0") == null, "Single claim refetch preserves expansion and shows server claimed state")
+	await capture("mailbox-440-after-single-claim")
+
+	service.mails[1].claimedAt = null
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	var old_claim: Callable = find_node("ClaimMail1").pressed.get_connections()[0].callable
+	lobby.open_service("우편함")
+	await settle()
+	var claims_before_old_button := service.claims.size()
+	old_claim.call()
+	await settle()
+	check(service.claims.size() == claims_before_old_button, "A previous view claim callback cannot submit mail IDs after reopening")
+	find_node("MailTitle0").pressed.emit()
+	await settle()
+
+	# A read started in a dismissed view must not change a reopened selection.
+	service.mails[0].readAt = null
+	service.mails[1].readAt = null
+	service.hold_read = true
+	find_node("MailTitle0").pressed.emit()
+	find_node("MailTitle0").pressed.emit()
+	await settle()
+	lobby.close_modal()
+	lobby.open_service("우편함")
+	await settle()
+	find_node("MailTitle1").pressed.emit()
+	await settle()
+	service.hold_read = false
+	await settle()
+	check(find_node("MailBody1") != null and find_node("MailBody0") == null, "Late read from a closed view preserves the reopened selection")
+	check(lobby._services.mailbox.read_pending_id.is_empty() and not lobby._services.mailbox.pending, "Old read completion does not retain request state in the reopened controller")
+
+	# Even a successful response is stale after an account binding changes.
+	service.hold_fetch = true
+	lobby.open_service("우편함")
+	await settle()
+	service.epoch += 1
+	service.hold_fetch = false
+	await settle()
+	check(lobby._services.mailbox.data.is_empty() and find_node("MailCard0") == null, "Account epoch change discards the old successful mailbox fetch")
+	lobby.open_service("우편함")
+	await settle()
+	service.mails[0].claimedAt = null
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	var account_claim: Callable = find_node("ClaimMail0").pressed.get_connections()[0].callable
+	var account_refresh: Callable = find_node("RefreshMailbox").pressed.get_connections()[0].callable
+	var claims_before_stale_account := service.claims.size()
+	var requests_before_stale_account := service.requests.size()
+	service.epoch += 1
+	account_claim.call()
+	account_refresh.call()
+	find_node("MailTitle0").pressed.emit()
+	await settle()
+	check(service.claims.size() == claims_before_stale_account and service.requests.size() == requests_before_stale_account, "Old account callbacks cannot start read, claim, or fetch requests")
+	check(find_node("MailBody0") == null, "Old account title callback cannot change expansion")
+	lobby.open_service("우편함")
+	await settle()
+	service.hold_claim = true
+	find_node("ClaimMail0").pressed.emit()
+	var fetches_before_epoch_change := service.requests.count("GET v1/mailbox")
+	service.epoch += 1
+	service.hold_claim = false
+	await settle()
+	check(service.requests.count("GET v1/mailbox") == fetches_before_epoch_change, "Stale account claim completion cannot refetch the new account mailbox")
+
+	# Replacing the service object also invalidates in-flight mailbox requests.
+	service.hold_fetch = true
+	lobby.open_service("우편함")
+	await settle()
+	var previous_service := service
+	service = Service.new()
+	service.tree = self
+	service.mails = [mail("new-account", "새 계정 우편", "새 본문", 30, 0)]
+	app.services = service
+	lobby.open_service("우편함")
+	await settle()
+	previous_service.hold_fetch = false
+	await settle()
+	check(lobby._services.mailbox.data.mails.size() == 1 and lobby._services.mailbox.data.mails[0].id == "new-account", "Old service response cannot replace the new account mailbox")
 
 	service.page_size = 1
 	service.one_by_one = true
@@ -285,14 +377,14 @@ func run() -> void:
 	dimensions(Vector2i(440, 900))
 	lobby.open_service("우편함")
 	await settle()
-	check(lobby._services.data.get("mails", []).size() == 2 and service.requests.count("GET v1/mailbox?cursor=page3") == 0, "Short pages do not preload the entire mailbox")
+	check(lobby._services.mailbox.data.get("mails", []).size() == 2 and service.requests.count("GET v1/mailbox?cursor=page3") == 0, "Short pages do not preload the entire mailbox")
 	await wheel_down()
 	await settle()
-	check(lobby._services.data.get("mails", []).size() == 3 and service.requests.count("GET v1/mailbox?cursor=page3") == 1, "A downward gesture continues even without a scrollbar")
+	check(lobby._services.mailbox.data.get("mails", []).size() == 3 and service.requests.count("GET v1/mailbox?cursor=page3") == 1, "A downward gesture continues even without a scrollbar")
 	lobby.open_service("우편함")
 	await settle()
 	await touch_swipe_up()
 	await settle()
-	check(lobby._services.data.get("mails", []).size() == 3 and service.requests.count("GET v1/mailbox?cursor=page3") == 2, "A touch swipe continues short pages without a scrollbar")
+	check(lobby._services.mailbox.data.get("mails", []).size() == 3 and service.requests.count("GET v1/mailbox?cursor=page3") == 2, "A touch swipe continues short pages without a scrollbar")
 	print(JSON.stringify({"checks": checks, "failures": failures}))
 	quit(1 if not failures.is_empty() else 0)

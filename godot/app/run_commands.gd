@@ -1,6 +1,7 @@
 extends RefCounted
 ## Pure run transactions. Callers commit state and submit commands together.
 ## Never reads/writes player saves or authoritative account currencies.
+const GemSlots = preload("res://app/gem_slot_rules.gd")
 var catalog
 var growth
 
@@ -150,19 +151,16 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 					slot = t.equippedGemSlots.find(null)
 					if slot < 0: slot = 0
 				if slot < 0 or slot >= int(t.slotLimit): return _reject(state,"slot")
-				var old = t.equippedGemSlots[slot]
 				if kind == "equipGem":
 					var gem := str(command.get("type",""))
 					if int(next.gemInventory.get(gem,0)) <= 0: return _reject(state,"inventory")
-					if gem in t.equippedGemSlots or gem not in _rule(t.type).get("compatibleGems",[]): return _reject(state,"gem")
+					if not GemSlots.can_equip(t, gem, _rule(t.type).get("compatibleGems",[])): return _reject(state,"gem")
 					next.gemInventory[gem] -= 1
 					if next.gemInventory[gem] == 0: next.gemInventory.erase(gem)
-					t.equippedGemSlots[slot] = gem
+					GemSlots.replace_owned(t, slot, gem, next.gemInventory)
 				else:
-					if old == null: return _reject(state,"emptySlot")
-					t.equippedGemSlots[slot] = null
-				if old != null: next.gemInventory[old] = int(next.gemInventory.get(old,0))+1
-				t.equippedGems = t.equippedGemSlots.filter(func(g): return g != null)
+					if t.equippedGemSlots[slot] == null: return _reject(state,"emptySlot")
+					GemSlots.replace_owned(t, slot, null, next.gemInventory)
 			"primaryTrait", "secondaryTrait":
 				var secondary := kind == "secondaryTrait"
 				var trait_name := str(command.get("type",""))
@@ -270,7 +268,7 @@ func _choose_reward(state: Dictionary, command: Dictionary) -> Dictionary:
 			if buy_slot:
 				if slot != int(target.slotLimit): return _reject(state,"slot")
 			elif slot < 0 or slot >= int(target.slotLimit): return _reject(state,"slot")
-			if gem in target.equippedGemSlots or gem not in _rule(target.type).get("compatibleGems",[]): return _reject(state,"gem")
+			if not GemSlots.can_equip(target, gem, _rule(target.type).get("compatibleGems",[])): return _reject(state,"gem")
 			if buy_slot:
 				var cost := int(quotes(state,int(target.id)).get("link",0))
 				if cost <= 0: return _reject(state,"requirement")
@@ -279,10 +277,7 @@ func _choose_reward(state: Dictionary, command: Dictionary) -> Dictionary:
 				target.investedGold += cost
 				target.slotLimit += 1
 				target.equippedGemSlots.append(null)
-			var old = target.equippedGemSlots[slot]
-			if old != null: next.gemInventory[old] = int(next.gemInventory.get(old,0))+1
-			target.equippedGemSlots[slot] = gem
-			target.equippedGems = target.equippedGemSlots.filter(func(g): return g != null)
+			GemSlots.replace_owned(target, slot, gem, next.gemInventory)
 		else:
 			next.gemInventory[gem] = int(next.gemInventory.get(gem,0))+1
 	next.phase = state.get("rewardReturnPhase") if state.get("rewardReturnPhase") != null else "preparation"
