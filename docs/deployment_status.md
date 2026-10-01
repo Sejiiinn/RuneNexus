@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-01 Android 0.2.10 / code 6039 — 공개 완료
+
+- 대상 `dff8cd37ca56bc9995e7504c26b07f2c0998bd6f`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36803498647)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6039). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6039/rune-nexus.apk). **필수 업데이트·최소 지원 코드 6039**로 공개했다.
+- 스테이지 룬 보상을 고정 ID 대신 전체 진행 순서로 계산해 챕터 전환에서도 증가하도록 통일했다. 긴 스테이지 목록은 터치·휠 스크롤이 가능하며 스크롤바를 숨겼다. 서버·DB 변경은 없으며 이전 배포의 DB 스키마 12·최소 저장 호환 세대 4를 유지한다.
+- 사용자 요청에 따라 추가 로컬 검증·Android 설치·실행·검수를 생략했다. 커밋 전 확보한 관련 Godot 실행·룬 보상 및 목록 스크롤 독립 검증 근거를 재사용했다. CI에 포함된 자동 검사·서명 빌드·패치 디코더·6036/6037/6038 차등 복원은 통과했다. 이번 배포의 Android 동작·실기기 성능은 미검증이다.
+- APK **401,604,582 bytes**, SHA-256 `53ef24b5c6446cb0e3acb26510dd9a02125cac91d7dce9fbfbdb036cec0ea052`. 이전 6038 대비 **+56 bytes**다. CI 감사의 PCK는 173,380,276 bytes·1052항목·완전 중복0으로 이전보다 48 bytes 증가했으며 새 에셋·네이티브 의존성은 없다.
+- 공개 태그·대상 커밋, latest/버전별 manifest 바이트 일치, 최소 지원 코드 6039, 공개 APK·패치의 크기·GitHub SHA-256과 manifest 일치 및 익명 APK 다운로드 HTTP 200을 확인했다. 로컬 근거는 `build/release-verification/apk-6039/`에 보관한다.
+
 ## 2026-10-01 Android 0.2.9 / code 6038 — 공개 완료
 
 - 대상 `0d9a8cc215e6e9859ba41b33671676255f7dad67`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36795400076)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6038). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6038/rune-nexus.apk). **필수 업데이트·최소 지원 코드 6038**로 공개했다.
