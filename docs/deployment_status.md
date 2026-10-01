@@ -6,6 +6,17 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-01 Android 0.2.9 / code 6038 — 공개 완료
+
+- 대상 `0d9a8cc215e6e9859ba41b33671676255f7dad67`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36795400076)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6038). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6038/rune-nexus.apk). **필수 업데이트·최소 지원 코드 6038**로 공개했다.
+- 모듈 뽑기 결과에 아이콘과 효과 요약을 표시하고 긴 효과·좁은 화면의 스크롤과 아이콘 모서리 배경을 개선했다. 이번 공개에는 고정 ID 1~25 확장 스테이지·성장 해금·SWIFT 저격 포탑·전투 효과·퀘스트 보상과 저장 처리 개선도 포함한다. 별도 모듈 아이콘 아트는 추가하지 않았고 기존 표시와 향후 에셋 연결 방식을 유지한다.
+- API는 런타임 소스 `97daa37a8fcac64caaf574e3a56a1cda51e46e73`의 `rune-nexus-api:97daa37a` 이미지로 반영했다. DB는 `11→12`로 이관해 스테이지 1~25와 논리 진행 순서의 랭킹을 지원한다. 운영 환경·secret 읽기 권한·DB/Caddy/DuckDNS를 보존했다. 새 APK 공개를 확인한 뒤 **최소 저장 호환 세대 4**로 전환했다. 공개 HTTPS live/ready 200과 무인증 API 401을 확인했다.
+- 운영 DB를 보호된 위치에 백업하고 격리 복원·012 적용·신규 스테이지 기록이 있을 때 down 거부를 확인했다. 기존 29개 데이터 테이블의 행·ID·달성 시각 지문은 이관 전후 동일하다. Go 테스트 216개·vet·관련 DB 통합 7개를 통과했으며 실계정 데이터·보상 지급은 조작하지 않았다.
+- CI 자동 검사·서명 빌드·패치 디코더·6035/6036/6037 차등 복원을 통과했다. 첫 CI의 기존 모듈 제목 검사 불일치는 새 표시 기준으로 수정해 재검증했다. 승인 시안과 모서리 수정의 Godot 실제 화면·관련 회귀 근거는 최종 UI와 일치하며 독립 검증을 통과했다.
+- 격리한 읽기 전용 Android API 37 에뮬레이터에서 공개 6037→6038 업데이트 설치·로비·이어하기를 확인했다. 스테이지 1·웨이브 23/40·HP 4/20·골드 2199·젬 조각 34·포탑 8개와 기존 런·모듈·설정·진행 필드가 유지됐고 새 진행 권한 필드만 정상 이관됐다. 실제 기기 Google 로그인·실계정 동기화·전체 25스테이지 플레이·모바일 성능은 이번 검증 범위에 포함하지 않았다.
+- APK **401,604,526 bytes**, SHA-256 `75e2f5f6b94dce64836d5be17242308dfc69891a9cb4a800c78c7e4de4082565`. 이전 6037 대비 **+17,339,640 bytes(4.51%)**로 PCK 증가분과 같으며 확장 스테이지 에셋이 주원인이다. PCK 173,380,228 bytes·1052항목·완전 중복0. ABI 3종·네이티브 라이브러리 6개의 바이트가 동일하고 제작 원본·시안은 포함하지 않았다.
+- 공개 태그 커밋, latest/버전별 manifest 바이트 일치, 공개 5개 파일의 크기·GitHub SHA-256과 검증 산출물 일치 및 익명 APK 다운로드 응답을 확인했다. 상세 로그·감사·저장 전후·화면 근거는 로컬 `build/release-verification/apk-6038/`에, DB 백업은 별도의 보호된 운영 보관 폴더에 유지한다.
+
 ## 2026-09-29 Android 0.2.8 / code 6037 — 공개 완료
 
 - 대상 `d4955ab0f1434f5402d73db9746fc150ff0c8773`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36491118299)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6037). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6037/rune-nexus.apk). 선택 업데이트·최소 지원 코드 6027을 유지한다.
