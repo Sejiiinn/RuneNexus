@@ -68,9 +68,12 @@ func _update_turret(state: Dictionary,turret: Dictionary) -> void:
 	if hud.app.selection_view.level_preview: next = hud._stats(state,future).duplicate()
 	stats.dps = hud._dps(stats,turret.type)
 	if not next.is_empty(): next.dps = hud._dps(next,turret.type)
-	var specs = [["피해","damage"],["초당 피해","dps"],["공격 속도","attackRate"],["사거리","range"],["치명 확률","criticalChance"],["치명 피해","criticalDamageMultiplier"]]
+	var specs = [["피해","damage"],["초당 피해","dps"],["공격 속도","attackRate"],["사거리","range"]]
+	if turret.type == "frost" and float(stats.slowDuration) > 0:
+		specs.append(["감속","slowMultiplier"]); specs.append(["감속 지속","slowDuration"])
+	specs.append(["치명 확률","criticalChance"]); specs.append(["치명 피해","criticalDamageMultiplier"])
 	if float(stats.splashRadius) > 0 or turret.type == "magic": specs.append(["효과 범위","effectAreaMultiplier"])
-	if float(stats.slowDuration) > 0:
+	if turret.type != "frost" and float(stats.slowDuration) > 0:
 		specs.append(["감속","slowMultiplier"]); specs.append(["감속 지속","slowDuration"])
 	if turret.type in ["arrow","cannon"]: specs.append(["투사체","projectileCount"])
 	if turret.type == "sniper": specs.append(["조준 시간","aimDuration"])
