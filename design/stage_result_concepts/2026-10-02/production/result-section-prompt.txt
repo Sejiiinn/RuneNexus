@@ -1,0 +1,2 @@
+Built-in ImageGen. Reference: ../01-reward-hierarchy.png. Empty reusable rewards/records/unlocks panel: very thin cyan steel outline, diagonally clipped corners, navy teal opaque interior, alpha exterior, no text/icons/gems/decorations/dividers/brass.
+GIMP crop x12 y62 width2150 height597; editable XCF before scaling; final420x117 RGBA.

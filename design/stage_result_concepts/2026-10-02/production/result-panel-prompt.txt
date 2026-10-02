@@ -1,0 +1,3 @@
+Built-in ImageGen. References: ../01-reward-hierarchy.png; assets/images/results/ui/result_panel_frame.png
+Create empty 2:3 results panel, front view, thin layered dark steel/bronze beveled rim and cut corners, navy teal interior, transparent outside. No text, icons, gems, buttons or dividers. Preserve approved frame metal depth and modest bronze accents.
+GIMP crop x26 y36 width972 height1462; editable XCF before resizing; runtime PNG 420x632 RGBA.

@@ -13,9 +13,14 @@ var busy := false
 var generation := 0
 var issue := ""
 var _live_snapshot_applied := false
+var _settling_runs: Array = []
+var _run_issues: Dictionary = {}
 
 func configure(session, repository, handlers: Dictionary) -> void:
 	generation += 1
+	_settling_runs.clear()
+	_run_issues.clear()
+	issue = ""
 	account = session
 	outbox = repository
 	callbacks = handlers
@@ -33,6 +38,18 @@ func _failure(code: String) -> Dictionary:
 func _bound(token: int) -> bool:
 	return token == generation and account != null and account.credentials.get("accountId", "").to_lower() == outbox.owner
 
+func run_settlement_state(run_id: String) -> Dictionary:
+	if outbox == null or not outbox.loaded: return {"status":"save_failed","code":"OUTBOX_READ_FAILED"}
+	var rejected: Dictionary = outbox.state.get("rejectedRunCodes", {})
+	if rejected.has(run_id): return {"status":"rejected","code":rejected[run_id]}
+	if run_id in outbox.state.get("completedRunIds", []): return {"status":"completed","code":""}
+	for reward in outbox.state.pendingRewards:
+		if reward.runId != run_id: continue
+		if busy and run_id in _settling_runs: return {"status":"requesting","code":""}
+		if _run_issues.has(run_id): return {"status":"retry","code":_run_issues[run_id]}
+		return {"status":"queued","code":""}
+	return {"status":"save_failed","code":"RUN_REWARD_NOT_SAVED"}
+
 func refresh() -> Dictionary:
 	return await execute("refresh")
 
@@ -42,10 +59,17 @@ func execute(action: String, values: Dictionary = {}) -> Dictionary:
 	if outbox.owner == "guest" or not _bound(generation): return _failure("ACCOUNT_REQUIRED")
 	busy = true
 	var token := generation
+	_settling_runs = outbox.state.pendingRewards.map(func(reward): return str(reward.runId))
+	for id in _settling_runs: _run_issues.erase(id)
+	changed.emit()
 	# A caller's confirmation must remain immutable across refresh and sync awaits.
 	var result: Dictionary = await _run(action, values.duplicate(true), token)
 	busy = false
-	if not _bound(token): return _failure("STALE_BINDING")
+	if not _bound(token): return {"ok":false,"code":"STALE_BINDING"}
+	for reward in outbox.state.pendingRewards:
+		if result.get("ok", false): _run_issues.erase(reward.runId)
+		else: _run_issues[reward.runId] = str(result.get("code", "REQUEST_FAILED"))
+	_settling_runs.clear()
 	issue = "" if result.get("ok", false) else str(result.get("code", "REQUEST_FAILED"))
 	changed.emit()
 	return result
@@ -62,6 +86,9 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 		var synced: Dictionary = await _sync(token)
 		if not synced.get("ok", false): return synced
 		var reward: Dictionary = outbox.state.pendingRewards[0].duplicate(true)
+		if not reward.runId in _settling_runs:
+			_settling_runs.append(reward.runId)
+			changed.emit()
 		reward.erase("createdAtMillis")
 		reward.merge(_save_fields(synced), true)
 		var settled: Dictionary = await _prepare("run_settlement", "v1/economy/runs/settle", reward, token)
@@ -184,7 +211,7 @@ func _allowed(command: Dictionary) -> bool:
 	var patterns := {"complete_research":"^v1/economy/researches/[A-Za-z][A-Za-z0-9]*/complete$","ack_progression_effect":"^v1/economy/progression-effects/[0-9a-fA-F-]{36}/ack$","mail_claim":"^v1/mailbox/[0-9a-fA-F-]{36}/claim$"}
 	return patterns.has(command.kind) and RegEx.create_from_string(patterns[command.kind]).search(command.path) != null
 
-func _retire(command: Dictionary, completed_run := false) -> bool:
+func _retire(command: Dictionary, completed_run := false, rejection := "") -> bool:
 	if outbox.state.inFlight == null or outbox.state.inFlight.idempotencyKey != command.idempotencyKey: return false
 	var next: Dictionary = outbox.state.duplicate(true)
 	next.inFlight = null
@@ -193,6 +220,9 @@ func _retire(command: Dictionary, completed_run := false) -> bool:
 		next.pendingRewards = next.pendingRewards.filter(func(reward): return reward.runId != id)
 		if not next.has("completedRunIds"): next.completedRunIds = []
 		if not id in next.completedRunIds: next.completedRunIds.append(id)
+		if not rejection.is_empty():
+			if not next.has("rejectedRunCodes"): next.rejectedRunCodes = {}
+			next.rejectedRunCodes[id] = rejection
 	return outbox.save_state(next) == OK
 
 func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
@@ -210,7 +240,7 @@ func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
 		var legacy: bool = status == 426 and code == "CLIENT_UPDATE_REQUIRED" and int(Json.parse(command.encodedBody).get("clientCompatibilityVersion",1)) < COMPATIBILITY
 		var rebind: bool = command.kind == "run_settlement" and code in ["SAVE_WRITER_REPLACED","SAVE_SYNC_REQUIRED"]
 		if legacy or rebind or (status >= 400 and status < 500 and status not in [401,408,426,429]):
-			if not _retire(command, command.kind == "run_settlement" and not legacy and not rebind): return _failure("OUTBOX_WRITE_FAILED")
+			if not _retire(command, command.kind == "run_settlement" and not legacy and not rebind, code if not legacy and not rebind else ""): return _failure("OUTBOX_WRITE_FAILED")
 			if recovering and (legacy or rebind or code == "MAIL_UNAVAILABLE"): return {"ok":true}
 		return result
 	if reward:

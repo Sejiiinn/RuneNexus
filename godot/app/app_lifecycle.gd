@@ -218,6 +218,7 @@ func persist_progression() -> bool:
 		save_failed = false
 		autosave_elapsed = 0.0
 		if not run_domain.state.is_empty(): progression_inputs = run_domain.state.progression.duplicate(true)
+		if services != null: services.request_run_settlement()
 	RuntimeProfile.finish("save", save_tick)
 	return result == OK
 
@@ -403,6 +404,7 @@ func _process(delta: float) -> void:
 		_record_save_failure()
 		return
 	if str(run_domain.state.get("phase", "")) != previous_phase: persist_progression()
+	if services != null: services.request_run_settlement()
 	_maybe_auto_start()
 	if run_domain.state.is_empty() and Time.get_ticks_msec() >= next_research_check:
 		next_research_check = Time.get_ticks_msec() + 1000

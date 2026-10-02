@@ -31,6 +31,9 @@ var boot_host
 var _snapshot_checkpoint: WeakRef
 var _snapshot_projection: Dictionary = {}
 var _economy_ui_pending := false
+var _settlement_scheduled := false
+var _settlement_retry_at := 0
+var _settlement_attempts: Dictionary = {}
 
 func setup(application, native_platform: Object = null, settings: Dictionary = {}) -> void:
 	app = application
@@ -324,6 +327,47 @@ func perform(action: String, values: Dictionary = {}) -> Dictionary:
 	changed.emit()
 	return result
 
+# The result window observes the durable run identity, independent of its lifetime.
+func run_settlement_state(run_id: String) -> Dictionary:
+	if app.save_failed: return {"status":"save_failed","code":"LOCAL_SAVE_FAILED"}
+	var box = app.checkpoint.rewards()
+	if not box.loaded: return {"status":"save_failed","code":"OUTBOX_READ_FAILED"}
+	if app.checkpoint.owner == "guest": return {"status":"guest","code":"ACCOUNT_REQUIRED"}
+	var rejected: Dictionary = box.state.get("rejectedRunCodes", {})
+	if rejected.has(run_id): return {"status":"rejected","code":rejected[run_id]}
+	if run_id in box.state.get("completedRunIds", []): return {"status":"completed","code":""}
+	if economy == null or not connected(): return {"status":"offline","code":"ACCOUNT_REQUIRED"}
+	if not online_ready: return {"status":"offline","code":"SAVE_SYNC_REQUIRED"}
+	if app.checkpoint.owner != str(account.credentials.accountId).to_lower() or economy.outbox != box: return {"status":"offline","code":"STALE_BINDING"}
+	return economy.run_settlement_state(run_id)
+
+func request_run_settlement(retry_now := false) -> void:
+	if economy == null or not connected() or not online_ready or app.startup_blocked or app.save_failed: return
+	if updates != null and updates.blocked: return
+	var box = app.checkpoint.rewards()
+	if not box.loaded or box.owner != str(account.credentials.accountId).to_lower() or economy.outbox != box or box.state.pendingRewards.is_empty(): return
+	if _settlement_scheduled or busy or economy.busy: return
+	var fresh: bool = box.state.pendingRewards.any(func(reward): return not _settlement_attempts.has(box.owner + "/" + str(reward.runId)))
+	if not retry_now and not fresh and Time.get_ticks_msec() < _settlement_retry_at: return
+	_settlement_scheduled = true
+	_settle_finished_runs.call_deferred(epoch)
+
+func _settle_finished_runs(binding: int) -> void:
+	_settlement_scheduled = false
+	if binding != epoch or busy or economy == null or economy.busy or not online_ready or not connected() or app.startup_blocked or app.save_failed: return
+	if updates != null and updates.blocked: return
+	var box = app.checkpoint.rewards()
+	if not box.loaded or box.owner != str(account.credentials.accountId).to_lower() or economy.outbox != box or box.state.pendingRewards.is_empty(): return
+	for reward in box.state.pendingRewards: _settlement_attempts[box.owner + "/" + str(reward.runId)] = true
+	# Reuse the account economy worker: sync/save writer, immutable inFlight bytes,
+	# idempotency and snapshot persistence remain in their existing order.
+	var result: Dictionary = await economy.refresh()
+	if binding != epoch: return
+	_settlement_retry_at = Time.get_ticks_msec() + 30000
+	issue = "" if result.get("ok",false) else str(result.get("code","REQUEST_FAILED"))
+	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
+	changed.emit()
+
 func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if not connected(): return {"ok":false,"code":"ACCOUNT_REQUIRED"}
@@ -455,7 +499,8 @@ func _process(delta: float) -> void:
 			return
 		economy.outbox = app.checkpoint.rewards()
 		online.acknowledge_reload()
-	if busy or not online_ready or not connected() or economy.busy or app.startup_blocked: return
+	request_run_settlement()
+	if busy or not online_ready or not connected() or economy.busy or _settlement_scheduled or app.startup_blocked: return
 	sync_elapsed += delta
 	if sync_elapsed < 30.0: return
 	sync_elapsed = 0.0

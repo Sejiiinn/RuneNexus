@@ -1,0 +1,39 @@
+Create one polished, shippable visual proposal sheet for RuneNexus, an existing Korean mobile tower defense game. Show two complete portrait mobile game screenshots side by side, each approximately 440x900 logical pixels, with a small gutter between them. Left is victory/first clear, right is defeat. No phone hardware, no poster title outside the screenshots. This is a proposed UI redesign, not an actual gameplay screenshot.
+
+REFERENCES: the current actual result screen will be reference 1 (content and existing game styling); the historical results exploration may be reference 2 (theme only, it contains outdated placeholder content); the actual current game screenshot is supporting reference if included. Keep the existing mossy stone isometric battlefield over dark navy space, with a dark translucent modal scrim. Preserve the game's cold blue-black brushed metal, bevelled bronze corner accents, thin cyan runes, teal light, angular clipped corners, and native game button material. Avoid a generic web dashboard look, rounded pastel cards, excess borders, decorative flourishes, giant trophy art, stars/ratings, invented stats, next-stage button, or advertising buttons.
+
+LAYOUT: a centered single result panel, about 390 logical pixels wide, comfortable 16px inner margin and 12px body text at a 440px screen width. A compact result emblem and title are the top anchor; do not let the emblem dominate. One discreet outer metal frame, with open content sections separated by thin lines rather than nested thick boxes. Rewards are the most prominent numeric information, records are clear left-label/right-value rows. Conditional first-clear unlocks are compact, not large cards. Bottom buttons are on one line, equal touch height; primary '스테이지 선택' on the right, secondary '다시 시작' on the left. These are the existing two navigation actions, changing only wording/layout in the proposal. Use restrained white and pale cyan type with real hierarchy and generous baseline alignment. Main victory accent cyan; defeat accent restrained copper/red around emblem and heading, while retaining the common navy/cyan game theme. The title, reward block, record block and button row must look like the same component across both states. Fit all content without overlap; no clipping, no invented scrollbar covering labels.
+
+EXACT LEFT SCREEN TEXT (Korean, legible verbatim, clean sans serif):
+Header 'Nexus 방어 성공'
+Subtitle '스테이지 1-1 클리어'
+Rewards heading '획득 보상'
+Three equal reward columns with correctly different icons: gold angular rune / turquoise core point hexagon / blue module ticket.
+Column 1 '+42' and '룬'
+Column 2 '+1' and '코어 포인트'
+Column 3 '+1' and '모듈 티켓', with small amber '정산 대기' directly below this ticket only.
+Records heading '전투 기록'
+Row '도달 라운드' | '20R'
+Row '기록' | '20R 첫 기록'
+Row '최고 피해' | '화염 12,540'
+Row '현재 룬' | '364'
+Unlock heading '첫 클리어 해금'
+Two compact lines '강화 · 처치 보상' and '연구 · 긴급 매각', with small appropriate icons.
+A small readable settlement status '전투 기록 저장됨 · 서버 보상 정산 대기', visually separate from reward amounts so pending ticket is not represented as final settled currency.
+Buttons '다시 시작' and '스테이지 선택'.
+
+EXACT RIGHT SCREEN TEXT:
+Header 'Nexus 붕괴'
+Subtitle '스테이지 1-1 종료'
+Rewards heading '획득 보상'
+One centered rune reward '+18' and '룬' with the same gold rune icon. Do not show zero-value core/ticket rewards.
+Records heading '전투 기록'
+Row '도달 라운드' | '12R'
+Row '기록' | '최고 18R'
+Row '최고 피해' | '냉각 3,860'
+Row '현재 룬' | '340'
+No unlock section on defeat.
+Small status '전투 기록 저장됨'.
+Buttons '다시 시작' and '스테이지 선택'.
+
+All numbers are sample values for the proposal, not claimed user save data. Keep all specified content and make every Korean character readable. Show a realistic high quality in-game UI composition, crisp flat-front UI, no perspective distortion of panels, no added text or watermark.

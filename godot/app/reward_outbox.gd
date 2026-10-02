@@ -78,6 +78,10 @@ func valid_state(value: Variant) -> bool:
 	for id in value.get("completedRunIds", []):
 		if not id is String or Slot.account(id) == null: return false
 	if value.has("lastServerSnapshot") and not load("res://app/reward_settlement.gd").valid_snapshot(value.lastServerSnapshot): return false
+	var rejected: Variant = value.get("rejectedRunCodes", {})
+	if not rejected is Dictionary: return false
+	for id in rejected:
+		if not id in value.get("completedRunIds", []) or not rejected[id] is String or rejected[id].is_empty(): return false
 	var seen := {}
 	for reward in value.pendingRewards:
 		if not valid_reward(reward) or seen.has(reward.runId): return false

@@ -2,6 +2,7 @@ extends RefCounted
 const Progression = preload("res://content/stage_progression.gd")
 ## Reward preview is presentation state. Settlement and equip are one domain transaction.
 const Art = preload("res://ui/app_theme.gd")
+const ResultPresenter = preload("res://ui/battle_result_presenter.gd")
 const GEM_COLORS := {"attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
 const RULES := {"chain":"연쇄된 투사체는 피해 및 효과 범위가 50% 감폭됩니다.","explosion":"폭발은 직접 명중한 대상을 제외한 주변 적에게 명중 피해의 50%를 줍니다."}
 var hud
@@ -37,6 +38,9 @@ func setup(owner) -> void:
 	target_layer.hide()
 	hud.add_child(target_layer)
 	hud.move_child(hud.overlay,-1)
+	var services = hud.app.get("services")
+	if services is Object and services.has_signal("changed") and not services.changed.is_connected(hud.refresh):
+		services.changed.connect(hud.refresh)
 
 func targeting() -> bool:
 	return not pending_gem.is_empty() and hud.app.run_domain.state.get("phase") == "reward"
@@ -65,12 +69,13 @@ func refresh(state: Dictionary) -> void:
 	shade.visible = visible and (not targeting() or replacing())
 	target_layer.visible = targeting() and not replacing()
 	hud.overlay.visible = visible and (not targeting() or replacing())
-	var style_mode := ("replacement" if replacing() else "reward") if phase == "reward" else "empty"
+	var style_mode := ("replacement" if replacing() else "reward") if phase == "reward" else "result"
 	if style_mode != _panel_style_mode:
 		if not _panel_styles.has(style_mode):
 			match style_mode:
 				"replacement": _panel_styles[style_mode] = hud.Components.surface("modal",Vector2(14,14))
 				"reward": _panel_styles[style_mode] = preload("res://ui/battle_theme.gd").box()
+				"result": _panel_styles[style_mode] = ResultPresenter.frame()
 				_: _panel_styles[style_mode] = StyleBoxEmpty.new()
 		hud.overlay.add_theme_stylebox_override("panel",_panel_styles[style_mode])
 		_panel_style_mode = style_mode
@@ -90,7 +95,7 @@ func refresh(state: Dictionary) -> void:
 	var next_key := [phase,state.get("rewardOptions"),state.get("isPurchasedGemReward"),state.get("gemInventory"),state.get("gemShards"),hud.configuration_cache.revision,pending_gem,replacement_id,replacement_slot,state.get("gold"),shard_selected,target_hint,viewport,safe]
 	if phase in ["success","failure"]:
 		var p: Dictionary = state.get("progression",{})
-		next_key.append_array([hud.app.stage,state.get("completedRounds"),state.get("lastRunWasNewBestRound"),state.get("lastRunPreviousBestRound"),state.get("lastRunFirstClear"),p.get("lastRunRuneReward"),p.get("lastRunCorePointReward"),p.get("lastRunTurretModuleTicketReward"),p.get("runes"),p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("clearedStageNumbers",[]),_settlement_note()])
+		next_key.append_array([hud.app.stage,state.get("completedRounds"),state.get("lastRunWasNewBestRound"),state.get("lastRunPreviousBestRound"),state.get("lastRunFirstClear"),p.get("lastRunRuneReward"),p.get("lastRunCorePointReward"),p.get("lastRunTurretModuleTicketReward"),p.get("runes"),p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("clearedStageNumbers",[]),_settlement_note(),_settlement_state()])
 	if key is Array and next_key == key:
 		_fit_modal()
 		return
@@ -433,73 +438,8 @@ func _settle(command: Dictionary) -> void:
 	hud.refresh()
 	hud.app.refresh_selection()
 
-func _surface(parent: Node, asset: String) -> VBoxContainer:
-	var panel := PanelContainer.new()
-	var style := StyleBoxTexture.new()
-	style.texture = Art.texture("res://assets/app/results/ui/"+asset+".png")
-	# Flutter _ResultAssetSurface uses Image.asset(fit: BoxFit.fill), with no centerSlice.
-	# Zero texture margins intentionally stretch the same complete authored frame.
-	style.set_texture_margin_all(0)
-	style.set_content_margin_all(18 if asset == "result_panel_frame" else 12)
-	panel.add_theme_stylebox_override("panel",style)
-	parent.add_child(panel)
-	var body := VBoxContainer.new()
-	panel.add_child(body)
-	return body
-
 func _result(state: Dictionary) -> void:
-	var success: bool = state.phase == "success"
-	var body := _surface(hud.overlay_body,"result_panel_frame")
-	var emblem := _icon(body,"results/ui/status_emblem_socket.png",54)
-	var icon := _icon(emblem,"results/result_success.png" if success else "results/result_failure.png",0)
-	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = 7; icon.offset_right = -7; icon.offset_top = 7; icon.offset_bottom = -7
-	_text(body,"Nexus 방어 성공" if success else "Nexus 붕괴",20,true)
-	_text(body,"스테이지 %s %s" % [Progression.stage_label(hud.app.stage+1),"클리어" if success else "종료"],12,true)
-	var p: Dictionary = state.get("progression",{})
-	var rewards := _surface(body,"reward_summary_frame")
-	_text(rewards,"보상 획득",11,true)
-	_text(rewards,"+%d 룬" % int(p.get("lastRunRuneReward",0)),28,true)
-	for spec in [["lastRunCorePointReward","코어 포인트"],["lastRunTurretModuleTicketReward","포탑 모듈 티켓"+(" · 정산 대기" if _server_reward_pending() else "")]]:
-		if int(p.get(spec[0],0)) > 0: _text(rewards,"+%d %s" % [p[spec[0]],spec[1]],15,true)
-	_text(rewards,_settlement_note(),11,true)
-	_text(body,"전투 기록",14)
-	var records := _surface(body,"section_frame")
-	var best := int(p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1),0))
-	var record := _record_text(state,p,best)
-	var damage := 0.0
-	var tower_name := ""
-	for turret in state.get("turrets",[]):
-		var dealt := float(turret.get("damageDealt",0))
-		var runtime_turrets = hud.app.scene._native_combat.get("turrets")
-		if runtime_turrets is Dictionary and runtime_turrets.has(str(turret.id)):
-			dealt = 0.0
-			for field in ["directDamageDealt","splashDamageDealt","chainDamageDealt","burnDamageDealt"]:
-				dealt += float(runtime_turrets[str(turret.id)].get(field,0))
-		if dealt > damage: damage = dealt; tower_name = str(hud.TOWERS.get(turret.type,turret.type))
-	for spec in [["도달 라운드","%dR" % int(state.get("completedRounds",0))],["기록",record],["최고 피해",tower_name+" %.1f" % damage if damage > 0 else "기록 없음"],["현재 룬",str(p.get("runes",0))]]:
-		var line := HBoxContainer.new()
-		records.add_child(line)
-		_text(line,spec[0],11)
-		_text(line,spec[1],12).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	if state.get("lastRunFirstClear",false): _unlocks(body,hud.app.stage+1)
-	for spec in [["확인","confirm_button_frame" if success else "confirm_button_danger_frame",func(): hud.app.show_lobby(); hud.app.lobby.open_page("스테이지")],["다시 시작","restart_button_frame",func(): hud.app.retry_stage(); hud.refresh()]]:
-		var center := CenterContainer.new(); body.add_child(center)
-		var button: Button = Art.button(spec[0],spec[2],"ghost",true)
-		hud.Components.apply(button)
-		center.add_child(button)
-		button.custom_minimum_size = Vector2(208,34)
-		button.add_theme_font_override("font",Art.font(900)); button.add_theme_font_size_override("font_size",13)
-		var foreground := Color("02070d") if success and spec[0] == "확인" else Color("e8f8ff")
-		for role in ["font_color","font_hover_color","font_pressed_color"]: button.add_theme_color_override(role,foreground)
-		if spec[0] == "다시 시작":
-			button.text = ""
-			var content := HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.alignment = BoxContainer.ALIGNMENT_CENTER; button.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			var replay := Label.new(); replay.text = char(0xe523); replay.add_theme_font_override("font",load("res://assets/ui/MaterialIcons-Regular.otf")); replay.add_theme_font_size_override("font_size",13); replay.add_theme_color_override("font_color",foreground); content.add_child(replay)
-			var caption := Label.new(); caption.text = "다시 시작"; caption.add_theme_font_override("font",Art.font(900)); caption.add_theme_font_size_override("font_size",13); caption.add_theme_color_override("font_color",foreground); content.add_child(caption)
-		var style := StyleBoxTexture.new()
-		style.texture = Art.texture("res://assets/app/results/ui/"+spec[1]+".png")
-		for state_name in ["normal","hover","pressed","disabled"]: button.add_theme_stylebox_override(state_name,style)
+	ResultPresenter.new(self).build(state)
 
 func _record_text(state: Dictionary,progression: Dictionary,best: int) -> String:
 	if state.get("lastRunWasNewBestRound",false):
@@ -507,14 +447,6 @@ func _record_text(state: Dictionary,progression: Dictionary,best: int) -> String
 		return "%dR → %dR" % [previous,state.get("completedRounds",0)] if previous>0 else "%dR 첫 기록" % int(state.get("completedRounds",0))
 	if hud.app.stage+1 in progression.get("clearedStageNumbers",[]): return "클리어"
 	return "최고 %dR" % best
-
-func _unlocks(body: Node, stage: int) -> void:
-	var items: Array = Progression.unlock_items(stage)
-	if items.is_empty(): return
-	_text(body,"해금 항목",14)
-	var labels: Array[String] = []
-	for item in items: labels.append("%s · %s" % [item[2], item[0]])
-	_text(_surface(body,"unlock_chip_frame"),"\n".join(labels),12)
 
 func _effect(type: String) -> String:
 	# battle_labels is exported from the Flutter gem catalog; only layout changes here.
@@ -533,16 +465,33 @@ func _effect(type: String) -> String:
 		else: parts.append(line)
 	return ("\n\n" if type in ["heavyWeapon","explosion"] else "\n").join(parts)
 
+func _settlement_state() -> Dictionary:
+	if hud.app.get("save_failed") == true: return {"status":"save_failed","code":"CHECKPOINT_SAVE_FAILED"}
+	var services = hud.app.get("services")
+	if services is Object and services.has_method("run_settlement_state"):
+		return services.run_settlement_state(str(hud.app.run_domain.state.get("economyRunId","")))
+	return {"status":"queued" if _server_reward_pending() else "completed","code":""}
+
 func _settlement_note() -> String:
-	if hud.app.get("save_failed") == true: return "전투 기록 저장 대기 · 다시 저장해 주세요"
-	if _server_reward_pending():
-		return "전투 기록 저장됨 · 서버 보상 정산 대기"
+	match str(_settlement_state().get("status","")):
+		"requesting": return "전투 기록 저장됨 · 서버 보상 정산 중"
+		"completed": return "전투 기록 저장됨 · 서버 보상 정산 완료"
+		"retry": return "전투 기록 저장됨 · 서버 보상 정산 실패"
+		"offline": return "전투 기록 저장됨 · 연결 후 서버 보상 정산"
+		"guest": return "전투 기록 저장됨 · 게스트 보상은 서버 정산되지 않음"
+		"save_failed": return "전투 기록 저장 실패 · 다시 저장해 주세요"
+		"rejected": return "전투 기록 저장됨 · 서버 보상 정산 거절"
+		"queued": return "전투 기록 저장됨 · 서버 보상 정산 준비 중"
 	return "전투 기록 저장됨"
 
 func _server_reward_pending() -> bool:
 	if not hud.app.checkpoint is Object or not hud.app.checkpoint.has_method("rewards"): return false
 	var queue = hud.app.checkpoint.rewards()
-	return queue != null and not queue.state.get("pendingRewards",[]).is_empty()
+	if queue == null: return false
+	var run_id := str(hud.app.run_domain.state.get("economyRunId",""))
+	for reward in queue.state.get("pendingRewards",[]):
+		if str(reward.get("runId","")) == run_id: return true
+	return false
 
 func _tinted_panel(parent: Node, fill: Color, border: Color, radius: int) -> PanelContainer:
 	var panel := PanelContainer.new()
