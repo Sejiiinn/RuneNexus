@@ -1,0 +1,18 @@
+{
+  "walk_sha256": "9ab3174463ab60f2e60dcca04841184ee43837c356b3be9763e70f9b9c715acb",
+  "runtime_walk_sha256": "abf213b963da7dea19671328b95b84b0d1b22073a3c6c502a0762d7d85f4e8e8",
+  "triangles": 21664,
+  "bones": 14,
+  "runtime_meshes": 3,
+  "author_meshes": 38,
+  "collapse_seconds": 0.7,
+  "presentation_lifetime_seconds": 1.4,
+  "normalization": 0.2997284531593323,
+  "min_floor_raw": -3.6696906136057805e-07,
+  "detached_original_clusters": [
+    "upper_arm.L",
+    "forearm.L",
+    "upper_arm.R",
+    "forearm.R"
+  ]
+}

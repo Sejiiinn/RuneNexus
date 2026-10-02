@@ -9,8 +9,12 @@ const MESHES := {
 		"EnemyBurn": [preload("res://assets/enemies/fast_status_burn.res")],
 		"EnemyFrost": [preload("res://assets/enemies/fast_status_frost_shards.res"), preload("res://assets/enemies/fast_status_frost_grains.res")],
 	},
+	"tank": {
+		"EnemyBurn": [preload("res://assets/enemies/tank_status_burn.res")],
+		"EnemyFrost": [preload("res://assets/enemies/tank_status_frost_shards.res"), preload("res://assets/enemies/tank_status_frost_grains.res")],
+	},
 }
-const COORDINATE_SCALES := {"normal": 0.242158934474, "fast": 0.522027035655198}
+const COORDINATE_SCALES := {"normal": 0.242158934474, "fast": 0.522027035655198, "tank": 0.2997284531593323}
 static var _materials := {}
 
 

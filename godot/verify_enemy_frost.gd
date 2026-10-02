@@ -36,7 +36,7 @@ func check_surfaces(entry: Dictionary, originals: Array, active: bool) -> void:
 	var body_meshes := {}
 	for record: Array in originals:
 		body_meshes[record[0]] = true
-	var status_mesh_count := 2 if bool(entry.get("guardian_preview", false)) else 0
+	var status_mesh_count := 2 if bool(entry.get("guardian_preview", false)) and entry.has("frost") else 0
 	check(entry["root"].find_children("*", "MeshInstance3D", true, false).size() == body_meshes.size() + status_mesh_count, "성에 때문에 예상 밖 몸체 메시를 추가함")
 	var body_count := 0
 	var core_count := 0
@@ -114,7 +114,7 @@ func _verify() -> void:
 		check(instances[0].material_override == Frost._ice and instances[1].material_override == Frost._grain_material, "적 종류별 결정 재질을 복제함")
 		check_surfaces(entry, originals[i], true)
 		check(frost.find_children("*", "AnimationPlayer", true, false).is_empty(), "감속과 무관한 서리 자체 시계 추가")
-	var first: Node3D = scene.enemies[4]["frost"]
+	var first: Node3D = scene.enemies[1]["frost"]
 	var first_meshes := first.find_children("*", "MultiMeshInstance3D", true, false)
 	check(Frost._multimeshes.size() == 6, "보스 변형이 boss 부착 리소스를 재사용하지 않음")
 	var boss_meshes: Array = scene.enemies[5]["frost"].find_children("*", "MultiMeshInstance3D", true, false)
@@ -122,7 +122,7 @@ func _verify() -> void:
 		var variant_meshes: Array = scene.enemies[index]["frost"].find_children("*", "MultiMeshInstance3D", true, false)
 		for part in range(2):
 			check(boss_meshes[part].multimesh == variant_meshes[part].multimesh, "보스 변형이 boss 냉각 데이터를 공유하지 않음: " + kinds[index])
-	units.append(unit(10, "tank", true))
+	units.append(unit(10, "armored", true))
 	scene._sync_enemies(units)
 	var other_meshes: Array = scene.enemies[10]["frost"].find_children("*", "MultiMeshInstance3D", true, false)
 	check(first_meshes.size() == other_meshes.size(), "동종 서리 메시 개수 불일치")
@@ -131,28 +131,28 @@ func _verify() -> void:
 		check(first_meshes[i].material_override == other_meshes[i].material_override, "적마다 결정 재질을 복제함")
 	check_surfaces(scene.enemies[11], unaffected, false)
 	check(not scene.enemies[11].has("frost"), "다른 적의 감속이 비감속 적에 서리 노드를 생성함")
-	units[4][9] = false
+	units[1][9] = false
 	scene._sync_enemies(units)
 	check(not first.visible and scene.enemies[10]["frost"].visible, "감속 만료가 다른 적의 서리를 변경함")
-	check_surfaces(scene.enemies[4], originals[4], false)
+	check_surfaces(scene.enemies[1], originals[1], false)
 	check_surfaces(scene.enemies[11], unaffected, false)
-	units[4][9] = true
-	units[4][1] = 5.1
-	units[4][3] = 2.8
-	units[4][4] = 1.4
-	units[4][5] = 1.2
+	units[1][9] = true
+	units[1][1] = 5.1
+	units[1][3] = 2.8
+	units[1][4] = 1.4
+	units[1][5] = 1.2
 	scene._sync_enemies(units)
-	check(scene.enemies[4]["frost"] == first and first.visible, "감속 재적용 때 인스턴스를 재생성함")
-	check_surfaces(scene.enemies[4], originals[4], true)
-	check(first.global_transform.is_equal_approx(scene.enemies[4]["root"].global_transform), "이동/방향/스케일 갱신 후 서리가 분리됨")
+	check(scene.enemies[1]["frost"] == first and first.visible, "감속 재적용 때 인스턴스를 재생성함")
+	check_surfaces(scene.enemies[1], originals[1], true)
+	check(first.global_transform.is_equal_approx(scene.enemies[1]["root"].global_transform), "이동/방향/스케일 갱신 후 서리가 분리됨")
 	var paused := first.global_transform
 	scene._sync_enemies(units)
 	check(first.global_transform.is_equal_approx(paused), "같은 전투 입력의 서리 변환이 누적됨")
-	units[4][7] = "fast"
+	units[1][7] = "fast"
 	scene._sync_enemies(units)
-	check(not is_instance_valid(first) and scene.enemies[4]["frost"].visible, "같은 ID의 적 유형 교체 때 이전 서리 잔류")
-	var replaced: Node3D = scene.enemies[4]["frost"]
-	units[4] = [4, 3.5, 4.0, 0.7, 0.8, 0.62, 0.0, "fast"]
+	check(not is_instance_valid(first) and scene.enemies[1]["frost"].visible, "같은 ID의 적 유형 교체 때 이전 서리 잔류")
+	var replaced: Node3D = scene.enemies[1]["frost"]
+	units[1] = [1, 3.5, 4.0, 0.7, 0.8, 0.62, 0.0, "fast"]
 	scene._sync_enemies(units)
 	check(not replaced.visible, "감속 필드가 없는 이전 프레임에서 서리 잔류")
 	scene._sync_enemies([])

@@ -755,3 +755,23 @@ __pycache__/
 
 # Combat feedback: temporary capture logs and analysis frames.
 /design/combat_feedback/2026-09-30/local/
+
+# Tank size comparison: rejected generated ratios and preview intermediates.
+/design/enemy_concepts/2026-10-01/tank/07-normal-tank-size-comparison.png
+/design/enemy_concepts/2026-10-01/tank/07-normal-tank-size-comparison-prompt.json
+/design/enemy_concepts/2026-10-01/tank/normal-comparison-source.png
+/design/enemy_concepts/2026-10-01/tank/tank-comparison-source.png
+/design/enemy_concepts/2026-10-01/tank/normal-tank-size-preview.html
+/design/enemy_concepts/2026-10-01/tank/normal-tank-size-preview.png
+
+# Tank 3D production: temporary render status and local diagnostics.
+/design/enemy_concepts/2026-10-01/tank/3d/render-progress.log
+/design/enemy_concepts/2026-10-01/tank/3d/local/
+/design/enemy_concepts/2026-10-01/tank/3d/walk/local/
+/design/enemy_concepts/2026-10-01/tank/3d/game-export/local/
+# One-off tank death captures, measurements and isolated runtime fixtures.
+/design/enemy_concepts/2026-10-01/tank/3d/death/local/
+
+# Duplicate tank exports are rebuilt from preserved Blender production sources.
+/design/enemy_concepts/2026-10-01/tank/3d/game-export/tank-walk.glb
+/design/enemy_concepts/2026-10-01/tank/3d/death/tank-death.glb

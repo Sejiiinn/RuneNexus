@@ -1,14 +1,21 @@
 extends RefCounted
-## Authored guardian and hound motion. Reads combat state; never changes it.
+## Authored guardian, hound and tank motion. Reads combat state; never changes it.
 signal failure(message: String)
 
 const WALK_PATH := "res://assets/enemies/normal.glb"
+const TANK_PATH := "res://assets/enemies/tank.glb"
+const TANK_DEATH_PATH := "res://assets/enemies/tank_death.glb"
+const TankDeath = preload("res://effects/tank_death.gd")
+const TANK_NUCLEUS_SHADER = preload("res://effects/tank_amber_nucleus.gdshader")
 const HoundDeath = preload("res://effects/hound_death.gd")
 const FAST_DEATH_PATH := "res://assets/enemies/fast_death.glb"
 const FAST_DEATH_SECONDS := 0.55
 const DEATH_PATH := "res://assets/enemies/normal_death.glb"
 const NORMAL_VISUAL_SCALE := 1.15
 const FAST_VISUAL_SCALE := 0.90
+# Keep content's .65 presentation size, while the authored geometry uses the
+# normal .55 reference with the same common 1.15 display enlargement.
+const TANK_VISUAL_SCALE := (0.55 / 0.65) * NORMAL_VISUAL_SCALE
 const STRIDE_TILES := 0.284375 * NORMAL_VISUAL_SCALE
 const WALK_SECONDS := 26.0 / 60.0
 const RUN_PATH := "res://assets/enemies/fast.glb"
@@ -23,6 +30,11 @@ const DEATH_FLOOR := 0.008475561626255512
 var _world: Node3D
 var _walk_scene: PackedScene
 var _run_scene: PackedScene
+var _tank_scene: PackedScene
+var _tank_death_scene: PackedScene
+var _tank_core_materials := {}
+var _tank_head_bounds := AABB()
+var _tank_head_bounds_ready := false
 var _death_scene: PackedScene
 var _fast_death_scene: PackedScene
 var _attempted := false
@@ -70,6 +82,7 @@ func clear() -> void:
 func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "normal") -> Dictionary:
 	var root := Node3D.new()
 	var model := scene.instantiate() as Node3D
+	if kind == "tank": _prepare_tank_core(model)
 	root.add_child(model)
 	model.position.y -= floor_offset
 	_world.add_child(root)
@@ -93,11 +106,75 @@ func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "norma
 	player.play(clip)
 	# seek(update=true) applies the pose immediately, including manual players.
 	player.seek(0.0, true)
-	return {"root": root, "type": kind, "guardian_preview": true,
+	var entry := {"root": root, "type": kind, "guardian_preview": true,
 		"player": player, "clip": clip, "distance": 0.0, "last_time": -INF}
+	if kind == "tank": _prepare_tank_label(entry, model)
+	return entry
+
+
+func _prepare_tank_label(entry: Dictionary, model: Node3D) -> void:
+	# Cache the authored head's rigid bind bounds once. Its current bone pose
+	# supplies the visual bar anchor without changing native size/stats payloads.
+	for body: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		if body.skin == null or body.get_active_material(0).resource_name != "Tank_WeatheredStone_PBR": continue
+		var skeleton := body.get_node(body.skeleton) as Skeleton3D
+		var head := skeleton.find_bone("head")
+		if head < 0: return
+		entry.label_skeleton = skeleton
+		entry.label_bone = head
+		if not _tank_head_bounds_ready:
+			var arrays := body.mesh.surface_get_arrays(0)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+			var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+			for index in range(vertices.size()):
+				var bind := bones[index * 4]
+				if weights[index * 4] < 0.5: continue
+				var bone := body.skin.get_bind_bone(bind)
+				if bone < 0: bone = skeleton.find_bone(body.skin.get_bind_name(bind))
+				if bone != head: continue
+				var point := body.skin.get_bind_pose(bind) * vertices[index]
+				if not _tank_head_bounds_ready:
+					_tank_head_bounds = AABB(point, Vector3.ZERO)
+					_tank_head_bounds_ready = true
+				else: _tank_head_bounds = _tank_head_bounds.expand(point)
+		entry.label_bounds = _tank_head_bounds
+		return
+
+
+func _prepare_tank_core(model: Node3D) -> void:
+	# glTF transmission is imported as realtime transparency. Suppress the tiny
+	# white specular hotspot that hid the amber volume at battlefield pixel size.
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		for surface in range(mesh.mesh.get_surface_count()):
+			var original := mesh.get_active_material(surface) as StandardMaterial3D
+			if original == null or not original.resource_name.begins_with("Tank_Amber"): continue
+			if not _tank_core_materials.has(original):
+				var amber: Material
+				if original.resource_name == "Tank_AmberNucleus_crystal":
+					var nucleus := ShaderMaterial.new()
+					nucleus.shader = TANK_NUCLEUS_SHADER
+					nucleus.resource_name = original.resource_name
+					amber = nucleus
+				else:
+					var shell := original.duplicate() as StandardMaterial3D
+					shell.metallic_specular = 0.06
+					shell.roughness = 0.20
+					amber = shell
+				_tank_core_materials[original] = amber
+			mesh.set_surface_override_material(surface, _tank_core_materials[original])
 
 
 func new_walker(kind: String = "normal") -> Dictionary:
+	if kind == "tank":
+		if _tank_death_scene == null:
+			_tank_death_scene = load(TANK_DEATH_PATH) as PackedScene
+		if _tank_scene == null:
+			_tank_scene = load(TANK_PATH) as PackedScene
+		if _tank_scene == null:
+			failure.emit("탱커 GLB를 불러오지 못했습니다.")
+			return {}
+		return _instantiate(_tank_scene, 0.0, kind)
 	if kind == "fast":
 		# Load before combat kills, rather than importing the corpse on impact.
 		if _fast_death_scene == null:
@@ -109,6 +186,11 @@ func new_walker(kind: String = "normal") -> Dictionary:
 			return {}
 		return _instantiate(_run_scene, 0.0, kind)
 	return _instantiate(_walk_scene, 0.0) if prepare() else {}
+
+
+static func visual_scale(kind: String) -> float:
+	if kind == "tank": return TANK_VISUAL_SCALE
+	return FAST_VISUAL_SCALE if kind == "fast" else NORMAL_VISUAL_SCALE
 
 
 func update_walker(entry: Dictionary, data: Array, time: float) -> void:
@@ -201,22 +283,33 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		var enemy: Dictionary = runtime.enemies.get(str(id), {})
 		if enemy.is_empty(): continue
 		var kind: String = enemy.get("type", "normal")
-		if kind not in ["normal", "fast"]: continue
+		if kind not in ["normal", "fast", "tank"]: continue
+		if kind == "tank" and _tank_death_scene == null:
+			_tank_death_scene = load(TANK_DEATH_PATH) as PackedScene
+			if _tank_death_scene == null:
+				failure.emit("탱커 사망 GLB를 불러오지 못했습니다.")
+				continue
 		if kind == "fast" and _fast_death_scene == null:
 			_fast_death_scene = load(FAST_DEATH_PATH) as PackedScene
 			if _fast_death_scene == null:
 				failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
 				continue
-		var entry := _instantiate(_fast_death_scene if kind == "fast" else _death_scene, 0.0 if kind == "fast" else DEATH_FLOOR, kind)
+		var corpse := _tank_death_scene if kind == "tank" else (_fast_death_scene if kind == "fast" else _death_scene)
+		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind)
 		if entry.is_empty(): continue
 		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + runtime._visual_enemy_offset(enemy)) / runtime.tile_size
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
 		# Keep the last visible body direction if death interrupts a turn.
 		var walker: Dictionary = walkers.get(id, {})
 		entry.root.rotation.y = walker.root.rotation.y if not walker.is_empty() and is_instance_valid(walker.root) else PI / 2.0 - float(enemy.facingAngle)
-		var scale_factor := FAST_VISUAL_SCALE if kind == "fast" else NORMAL_VISUAL_SCALE
+		var scale_factor := visual_scale(kind)
 		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.48 if kind == "fast" else 0.55)) * scale_factor
 		if kind == "fast": HoundDeath.attach(entry)
+		if kind == "tank":
+			if not walker.is_empty() and is_instance_valid(walker.root):
+				entry.root.position = walker.root.position
+				entry.root.scale = walker.root.scale
+			TankDeath.attach(entry, walker)
 		entry.born = time
 		deaths[id] = entry
 	update_deaths(time)
@@ -226,10 +319,11 @@ func update_deaths(time: float) -> void:
 	for id in deaths.keys():
 		var entry: Dictionary = deaths[id]
 		var age := time - float(entry.born)
-		var duration := FAST_DEATH_SECONDS if entry.type == "fast" else DEATH_SECONDS
+		var duration := TankDeath.LIFETIME if entry.type == "tank" else (FAST_DEATH_SECONDS if entry.type == "fast" else DEATH_SECONDS)
 		if age < 0.0 or age >= duration:
 			entry.root.free()
 			deaths.erase(id)
 			continue
-		entry.player.seek(age, true)
+		entry.player.seek(minf(age, TankDeath.COLLAPSE) if entry.type == "tank" else age, true)
 		if entry.type == "fast": HoundDeath.sample(entry, age)
+		if entry.type == "tank": TankDeath.sample(entry, age)

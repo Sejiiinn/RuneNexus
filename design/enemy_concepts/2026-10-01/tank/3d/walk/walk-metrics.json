@@ -1,0 +1,36 @@
+{
+  "scene": "Tank_Walk_Traversal",
+  "source_blend_sha256": "9ab3174463ab60f2e60dcca04841184ee43837c356b3be9763e70f9b9c715acb",
+  "traversal_blend_sha256": "99e5df2191f1ab085af079c55af032970f3e99960ae0c5cee29dfbb3f625a3a4",
+  "sample_count": 729,
+  "frame_step": 0.25,
+  "distance_tiles": 1.9906249944069034,
+  "speed_tiles_per_second": 0.65625,
+  "cycle_seconds": 0.43333333333333335,
+  "cycle_distance_tiles": 0.284375,
+  "stance_fraction": 0.55,
+  "max_world_support_foot_speed_tile_per_s": 0.0009419918230019831,
+  "max_contact_height_error_tiles": 4.110523603796857e-06,
+  "minimum_floor_clearance_tiles": -4.110523603796857e-06,
+  "maximum_skeletal_joint_gap_tiles": 2.3361581910904292e-07,
+  "maximum_neck_connection_error_tiles": 7.879859607081385e-08,
+  "head_relative_root_xyz_range_tiles": [
+    0.048755139112472534,
+    0.01568789081647992,
+    0.01367795467376709
+  ],
+  "torso_euler_xyz_range_degrees": [
+    3.679899418302183,
+    5.195235262442575,
+    6.004963580057694
+  ],
+  "head_euler_xyz_range_degrees": [
+    2.5206897975688154,
+    3.527412777039004,
+    4.0704371486039355
+  ],
+  "surface_phase_sample_count": 105,
+  "minimum_thigh_foot_inside_vertex_count": 14,
+  "minimum_thigh_pelvis_inside_vertex_count": 38,
+  "visual_note": "Signed overlap/joint metrics do not prove visible connection; actual representative phases and motion are separately reviewed."
+}

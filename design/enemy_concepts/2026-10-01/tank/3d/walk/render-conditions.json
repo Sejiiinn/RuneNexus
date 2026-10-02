@@ -1,0 +1,52 @@
+{
+  "views": {
+    "side": {
+      "blender": "5.2.1 LTS",
+      "source_traversal_sha256": "99e5df2191f1ab085af079c55af032970f3e99960ae0c5cee29dfbb3f625a3a4",
+      "engine": "CYCLES",
+      "samples": 12,
+      "view": "side",
+      "yaw_degrees": 90.0,
+      "elevation_degrees": 9.0,
+      "orthographic_scale": 8.102907180786133,
+      "resolution": [
+        640,
+        560
+      ],
+      "frames": [
+        1,
+        52
+      ],
+      "camera_follows_root": true,
+      "root_travels": true,
+      "tile_is_stationary": true,
+      "view_transform": "AgX",
+      "look": "AgX - Medium High Contrast",
+      "existing_frames_reused": true
+    },
+    "three-quarter": {
+      "blender": "5.2.1 LTS",
+      "source_traversal_sha256": "99e5df2191f1ab085af079c55af032970f3e99960ae0c5cee29dfbb3f625a3a4",
+      "engine": "CYCLES",
+      "samples": 12,
+      "view": "three-quarter",
+      "yaw_degrees": 25.0,
+      "elevation_degrees": 22.0,
+      "orthographic_scale": 8.102907180786133,
+      "resolution": [
+        640,
+        560
+      ],
+      "frames": [
+        1,
+        52
+      ],
+      "camera_follows_root": true,
+      "root_travels": true,
+      "tile_is_stationary": true,
+      "view_transform": "AgX",
+      "look": "AgX - Medium High Contrast",
+      "existing_frames_reused": true
+    }
+  }
+}

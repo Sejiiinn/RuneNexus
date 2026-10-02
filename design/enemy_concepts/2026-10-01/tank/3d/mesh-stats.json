@@ -1,0 +1,276 @@
+{
+  "asset": "Wide chest tank / unified rear",
+  "blender_version": "5.2.1 LTS",
+  "totals": {
+    "vertices": 10906,
+    "faces": 16796,
+    "triangles": 21664
+  },
+  "objects": [
+    {
+      "object": "Tank_WideChest_single broad unsegmented back",
+      "vertices": 418,
+      "faces": 832,
+      "triangles": 832
+    },
+    {
+      "object": "Tank_WideChest_L broad chest slab",
+      "vertices": 693,
+      "faces": 1299,
+      "triangles": 1382
+    },
+    {
+      "object": "Tank_WideChest_R broad chest slab",
+      "vertices": 693,
+      "faces": 1298,
+      "triangles": 1382
+    },
+    {
+      "object": "Tank_WideChest_single pelvis keystone including rear",
+      "vertices": 162,
+      "faces": 320,
+      "triangles": 320
+    },
+    {
+      "object": "Tank_WideChest_heart stone cavity",
+      "vertices": 96,
+      "faces": 74,
+      "triangles": 188
+    },
+    {
+      "object": "Tank_WideChest_single spherical amber front core",
+      "vertices": 178,
+      "faces": 192,
+      "triangles": 352
+    },
+    {
+      "object": "Tank_WideChest_small internal amber light volume",
+      "vertices": 86,
+      "faces": 96,
+      "triangles": 168
+    },
+    {
+      "object": "Tank_WideChest_L recessed shoulder connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L rounded natural stone shoulder",
+      "vertices": 870,
+      "faces": 1445,
+      "triangles": 1740
+    },
+    {
+      "object": "Tank_WideChest_L short stone upper arm",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L recessed elbow connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L heavy short forearm",
+      "vertices": 861,
+      "faces": 1440,
+      "triangles": 1718
+    },
+    {
+      "object": "Tank_WideChest_L stone fist knuckle 0",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L stone fist knuckle 1",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L stone thumb",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L recessed hip connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L short massive thigh",
+      "vertices": 162,
+      "faces": 320,
+      "triangles": 320
+    },
+    {
+      "object": "Tank_WideChest_L recessed ankle connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_L broad flat-soled stone foot",
+      "vertices": 559,
+      "faces": 1083,
+      "triangles": 1114
+    },
+    {
+      "object": "Tank_WideChest_R recessed shoulder connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R rounded natural stone shoulder",
+      "vertices": 876,
+      "faces": 1447,
+      "triangles": 1748
+    },
+    {
+      "object": "Tank_WideChest_R short stone upper arm",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R recessed elbow connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R heavy short forearm",
+      "vertices": 863,
+      "faces": 1440,
+      "triangles": 1722
+    },
+    {
+      "object": "Tank_WideChest_R stone fist knuckle 0",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R stone fist knuckle 1",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R stone thumb",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R recessed hip connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R short massive thigh",
+      "vertices": 162,
+      "faces": 320,
+      "triangles": 320
+    },
+    {
+      "object": "Tank_WideChest_R recessed ankle connector",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    },
+    {
+      "object": "Tank_WideChest_R broad flat-soled stone foot",
+      "vertices": 565,
+      "faces": 1098,
+      "triangles": 1126
+    },
+    {
+      "object": "Tank_WideChest_large round chamfered monolithic head",
+      "vertices": 2236,
+      "faces": 1966,
+      "triangles": 4468
+    },
+    {
+      "object": "Tank_WideChest_L eye cavity dark stone",
+      "vertices": 146,
+      "faces": 160,
+      "triangles": 288
+    },
+    {
+      "object": "Tank_WideChest_L turquoise spherical eye",
+      "vertices": 178,
+      "faces": 192,
+      "triangles": 352
+    },
+    {
+      "object": "Tank_WideChest_R eye cavity dark stone",
+      "vertices": 146,
+      "faces": 160,
+      "triangles": 288
+    },
+    {
+      "object": "Tank_WideChest_R turquoise spherical eye",
+      "vertices": 178,
+      "faces": 192,
+      "triangles": 352
+    },
+    {
+      "object": "Tank_WideChest_continuous physically recessed turquoise spiral",
+      "vertices": 64,
+      "faces": 62,
+      "triangles": 124
+    },
+    {
+      "object": "Tank_WideChest_recessed dark stone neck",
+      "vertices": 42,
+      "faces": 80,
+      "triangles": 80
+    }
+  ],
+  "front_axis": "-Y",
+  "active_scene_before_build": "Tank_WideChest_Concept",
+  "original_open_file_preserved": "/Users/sejin/Documents/Codex/RuneNexus/design/frost_tower_concepts/2026-09-23/optimized-game-distance/frost-optimized.blend",
+  "preserved_existing_fast_hound_objects": 109,
+  "size": {
+    "normal_source": "/Users/sejin/Documents/Codex/RuneNexus/design/enemy_concepts/2026-09-26/medium-guardian-3d/medium-guardian.blend",
+    "normal_bounds": {
+      "min": [
+        -2.071946382522583,
+        -0.9869773387908936,
+        0.034999996423721313
+      ],
+      "max": [
+        2.057572841644287,
+        0.9060378074645996,
+        4.568094730377197
+      ]
+    },
+    "normal_height": 4.533094733953476,
+    "tank_bounds": {
+      "min": [
+        -2.9476428031921387,
+        -0.9833046197891235,
+        0.0
+      ],
+      "max": [
+        2.956940174102783,
+        0.9151044487953186,
+        5.66636848449707
+      ]
+    },
+    "tank_height": 5.66636848449707,
+    "height_ratio": 1.2500000147923724,
+    "tank_root_uniform_scale": 1.2377344369888306,
+    "rule": "Actual head-to-sole height 1.25x the normal in the same production coordinate system. In-game normal 1.15 common display factor cancels in a ratio; do not multiply tank by another 1.15. Width and depth preserve wide-chest form, not forced to 1.25x normal."
+  },
+  "scope": "Editable static 3D concept only; no rig, animation or game integration."
+}

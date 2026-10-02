@@ -121,6 +121,8 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 						var coat := _coat.duplicate() as ShaderMaterial
 						coat.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[entry.type])
 						coat.set_shader_parameter("preserve_colored_core", true)
+						# Tank eyes emit subtly; its recessed mineral rune does not.
+						coat.set_shader_parameter("preserve_colored_with_emission", entry.type == "tank")
 						coat.set_shader_parameter("body_albedo", original.albedo_texture)
 						# The hound stone is blue too; its authored emission atlas marks only runes.
 						if original.emission_enabled and original.emission_texture != null:

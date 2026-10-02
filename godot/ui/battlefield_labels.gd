@@ -74,7 +74,7 @@ func set_canvas_enabled(enabled: bool) -> void:
 	_canvas_enabled = enabled
 
 
-func present(camera: Camera3D, map_size: Vector2, world: Node3D) -> void:
+func present(camera: Camera3D, map_size: Vector2, world: Node3D, actor_tops: Dictionary = {}) -> void:
 	if not _canvas_enabled or not is_visible_in_tree(): return
 	var available := textures.has("diamond_currency")
 	if not available: return
@@ -106,6 +106,13 @@ func present(camera: Camera3D, map_size: Vector2, world: Node3D) -> void:
 					label.position = screen
 					label.scale = Vector2.ONE * factor
 		if not label.visible: continue
+		# Only authored actors that supply a head anchor opt into this adjustment.
+		# Ground decorations retain their position; HP/armor/shield and carrier
+		# follow the visible head through walk poses and camera changes.
+		var bar_offset := 0.0
+		if actor_tops.has(int(label.data.id)):
+			bar_offset = (float(actor_tops[int(label.data.id)]) - label.position.y - 4.0) / factor + dimensions_key.y / 2.0
+		label.set_bar_offset(bar_offset)
 		label.flush_redraw()
 		label.present_carrier(factor)
 	if core.data.is_empty():
@@ -151,11 +158,18 @@ class EnemyLabel extends Node2D:
 	var carrier: DiamondCarrier
 	var carrier_dirty := true
 	var _carrier_key: Array = []
+	var bar_offset := 0.0
+
+	func set_bar_offset(value: float) -> void:
+		if not is_equal_approx(bar_offset, value):
+			bar_offset = value
+			dirty = true
 
 	func reset() -> void:
 		hide()
 		projection_revision = -1
 		data = {}
+		bar_offset = 0.0
 		_bar_key.clear(); _static_key.clear(); _rift_key.clear()
 		_carrier_key.clear(); carrier_dirty = true
 		dirty = true; static_dirty = true; rift_dirty = true
@@ -183,7 +197,7 @@ class EnemyLabel extends Node2D:
 		var dimensions: Array = data["size"]
 		var inverse_factor := 1.0 / maxf(0.001, factor)
 		# Keep the icon above health/shield bars and legible on small mobs.
-		carrier.position = Vector2(0, -float(dimensions[1]) / 2.0 - 28.0 * inverse_factor)
+		carrier.position = Vector2(0, -float(dimensions[1]) / 2.0 + bar_offset - 28.0 * inverse_factor)
 		carrier.scale = Vector2.ONE * inverse_factor
 
 	func flush_redraw() -> void:
@@ -238,7 +252,7 @@ class EnemyLabel extends Node2D:
 		var dimensions: Array = data["size"]
 		var size := Vector2(float(dimensions[0]), float(dimensions[1]))
 		var w := size.x
-		draw_set_transform(-size / 2.0)
+		draw_set_transform(Vector2(-size.x / 2.0, -size.y / 2.0 + bar_offset))
 		var segments := durability_segments(data)
 		var bar_width := w - 2.0
 		if float(data["maxShield"]) > 0 and float(data["shield"]) > 0:

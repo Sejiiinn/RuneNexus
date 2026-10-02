@@ -121,6 +121,21 @@ func camera_changed() -> void:
 		_update_weapon_camera(entry)
 
 
+func enemy_label_tops() -> Dictionary:
+	var tops := {}
+	for id in enemies:
+		var entry: Dictionary = enemies[id]
+		if not entry.has("label_bounds"): continue
+		var skeleton: Skeleton3D = entry.label_skeleton
+		var pose := skeleton.global_transform * skeleton.get_bone_global_pose(int(entry.label_bone))
+		var bounds: AABB = entry.label_bounds
+		var top := INF
+		for corner in range(8):
+			top = minf(top, camera.unproject_position(pose * bounds.get_endpoint(corner)).y)
+		tops[id] = top
+	return tops
+
+
 func _prepare_vertex_colors(model: Node) -> void:
 	# GLB COLOR_0 보존: 일부 다중 primitive 재질의 누락된 사용 플래그 보정.
 	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
@@ -336,7 +351,7 @@ func _sync_enemies(units: Array) -> void:
 			failure.emit("스테이지 1에서 지원하지 않는 적: %s" % type)
 			continue
 		alive[id] = true
-		var preview := type in ["normal", "fast"]
+		var preview := type in ["normal", "fast", "tank"]
 		if enemies.has(id) and (enemies[id]["type"] != type or bool(enemies[id].get("guardian_preview", false)) != preview):
 			enemies[id]["root"].free()
 			enemies.erase(id)
@@ -354,7 +369,7 @@ func _sync_enemies(units: Array) -> void:
 		if preview:
 			# The authored rig supplies grounded motion and body-only turning.
 			root.position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
-			var visual_scale := GuardianPreview.FAST_VISUAL_SCALE if type == "fast" else GuardianPreview.NORMAL_VISUAL_SCALE
+			var visual_scale := GuardianPreview.visual_scale(type)
 			root.scale = Vector3.ONE * float(data[5]) * visual_scale
 			_guardian_preview.update_walker(enemies[id], data, time)
 			EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))

@@ -208,7 +208,9 @@ def prepare() -> Path:
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
-    required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "fast_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
+    required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "fast_death.glb", "tank_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
+    required += [SOURCE_ASSETS / "enemies" / f"tank_status_{kind}.res"
+                 for kind in ("burn", "frost_shards", "frost_grains")]
     required += [SOURCE_ASSETS / "effects" / "enemy_frost" / name
                  for name in ("crystals.glb", "attachments.json", "rime_mask.bin", "grain.png")]
     required += [SOURCE_ASSETS / "effects" / name
@@ -251,6 +253,12 @@ def prepare() -> Path:
     for source in sorted((SOURCE_ASSETS / "enemies").glob("*_status_*.res")):
         shutil.copy2(source, ASSETS / "enemies" / source.name)
     texture_manifest = externalize_textures(ASSETS)
+    # Preserve the 60fps contact extrema during the fast authored kneel.
+    # Default 30fps resampling otherwise puts feet briefly below the tile.
+    (ASSETS / "enemies/tank_death.glb.import").write_text(
+        '[remap]\nimporter="scene"\ntype="PackedScene"\n\n'
+        '[params]\nanimation/fps=60\n'
+    )
     (PROJECT.parent / "shared_texture_manifest.json").write_text(
         json.dumps(texture_manifest, ensure_ascii=False, indent=2) + "\n"
     )

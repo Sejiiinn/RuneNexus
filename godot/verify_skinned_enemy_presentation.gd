@@ -98,18 +98,22 @@ func run() -> void:
 	var runtime := Runtime.new()
 	var normal := motion.new_walker()
 	var fast := motion.new_walker("fast")
-	check(not normal.is_empty() and not fast.is_empty(), "Both authored rigs load")
-	if normal.is_empty() or fast.is_empty():
+	var tank := motion.new_walker("tank")
+	check(not normal.is_empty() and not fast.is_empty() and not tank.is_empty(), "All three authored rigs load")
+	if normal.is_empty() or fast.is_empty() or tank.is_empty():
 		world.free()
 		quit(1)
 		return
 	check(fast.type == "fast" and fast.player.get_animation(fast.clip).length > 0.56, "Fast Run imported")
 	check(is_equal_approx(Motion.RUN_STRIDE_TILES, 0.6445833333333333 * Motion.FAST_VISUAL_SCALE), "Fast stride follows visual scale without changing combat speed")
-	for entry: Dictionary in [normal, fast]:
+	check(tank.clip == "Walk" and is_equal_approx(tank.player.get_animation(tank.clip).length, Motion.WALK_SECONDS), "Tank imports approved 26-frame Walk")
+	check(is_equal_approx(.65 * Motion.visual_scale("tank"), .55 * Motion.NORMAL_VISUAL_SCALE), "Tank shares common display size without changing content .65")
+	check(tank.has("label_bounds") and tank.label_bounds.size.y > 0.0 and not normal.has("label_bounds") and not fast.has("label_bounds"), "Only tank head supplies the new visual bar anchor")
+	for entry: Dictionary in [normal, fast, tank]:
 		check_legacy_pose(entry, entry.type + " initial")
-		var id := 1 if entry.type == "normal" else 2
-		var stride: float = Motion.STRIDE_TILES if id == 1 else Motion.RUN_STRIDE_TILES
-		var seconds: float = Motion.WALK_SECONDS if id == 1 else Motion.RUN_SECONDS
+		var id := {"normal":1, "fast":2, "tank":3}[entry.type] as int
+		var stride: float = Motion.RUN_STRIDE_TILES if entry.type == "fast" else Motion.STRIDE_TILES
+		var seconds: float = Motion.RUN_SECONDS if entry.type == "fast" else Motion.WALK_SECONDS
 		var data := [id, 0.0, 0.0, 0.0, 0.0, 0.48, 0.0, entry.type, false, false, false, false, 0.0, 0.0]
 		runtime.enemies[str(id)] = {"id": id, "type": entry.type, "distanceTravelled": stride * 48.0 * 0.25, "facingAngle": 0.0}
 		motion.observe_native(runtime, 1.0, Vector2i(8, 8))
@@ -154,20 +158,37 @@ func run() -> void:
 		check(is_equal_approx(coat.get_shader_parameter("coordinate_scale"), Frost.COORDINATE_SCALES[entry.type]), entry.type + " frost uses own normalization")
 		if entry.type == "fast":
 			check(coat.get_shader_parameter("preserve_emission_core") and coat.get_shader_parameter("body_emission") == original.emission_texture, "Blue hound stone receives frost; only authored emission is protected")
+		if entry.type == "tank":
+			check(coat.get_shader_parameter("preserve_colored_with_emission"), "Tank protects both subtle eyes and nonemitting mineral rune")
+			var core_count := 0
+			for mesh: MeshInstance3D in entry.root.find_children("*", "MeshInstance3D", true, false):
+				var core := mesh.get_active_material(0)
+				if core.resource_name.ends_with("_crystal"):
+					core_count += 1
+					check(core.next_pass == null, "Tank frost keeps nested amber sphere material")
+					if core.resource_name == "Tank_AmberNucleus_crystal":
+						check(core is ShaderMaterial and core.shader == Motion.TANK_NUCLEUS_SHADER, "Tank keeps authored camera-facing amber depth on real sphere")
+			check(core_count == 2, "Tank keeps both real amber spheres")
 		Burn.apply(entry, false, 1.16)
 		Frost.apply(entry, false)
 		check(not entry.burn.visible and not entry.frost.visible and body.get_active_material(0) == original, entry.type + " status expiry restores material")
 	Burn.set_time(7.0)
 	check(is_equal_approx(normal.burn.get_child(0).material_override.get_shader_parameter("burn_time"), 7.0), "Shared burn clock updates skinned effects")
 	check(is_equal_approx(fast.burn.get_child(0).material_override.get_shader_parameter("burn_time"), 7.0), "Both rig scales share the combat burn clock")
+	check(is_equal_approx(tank.burn.get_child(0).material_override.get_shader_parameter("burn_time"), 7.0), "Tank shares combat burn clock")
 	check(normal.burn.get_child(0).mesh != fast.burn.get_child(0).mesh, "Guardian status is not reused on hound skeleton")
-	runtime.events = [{"id": 1, "kind": "kill", "enemyId": 2, "x": 0.0, "y": 0.0}, {"id": 2, "kind": "kill", "enemyId": 1, "x": 0.0, "y": 0.0}]
+	runtime.events = [{"id": 1, "kind": "kill", "enemyId": 2, "x": 0.0, "y": 0.0}, {"id": 2, "kind": "kill", "enemyId": 1, "x": 0.0, "y": 0.0}, {"id": 3, "kind": "kill", "enemyId": 3, "x": 0.0, "y": 0.0}]
 	motion.observe_native(runtime, 2.0, Vector2i(8, 8))
 	check(motion.deaths.has(1) and motion.deaths.has(2), "Both authored kinds create their own death clip")
+	check(motion.deaths.has(3) and motion.deaths[3].clip == "Death", "Tank uses its own authored heavy collapse")
+	var tank_death: Dictionary = motion.deaths[3]
+	var live_skeleton: Skeleton3D = tank.root.find_children("*", "Skeleton3D", true, false)[0]
+	for bone in range(live_skeleton.get_bone_count()):
+		check(tank_death.death_skeleton.get_bone_pose(bone).is_equal_approx(live_skeleton.get_bone_pose(bone)), "Tank kill retains current gait pose at bone %d" % bone)
 	check(motion.deaths[2].type == "fast" and motion.deaths[2].clip != "Run", "Fast kill uses Death rather than Run")
 	check(is_equal_approx(motion.deaths[2].root.scale.x, 0.48 * Motion.FAST_VISUAL_SCALE), "Fast corpse retains live visual scale")
 	for entry: Dictionary in motion.deaths.values():
-		check_legacy_pose(entry, entry.type + " death initial")
+		if entry.type != "tank": check_legacy_pose(entry, entry.type + " death initial")
 	motion.update_deaths(2.30)
 	for entry: Dictionary in motion.deaths.values():
 		check_legacy_pose(entry, entry.type + " death mid")
@@ -178,6 +199,12 @@ func run() -> void:
 	check(is_equal_approx(corpse.player.current_animation_position, 0.30) and is_equal_approx((1.0 - float(corpse.death_bodies[0].get_instance_shader_parameter("death_opacity"))), fade), "Paused combat clock freezes pose and fade")
 	motion.update_deaths(2.56)
 	check(not motion.deaths.has(2) and motion.deaths.has(1), "Fast cleans up at .55 seconds; normal retains its .6 second lifetime")
+	check(motion.deaths.has(3), "Tank residue remains after the old corpse lifetimes")
+	motion.update_deaths(2.9)
+	check(motion.deaths.size() == 1 and is_equal_approx(tank_death.player.current_animation_position, .7), "Tank holds the settled pose after .7s")
+	check(is_zero_approx(float(tank_death.death_bodies[0].get_instance_shader_parameter("death_light"))), "Tank core is off after the single impact pulse")
+	motion.update_deaths(3.41)
+	check(motion.deaths.is_empty(), "Tank corpse and dust are removed after 1.4s")
 	motion.forget_walker(2)
 	fast.root.free()
 	check(not motion.walkers.has(2), "Fast removal clears motion reference and status children")

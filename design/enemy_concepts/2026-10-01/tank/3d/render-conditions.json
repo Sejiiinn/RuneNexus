@@ -1,0 +1,147 @@
+{
+  "blender": "5.2.1 LTS",
+  "engine": "CYCLES",
+  "view_transform": "AgX",
+  "look": "AgX - Medium High Contrast",
+  "views": {
+    "front": {
+      "camera_location": [
+        0.0,
+        -18.0,
+        2.833184242248535
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.833184242248535
+      ],
+      "orthographic_scale": 7.366279029846192,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "cycles_samples": 64
+    },
+    "three-quarter": {
+      "camera_location": [
+        5.5078349113464355,
+        -11.811590194702148,
+        8.098715782165527
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.833184242248535
+      ],
+      "orthographic_scale": 7.706261138916016,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "cycles_samples": 64
+    },
+    "side": {
+      "camera_location": [
+        18.0,
+        0.0,
+        2.833184242248535
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.833184242248535
+      ],
+      "orthographic_scale": 7.366279029846192,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "cycles_samples": 64
+    },
+    "high-angle": {
+      "camera_location": [
+        7.0,
+        -12.0,
+        15.0
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.833184242248535
+      ],
+      "orthographic_scale": 7.706261138916016,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "cycles_samples": 64
+    },
+    "back": {
+      "camera_location": [
+        0.0,
+        18.0,
+        2.833184242248535
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.833184242248535
+      ],
+      "orthographic_scale": 7.366279029846192,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "cycles_samples": 64
+    },
+    "top": {
+      "camera_location": [
+        0.0,
+        0.0,
+        20.0
+      ],
+      "target": [
+        0.0,
+        0.0,
+        2.833184242248535
+      ],
+      "orthographic_scale": 7.366279029846192,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "cycles_samples": 64
+    }
+  },
+  "model_inputs": {
+    "build_source_sha256": "4bd5d82ebcd426e689d35d70f818a2798f9111fba32ec179ee5f9d15d794ecc0",
+    "normal_source_sha256": "5dad3df72d9aaad8889d1d348c2fd41d08a1977d65be4a4a3a82223e6301a4d8",
+    "frame_revision": "Astra reference revision 5: tall broad single rear stone with continuous rounded upper slopes fitted to the actual pectoral roof, no front collar or rear shelves; descending pelvis and short thighs; preserved head, chest and material."
+  },
+  "last_rendered_views": [
+    "top",
+    "high-angle"
+  ],
+  "normal_tank_comparison": {
+    "camera_location": [
+      0.0,
+      -20.0,
+      2.833184242248535
+    ],
+    "target": [
+      0,
+      0,
+      2.833184242248535
+    ],
+    "orthographic_scale": 13.399999618530273,
+    "resolution": [
+      1800,
+      1000
+    ],
+    "cycles_samples": 64,
+    "normal_x_offset": -3.4,
+    "tank_x_offset": 2.8,
+    "height_ratio": 1.2500000147923724,
+    "both_soles_z": 0
+  }
+}

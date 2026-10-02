@@ -97,8 +97,8 @@ func _verify() -> void:
 		print("Enemy burn verification: %d failures" % failures)
 		quit(1)
 		return
-	var first: MultiMeshInstance3D = scene.enemies[4]["burn"]
-	units.append(unit(10, "tank", true))
+	var first: MultiMeshInstance3D = scene.enemies[1]["burn"]
+	units.append(unit(10, "armored", true))
 	scene._sync_enemies(units)
 	var other: MultiMeshInstance3D = scene.enemies[10]["burn"]
 	check(first.multimesh == other.multimesh and first.material_override == other.material_override, "동종 적마다 화상 리소스를 복제함")
@@ -114,32 +114,32 @@ func _verify() -> void:
 	Burn.set_time(0.25)
 	check(is_equal_approx(shared_material.get_shader_parameter("burn_time"), 0.25), "전투 시계 역행 시 이전 화상 시각 잔류")
 	check(first.multimesh.buffer == buffer_before, "전투 시각 갱신이 정적 입자 버퍼를 변경함")
-	units[4][8] = false
+	units[1][8] = false
 	scene._sync_enemies(units)
 	check(not first.visible and other.visible, "화상 만료가 다른 적의 효과를 변경함")
-	check_surfaces(originals[4])
-	units[4][8] = true
-	units[4][1] = 5.1
-	units[4][3] = 2.8
-	units[4][4] = 1.4
-	units[4][5] = 1.2
+	check_surfaces(originals[1])
+	units[1][8] = true
+	units[1][1] = 5.1
+	units[1][3] = 2.8
+	units[1][4] = 1.4
+	units[1][5] = 1.2
 	scene._sync_enemies(units)
-	check(scene.enemies[4]["burn"] == first and first.visible, "화상 재적용 때 효과를 재생성함")
-	check(first.global_transform.is_equal_approx(scene.enemies[4]["root"].global_transform), "이동/방향/스케일 갱신 후 화상이 분리됨")
-	units[4][9] = true
+	check(scene.enemies[1]["burn"] == first and first.visible, "화상 재적용 때 효과를 재생성함")
+	check(first.global_transform.is_equal_approx(scene.enemies[1]["root"].global_transform), "이동/방향/스케일 갱신 후 화상이 분리됨")
+	units[1][9] = true
 	scene._sync_enemies(units)
-	var frosted := original_surfaces(scene.enemies[4])
-	check(first.visible and scene.enemies[4]["frost"].visible, "화상과 냉각 동시 상태 중 한 효과가 사라짐")
-	units[4][8] = false
+	var frosted := original_surfaces(scene.enemies[1])
+	check(first.visible and scene.enemies[1]["frost"].visible, "화상과 냉각 동시 상태 중 한 효과가 사라짐")
+	units[1][8] = false
 	scene._sync_enemies(units)
 	check_surfaces(frosted)
-	check(scene.enemies[4]["frost"].visible, "화상 만료가 냉각 효과를 제거함")
-	units[4][8] = true
-	units[4][7] = "fast"
+	check(scene.enemies[1]["frost"].visible, "화상 만료가 냉각 효과를 제거함")
+	units[1][8] = true
+	units[1][7] = "fast"
 	scene._sync_enemies(units)
-	check(not is_instance_valid(first) and scene.enemies[4]["burn"].visible, "같은 ID 유형 교체 후 이전 화상 잔류")
-	var replaced: Node3D = scene.enemies[4]["burn"]
-	units[4] = [4, 3.5, 4.0, 0.7, 0.8, 0.62, 0.0, "fast"]
+	check(not is_instance_valid(first) and scene.enemies[1]["burn"].visible, "같은 ID 유형 교체 후 이전 화상 잔류")
+	var replaced: Node3D = scene.enemies[1]["burn"]
+	units[1] = [1, 3.5, 4.0, 0.7, 0.8, 0.62, 0.0, "fast"]
 	scene._sync_enemies(units)
 	check(not replaced.visible, "화상 필드 없는 이전 프레임에서 효과 잔류")
 	scene._sync_enemies([])

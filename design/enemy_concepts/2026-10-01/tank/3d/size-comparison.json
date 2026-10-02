@@ -1,0 +1,32 @@
+{
+  "normal_source": "/Users/sejin/Documents/Codex/RuneNexus/design/enemy_concepts/2026-09-26/medium-guardian-3d/medium-guardian.blend",
+  "normal_bounds": {
+    "min": [
+      -2.071946382522583,
+      -0.9869773387908936,
+      0.034999996423721313
+    ],
+    "max": [
+      2.057572841644287,
+      0.9060378074645996,
+      4.568094730377197
+    ]
+  },
+  "normal_height": 4.533094733953476,
+  "tank_bounds": {
+    "min": [
+      -2.9476428031921387,
+      -0.9833046197891235,
+      0.0
+    ],
+    "max": [
+      2.956940174102783,
+      0.9151044487953186,
+      5.66636848449707
+    ]
+  },
+  "tank_height": 5.66636848449707,
+  "height_ratio": 1.2500000147923724,
+  "tank_root_uniform_scale": 1.2377344369888306,
+  "rule": "Actual head-to-sole height 1.25x the normal in the same production coordinate system. In-game normal 1.15 common display factor cancels in a ratio; do not multiply tank by another 1.15. Width and depth preserve wide-chest form, not forced to 1.25x normal."
+}

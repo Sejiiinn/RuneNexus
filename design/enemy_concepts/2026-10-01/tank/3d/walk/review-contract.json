@@ -1,0 +1,25 @@
+{
+  "source": "tank-walk.blend",
+  "scene": "Tank_Walk_Traversal",
+  "root": "Traversal_TankWalk_ROOT",
+  "rig": "Traversal_Tank_Walk_Rig",
+  "frames": [
+    1,
+    182
+  ],
+  "endpoint_frame": 183,
+  "fps": 60,
+  "speed_tiles_per_second": 0.65625,
+  "cycle_distance_tiles": 0.284375,
+  "stance_fraction": 0.55,
+  "distance_to_endpoint_tiles": 1.990625,
+  "production_model_to_tile_scale": 0.13318741726186356,
+  "tile_source": "/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/surface_effects/terrain-surface.blend",
+  "render_engine": "CYCLES",
+  "saved_scene_default_samples": 16,
+  "saved_scene_default_resolution": [
+    800,
+    700
+  ],
+  "motion_render_conditions": "render-conditions.json"
+}

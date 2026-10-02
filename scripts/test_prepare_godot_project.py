@@ -75,9 +75,10 @@ class MaterialPresetSyncTest(unittest.TestCase):
             ):
                 for name in names:
                     write(assets / kind / f"{name}.glb", b"asset fixture")
-            for name in ("normal_death.glb", "fast_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res",
+            for name in ("normal_death.glb", "fast_death.glb", "tank_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res",
                          "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res",
-                         "fast_status_frost_grains.res"):
+                         "fast_status_frost_grains.res", "tank_status_burn.res", "tank_status_frost_shards.res",
+                         "tank_status_frost_grains.res"):
                 write(assets / "enemies" / name, b"rig fixture")
             for name in ("muzzle_flash.png", "gun_smoke.png", "cannon_field.json",
                          "cannon_field.bin", "machinegun_muzzle_noise.bin"):
@@ -170,6 +171,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
                         self.assertEqual({enemy[7] for enemy in frame["enemies"]}, expected)
                 self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")
                 self.assertEqual((project / "assets/enemies/fast_status_burn.res").read_bytes(), b"rig fixture")
+                self.assertTrue((project / "assets/enemies/tank_death.glb").is_file())
+                self.assertIn("animation/fps=60", (project / "assets/enemies/tank_death.glb.import").read_text())
                 self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
                 self.assertEqual((project / "assets/backgrounds/combat_space_nebula.png").read_bytes(), b"approved space background")
                 self.assertEqual((project / "assets/ui/NotoSansKR-VF.ttf").read_bytes(), b"font fixture")
