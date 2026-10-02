@@ -52,6 +52,10 @@ func run():
 	root.add_child(host); host.size=Vector2(440,440); host.collection.setup(host)
 	host.open_quests(); await frames(8)
 	var parent: VBoxContainer = host.modal_body
+	await verify_attendance_ui(app,host,parent)
+	app.progression_inputs = Quest.new().refresh({},1800450000000)
+	app.progression_inputs.dailyQuestProgress = Quest.DAILY.duplicate()
+	host.collection.set_period("daily",parent); await frames()
 	var initial := panels(parent)
 	host.modal_scroll.scroll_vertical=50; await frames()
 	var scroll: int = host.modal_scroll.scroll_vertical
@@ -121,3 +125,48 @@ func run():
 	host.close_modal(true); host.free(); old_service.free(); service.free()
 	await frames()
 	quit(0 if failures.is_empty() else 1)
+
+func verify_attendance_ui(app, host, parent: VBoxContainer):
+	var base: Dictionary = Quest.new().refresh({},1800450000000)
+	var home = preload("res://ui/lobby_home.gd").new()
+	home.lobby = host
+	var first_day := int(base.weeklyQuestWeekKey) * 7 - 3
+	base.weeklyAttendanceDayKeys = [first_day,first_day+1,first_day+2,first_day+3,first_day+4]
+	base.weeklyAttendanceRewardClaimed = true
+	base.weeklyQuestProgress = {"killEnemies":500,"clearWaves":65,"killBosses":7,"buyRunUpgrades":23}
+	base.claimedWeeklyQuestRewards = ["killEnemies"]
+	app.progression_inputs = base.duplicate(true)
+	host.collection.set_period("weekly",parent); await frames()
+	var view: Dictionary = parent.get_meta("quest_view")
+	check(view.rows.all_complete.count.text=="2 / 4 완료" and view.rows.all_complete.button.disabled,"reported screenshot counts attendance and kills as two")
+	app.progression_inputs.weeklyQuestProgress.clearWaves = 150
+	app.progression_inputs.weeklyQuestProgress.killBosses = 15
+	host.collection.quests(parent); await frames()
+	check(view.rows.all_complete.count.text=="4 / 4 완료" and not view.rows.all_complete.button.disabled,"weekly attendance plus three enables summary in place")
+	app.progression_inputs.weeklyQuestProgress.buyRunUpgrades = 25
+	host.collection.quests(parent); await frames()
+	check(view.rows.all_complete.count.text=="4 / 4 완료" and not view.rows.all_complete.button.disabled,"all five display capped four and remain claimable")
+	app.progression_inputs = base.duplicate(true)
+	app.progression_inputs.dailyQuestProgress = {"clearWaves":30,"killBosses":3,"killEnemies":100}
+	host.collection.set_period("daily",parent); await frames()
+	view = parent.get_meta("quest_view")
+	check(view.rows.all_complete.count.text=="4 / 4 완료" and not view.rows.all_complete.button.disabled,"unclaimed daily attendance plus three enables summary")
+	app.progression_inputs.dailyAttendanceRewardClaimed = true
+	app.progression_inputs.claimedDailyQuestRewards = ["clearWaves","killBosses","killEnemies"]
+	host.collection.quests(parent); await frames()
+	check(view.rows.all_complete.count.text=="4 / 4 완료" and not view.rows.all_complete.button.disabled,"claimed daily attendance remains included")
+	check(host._quest_ready(),"lobby reward-ready icon includes attendance plus three claimed goals")
+	check(home._claimable(),"home reward dot includes daily attendance plus three claimed goals")
+	app.progression_inputs.dailyQuestAllCompleteClaimed = true
+	check(not host._quest_ready(),"claimed summary leaves no reward-ready icon")
+	check(not home._claimable(),"claimed daily summary leaves no home reward dot")
+	app.progression_inputs.weeklyQuestProgress = {"clearWaves":150,"killBosses":15,"killEnemies":500}
+	app.progression_inputs.claimedWeeklyQuestRewards = ["clearWaves","killBosses","killEnemies"]
+	check(home._claimable(),"home reward dot includes weekly attendance plus three claimed goals")
+	app.progression_inputs.weeklyQuestAllCompleteClaimed = true
+	check(not home._claimable(),"claimed weekly summary leaves no home reward dot")
+	home.free()
+	app.progression_inputs.dailyQuestAllCompleteClaimed = false
+	app.progression_inputs.dailyQuestProgress.killBosses = 2
+	host.collection.quests(parent); await frames()
+	check(view.rows.all_complete.count.text=="3 / 4 완료" and view.rows.all_complete.button.disabled,"daily attendance plus two waits")

@@ -238,14 +238,12 @@ func _claimable() -> bool:
 	for period in ["daily", "weekly"]:
 		if p.get("dailyQuestClockRollbackDetected", false): continue
 		if period == "daily" and not p.get("dailyAttendanceRewardClaimed", false): return true
-		if period == "weekly" and p.get("weeklyAttendanceDayKeys", []).size() >= 5 and not p.get("weeklyAttendanceRewardClaimed", false): return true
+		if period == "weekly" and Quests.attendance_progress(p,period) >= 5 and not p.get("weeklyAttendanceRewardClaimed", false): return true
 		var targets: Dictionary = Quests.DAILY if period == "daily" else Quests.WEEKLY
-		var completed := 0
 		for key in targets:
 			if int(p.get(period + "QuestProgress", {}).get(key, 0)) >= int(targets[key]):
-				completed += 1
 				if key not in p.get("claimed" + period.capitalize() + "QuestRewards", []): return true
-		if completed == targets.size() and not p.get(period + "QuestAllCompleteClaimed", false): return true
+		if Quests.completed_count(p,period) >= Quests.ALL_COMPLETE_REQUIRED and not p.get(period + "QuestAllCompleteClaimed", false): return true
 	return false
 
 func _image(parent: Control, asset: String, rect: Rect2) -> TextureRect:

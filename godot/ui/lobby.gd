@@ -219,12 +219,10 @@ func _quest_ready() -> bool:
 	if p.get("dailyQuestClockRollbackDetected",false): return false
 	if not p.get("dailyAttendanceRewardClaimed",false): return true
 	var targets: Dictionary = preload("res://app/quest_progress.gd").DAILY
-	var complete := 0
 	for key in targets:
 		if int(p.get("dailyQuestProgress",{}).get(key,0)) >= int(targets[key]):
-			complete += 1
 			if not key in p.get("claimedDailyQuestRewards",[]): return true
-	return complete == targets.size() and not p.get("dailyQuestAllCompleteClaimed",false)
+	return preload("res://app/quest_progress.gd").completed_count(p,"daily") >= preload("res://app/quest_progress.gd").ALL_COMPLETE_REQUIRED and not p.get("dailyQuestAllCompleteClaimed",false)
 
 func _currency(parent: Node, icon: String, value: int) -> void:
 	var row := HBoxContainer.new()

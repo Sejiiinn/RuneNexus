@@ -2,6 +2,8 @@ package weeklyreward
 
 import (
 	"errors"
+	"fmt"
+	"math/bits"
 	"testing"
 	"time"
 )
@@ -18,6 +20,100 @@ func TestWeeklyPeriodResetsAtMondayFiveKST(t *testing.T) {
 	}
 	if afterWeek != beforeWeek+1 {
 		t.Fatalf("week keys = %d, %d", beforeWeek, afterWeek)
+	}
+}
+
+func TestAllCompleteEligibilityCountsAnyFourAchievedMissions(t *testing.T) {
+	const weekKey int64 = 2945
+	const dayKey int64 = weekKey*7 + 1
+	questTypes := []string{"clearWaves", "killBosses", "killEnemies", "buyRunUpgrades"}
+	for _, period := range []string{"daily", "weekly"} {
+		for _, attendance := range []bool{false, true} {
+			for mask := 0; mask < 1<<len(questTypes); mask++ {
+				t.Run(fmt.Sprintf("%s/attendance=%t/quests=%04b", period, attendance, mask), func(t *testing.T) {
+					key := weekKey
+					targets := weeklyQuestTargets
+					if period == "daily" {
+						key, targets = dayKey, dailyQuestTargets
+					}
+					progress := map[string]int64{"unknown": 100000}
+					for index, questType := range questTypes {
+						progress[questType] = targets[questType] - 1
+						if mask&(1<<index) != 0 {
+							progress[questType] = targets[questType]
+						}
+					}
+					evidence := progressionEvidence{
+						DailyQuestDayKey: dayKey - 1, DailyQuestProgress: progress, WeeklyQuestProgress: progress,
+						// Individual reward claims do not change achievement counts.
+						ClaimedDailyQuestRewards: questTypes, ClaimedWeeklyQuestRewards: questTypes,
+						DailyAttendanceRewardClaimed: true, WeeklyAttendanceRewardClaimed: true,
+					}
+					completed := bits.OnesCount(uint(mask))
+					if attendance {
+						evidence.DailyQuestDayKey = dayKey
+						evidence.WeeklyAttendanceDayKeys = []int64{weekKey*7 - 3, weekKey*7 - 2, weekKey*7 - 1, weekKey * 7, dayKey}
+						completed++
+					}
+					request := ClaimRequest{Period: period, RewardType: RewardTypeAllComplete}
+					err := validateEligibility(request, key, evidence)
+					if completed >= 4 {
+						if err != nil {
+							t.Fatalf("%d achieved missions: %v", completed, err)
+						}
+					} else if !errors.Is(err, ErrNotEligible) {
+						t.Fatalf("%d achieved missions error = %v", completed, err)
+					}
+				})
+			}
+		}
+	}
+}
+
+func TestWeeklyAllCompleteAttendanceUsesDistinctCurrentWeekDays(t *testing.T) {
+	const weekKey int64 = 2945
+	firstDay := weekKey*7 - 3
+	for _, test := range []struct {
+		name     string
+		days     []int64
+		eligible bool
+	}{
+		{"five distinct days", []int64{firstDay, firstDay + 1, firstDay + 2, firstDay + 3, firstDay + 4}, true},
+		{"duplicates cannot reach five", []int64{firstDay, firstDay + 1, firstDay + 2, firstDay + 3, firstDay + 3, firstDay + 3}, false},
+		{"previous week cannot supply fifth day", []int64{firstDay - 1, firstDay, firstDay + 1, firstDay + 2, firstDay + 3}, false},
+		{"next week cannot supply fifth day", []int64{firstDay, firstDay + 1, firstDay + 2, firstDay + 3, firstDay + 7}, false},
+		{"negative day is ignored", []int64{-1, firstDay, firstDay + 1, firstDay + 2, firstDay + 3}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			err := validateEligibility(ClaimRequest{RewardType: RewardTypeAllComplete}, weekKey, progressionEvidence{
+				WeeklyQuestProgress:     map[string]int64{"clearWaves": 150, "killBosses": 15, "killEnemies": 500},
+				WeeklyAttendanceDayKeys: test.days,
+			})
+			if test.eligible && err != nil || !test.eligible && !errors.Is(err, ErrNotEligible) {
+				t.Fatalf("eligibility error = %v, eligible = %t", err, test.eligible)
+			}
+		})
+	}
+}
+
+func TestAllCompleteEligibilityKeepsClaimedAndClockRollbackGuards(t *testing.T) {
+	for _, period := range []string{"daily", "weekly"} {
+		for _, guard := range []string{"claimed", "clock rollback"} {
+			t.Run(period+"/"+guard, func(t *testing.T) {
+				evidence := progressionEvidence{
+					DailyQuestProgress: dailyQuestTargets, WeeklyQuestProgress: weeklyQuestTargets,
+				}
+				if guard == "claimed" {
+					evidence.DailyQuestAllCompleteClaimed = true
+					evidence.WeeklyQuestAllCompleteClaimed = true
+				} else {
+					evidence.DailyQuestClockRollbackDetected = true
+				}
+				if err := validateEligibility(ClaimRequest{Period: period, RewardType: RewardTypeAllComplete}, 2945, evidence); !errors.Is(err, ErrNotEligible) {
+					t.Fatalf("guard error = %v", err)
+				}
+			})
+		}
 	}
 }
 

@@ -3,7 +3,27 @@ const StageProgression = preload("res://content/stage_progression.gd")
 ## Pure progression transitions. Account currency is only granted by economy receipts.
 const DAILY := {"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5}
 const WEEKLY := {"clearWaves": 150, "killBosses": 15, "killEnemies": 500, "buyRunUpgrades": 25}
+const ALL_COMPLETE_REQUIRED := 4
 var _play_time_remainder := 0.0
+
+## Attendance and gameplay goals count when achieved, before individual claims.
+static func attendance_progress(p: Dictionary, period: String) -> int:
+	if period == "daily": return 1 if int(p.get("dailyQuestDayKey", -1)) >= 0 else 0
+	var week := int(p.get("weeklyQuestWeekKey", -1))
+	var days := {}
+	for value in p.get("weeklyAttendanceDayKeys", []):
+		var day := int(value)
+		if day >= 0 and int(float(day + 3) / 7.0) == week: days[day] = true
+	return days.size()
+
+static func completed_count(p: Dictionary, period: String) -> int:
+	var weekly := period == "weekly"
+	var complete := 1 if attendance_progress(p, period) >= (5 if weekly else 1) else 0
+	var targets: Dictionary = WEEKLY if weekly else DAILY
+	var progress: Dictionary = p.get(period + "QuestProgress", {})
+	for type in targets:
+		if int(progress.get(type, 0)) >= int(targets[type]): complete += 1
+	return complete
 
 func refresh(progression: Dictionary, now_millis: int) -> Dictionary:
 	return refresh_owned(progression.duplicate(true), now_millis)
@@ -140,12 +160,11 @@ func apply_receipt(progression: Dictionary, receipt: Dictionary) -> Dictionary:
 		"all_complete":
 			var field := period + "QuestAllCompleteClaimed"
 			if p.get(field, false) or (weekly and int(receipt.get("rewardModuleTickets", -1)) < 0): return {"ok": false, "progression": p}
-			for type in targets:
-				if int(progress.get(type, 0)) < int(targets[type]): return {"ok": false, "progression": p}
+			if completed_count(p, period) < ALL_COMPLETE_REQUIRED: return {"ok": false, "progression": p}
 			p[field] = true
 		"attendance":
 			var field := period + "AttendanceRewardClaimed"
-			if p.get(field, false) or (weekly and p.get("weeklyAttendanceDayKeys", []).size() < 5): return {"ok": false, "progression": p}
+			if p.get(field, false) or attendance_progress(p, period) < (5 if weekly else 1): return {"ok": false, "progression": p}
 			p[field] = true
 		_: return {"ok": false, "progression": p}
 	return {"ok": true, "progression": p}

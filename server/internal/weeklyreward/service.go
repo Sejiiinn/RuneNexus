@@ -27,6 +27,7 @@ const (
 	weeklyAllCompleteModuleTickets   int32 = 4
 	weeklyAttendanceRewardDiamonds   int32 = 40
 	weeklyAttendanceRequiredDayCount       = 5
+	allCompleteRequiredMissionCount        = 4
 	dailyQuestRewardDiamonds         int32 = 20
 	dailyAllCompleteRewardDiamonds   int32 = 40
 	dailyAllCompleteModuleTickets    int32 = 1
@@ -459,10 +460,12 @@ func validateEligibility(
 			if evidence.DailyQuestAllCompleteClaimed {
 				return ErrNotEligible
 			}
-			for questType, target := range dailyQuestTargets {
-				if evidence.DailyQuestProgress[questType] < target {
-					return ErrNotEligible
-				}
+			completed := completedQuestCount(evidence.DailyQuestProgress, dailyQuestTargets)
+			if evidence.DailyQuestDayKey == weekKey {
+				completed++
+			}
+			if completed < allCompleteRequiredMissionCount {
+				return ErrNotEligible
 			}
 		case RewardTypeAttendance:
 			if evidence.DailyAttendanceRewardClaimed {
@@ -487,10 +490,12 @@ func validateEligibility(
 		if evidence.WeeklyQuestAllCompleteClaimed {
 			return ErrNotEligible
 		}
-		for questType, target := range weeklyQuestTargets {
-			if evidence.WeeklyQuestProgress[questType] < target {
-				return ErrNotEligible
-			}
+		completed := completedQuestCount(evidence.WeeklyQuestProgress, weeklyQuestTargets)
+		if distinctCurrentWeekDays(evidence.WeeklyAttendanceDayKeys, weekKey) >= weeklyAttendanceRequiredDayCount {
+			completed++
+		}
+		if completed < allCompleteRequiredMissionCount {
+			return ErrNotEligible
 		}
 	case RewardTypeAttendance:
 		if evidence.WeeklyAttendanceRewardClaimed ||
@@ -501,6 +506,16 @@ func validateEligibility(
 		return ErrInvalidReward
 	}
 	return nil
+}
+
+func completedQuestCount(progress, targets map[string]int64) int {
+	completed := 0
+	for questType, target := range targets {
+		if progress[questType] >= target {
+			completed++
+		}
+	}
+	return completed
 }
 
 func decodeProgressionEvidence(source []byte) (progressionEvidence, error) {

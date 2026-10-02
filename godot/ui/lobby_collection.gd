@@ -585,17 +585,15 @@ func quests(parent: VBoxContainer) -> void:
 	var targets: Dictionary = Q.WEEKLY if weekly else Q.DAILY
 	var progress: Dictionary = p.get(period + "QuestProgress", {})
 	var claimed: Array = p.get("claimedWeeklyQuestRewards" if weekly else "claimedDailyQuestRewards", [])
-	var complete := 0
-	for id in targets:
-		if int(progress.get(id, 0)) >= int(targets[id]): complete += 1
+	var complete := Q.completed_count(p, period)
 	var blocked: bool = p.get("dailyQuestClockRollbackDetected", false)
 	var clock_notice := _label("기기 시간이 변경되어 보상 수령이 잠겼습니다.")
 	clock_notice.visible = blocked
 	parent.add_child(clock_notice)
 	var rows := {}
-	rows.all_complete = _quest_row(parent, "오늘 진행" if not weekly else "이번 주 진행", complete, targets.size(), 100 if weekly else 40, bool(p.get(period + "QuestAllCompleteClaimed", false)), complete == targets.size() and not blocked, "quests/clear_waves.png", 4 if weekly else 1, true, {"rewardType":"all_complete"})
-	var days: int = p.get("weeklyAttendanceDayKeys", []).size() if weekly else 1
-	rows.attendance = _quest_row(parent, "주간 출석" if weekly else "오늘 출석", mini(days, 5) if weekly else 1, 5 if weekly else 1, 40 if weekly else 20, bool(p.get(period + "AttendanceRewardClaimed", false)), (days >= 5 if weekly else true) and not blocked, "quests/attendance.png",0,false,{"rewardType":"attendance"})
+	rows.all_complete = _quest_row(parent, "오늘 진행" if not weekly else "이번 주 진행", mini(complete, Q.ALL_COMPLETE_REQUIRED), Q.ALL_COMPLETE_REQUIRED, 100 if weekly else 40, bool(p.get(period + "QuestAllCompleteClaimed", false)), complete >= Q.ALL_COMPLETE_REQUIRED and not blocked, "quests/clear_waves.png", 4 if weekly else 1, true, {"rewardType":"all_complete"})
+	var days := Q.attendance_progress(p, period)
+	rows.attendance = _quest_row(parent, "주간 출석" if weekly else "오늘 출석", mini(days, 5 if weekly else 1), 5 if weekly else 1, 40 if weekly else 20, bool(p.get(period + "AttendanceRewardClaimed", false)), days >= (5 if weekly else 1) and not blocked, "quests/attendance.png",0,false,{"rewardType":"attendance"})
 	for id in targets:
 		var amount := int(progress.get(id, 0))
 		rows[id] = _quest_row(parent, QUEST_NAMES[id] % targets[id], mini(amount, int(targets[id])), targets[id], 40 if weekly else 20, id in claimed, amount >= int(targets[id]) and not blocked, "quests/%s.png" % QUEST_ICONS[id],0,false,{"rewardType":"quest","questType":id})
@@ -618,14 +616,13 @@ func _refresh_quests(view: Dictionary) -> void:
 	view.notice.text = quest_notice
 	view.notice.visible = not quest_notice.is_empty()
 	view.clock_notice.visible = blocked
-	var complete := 0
+	var complete := Q.completed_count(p, period)
 	for id in targets:
 		var amount := int(progress.get(id,0))
-		if amount >= int(targets[id]): complete += 1
 		_update_quest_row(view.rows[id],mini(amount,int(targets[id])),int(targets[id]),id in claimed,amount >= int(targets[id]) and not blocked and not busy)
-	_update_quest_row(view.rows.all_complete,complete,targets.size(),bool(p.get(period+"QuestAllCompleteClaimed",false)),complete == targets.size() and not blocked and not busy)
-	var days: int = p.get("weeklyAttendanceDayKeys",[]).size() if weekly else 1
-	_update_quest_row(view.rows.attendance,mini(days,5) if weekly else 1,5 if weekly else 1,bool(p.get(period+"AttendanceRewardClaimed",false)),(days >= 5 if weekly else true) and not blocked and not busy)
+	_update_quest_row(view.rows.all_complete,mini(complete,Q.ALL_COMPLETE_REQUIRED),Q.ALL_COMPLETE_REQUIRED,bool(p.get(period+"QuestAllCompleteClaimed",false)),complete >= Q.ALL_COMPLETE_REQUIRED and not blocked and not busy)
+	var days := Q.attendance_progress(p, period)
+	_update_quest_row(view.rows.attendance,mini(days,5 if weekly else 1),5 if weekly else 1,bool(p.get(period+"AttendanceRewardClaimed",false)),days >= (5 if weekly else 1) and not blocked and not busy)
 
 func _update_quest_row(view: Dictionary, count: int, target: int, claimed: bool, can_claim: bool) -> void:
 	view.count.text = "%d / %d 완료" % [count,target] if view.summary else "%d / %d%s" % [count,target,"일 · 매일 05:00 갱신" if view.title == "오늘 출석" else ""]
