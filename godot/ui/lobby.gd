@@ -499,7 +499,8 @@ func _layout_modal() -> void:
 	if modal.has_meta("height_fraction"):
 		height = minf(available.y * float(modal.get_meta("height_fraction")), available.y - 32)
 	if modal.get_meta("compact_draw_confirmation", false):
-		height = minf(maxf(height, body_height + 20 + header_height), available.y - 32)
+		# Short confirmations follow their content, even on tall phone screens.
+		height = minf(body_height + 20 + header_height, available.y - 32)
 	modal_frame.size = Vector2(width, height)
 	modal_position.position = Vector2(inset.x,inset.y) + (available - modal_frame.size) / 2
 	modal_position.size = modal_frame.size

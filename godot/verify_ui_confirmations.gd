@@ -307,8 +307,8 @@ func _text(node: Node) -> String:
 	return result
 
 func _check_modal_bounds(lobby: Control) -> void:
-	var viewport := Rect2(Vector2.ZERO, Vector2(320, 568))
-	assert(viewport.encloses(lobby.modal_frame.get_global_rect()), "Service modal stays inside 320x568")
+	var viewport := Rect2(Vector2.ZERO, lobby.size)
+	assert(viewport.encloses(lobby.modal_frame.get_global_rect()), "Service modal stays inside the current viewport")
 	for button in _buttons(lobby.modal_body):
 		assert(button.size.y >= 44, "Service action remains at least 44 px high: " + button.text)
 		if button.name in ["CompleteResearchConfirm","UnlockResearchSlotConfirm"]:
@@ -338,7 +338,18 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
 	assert(_text(lobby.modal_body).contains("대포 포탑 모듈 5개"))
-	assert(lobby.modal_frame.size.y >= 568 * 0.32 and lobby.modal_frame.size.y <= 568 * 0.36, "Compact preview occupies 32–36% of portrait height")
+	var compact_height: float = lobby.modal_frame.size.y
+	var action_rect: Rect2 = _button(lobby.modal_body,"뽑기").get_global_rect()
+	assert(lobby.modal_frame.get_global_rect().encloses(action_rect), "Draw action remains fully visible")
+	assert(lobby.modal_frame.get_global_rect().end.y - action_rect.end.y <= 14, "Confirmation has no unused space below its action")
+	root.content_scale_size = Vector2i(320, 960)
+	root.size = Vector2i(320, 960)
+	await _settle(lobby)
+	assert(absf(lobby.modal_frame.size.y - compact_height) <= 1, "Tall phones do not stretch the confirmation")
+	_check_modal_bounds(lobby)
+	root.content_scale_size = Vector2i(320, 568)
+	root.size = Vector2i(320, 568)
+	await _settle(lobby)
 	assert(_buttons(lobby.modal_body).size() == 1 and _button(lobby.modal_body,"뽑기").text == "5개 뽑기", "Only the requested draw CTA is shown")
 	for label in _labels(lobby.modal_body):
 		if label.text == "+" or label.name in ["ModuleTicketAmount", "DrawDiamondAmount"]:

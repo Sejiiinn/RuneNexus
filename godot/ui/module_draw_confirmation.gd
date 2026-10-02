@@ -6,7 +6,6 @@ const ButtonSkin = preload("res://ui/button_skin.gd")
 static func build(lobby, body: VBoxContainer, count: int, turret: String, quote: Dictionary, callback: Callable, enabled: bool) -> void:
 	lobby.modal.set_meta("compact_draw_confirmation", true)
 	lobby.modal.set_meta("width_fraction", 0.87)
-	lobby.modal.set_meta("height_fraction", 0.34)
 	lobby.set_modal_stylebox(ButtonSkin.surface("modal", Vector2(12, 10)))
 	var header: HBoxContainer = lobby.modal_frame.get_child(0).get_child(0)
 	header.get_child(0).add_theme_font_size_override("font_size", 18)
