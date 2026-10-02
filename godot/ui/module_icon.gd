@@ -1,9 +1,9 @@
 extends PanelContainer
-## One icon path for draw results. Until final art is supplied, use the existing
-## collection glyph, with the same part and grade tint as the inventory.
+## Shared draw/equipment icon. Until final art is supplied, reuse the inventory
+## glyph with the same part and grade tint.
 const T = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
-const CollectionUI = preload("res://ui/lobby_collection.gd")
+const PartGlyph = preload("res://ui/module_part_glyph.gd")
 const FrameShader = preload("res://ui/module_icon_frame.gdshader")
 const ASSET_PATHS := {
 	"core": "res://assets/app/turret_modules/icons/core.png",
@@ -29,7 +29,7 @@ static func create(item: Dictionary, extent: int) -> PanelContainer:
 	icon.turret_type = str(item.get("turretType", ""))
 	icon.grade = str(item.get("grade", ""))
 	icon.icon_path = str(ASSET_PATHS.get(icon.part, ""))
-	icon.tint = CollectionUI.COLORS.get(icon.grade, Color("b9d6e4"))
+	icon.tint = PartGlyph.COLORS.get(icon.grade, Color("b9d6e4"))
 	icon.custom_minimum_size = Vector2(extent, extent)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frame := Frame.new("ui/components/card_frame.png", 5)
@@ -55,7 +55,7 @@ static func create(item: Dictionary, extent: int) -> PanelContainer:
 		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		center.add_child(art)
 	else:
-		var glyph := CollectionUI.PartGlyph.new()
+		var glyph := PartGlyph.new()
 		glyph.name = "ModulePartGlyph"
 		glyph.part = icon.part
 		glyph.tint = icon.tint

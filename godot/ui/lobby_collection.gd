@@ -7,37 +7,14 @@ const B = preload("res://ui/battle_theme.gd")
 const Q = preload("res://app/quest_progress.gd")
 const PARTS := {"core":"코어", "barrel":"포신", "frame":"프레임"}
 const GRADES := {"normal":"일반", "magic":"마법", "rare":"희귀", "unique":"유니크"}
-const COLORS := {"normal":Color("bac6cd"), "magic":Color("77bbff"), "rare":Color("e7cb6c"), "unique":Color("c98fff")}
+const PartGlyph = preload("res://ui/module_part_glyph.gd")
+const ModuleIcon = preload("res://ui/module_icon.gd")
+const ButtonSkin = preload("res://ui/button_skin.gd")
+const COLORS = PartGlyph.COLORS
 const QUEST_NAMES := {"clearWaves":"웨이브 %d회 클리어", "killBosses":"보스 %d회 처치", "killEnemies":"몹 %d회 처치", "buyRunUpgrades":"런 강화 %d회"}
 const QUEST_ICONS := {"clearWaves":"clear_waves", "killBosses":"kill_bosses", "killEnemies":"kill_enemies", "buyRunUpgrades":"buy_run_upgrades"}
 const OPTIONS := {"damageIncrease": "피해", "attackRateIncrease": "공격속도", "criticalChanceBonus": "치명타 확률", "criticalDamageBonus": "치명타 피해", "rangeIncrease": "사거리", "levelUpCostDiscount": "레벨업 비용", "linkUpgradeCostDiscount": "링크 확장 비용", "buildCostDiscount": "설치 비용", "highLevelUpgradeCostDiscount": "고레벨 강화 비용", "gemEffectIncrease": "장착 젬 효과", "splashRadiusIncrease": "폭발 반경", "damageOverTimeIncrease": "지속피해", "burnDurationIncrease": "화상 지속시간", "slowDurationIncrease": "둔화 지속시간", "slowStrengthBonus": "둔화 강도", "lightningChainDamageIncrease": "연쇄 피해", "projectileSpeedIncrease": "투사체 속도", "splashSecondaryDamageBonus": "광역 보조 피해", "lightningChainRangeIncrease": "연쇄 거리", "aimSpeedIncrease": "조준속도"}
 const MODULE_NAMES := {"arrow_core": "과열 연산 코어", "arrow_barrel": "경량 총열", "arrow_frame": "안정 프레임", "cannon_core": "폭심 제어 코어", "cannon_barrel": "중장 포신", "cannon_frame": "보강 포가", "magic_core": "점화 증폭 코어", "magic_barrel": "잔열 포신", "magic_frame": "방열 프레임", "frost_core": "냉기 순환 코어", "frost_barrel": "냉각 포신", "frost_frame": "냉매 프레임", "sniper_core": "정밀 조준 코어", "sniper_barrel": "정밀 포신", "sniper_frame": "고정 프레임", "lightning_core": "전류 증폭 코어", "lightning_barrel": "코일 포신", "lightning_frame": "절연 프레임"}
-class PartGlyph extends Control:
-	var part := "core"
-	var tint := Color("8ee6ff")
-	func _draw() -> void:
-		var c := size * 0.5
-		var w := size.x
-		draw_circle(c, w * 0.48, Color(tint, 0.14))
-		match part:
-			"core":
-				draw_rect(Rect2(size * 0.18, size * 0.64), tint, false, 1.5)
-				draw_rect(Rect2(size * 0.36, size * 0.28), tint)
-				for x in [0.31, 0.50, 0.69]:
-					draw_line(Vector2(w * x, w * 0.04), Vector2(w * x, w * 0.18), tint, 1.5)
-					draw_line(Vector2(w * x, w * 0.82), Vector2(w * x, w * 0.96), tint, 1.5)
-				for y in [0.34, 0.66]:
-					draw_line(Vector2(w * 0.04, w * y), Vector2(w * 0.18, w * y), tint, 1.5)
-					draw_line(Vector2(w * 0.82, w * y), Vector2(w * 0.96, w * y), tint, 1.5)
-			"barrel":
-				for x in [0.25, 0.55]: draw_rect(Rect2(w * x, w * 0.08, w * 0.20, w * 0.72), tint)
-				draw_rect(Rect2(w * 0.18, w * 0.65, w * 0.64, w * 0.25), Color(tint, 0.58))
-			"frame":
-				draw_arc(c, w * 0.34, 0, TAU, 32, tint, 1.5, true)
-				for angle in [PI / 4, PI * 3 / 4]:
-					var delta := Vector2(cos(angle), sin(angle)) * w * 0.32
-					draw_line(c - delta, c + delta, tint, 1.5)
-				draw_circle(c, w * 0.08, tint)
 
 var lobby
 var turret := "arrow"
@@ -50,6 +27,8 @@ var _claim_service: WeakRef
 var _claim_binding: Variant
 var _claim_token := 0
 var module_notice := ""
+var inventory_scroll: ScrollContainer
+var inventory_positions := {}
 
 func setup(owner) -> void:
 	lobby = owner
@@ -108,6 +87,24 @@ func _style_asset_button(b: Button, path: String, selected: bool = false) -> voi
 		if state == "pressed": box.modulate_color = Color("9fe7ff")
 		b.add_theme_stylebox_override(state, box)
 
+func _module_action(value: String, action: Callable, role: String, extent: Vector2) -> Button:
+	var b := _button(value, action)
+	b.custom_minimum_size = extent
+	b.size_flags_horizontal = Control.SIZE_SHRINK_END
+	b.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	b.add_theme_font_override("font", A.font(900))
+	b.add_theme_font_size_override("font_size", 10)
+	for state in ButtonSkin.STATES:
+		var style := ButtonSkin.appearance(role, state, false, Vector2(7, 4))
+		# Keep the shipped bevel and filled metallic face; copper is local to module actions.
+		if role == "danger" and state != "disabled" and style is StyleBoxTexture:
+			style.modulate_color *= Color(1.2, 1.12, 0.84)
+		b.add_theme_stylebox_override(state, style)
+	for key in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(key, Color("fff0db") if role == "danger" else ButtonSkin.font_color(role))
+	b.add_theme_color_override("font_disabled_color", Color("7b909e"))
+	return b
+
 func _items() -> Array:
 	return lobby._p().get("turretModules", {}).get("items", [])
 
@@ -115,6 +112,7 @@ func filtered_items() -> Array:
 	return _items().filter(func(item): return item.get("turretType") == turret and (part_filter.is_empty() or item.get("part") == part_filter))
 
 func select_turret(value: String) -> void:
+	_remember_inventory()
 	turret = value
 	part_filter = ""
 	selected_id = ""
@@ -122,11 +120,13 @@ func select_turret(value: String) -> void:
 	modules()
 
 func select_part(value: String) -> void:
+	_remember_inventory()
 	part_filter = value
 	selected_id = ""
 	modules()
 
 func select_item(item: Dictionary, from_slot: bool = false) -> void:
+	_remember_inventory()
 	selected_id = str(item.id)
 	if from_slot: part_filter = str(item.part)
 	modules()
@@ -156,14 +156,14 @@ func _put(control: Control, parent: Control, rect: Rect2) -> void:
 	control.position = rect.position
 	control.size = rect.size
 
-func _equipment(parent: Node) -> void:
+func _equipment(parent: Node) -> Control:
 	var column := _frame(parent, "ui/components/panel_frame.png", 0)
+	column.get_parent().name = "ModuleEquipmentPanel"
 	var center := Control.new()
 	center.custom_minimum_size.y = 246
 	column.add_child(center)
 	var area := Control.new()
 	area.name = "ModuleEquipment"
-	area.custom_minimum_size.y = 246
 	center.add_child(area)
 	var heading := _label(lobby._title(turret), 14)
 	_put(heading, area, Rect2(10, 9, 120, 22))
@@ -200,45 +200,83 @@ func _equipment(parent: Node) -> void:
 		var slot := _asset_button("", select_item.bind(equipped, true) if not equipped.is_empty() else select_part.bind(part), "ui/components/card_frame.png")
 		slot.name = "ModuleSlot_" + part
 		area.add_child(slot)
+		var inset := MarginContainer.new()
+		inset.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for side in ["left", "right", "top", "bottom"]: inset.add_theme_constant_override("margin_" + side, 4)
+		slot.add_child(inset)
+		inset.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var content := HBoxContainer.new()
+		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content.add_theme_constant_override("separation", 4)
+		inset.add_child(content)
+		if not equipped.is_empty():
+			var icon := ModuleIcon.create(equipped, 32)
+			icon.name = "EquippedModuleIcon"
+			icon.set_meta("module_id", str(equipped.id))
+			icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			content.add_child(icon)
 		var lines := VBoxContainer.new()
 		lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.add_child(lines)
-		lines.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		lines.offset_left = 7
-		lines.offset_right = -7
-		lines.offset_top = 6
-		lines.add_theme_constant_override("separation", 1)
-		var part_title := _label(PARTS[part], 11)
+		lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lines.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		lines.add_theme_constant_override("separation", 0)
+		content.add_child(lines)
+		var part_title := _label(PARTS[part] if equipped.is_empty() else "%s · %s" % [PARTS[part], GRADES.get(equipped.get("grade", "normal"), "일반")], 9)
 		part_title.add_theme_color_override("font_color", Color("8ee6ff"))
 		lines.add_child(part_title)
-		lines.add_child(_label("장착 없음" if equipped.is_empty() else _module_name(equipped), 11))
-		var note := _label("비어 있음" if equipped.is_empty() else GRADES.get(equipped.get("grade", "normal"), "일반"), 10)
-		note.add_theme_color_override("font_color", Color("8da9b9"))
-		lines.add_child(note)
+		lines.add_child(_label("장착 없음" if equipped.is_empty() else _module_name(equipped), 10))
+		if equipped.is_empty():
+			var note := _label("비어 있음", 9)
+			note.add_theme_color_override("font_color", Color("8da9b9"))
+			lines.add_child(note)
+		else: part_title.add_theme_color_override("font_color", COLORS.get(equipped.get("grade", "normal"), Color.WHITE))
 		slots.append(slot)
 	var layout := func():
 		# A minimum width would prevent this page from shrinking after a resize.
-		area.size = Vector2(minf(center.size.x, 380), 246)
+		area.size = Vector2(minf(center.size.x, 380), center.size.y)
 		area.position.x = (center.size.x - area.size.x) / 2
 		var compact := area.size.x < 360
 		var socket_width := 116.0 if compact else 128.0
 		var socket_right := 8.0 if compact else 10.0
 		var diameter := 104.0 if compact else 118.0
 		var left := 0.0 if compact else 20.0
-		preview.position = Vector2(left, 123 - diameter / 2)
+		preview.position = Vector2(left, area.size.y / 2 - diameter / 2)
 		preview.size = Vector2(diameter, diameter)
 		var socket_left: float = area.size.x - socket_right - socket_width
+		var slot_height := 54.0 if area.size.y < 220 else 66.0
+		var slot_margin := 4.0 if area.size.y < 220 else 16.0
+		var step := (area.size.y - slot_height - slot_margin * 2) / 2
+		var centers := PackedFloat32Array()
 		for i in range(slots.size()):
-			slots[i].position = Vector2(socket_left, 16 + 74 * i)
-			slots[i].size = Vector2(socket_width, 66)
-		connector.arrange(left + diameter, socket_left, PackedFloat32Array([49, 123, 197]))
+			slots[i].position = Vector2(socket_left, slot_margin + step * i)
+			slots[i].size = Vector2(socket_width, slot_height)
+			centers.append(slot_margin + step * i + slot_height / 2)
+		connector.arrange(left + diameter, socket_left, centers)
 	center.resized.connect(layout)
 	layout.call()
+	return center
+
+func _inventory_key() -> String:
+	return turret + ":" + part_filter
+
+func _remember_inventory() -> void:
+	if is_instance_valid(inventory_scroll): inventory_positions[str(inventory_scroll.get_meta("inventory_key", _inventory_key()))] = inventory_scroll.scroll_vertical
 
 func modules() -> void:
+	_remember_inventory()
+	inventory_scroll = null
 	_clear(lobby.body)
-	var parent := _frame(lobby.body, "ui/components/panel_frame.png", 10)
-	parent.add_theme_constant_override("separation", 8)
+	# The viewport bounds never depend on the selected item's text or list size.
+	var viewport := Control.new()
+	viewport.name = "ModulePage"
+	viewport.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	viewport.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lobby.body.add_child(viewport)
+	var parent := _frame(viewport, "ui/components/panel_frame.png", 8)
+	var shell: Control = parent.get_parent()
+	shell.name = "ModulePageFrame"
+	shell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	parent.add_theme_constant_override("separation", 4)
 	var draw := _frame(parent, "ui/components/panel_frame.png", 10)
 	var draw_count := int(lobby._p().get("turretModules", {}).get("drawCount", 0))
 	var tickets := int(lobby._p().get("turretModules", {}).get("tickets", 0))
@@ -295,37 +333,82 @@ func modules() -> void:
 		label.offset_top = -19
 		label.offset_bottom = -3
 		label.add_theme_color_override("font_color", Color("ecd17b") if turret == type else Color("8da9b9"))
-	_equipment(parent)
-	var detail := _frame(parent, "ui/components/row_frame_locked.png")
+	var equipment := _equipment(parent)
+	var detail_box := Control.new()
+	detail_box.name = "ModuleDetail"
+	# Header (42), three effects (18 each), gaps (6), and panel padding (12).
+	# Reserve the same compact height for every selection without the old action row.
+	detail_box.custom_minimum_size.y = 114
+	parent.add_child(detail_box)
+	var detail := _frame(detail_box, "ui/components/row_frame_locked.png", 6)
+	detail.add_theme_constant_override("separation", 2)
+	(detail.get_parent() as Control).set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var selected: Dictionary = {}
 	for item in filtered_items():
 		if str(item.id) == selected_id: selected = item
+	var detail_header := HBoxContainer.new()
+	detail_header.name = "ModuleDetailHeader"
+	detail_header.custom_minimum_size.y = 42
+	detail_header.add_theme_constant_override("separation", 6)
+	detail.add_child(detail_header)
+	var title := _label("선택한 모듈 없음" if selected.is_empty() else "%s · %s" % [GRADES.get(selected.get("grade", "normal"), "일반"), _module_name(selected)], 14)
+	title.name = "ModuleDetailTitle"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	title.custom_minimum_size.y = 22
+	if not selected.is_empty(): title.add_theme_color_override("font_color", COLORS.get(selected.get("grade", "normal"), Color.WHITE))
+	detail_header.add_child(title)
+	var controls := HBoxContainer.new()
+	controls.name = "ModuleDetailActions"
+	controls.custom_minimum_size = Vector2(152, 36)
+	controls.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	controls.add_theme_constant_override("separation", 4)
+	detail_header.add_child(controls)
 	if selected.is_empty():
-		detail.add_child(_label("선택한 모듈 없음", 14))
-		detail.add_child(_label("%s · %s · 보유 모듈 %d개" % [lobby._title(turret), PARTS.get(part_filter, "전체"), filtered_items().size()], 10))
-		var effect := _label("장착 효과: 비어 있음", 12)
-		effect.add_theme_color_override("font_color", Color("f5cb61"))
-		detail.add_child(effect)
+		controls.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
-		var title := _label("%s · %s" % [GRADES.get(selected.get("grade", "normal"), "일반"), _module_name(selected)], 14)
-		title.add_theme_color_override("font_color", COLORS.get(selected.get("grade", "normal"), Color.WHITE))
-		detail.add_child(title)
-		for option in selected.get("options", []):
-			var type := str(option.get("type", ""))
-			detail.add_child(_label("%s %s%d%%%s" % [OPTIONS.get(type, "추가 효과"), "−" if type.ends_with("Discount") else "+", int(option.get("value", 0)), "p" if type.ends_with("Bonus") else ""]))
-		var controls := HBoxContainer.new()
-		detail.add_child(controls)
 		var equipped: bool = selected.get("equipped", false)
-		controls.add_child(_button("장착 해제" if equipped else "장착", lobby._change.bind({"kind":"unequipTurretModule" if equipped else "equipTurretModule", "id":selected.id})))
-		var disassemble := _button("분해 · 다이아 %d" % {"normal":2,"magic":5,"rare":20,"unique":50}.get(selected.get("grade", "normal"), 2), _module_service.bind("모듈 분해",{"id":selected.id}))
+		var equip := _module_action("장착 해제" if equipped else "장착", lobby._change.bind({"kind":"unequipTurretModule" if equipped else "equipTurretModule", "id":selected.id}), "primary", Vector2(68, 36))
+		equip.name = "ModuleEquipAction"
+		controls.add_child(equip)
+		var disassemble := _module_action("분해 ·\n다이아 %d" % {"normal":2,"magic":5,"rare":20,"unique":50}.get(selected.get("grade", "normal"), 2), _module_service.bind("모듈 분해",{"id":selected.id}), "danger", Vector2(80, 36))
+		disassemble.name = "ModuleDisassembleAction"
 		disassemble.disabled = equipped
 		controls.add_child(disassemble)
+	var fit_title := func():
+		var compact := detail_header.size.x < 320
+		title.add_theme_font_size_override("font_size", 12 if compact else 14)
+		if not selected.is_empty():
+			title.text = "%s ·%s%s" % [GRADES.get(selected.get("grade", "normal"), "일반"), "\n" if compact else " ", _module_name(selected)]
+	detail_header.resized.connect(fit_title)
+	fit_title.call()
+	var option_count := 3
+	for item in _items():
+		if item.get("turretType") == turret: option_count = maxi(option_count, item.get("options", []).size())
+	for i in range(option_count):
+		var text := ""
+		if selected.is_empty():
+			if i == 0: text = "%s · %s · 보유 모듈 %d개" % [lobby._title(turret), PARTS.get(part_filter, "전체"), filtered_items().size()]
+			if i == 1: text = "장착 효과: 비어 있음"
+		elif i < selected.get("options", []).size():
+			var option: Dictionary = selected.options[i]
+			var type := str(option.get("type", ""))
+			text = "%s %s%d%%%s" % [OPTIONS.get(type, "추가 효과"), "−" if type.ends_with("Discount") else "+", int(option.get("value", 0)), "p" if type.ends_with("Bonus") else ""]
+		var effect := _label(text, 11)
+		effect.name = "ModuleDetailEffect_%d" % i
+		effect.custom_minimum_size.y = 18
+		detail.add_child(effect)
+	detail_box.custom_minimum_size.y += (option_count - 3) * 20
 	parent.add_child(_label(lobby._title(turret) + " 모듈 인벤토리", 14))
 	var filters := HBoxContainer.new()
 	parent.add_child(filters)
 	filters.add_child(_asset_button("전체", select_part.bind(""), "ui/components/button_frame.png", part_filter.is_empty()))
 	for part in PARTS: filters.add_child(_asset_button(PARTS[part], select_part.bind(part), "ui/components/button_frame.png", part_filter == part))
-	var inventory := _frame(parent, "ui/components/panel_frame.png")
+	var inventory := _frame(parent, "ui/components/panel_frame.png", 6)
+	var inventory_panel: Control = inventory.get_parent()
+	inventory_panel.name = "ModuleInventoryPanel"
+	inventory_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inventory.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var items := filtered_items()
 	if items.is_empty():
 		var empty := _label("획득한 %s %s 없음" % [lobby._title(turret), PARTS.get(part_filter, "모듈")])
@@ -334,20 +417,52 @@ func modules() -> void:
 		inventory.add_child(empty)
 	else:
 		var info := HBoxContainer.new()
+		info.name = "ModuleInventoryInfo"
 		inventory.add_child(info)
 		var count_label := _label("보유 %d개" % items.size())
+		count_label.name = "ModuleInventoryCount"
 		count_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		count_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		count_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		info.add_child(count_label)
-		info.add_child(_button("일괄 분해", _module_service.bind("모듈 일괄 분해",{"turretType":turret,"part":part_filter,"ids":items.map(func(item):return item.id)})))
+		var bulk := _module_action("일괄 분해", _module_service.bind("모듈 일괄 분해",{"turretType":turret,"part":part_filter,"ids":items.map(func(item):return item.id)}), "danger", Vector2(96, 32))
+		bulk.name = "ModuleBulkDisassembleAction"
+		info.add_child(bulk)
 		var grid := GridContainer.new()
 		grid.name = "ModuleInventoryGrid"
 		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		grid.add_theme_constant_override("h_separation",6)
 		grid.add_theme_constant_override("v_separation",6)
-		inventory.add_child(grid)
+		inventory_scroll = ScrollContainer.new()
+		inventory_scroll.name = "ModuleInventoryScroll"
+		inventory_scroll.scroll_deadzone = 10
+		inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		# Give the reclaimed lower action band to the inventory, not the turret preview.
+		inventory_scroll.custom_minimum_size.y = 72
+		inventory.add_child(inventory_scroll)
+		inventory_scroll.add_child(grid)
+		var scroll_ref: WeakRef = weakref(inventory_scroll)
+		var key: String = _inventory_key()
+		inventory_scroll.set_meta("inventory_key", key)
+		var restore := func():
+			var scroll: ScrollContainer = scroll_ref.get_ref()
+			if scroll != null: scroll.scroll_vertical = int(inventory_positions.get(key, 0))
+		restore.call_deferred()
+		lobby.get_tree().process_frame.connect(restore, CONNECT_ONE_SHOT)
 		var rebuild := func(): _layout_inventory(grid,items)
 		grid.resized.connect(rebuild)
 		rebuild.call_deferred()
+	var fit := func():
+		if not is_instance_valid(viewport): return
+		var other_height := 16.0 + parent.get_theme_constant("separation") * (parent.get_child_count() - 1)
+		for child: Control in parent.get_children():
+			if child != equipment.get_parent().get_parent(): other_height += child.get_combined_minimum_size().y
+		equipment.custom_minimum_size.y = clampf(viewport.size.y - other_height, 174, 246)
+	viewport.resized.connect(fit)
+	fit.call_deferred()
 
 func _layout_inventory(grid: GridContainer, items: Array) -> void:
 	if not is_instance_valid(grid): return
@@ -366,6 +481,7 @@ func _layout_inventory(grid: GridContainer, items: Array) -> void:
 			var item: Dictionary = items[i]
 			var b := _asset_button("",select_item.bind(item),"ui/components/card_frame.png")
 			b.name = "Module_"+str(item.id)
+			b.mouse_filter = Control.MOUSE_FILTER_PASS
 			b.tooltip_text = "%s · %s · %s" % [GRADES.get(item.get("grade","normal"),"일반"),_module_name(item),PARTS.get(item.get("part","core"),"코어")]
 			grid.add_child(b)
 			var color: Color = COLORS.get(item.get("grade","normal"),Color.WHITE)
