@@ -6,6 +6,16 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-02 Android 0.2.12 / code 6041 — 공개 완료
+
+- APK 대상 `7a6065debda844fc1d0a425f87f59529cb85f57d`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36965869424)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6041). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6041/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지한다. build-only 검수본 5개를 그대로 공개했다.
+- 냉각타워 감속 스탯 표시 순서, 스테이지 결과창·보상 즉시 정산, 포탑 모듈 화면·작업 버튼 배치, 일일·주간 임무 완료 집계의 출석 포함을 반영했다. 탱커의 승인 모델·걷기·사망·화상/냉각 효과·머리 위 체력바도 함께 커밋·배포했다. 제작 원본과 필요한 입력은 보존하고 중복 GLB export·임시 검증 산출물은 추적에서 제외했다.
+- API는 정확한 서버 소스 `2923497c426087963ab2b20632c8833e1f8bd39b`의 `rune-nexus-api:2923497c` 이미지로 반영했다. APK 대상과 서버 소스는 동일하다. 운영 환경·secret·포트·DB/Caddy/DuckDNS를 보존하고 **DB 스키마 12·최소 저장 호환 세대 4**를 유지했다. Go 테스트 292개·vet·출석 집계의 격리 DB 13사례와 새 운영 백업의 격리 복원을 통과했다. 실제 이미지·설정 보존과 공개 live/ready 200·무인증 경제/우편함/랭킹 401을 별도 검증자가 확인했다. migration·운영 계정 조작은 없다.
+- CI의 Python 71개·콘텐츠·Godot 네이티브 회귀·계정/AppServices 검사, 서명 빌드·Android 패치 디코더와 6038/6039/6040 차등 복원을 통과했다. 별도 검증자가 최종 입력에 대응하는 기존 실제 화면·독립 근거를 대조하고 결과 정산·임무·모듈 관련 회귀를 실행했다. 최종 APK의 버전·운영 설정·대상 빌드·기존 정식 인증서·필수 탱커 리소스·패치 무결성도 독립 확인했다.
+- 격리 Android API 37 arm64 AVD의 host GPU에서 정식 6040→6041 덮어 설치·최초 설치 시각 유지·로비·이어하기·Home 복귀·일시정지 터치 맵 이동을 확인했다. 스테이지 1·웨이브 23/40·HP 4/20·골드 2199·젬 조각 34·포탑 8개와 런·모듈·설정·진행 필드가 유지됐다. 별도 저장 복사본의 본게임에서 탱커 기본/화상/냉각 보행·체력바·포탑 피격·코어 빔과 사망 직후 HP/상태 제거·정지/재개·붕괴·잔해 소멸을 확인했다. 부모도 최종 실제 화면·시간축을 직접 대조했다. 초기화 중 입력이 무시된 로비 녹화와 일시정지 구간은 붕괴 완료 근거에서 제외하고 실제 재개 영상을 확인했다. AVD 원본은 보존했다.
+- APK **414,765,206 bytes**, SHA-256 `8e47d060f265d193bff6dbf6eef8451dec78b959c6e911a805f280482006c1ff`. 이전 6040 대비 **+13,134,588 bytes(+3.2703%)**로 PCK 증가분과 같다. PCK 186,540,900 bytes·1097항목·완전 중복 0이며 탱커 atlas·skinned 모델/상태 리소스와 결과창 이미지가 주요 증가 원인이다. ABI 3종·네이티브 라이브러리 6개의 바이트는 동일하며 제작 원본·시안·중복 원본 GLB는 APK에 포함하지 않았다.
+- 공개 태그의 대상 SHA, latest/버전별 manifest 바이트 일치, 공개 자산 5개의 크기·GitHub SHA-256과 검수본 일치 및 익명 APK 접근 HTTP 200을 확인했다. 실제 기기 Google 로그인·실계정 동기화/보상 수령·설치 권한 흐름·실기기 지속 성능은 미검증이며 에뮬레이터 결과로 대체하지 않는다. 상세 근거는 로컬 `build/release-verification/apk-6041/`에 보관한다.
+
 ## 2026-10-02 Android 0.2.11 / code 6040 — 공개 완료
 
 - APK 대상 `2b1f68fb57c41bbd603af42c05ae9b1ed9044c42`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36895240820)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6040). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6040/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지한다. build-only 검수본 5개를 그대로 공개했으며 미커밋 변경은 포함하지 않았다.
