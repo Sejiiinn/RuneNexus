@@ -36,24 +36,25 @@ func _projected_failure_reward() -> int:
 	return int(estimate.lastRunRuneReward)
 
 func _end_stage_confirm() -> void:
-	var box = hud.open_modal("정말 종료할까요?",340,false,false,Color("ff7043"),"danger")
+	var box = hud.open_modal("전투를 종료할까요?",390,false,true,Color("ff7043"),"danger")
 	var header: HBoxContainer = box.get_child(0)
 	var flag = hud._material_icon(header,0xf07b,20); flag.modulate = Color("ff7043"); header.move_child(flag,0)
 	var reward = _projected_failure_reward()
-	hud._label(box,"스테이지 %s 진행을 종료하고 +%d 룬을 정산합니다." % [Progression.stage_label(hud.app.stage+1),reward],12)
-	var panel = PanelContainer.new(); panel.add_theme_stylebox_override("panel",hud.BattleTheme.box(Color("272116"),Color("88785835"),14)); box.add_child(panel)
-	var summary = VBoxContainer.new(); panel.add_child(summary)
-	var reward_title = HBoxContainer.new(); summary.add_child(reward_title)
-	hud._rune_icon(reward_title,24)
-	hud._label(reward_title,"종료 시 보상",12)
-	hud._stat_pill(reward_title,"정산 예상","",Color("e7c66a"))
-	var reward_row = HBoxContainer.new(); summary.add_child(reward_row)
-	hud._label(reward_row,"%d웨이브 기준" % int(hud.app.run_domain.state.get("completedRounds",0)),12)
-	hud._rune_icon(reward_row,22)
-	hud._label(reward_row,"+%d 룬" % reward,26).modulate = Color("ffd166")
-	var actions: BoxContainer = VBoxContainer.new() if hud.get_viewport_rect().size.x < 380 else HBoxContainer.new(); box.add_child(actions)
-	_action(actions,"계속 진행",hud.close_modal,"ghost")
-	_action(actions,"종료",_end_to_stage,"danger")
+	var explanation = hud._label(box,"현재 전투를 종료하고 보상을 정산합니다.",12)
+	explanation.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var summary = VBoxContainer.new(); summary.name = "EndRewardSummary"; summary.add_theme_constant_override("separation",6); box.add_child(summary)
+	var reward_title = hud._label(summary,"예상 보상",12)
+	reward_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var reward_row = HBoxContainer.new(); reward_row.alignment = BoxContainer.ALIGNMENT_CENTER; reward_row.add_theme_constant_override("separation",10); summary.add_child(reward_row)
+	hud._icon(reward_row,"ui/hud/icons/rune.png",32)
+	var amount = hud._label(reward_row,"+%d 룬" % reward,26)
+	amount.name = "EndRewardAmount"; amount.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; amount.autowrap_mode = TextServer.AUTOWRAP_OFF; amount.modulate = Color("ffd166")
+	var completed = hud._label(summary,"완료 %d웨이브 기준" % int(hud.app.run_domain.state.get("completedRounds",0)),12)
+	completed.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var gap = Control.new(); gap.custom_minimum_size.y = 4; box.add_child(gap)
+	var actions = HBoxContainer.new(); actions.name = "EndConfirmActions"; actions.add_theme_constant_override("separation",8); box.add_child(actions)
+	_action(actions,"계속 진행",hud.close_modal,"secondary")
+	_action(actions,"전투 종료",_end_to_stage,"danger")
 
 func _save_to_stage() -> void:
 	if hud.app.open_stage_menu_destination():
@@ -70,7 +71,7 @@ func _action(parent: Node,value: String,callback: Callable,variant: String) -> B
 	hud.Components.apply(button,variant)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(button)
-	var glyph: int = {"스테이지 종료":0xf07b,"종료":0xf07b,"저장하고 나가기":0xf107,"계속 진행":0xe092}.get(value,0)
+	var glyph: int = {"스테이지 종료":0xf07b,"전투 종료":0xf07b,"저장하고 나가기":0xf107,"계속 진행":0xe092}.get(value,0)
 	if glyph != 0:
 		var content = HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.alignment = BoxContainer.ALIGNMENT_CENTER; button.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		hud._material_icon(content,glyph,17)

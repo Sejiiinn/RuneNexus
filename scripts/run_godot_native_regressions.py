@@ -19,6 +19,7 @@ SCRIPTS = {
     "verify_runtime_content_format.gd": "PASS runtime content format:",
     "verify_catalog_session_boundaries.gd": "PASS catalog session boundaries:",
     "verify_battle_menu_parity.gd": "PASS battle menu parity:",
+    "verify_account_modal.gd": "PASS account modal:",
     "verify_content_queries.gd": "PASS content queries:",
     "verify_stage_expansion.gd": "STAGE_EXPANSION failures=0",
     "verify_growth_rules.gd": "PASS growth rules",

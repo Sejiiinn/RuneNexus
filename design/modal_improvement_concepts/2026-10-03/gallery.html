@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RuneNexus 모달 개선안 · 4안 비교</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#07121b;color:#e5f2f8}body{margin:0;padding:28px;max-width:1100px;margin-inline:auto}h1{font-size:24px;margin:0 0 10px}h2{font-size:19px;margin:30px 0 14px}p{line-height:1.6;color:#b2c8d5;margin:8px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}figure{margin:0;min-width:0}button.preview{display:block;border:1px solid #304a5b;border-radius:4px;padding:0;background:#050b10;width:100%;cursor:zoom-in}img{display:block;max-width:100%;height:500px;object-fit:contain;margin:auto}figcaption{padding:12px 0}strong{color:#d4ecf7}span.recommend{font-size:12px;color:#86e3df;margin-left:8px}dialog{padding:0;border:1px solid #6b9fb6;background:#050b10;max-width:96vw;max-height:95vh}dialog::backdrop{background:#000c}dialog img{height:auto;max-height:90vh;max-width:90vw}.close{position:absolute;right:8px;top:8px;font-size:22px;padding:4px 12px;background:#07121bdd;color:white;border:1px solid #668391;border-radius:3px;cursor:pointer}.note{font-size:13px}@media(max-width:580px){body{padding:18px}.grid{grid-template-columns:1fr}img{height:auto;max-height:620px}}
+</style>
+<h1>전투 종료 확인 · 계정 및 저장</h1>
+<p>기존 룬·금속·청록 테마를 유지한 디자인 후보입니다. 이미지를 누르면 확대됩니다.</p>
+<p class="note">채택: 종료 B · 계정 A. 적용 화면은 데스크톱 Godot 캡처입니다. 후보 시안의 12웨이브·120룬은 비교용 예시입니다.</p>
+<h2>Godot 적용 결과</h2>
+<div class="grid">
+<figure><button class="preview" aria-label="적용된 종료 B안 확대"><img src="implementation/end-b-in-game-440.png" alt="실제 Godot 전장에 적용된 종료 B안"></button><figcaption><strong>종료 B · 실제 전장</strong><p>현재 런의 실제 예상 보상과 완료 웨이브를 중앙에 표시합니다.</p></figcaption></figure>
+<figure><button class="preview" aria-label="적용된 계정 A안 확대"><img src="implementation/account-nickname-440.png" alt="실제 Godot 로비에 적용된 계정 A안"></button><figcaption><strong>계정 A · 실제 로비</strong><p>닉네임 설정과 하단 계정 관리 작업을 분리했습니다.</p></figcaption></figure>
+</div>
+<h2>제작 당시 후보 · 전투 종료 확인</h2>
+<div class="grid">
+<figure><button class="preview" aria-label="종료 A안 확대"><img src="end-a-summary.png" alt="종료 A안: 완료 웨이브와 예상 보상을 나란히 배치"></button><figcaption><strong>A · 한 줄 요약형</strong><p>완료 웨이브와 예상 보상을 나란히 보여줍니다. 작은 확인창으로 빠르게 판단하기 좋습니다.</p></figcaption></figure>
+<figure><button class="preview" aria-label="종료 B안 확대"><img src="end-b-reward.png" alt="종료 B안: 예상 룬 보상을 중앙에 강조"></button><figcaption><strong>B · 보상 중심형</strong><span class="recommend">채택</span><p>예상 보상을 중앙에 강조하고 완료 웨이브를 보조 정보로 둡니다. 보상 수치를 먼저 읽게 합니다.</p></figcaption></figure>
+</div>
+<h2>계정 및 저장</h2>
+<div class="grid">
+<figure><button class="preview" aria-label="계정 A안 확대"><img src="account-a-compact.png" alt="계정 A안: 닉네임 영역과 하단 관리 버튼 행"></button><figcaption><strong>A · 컴팩트 분리형</strong><span class="recommend">채택</span><p>닉네임 입력·확정을 주 영역에 두고 동기화·로그아웃을 작은 하단 행으로 분리합니다.</p></figcaption></figure>
+<figure><button class="preview" aria-label="계정 B안 확대"><img src="account-b-sections.png" alt="계정 B안: 닉네임과 저장 및 계정 관리 행을 분리"></button><figcaption><strong>B · 영역 구분형</strong><p>저장과 계정 관리를 각각 라벨과 버튼의 행으로 나눠 목적을 명확하게 보여줍니다.</p></figcaption></figure>
+</div>
+<p class="note">계정 시안은 연결 후 닉네임 설정 전 상태를 기준으로 합니다. 닉네임 입력 규칙·변경 불가 안내·기존 관리 기능을 유지했습니다. 전체 제작 프롬프트: <a href="prompts.json">prompts.json</a></p>
+<dialog><button class="close" aria-label="확대 닫기">×</button><img alt="확대한 시안"></dialog>
+<script>
+const dialog=document.querySelector('dialog');document.querySelectorAll('.preview').forEach(button=>button.addEventListener('click',()=>{const original=button.querySelector('img');dialog.querySelector('img').src=original.src;dialog.querySelector('img').alt=original.alt;dialog.showModal()}));dialog.querySelector('.close').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close()});
+</script>
+</html>

@@ -38,15 +38,20 @@ func run() -> void:
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	hud.menu_panel._stage_menu(); hud.menu_panel._end_stage_confirm()
 	assert(app.run_domain.state == before,"Reward preview must not mutate the run/progression")
+	var reward_text := "+%d 룬" % hud.menu_panel._projected_failure_reward()
+	assert(all_text(hud.modal_body).count(reward_text) == 1,"Reward is displayed once")
+	assert(all_text(hud.modal_body).contains("완료 2웨이브 기준"))
+	assert(not all_text(hud.modal_body).contains("정산 예상"))
+	assert(button(hud.modal_body,"×") != null,"Confirmation preserves explicit close")
 	assert(hud.modal_panel.theme_type_variation == "CombatModal")
 	assert(hud.modal_panel.get_theme_stylebox("panel") is StyleBoxTexture)
-	assert(button(hud.modal_body,"종료").theme_type_variation == "CombatDanger")
+	assert(button(hud.modal_body,"전투 종료").theme_type_variation == "CombatDanger")
 	button(hud.modal_body,"계속 진행").pressed.emit(); assert(not hud.modal_active()); assert(not app.scene._native_combat.session.paused)
 	hud.menu_panel._stage_menu(); app.allow_destination = false
 	button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(hud.modal_active()); assert(app.scene._native_combat.session.paused)
 	app.allow_destination = true; button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(not hud.modal_active()); assert(app.destination_count == 1)
 	assert(app.scene._native_combat.session.paused,"Leaving battle must not accidentally resume")
-	hud.menu_panel._end_stage_confirm(); button(hud.modal_body,"종료").pressed.emit(); assert(app.abandon_count == 1); assert(not hud.modal_active())
+	hud.menu_panel._end_stage_confirm(); button(hud.modal_body,"전투 종료").pressed.emit(); assert(app.abandon_count == 1); assert(not hud.modal_active())
 	app.run_domain.state.completedRounds = 0
 	hud.menu_panel._portal_details(app.catalog.wave_summary(0,0),0); await process_frame; await process_frame
 	assert(hud.modal_bottom_sheet)

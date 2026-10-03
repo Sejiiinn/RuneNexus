@@ -55,7 +55,7 @@ func _render(opening := false) -> void:
 	if not opening and not _active_view(view_epoch): return
 	var body: VBoxContainer
 	if opening:
-		body = lobby.open_modal(page)
+		body = lobby.open_modal("계정 및 저장" if page == "계정 로그인 · 온라인 저장" else page)
 		lobby.modal.set_meta("service_view_epoch",view_epoch)
 		lobby.modal.set_meta("service_page",page)
 		lobby.modal.set_meta("max_width",480 if page == "우편함" else 420)
@@ -119,12 +119,11 @@ func _account(body: VBoxContainer) -> void:
 		var offline_account: bool = service != null and service.account != null and not service.account.account_id_hint.is_empty()
 		body.add_child(T.label("계정 저장 · 오프라인" if offline_account else "게스트",18))
 		body.add_child(T.label("이 기기에 보관된 계정 진행 상황입니다. 연결이 복구되면 서버 저장을 확인합니다." if offline_account else "이 기기에 진행 상황이 저장됩니다. Google 계정을 연결하면 다른 기기에서도 이어갈 수 있습니다.",12))
-		if offline_account:
-			_button(body,"동기화 다시 시도",_retry,"secondary")
-			_button(body,"로그아웃",_logout,"danger")
 		var login := _button(body,"Google 계정 연결",_login)
+		login.custom_minimum_size.y = 44
 		login.disabled = login.disabled or service == null or not service.configured()
 		if service == null or not service.configured(): body.add_child(T.label("이 실행 환경에서는 계정 연결을 사용할 수 없습니다.",12))
+		if offline_account: _account_management(body)
 		if service != null and not service.issue.is_empty() and notice.is_empty(): body.add_child(T.label(_error(service.issue),12))
 		return
 	var profile: Dictionary = service.profile
@@ -132,19 +131,49 @@ func _account(body: VBoxContainer) -> void:
 		body.add_child(T.label(str(profile.nickname)+"#"+str(profile.get("tag","")),18))
 		body.add_child(T.label("온라인 저장 연결됨" if service.online_ready and service.issue.is_empty() else "온라인 저장 상태를 확인해 주세요",12))
 	else:
-		body.add_child(T.label("사용할 닉네임을 설정해 주세요",16))
-		body.add_child(T.label("한글·영문·숫자·밑줄, 2자 이상. 한글 최대 8자 또는 영문 최대 16자. 설정 후 변경할 수 없습니다.",12))
+		body.add_child(T.label("닉네임 설정",18))
+		var guidance = VBoxContainer.new(); guidance.add_theme_constant_override("separation",2); body.add_child(guidance)
+		guidance.add_child(T.label("한글·영문·숫자·밑줄, 2자 이상",12))
+		guidance.add_child(T.label("한글 최대 8자 · 영문 최대 16자",12))
+		var entry := HBoxContainer.new()
+		entry.add_theme_constant_override("separation",8)
+		body.add_child(entry)
 		var input := LineEdit.new()
 		input.name = "NicknameInput"
-		input.placeholder_text = "닉네임"
+		input.placeholder_text = "닉네임 입력"
 		input.text = nickname_draft
 		input.max_length = 16
+		input.custom_minimum_size.y = 38
+		input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		input.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		input.add_theme_font_override("font",T.font(700))
+		input.add_theme_font_size_override("font_size",14)
+		for state in ["normal","focus"]:
+			var inset = StyleBoxFlat.new(); inset.bg_color = Color("111b22")
+			inset.border_color = Color("70c5d5") if state == "focus" else Color("4f6675")
+			inset.set_border_width_all(1); inset.set_corner_radius_all(3)
+			inset.content_margin_left = 10; inset.content_margin_right = 10
+			input.add_theme_stylebox_override(state,inset)
 		input.text_changed.connect(func(value): nickname_draft = value)
-		body.add_child(input)
-		_button(body,"닉네임 확정",_nickname)
-	_button(body,"동기화 다시 시도",_retry,"secondary")
-	_button(body,"로그아웃",_logout,"danger")
+		entry.add_child(input)
+		var confirm := _button(entry,"닉네임 확정",_nickname)
+		confirm.custom_minimum_size = Vector2(120,44)
+		confirm.size_flags_horizontal = Control.SIZE_SHRINK_END
+		body.add_child(T.label("설정 후 변경할 수 없습니다.",12))
+	_account_management(body)
 	if not service.issue.is_empty(): body.add_child(T.label(_error(service.issue),12))
+
+func _account_management(body: VBoxContainer) -> void:
+	var divider = HSeparator.new()
+	divider.custom_minimum_size.y = 12
+	var line = StyleBoxLine.new(); line.color = Color("7493a488"); line.thickness = 1
+	divider.add_theme_stylebox_override("separator",line); body.add_child(divider)
+	body.add_child(T.label("저장 및 계정 관리",14))
+	var actions = HBoxContainer.new(); actions.name = "AccountManagementActions"; actions.add_theme_constant_override("separation",8); body.add_child(actions)
+	var retry = _button(actions,"동기화 다시 시도",_retry,"secondary")
+	retry.size_flags_horizontal = Control.SIZE_EXPAND_FILL; retry.size_flags_stretch_ratio = 64
+	var logout = _button(actions,"로그아웃",_logout,"danger")
+	logout.size_flags_horizontal = Control.SIZE_EXPAND_FILL; logout.size_flags_stretch_ratio = 36
 
 func _show_result(result: Dictionary) -> void:
 	notice = "완료했습니다" if result.get("ok",false) else _error(str(result.get("code","REQUEST_FAILED")))
