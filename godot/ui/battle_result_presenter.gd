@@ -38,6 +38,7 @@ func build(state: Dictionary) -> void:
 	title.name = "ResultTitle"
 	text(header,"스테이지 %s %s" % [Progression.stage_label(hud.app.stage+1),"클리어" if success else "종료"],16,CYAN if success else PALE,true).name = "ResultStage"
 	_rule(body)
+	body.get_child(body.get_child_count()-1).name = "ResultDivider"
 	text(body,"획득 보상",15,CYAN).name = "ResultRewardsHeading"
 	var row := HBoxContainer.new(); row.name = "ResultRewards"
 	row.add_theme_constant_override("separation",0)

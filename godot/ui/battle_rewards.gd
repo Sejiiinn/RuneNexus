@@ -3,6 +3,7 @@ const Progression = preload("res://content/stage_progression.gd")
 ## Reward preview is presentation state. Settlement and equip are one domain transaction.
 const Art = preload("res://ui/app_theme.gd")
 const ResultPresenter = preload("res://ui/battle_result_presenter.gd")
+const ResultEntrance = preload("res://ui/battle_result_entrance.gd")
 const GEM_COLORS := {"attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
 const RULES := {"chain":"연쇄된 투사체는 피해 및 효과 범위가 50% 감폭됩니다.","explosion":"폭발은 직접 명중한 대상을 제외한 주변 적에게 명중 피해의 50%를 줍니다."}
 var hud
@@ -22,6 +23,7 @@ var target_layer: Control
 var heading: PanelContainer
 var target_actions: HBoxContainer
 var target_hint := ""
+var result_entrance
 
 func setup(owner) -> void:
 	hud = owner
@@ -38,6 +40,9 @@ func setup(owner) -> void:
 	target_layer.hide()
 	hud.add_child(target_layer)
 	hud.move_child(hud.overlay,-1)
+	result_entrance = ResultEntrance.new()
+	result_entrance.setup(hud,shade)
+	hud.add_child(result_entrance)
 	var services = hud.app.get("services")
 	if services is Object and services.has_signal("changed") and not services.changed.is_connected(hud.refresh):
 		services.changed.connect(hud.refresh)
@@ -60,6 +65,7 @@ func close_back() -> bool:
 
 func refresh(state: Dictionary) -> void:
 	var phase := str(state.get("phase",""))
+	if phase not in ["success","failure"]: result_entrance.cancel()
 	if phase != "reward":
 		pending_gem = ""
 		replacement_id = -1
@@ -79,6 +85,8 @@ func refresh(state: Dictionary) -> void:
 				_: _panel_styles[style_mode] = StyleBoxEmpty.new()
 		hud.overlay.add_theme_stylebox_override("panel",_panel_styles[style_mode])
 		_panel_style_mode = style_mode
+	if phase in ["success","failure"] and hud.is_visible_in_tree():
+		result_entrance.consider(JSON.stringify([str(state.get("economyRunId","")),hud.app.stage,phase]),phase == "success")
 	if not visible:
 		if _was_visible:
 			hud._clear(hud.overlay_body)
@@ -98,11 +106,14 @@ func refresh(state: Dictionary) -> void:
 		next_key.append_array([hud.app.stage,state.get("completedRounds"),state.get("lastRunWasNewBestRound"),state.get("lastRunPreviousBestRound"),state.get("lastRunFirstClear"),p.get("lastRunRuneReward"),p.get("lastRunCorePointReward"),p.get("lastRunTurretModuleTicketReward"),p.get("runes"),p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("clearedStageNumbers",[]),_settlement_note(),_settlement_state()])
 	if key is Array and next_key == key:
 		_fit_modal()
+		if not _layout_pending and result_entrance.active and result_entrance.started_usec == 0:
+			result_entrance.bind_body()
 		return
 	key = next_key.duplicate(true)
 	_layout_revision += 1
 	_layout_pending = true
 	_fit_key.clear()
+	result_entrance.detach_body()
 	hud._clear(hud.overlay_body)
 	hud._clear(target_layer)
 	if not visible: return
@@ -440,6 +451,7 @@ func _settle(command: Dictionary) -> void:
 
 func _result(state: Dictionary) -> void:
 	ResultPresenter.new(self).build(state)
+	result_entrance.conceal_body()
 
 func _record_text(state: Dictionary,progression: Dictionary,best: int) -> String:
 	if state.get("lastRunWasNewBestRound",false):
@@ -515,6 +527,7 @@ func _fit_after_layout(revision: int) -> void:
 	if not is_instance_valid(hud) or revision != _layout_revision: return
 	_layout_pending = false
 	_fit_modal()
+	result_entrance.bind_body()
 
 func _fit_modal() -> void:
 	if not is_instance_valid(hud) or not hud.overlay.visible or _layout_pending: return
