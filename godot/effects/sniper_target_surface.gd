@@ -5,6 +5,8 @@ static var _geometry := {}
 var pieces: Array = []
 var _pose_revision := -1
 var _aim_point := Vector3.ZERO
+var _head_center := Vector3.ZERO
+var _body_center := Vector3.ZERO
 
 func _init(root: Node3D) -> void:
 	for instance: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
@@ -63,16 +65,29 @@ func update_pose(revision: int) -> void:
 	var merged := AABB()
 	var first := true
 	var head_point := Vector3.INF
+	var head_center := Vector3.INF
 	for piece: Dictionary in pieces:
 		piece.pose=_pose(piece)
 		piece.inverse=piece.pose.affine_inverse()
 		var box: AABB=piece.pose*piece.bounds
-		if piece.head: head_point=box.position+box.size*Vector3(.5,.72,.5)
+		if piece.head:
+			head_point=box.position+box.size*Vector3(.5,.72,.5)
+			head_center=box.get_center()
 		merged=box if first else merged.merge(box);first=false
 	_aim_point=head_point if head_point.is_finite() else merged.position+merged.size*Vector3(.5,.80,.5)
+	_body_center = merged.get_center()
+	_head_center = head_center if head_center.is_finite() else _body_center
 
 func aim_point() -> Vector3:
 	return _aim_point
+
+# Optional read-only alternatives for lightning when the high aiming point is
+# between ears/open armor. The sniper's existing aim and ray contract is unchanged.
+func head_center() -> Vector3:
+	return _head_center
+
+func body_center() -> Vector3:
+	return _body_center
 
 func first_hit(from: Vector3, toward: Vector3) -> Vector3:
 	var direction := (toward-from).normalized()

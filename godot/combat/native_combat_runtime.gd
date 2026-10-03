@@ -712,7 +712,8 @@ func _release(d: Dictionary) -> void:
 	if target.is_empty():
 		_lightning_complete(t, a, used)
 		return
-	_visual("chain", from, t, {"points":[[from.x,from.y],[_pos(target).x, _pos(target).y]], "targetIds":[-1,target.id]})
+	var visual_source_id := -1 if d.kind == "charge" or excluded.is_empty() else int(excluded[-1])
+	_visual("chain", from, t, {"points":[[from.x,from.y],[_pos(target).x, _pos(target).y]], "targetIds":[-1,target.id], "sourceTargetId":visual_source_id})
 	_impact(t, a, target, _pos(target), 1.0 if d.kind == "charge" else float(a.lightningChainDamageMultiplier), d.kind != "charge")
 	excluded.append(str(target.id))
 	if d.kind != "charge":
@@ -1043,6 +1044,9 @@ func _visual(kind: String, at: Vector2, t: Dictionary, extra: Dictionary = {}) -
 	var pos := (at - origin) / tile_size
 	var colors := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff}
 	var v := {"id":visual_id, "kind":kind, "born":clock, "duration":0.28, "x":pos.x, "y":pos.y, "tileSize":tile_size, "scale":board_scale, "color":colors.get(t.statInput.definition.type, 0xffffffff), "points":[], "screenOffset":[0,0], "feedback":"neutral", "motion":"rise", "arcDirection":1}
+	if t.statInput.definition.type == "lightning":
+		v["turretType"] = "lightning"
+		v["ownerId"] = int(t.id)
 	v.merge(extra, true)
 	if kind == "blast" and not extra.has("duration"):
 		v.duration = BLAST_DURATION

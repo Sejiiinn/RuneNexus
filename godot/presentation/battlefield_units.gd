@@ -10,6 +10,7 @@ const SniperTargetSurface = preload("res://effects/sniper_target_surface.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
 const FrostTower = preload("res://effects/frost_tower.gd")
+const LightningCollar = preload("res://effects/lightning_collar.gdshader")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
 const GuardianPreview = preload("res://presentation/guardian_preview.gd")
@@ -159,6 +160,9 @@ func _new_turret(type: String) -> Dictionary:
 		"last_shot": -1, "last_time": -INF, "fire_start": -INF, "active_port": 0,
 	}
 	entry["level_bounds"] = TurretLevelLabels.base_bounds(root, entry["head"], root.transform.affine_inverse())
+	if type == "lightning":
+		entry["lightning_glow"] = _lightning_materials(root)
+		return entry
 	if type == "sniper":
 		var effect := SniperVfx.new()
 		root.add_child(effect)
@@ -204,6 +208,28 @@ func _new_turret(type: String) -> Dictionary:
 	return entry
 
 
+func _lightning_materials(root: Node3D) -> Array:
+	var copies := {}
+	for mesh: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
+		for surface in mesh.mesh.get_surface_count():
+			var source := mesh.get_active_material(surface) as StandardMaterial3D
+			if source == null or not (source.resource_name.begins_with("08 |") or source.resource_name.begins_with("06 |") or source.resource_name.begins_with("07 |")): continue
+			var key := source.get_instance_id()
+			if not copies.has(key):
+				if source.resource_name.begins_with("08 |"):
+					var material := ShaderMaterial.new()
+					material.shader = LightningCollar
+					material.set_shader_parameter("base_color", source.albedo_color)
+					material.set_shader_parameter("emission_color", source.emission)
+					material.set_shader_parameter("metallic", source.metallic)
+					material.set_shader_parameter("roughness", source.roughness)
+					copies[key] = material
+				else:
+					copies[key] = source.duplicate()
+			mesh.set_surface_override_material(surface, copies[key])
+	return copies.values()
+
+
 func _sync_turrets(units: Array) -> void:
 	var membership_changed := false
 	var alive := {}
@@ -246,6 +272,12 @@ func _sync_turrets(units: Array) -> void:
 
 func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> void:
 	var time := _time
+	if entry["type"] == "lightning":
+		# Electrical release is driven by native charge/chain events, without gun smoke or recoil.
+		entry["barrel"].position.z = float(entry["barrel_rest_z"])
+		entry["last_shot"] = shot_sequence
+		entry["last_time"] = time
+		return
 	if time < float(entry["last_time"]):
 		entry["fire_start"] = -INF
 		entry["smoke_starts"] = [-INF, -INF]
