@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-03",
+  "revision": "Game-camera validated selective geometry optimization",
+  "base_commit": "776b0a0e84c99e90d34fae833f04835520e2a508",
+  "engine": "4.7.2-stable (official)",
+  "renderer": "gl_compatibility",
+  "adapter": "llvmpipe (LLVM 19.1.7, 256 bits)",
+  "display": "X11",
+  "viewport": [
+    880,
+    760
+  ],
+  "scene": "res://main.tscn",
+  "session": "res://session/standalone.gd",
+  "stage": 1,
+  "wave": 10,
+  "fixture": "Isolated unlock/gold/save/RNG seed731031; actual native content, paid Lv1 lightning at140gold, native enemies/damage/chain",
+  "visual_result": "PASS",
+  "lifecycle_failures": [],
+  "primary_count": 6,
+  "chain_jump_count": 12,
+  "peak_spatial_effects": 3,
+  "peak_shadowless_lights": 3,
+  "light_pool_allocated": 3,
+  "capture_movie_fps": 30,
+  "capture_movie_frames": 330,
+  "capture_playback_speed": 1,
+  "performance_benchmark": false,
+  "android_validation": false,
+  "vulkan_mobile_validation": false,
+  "checks": {
+    "native_pause_freezes_clock": true,
+    "native_pause_freezes_effect_mesh_pose_energy_and_lights": true,
+    "native_4x_clock_scales_three_capture_steps": true,
+    "normal_speed_restored": true,
+    "native_effect_expiry_disables_pooled_lights": true,
+    "scene_reset_frees_lightning_effects_and_lights": true,
+    "shared_three_light_budget": true
+  },
+  "render_draw_calls_observed": {
+    "max": 262,
+    "mean": 179.642424242424,
+    "min": 151
+  },
+  "matched_lighting_comparison": {
+    "native_clock": 4.49999999999999,
+    "same_bolts_targets_camera": true,
+    "illumination_on_enemy_and_ground": "PASS",
+    "unrelated_far_floor_unchanged": "PASS",
+    "draw_calls_with_lights": 168.0,
+    "draw_calls_without_lights": 168.0,
+    "same_draw_calls_does_not_mean_zero_gpu_lighting_cost": true
+  },
+  "first_frame_world_origin_artifact": "Fixed with explicit transform flush; first chain birth frame0044 inspected",
+  "headless_checks": {
+    "light_lifecycle": 126,
+    "geometry": 97,
+    "deformed_vertices": 106272,
+    "module_smoke": "PASS"
+  },
+  "initial_integration_reused_checks": {
+    "combat_baseline_comparison_steps": 240,
+    "native_regressions": "combat, core defense, session, input, presentation",
+    "reason": "native combat, contact/routing and model sources unchanged from previously verified integration"
+  },
+  "sha256": {
+    "assets/images/stage1_3d/turrets/lightning.glb": "115220932cc49fbc140ccf2ea4b43da4f414b83fca50aaf725f9141051266345",
+    "assets/images/ui/hud/turrets_3d/lightning.png": "b6db990d267bf4d50ff90fe03e90cb13e755bfc8bf4df406fc418e686e4618f9",
+    "godot/effects/lightning_attack.gd": "55d1132cf7c7ed6d2557f3d3a47a571f3b1b17414a862a4696b6bc542b5d9250",
+    "godot/effects/lightning_attack_tubes.gdshader": "674abe05f3df1fde8dc6732756f8a1df763723677fbbf0894394626df16240b0",
+    "godot/effects/lightning_attack_aura.gdshader": "6b5f491ae88c96f0a0a1a762fba54e0d0c94b3ec8e04220d4eecf0012f455731",
+    "godot/effects/lightning_collar.gdshader": "128e8b1a5f8652b1a5da36fdb5fc4119474901b7180e658893db1ed2aba0de2a",
+    "godot/presentation/lightning_presentation.gd": "f342bbe276a02e77bbe40802c73642e7de04f5659bc2f4c2c7177f912effaa51",
+    "design/lightning_tower_concepts/approved_a/bake_lightning.gd": "0711dff376bc3caf47947eafa1f35beb1c2355eacf82e46a0e855227b05e1bef",
+    "design/lightning_tower_concepts/approved_a/export_static.py": "f26028422f3328dbc14126e92d005e72d68866d8095c7617e9cf756d45d03fd7"
+  },
+  "optimization": {
+    "body_triangles_before": 23140,
+    "body_triangles_after": 17380,
+    "body_reduction_percent": 24.892,
+    "charge_effect_before": 6024,
+    "charge_effect_after": 3944,
+    "one_discharge_peak_before": 10512,
+    "one_discharge_peak_after": 6912,
+    "basic_chain_peak_before": 26632,
+    "basic_chain_peak_after": 17528,
+    "body_plus_basic_chain_peak_before": 49772,
+    "body_plus_basic_chain_peak_after": 34908,
+    "all_numbers_are_geometry_not_fps": true,
+    "model_method": "Only18 coil rings:24to16 circumferential sections, rim-only bevels. Other135 parts/materials/bounds/hierarchy exact. Source blend unchanged.",
+    "vfx_method": "Dominant6-sided spines unchanged; fine branches4-sided at equal mean projected width; all points/taper/colors/shaders/lights preserved.288tri proxy fully encloses unchanged analytic sphere.",
+    "aura_minimum_face_distance": 1.0045203,
+    "geometry_validation": "15 closed finite consistently wound meshes,173 paths/3288 rings preserved,2088 main-spine vertices/attributes exact,85536 deformed vertices within bounds",
+    "game_camera_visual_result": "PASS: essentially same at actual game size; minute ring highlights and fine tube edge sampling differ",
+    "views_compared": [
+      "idle",
+      "charge age0.2s",
+      "initial release",
+      "chain",
+      "side idle",
+      "side charge",
+      "side release"
+    ],
+    "comparison_inputs": "Same880x760 camera, zoom1.65, seed731031, native clock/events/positions and lighting",
+    "baseline_reuse": "Fresh90-frame baseline matched every existing approved baseline game pixel outside changed debug caption y520–580. Verified existing330frames reused for remaining turn/motion comparison. Caption differs and is left visible.",
+    "comparisons": [
+      "comparison.png",
+      "side-angle-comparison.png"
+    ],
+    "android_performance_verified": false
+  }
+}
