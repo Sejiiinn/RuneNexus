@@ -59,7 +59,7 @@ func verify() -> void:
 	assert(ui.research_status("linkExpansionOne").begins_with("스테이지"))
 	ui._details("researchEfficiency")
 	assert(ui.RESEARCH_DESCRIPTIONS.researchEfficiency.contains("2배 빠르게"))
-	assert(_texts(host.modal).contains("기본 해금"))
+	assert(not _texts(host.modal).contains("해금 조건") and not _texts(host.modal).contains("기본 해금"),"Detail omits the unlock-condition row")
 	assert(host.modal.get_meta("refresh",Callable()).is_valid(),"Detail opts into progression refresh")
 	var old_modal := host.modal
 	host.modal.get_meta("refresh").call()

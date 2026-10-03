@@ -1,0 +1,8 @@
+{
+  "tool": "built-in ImageGen",
+  "source": "a-compact.png",
+  "output": "a-compact-v2.png",
+  "decision": "A안 선호 · 해금 조건 표시 제거",
+  "scope": "이미지 시안 수정, 게임 미적용",
+  "prompt": "Edit the provided Korean RuneNexus research modal proposal A with ONLY this local correction: remove the whole text row \"해금 조건  기본 해금\" from the modal. Do not replace it with any other text, icon, empty framed block, tag or badge. Close up the removed row's vertical space by moving the current/next effect row and all following content upward, then shorten the outer modal's bottom boundary by the same amount. Keep comfortable modest spacing between explanation and effect. Preserve the original overall portrait canvas dimensions, dimmed research-page backdrop, all background text/HUD, the top/modal header position, metal navy materials, clipped corners, pale blue outer bevel and top-center diamond. Preserve every other piece of text verbatim and in the same relative layout: \"연구 효율\", \"Lv.0 / 20\", the two explanatory sentences \"레벨마다 연구 효율이 5% 증가합니다.\" and \"효율 100%는 이후 연구를 2배 빠르게 만듭니다.\", effect line \"현재 +0% → 다음 +5%\" with gold next value, \"필요 룬 50\", \"보유 1,000\", \"연구 시간\", \"30분\", \"연구 시작\", top right \"×\". Preserve original flask/rune/clock icons, open two-column cost/time metrics and full-width teal primary button. No additions or redesign beyond removing the unlock-condition line and closing its space. This is the selected compact A direction."
+}

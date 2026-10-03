@@ -439,16 +439,63 @@ func _refresh_details(id: String, modal_ref: WeakRef) -> void:
 	var box: VBoxContainer = lobby.refresh_modal_body(current)
 	if box != null: _build_details(box, id)
 
+func _research_detail_heading(box: VBoxContainer, id: String, level: int, maximum: int) -> void:
+	var header: HBoxContainer
+	if lobby.has_method("set_modal_header"):
+		header = lobby.modal_frame.find_child("ResearchDetailHeader",true,false) as HBoxContainer
+		if header != null:
+			(header.find_child("ResearchDetailLevel",true,false) as Label).text = "Lv.%d / %d" % [level,maximum]
+			return
+	header = HBoxContainer.new(); header.name = "ResearchDetailHeader"; header.add_theme_constant_override("separation",10)
+	header.add_child(_icon(id,44))
+	var words = VBoxContainer.new(); words.size_flags_horizontal = Control.SIZE_EXPAND_FILL; words.add_theme_constant_override("separation",2); header.add_child(words)
+	words.add_child(T.label(str(TITLES.get(id,id)),20))
+	var level_text = T.label("Lv.%d / %d" % [level,maximum],14); level_text.name = "ResearchDetailLevel"; words.add_child(level_text)
+	if lobby.has_method("set_modal_header"):
+		var close: Button = lobby.modal_frame.find_child("CloseModal",true,false)
+		if close != null:
+			close.get_parent().remove_child(close); header.add_child(close); close.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		lobby.set_modal_header(header)
+	else: box.add_child(header)
+
+func _research_detail_effect(box: VBoxContainer, id: String, level: int, maximum: int) -> void:
+	# Unlock descriptions need wrapping; numeric effects fit the compact comparison.
+	var comparison: BoxContainer = VBoxContainer.new() if id in ["linkExpansionOne","turretTargetPriority"] else HBoxContainer.new()
+	comparison.name = "ResearchDetailEffect"; comparison.alignment = BoxContainer.ALIGNMENT_CENTER; comparison.add_theme_constant_override("separation",10); box.add_child(comparison)
+	var current = T.label("현재 " + effect_value(id,level),16); current.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; comparison.add_child(current)
+	if comparison is HBoxContainer: current.autowrap_mode = TextServer.AUTOWRAP_OFF
+	if level < maximum:
+		if comparison is HBoxContainer:
+			comparison.add_child(_inline("→",16))
+		var next = T.label(("다음 " if comparison is HBoxContainer else "→ 다음 ") + effect_value(id,mini(level+1,maximum)),16)
+		next.name = "ResearchDetailNext"; next.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		next.add_theme_color_override("font_color",Color("e7c66a")); comparison.add_child(next)
+		if comparison is HBoxContainer: next.autowrap_mode = TextServer.AUTOWRAP_OFF
+
+func _research_detail_quote(box: VBoxContainer, quote: Dictionary) -> void:
+	var row = HBoxContainer.new(); row.name = "ResearchDetailQuote"; row.add_theme_constant_override("separation",12); box.add_child(row)
+	var cost = HBoxContainer.new(); cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL; cost.add_theme_constant_override("separation",8); row.add_child(cost)
+	cost.add_child(_image("ui/hud/icons/rune.png",28))
+	var wallet = VBoxContainer.new(); wallet.size_flags_horizontal = Control.SIZE_EXPAND_FILL; wallet.add_theme_constant_override("separation",2); cost.add_child(wallet)
+	wallet.add_child(T.label("필요 룬 %d" % int(quote.cost),14))
+	wallet.add_child(T.label("보유 %s" % str(int(lobby._p().get("runes",0))),12))
+	var separator = VSeparator.new(); row.add_child(separator)
+	var time = HBoxContainer.new(); time.size_flags_horizontal = Control.SIZE_EXPAND_FILL; time.add_theme_constant_override("separation",8); row.add_child(time)
+	time.add_child(_glyph(0xe556,26,Color("a1d8eb")))
+	var duration = VBoxContainer.new(); duration.size_flags_horizontal = Control.SIZE_EXPAND_FILL; duration.add_theme_constant_override("separation",2); time.add_child(duration)
+	duration.add_child(T.label("연구 시간",12))
+	var remaining := int(quote.remainingMillis)
+	duration.add_child(T.label(_duration(remaining) if remaining % 60000 == 0 else _time(remaining),14))
+
 func _build_details(box: VBoxContainer, id: String) -> void:
 	var d: Dictionary = _growth().data.research[id]
 	var q: Dictionary = _growth().research_quote(lobby._p(), id)
-	_heading(box, id, int(q.level), int(d.maxLevel))
+	_research_detail_heading(box,id,int(q.level),int(d.maxLevel))
 	var description := str(RESEARCH_DESCRIPTIONS.get(id,""))
-	if not description.is_empty():
-		var explanation := _surface(box,"ui/components/row_frame.png",9)
-		explanation.add_child(T.label(description,12))
-	box.add_child(T.label("해금 조건  " + ("기본 해금" if int(d.requiredClearedStage)<=0 else "스테이지 %s 클리어" % Progression.stage_label(Progression.requirement("research", id))),12))
-	_effect(box, id, int(q.level), int(d.maxLevel))
+	if not description.is_empty(): box.add_child(T.label(description,13))
+	_research_detail_effect(box,id,int(q.level),int(d.maxLevel))
+	var rule = HSeparator.new(); rule.custom_minimum_size.y = 6
+	var style = StyleBoxLine.new(); style.color = Color("7493a488"); style.thickness = 1; rule.add_theme_stylebox_override("separator",style); box.add_child(rule)
 	var active := _active(id)
 	if not active.is_empty():
 		if _remaining(active) == 0:
@@ -469,9 +516,10 @@ func _build_details(box: VBoxContainer, id: String) -> void:
 	else:
 		var status := research_status(id)
 		if int(q.level) < int(d.maxLevel):
-			box.add_child(T.label("필요 룬 %d · 보유 %d\n연구 시간 %s" % [q.cost, int(lobby._p().get("runes", 0)), _time(int(q.remainingMillis))], 14))
+			_research_detail_quote(box,q)
 			if int(lobby._p().get("researchElapsedMillis", {}).get(id, 0)) > 0: box.add_child(T.label("이전에 진행한 연구 시간이 보존되어 있습니다.", 12))
-		_button(box, "연구 시작" if status == "연구 가능" else status, _submit.bind("startResearch", id), status != "연구 가능")
+		var action = T.button("연구 시작" if status == "연구 가능" else status,_submit.bind("startResearch",id),"primary")
+		action.name = "ResearchDetailAction"; action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; action.custom_minimum_size.y = 44; action.add_theme_font_size_override("font_size",16); action.disabled = status != "연구 가능"; box.add_child(action)
 
 func _cancel_confirm(id: String, from_details := false) -> void:
 	var active := _active(id)
