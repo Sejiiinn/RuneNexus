@@ -12,6 +12,7 @@ const BattlefieldEnvironment = preload("res://environment/battlefield_environmen
 const CombatSpaceBackground = preload("res://environment/combat_space_background.gd")
 const BattlefieldUnits = preload("res://presentation/battlefield_units.gd")
 const BattlefieldProjectiles = preload("res://presentation/battlefield_projectiles.gd")
+const LightningPresentation = preload("res://presentation/lightning_presentation.gd")
 const TURRET_MODELS = BattlefieldUnits.TURRET_MODELS
 const ENEMY_MODELS = BattlefieldUnits.ENEMY_MODELS
 const FoliageWind = BattlefieldEnvironment.FoliageWind
@@ -149,6 +150,7 @@ var _generic_projectile_pool: Dictionary:
 	get: return _projectile_renderer._generic_projectile_pool
 
 var _units := BattlefieldUnits.new(world, camera)
+var _lightning_presentation := LightningPresentation.new(world)
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
 var _environment := BattlefieldEnvironment.new(terrain, _world_environment, sun, _fill_light)
 var _space_background := CombatSpaceBackground.new()
@@ -170,6 +172,7 @@ func prepare_effects() -> bool:
 
 
 func _ready() -> void:
+	_presentation_nodes["effects"].spatial_lightning = true
 	RuntimeProfile.configure()
 	_frame_metrics.attach(get_viewport())
 	_set_profile_enabled(RuntimeProfile.enabled)
@@ -358,6 +361,8 @@ func _present_overlays() -> void:
 		var canvas_enabled: bool = enabled and not RuntimeProfile.options.get("hide_canvas", false)
 		node.visible = canvas_enabled
 		if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
+		if group == "effects":
+			_lightning_presentation.present(node.items, turrets, enemies, Vector2(columns, rows), enabled, bool(options.get("volume", true)))
 		if canvas_enabled:
 			if group == "selection":
 				node.set_turrets(turrets, _units.turret_revision)
@@ -420,10 +425,13 @@ func _apply_frame(frame: Dictionary) -> void:
 	var whole_tick := RuntimeProfile.begin()
 	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
 		var decorate_tick := RuntimeProfile.begin()
-		frame = _native_combat.decorate_frame(frame, true, _app_mode)
+		# Both real native entry points use tile units with canonical Canvas art.
+		# The development session needs the same glyph/effect conversion as --app.
+		var native_presentation := _app_mode or is_instance_valid(_standalone_session)
+		frame = _native_combat.decorate_frame(frame, true, native_presentation)
 		owned_snapshot = true
 		RuntimeProfile.finish("decorate", decorate_tick)
-		if _app_mode:
+		if native_presentation:
 			frame = preload("res://ui/app_presentation.gd").normalize(frame)
 		if _native_combat.native_session():
 			frame.zoom = _session_input.zoom
@@ -529,6 +537,7 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 
 
 func _clear_scene() -> void:
+	_lightning_presentation.clear()
 	_native_combat = NativeCombatRuntime.new()
 	_session_activation_revision = -1
 	_session_input.reset()

@@ -22,7 +22,7 @@ func blocked() -> bool:
 	# Pause stops simulation, while camera/selection/build input stays available.
 	# Save failures and reward replacement still require a blocked board.
 	if is_instance_valid(app):
-		if bool(app.get("save_failed")): return true
+		if app.get("save_failed") == true: return true
 		if app.get("hud") != null:
 			var rewards = app.hud.get("rewards")
 			if rewards != null and rewards.targeting() and rewards.replacing(): return true
