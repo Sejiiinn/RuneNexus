@@ -775,3 +775,6 @@ __pycache__/
 # Duplicate tank exports are rebuilt from preserved Blender production sources.
 /design/enemy_concepts/2026-10-01/tank/3d/game-export/tank-walk.glb
 /design/enemy_concepts/2026-10-01/tank/3d/death/tank-death.glb
+
+# Gem reward entrance concepts: one-off preview render and verification outputs.
+/design/gem_reward_entrance_concepts/2026-10-04/local/

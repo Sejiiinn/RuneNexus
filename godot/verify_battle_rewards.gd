@@ -248,6 +248,9 @@ func _assert_reward_selection_layout(hud,app) -> void:
 			for type in app.run_domain.growth.data.gems: state.gemInventory[type] = 12
 			hud.rewards.pending_gem = ""; hud.rewards.replacement_id = -1; hud.rewards.shard_selected = false
 			hud.rewards.key = ""; hud.refresh(); await _record_reward_rects(hud)
+			# Selection fixtures must wait for the real-time wave-reward input lock.
+			if hud.rewards.gem_entrance.active:
+				await create_timer(0.85,true,false,true).timeout
 			var initial: Rect2 = hud.overlay.get_global_rect()
 			var before_state: Dictionary = state.duplicate(true)
 			var expanded := initial

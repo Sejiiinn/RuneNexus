@@ -4,6 +4,7 @@ const Progression = preload("res://content/stage_progression.gd")
 const Art = preload("res://ui/app_theme.gd")
 const ResultPresenter = preload("res://ui/battle_result_presenter.gd")
 const ResultEntrance = preload("res://ui/battle_result_entrance.gd")
+const GemEntrance = preload("res://ui/gem_reward_entrance.gd")
 const GEM_COLORS := {"attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
 const RULES := {"chain":"연쇄된 투사체는 피해 및 효과 범위가 50% 감폭됩니다.","explosion":"폭발은 직접 명중한 대상을 제외한 주변 적에게 명중 피해의 50%를 줍니다."}
 var hud
@@ -24,6 +25,7 @@ var heading: PanelContainer
 var target_actions: HBoxContainer
 var target_hint := ""
 var result_entrance
+var gem_entrance
 
 func setup(owner) -> void:
 	hud = owner
@@ -43,6 +45,9 @@ func setup(owner) -> void:
 	result_entrance = ResultEntrance.new()
 	result_entrance.setup(hud,shade)
 	hud.add_child(result_entrance)
+	gem_entrance = GemEntrance.new()
+	gem_entrance.setup(hud,shade)
+	hud.add_child(gem_entrance)
 	var services = hud.app.get("services")
 	if services is Object and services.has_signal("changed") and not services.changed.is_connected(hud.refresh):
 		services.changed.connect(hud.refresh)
@@ -67,6 +72,7 @@ func refresh(state: Dictionary) -> void:
 	var phase := str(state.get("phase",""))
 	if phase not in ["success","failure"]: result_entrance.cancel()
 	if phase != "reward":
+		gem_entrance.cancel()
 		pending_gem = ""
 		replacement_id = -1
 		replacement_slot = -1
@@ -87,6 +93,11 @@ func refresh(state: Dictionary) -> void:
 		_panel_style_mode = style_mode
 	if phase in ["success","failure"] and hud.is_visible_in_tree():
 		result_entrance.consider(JSON.stringify([str(state.get("economyRunId","")),hud.app.stage,phase]),phase == "success")
+	if phase == "reward" and hud.is_visible_in_tree():
+		var round_number := int(state.get("completedRounds",0))
+		gem_entrance.consider(JSON.stringify([str(state.get("economyRunId","")),hud.app.stage,round_number]),
+			not state.get("isPurchasedGemReward",false) and round_number > 0 and round_number % 5 == 0 and not targeting())
+	elif phase == "reward": gem_entrance.cancel()
 	if not visible:
 		if _was_visible:
 			hud._clear(hud.overlay_body)
@@ -101,6 +112,7 @@ func refresh(state: Dictionary) -> void:
 	var width := minf(viewport.x-safe.x-safe.z-24,420)
 	hud.overlay.size.x = width
 	var next_key := [phase,state.get("rewardOptions"),state.get("isPurchasedGemReward"),state.get("gemInventory"),state.get("gemShards"),hud.configuration_cache.revision,pending_gem,replacement_id,replacement_slot,state.get("gold"),shard_selected,target_hint,viewport,safe]
+	if phase == "reward": next_key.append_array([state.get("economyRunId"),hud.app.stage,state.get("completedRounds")])
 	if phase in ["success","failure"]:
 		var p: Dictionary = state.get("progression",{})
 		next_key.append_array([hud.app.stage,state.get("completedRounds"),state.get("lastRunWasNewBestRound"),state.get("lastRunPreviousBestRound"),state.get("lastRunFirstClear"),p.get("lastRunRuneReward"),p.get("lastRunCorePointReward"),p.get("lastRunTurretModuleTicketReward"),p.get("runes"),p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("clearedStageNumbers",[]),_settlement_note(),_settlement_state()])
@@ -108,12 +120,15 @@ func refresh(state: Dictionary) -> void:
 		_fit_modal()
 		if not _layout_pending and result_entrance.active and result_entrance.started_usec == 0:
 			result_entrance.bind_body()
+		if not _layout_pending and gem_entrance.active and gem_entrance.started_usec == 0:
+			gem_entrance.bind_body()
 		return
 	key = next_key.duplicate(true)
 	_layout_revision += 1
 	_layout_pending = true
 	_fit_key.clear()
 	result_entrance.detach_body()
+	gem_entrance.detach_body()
 	hud._clear(hud.overlay_body)
 	hud._clear(target_layer)
 	if not visible: return
@@ -152,6 +167,7 @@ func _cards(state: Dictionary, width: float) -> void:
 	_text(body,"젬 구매 선택" if state.get("isPurchasedGemReward",false) else "젬 보상 선택",20,true)
 	if not state.get("isPurchasedGemReward",false): _text(body,"%d웨이브 클리어 보상" % int(state.get("completedRounds",0)),12,true)
 	var row := HBoxContainer.new()
+	row.name = "GemRewardCards"
 	row.add_theme_constant_override("separation",8)
 	body.add_child(row)
 	var collection := _owned(state)
@@ -191,12 +207,17 @@ func _cards(state: Dictionary, width: float) -> void:
 		var pill := _tinted_panel(content,Color("171b20dd"),Color("33d8ff55") if count > 0 else Color("6f778055"),12)
 		pill.custom_minimum_size.y = 22
 		_text(pill,"보유 %d" % count if count > 0 else "미보유",11,true).modulate = Color("b9d6e4") if count > 0 else Color("9ca3ab")
-		card.pressed.connect(func(): pending_gem = type; target_hint = ""; shard_selected = false; key = ""; hud.refresh(); hud.app.refresh_selection())
+		card.pressed.connect(func():
+			if gem_entrance.active: return
+			pending_gem = type; target_hint = ""; shard_selected = false; key = ""; hud.refresh(); hud.app.refresh_selection())
 	for type in state.get("rewardOptions",[]):
 		if RULES.has(type): _text(body,RULES[type],10).modulate = Color("939aa4")
 	if not state.get("isPurchasedGemReward",false):
 		var amount := int(hud.app.run_domain.growth.data.constants.gemShardRewardFallbackAmount)
-		var shard: Button = hud._button(body,"젬 대신 파편 획득\n파편 +%d · 현재 보유 %d" % [amount,state.gemShards],func(): shard_selected = true; key = ""; hud.refresh())
+		var shard: Button = hud._button(body,"젬 대신 파편 획득\n파편 +%d · 현재 보유 %d" % [amount,state.gemShards],func():
+			if gem_entrance.active: return
+			shard_selected = true; key = ""; hud.refresh())
+		shard.name = "GemRewardShards"
 		shard.icon = Art.texture("res://assets/app/ui/hud/icons/shard.png")
 		shard.expand_icon = true
 		shard.add_theme_constant_override("icon_max_width",24)
@@ -211,8 +232,9 @@ func _cards(state: Dictionary, width: float) -> void:
 		shard.add_theme_stylebox_override("normal",bar)
 		if shard_selected: hud._button(body,"파편 받기",func(): _settle({"kind":"chooseRewardShards"}))
 	if not collection.is_empty():
-		_text(body,"획득 젬",10)
+		_text(body,"획득 젬",10).name = "GemRewardInventoryHeading"
 		var chips := HFlowContainer.new()
+		chips.name = "GemRewardInventory"
 		body.add_child(chips)
 		for type in collection:
 			var chip := HBoxContainer.new()
@@ -221,6 +243,7 @@ func _cards(state: Dictionary, width: float) -> void:
 			# Flow wraps whole entries; the label must retain its natural text width.
 			var label := _text(chip,"%s ×%d" % [hud._gem_name(type),collection[type]],10)
 			label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	gem_entrance.conceal_body()
 
 func _target(state: Dictionary, viewport: Vector2) -> void:
 	heading = PanelContainer.new()
@@ -528,6 +551,7 @@ func _fit_after_layout(revision: int) -> void:
 	_layout_pending = false
 	_fit_modal()
 	result_entrance.bind_body()
+	gem_entrance.bind_body()
 
 func _fit_modal() -> void:
 	if not is_instance_valid(hud) or not hud.overlay.visible or _layout_pending: return
