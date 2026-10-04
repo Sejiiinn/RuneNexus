@@ -7,6 +7,17 @@ const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Codec = preload("res://app/save_codec.gd")
 class CountingCatalog extends Catalog:
 	var materialization_calls := {"bootstrap":0,"enemy":0,"random":0,"turret":0}
+	var validation_calls := {"live":0,"pending":0}
+	var pending_validation := false
+	func validate_enemy(stage_index: int, round_index: int, type: String, inputs: Dictionary = {}) -> bool:
+		if not pending_validation: validation_calls.live += 1
+		return super.validate_enemy(stage_index,round_index,type,inputs)
+	func validate_randomized_enemy(stage_index: int, round_index: int, type: String, inputs: Dictionary = {}) -> bool:
+		validation_calls.pending += 1
+		pending_validation = true
+		var result := super.validate_randomized_enemy(stage_index,round_index,type,inputs)
+		pending_validation = false
+		return result
 	func reset_calls() -> void:
 		for key in materialization_calls: materialization_calls[key] = 0
 	func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
@@ -67,11 +78,24 @@ func _initialize() -> void:
 	check(adapter.capture(state,runtime.snapshot(),1).is_empty(),"unacknowledged events rejected")
 	runtime.process_command({"epoch":1,"sequence":1,"ackEvent":runtime.event_id})
 	catalog.reset_calls()
-	var saved: Dictionary = adapter.capture(state,runtime.snapshot(),123,{"selectedStageNumber":1,"autoStartMode":"fullAuto"})
+	var source_state := state.duplicate(true)
+	var source_snapshot: Dictionary = runtime.snapshot()
+	var source_snapshot_before := source_snapshot.duplicate(true)
+	var source_preferences := {"selectedStageNumber":1,"autoStartMode":"fullAuto"}
+	var saved: Dictionary = adapter.capture(state,source_snapshot,123,source_preferences)
 	check(not saved.is_empty(),"capture: " + adapter.error)
+	check(state == source_state and source_snapshot == source_snapshot_before and source_preferences == {"selectedStageNumber":1,"autoStartMode":"fullAuto"},"capture leaves all source trees unchanged")
 	check(catalog.materialization_calls == {"bootstrap":0,"enemy":0,"random":0,"turret":0},"capture validates without restore payload materialization")
 	if saved.is_empty(): quit(1); return
+	var captured_before := saved.duplicate(true)
+	saved.progression.runes = 1
+	saved.turretModules.tickets = 1
+	saved.activeRun.enemies[0].hp = 1.0
+	saved.activeRun.turrets[0].equippedGemSlots[1] = null
+	check(state == source_state and source_snapshot == source_snapshot_before,"captured nested trees own their mutations")
+	saved = captured_before
 	check(Codec.is_normalized_v2(saved),"normalized v2")
+	_capture_normalized_handoff_cases(adapter,state,source_snapshot,saved)
 	check(saved.activeRun.enemies[0].distanceTravelled == 36.0,"wire distance uses 48px units")
 	var prepared: Dictionary = adapter.prepare(saved)
 	check(not prepared.is_empty(),"prepare: " + adapter.error)
@@ -159,11 +183,74 @@ func _initialize() -> void:
 	check(adapter.prepare(invalid).is_empty(),"nonfinite state rejected")
 	var scaled: Dictionary = adapter.prepare(saved,{"tileSize":2.0})
 	check(not scaled.is_empty() and scaled.bootstrap.enemies[0].distanceTravelled == 1.5,"alternate tile size distance scaled")
+	_validation_reuse_cases(adapter,catalog,saved)
 	state.pendingEconomyDiamonds = 1000001
 	check(adapter.capture(state,runtime.snapshot(),124).is_empty(),"capped economy rejected before mutation")
 	_ordinal_durability_save_cases(catalog,growth)
 	print("CONTENT_RUN_SAVE failures=",failures)
 	quit(0 if failures == 0 else 1)
+
+func _capture_normalized_handoff_cases(adapter, state: Dictionary, snapshot: Dictionary, saved: Dictionary) -> void:
+	check(not saved.activeRun.has("stage") and not saved.activeRun.has("nextTurretId") and not saved.activeRun.turrets[0].has("id") and not saved.progression.has("turretModules"),"capture validation scratch fields do not leak into save")
+	var legacy := state.duplicate(true)
+	legacy.turrets[0].type = "cannon"
+	legacy.turrets[0].slotLimit = 3
+	legacy.turrets[0].equippedGemSlots = [null,"lightWeapon"]
+	legacy.turrets[0].equippedGems = ["lightWeapon"]
+	legacy.gemInventory = {"lightWeapon":2}
+	var legacy_before := legacy.duplicate(true)
+	var legacy_saved: Dictionary = adapter.capture(legacy,snapshot,125)
+	check(not legacy_saved.is_empty(),"capture validates legacy gem migration on separate scratch: "+adapter.error)
+	if not legacy_saved.is_empty():
+		check(legacy_saved.activeRun.turrets[0].equippedGemSlots == [null,"lightWeapon"] and legacy_saved.activeRun.turrets[0].equippedGems == ["lightWeapon"] and legacy_saved.activeRun.gemInventory == {"lightWeapon":2},"capture preserves saved slots/inventory before restore migration")
+	check(legacy == legacy_before,"capture legacy validation cannot change domain source")
+	var absent_skill := state.duplicate(true)
+	absent_skill.erase("runCoreCombatSkill")
+	for skill in [null,"guardianBeam","riftMark"]:
+		var skill_snapshot := snapshot.duplicate(true)
+		skill_snapshot.core.skill = skill
+		var skill_saved: Dictionary = adapter.capture(absent_skill,skill_snapshot,126)
+		check(not skill_saved.is_empty(),"capture accepts absent frozen skill snapshot fallback: "+str(skill)+" "+adapter.error)
+		if not skill_saved.is_empty(): check(skill_saved.activeRun.runCoreCombatSkill == skill and Codec.is_normalized_v2(skill_saved),"snapshot fallback is normalized and frozen: "+str(skill))
+	var invalid_skill := snapshot.duplicate(true)
+	invalid_skill.core.skill = "unknownSkill"
+	check(adapter.capture(absent_skill,invalid_skill,126).is_empty() and adapter.error == "Unsupported save values","capture rejects unsupported post-projection skill fallback")
+	var scaled := state.duplicate(true)
+	scaled.tileSize = 2.0
+	var scaled_snapshot := snapshot.duplicate(true)
+	scaled_snapshot.enemies[0].distanceTravelled = 1.25
+	var scaled_saved: Dictionary = adapter.capture(scaled,scaled_snapshot,127)
+	check(not scaled_saved.is_empty(),"capture scaled handoff: "+adapter.error)
+	if not scaled_saved.is_empty(): check(scaled_saved.activeRun.enemies[0].distanceTravelled == 30.0 and Codec.is_normalized_v2(scaled_saved),"capture scales distance without losing float wire type")
+	scaled.tileSize = 1e-300
+	scaled_snapshot.enemies[0].distanceTravelled = 1e300
+	check(adapter.capture(scaled,scaled_snapshot,127).is_empty() and adapter.error == "Unsupported save values","capture rejects overflow created by distance scaling")
+	var missing_return := state.duplicate(true)
+	missing_return.rewardReturnPhase = null
+	check(adapter.capture(missing_return,snapshot,128).is_empty() and adapter.error == "Unsupported save values","domain reward phase cannot silently normalize a null return phase")
+	var reward_snapshot := snapshot.duplicate(true)
+	reward_snapshot.session.phase = "reward"
+	var reward_saved: Dictionary = adapter.capture(missing_return,reward_snapshot,128)
+	check(not reward_saved.is_empty() and reward_saved.activeRun.rewardReturnPhase == "wave","projection retains existing purchased reward fallback")
+	for phase in ["preparation","restored","reward","success","coreDestruction","failure"]:
+		var phase_state := state.duplicate(true)
+		phase_state.phase = phase
+		phase_state.isPurchasedGemReward = false
+		phase_state.rewardReturnPhase = null
+		var phase_snapshot := snapshot.duplicate(true)
+		phase_snapshot.enemies = []
+		phase_snapshot.wave.spawnQueue = []
+		var phase_saved: Dictionary = adapter.capture(phase_state,phase_snapshot,129)
+		check(not phase_saved.is_empty(),"capture domain phase survives normalized handoff: "+phase+" "+adapter.error)
+		if not phase_saved.is_empty(): check(phase_saved.activeRun.phase == ("failure" if phase == "coreDestruction" else phase) and Codec.is_normalized_v2(phase_saved),"domain phase wire value preserved: "+phase)
+	var permissive_state := state.duplicate(true)
+	permissive_state.gemInventory.unknownGem = 2
+	var permissive_snapshot := snapshot.duplicate(true)
+	permissive_snapshot.enemies.append({"type":"unknownEnemy"})
+	permissive_snapshot.core.activationCount = 1.5
+	var permissive_saved: Dictionary = adapter.capture(permissive_state,permissive_snapshot,130)
+	check(not permissive_saved.is_empty(),"capture keeps existing codec permissive projection behavior: "+adapter.error)
+	if not permissive_saved.is_empty(): check(not permissive_saved.activeRun.gemInventory.has("unknownGem") and permissive_saved.activeRun.enemies.size() == snapshot.enemies.size() and permissive_saved.activeRun.runCoreCombatSkillStats.activationCount == 1,"existing unknown key/enemy filtering and activation truncation unchanged")
 
 func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 	for type in service.catalog.turret_types():
@@ -178,6 +265,7 @@ func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 		var result: Dictionary = adapter.prepare(legacy)
 		check(not result.is_empty(),type+": old lightWeapon save remains loadable: "+adapter.error)
 		if result.is_empty(): continue
+		check(result.envelope == Codec.decode(legacy),type+": restored migrations leave returned envelope unchanged")
 		var expected_slots: Array = [null,"lightWeapon" if allowed else null,"attackSpeed"]
 		var expected_inventory := {"lightWeapon":2 if allowed else 3,"range":3}
 		check(result.state.turrets[0].equippedGemSlots == expected_slots,type+": only obsolete slot cleared")
@@ -208,6 +296,46 @@ func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 	invalid.activeRun.turrets[0].equippedGems = ["lightWeapon","aimSpeed"]
 	check(adapter.prepare(invalid).is_empty(),"other incompatible gems still rejected")
 
+
+func _validation_reuse_cases(adapter, catalog, saved: Dictionary) -> void:
+	var repeated := saved.duplicate(true)
+	for index in range(16): repeated.activeRun.enemies.append(saved.activeRun.enemies[0].duplicate(true))
+	var original := repeated.duplicate(true)
+	var live_types := {}
+	var pending_types := {}
+	for enemy in repeated.activeRun.enemies: live_types[enemy.type] = true
+	for spawn in repeated.activeRun.spawnQueue: pending_types[spawn.enemyType] = true
+	for for_restore in [true,false]:
+		catalog.validation_calls = {"live":0,"pending":0}
+		var result: Dictionary = adapter._validate_checkpoint(repeated,{},for_restore)
+		check(not result.is_empty(),"both validation modes accept repeated enemy fixture")
+		check(catalog.validation_calls == {"live":live_types.size(),"pending":pending_types.size()},"each mode validates each live/pending type once independently")
+		check(repeated == original,"both validation modes preserve source envelope")
+	# Different inputs on the next call must be checked even for a prior success.
+	var invalid_inputs := {"enemyValues":{"diamondReward":"invalid"}}
+	for for_restore in [true,false]:
+		catalog.validation_calls = {"live":0,"pending":0}
+		check(adapter._validate_checkpoint(repeated,invalid_inputs,for_restore).is_empty(),"successful type validation cannot leak to a later call's inputs")
+		check(catalog.validation_calls == {"live":1,"pending":0},"invalid live values fail before pending validation")
+	# Pending generation replaces enemyValues and remains a distinct validation.
+	var pending_only := repeated.duplicate(true)
+	pending_only.activeRun.enemies = []
+	for for_restore in [true,false]:
+		catalog.validation_calls = {"live":0,"pending":0}
+		check(not adapter._validate_checkpoint(pending_only,invalid_inputs,for_restore).is_empty(),"pending overrides remain valid independently of caller live values")
+		check(catalog.validation_calls == {"live":0,"pending":pending_types.size()},"pending-only validation retains its own type successes")
+	var invalid_delay := repeated.duplicate(true)
+	invalid_delay.activeRun.spawnQueue[-1].delay = -0.1
+	for for_restore in [true,false]:
+		check(adapter._validate_checkpoint(invalid_delay,{},for_restore).is_empty() and adapter.error == "Invalid spawn delay","every pending delay is checked after a repeated successful type")
+	var result: Dictionary = adapter.prepare(repeated)
+	check(not result.is_empty(),"repeated fixture prepares")
+	if not result.is_empty():
+		var envelope_before: Dictionary = result.envelope.duplicate(true)
+		result.state.turrets[0].equippedGemSlots[0] = "range"
+		result.state.gemInventory.range = 17
+		result.state.progression.turretModules.tickets = 1
+		check(result.envelope == envelope_before,"restore state mutations do not change returned envelope")
 
 func _gem_slot_restore_cases(adapter, saved: Dictionary) -> void:
 	var short_slots := saved.duplicate(true)

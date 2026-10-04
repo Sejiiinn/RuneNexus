@@ -24,8 +24,11 @@ func _initialize() -> void:
 	var before := envelope.duplicate(true)
 	var snapshot := {"session":{"phase":"wave"}, "defense":{"hp":8.0,"roundHpLost":2.0,"finalDefenseUsedThisRound":true,"emergencyChargeUsedThisRound":false},"wave":{"spawnQueue":[{"enemyType":"normal","delay":0.25}]},"enemies":[{"type":"normal","hp":80.0,"maxHp":100.0,"distanceTravelled":9.5,"burnInstances":[{"remaining":2.0,"damagePerSecond":4.0,"sourceX":3,"sourceY":4}],"slowInstances":[{"remaining":1.0,"multiplier":0.7}]}],"turrets":[{"id":8,"cooldown":0.5,"directDamageDealt":10.0,"splashDamageDealt":2.0,"chainDamageDealt":3.0,"burnDamageDealt":4.0}],"events":[],"core":{"directDamageDealt":5.0,"bonusDamageDealt":6.0,"activationCount":7}}
 	var templates := {"8":{"type":"cannon","x":3,"y":4,"level":5,"investedGold":987,"equippedGems":["physicalDamage"],"equippedGemSlots":[null,"physicalDamage"],"slotLimit":2}}
+	var snapshot_before := snapshot.duplicate(true)
+	var templates_before := templates.duplicate(true)
 	var saved: Dictionary = Adapter.capture(envelope, snapshot, templates, large)
 	check(envelope == before, "capture cannot mutate app envelope")
+	check(snapshot == snapshot_before and templates == templates_before, "capture cannot mutate borrowed snapshot or turret templates")
 	check(saved.activeRun.gold == 321 and saved.activeRun.gemShards == 7 and saved.activeRun.pendingEconomyDiamonds == 3 and saved.activeRun.economyRunId == "synthetic-run", "economy fields untouched")
 	check(saved.progression == before.progression and saved.turretModules == before.turretModules, "progression and module inventory untouched")
 	check(saved.activeRun.nexusHp == 8 and saved.activeRun.finalDefenseUsedThisRound, "core checkpoint")
@@ -34,6 +37,18 @@ func _initialize() -> void:
 	check(saved.activeRun.enemies[0].distanceTravelled == 9.5 and saved.activeRun.enemies[0].burnInstances[0].sourceX == 3 and saved.activeRun.enemies[0].slowInstances.size() == 1, "enemy distance and status preserved")
 	check(saved.activeRun.spawnQueue[0].delay == 0.25 and not saved.activeRun.has("projectiles"), "remaining spawn delay and no new projectile schema")
 	check(saved.activeRun.runCoreCombatSkillStats.activationCount == 7, "core stats refreshed")
+	var saved_before := saved.duplicate(true)
+	saved.activeRun.enemies[0].burnInstances[0].remaining = 99.0
+	saved.activeRun.enemies[0].slowInstances[0].multiplier = 0.1
+	saved.activeRun.spawnQueue[0].delay = 99.0
+	saved.activeRun.turrets[0].equippedGemSlots[1] = null
+	saved.activeRun.turrets[0].equippedGems.clear()
+	check(snapshot == snapshot_before and templates == templates_before and envelope == before, "returned nested trees own mutations after temporary snapshot references")
+	saved = saved_before
+	var malformed := envelope.duplicate(true)
+	malformed.activeRun.gold = 1.5
+	check(Adapter.capture(malformed,snapshot,templates,1).activeRun.gold == 1, "public adapter still normalizes arbitrary domain input")
+	check(Adapter.capture({}, {"events":[{"kind":"kill"}]}, {}, 1) == null, "public adapter checks unsettled events before malformed envelope")
 	check(Adapter.capture(envelope, snapshot, {}, 1) == null, "missing turret configuration refused")
 	snapshot.events = [{"kind":"kill"}]
 	check(Adapter.capture(envelope, snapshot, templates, 1) == null, "unsettled events refused")

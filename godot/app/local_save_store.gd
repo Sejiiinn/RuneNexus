@@ -16,6 +16,9 @@ var _valid_slot: bool = true
 var transition_recovery_enabled := true
 var transition_directory: String
 var transition_owner: String
+# A single immutable JSON string, never caller-owned data or a destination cache.
+# Reuse its v2 validation only after recovery and a complete read match its bytes.
+var _validated_v2_raw: String = ""
 
 func _init(base_directory: String = "user://", slot = null, legacy_file: String = "") -> void:
 	if slot == null:
@@ -80,14 +83,18 @@ func save_save(data: Dictionary) -> Error:
 	var current := _read_valid(primary_path, false, false)
 	if last_error != OK:
 		return last_error
-	# Read/recover/validate before skipping IO; never trust an in-memory cache of
-	# the destination, which may have been damaged or replaced since the save.
+	# Read/recover/validate before skipping IO, including after external replacement.
 	if not current.is_empty() and current.raw == raw:
 		return OK
 	if not current.is_empty() and current.raw != raw:
 		if _write_atomic(backup_path, current.raw) != OK:
 			return last_error
-	return _write_atomic(primary_path, raw)
+	var result := _write_atomic(primary_path, raw)
+	# Validated normalized JSON values serialized by Godot have the same canonical
+	# envelope and signed-int64/finite-number contract as parse_record accepts.
+	# Failed writes cannot certify the attempted replacement's bytes.
+	if result == OK: _validated_v2_raw = raw
+	return result
 
 func preserve_current_as_backup() -> Error:
 	if not _begin():
@@ -160,6 +167,8 @@ func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = tr
 	var raw: Variant = _read_text(path)
 	if raw == null:
 		return {}
+	if not legacy_only and not decode_data and not _validated_v2_raw.is_empty() and raw == _validated_v2_raw:
+		return {"raw":raw}
 	var parsed := SaveJson.parse_record(raw)
 	if not parsed.ok:
 		return {}
@@ -169,6 +178,7 @@ func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = tr
 			return {}
 	elif not Codec.is_canonical_v2(value):
 		return {}
+	if not legacy_only: _validated_v2_raw = raw
 	# The v2 reader accepts every canonical envelope and normalizes its fields.
 	# Backup rotation only needs validated bytes, not a discarded normalized tree.
 	if not decode_data and not legacy_only:

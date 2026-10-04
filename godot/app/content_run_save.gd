@@ -22,20 +22,22 @@ func capture(state: Dictionary, snapshot: Dictionary, saved_at: int, preferences
 	if stage < 0 or stage >= catalog.stage_count(): return _reject("Unknown stage")
 	if not snapshot.get("events", []).is_empty(): return _reject("Unsettled combat events")
 	var map: Dictionary = catalog.stage_map(stage)
-	var run := state.duplicate(true)
+	# Only these top-level fields change before decode creates the owned save tree.
+	var run := state.duplicate()
 	run.stageNumber = catalog.stage_id(stage)
 	run.mapSignature = CombatProjection.map_signature(map, map.path)
-	var progression: Dictionary = state.get("progression", {}).duplicate(true)
-	var inventory: Dictionary = progression.get("turretModules", {}).duplicate(true)
+	var progression: Dictionary = state.get("progression", {}).duplicate()
+	var inventory: Dictionary = progression.get("turretModules", {})
 	progression.erase("turretModules")
-	if not _finite_tree(run) or not _finite_tree(progression): return _reject("Non-finite domain value")
+	# run still contains the entire source progression, including module inventory.
+	if not _finite_tree(run): return _reject("Non-finite domain value")
 	var envelope: Dictionary = Codec.decode({"version":2,"savedAtMillis":saved_at,"preferences":preferences,"progression":progression,"turretModules":inventory,"activeRun":run})
 	if not _compatible(run, envelope.activeRun) or not _compatible(progression,envelope.progression) or not _compatible(inventory,envelope.turretModules): return _reject("Domain state cannot roundtrip v2")
 	if not snapshot.has_all(["session","defense","wave","enemies","turrets"]) or not _finite_tree(snapshot): return _reject("Invalid combat snapshot")
 	if snapshot.turrets.size() != state.get("turrets",[]).size(): return _reject("Turret checkpoint mismatch")
 	var templates := {}
 	for t in state.get("turrets", []): templates[str(t.id)] = t
-	var projected: Variant = CombatProjection.capture(envelope, snapshot, templates, saved_at)
+	var projected: Variant = CombatProjection._capture_owned_normalized(envelope, snapshot, templates, saved_at)
 	if projected == null: return _reject("Incomplete combat checkpoint")
 	# v2 distance is in Dart logical pixels; native content boards use tile units.
 	var scale: float = float(state.get("tileSize", 1.0)) / catalog.tile_size()
@@ -45,19 +47,35 @@ func capture(state: Dictionary, snapshot: Dictionary, saved_at: int, preferences
 	projected.activeRun.phase = "failure" if state.phase == "coreDestruction" else state.phase
 	if not run.has("runCoreCombatSkill"):
 		projected.activeRun.runCoreCombatSkill = snapshot.get("core", {}).get("skill", progression.get("coreCombatSkill", "guardianBeam"))
-	if _validate_checkpoint(projected, {"tileSize":float(state.get("tileSize",1.0))}).is_empty(): return {}
+	# Projection's decode already owns and normalizes every field. Only distance,
+	# domain phase and the absent frozen skill can change after that handoff.
+	# Phase also controls the codec's legacy purchased-reward return fallback.
+	if not _finite_tree(projected) or not _projection_overrides_compatible(projected): return _reject("Unsupported save values")
+	if _validate_normalized_checkpoint(projected, {"tileSize":float(state.get("tileSize",1.0))}, false).is_empty(): return {}
 	return projected
+
+func _projection_overrides_compatible(envelope: Dictionary) -> bool:
+	var run: Dictionary = envelope.activeRun
+	if not _compatible(run.phase, Codec._enum("GamePhase", run.phase, "preparation")): return false
+	var return_fallback: Variant = "wave" if run.phase == "reward" and run.isPurchasedGemReward and (not run.enemies.is_empty() or not run.spawnQueue.is_empty()) else null
+	if not _compatible(run.rewardReturnPhase, Codec._enum("GamePhase", run.rewardReturnPhase, return_fallback)): return false
+	return _compatible(run.runCoreCombatSkill, Codec._skill(run, "runCoreCombatSkill", envelope.progression.coreCombatSkill))
 
 func prepare(envelope: Dictionary, battle_inputs: Dictionary = {}, spawn_rng: RandomNumberGenerator = null) -> Dictionary:
 	var validated := _validate_checkpoint(envelope,battle_inputs)
 	if validated.is_empty(): return {}
 	return _materialize_checkpoint(validated,spawn_rng)
 
-func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) -> Dictionary:
+func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}, for_restore: bool = true) -> Dictionary:
 	error = ""
 	var decoded: Variant = Codec.decode(envelope)
 	if decoded == null or not decoded.activeRun is Dictionary: return _reject("No active run")
 	if not _finite_tree(envelope) or not _compatible(envelope,decoded): return _reject("Unsupported save values")
+	return _validate_normalized_checkpoint(decoded,battle_inputs,for_restore)
+
+# Private handoff accepts only the owned codec result (with checked projection
+# overrides for capture). Public preparation retains its full input validation.
+func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Dictionary, for_restore: bool) -> Dictionary:
 	var run: Dictionary = decoded.activeRun
 	var stage: int = catalog.stage_index(int(run.stageNumber))
 	if stage < 0: return _reject("Unknown stage")
@@ -75,15 +93,21 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 	if not live and phase != "failure" and (not run.enemies.is_empty() or not run.spawnQueue.is_empty()): return _reject("Combat outside active wave")
 	if phase == "failure" and not run.spawnQueue.is_empty(): return _reject("Failed run cannot retain a spawn queue")
 	if phase == "reward" and (run.rewardOptions.is_empty() or (run.isPurchasedGemReward and run.rewardReturnPhase not in ["preparation","wave"])): return _reject("Invalid reward phase")
-	var state := run.duplicate(true)
+	# Save-only validation shares read-only fields, but separates every branch
+	# mutated by ID assignment and legacy gem migration from the returned save.
+	# Restoration retains a full separate state for subsequent runtime commands.
+	var state: Dictionary = run.duplicate(true) if for_restore else run.duplicate()
+	if not for_restore:
+		state.turrets = run.turrets.duplicate(true)
+		state.gemInventory = run.gemInventory.duplicate()
 	state.phase = phase
 	state.stage = stage
 	state.tileSize = float(battle_inputs.get("tileSize",1.0))
 	if not is_finite(state.tileSize) or state.tileSize <= 0: return _reject("Invalid tile size")
 	# Commands currently place towers at tile centres with zero board origin.
 	if battle_inputs.get("origin",[0.0,0.0]) != [0.0,0.0]: return _reject("Unsupported board origin")
-	state.progression = decoded.progression.duplicate(true)
-	state.progression.turretModules = decoded.turretModules.duplicate(true)
+	state.progression = decoded.progression.duplicate(true) if for_restore else decoded.progression.duplicate()
+	state.progression.turretModules = decoded.turretModules.duplicate(true) if for_restore else decoded.turretModules
 	state.nextTurretId = 1000
 	var occupied := {}
 	for t in state.turrets:
@@ -119,14 +143,21 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 	if run.nexusHp < 0 or run.nexusHp > derived.maxNexusHp: return _reject("Invalid nexus HP")
 	var inputs := battle_inputs.duplicate(true)
 	inputs.defenseConfig = derived.defenseConfig
-	var core_state := state.duplicate(true)
+	# Only the frozen skill changes; growth reads the other nested fields.
+	var core_state := state.duplicate()
+	core_state.progression = state.progression.duplicate()
 	core_state.progression.coreCombatSkill = run.runCoreCombatSkill
 	inputs.coreConfig = growth.core_config(core_state,stage,mini(round_index,count-1),catalog)
 	# A saved run skill is frozen independently of the current account selection.
 	inputs.coreConfig.runSkill = run.runCoreCombatSkill
 	if not catalog.validate_bootstrap(stage,inputs): return _reject(catalog.error)
+	# Same stage/round/inputs for every live enemy. Cache success only within this
+	# invocation, independently of pending enemies whose enemyValues are replaced.
+	var live_types := {}
 	for saved in run.enemies:
+		if live_types.has(saved.type): continue
 		if not catalog.validate_enemy(stage,round_index,saved.type,inputs): return _reject(catalog.error)
+		live_types[saved.type] = true
 	var definition: Dictionary = catalog.wave_definition(stage,round_index) if live or not run.spawnQueue.is_empty() else {}
 	if live or not run.spawnQueue.is_empty():
 		var schedule: Array = definition.spawnQueue
@@ -134,9 +165,12 @@ func _validate_checkpoint(envelope: Dictionary, battle_inputs: Dictionary = {}) 
 		if offset < 0: return _reject("Spawn queue exceeds wave schedule")
 		for index in range(run.spawnQueue.size()):
 			if run.spawnQueue[index].enemyType != schedule[offset+index].enemyType: return _reject("Spawn queue does not match remaining wave schedule")
+		var pending_types := {}
 		for saved in run.spawnQueue:
 			if saved.delay < 0 or not is_finite(saved.delay): return _reject("Invalid spawn delay")
+			if pending_types.has(saved.enemyType): continue
 			if not catalog.validate_randomized_enemy(stage,round_index,saved.enemyType,inputs): return _reject(catalog.error)
+			pending_types[saved.enemyType] = true
 	return {"decoded":decoded,"run":run,"state":state,"wave":definition,"stage":stage,"roundIndex":round_index,"phase":phase,"live":live,"inputs":inputs,"service":service}
 
 func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGenerator) -> Dictionary:

@@ -5,6 +5,10 @@ const Codec = preload("res://app/save_codec.gd")
 const WebStore = preload("res://app/web_save_store.gd")
 class CountingStore extends Store:
 	var writes := 0
+	var reads := 0
+	func _read_text(path: String) -> Variant:
+		reads += 1
+		return super._read_text(path)
 	func _write_atomic(path: String, contents: String) -> Error:
 		writes += 1
 		return super._write_atomic(path, contents)
@@ -153,6 +157,42 @@ func verify_open_errors(a: Dictionary, b: Dictionary) -> void:
 	check(FileAccess.get_file_as_string(store.primary_path) == raw and FileAccess.get_file_as_string(store.backup_path) == raw, "directory access failure retains both files")
 	store.clear()
 
+func verify_validated_bytes(a: Dictionary, b: Dictionary) -> void:
+	var store := CountingStore.new(test_directory.path_join("validated-bytes"))
+	write(store.primary_path, "")
+	write(store.backup_path, JSON.stringify(b))
+	check(store.save_save(a) == OK and FileAccess.get_file_as_string(store.backup_path) == JSON.stringify(b), "empty primary is invalid before any validation fact")
+	var reads: int = store.reads
+	var writes: int = store.writes
+	check(store.save_save(a) == OK and store.reads > reads and store.writes == writes, "validated identical bytes still require a complete file read")
+	# Same-length external replacement must rotate its actual bytes, even after
+	# the requested payload has already been successfully written by this store.
+	var replacement := JSON.stringify(b,"",false,true)
+	write(store.primary_path,replacement)
+	check(store.save_save(a) == OK and FileAccess.get_file_as_string(store.backup_path) == replacement, "same-length external replacement overrides validation reuse")
+	var mutated := a.duplicate(true)
+	check(store.save_save(mutated) == OK,"owned input fixture saved")
+	mutated.progression.runes = 123
+	check(store.save_save(mutated) == OK and store.load_save().progression.runes == 123,"later caller mutation cannot alter immutable validated bytes")
+	check(FileAccess.get_file_as_string(store.backup_path) == JSON.stringify(a,"",false,true),"caller mutation keeps previous exact backup")
+	write(store.primary_path,"{broken")
+	check(Store.new(test_directory.path_join("validated-bytes")).save_save(b) == OK and FileAccess.get_file_as_string(store.backup_path) == JSON.stringify(a,"",false,true),"fresh store cannot certify another instance's corrupt primary")
+	var edge: Dictionary = Codec.decode({"version":2,"savedAtMillis":9223372036854775807,"preferences":{},"progression":{"runes":9223372036854775807,"claimedEventIds":["__rune_save_int__0","한글\\\"\n"]},"turretModules":{},"activeRun":{"nexusHp":1e40,"killGoldFractionWallet":1e20}})
+	check(store.save_save(edge) == OK and store.save_save(edge) == OK,"typed writer certifies int64, large floating numbers and escaped strings")
+	check(Store.new(test_directory.path_join("validated-bytes")).load_save() == edge,"certified writer bytes also pass a fresh strict parser")
+	store.clear()
+	var fault := ReadFaultStore.new(test_directory.path_join("validated-read-fault"))
+	check(fault.save_save(a) == OK,"warm read failure fixture")
+	fault.fault_path = fault.primary_path
+	fault.read_file = ReadFile.new()
+	fault.read_file.bytes = JSON.stringify(a,"",false,true).to_utf8_buffer()
+	fault.read_file.length = fault.read_file.bytes.size()
+	fault.read_file.error = ERR_FILE_CANT_READ
+	writes = fault.writes
+	check(fault.save_save(a) == ERR_FILE_CANT_READ and fault.writes == writes,"cached identical content cannot hide a read error")
+	fault.fault_path = ""
+	fault.clear()
+
 func _initialize() -> void:
 	test_directory = OS.get_environment("TMPDIR").path_join("rune-nexus-save-store-test-" + str(OS.get_process_id()) + "-" + str(Time.get_ticks_usec()))
 	if not test_directory.is_absolute_path():
@@ -165,6 +205,7 @@ func _initialize() -> void:
 	var c := a.duplicate(true)
 	c.savedAtMillis = 3
 	verify_read_errors(a, b)
+	verify_validated_bytes(a, b)
 	var store := CountingStore.new(test_directory)
 	check(store.primary_path == test_directory.path_join("saves/guest/save_v2.json"), "guest path")
 	check(store.load_save() == null and store.last_error == OK, "empty load")
