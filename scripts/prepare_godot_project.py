@@ -206,6 +206,7 @@ def prepare() -> Path:
     if any(stage >= 21 for stage in _environment_stage_ids("chapterTwoRift")):
         required += [SOURCE_ASSETS / "environment/chapter2_tiles_expansion.glb"]
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
+    required += [SOURCE_ASSETS / "effects" / name for name in ("placement_dust.glb", "placement_dust.json")]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
     required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "fast_death.glb", "tank_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
@@ -252,6 +253,7 @@ def prepare() -> Path:
         shutil.copy2(source, target)
     for source in sorted((SOURCE_ASSETS / "enemies").glob("*_status_*.res")):
         shutil.copy2(source, ASSETS / "enemies" / source.name)
+    shutil.copy2(SOURCE_ASSETS / "effects/placement_dust.json", ASSETS / "effects/placement_dust.json")
     texture_manifest = externalize_textures(ASSETS)
     # Preserve the 60fps contact extrema during the fast authored kneel.
     # Default 30fps resampling otherwise puts feet briefly below the tile.

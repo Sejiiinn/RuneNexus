@@ -217,6 +217,8 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	_frame_metrics.dispose()
+	_units.clear_placements()
+	world.position = Vector3.ZERO
 	if RenderingServer.frame_pre_draw.is_connected(_report_presentation):
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	_environment.dispose()
@@ -334,11 +336,12 @@ func _apply_world_shake() -> void:
 	world.position = Vector3.ZERO
 	var payload: Dictionary = last_frame.get("presentation", {})
 	var requested: Array = options.get("presentation_groups", [])
-	if not requested.has("effects") or not _presentation_nodes["effects"].supported_groups().has("effects"):
-		return
-	var effects: Dictionary = payload.get("effects", {})
-	world.position = _battlefield_camera.world_shake_offset(effects, last_frame.get("viewport", []),
-		get_viewport().get_visible_rect().size)
+	var actual_size := get_viewport().get_visible_rect().size
+	if requested.has("effects") and _presentation_nodes["effects"].supported_groups().has("effects"):
+		var effects: Dictionary = payload.get("effects", {})
+		world.position = _battlefield_camera.world_shake_offset(effects,last_frame.get("viewport", []),actual_size)
+	var impact := _units._placements.shake_pixels()
+	world.position += _battlefield_camera.world_shake_offset({"shake":[impact.x,impact.y]},[actual_size.x,actual_size.y],actual_size)
 
 
 func _prepare_overlay_context() -> void:
@@ -411,8 +414,16 @@ func presentation() -> Dictionary:
 
 
 func _report_presentation() -> void:
+	_units.update_placements()
+	_apply_world_shake()
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
 	_present_overlays()
+
+func confirm_turret_placement(id: int, type: String, x: int, y: int) -> void:
+	_units.confirm_placement(id,type,x,y)
+
+func cancel_turret_placement(id: int) -> void:
+	_units.cancel_placement(id)
 
 
 func _apply_frame(frame: Dictionary) -> void:

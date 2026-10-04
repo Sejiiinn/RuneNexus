@@ -32,6 +32,7 @@ SCRIPTS = {
     "verify_legacy_combat_regressions.gd": "PASS legacy combat replacements:",
     "verify_shared_turret_stats.gd": "SHARED_TURRET_STATS checks=",
     "verify_native_combat_runtime.gd": "PASS native combat runtime:",
+    "verify_turret_placement.gd": "TURRET_PLACEMENT checks=",
     "verify_native_session.gd": "PASS native session:",
     "verify_native_wave_core.gd": "PASS native wave/core:",
     "verify_native_core_defense.gd": "PASS native core defense:",
@@ -110,6 +111,8 @@ def prepare(directory: Path, executable: str) -> Path:
         copy_files(ROOT / "godot" / folder, project / folder, {".gd", ".gdshader", ".json"})
     copy_files(ROOT / "godot/app", project / "app", {".gd"})
     copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
+    (project / "presentation").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "godot/presentation/turret_placement.gd", project / "presentation/turret_placement.gd")
     for name in ("inputs", "expected"):
         path = f"godot_save_codec_{name}.json"
         shutil.copy2(ROOT / "test/fixtures" / path, project / "fixtures" / path)

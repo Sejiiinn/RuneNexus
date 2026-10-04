@@ -3,6 +3,8 @@ extends RefCounted
 signal failure(message: String)
 
 const GemOrbit = preload("res://effects/gem_orbit.gd")
+const Placement = preload("res://presentation/turret_placement.gd")
+const PlacementDust = preload("res://effects/placement_dust.gd")
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const SniperVfx = preload("res://effects/sniper_vfx.gd")
@@ -44,6 +46,8 @@ var _gem_turret_revision := -1
 var _gem_selection: Dictionary = {}
 var _gem_orbits: Array[Node3D] = []
 var _build_preview := {}
+var _placements := Placement.new()
+var _placement_dust: PlacementDust
 var _time := 0.0
 var columns := 8
 var rows := 10
@@ -58,6 +62,11 @@ func _init(world_root: Node3D, battlefield_camera: Camera3D) -> void:
 	camera = battlefield_camera
 	_guardian_preview = GuardianPreview.new(world)
 	_guardian_preview.failure.connect(_forward_guardian_failure)
+	_placement_dust = PlacementDust.new()
+	_placement_dust.camera = camera
+	world.add_child(_placement_dust)
+	_placements.began.connect(_placement_dust.begin_cue)
+	_placements.ended.connect(_placement_dust.cancel_build)
 
 
 func _forward_guardian_failure(message: String) -> void:
@@ -68,11 +77,13 @@ func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> vo
 	_time = time
 	columns = map_size.x
 	rows = map_size.y
+	_placement_dust.map_size = map_size
 	options = frame_options
 
 
 
 func clear() -> void:
+	_placements.clear()
 	_guardian_preview.clear()
 	_gem_selection_revision = -1
 	_gem_turret_revision = -1
@@ -217,6 +228,7 @@ func _sync_turrets(units: Array) -> void:
 			continue
 		alive[id] = true
 		if turrets.has(id) and turrets[id]["type"] != type:
+			_placements.remove(id)
 			turrets[id]["root"].free()
 			turrets.erase(id)
 		if not turrets.has(id):
@@ -226,6 +238,7 @@ func _sync_turrets(units: Array) -> void:
 		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
 		entry["level"] = int(data[7]) if data.size() > 7 else 1
 		entry["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
+		_placements.apply_entry(id,entry,columns,rows)
 		entry["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - float(data[3])
 		if type == "frost":
 			var state: Dictionary = data[8] if data.size() > 8 and data[8] is Dictionary else {}
@@ -237,11 +250,26 @@ func _sync_turrets(units: Array) -> void:
 			_update_fire(entry, int(data[4]), float(data[5]))
 	for id in turrets.keys():
 		if not alive.has(id):
+			_placements.remove(int(id))
 			turrets[id]["root"].free()
 			turrets.erase(id)
 			membership_changed = true
 	if membership_changed:
 		turret_revision += 1
+
+func confirm_placement(id: int, type: String, x: int, y: int) -> void:
+	_placements.queue_build(id,type,x,y)
+
+func update_placements() -> void:
+	_placements.update(turrets,columns,rows)
+	_placement_dust.update_time()
+
+func cancel_placement(id: int) -> void:
+	_placements.remove(id)
+
+func clear_placements() -> void:
+	_placements.clear()
+	_placement_dust.clear()
 
 
 func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> void:

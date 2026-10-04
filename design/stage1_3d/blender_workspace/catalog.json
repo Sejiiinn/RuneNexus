@@ -339,6 +339,26 @@
         "design/teleport_device_concepts/2026-09-30/production/README.md"
       ],
       "limitation": "승인된 파랑·주황 IN/OUT 전송 포탈의 Blender 원본과 Godot 이식 경로. 현재 맵 배치와 이동·저장 계약은 godot/content/README.md의 선택적 전송 기믹을 따른다. Blender 절차 효과는 Godot 재질·전투 시계로 재현하며 Android 실기기·공개 배포 상태는 별도다."
+    },
+    "placement-dust": {
+      "source": "design/turret_placement_dust/2026-10-04/placement-dust.blend",
+      "guide": "design/turret_placement_dust/2026-10-04/README.md",
+      "steps": [
+        {
+          "script": "design/turret_placement_dust/2026-10-04/export.py",
+          "entrypoint": "module body",
+          "context": "Blender MCP: 새 독립 PlacementDust3D 원본을 편집한 뒤 해당 장면만 GLB/동작 JSON으로 출력. 열린 다른 파일과 미저장 작업을 보존한다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/effects/placement_dust.glb",
+        "assets/images/stage1_3d/effects/placement_dust.json"
+      ],
+      "checks": [],
+      "records": [
+        "design/turret_placement_dust/2026-10-04/burst_manifest.json"
+      ],
+      "limitation": "편집 가능한 3D 체적 밀도 원본과 native closed-proxy MultiMesh의 밀도 적분·opaque depth clipping을 사용한다. 실제 게임 고정/드론 시점에서 먼지 가독성과 포탑 가림을 확인한다."
     }
   }
 }

@@ -147,12 +147,18 @@ func apply_run_command(request: Dictionary) -> bool:
 	if not is_content_session() or not scene._native_combat.active: return false
 	# Settle newly observed events before checking affordability/phase.
 	if not command(): return false
+	var build_id := int(run_domain.state.get("nextTurretId",-1)) if request.get("kind") == "build" else -1
 	var result: Dictionary = run_domain.apply(request)
 	if not result.get("ok", false):
 		checkpoint.message = run_domain.error
 		return false
 	command(result.get("commands", []), {"phase":run_domain.state.phase})
 	checkpoint.message = ""
+	if build_id >= 0 and scene.has_method("confirm_turret_placement"):
+		var placed: Dictionary = run_domain.service.turret(run_domain.state,build_id)
+		if not placed.is_empty(): scene.confirm_turret_placement(build_id,str(placed.type),int(placed.x),int(placed.y))
+	if request.get("kind") == "sell" and scene.has_method("cancel_turret_placement"):
+		scene.cancel_turret_placement(int(request.get("id",-1)))
 	scene._native_combat_base_frame.buildPreview = null
 	return true
 
