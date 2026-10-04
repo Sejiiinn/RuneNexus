@@ -2,6 +2,12 @@ extends RefCounted
 ## Static Canvas unit conversion shared by authored effects and legacy frames.
 const LOGICAL_TILE := 48.0
 
+static func is_spatial_lightning(effect: Dictionary) -> bool:
+	# Lightweight routing metadata; Canvas consumers need no 3D mesh dependency.
+	if str(effect.get("turretType", "")) != "lightning": return false
+	var kind := str(effect.get("kind", ""))
+	return kind in ["charge", "chain"] or (kind == "impact" and str(effect.get("style", "")) in ["lightning", "lightningBlast"])
+
 static func normalize(effect: Dictionary) -> void:
 	var source_tile := maxf(0.001, float(effect.get("tileSize", LOGICAL_TILE)))
 	if is_equal_approx(source_tile, LOGICAL_TILE): return

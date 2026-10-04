@@ -1,0 +1,27 @@
+{
+  "source_sha256": "39569c81a178669d3fd84c1642ef1a6ddfa8dc75ae516261bd47fec2c28f2ea4",
+  "camera": [
+    4,
+    -4,
+    5.5
+  ],
+  "target": [
+    0,
+    0,
+    0.4
+  ],
+  "ortho_scale": 1.45,
+  "vertex_bounds_uv": [
+    0.07743436098098755,
+    0.07186050713062286,
+    0.8584302067756653,
+    0.8347628116607666
+  ],
+  "size": [
+    256,
+    256
+  ],
+  "rgba": true,
+  "samples": 96,
+  "post_processing": false
+}
