@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-04 Android 0.2.13 / code 6042 — 공개 완료
+
+- APK 대상 `74c7d33d37055dc37ff05d5eeec6e6d24227573e`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37169361846)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6042). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6042/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 build-only 산출물 5개를 그대로 공개했다.
+- 모듈 뽑기 확인창 공간, 전투 종료·계정 모달, 연구 상세 정보, 결과창 크리스탈 결집 연출, 포탑 설치 충격·3D 먼지·LOD, 설치 포탑·미리보기의 남서쪽 기본 방향, 라이트닝 포탑 모델·입체 연쇄 공격 효과를 포함한다. 미커밋 연구 카드 수정은 제외했다. 서버·DB·운영 설정 변경이나 재배포는 없다.
+- 첫 CI는 Godot 준비 테스트의 임시 자산에 새 설치 먼지 파일이 없어 실패했다. 제품 동작은 유지하고 fixture에 GLB·JSON을 추가한 뒤 재실행했다. 최종 CI의 Python 71개·콘텐츠·Godot 네이티브 회귀 54개·계정/AppServices 검사, 서명 빌드·Android 패치 디코더·6039/6040/6041 서명 일치 및 차등 복원이 통과했다.
+- APK **415,619,078 bytes**, SHA-256 `c004a09e7efce0c48153438fa58eb0bb02931c0ffa963d11de11be514a591748`. 이전 6041 대비 **+853,872 bytes(+0.2059%)**이며 증가 대부분은 PCK의 라이트닝 모델·공격 메시와 설치 먼지다. PCK 187,394,768 bytes·1129항목·완전 중복 0, 제작 원본 포함 없음. ABI 3종을 유지하며 네이티브 라이브러리의 크기·CRC는 이전 공개본과 같다. 6041→6042 패치는 180,404,610 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치, 자산 5개의 크기·GitHub SHA-256과 CI 산출물 일치, 익명 APK 접근 HTTP 200을 확인했다. 사용자 요청에 따라 추가 로컬 기능·화면 검증과 Android 설치·실행을 생략했다. 이번 APK의 실기기 로그인·저장 유지·지속 성능은 미검증이다. 로컬 근거는 `build/release-verification/apk-6042/`에 보관한다.
+
 ## 2026-10-02 Android 0.2.12 / code 6041 — 공개 완료
 
 - APK 대상 `7a6065debda844fc1d0a425f87f59529cb85f57d`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36965869424)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6041). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6041/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지한다. build-only 검수본 5개를 그대로 공개했다.
