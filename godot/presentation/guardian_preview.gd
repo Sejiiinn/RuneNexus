@@ -324,6 +324,13 @@ func update_deaths(time: float) -> void:
 			entry.root.free()
 			deaths.erase(id)
 			continue
-		entry.player.seek(minf(age, TankDeath.COLLAPSE) if entry.type == "tank" else age, true)
+		if entry.type == "tank":
+			# The settled bones no longer change, but fade/dust still use live age.
+			# Rewinds into collapse must sample again and invalidate the hold.
+			if age < TankDeath.COLLAPSE or not entry.get("death_settled", false):
+				entry.player.seek(minf(age, TankDeath.COLLAPSE), true)
+				entry.death_settled = age >= TankDeath.COLLAPSE
+		else:
+			entry.player.seek(age, true)
 		if entry.type == "fast": HoundDeath.sample(entry, age)
 		if entry.type == "tank": TankDeath.sample(entry, age)

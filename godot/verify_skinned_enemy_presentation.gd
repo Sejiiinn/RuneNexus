@@ -71,6 +71,37 @@ func check_single_evaluation(world: Node3D) -> void:
 	motion.update_deaths(1.3)
 	check(sampled.writes == 1, "Death manual pose evaluates once")
 	motion.clear()
+	# Reuse the property-track probe with real tank effect sampling. No GLB
+	# import/cache writes are included in these per-update evaluation counts.
+	for first_age in [0.0, 0.9]:
+		entry = motion._instantiate(scene, 0.0)
+		sampled = entry.root.get_child(0).get_node("PoseProbe")
+		entry.type = "tank"
+		entry.born = 0.0
+		var skeleton := Skeleton3D.new()
+		entry.root.add_child(skeleton)
+		entry.death_skeleton = skeleton
+		entry.death_start_pose = []
+		entry.death_bodies = []
+		var dust := MultiMeshInstance3D.new()
+		entry.root.add_child(dust)
+		entry.death_dust = dust
+		motion.deaths[10] = entry
+		sampled.writes = 0
+		motion.update_deaths(first_age)
+		check(sampled.writes == 1, "Fresh tank samples even when first update is already settled")
+		var terminal_sampled: bool = first_age >= Motion.TankDeath.COLLAPSE
+		for age in [0.05, 0.05, 0.3, 0.7, 0.9, 0.9, 1.2, 0.3, 0.8, 1.3]:
+			sampled.writes = 0
+			motion.update_deaths(age)
+			var expected := 0 if age >= Motion.TankDeath.COLLAPSE and terminal_sampled else 1
+			check(sampled.writes == expected, "Tank evaluates only changing collapse or first terminal pose at " + str(age))
+			terminal_sampled = age >= Motion.TankDeath.COLLAPSE
+			check(is_equal_approx(sampled.value, minf(age, Motion.TankDeath.COLLAPSE)), "Tank pose time survives pause and rewind")
+			check(is_equal_approx(float(dust.get_instance_shader_parameter("death_age")), age), "Dust age updates even when terminal pose is held")
+		motion.update_deaths(Motion.TankDeath.LIFETIME)
+		check(motion.deaths.is_empty() and not is_instance_valid(dust), "Tank lifetime removes held corpse and dust")
+		motion.clear()
 
 func pose_snapshot(entry: Dictionary) -> Array[Transform3D]:
 	var poses: Array[Transform3D] = [entry.root.transform]
@@ -189,6 +220,12 @@ func run() -> void:
 	check(is_equal_approx(motion.deaths[2].root.scale.x, 0.48 * Motion.FAST_VISUAL_SCALE), "Fast corpse retains live visual scale")
 	for entry: Dictionary in motion.deaths.values():
 		if entry.type != "tank": check_legacy_pose(entry, entry.type + " death initial")
+	motion.update_deaths(2.05)
+	var blended := pose_snapshot(tank_death)
+	motion.update_deaths(2.05)
+	var paused_blend := pose_snapshot(tank_death)
+	for index in range(blended.size()):
+		check(blended[index].is_equal_approx(paused_blend[index]), "Paused tank gait blend resamples authored pose without accumulating")
 	motion.update_deaths(2.30)
 	for entry: Dictionary in motion.deaths.values():
 		check_legacy_pose(entry, entry.type + " death mid")
@@ -203,6 +240,15 @@ func run() -> void:
 	motion.update_deaths(2.9)
 	check(motion.deaths.size() == 1 and is_equal_approx(tank_death.player.current_animation_position, .7), "Tank holds the settled pose after .7s")
 	check(is_zero_approx(float(tank_death.death_bodies[0].get_instance_shader_parameter("death_light"))), "Tank core is off after the single impact pulse")
+	var settled := pose_snapshot(tank_death)
+	motion.update_deaths(3.2)
+	var held := pose_snapshot(tank_death)
+	for index in range(settled.size()):
+		check(settled[index].is_equal_approx(held[index]), "Tank holds each authored node/bone during fade")
+	var tank_opacity := float(tank_death.death_bodies[0].get_instance_shader_parameter("death_opacity"))
+	check(tank_opacity > 0.0 and tank_opacity < 1.0, "Tank fade progresses while terminal pose evaluation is skipped")
+	check(is_equal_approx(float(tank_death.death_dust.get_instance_shader_parameter("death_age")), 1.2), "Authored tank dust continues using combat age during fade")
+	check_legacy_pose(tank_death, "tank held terminal")
 	motion.update_deaths(3.41)
 	check(motion.deaths.is_empty(), "Tank corpse and dust are removed after 1.4s")
 	motion.forget_walker(2)
