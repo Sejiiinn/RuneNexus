@@ -778,3 +778,6 @@ __pycache__/
 
 # Gem reward entrance concepts: one-off preview render and verification outputs.
 /design/gem_reward_entrance_concepts/2026-10-04/local/
+
+# GIMP session recovery: local inspection log; editable XCF files remain visible.
+/design/gimp_session_recovery/2026-10-05/manifest.json
