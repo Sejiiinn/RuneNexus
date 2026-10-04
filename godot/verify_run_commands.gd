@@ -64,6 +64,9 @@ func _initialize() -> void:
 	var build := {"kind":"build","type":"arrow","x":tile%int(map.columns),"y":int(tile/int(map.columns))}
 	var built: Dictionary = service.apply(state,build)
 	check(built.ok and built.state.gold == state.gold-service.build_cost(state,"arrow"),"build charges cost")
+	check(is_equal_approx(built.state.turrets[0].aimAngle,3.0*PI/4.0),"new directional build starts southwest")
+	check(is_equal_approx(built.commands[0].turret.state.aimAngle,3.0*PI/4.0),"initial angle flows to native command state")
+	check(Commands.initial_aim_angle("frost") == 0.0,"non-directional frost keeps its original pose")
 	check(not service.apply(built.state,build).ok,"occupied rejected")
 	check(not service.apply(state,{"kind":"build","type":"sniper","x":build.x,"y":build.y}).ok,"locked turret rejected")
 	state = built.state
@@ -223,7 +226,12 @@ func _game_cases(service) -> void:
 			check(result.state[key] == fixture.after[key],fixture.name+": actual "+key)
 		var turrets: Array = result.state.turrets.duplicate(true)
 		for t in turrets: t.erase("id")
-		check(_near(turrets,fixture.after.turrets),fixture.name+": actual turret save state")
+		var expected_turrets: Array = fixture.after.turrets.duplicate(true)
+		# Archived growth fixtures predate the initial-facing field. Only an
+		# accepted new build adds it; existing saved turret state is compared whole.
+		if fixture.command.kind == "build" and result.ok:
+			expected_turrets.back().aimAngle = 0.0 if fixture.command.type == "frost" else 3.0*PI/4.0
+		check(_near(turrets,expected_turrets),fixture.name+": actual turret save state")
 		var commands: Array = service.runtime_commands(result.state)
 		check(commands.size() == expected_inputs.size(),fixture.name+": actual stats count")
 		for i in mini(commands.size(),expected_inputs.size()):

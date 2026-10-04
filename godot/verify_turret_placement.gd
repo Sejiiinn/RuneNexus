@@ -44,6 +44,8 @@ func run() -> void:
 		var before_gold: int = app.run_domain.state.gold
 		check(app.apply_run_command({"kind":"build","x":tile.x,"y":tile.y,"type":kinds[index]}),kinds[index]+" build accepted")
 		var id: int = app.run_domain.state.turrets.back().id
+		var angle := 0.0 if kinds[index] == "frost" else 3.0*PI/4.0
+		check(is_equal_approx(app.run_domain.state.turrets.back().aimAngle,angle) and is_equal_approx(host._native_combat.turrets[str(id)].aimAngle,angle),kinds[index]+" accepted build initializes domain/native facing")
 		check(host.accepted.size() == before_count+1 and app.run_domain.state.gold < before_gold,kinds[index]+" exactly one successful build cue and charge")
 		var model := Node3D.new()
 		model.position = Vector3(tile.x+0.5-int(map.columns)/2.0,0,tile.y+0.5-int(map.rows)/2.0)

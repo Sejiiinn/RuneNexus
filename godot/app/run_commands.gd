@@ -5,6 +5,10 @@ const GemSlots = preload("res://app/gem_slot_rules.gd")
 var catalog
 var growth
 
+static func initial_aim_angle(type: String) -> float:
+	# Tile coordinates: right +x, down +y. Directional models idle southwest.
+	return 0.0 if type == "frost" else 3.0*PI/4.0
+
 func _init(content = null, growth_rules = null) -> void:
 	catalog = content
 	growth = growth_rules
@@ -117,6 +121,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		if int(state.gold) < cost: return _reject(state,"gold")
 		next.gold -= cost
 		t = {"id":int(next.nextTurretId),"type":type,"x":x,"y":y,"level":1,"slotLimit":1,"equippedGemSlots":[null],"equippedGems":[],"primaryTrait":null,"secondaryTrait":null,"targetPriority":"first","investedGold":cost,"cooldown":0.0,"damageDealt":0.0,"directDamageDealt":0.0,"splashDamageDealt":0.0,"chainDamageDealt":0.0,"burnDamageDealt":0.0}
+		t.aimAngle = initial_aim_angle(type)
 		next.nextTurretId += 1
 		next.turrets.append(t)
 	elif kind == "runUpgrade":

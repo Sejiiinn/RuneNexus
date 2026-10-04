@@ -192,7 +192,7 @@ func board_tap(tile: Vector2i) -> void:
 	if tile.x < 0:
 		scene._native_combat_base_frame.buildPreview = null
 		return
-	scene._native_combat_base_frame.buildPreview = [-1,tile.x + 0.5,tile.y + 0.5,0,0,0,turret_type]
+	scene._native_combat_base_frame.buildPreview = [-1,tile.x + 0.5,tile.y + 0.5,run_domain.service.initial_aim_angle(turret_type),0,0,turret_type]
 
 func build_selected() -> void:
 	if selected.x < 0 or not scene._native_combat.active: return

@@ -79,7 +79,7 @@ func _build_state(app) -> void:
 		tile.range = _range(app,type,_stats(app,derived,preview))
 		tile.color = COLORS.get(type,0xff8ee6ff)
 		selection.tiles.append(tile)
-		frame.buildPreview = [-1,chosen.x+0.5,chosen.y+0.5,0,tile.range,0,type]
+		frame.buildPreview = [-1,chosen.x+0.5,chosen.y+0.5,app.run_domain.service.initial_aim_angle(type),tile.range,0,type]
 
 func _stats(app, derived: Dictionary, turret: Dictionary) -> Dictionary:
 	# Selection uses world tiles; HUD stats use 48-pixel tiles in a separate entry.

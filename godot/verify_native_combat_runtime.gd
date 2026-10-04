@@ -40,6 +40,7 @@ func _initialize() -> void:
 	_response_mode_checks()
 	_path_revision_checks()
 	_projectile_travel_checks(fixtures)
+	_initial_facing_checks(fixtures)
 	if failures.is_empty():
 		print("PASS native combat runtime: ", count, " configured turret cases, all six types, damage, ACK idempotency, gap rejection, batched timestep preservation, triple projectile travel and late collision")
 		quit(0)
@@ -48,6 +49,36 @@ func _initialize() -> void:
 		quit(1)
 func _check(condition: bool, message: String) -> void:
 	if not condition: failures.append(message)
+
+func _initial_facing_checks(fixtures: Array) -> void:
+	var input: Dictionary = {}
+	for fixture in fixtures:
+		if fixture.input.definition.type == "arrow" and fixture.input.level == 1 and fixture.input.gems.is_empty():
+			input = fixture.input.duplicate(true)
+			break
+	var raw := {"id":1,"position":[0,0],"statInput":input,"state":{"aimAngle":3.0*PI/4.0}}
+	var runtime = Runtime.new()
+	runtime._turret(raw)
+	runtime.running = false
+	runtime._tick_turret(runtime.turrets["1"],1.0)
+	_check(is_equal_approx(runtime.turrets["1"].aimAngle,3.0*PI/4.0),"paused initial southwest facing stays in native state")
+	# Zero is a real saved/target angle, never an idle sentinel.
+	var restored = Runtime.new()
+	var saved := raw.duplicate(true)
+	saved.state.aimAngle = 0.0
+	restored._turret(saved)
+	_check(restored.turrets["1"].aimAngle == 0.0,"explicit saved zero angle is preserved")
+	saved.state.aimAngle = -0.7
+	var other = Runtime.new()
+	other._turret(saved)
+	_check(is_equal_approx(other.turrets["1"].aimAngle,-0.7),"explicit saved nonzero angle is preserved")
+	runtime._spawn({"id":1,"x":10.0,"y":0.0,"hp":10000.0,"maxHp":10000.0,"collisionRadius":1.0})
+	runtime.running = true
+	runtime._tick_turret(runtime.turrets["1"],1.0)
+	_check(runtime.turrets["1"].aimAngle == 0.0 and runtime.turrets["1"].shotSequence == 1,"east target immediately replaces initial angle and fires")
+	_check(runtime.projectiles.size() == 1 and runtime.projectiles[0].direction.is_equal_approx(Vector2.RIGHT),"east projectile keeps the real zero angle")
+	runtime._turret(raw)
+	_check(runtime.turrets["1"].aimAngle == 0.0,"configuration refresh cannot reset acquired zero angle")
 
 func _projectile_test_runtime(input: Dictionary, scale: float, target_x: float):
 	var r = Runtime.new()
