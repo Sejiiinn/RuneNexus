@@ -56,7 +56,7 @@
     },
     {
       "round": 2,
-      "previewText": "보스 호위 예열",
+      "previewText": "보호막·빠름 예열",
       "clearRewardGold": 24,
       "groups": [
         {"enemyType": "shielded", "count": 4, "interval": 1.4, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
@@ -192,7 +192,7 @@
     },
     {
       "round": 15,
-      "previewText": "보스 호위 압축",
+      "previewText": "호위 압축",
       "clearRewardGold": 78,
       "groups": [
         {"enemyType": "shielded", "count": 7, "interval": 1.3599999999999999, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
@@ -301,7 +301,7 @@
     },
     {
       "round": 25,
-      "previewText": "보스 호위 압축",
+      "previewText": "호위 압축",
       "clearRewardGold": 98,
       "groups": [
         {"enemyType": "shielded", "count": 9, "interval": 1.3199999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
@@ -412,7 +412,7 @@
     },
     {
       "round": 35,
-      "previewText": "보스 호위 압축",
+      "previewText": "호위 압축",
       "clearRewardGold": 118,
       "groups": [
         {"enemyType": "shielded", "count": 11, "interval": 1.2799999999999998, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},

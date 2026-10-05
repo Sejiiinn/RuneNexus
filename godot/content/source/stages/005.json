@@ -53,7 +53,7 @@
   "waves": [
     {
       "round": 1,
-      "previewText": "기준 혼합",
+      "previewText": "일반 적 대열",
       "clearRewardGold": 23,
       "groups": [
         {"enemyType": "normal", "count": 6, "interval": 1.7, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7}
@@ -61,7 +61,7 @@
     },
     {
       "round": 2,
-      "previewText": "빠른 적 러시",
+      "previewText": "일반 적 증원",
       "clearRewardGold": 24,
       "groups": [
         {"enemyType": "normal", "count": 8, "interval": 1.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7}

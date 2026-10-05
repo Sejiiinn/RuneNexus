@@ -10,13 +10,72 @@ from unittest.mock import patch
 
 from content_compiler import (ROOT, apply_ulps, check_generated, compile_content,
                               durability_for, queue_for, read_json, record_json,
-                              typed_digest, write_generated)
+                              typed_digest, validate_preview, write_generated)
 from content_design_views import chapter_views, map_annotations
 import prepare_godot_project as preparation
 import run_godot_native_regressions as regressions
 
 
 class ContentCompilerTests(unittest.TestCase):
+    def test_preview_changes_preserve_every_other_typed_value(self):
+        content = compile_content()
+        for stage in content['stages']:
+            for wave in stage['waves']:
+                del wave['previewText']
+        fixture = read_json(ROOT / 'test/fixtures/content_source_baseline.json')
+        self.assertEqual(typed_digest(content), fixture['withoutPreviewDigest'])
+
+    def test_preview_claims_reject_missing_types_and_single_type_mixtures(self):
+        cases = [('', ['normal']), ('  ', ['normal']),
+                 ('빠른 적 러시', ['normal']), ('빠름 선두', ['normal']),
+                 ('고속 압박', ['normal']), ('일반 대열', ['fast']),
+                 ('보호막 혼합', ['normal', 'fast']), ('차폐 대열', ['tank']),
+                 ('탱커 돌파', ['normal']), ('장갑 대열', ['normal']),
+                 ('기준 혼합', ['normal', 'normal']),
+                 ('보스 호위 예열', ['shielded', 'fast']),
+                 ('보스 호위 압축', ['shielded', 'fast', 'tank']),
+                 ('파쇄자', ['boss']), ('방벽체', ['forgeBoss']),
+                 ('보호막 보스', ['shielded', 'boss']),
+                 ('보호막병', ['shieldBoss']), ('장갑병', ['forgeBoss'])]
+        for text, kinds in cases:
+            with self.subTest(text=text, kinds=kinds):
+                with self.assertRaisesRegex(ValueError, 'Stage 1 round 2 preview'):
+                    validate_preview(text, [{'enemyType': kind} for kind in kinds], 1, 2)
+
+    def test_preview_validation_preserves_tactical_prose_and_boss_variants(self):
+        cases = [('겹침 압박', ['normal', 'normal']),
+                 ('보호막 2열 복습', ['shielded', 'shielded']),
+                 ('기준 혼합', ['normal', 'fast']),
+                 ('균열 예열', ['normal']), ('용광로 대열', ['armored']),
+                 ('보스 호위', ['boss']), ('보호막 보스', ['shieldBoss']),
+                 ('균열 방벽체', ['shieldBoss']), ('용광로 파쇄자', ['forgeBoss']),
+                 ('장갑 보스', ['forgeBoss'])]
+        for text, kinds in cases:
+            with self.subTest(text=text):
+                validate_preview(text, [{'enemyType': kind} for kind in kinds], 1, 2)
+
+    def test_compiler_rejects_stale_preview_after_composition_edit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.clone(directory)
+            self.mutate_stage(root, 1, lambda stage: stage['waves'][3]['groups'][1].update(enemyType='normal'))
+            with self.assertRaisesRegex(ValueError, 'Stage 1 round 4 preview'):
+                compile_content(root)
+
+    def test_corrected_previews_match_reported_waves_and_generated_output(self):
+        content = check_generated()
+        cases = [(1, 2, '일반 적 증원', {'normal': 8}),
+                 (6, 1, '일반 적 대열', {'normal': 6}),
+                 (14, 4, '탱커 삽입', {'tank': 2, 'normal': 6})]
+        for stage_id, round_number, preview, expected in cases:
+            wave = content['stages'][stage_id - 1]['waves'][round_number - 1]
+            with self.subTest(stage=stage_id, round=round_number):
+                self.assertEqual(wave['previewText'], preview)
+                actual = {}
+                for enemy in wave['spawnQueue']:
+                    kind = enemy['enemyType']
+                    actual[kind] = actual.get(kind, 0) + 1
+                self.assertEqual(actual, expected)
+
     def clone(self, directory):
         root = Path(directory)
         shutil.copytree(ROOT / 'godot/content/source', root / 'godot/content/source')
