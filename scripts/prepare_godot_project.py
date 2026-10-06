@@ -82,21 +82,27 @@ def _prepare_battlefield_verification() -> None:
 def _prepare_boss_imports() -> None:
     """Keep accepted boss contact keys and material-friendly mobile compression."""
     boss = ASSETS / "enemies/boss.glb"
-    raw = boss.read_bytes()
-    json_size = struct.unpack_from("<I", raw, 12)[0]
-    document = json.loads(raw[20:20 + json_size])
     boss.with_suffix(".glb.import").write_text(
         '[remap]\nimporter="scene"\ntype="PackedScene"\n\n'
         '[params]\nanimation/fps=60\n'
     )
+    _prepare_compressed_model_textures(boss)
+
+
+def _prepare_compressed_model_textures(model: Path, size_limit: int = 0) -> None:
+    """Import shared PBR maps with an optional cap; never resize source images."""
+    raw = model.read_bytes()
+    json_size = struct.unpack_from("<I", raw, 12)[0]
+    document = json.loads(raw[20:20 + json_size])
     for image in document.get("images", []):
-        texture = (boss.parent / image["uri"]).resolve()
+        texture = (model.parent / image["uri"]).resolve()
         # externalize_textures owns path validation and content-hash sharing.
         texture.relative_to((ASSETS / "shared_textures").resolve())
         texture.with_suffix(texture.suffix + ".import").write_text(
             '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
             '[params]\ncompress/mode=2\ncompress/high_quality=true\n'
             'compress/normal_map=2\nmipmaps/generate=true\ndetect_3d/compress_to=0\n'
+            + (f'process/size_limit={size_limit}\n' if size_limit else '')
         )
 
 
@@ -303,8 +309,18 @@ def prepare() -> Path:
         '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
         'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
     )
-    # Boss-only ASTC/BPTC exception; all other shared textures keep their contract.
+    # Actor PBR maps use the accepted boss ASTC/BPTC policy. Live/death maps
+    # remain content-hash shared. UI, environment and special VFX retain their
+    # existing policies. Cap only the costly fast/tank/frost runtime atlases;
+    # smaller maps are not upscaled, and source images/geometry/UVs stay intact.
     _prepare_boss_imports()
+    for name in ENEMY_TYPES + ("normal_death", "fast_death", "tank_death"):
+        if name != "boss":  # Already handled with its animation import policy.
+            limit = 1024 if name in ("fast", "fast_death", "tank", "tank_death") else 0
+            _prepare_compressed_model_textures(ASSETS / "enemies" / f"{name}.glb", limit)
+    for name in TURRET_TYPES:
+        _prepare_compressed_model_textures(ASSETS / "turrets" / f"{name}.glb",
+                                           1024 if name == "frost" else 0)
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
     for source in sorted((SOURCE_ASSETS / "ui").rglob("*")):

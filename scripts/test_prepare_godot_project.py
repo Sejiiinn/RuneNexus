@@ -50,7 +50,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     preparation._prepare_app_ui()
 
-    def test_boss_imports_keep_contact_keys_and_astc_only_for_boss(self):
+    def test_boss_imports_keep_contact_keys_and_do_not_touch_unrelated_textures(self):
         with tempfile.TemporaryDirectory() as directory:
             assets = Path(directory) / "assets"
             (assets / "enemies").mkdir(parents=True)
@@ -157,6 +157,53 @@ class MaterialPresetSyncTest(unittest.TestCase):
                   struct.pack("<IIIII", 0x46546C67, 2, 28 + len(image_document) + len(binary),
                               len(image_document), 0x4E4F534A) + image_document
                   + struct.pack("<II", len(binary), 0x004E4942) + binary)
+            # Distinct images per kind, shared across live/death. The preparation
+            # policy must follow content references, not hard-coded hash names.
+            from test_apk_gltf_textures import fixture, write_glb, read_glb
+            source_glbs = {}
+            for kind in preparation.ENEMY_TYPES + preparation.TURRET_TYPES:
+                for suffix in (("", "_death") if kind in ("normal", "fast", "tank") else ("",)):
+                    document, binary = fixture()
+                    payload = kind.encode()
+                    binary += payload
+                    document["buffers"][0]["byteLength"] += len(payload)
+                    document["bufferViews"][1]["byteLength"] += len(payload)
+                    category = "enemies" if kind in preparation.ENEMY_TYPES else "turrets"
+                    path = assets / category / f"{kind}{suffix}.glb"
+                    write_glb(path, document, binary)
+                    source_glbs[path] = path.read_bytes()
+
+            def check_texture_policies():
+                references = {}
+                for original, original_bytes in source_glbs.items():
+                    self.assertEqual(original.read_bytes(), original_bytes)
+                    staged = project / "assets" / original.relative_to(assets)
+                    document, tail = read_glb(staged)
+                    original_doc, original_tail = read_glb(original)
+                    self.assertEqual(tail, original_tail)
+                    # Only externalization is allowed to alter the document.
+                    for key in original_doc.keys() - {"images"}:
+                        self.assertEqual(document[key], original_doc[key])
+                    image = (staged.parent / document["images"][0]["uri"]).resolve()
+                    references[original.stem] = image
+                    policy = image.with_suffix(image.suffix + ".import").read_text()
+                    self.assertIn("compress/mode=2\n", policy)
+                    self.assertIn("compress/high_quality=true", policy)
+                    self.assertIn("compress/normal_map=2", policy)
+                    self.assertIn("mipmaps/generate=true", policy)
+                    self.assertIn("detect_3d/compress_to=0", policy)
+                    capped = original.stem in ("fast", "fast_death", "tank", "tank_death", "frost")
+                    if capped:
+                        self.assertIn("process/size_limit=1024", policy)
+                    else:
+                        self.assertNotIn("process/size_limit", policy)
+                for kind in ("fast", "tank", "normal"):
+                    self.assertEqual(references[kind], references[kind + "_death"])
+                # The unrelated effect image stays lossless.
+                effect, _ = read_glb(project / "assets/effects/machinegun_muzzle.glb")
+                image = (project / "assets/effects" / effect["images"][0]["uri"]).resolve()
+                self.assertIn("compress/mode=0", image.with_suffix(".png.import").read_text())
+
             protected = [project / ".godot/imported/cached.tres",
                          project / ".godot/imported/dressing.glb-keep.scn"]
             for path in protected:
@@ -181,6 +228,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 write(source / "content/source/authoring.json", b"source must not be packaged")
                 write(project / "content/source/old.json", b"old staged source")
                 preparation.prepare()
+                check_texture_policies()
                 content_check.assert_called_with(root)
                 content_load.assert_called_with(source / "content/game_content.json")
                 progression_check.assert_called_with(root, check=True)
@@ -249,6 +297,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 burn_import.write_text('[params]\nmipmaps/generate=true\n')
                 preset.write_bytes(preset.read_bytes() + b"[resource]\nrefraction_enabled = true\n")
                 preparation.prepare()
+                check_texture_policies()
                 self.assertEqual(copied.read_bytes(), preset.read_bytes())
                 self.assertEqual((burn_target / "flame_atlas.png").read_bytes(), b"revised approved flame atlas")
                 self.assertIn("mipmaps/generate=false", burn_import.read_text())
@@ -259,11 +308,13 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 renamed = preset.with_name("approved_glass.tres")
                 preset.rename(renamed)
                 preparation.prepare()
+                check_texture_policies()
                 self.assertFalse(copied.exists(), "renamed preset must not remain exportable")
                 self.assertEqual((copied.parent / renamed.name).read_bytes(), renamed.read_bytes())
 
                 renamed.unlink()
                 preparation.prepare()
+                check_texture_policies()
                 self.assertFalse((copied.parent / renamed.name).exists())
                 for path in protected:
                     self.assertEqual(path.read_bytes(), b"generated resource")
