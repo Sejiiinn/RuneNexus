@@ -356,7 +356,7 @@ func research() -> void:
 			row.add_child(_glyph(0xe050, 18, Color("607587")))
 			row.add_child(_inline("빈 연구 슬롯", 13))
 	var slot_available := Progression.has_unlock(lobby._p(), "feature", "researchSlotTwo")
-	if count == 1 and (Progression.has_unlock(lobby._p(), "feature", "researchSlotTwoPreview") or slot_available):
+	if count == 1:
 		var cost := int(_growth().data.constants.researchSlotTwoUnlockCost)
 		_button(slots, "두 번째 슬롯 · 다이아 %d" % cost if slot_available else "두 번째 슬롯 · 스테이지 2-10 클리어 필요", _slot_confirm, not slot_available)
 	var groups := {"가능한 연구":[], "잠긴 연구":[], "완료한 연구":[]}
