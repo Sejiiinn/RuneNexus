@@ -411,7 +411,7 @@ func _sync_enemies(units: Array) -> void:
 			failure.emit("스테이지 1에서 지원하지 않는 적: %s" % type)
 			continue
 		alive[id] = true
-		var preview := type in ["normal", "fast", "tank"]
+		var preview := type in ["normal", "fast", "tank"] or type in GuardianPreview.BOSS_KINDS
 		if enemies.has(id) and (enemies[id]["type"] != type or bool(enemies[id].get("guardian_preview", false)) != preview):
 			enemies[id]["root"].free()
 			enemies.erase(id)

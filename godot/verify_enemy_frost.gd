@@ -49,10 +49,16 @@ func check_surfaces(entry: Dictionary, originals: Array, active: bool) -> void:
 		if original.resource_name.ends_with("_crystal"):
 			core_count += 1
 			check(current == original, "서리가 적의 원래 코어 재질을 변경함")
-		elif active and original is StandardMaterial3D:
+		elif active and (original is StandardMaterial3D or original.has_meta("frost_source_material")):
 			body_count += 1
 			check(current != original and current.next_pass == (Frost._skinned_coats[original] if bool(entry.get("guardian_preview", false)) else Frost._coat), "몸체에 공통 성에 next_pass가 적용되지 않음")
-			check(current.albedo_texture == original.albedo_texture and current.normal_texture == original.normal_texture, "원본 몸체 텍스처가 변경됨")
+			if original is StandardMaterial3D:
+				check(current.albedo_texture == original.albedo_texture and current.normal_texture == original.normal_texture, "원본 몸체 텍스처가 변경됨")
+			else:
+				check(current is ShaderMaterial and current.shader == original.shader, "보스 코어 셰이더가 성에 때문에 교체됨")
+				for parameter: String in ["albedo_map", "roughness_map", "metallic_map", "emission_map", "core_mask"]:
+					check(current.get_shader_parameter(parameter) == original.get_shader_parameter(parameter), "성에가 보스 원본 맵을 변경함: " + parameter)
+				check(current.get_meta("frost_source_material") == original.get_meta("frost_source_material"), "성에가 보스 원본 PBR 참조를 변경함")
 		else:
 			check(current == original, "감속 없는 적/만료된 적의 원래 재질이 복구되지 않음")
 	if bool(entry.get("guardian_preview", false)):
@@ -100,8 +106,16 @@ func _verify() -> void:
 		var frost: Node3D = entry["frost"]
 		if bool(entry.get("guardian_preview", false)):
 			check(frost.visible and entry["root"].is_ancestor_of(frost), "움직이는 적에 서리가 붙지 않음")
-			check(frost.find_children("*", "MeshInstance3D", true, false).size() == 2, "움직이는 적의 공통 결정 메시 누락")
+			var meshes := frost.find_children("*", "MeshInstance3D", true, false)
+			check(meshes.size() == 2, "움직이는 적의 공통 결정 메시 누락")
+			var body: MeshInstance3D = originals[i][0][0]
+			for effect: MeshInstance3D in meshes:
+				check(effect.skin == body.skin and effect.get_node(effect.skeleton) == body.get_node(body.skeleton), kinds[i] + " frost uses the living body skin and skeleton")
+			check(frost.find_children("*", "MultiMeshInstance3D", true, false).is_empty(), kinds[i] + " has no static misplaced frost particles")
 			check_surfaces(entry, originals[i], true)
+			if AttachmentKind.resolve(kinds[i]) == "boss":
+				var coat: ShaderMaterial = body.get_active_material(0).next_pass
+				check(coat.get_shader_parameter("preserve_red_core") and coat.get_shader_parameter("preserve_emission_core"), kinds[i] + " frost protects pigmented chest seal and emissive eyes/rune cuts")
 			continue
 		check(frost.visible and frost.get_parent() == entry["root"], "감속 시 원본 적에 서리가 붙지 않음: " + kinds[i])
 		check(frost.transform.is_equal_approx(Transform3D.IDENTITY), "서리의 로컬 좌표/단위가 변경됨: " + kinds[i])
@@ -117,11 +131,11 @@ func _verify() -> void:
 	var first: Node3D = scene.enemies[1]["frost"]
 	var first_meshes := first.find_children("*", "MultiMeshInstance3D", true, false)
 	check(Frost._multimeshes.size() == 6, "보스 변형이 boss 부착 리소스를 재사용하지 않음")
-	var boss_meshes: Array = scene.enemies[5]["frost"].find_children("*", "MultiMeshInstance3D", true, false)
+	var boss_meshes: Array = scene.enemies[5]["frost"].find_children("*", "MeshInstance3D", true, false)
 	for index in [6, 7]:
-		var variant_meshes: Array = scene.enemies[index]["frost"].find_children("*", "MultiMeshInstance3D", true, false)
+		var variant_meshes: Array = scene.enemies[index]["frost"].find_children("*", "MeshInstance3D", true, false)
 		for part in range(2):
-			check(boss_meshes[part].multimesh == variant_meshes[part].multimesh, "보스 변형이 boss 냉각 데이터를 공유하지 않음: " + kinds[index])
+			check(boss_meshes[part].mesh == variant_meshes[part].mesh and boss_meshes[part].material_override == variant_meshes[part].material_override, "보스 변형이 boss 냉각 데이터를 공유하지 않음: " + kinds[index])
 	units.append(unit(10, "armored", true))
 	scene._sync_enemies(units)
 	var other_meshes: Array = scene.enemies[10]["frost"].find_children("*", "MultiMeshInstance3D", true, false)

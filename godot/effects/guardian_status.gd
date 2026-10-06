@@ -1,5 +1,6 @@
 extends RefCounted
 ## Each authored rig shares three offline-merged meshes: burn + shards + grains.
+const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const MESHES := {
 	"normal": {
 		"EnemyBurn": [preload("res://assets/enemies/normal_status_burn.res")],
@@ -9,12 +10,16 @@ const MESHES := {
 		"EnemyBurn": [preload("res://assets/enemies/fast_status_burn.res")],
 		"EnemyFrost": [preload("res://assets/enemies/fast_status_frost_shards.res"), preload("res://assets/enemies/fast_status_frost_grains.res")],
 	},
+	"boss": {
+		"EnemyBurn": [preload("res://assets/enemies/boss_status_burn.res")],
+		"EnemyFrost": [preload("res://assets/enemies/boss_status_frost_shards.res"), preload("res://assets/enemies/boss_status_frost_grains.res")],
+	},
 	"tank": {
 		"EnemyBurn": [preload("res://assets/enemies/tank_status_burn.res")],
 		"EnemyFrost": [preload("res://assets/enemies/tank_status_frost_shards.res"), preload("res://assets/enemies/tank_status_frost_grains.res")],
 	},
 }
-const COORDINATE_SCALES := {"normal": 0.242158934474, "fast": 0.522027035655198, "tank": 0.2997284531593323}
+const COORDINATE_SCALES := {"normal": 0.242158934474, "fast": 0.522027035655198, "tank": 0.2997284531593323, "boss": 1.292772412300}
 static var _materials := {}
 
 
@@ -25,7 +30,8 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 	container.name = label
 	body.get_parent().add_child(container)
 	container.transform = body.transform
-	var material_key := label + ":" + str(entry.type)
+	var kind := AttachmentKind.resolve(entry.type)
+	var material_key := label + ":" + kind
 	if not _materials.has(material_key):
 		var shared: Array = []
 		for material: Material in materials:
@@ -33,11 +39,11 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 				var adapted := material.duplicate() as ShaderMaterial
 				adapted.set_shader_parameter("skinned_status", true)
 				if label == "EnemyBurn":
-					adapted.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[entry.type])
+					adapted.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[kind])
 				shared.append(adapted)
 			else: shared.append(material)
 		_materials[material_key] = shared
-	var meshes: Array = MESHES[entry.type][label]
+	var meshes: Array = MESHES[kind][label]
 	for index in range(meshes.size()):
 		var effect := MeshInstance3D.new()
 		effect.mesh = meshes[index]

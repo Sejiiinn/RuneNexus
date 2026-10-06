@@ -1,7 +1,7 @@
 extends SceneTree
 ## Offline only: bake the common status shapes onto each authored skin.
 ## Copy into an isolated prepared project, then run --headless --script
-## res://bake_skinned_enemy_status.gd -- fast (or normal). Copy the three
+## res://bake_skinned_enemy_status.gd -- boss (or normal/fast/tank). Copy the three
 ## assets/enemies/<kind>_status_*.res outputs back to the source asset folder.
 var enemy_kind := "normal"
 
@@ -12,16 +12,19 @@ func _initialize() -> void:
 func run() -> void:
 	var args := OS.get_cmdline_user_args()
 	if not args.is_empty(): enemy_kind = args[0]
-	assert(enemy_kind in ["normal", "fast"])
+	assert(enemy_kind in ["normal", "fast", "tank", "boss"])
 	var model = load("res://assets/enemies/" + enemy_kind + ".glb").instantiate()
 	root.add_child(model)
 	var body: MeshInstance3D = model.find_children("*", "MeshInstance3D", true, false)[0]
 	var skeleton := body.get_node(body.skeleton) as Skeleton3D
+	assert(body.skin != null and skeleton != null, "Status bake requires an authored skin")
+	assert(body.mesh.get_surface_count() == 1, "Status bake expects the atlas body as one surface")
+	print("SKINNED_STATUS_COORDINATE_SCALE ", enemy_kind, " ", body.global_transform.basis.get_scale())
 	Frost._ensure_shared()
 	Burn._ensure_shared()
 	var output := {}
 	for label in ["EnemyFrost", "EnemyBurn"]:
-		var groups := _build_groups(model, body, skeleton, _source_templates(label))
+		var groups := _build_groups(model, body, skeleton, _source_templates(label), enemy_kind == "boss")
 		_bake_meshes(body, skeleton, groups, label)
 		output[label] = []
 		for group: Dictionary in groups:
@@ -43,7 +46,7 @@ static func _colored_core(color: Color) -> bool:
 	return (color.g > color.r * 1.25 and color.b > color.r * 1.25) or (color.r > color.g * 1.25 and color.b > color.g * 1.25)
 
 
-static func _build_groups(root: Node3D, body: MeshInstance3D, skeleton: Skeleton3D, templates: Array) -> Array:
+static func _build_groups(root: Node3D, body: MeshInstance3D, skeleton: Skeleton3D, templates: Array, preserve_red_core := false) -> Array:
 	var arrays := body.mesh.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
@@ -67,6 +70,8 @@ static func _build_groups(root: Node3D, body: MeshInstance3D, skeleton: Skeleton
 		var c := indices[offset + 2]
 		var uv := (uvs[a] + uvs[b] + uvs[c]) / 3.0
 		var color := atlas.get_pixel(clampi(int(uv.x * atlas.get_width()), 0, atlas.get_width()-1), clampi(int(uv.y * atlas.get_height()), 0, atlas.get_height()-1))
+		# Boss chest pigment is authored separately from its emitting eyes/rune cuts.
+		if preserve_red_core and color.r > color.g * 1.5 and color.r > color.b * 1.5: continue
 		if emission != null:
 			var glow := emission.get_pixel(clampi(int(uv.x * emission.get_width()), 0, emission.get_width()-1), clampi(int(uv.y * emission.get_height()), 0, emission.get_height()-1))
 			if maxf(glow.r, maxf(glow.g, glow.b)) > 0.01: continue

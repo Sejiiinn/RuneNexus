@@ -80,7 +80,7 @@
     },
     {
       "round": 4,
-      "previewText": "빠른 적 삽입",
+      "previewText": "탱커 삽입",
       "clearRewardGold": 26,
       "groups": [
         {"enemyType": "tank", "count": 2, "interval": 1.48, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},

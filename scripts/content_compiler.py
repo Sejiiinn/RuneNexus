@@ -190,6 +190,36 @@ def validate_map(map_data: dict):
             raise ValueError("Disconnected path must be a registered teleport jump")
 
 
+def validate_preview(text: str, groups: list, stage_id: int, round_number: int):
+    """Reject explicit composition claims that the validated spawn groups cannot meet.
+
+    Tactical prose stays authored; this is not a general natural-language parser.
+    Keep these terms aligned with the Korean enemy names used in wave previews.
+    """
+    context = f"Stage {stage_id} round {round_number} preview"
+    if not text.strip():
+        raise ValueError(f"{context} must not be empty")
+    kinds = {group["enemyType"] for group in groups}
+    requirements = (
+        (("일반",), {"normal"}),
+        (("빠른 적", "빠름", "고속"), {"fast"}),
+        (("탱커",), {"tank"}),
+        (("보호막병",), {"shielded"}),
+        (("보호막", "차폐"), {"shielded", "shieldBoss"}),
+        (("장갑병",), {"armored"}),
+        (("장갑",), {"armored", "forgeBoss"}),
+        (("보스",), {"boss", "shieldBoss", "forgeBoss"}),
+        (("보호막 보스", "방벽체"), {"shieldBoss"}),
+        (("파쇄자",), {"forgeBoss"}),
+    )
+    for terms, required in requirements:
+        for term in terms:
+            if term in text and not kinds & required:
+                raise ValueError(f"{context} mentions {term!r} without a matching enemy")
+    if "혼합" in text and len(kinds) < 2:
+        raise ValueError(f"{context} says 혼합 but has fewer than two enemy types")
+
+
 def compile_content(root: Path = ROOT) -> dict:
     settings, definitions, turrets, sources, ordinals = load_sources(root)
     game = copy.deepcopy(settings["catalog"])
@@ -230,6 +260,7 @@ def compile_content(root: Path = ROOT) -> dict:
             wave["spawnQueue"] = queue_for(wave["groups"], precision)
             if any(group["enemyType"] not in enemy_kinds for group in wave["groups"]):
                 raise ValueError("Unknown enemy in spawn group")
+            validate_preview(wave["previewText"], wave["groups"], stage["id"], wave["round"])
             compatibility = source_wave.get("compatibility", {})
             if (not isinstance(compatibility, dict)
                     or set(compatibility) - {"queueInputsDigest", "spawnDelayUlps", "durabilityUlps"}):

@@ -15,7 +15,7 @@ func run() -> void:
 	check(scene.effects_prepared and not scene._effects_preparing, "Readiness follows complete preparation")
 	check(scene.last_frame == before and scene._native_combat.rng.state == rng_state, "Presentation preparation preserves frame and combat RNG")
 	check(scene.field.texture == field, "Large impact field is reused")
-	for kind in ["normal", "fast", "tank"]:
+	for kind in ["normal", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]:
 		var data := [10,4.0,5.0,0.0,0.0,1.0,0.0,kind,false,false]
 		scene._sync_enemies([data])
 		check(not scene.enemies[10].has("burn") and not scene.enemies[10].has("frost"), "Prepared status resources never attach to an unaffected enemy: " + kind)

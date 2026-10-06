@@ -50,6 +50,30 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     preparation._prepare_app_ui()
 
+    def test_boss_imports_keep_contact_keys_and_astc_only_for_boss(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assets = Path(directory) / "assets"
+            (assets / "enemies").mkdir(parents=True)
+            (assets / "shared_textures").mkdir()
+            boss = assets / "enemies/boss.glb"
+            document = json.dumps({"images": [{"uri": "../shared_textures/boss.png"}]}).encode()
+            document += b" " * (-len(document) % 4)
+            boss.write_bytes(struct.pack("<IIIII", 0x46546C67, 2, 20 + len(document),
+                                         len(document), 0x4E4F534A) + document)
+            texture = assets / "shared_textures/boss.png"
+            texture.write_bytes(b"texture fixture")
+            unrelated = assets / "shared_textures/normal.png.import"
+            unrelated.write_text("[params]\ncompress/mode=0\n")
+            with patch.object(preparation, "ASSETS", assets):
+                for _ in range(2):
+                    preparation._prepare_boss_imports()
+                    self.assertIn("animation/fps=60", boss.with_suffix(".glb.import").read_text())
+                    policy = texture.with_suffix(".png.import").read_text()
+                    self.assertIn("compress/mode=2", policy)
+                    self.assertIn("compress/high_quality=true", policy)
+                    self.assertIn("mipmaps/generate=true", policy)
+                    self.assertIn("compress/mode=0", unrelated.read_text())
+
     def test_repeated_prepare_updates_and_removes_presets_without_deleting_imports(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -60,6 +84,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
             def write(path, data):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(data)
+
+            write(assets / "effects/boss_core_mask.png", b"boss core mask")
 
             write(source / "project.godot", b"config_version=5\n")
             preset = source / "materials/core_glass.tres"
@@ -78,7 +104,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
             for name in ("normal_death.glb", "fast_death.glb", "tank_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res",
                          "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res",
                          "fast_status_frost_grains.res", "tank_status_burn.res", "tank_status_frost_shards.res",
-                         "tank_status_frost_grains.res"):
+                         "tank_status_frost_grains.res", "boss_status_burn.res",
+                         "boss_status_frost_shards.res", "boss_status_frost_grains.res"):
                 write(assets / "enemies" / name, b"rig fixture")
             for name in ("muzzle_flash.png", "gun_smoke.png", "cannon_field.json",
                          "cannon_field.bin", "machinegun_muzzle_noise.bin", "placement_dust.json"):
@@ -179,6 +206,10 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 self.assertEqual((project / "assets/ui/MaterialIcons-Regular.otf").read_bytes(), b"icon font fixture")
                 self.assertTrue((project / "assets/ui/MaterialIcons_LICENSE.txt").is_file())
                 self.assertTrue((project / "assets/ui/Roboto-OFL.txt").is_file())
+                mask = project / "assets/effects/boss_core_mask.png"
+                self.assertEqual(mask.read_bytes(), b"boss core mask")
+                self.assertIn("compress/mode=0", mask.with_suffix(".png.import").read_text())
+                self.assertIn("mipmaps/generate=false", mask.with_suffix(".png.import").read_text())
                 burn_target = project / "assets/effects/enemy_burn"
                 for name in ("attachments.json", "flame_atlas.png"):
                     self.assertEqual((burn_target / name).read_bytes(), (burn_source / name).read_bytes())

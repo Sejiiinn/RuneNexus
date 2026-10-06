@@ -78,6 +78,28 @@ def _prepare_battlefield_verification() -> None:
         (PROJECT.parent / f"chapter_{name}_frames.json").write_text(json.dumps(chapter_frames[theme]) + "\n")
 
 
+
+def _prepare_boss_imports() -> None:
+    """Keep accepted boss contact keys and material-friendly mobile compression."""
+    boss = ASSETS / "enemies/boss.glb"
+    raw = boss.read_bytes()
+    json_size = struct.unpack_from("<I", raw, 12)[0]
+    document = json.loads(raw[20:20 + json_size])
+    boss.with_suffix(".glb.import").write_text(
+        '[remap]\nimporter="scene"\ntype="PackedScene"\n\n'
+        '[params]\nanimation/fps=60\n'
+    )
+    for image in document.get("images", []):
+        texture = (boss.parent / image["uri"]).resolve()
+        # externalize_textures owns path validation and content-hash sharing.
+        texture.relative_to((ASSETS / "shared_textures").resolve())
+        texture.with_suffix(texture.suffix + ".import").write_text(
+            '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+            '[params]\ncompress/mode=2\ncompress/high_quality=true\n'
+            'compress/normal_map=2\nmipmaps/generate=true\ndetect_3d/compress_to=0\n'
+        )
+
+
 def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
     # 실제 식생의 잎과 투영 차폐를 유지한다. 같은 GLB의 바위 LOD는 그대로 둔다.
     path = ASSETS / "environment" / (filename + ".import")
@@ -210,8 +232,8 @@ def prepare() -> Path:
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
     required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "fast_death.glb", "tank_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
-    required += [SOURCE_ASSETS / "enemies" / f"tank_status_{kind}.res"
-                 for kind in ("burn", "frost_shards", "frost_grains")]
+    required += [SOURCE_ASSETS / "enemies" / f"{enemy}_status_{kind}.res"
+                 for enemy in ("tank", "boss") for kind in ("burn", "frost_shards", "frost_grains")]
     required += [SOURCE_ASSETS / "effects" / "enemy_frost" / name
                  for name in ("crystals.glb", "attachments.json", "rime_mask.bin", "grain.png")]
     required += [SOURCE_ASSETS / "effects" / name
@@ -274,6 +296,15 @@ def prepare() -> Path:
             '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
             'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
         )
+    core_mask = ASSETS / "effects/boss_core_mask.png"
+    shutil.copy2(SOURCE_ASSETS / "effects/boss_core_mask.png", core_mask)
+    core_mask.with_suffix(".png.import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+        'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
+    )
+    # Boss-only ASTC/BPTC exception; all other shared textures keep their contract.
+    _prepare_boss_imports()
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
     for source in sorted((SOURCE_ASSETS / "ui").rglob("*")):

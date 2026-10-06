@@ -44,7 +44,7 @@
   "waves": [
     {
       "round": 1,
-      "previewText": "보호막 혼합",
+      "previewText": "일반 적 대열",
       "clearRewardGold": 23,
       "groups": [
         {"enemyType": "normal", "count": 6, "interval": 1.7, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7}
