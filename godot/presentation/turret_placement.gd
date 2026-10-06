@@ -2,7 +2,7 @@ extends RefCounted
 ## Explicit accepted builds drive a real-time impact, never snapshot membership.
 signal began(id: int, cue: Dictionary)
 signal ended(id: int)
-const IMPACT_DURATION := 0.15
+const IMPACT_DURATION := 0.22
 const DUST_DURATION := 19.0/30.0
 var placements: Dictionary = {}
 
@@ -48,6 +48,7 @@ func shake_pixels() -> Vector2:
 		if int(cue.started_usec) == 0: continue
 		var progress := elapsed(cue)/IMPACT_DURATION
 		if progress >= 1.0: continue
-		var decay := pow(1.0-progress,2)
-		offset += Vector2(sin(progress*TAU*1.7)*0.45,cos(progress*TAU*1.3)*1.65)*decay
+		var decay := pow(1.0-progress,1.5)
+		# A small vertical impact followed by a weaker rebound; HUD stays still.
+		offset.y += cos(progress*TAU*1.5)*2.0*decay
 	return offset.limit_length(2.0)

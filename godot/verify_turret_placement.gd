@@ -60,6 +60,7 @@ func run() -> void:
 		host.placement.apply_entry(id,entries[id],map.columns,map.rows)
 		check(host.placement.placements[id].started_usec == started,kinds[index]+" duplicate submission retains clock")
 	check(host.placement.shake_pixels().length() <= 2.0,"rapid placement impact stays within two actual pixels")
+	check(host.placement.shake_pixels().x == 0.0,"placement impact is strictly vertical")
 	var cues: int = host.accepted.size()
 	check(not app.apply_run_command({"kind":"build","x":tiles[0].x,"y":tiles[0].y,"type":"arrow"}) and host.accepted.size() == cues,"occupied failure does not animate")
 	app.run_domain.state.gold = 0
@@ -72,9 +73,9 @@ func run() -> void:
 	var native_time: float = host._native_combat.clock
 	Engine.time_scale = 0.05
 	paused = true
-	var deadline := Time.get_ticks_usec()+180000
+	var deadline := Time.get_ticks_usec()+250000
 	while Time.get_ticks_usec() < deadline: await process_frame
-	check(host.placement.shake_pixels() == Vector2.ZERO and not host.placement.placements.is_empty(),"0.15 second impact ends while dust continues")
+	check(host.placement.shake_pixels() == Vector2.ZERO and not host.placement.placements.is_empty(),"0.22 second impact ends while dust continues")
 	deadline = Time.get_ticks_usec()+500000
 	while Time.get_ticks_usec() < deadline: await process_frame
 	host.placement.update(entries,map.columns,map.rows)
