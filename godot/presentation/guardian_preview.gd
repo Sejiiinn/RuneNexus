@@ -1,8 +1,16 @@
 extends RefCounted
-## Authored guardian, hound and tank motion. Reads combat state; never changes it.
+## Authored guardian, hound, tank and boss motion. Reads combat state; never changes it.
 signal failure(message: String)
 
 const WALK_PATH := "res://assets/enemies/normal.glb"
+const BOSS_PATH := "res://assets/enemies/boss.glb"
+const BOSS_KINDS := ["boss", "shieldBoss", "forgeBoss"]
+const BossDeath = preload("res://effects/boss_death.gd")
+# Exported boss is normalized to 1.5 times the displayed tank at content scale .79.
+const BOSS_VISUAL_SCALE := 1.0
+# Longer planted stride: .5216151 normalized units/cycle at the same native speed.
+# Content scale .79 yields .4120759 tiles, reducing cadence by 25 percent.
+const BOSS_STRIDE_TILES := 0.4120759
 const TANK_PATH := "res://assets/enemies/tank.glb"
 const TANK_DEATH_PATH := "res://assets/enemies/tank_death.glb"
 const TankDeath = preload("res://effects/tank_death.gd")
@@ -30,6 +38,9 @@ const DEATH_FLOOR := 0.008475561626255512
 var _world: Node3D
 var _walk_scene: PackedScene
 var _run_scene: PackedScene
+var _boss_scene: PackedScene
+var _boss_head_bounds := AABB()
+var _boss_head_bounds_ready := false
 var _tank_scene: PackedScene
 var _tank_death_scene: PackedScene
 var _tank_core_materials := {}
@@ -68,6 +79,13 @@ func prepare() -> bool:
 
 
 func clear() -> void:
+	# Surviving entries can be reused after a presentation rewind or epoch reset.
+	# Their old teleport offsets must not override restored native distance.
+	for entry: Dictionary in walkers.values():
+		for key in ["teleport_serial", "teleport_distance_offset", "last_position", "turn_target"]:
+			entry.erase(key)
+		entry.distance = 0.0
+		entry.last_time = -INF
 	for entry: Dictionary in deaths.values():
 		entry.root.free()
 	deaths.clear()
@@ -79,7 +97,7 @@ func clear() -> void:
 	_last_time = -INF
 
 
-func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "normal") -> Dictionary:
+func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "normal", requested_clip: String = "") -> Dictionary:
 	var root := Node3D.new()
 	var model := scene.instantiate() as Node3D
 	if kind == "tank": _prepare_tank_core(model)
@@ -93,11 +111,16 @@ func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "norma
 		failure.emit("Guardian GLB에 AnimationPlayer가 없습니다.")
 		root.free()
 		return {}
-	var clip := ""
-	for candidate: String in player.get_animation_list():
-		if candidate != "RESET":
-			clip = candidate
-			break
+	var clip := requested_clip
+	if not clip.is_empty() and not player.has_animation(clip):
+		failure.emit("Guardian GLB에 %s 애니메이션이 없습니다." % clip)
+		root.free()
+		return {}
+	if clip.is_empty():
+		for candidate: String in player.get_animation_list():
+			if candidate != "RESET":
+				clip = candidate
+				break
 	if clip.is_empty():
 		failure.emit("Guardian GLB에 애니메이션이 없습니다.")
 		root.free()
@@ -109,6 +132,9 @@ func _instantiate(scene: PackedScene, floor_offset: float, kind: String = "norma
 	var entry := {"root": root, "type": kind, "guardian_preview": true,
 		"player": player, "clip": clip, "distance": 0.0, "last_time": -INF}
 	if kind == "tank": _prepare_tank_label(entry, model)
+	if kind in BOSS_KINDS:
+		BossDeath.prepare(entry, model)
+		_prepare_boss_label(entry, model)
 	return entry
 
 
@@ -142,6 +168,38 @@ func _prepare_tank_label(entry: Dictionary, model: Node3D) -> void:
 		return
 
 
+func _prepare_boss_label(entry: Dictionary, model: Node3D) -> void:
+	# The larger authored head anchors HP/shield bars visually. Native collision,
+	# target selection and content presentationScale remain unchanged.
+	for body: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		if body.skin == null: continue
+		var skeleton := body.get_node(body.skeleton) as Skeleton3D
+		var head := skeleton.find_bone("head")
+		if head < 0: continue
+		entry.label_skeleton = skeleton
+		entry.label_bone = head
+		if not _boss_head_bounds_ready:
+			for surface in range(body.mesh.get_surface_count()):
+				var arrays := body.mesh.surface_get_arrays(surface)
+				var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+				var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+				var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+				for index in range(vertices.size()):
+					for influence in range(4):
+						if weights[index * 4 + influence] < 0.5: continue
+						var bind := bones[index * 4 + influence]
+						var bone := body.skin.get_bind_bone(bind)
+						if bone < 0: bone = skeleton.find_bone(body.skin.get_bind_name(bind))
+						if bone != head: continue
+						var point := body.skin.get_bind_pose(bind) * vertices[index]
+						if not _boss_head_bounds_ready:
+							_boss_head_bounds = AABB(point, Vector3.ZERO)
+							_boss_head_bounds_ready = true
+						else: _boss_head_bounds = _boss_head_bounds.expand(point)
+		if _boss_head_bounds_ready: entry.label_bounds = _boss_head_bounds
+		return
+
+
 func _prepare_tank_core(model: Node3D) -> void:
 	# glTF transmission is imported as realtime transparency. Suppress the tiny
 	# white specular hotspot that hid the amber volume at battlefield pixel size.
@@ -166,6 +224,12 @@ func _prepare_tank_core(model: Node3D) -> void:
 
 
 func new_walker(kind: String = "normal") -> Dictionary:
+	if kind in BOSS_KINDS:
+		if _boss_scene == null: _boss_scene = load(BOSS_PATH) as PackedScene
+		if _boss_scene == null:
+			failure.emit("보스 GLB를 불러오지 못했습니다.")
+			return {}
+		return _instantiate(_boss_scene, 0.0, kind, "HeavyWalk")
 	if kind == "tank":
 		if _tank_death_scene == null:
 			_tank_death_scene = load(TANK_DEATH_PATH) as PackedScene
@@ -189,6 +253,7 @@ func new_walker(kind: String = "normal") -> Dictionary:
 
 
 static func visual_scale(kind: String) -> float:
+	if kind in BOSS_KINDS: return BOSS_VISUAL_SCALE
 	if kind == "tank": return TANK_VISUAL_SCALE
 	return FAST_VISUAL_SCALE if kind == "fast" else NORMAL_VISUAL_SCALE
 
@@ -224,6 +289,10 @@ func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 	entry.last_time = time
 	var stride := RUN_STRIDE_TILES if entry.type == "fast" else STRIDE_TILES
 	var seconds := RUN_SECONDS if entry.type == "fast" else WALK_SECONDS
+	if entry.type in BOSS_KINDS:
+		# Share the authored gait, retaining each stage variant's display scale.
+		stride = BOSS_STRIDE_TILES * float(data[5]) / 0.79 if data.size() > 5 else BOSS_STRIDE_TILES
+		seconds = entry.player.get_animation(entry.clip).length
 	var phase := fposmod(float(entry.distance), stride) / stride
 	entry.player.seek(phase * seconds, true)
 
@@ -283,7 +352,12 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		var enemy: Dictionary = runtime.enemies.get(str(id), {})
 		if enemy.is_empty(): continue
 		var kind: String = enemy.get("type", "normal")
-		if kind not in ["normal", "fast", "tank"]: continue
+		if kind not in ["normal", "fast", "tank"] and kind not in BOSS_KINDS: continue
+		if kind in BOSS_KINDS and _boss_scene == null:
+			_boss_scene = load(BOSS_PATH) as PackedScene
+			if _boss_scene == null:
+				failure.emit("보스 사망 GLB를 불러오지 못했습니다.")
+				continue
 		if kind == "tank" and _tank_death_scene == null:
 			_tank_death_scene = load(TANK_DEATH_PATH) as PackedScene
 			if _tank_death_scene == null:
@@ -295,7 +369,8 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 				failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
 				continue
 		var corpse := _tank_death_scene if kind == "tank" else (_fast_death_scene if kind == "fast" else _death_scene)
-		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind)
+		if kind in BOSS_KINDS: corpse = _boss_scene
+		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else "")
 		if entry.is_empty(): continue
 		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + runtime._visual_enemy_offset(enemy)) / runtime.tile_size
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
@@ -310,6 +385,15 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 				entry.root.position = walker.root.position
 				entry.root.scale = walker.root.scale
 			TankDeath.attach(entry, walker)
+		if kind in BOSS_KINDS:
+			if not walker.is_empty() and is_instance_valid(walker.root):
+				entry.root.scale = walker.root.scale
+			# Preserve the visible turn/pose, except when a just-processed teleport
+			# moved this kill beyond the last rendered walker. The kill position is
+			# authoritative; never drag a corpse/light back to the old portal.
+			var changed_portal := not walker.is_empty() and int(walker.get("teleport_serial", 0)) != int(enemy.get("teleportSerial", 0))
+			if changed_portal: entry.root.rotation.y = PI / 2.0 - float(enemy.facingAngle)
+			BossDeath.attach(entry, walker)
 		entry.born = time
 		deaths[id] = entry
 	update_deaths(time)
@@ -320,11 +404,14 @@ func update_deaths(time: float) -> void:
 		var entry: Dictionary = deaths[id]
 		var age := time - float(entry.born)
 		var duration := TankDeath.LIFETIME if entry.type == "tank" else (FAST_DEATH_SECONDS if entry.type == "fast" else DEATH_SECONDS)
+		if entry.type in BOSS_KINDS: duration = BossDeath.LIFETIME
 		if age < 0.0 or age >= duration:
 			entry.root.free()
 			deaths.erase(id)
 			continue
-		if entry.type == "tank":
+		if entry.type in BOSS_KINDS:
+			BossDeath.sample(entry, age)
+		elif entry.type == "tank":
 			# The settled bones no longer change, but fade/dust still use live age.
 			# Rewinds into collapse must sample again and invalidate the hold.
 			if age < TankDeath.COLLAPSE or not entry.get("death_settled", false):

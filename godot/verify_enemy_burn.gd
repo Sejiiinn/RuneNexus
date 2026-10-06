@@ -76,6 +76,13 @@ func _verify() -> void:
 			check(burn.visible and entry["root"].is_ancestor_of(burn), "움직이는 적에 화상이 붙지 않음")
 			var meshes := burn.find_children("*", "MeshInstance3D", true, false)
 			check(meshes.size() == 1, "움직이는 적의 공통 화상 메시 누락")
+			var body: MeshInstance3D = originals[i][0][0]
+			if meshes.size() == 1:
+				var effect: MeshInstance3D = meshes[0]
+				check(effect.skin == body.skin and effect.get_node(effect.skeleton) == body.get_node(body.skeleton), kinds[i] + " burn uses the living body skin and skeleton")
+				check(effect.mesh.surface_get_array_len(0) == 52 * 4, kinds[i] + " preserves the 52 authored fire parcels")
+				check(effect.material_override.get_shader_parameter("skinned_status"), kinds[i] + " burn selects skinned shader coordinates")
+				check(burn.find_children("*", "MultiMeshInstance3D", true, false).is_empty(), kinds[i] + " has no static misplaced burn particles")
 			check_surfaces(originals[i])
 			continue
 		check(burn is MultiMeshInstance3D, "정적 적의 GPU 화상 MultiMesh 누락")
@@ -102,11 +109,14 @@ func _verify() -> void:
 	scene._sync_enemies(units)
 	var other: MultiMeshInstance3D = scene.enemies[10]["burn"]
 	check(first.multimesh == other.multimesh and first.material_override == other.material_override, "동종 적마다 화상 리소스를 복제함")
+	var boss_burn: MeshInstance3D = scene.enemies[5]["burn"].get_child(0)
 	for index in [6, 7]:
-		check(scene.enemies[5]["burn"].multimesh == scene.enemies[index]["burn"].multimesh, "보스 변형이 boss 화상 데이터를 공유하지 않음: " + kinds[index])
+		var variant_burn: MeshInstance3D = scene.enemies[index]["burn"].get_child(0)
+		check(boss_burn.mesh == variant_burn.mesh and boss_burn.material_override == variant_burn.material_override, "보스 변형이 boss 화상 데이터를 공유하지 않음: " + kinds[index])
 	check(not scene.enemies[11].has("burn"), "다른 적의 화상이 비화상 적에도 효과를 생성함")
 	check_surfaces(unaffected)
 	Burn.set_time(4.0)
+	check(is_equal_approx(boss_burn.material_override.get_shader_parameter("burn_time"), 4.0), "Boss aliases share the combat burn clock")
 	check(is_equal_approx(shared_material.get_shader_parameter("burn_time"), 4.0), "외부 전투 시계가 shader에 전달되지 않음")
 	var buffer_before: PackedFloat32Array = first.multimesh.buffer.duplicate()
 	Burn.set_time(4.0)
@@ -145,7 +155,7 @@ func _verify() -> void:
 	scene._sync_enemies([])
 	check(scene.enemies.is_empty() and not is_instance_valid(replaced), "적 제거 뒤 화상 잔류")
 	scene._sync_enemies([unit(20, "shieldBoss", true)])
-	var reset_burn: MultiMeshInstance3D = scene.enemies[20]["burn"]
+	var reset_burn: Node3D = scene.enemies[20]["burn"]
 	scene._clear_scene()
 	check(not is_instance_valid(reset_burn) and scene.enemies.is_empty(), "장면 초기화 뒤 화상 잔류")
 	check_boss_lifecycle(scene)
@@ -159,7 +169,7 @@ func check_boss_lifecycle(scene: Node3D) -> void:
 	for kind: String in ["boss", "shieldBoss", "forgeBoss"]:
 		scene._sync_enemies([unit(81, kind, true)])
 		var entry: Dictionary = scene.enemies[81]
-		var burn: MultiMeshInstance3D = entry["burn"]
+		var burn: Node3D = entry["burn"]
 		check(burn.visible and not entry.has("frost"), kind + " 최초 화상 단독 적용")
 		scene._sync_enemies([unit(81, kind, true, true)])
 		var frost: Node3D = entry["frost"]

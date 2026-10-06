@@ -105,6 +105,7 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 			return
 		_ensure_shared()
 		var guardian := bool(entry.get("guardian_preview", false))
+		var kind := AttachmentKind.resolve(entry.type)
 		var frost := Node3D.new()
 		frost.name = "EnemyFrost"
 		if not guardian: entry["root"].add_child(frost)
@@ -113,21 +114,27 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 		for mesh: MeshInstance3D in entry["root"].find_children("*", "MeshInstance3D", true, false):
 			for surface in range(mesh.mesh.get_surface_count()):
 				var original := mesh.get_active_material(surface)
-				if not original is StandardMaterial3D or original.resource_name.ends_with("_crystal"):
+				# The boss retains authored PBR maps behind its core/death shader.
+				# Only explicitly opted-in shaders receive the existing frost coat.
+				var source := original as StandardMaterial3D
+				if source == null and original is ShaderMaterial and original.has_meta("frost_source_material"):
+					source = original.get_meta("frost_source_material") as StandardMaterial3D
+				if source == null or original.resource_name.ends_with("_crystal"):
 					continue
 				if not _body_materials.has(original):
-					var coated := original.duplicate() as StandardMaterial3D
+					var coated := original.duplicate() as Material
 					if guardian and not _skinned_coats.has(original):
 						var coat := _coat.duplicate() as ShaderMaterial
-						coat.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[entry.type])
+						coat.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[kind])
 						coat.set_shader_parameter("preserve_colored_core", true)
+						coat.set_shader_parameter("preserve_red_core", kind == "boss")
 						# Tank eyes emit subtly; its recessed mineral rune does not.
-						coat.set_shader_parameter("preserve_colored_with_emission", entry.type == "tank")
-						coat.set_shader_parameter("body_albedo", original.albedo_texture)
+						coat.set_shader_parameter("preserve_colored_with_emission", kind == "tank")
+						coat.set_shader_parameter("body_albedo", source.albedo_texture)
 						# The hound stone is blue too; its authored emission atlas marks only runes.
-						if original.emission_enabled and original.emission_texture != null:
+						if source.emission_enabled and source.emission_texture != null:
 							coat.set_shader_parameter("preserve_emission_core", true)
-							coat.set_shader_parameter("body_emission", original.emission_texture)
+							coat.set_shader_parameter("body_emission", source.emission_texture)
 						_skinned_coats[original] = coat
 					coated.next_pass = _skinned_coats[original] if guardian else _coat
 					_body_materials[original] = coated
