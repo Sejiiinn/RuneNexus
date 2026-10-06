@@ -776,8 +776,25 @@ __pycache__/
 /design/enemy_concepts/2026-10-01/tank/3d/game-export/tank-walk.glb
 /design/enemy_concepts/2026-10-01/tank/3d/death/tank-death.glb
 
+/design/enemy_concepts/2026-10-03/boss-unarmed/3d/local/
+
 # Gem reward entrance concepts: one-off preview render and verification outputs.
 /design/gem_reward_entrance_concepts/2026-10-04/local/
 
+# Research availability: rejected image with a missing title.
+/design/research_tab_availability_concepts/2026-10-03/a-card-status-v2.png
+
 # GIMP session recovery: local inspection log; editable XCF files remain visible.
 /design/gimp_session_recovery/2026-10-05/manifest.json
+
+# Retired Flutter Android host: regenerated/local files are not app sources.
+/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+/android/gradle/wrapper/gradle-wrapper.jar
+/android/gradlew
+/android/gradlew.bat
+/android/local.properties
+
+# Reproducible burn preview frames; preserve editable source and final atlas.
+/design/fire_tower_concepts/enemy_burn/frames/
+/design/fire_tower_concepts/enemy_burn/frames-v2/
+/design/fire_tower_concepts/enemy_burn/frames-v3/

@@ -1,0 +1,8 @@
+# Keep evidence on disk/in Git; omit noisy records from default source searches.
+# For an explicit evidence search: rg --no-ignore -g '*.log' PATTERN path/to/evidence
+*.log
+*.uid
+trace-*.txt
+*logcat*.txt
+# Raw profiler stacks; source scripts and summaries remain searchable.
+design/fire_tower_concepts/enemy_burn/integration/performance/stack/*.txt
