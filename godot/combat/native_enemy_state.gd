@@ -208,6 +208,9 @@ static func add_rift_mark(e: Dictionary,amplification: float,duration: float) ->
 	e.riftMarkRemaining=maxf(e.riftMarkRemaining,duration)
 
 static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array) -> float:
+	# Continuous damage ignores armor reduction, but still consumes shield/armor
+	# before HP. Saved burn flags remain compatible and do not gate this rule.
+	attack["ignoreArmorReduction"] = true
 	var result := apply_hit(e,attack)
 	if result.killed and kind == "burn":
 		# The per-tick attack borrows the live burn. Only a retained kill event

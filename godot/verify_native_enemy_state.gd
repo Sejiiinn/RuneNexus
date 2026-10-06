@@ -16,6 +16,7 @@ func enemy(extra: Dictionary={}) -> Dictionary:
 	return Enemy.create(raw)
 func _initialize() -> void:
 	_path_revision_checks()
+	_dot_armor_checks()
 	var e := enemy({"speed":0.0,"maxShield":100.0,"shield":20.0,"shieldRegenRate":0.1,"maxArmor":100.0,"armor":10.0})
 	Enemy.add_burn(e,{"damagePerSecond":30.0,"duration":1.0})
 	Enemy.step(e,1.0)
@@ -116,6 +117,60 @@ func _initialize() -> void:
 	close(result.bonusDamage,25*(0.12+0.88*25/55.0)-20*(0.12+0.88*20/50.0),"rift bonus includes nonlinear armor response")
 	print(JSON.stringify({"checks":checks,"failures":failures}))
 	quit(0 if failures.is_empty() else 1)
+
+
+func _dot_armor_checks() -> void:
+	for kind in ["burn","poison"]:
+		var e := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
+		if kind == "burn":
+			Enemy.add_burn(e,{"damagePerSecond":40.0,"duration":2.0,"ignoreArmorReduction":false})
+		else:
+			Enemy.add_poison(e,40.0,2.0,1)
+		Enemy.step(e,0.5)
+		close(e.shield,0,kind+": shield consumed first")
+		check(e.shieldBroken,kind+": shield break latched")
+		close(e.armor,15,kind+": overflow consumes armor without reduction")
+		close(e.hp,1000,kind+": armor protects HP")
+		Enemy.step(e,0.5)
+		close(e.armor,0,kind+": armor consumed before HP")
+		close(e.hp,995,kind+": only armor overflow reaches HP")
+		# Same game time, different frame intervals and 4x at 60 FPS.
+		for dt in [1.0/120.0,1.0/60.0,1.0/30.0,4.0/60.0]:
+			e = enemy({"speed":0.0,"maxArmor":120.0,"armor":120.0})
+			if kind == "burn":
+				Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":2.0})
+			else:
+				Enemy.add_poison(e,100.0,2.0,1)
+			for tick in range(roundi(1.0/dt)): Enemy.step(e,dt)
+			close(e.armor,20,kind+": armor damage independent of dt "+str(dt))
+			close(e.hp,1000,kind+": no premature HP damage "+str(dt))
+	# Old saves with a false or missing per-burn flag use the new tick rule too.
+	for burn in [{"remaining":2.0,"damagePerSecond":40.0,"ignoreArmorReduction":false},{"remaining":2.0,"damagePerSecond":40.0}]:
+		var restored := Enemy.create(Enemy.snapshot(enemy({"speed":0.0,"maxArmor":100.0,"armor":100.0,"burnInstances":[burn]})))
+		Enemy.step(restored,0.5)
+		close(restored.armor,80,"restored burn ignores historical armor flag")
+	var legacy := enemy({"speed":0.0,"maxArmor":100.0,"armor":100.0,"burnRemaining":2.0,"burnDamagePerSecond":40.0})
+	Enemy.step(legacy,0.5)
+	close(legacy.armor,80,"legacy scalar burn ignores armor reduction")
+	var marked := enemy({"speed":0.0,"maxArmor":20.0,"armor":20.0})
+	Enemy.add_rift_mark(marked,0.25,2.0)
+	Enemy.add_burn(marked,{"damagePerSecond":100.0,"duration":2.0,"sourceX":1,"sourceY":2})
+	var events := Enemy.step(marked,0.5)
+	close(marked.hp,957.5,"rift amplifies armor-bypassing burn")
+	var damage: Dictionary = events.filter(func(event): return event.type=="damage" and event.kind=="burn")[0]
+	close(damage.damage,62.5,"burn event includes armor and HP damage")
+	close(damage.bonusDamage,12.5,"burn event retains rift contribution")
+	check(damage.sourceX==1 and damage.sourceY==2,"burn event retains source attribution")
+	var dying := enemy({"speed":0.0,"hp":5.0,"maxArmor":10.0,"armor":10.0})
+	Enemy.add_burn(dying,{"damagePerSecond":20.0,"duration":3.0,"sourceX":1,"sourceY":2,"ignoreArmorReduction":false})
+	events = Enemy.step(dying,1.0)
+	check(count(events,"killed")==1,"armor-bypassing burn reports kill once")
+	var transfer: Dictionary = events.filter(func(event): return event.type=="killed")[0].burnTransfer
+	var recipient := enemy({"speed":0.0,"maxArmor":20.0,"armor":20.0})
+	Enemy.add_burn(recipient,transfer)
+	Enemy.step(recipient,1.0)
+	close(recipient.armor,0,"transferred burn ignores old false armor flag")
+	close(recipient.hp,1000,"transferred burn still consumes armor")
 
 
 func _path_revision_checks() -> void:
