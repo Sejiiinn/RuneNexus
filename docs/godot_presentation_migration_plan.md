@@ -1,8 +1,8 @@
-# Godot 전장 표시와 앱 연결
+# Godot 전장 표시와 앱 연결 — 전환 전 계약 기록
 
-역할: 현행 표시 책임·전송·복구 계약. 갱신: 2026-09-21.
+역할: 2026-09-21 Flutter Android 호스트와 Godot 전장을 함께 사용하던 경로의 표시·전송·복구 계약 기록. 아래 책임 표·명령·복구 설명은 당시 경로이며 현행 실행 지시가 아니다.
 
-Android 스테이지 1~15는 Godot이 전장과 실제 전투를 담당한다. Flame 런타임과 2D fallback은 제거했다. 다른 플랫폼의 Godot 연결은 미완료이며 지원 범위 결정이 남아 있다. [전투 책임·저장 경계](godot_combat_migration_boundaries.md)를 함께 따른다.
+현재 기본 진입은 Godot 단일 앱이며 Flutter 호스트·브리지는 제거했다. 현행 실행·단계 상태는 [Godot 전환 상태](godot_unified_app_roadmap.md), 전투·런·저장 책임은 [현행 경계](godot_combat_migration_boundaries.md)를 따른다. 제거된 Flutter 소스는 [원본 보관 설명](archive/flutter_reference_20260924.md)에서 확인한다. 당시 표시 계약의 고유한 제약과 검증 범위는 아래에 보존한다.
 
 ## 표시 책임
 
@@ -20,7 +20,7 @@ EnemyComponent와 TurretComponent는 앱의 저장·설정·HUD 모델만 남긴
 
 ## 준비·입력·복구
 
-[NativeGameHost](../lib/ui/hud/native_game_host.dart)는 Android 생산 경로에서 크기·초기 로딩만 연결하며 Flutter Ticker·페인트·전장 제스처를 실행하지 않는다. [GodotBattlefieldView](../lib/ui/hud/godot_battlefield_view.dart)는 전투 프로토콜 1, 세션 프로토콜 1과 초기 ACK를 확인한다. Godot이 현재 카메라로 터치·드래그·핀치를 판정하고 선택 타일 이벤트를 앱에 보낸다. Flutter는 HUD 입력과 선택·건설의 도메인 명령을 유지한다. 표시 계약 버전 2의 epoch·viewport revision·크기·sequence 검증은 장면 준비와 복구에 유지한다.
+당시 `NativeGameHost` (`lib/ui/hud/native_game_host.dart`)는 Android 생산 경로에서 크기·초기 로딩만 연결하며 Flutter Ticker·페인트·전장 제스처를 실행하지 않는다. 당시 `GodotBattlefieldView` (`lib/ui/hud/godot_battlefield_view.dart`)는 전투 프로토콜 1, 세션 프로토콜 1과 초기 ACK를 확인한다. Godot이 현재 카메라로 터치·드래그·핀치를 판정하고 선택 타일 이벤트를 앱에 보낸다. Flutter는 HUD 입력과 선택·건설의 도메인 명령을 유지한다. 표시 계약 버전 2의 epoch·viewport revision·크기·sequence 검증은 장면 준비와 복구에 유지한다.
 
 이전 화면 응답·리사이즈 전 투영·미제출 sequence는 거절한다. Godot 소수 직렬화 오차만 1e-6 미만으로 허용한다. 같은 sequence의 새 카메라 투영은 허용한다. 장면 초기화는 최신 표시 프레임에 덮이지 않으며 소유권 변경 때 큐·투영·캐시를 정리한다.
 
