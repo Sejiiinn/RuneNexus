@@ -15,7 +15,7 @@
 | 항목 | 기준과 운영 |
 | --- | --- |
 | 형태·베벨·노멀·UV·피벗·정점색 | [Blender 현행 원본 허브](../design/stage1_3d/blender_workspace/README.md)의 에셋별 `.blend`. 초기 생성기로 최신 원본을 덮거나 게임 변형으로 승인 형태를 재해석하지 않는다. |
-| Base Color·Metallic·Roughness·Normal·AO·Emission | 원본 PBR 데이터와 최종 GLB. 절차적 표면은 필요한 채널만 베이크하며 기존 atlas·UV·해상도를 재사용한다. |
+| Base Color·Metallic·Roughness·Normal·AO·Emission | 원본 PBR 데이터와 최종 GLB. 절차적 표면은 필요한 채널만 베이크하며 기존 atlas·UV와 제작 원본 해상도를 보존한다. 게임용 import 해상도는 아래 정책으로 구분한다. |
 | 투명·컬링·필터·렌더 우선순위 | Godot 내장 재질의 엔진 설정. 원본 값과 의미가 다른 설정만 명시적으로 분리하고 원본 수치를 이중 관리하지 않는다. |
 | 주광·환경광·반사·톤매핑 | 공용 Godot 장면과 `godot/materials/`. 에셋마다 보정 광원·광학 계산을 새로 만들지 않는다. |
 | 회전·정지·배속·피격·재사용 | 기존 전투 시계와 런타임 계약. 이관·최적화에서도 보존한다. |
@@ -23,6 +23,11 @@
 색 데이터와 Non-Color Normal/ORM, 선형/sRGB 정점색, tangent를 구분한다. 카메라 하이라이트·동적 그림자를 Base Color에 구워 재질을 대신하지 않는다. IOR를 `refraction_scale`로, Transmission을 `1 - alpha`로 자동 대응시키지 않는다.
 
 `build/godot/project`는 생성물이다. 원본과 재사용 설정은 저장소에 두고 [prepare_godot_project.py](../scripts/prepare_godot_project.py)로 동기화한다. `.tres` 삭제 동기화는 이미 구현됐다. 새 자산은 기존 PCK 경로에 연결하고 Flutter 자산에 중복 포함하지 않는다.
+
+## 게임용 텍스처 import 정책
+
+- [디자인 예산](../DESIGNS.md#3d-적포탑-텍스처-예산)에 맞춰 원본 PNG/GLB는 보존하고 게임용 크기만 import의 `process/size_limit`으로 제한한다. 현재 C안은 fast/tank·공유 사망 맵과 냉각 포탑에 최대 1K를 적용하며, 보스와 기존 1K/512 크기는 유지한다.
+- 적·포탑 PBR 맵은 현재 Godot 4.7.2의 고품질 VRAM 압축(Android ASTC 4×4, 데스크톱 BPTC)과 밉맵을 사용한다. UI·특수 효과·정밀 마스크에는 일괄 적용하지 않으며, 공유 맵에는 같은 크기·압축 정책을 사용한다.
 
 ## 재사용할 제작·이관 경로
 

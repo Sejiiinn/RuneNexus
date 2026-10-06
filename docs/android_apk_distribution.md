@@ -67,7 +67,9 @@ APK는 `releases/download/apk-<version_code>/rune-nexus.apk`처럼 버전별 주
 
 ### Godot 자산 패키징
 
-`scripts/prepare_godot_project.py`는 빌드 전용 `build/godot/project/assets/`를 매번 다시 준비한다. 제작 원본 GLB는 그대로 두고, 준비된 GLB 안의 동일 이미지 바이트를 SHA-256 공용 PNG/JPEG로 분리한다. 이미지 해상도·모델·재질 수치는 변경하지 않는다. 공용 텍스처는 무손실·mipmap·자동 VRAM 압축 해제로 고정해 편집기 실행 이력에 따른 패키징 차이를 막는다. 포탄 체적 데이터는 재현 가능한 gzip으로 묶고 런타임 공유 캐시 최초 로드 시 원래 RGBA8 바이트로 복원·검증한다.
+`scripts/prepare_godot_project.py`는 빌드 전용 `build/godot/project/assets/`를 매번 다시 준비한다. 제작 원본 GLB는 그대로 두고, 준비된 GLB 안의 동일 이미지 바이트를 SHA-256 공용 PNG/JPEG로 분리한다. 원본 이미지·모델·재질 수치는 변경하지 않는다. 편집기 실행 이력에 따라 압축이 자동 변경되지 않도록 import 옵션을 명시한다. 포탄 체적 데이터는 재현 가능한 gzip으로 묶고 런타임 공유 캐시 최초 로드 시 원래 RGBA8 바이트로 복원·검증한다.
+
+게임용 크기·압축은 [import 정책](stage1_native_material_workflow.md#게임용-텍스처-import-정책)을 따른다. VRAM 압축은 텍스처 메모리 절감 목적이므로 무손실 이미지보다 PCK가 커질 수 있다. 현재 `androidResources.noCompress += "pck"` 설정에서는 PCK가 APK ZIP에 압축 없이 저장된다.
 
 팩 내부는 `python3 scripts/audit_godot_pack.py <APK 또는 PCK> --output <report.json>`으로 항목별 크기·SHA-256·완전 중복을 확인한다. 이 보고서는 중복 제거 후보를 찾는 자료이며, 서로 다른 메시의 일부 중복이나 시각 품질·지원 ABI의 적절성까지 자동 판정하지 않는다. 원본 PNG/GLB와 런타임 텍스처 공유만 확인하고 배포 팩의 중복 검사를 생략하지 않는다.
 
