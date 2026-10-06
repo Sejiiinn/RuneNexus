@@ -8,6 +8,8 @@ services:
 
   duckdns:
     image: curlimages/curl:8.21.0
+    # Docker Desktop mounts the mode-600 token as root-owned; keep its permissions.
+    user: "0:0"
     init: true
     restart: unless-stopped
     entrypoint: ["/bin/sh", "/opt/rune-nexus/update-duckdns.sh"]
