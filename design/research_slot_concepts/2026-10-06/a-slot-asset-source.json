@@ -1,0 +1,27 @@
+{
+  "reference": "a-metal-cards-buttons-v2.png",
+  "card": {
+    "tool": "ImageGen built-in",
+    "prompt": "One empty 4:1 front-facing chamfered research card; deep navy brushed metal face, slender cyan/silver layered bevel rim, cyan corner accents and small bronze top-center hardware. Genuine transparent silhouette exterior. Stretchable central field. No icons, text, buttons or progress. Preserve approved A research-card style.",
+    "original": "a-slot-frame.xcf",
+    "runtime": "assets/images/ui/components/research_slot_a_frame.png",
+    "gimpCrop": [
+      28,
+      117,
+      2105,
+      470
+    ]
+  },
+  "stop": {
+    "source": "assets/images/ui/combat_components/native/danger.png",
+    "gimpHue": 15,
+    "gimpSaturation": -50,
+    "gimpLightness": -8,
+    "original": "a-slot-stop.xcf",
+    "runtime": "assets/images/ui/components/research_slot_a_stop.png"
+  },
+  "instant": {
+    "source": "assets/images/ui/combat_components/native/primary.png",
+    "reuse": true
+  }
+}

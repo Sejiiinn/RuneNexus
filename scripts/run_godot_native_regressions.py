@@ -61,6 +61,7 @@ SCRIPTS = {
     "verify_lobby_growth.gd": "PASS growth pages:",
     "verify_research_stop.gd": "PASS research stop:",
     "verify_research_details.gd": "PASS research details:",
+    "verify_research_slots.gd": "PASS research slots:",
     "verify_ui_confirmations.gd": "PASS ui confirmations:",
     "verify_module_draw_results.gd": "PASS module draw results:",
     "verify_lobby_core.gd": "PASS lobby core:",

@@ -230,5 +230,7 @@
   "results/ui/result_panel_frame_v2.png",
   "results/ui/result_section_frame_v2.png",
   "results/result_success_v2.png",
-  "results/result_failure_v2.png"
+  "results/result_failure_v2.png",
+  "ui/components/research_slot_a_frame.png",
+  "ui/components/research_slot_a_stop.png"
 ]
