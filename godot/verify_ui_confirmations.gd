@@ -190,6 +190,12 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	assert(lobby.modal_body.find_child("ModulePreview_normal-a", true, false) != null)
 	assert(lobby.modal_body.find_child("ModulePreview_unique-c", true, false) != null)
 	assert(lobby.modal_body.find_child("ModulePreview_rare-equipped", true, false) == null)
+	for grade in ["normal", "unique"]:
+		var row: Node = lobby.modal_body.find_child("ModulePreview_" + ("normal-a" if grade == "normal" else "unique-c"), true, false)
+		var art := row.find_child("ModuleIconTexture", true, false) as TextureRect
+		assert(art != null and art.texture != null and art.modulate == Color.WHITE, "Disassembly review uses the same final module artwork")
+		assert(art.get_meta("icon_path").ends_with("_%s.png" % grade), "Disassembly review shows the current grade")
+		assert(row.find_child("ModuleIcon", true, false) == null, "Review rows do not add another icon frame")
 	_check_modal_bounds(lobby)
 	var confirm := _button(lobby.modal_body, "분해")
 	assert(confirm != null and not confirm.disabled, "Disassembly has an explicit enabled action")

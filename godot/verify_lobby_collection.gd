@@ -184,6 +184,14 @@ func _run() -> void:
 			assert(icon != null and icon.get_meta("module_id") == "equipped_" + part)
 			assert(icon.part == part and icon.grade == {"core":"normal", "barrel":"magic", "frame":"unique"}[part])
 			assert(slot.get_global_rect().encloses(icon.get_global_rect()), "Equipped icon fits the slot")
+			var art := icon.find_child("ModuleIconTexture", true, false) as TextureRect
+			assert(art != null and art.texture != null and art.modulate == Color.WHITE, "Equipment preserves final grade artwork")
+			assert(icon.icon_path == "res://assets/app/turret_modules/icons/%s_%s.png" % [part, icon.grade])
+		var inventory_icon := host.body.find_child("Module_" + str(item.id), true, false) as Button
+		var inventory_art := inventory_icon.find_child("ModuleIconTexture", true, false) as TextureRect
+		assert(inventory_art != null and inventory_art.texture != null and inventory_art.modulate == Color.WHITE)
+		assert(inventory_icon.find_child("ModuleIcon", true, false) == null, "Inventory uses its existing card frame without a duplicate icon frame")
+		assert(inventory_art.get_global_rect().get_center().distance_to(inventory_icon.get_global_rect().get_center()) <= 1.0, "Inventory artwork stays centered within container pixel rounding")
 		# All prices and the longer unequip caption must fit the same fixed header.
 		for grade in ["normal", "magic", "rare", "unique"]:
 			for equipped in [false, true]:

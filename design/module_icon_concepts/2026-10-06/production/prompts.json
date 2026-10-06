@@ -1,0 +1,78 @@
+{
+  "mode": "built-in image_gen",
+  "approved_source": "../15-hybrid-simplified-normal-progression.png",
+  "jobs": [
+    {
+      "part": "core",
+      "grade": "normal",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/core_normal.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, normal turret core module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the square central chip and exactly ten connector pins (3 top, 3 bottom, 2 left, 2 right). Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "core",
+      "grade": "magic",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/core_magic.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, magic turret core module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the square central chip and exactly ten connector pins (3 top, 3 bottom, 2 left, 2 right). Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "core",
+      "grade": "rare",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/core_rare.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, rare turret core module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the square central chip and exactly ten connector pins (3 top, 3 bottom, 2 left, 2 right). Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "core",
+      "grade": "unique",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/core_unique.png",
+      "prompt": "Use case: background-extraction with a precise lighting edit. Asset type: finished game inventory icon, unique turret core module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the square central chip and exactly ten connector pins (3 top, 3 bottom, 2 left, 2 right). The ONLY creative change: add subtle violet emitted light along existing purple inlay seams, with a narrow soft glow and light purple reflections on adjacent metal. Keep solid purple metal and clearly readable mechanical details. No new geometry, no broad aura, no bright white bloom, no particles. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "barrel",
+      "grade": "normal",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/barrel_normal.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, normal turret barrel module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the hexagonal housing, one circular black bore with opaque dark interior, lower supports and feet. Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "barrel",
+      "grade": "magic",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/barrel_magic.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, magic turret barrel module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the hexagonal housing, one circular black bore with opaque dark interior, lower supports and feet. Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "barrel",
+      "grade": "rare",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/barrel_rare.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, rare turret barrel module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the hexagonal housing, one circular black bore with opaque dark interior, lower supports and feet. Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "barrel",
+      "grade": "unique",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/barrel_unique.png",
+      "prompt": "Use case: background-extraction with a precise lighting edit. Asset type: finished game inventory icon, unique turret barrel module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the hexagonal housing, one circular black bore with opaque dark interior, lower supports and feet. The ONLY creative change: add subtle violet emitted light along existing purple inlay seams, with a narrow soft glow and light purple reflections on adjacent metal. Keep solid purple metal and clearly readable mechanical details. No new geometry, no broad aura, no bright white bloom, no particles. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "frame",
+      "grade": "normal",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/frame_normal.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, normal turret frame module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the open X silhouette, exactly four terminal plates and central circular hub. Empty spaces between arms must be transparent. Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "frame",
+      "grade": "magic",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/frame_magic.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, magic turret frame module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the open X silhouette, exactly four terminal plates and central circular hub. Empty spaces between arms must be transparent. Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "frame",
+      "grade": "rare",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/frame_rare.png",
+      "prompt": "Use case: background-extraction. Asset type: finished game inventory icon, rare turret frame module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the open X silhouette, exactly four terminal plates and central circular hub. Empty spaces between arms must be transparent. Do not add emissive glow; keep the reference colors and material. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    },
+    {
+      "part": "frame",
+      "grade": "unique",
+      "ref": "/Users/sejin/Documents/Codex/RuneNexus/design/module_icon_concepts/2026-10-06/production/references/frame_unique.png",
+      "prompt": "Use case: background-extraction with a precise lighting edit. Asset type: finished game inventory icon, unique turret frame module. Input image: exact approved edit target. Extract this one existing object onto a genuinely transparent square canvas. Preserve EXACT geometry, front orthographic angle, number of components, metal material, steel highlights, and grade color of this reference. Do not redesign or simplify any components. Keep all attached parts. Keep the open X silhouette, exactly four terminal plates and central circular hub. Empty spaces between arms must be transparent. The ONLY creative change: add subtle violet emitted light along existing purple inlay seams, with a narrow soft glow and light purple reflections on adjacent metal. Keep solid purple metal and clearly readable mechanical details. No new geometry, no broad aura, no bright white bloom, no particles. Center the object, occupy approximately 90% of the square canvas's longest dimension, symmetric transparent padding, no drop shadow on a background, no navy background, no grid, no text, no border, no extra objects. Preserve the original silhouette without stretching."
+    }
+  ]
+}

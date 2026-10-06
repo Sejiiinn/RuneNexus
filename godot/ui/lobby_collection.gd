@@ -489,13 +489,7 @@ func _layout_inventory(grid: GridContainer, items: Array) -> void:
 			glyph_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			b.add_child(glyph_center)
 			glyph_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			var glyph := PartGlyph.new()
-			glyph.name = "ModulePartGlyph"
-			glyph.part = str(item.part)
-			glyph.tint = color
-			glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			glyph.custom_minimum_size = Vector2(28,28)
-			glyph_center.add_child(glyph)
+			glyph_center.add_child(ModuleIcon.create_art(item, 28))
 			var tag := _label({"core":"코","barrel":"포","frame":"프"}.get(item.part,""),8)
 			tag.add_theme_color_override("font_color",color); tag.mouse_filter=Control.MOUSE_FILTER_IGNORE
 			b.add_child(tag); tag.position=Vector2(3,3)
@@ -510,6 +504,8 @@ func _layout_inventory(grid: GridContainer, items: Array) -> void:
 	for cell: Control in grid.get_children():
 		cell.custom_minimum_size=Vector2(0,extent)
 		cell.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+		var art := cell.find_child("ModuleIconTexture", true, false) as Control
+		if art != null: art.custom_minimum_size = Vector2.ONE * maxf(20, extent - 18)
 
 func set_period(value: String, parent: VBoxContainer) -> void:
 	period = value

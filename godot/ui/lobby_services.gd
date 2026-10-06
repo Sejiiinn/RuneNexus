@@ -451,13 +451,9 @@ func _disassembly_confirmation(body: VBoxContainer) -> void:
 		for item in plan.items:
 			var row := _framed_row(items)
 			row.get_parent().name = "ModulePreview_"+str(item.id)
-			var glyph := CollectionUI.PartGlyph.new()
-			glyph.name = "ModulePartGlyph"
-			glyph.part = str(item.get("part","core"))
-			glyph.tint = CollectionUI.COLORS.get(item.get("grade","normal"),Color.WHITE)
-			glyph.custom_minimum_size = Vector2(28,28)
-			glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			row.add_child(glyph)
+			var art := CollectionUI.ModuleIcon.create_art(item, 28)
+			art.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(art)
 			var names := VBoxContainer.new()
 			names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(names)

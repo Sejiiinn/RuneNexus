@@ -3,6 +3,7 @@ extends SceneTree
 const Lobby = preload("res://ui/lobby.gd")
 const Fixture = preload("res://verify_ui_confirmations.gd")
 const Results = preload("res://ui/module_draw_results.gd")
+const ModuleIcon = preload("res://ui/module_icon.gd")
 var checks := 0
 
 func _initialize() -> void: call_deferred("run")
@@ -32,6 +33,37 @@ func module_item(index: int) -> Dictionary:
 
 func node(lobby, name: String) -> Node: return lobby.modal.find_child(name, true, false)
 
+func artwork_matrix() -> void:
+	var paths := {}
+	for part in ["core", "barrel", "frame"]:
+		for grade in ["normal", "magic", "rare", "unique"]:
+			var item := {"part":part, "grade":grade, "turretType":"arrow"}
+			var icon = ModuleIcon.create(item, 64)
+			root.add_child(icon)
+			await settle()
+			var art := icon.find_child("ModuleIconTexture", true, false) as TextureRect
+			check(art != null and art.texture != null, "Every supported part/grade loads its final PNG")
+			check(icon.find_child("ModulePartGlyph", true, false) == null, "Supported modules never use the placeholder glyph")
+			check(icon.icon_path == "res://assets/app/turret_modules/icons/%s_%s.png" % [part, grade], "Part and grade select the exact artwork")
+			check(art.modulate == Color.WHITE, "Grade artwork preserves its own material colors")
+			var glow := art.get_node_or_null("ModuleUniqueBackglow") as TextureRect
+			check((glow != null) == (grade == "unique"), "Only unique modules have a separate backlight")
+			if glow != null:
+				check(glow.texture != null and glow.texture.resource_path == ModuleIcon.BACKGLOW_PATH, "The separate glow PNG is packaged and loaded")
+				check(glow.show_behind_parent and glow.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Backlight stays behind the icon and cannot intercept input")
+			var frame := icon.get_theme_stylebox("panel") as StyleBoxTexture
+			check(frame != null and frame.modulate_color == ModuleIcon.PartGlyph.COLORS[grade], "The frame keeps its existing grade tint")
+			paths[icon.icon_path] = true
+			for extent in [32, 42, 64]:
+				icon.set_extent(extent)
+				icon.size = Vector2.ONE * extent
+				await settle()
+				check(icon.get_global_rect().encloses(art.get_global_rect()), "Artwork fits every equipment/result extent")
+				check(art.get_global_rect().get_center().distance_to(icon.get_global_rect().get_center()) < 0.1, "Artwork stays centered after a resize")
+			icon.free()
+	check(paths.size() == 12, "All twelve part/grade images are distinct")
+	check(ModuleIcon.asset_path({"part":"futurePart","grade":"normal"}).is_empty(), "Unknown parts cannot select another part's PNG")
+
 func results(lobby, app, count: int) -> void:
 	var items := []
 	for i in count: items.append(module_item(i))
@@ -55,8 +87,9 @@ func results(lobby, app, count: int) -> void:
 		check(row != null, "Result number matches its row")
 		var icon = row.get_child(0)
 		check(icon.part == module_item(i).part and icon.grade == module_item(i).grade, "The shared icon preserves part and grade")
-		check(icon.find_child("ModulePartGlyph", true, false) != null, "Existing PartGlyph is used until icon assets are supplied")
-		check(icon.icon_path == "res://assets/app/turret_modules/icons/%s.png" % icon.part, "Final PNG replacement has an explicit component path")
+		var art := icon.find_child("ModuleIconTexture", true, false) as TextureRect
+		check(art != null and art.texture != null and art.modulate == Color.WHITE, "Results use final part/grade artwork without retinting")
+		check(icon.icon_path == "res://assets/app/turret_modules/icons/%s_%s.png" % [icon.part, icon.grade], "Results select the correct part/grade PNG")
 		check(row.find_child("ModuleDetails",true,false).get_child_count() == 4, "All three options remain readable for every module")
 	var shell: Control = lobby.modal
 	lobby._services._render()
@@ -84,6 +117,7 @@ func run() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations", true)
 	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	await artwork_matrix()
 	var app := Fixture.FakeApp.new()
 	app.progression_inputs.turretModules.tickets = 10
 	check(app.catalog.load_catalog() and app.run_domain.growth.load_catalog(), "Fixture catalogs load")

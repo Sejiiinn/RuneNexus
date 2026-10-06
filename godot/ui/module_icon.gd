@@ -1,15 +1,13 @@
 extends PanelContainer
-## Shared draw/equipment icon. Until final art is supplied, reuse the inventory
-## glyph with the same part and grade tint.
+## Shared part/grade artwork, with an optional grade-tinted equipment/draw frame.
 const T = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const PartGlyph = preload("res://ui/module_part_glyph.gd")
 const FrameShader = preload("res://ui/module_icon_frame.gdshader")
-const ASSET_PATHS := {
-	"core": "res://assets/app/turret_modules/icons/core.png",
-	"barrel": "res://assets/app/turret_modules/icons/barrel.png",
-	"frame": "res://assets/app/turret_modules/icons/frame.png",
-}
+const PARTS := ["core", "barrel", "frame"]
+const GRADES := ["normal", "magic", "rare", "unique"]
+const ASSET_ROOT := "res://assets/app/turret_modules/icons/"
+const BACKGLOW_PATH := ASSET_ROOT + "unique_backglow.png"
 var part := ""
 var turret_type := ""
 var grade := ""
@@ -20,7 +18,53 @@ func set_extent(extent: int) -> void:
 	custom_minimum_size = Vector2(extent, extent)
 	var center := get_child(0)
 	var art: Control = center.get_child(0)
-	art.custom_minimum_size = Vector2.ONE * maxf(20, extent - (12 if art is TextureRect else 16))
+	art.custom_minimum_size = Vector2.ONE * maxf(20, extent - 12)
+
+static func asset_path(item: Dictionary) -> String:
+	var component := str(item.get("part", ""))
+	var rarity := str(item.get("grade", ""))
+	if component not in PARTS or rarity not in GRADES: return ""
+	return ASSET_ROOT + "%s_%s.png" % [component, rarity]
+
+static func create_art(item: Dictionary, extent: int) -> Control:
+	var path := asset_path(item)
+	var texture := T.texture(path) if not path.is_empty() else null
+	var art: Control
+	if texture != null:
+		var image := TextureRect.new()
+		image.name = "ModuleIconTexture"
+		image.texture = texture
+		# Each PNG already contains its grade materials, light and color.
+		image.modulate = Color.WHITE
+		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		if str(item.get("grade", "")) == "unique":
+			var glow := TextureRect.new()
+			glow.name = "ModuleUniqueBackglow"
+			glow.texture = T.texture(BACKGLOW_PATH)
+			glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			glow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			glow.show_behind_parent = true
+			glow.modulate.a = 0.55
+			image.add_child(glow)
+			# Relative anchors follow inventory and equipment size changes without
+			# changing layout minima; the diffuse light extends behind the silhouette.
+			glow.anchor_left = -0.18
+			glow.anchor_top = -0.18
+			glow.anchor_right = 1.18
+			glow.anchor_bottom = 1.18
+		art = image
+	else:
+		var glyph := PartGlyph.new()
+		glyph.name = "ModulePartGlyph"
+		glyph.part = str(item.get("part", ""))
+		glyph.tint = PartGlyph.COLORS.get(str(item.get("grade", "")), Color("b9d6e4"))
+		art = glyph
+	art.set_meta("icon_path", path)
+	art.custom_minimum_size = Vector2.ONE * extent
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return art
 
 static func create(item: Dictionary, extent: int) -> PanelContainer:
 	var icon := new()
@@ -28,7 +72,7 @@ static func create(item: Dictionary, extent: int) -> PanelContainer:
 	icon.part = str(item.get("part", ""))
 	icon.turret_type = str(item.get("turretType", ""))
 	icon.grade = str(item.get("grade", ""))
-	icon.icon_path = str(ASSET_PATHS.get(icon.part, ""))
+	icon.icon_path = asset_path(item)
 	icon.tint = PartGlyph.COLORS.get(icon.grade, Color("b9d6e4"))
 	icon.custom_minimum_size = Vector2(extent, extent)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -43,24 +87,6 @@ static func create(item: Dictionary, extent: int) -> PanelContainer:
 	var center := CenterContainer.new()
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.add_child(center)
-	var texture := T.texture(icon.icon_path) if not icon.icon_path.is_empty() else null
-	if texture != null:
-		var art := TextureRect.new()
-		art.name = "ModuleIconTexture"
-		art.texture = texture
-		art.modulate = icon.tint
-		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		art.custom_minimum_size = Vector2.ONE * maxf(20, extent - 12)
-		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		center.add_child(art)
-	else:
-		var glyph := PartGlyph.new()
-		glyph.name = "ModulePartGlyph"
-		glyph.part = icon.part
-		glyph.tint = icon.tint
-		glyph.custom_minimum_size = Vector2.ONE * maxf(20, extent - 16)
-		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		center.add_child(glyph)
+	center.add_child(create_art(item, maxi(20, extent - 12)))
 	icon.set_extent(extent)
 	return icon

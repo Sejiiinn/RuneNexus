@@ -798,3 +798,6 @@ __pycache__/
 /design/fire_tower_concepts/enemy_burn/frames/
 /design/fire_tower_concepts/enemy_burn/frames-v2/
 /design/fire_tower_concepts/enemy_burn/frames-v3/
+
+# Disposable crop-session copies; keep PNG references and final XCF sources.
+/design/module_icon_concepts/2026-10-06/production/source/*-reference.xcf
