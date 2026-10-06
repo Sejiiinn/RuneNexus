@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-06 Android 0.2.15 / code 6044 — 공개 완료
+
+- APK 대상 `d8f19196c5bd08fe1ef11926036c8e87840ba71d`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37468968196)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6044). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6044/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검증한 build-only 산출물 5개를 그대로 공개했다.
+- 이전에 미배포였던 자동 저장 중복 처리 최적화, 젬 보상 카드·모달 등장 애니메이션, 3종 강화 상한 확장 연구의 비용 10배 조정, 처치 보너스 강화 비용 하향·레벨 구간별 효과 개선, 두 번째 연구 슬롯의 초기 안내, 연구 목록의 청록 테두리·전체 명암 구분을 모두 포함한다. 목록의 시작 가능 문구·체크·룬 부족 표시는 제거했다. 2-10 클리어 전 슬롯 구매 안내는 비활성화하며 기존 600다이아 구매 계약을 유지한다.
+- 독립 검증자가 신규/2-10 전후/구매 후의 320px 실제 화면·포인터 구매·재진입을 확인했다. 440px 초기 안내, 카탈로그 320/440, 슬롯 A안, 젬 연출, 자동 저장, 처치 보너스는 현재 입력·소스와 유효성을 대조한 기존 독립 근거를 활용했다. CI 전체 검사·서명 빌드·Android 패치 디코더·6041/6042/6043 서명 일치와 Kotlin 차등 복원이 통과했다. 실제 APK 내부의 3종 연구 첫 비용 1500, 처치 보너스 첫 비용 10·효과 0.03, 젬 연출 컴파일 코드도 확인했다.
+- APK **442,518,154 bytes**, SHA-256 `95723e6b65d296b5146be58eea5d7e4c1bfbce4a8b2196767c639517a484a92c`. 6043 대비 **+10,140 bytes(+0.00229%)**로 모두 PCK 증가이며 새 젬 연출 코드가 주요 원인이다. PCK 214,293,848 bytes·1151항목·완전 중복 0, 제작 원본 포함 없음. ABI 3종·네이티브 라이브러리 크기·CRC와 텍스처 용량을 유지한다. 6043→6044 패치는 168,769,507 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치, 자산 5개의 크기·GitHub SHA-256과 검수본 일치, 익명 APK HTTP 200을 확인했다. DuckDNS는 실행 중 컨테이너의 `0:0`·healthy·읽기 전용·권한 제한이 이미 반영돼 있어 재시작하지 않았다. API·DB 변경이나 재배포는 없다. 연결된 Android 기기가 없어 실기기 설치·로그인·저장 유지·지속 성능은 미검증이다. 근거는 로컬 `build/release-verification/apk-6044/`에 보관한다.
+
 ## 2026-10-06 Android 0.2.14 / code 6043 — 공개 완료
 
 - APK 대상 `993de3fa34ecd86f6c6baff50709657fceac170a`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37448415598)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6043). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6043/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검증한 build-only 산출물 5개를 그대로 공개했다.
