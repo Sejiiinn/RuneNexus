@@ -61,8 +61,10 @@ func module_effect(p: Dictionary, type: String) -> Dictionary:
 func kill_rewards(p: Dictionary, run_levels: Dictionary = {}) -> Dictionary:
 	if data.is_empty(): return {}
 	var kill_gold := _level(p, "killGold") * _c("killGoldBonusPerUpgradeLevel") if StageProgression.has_unlock(p,"upgrade","killGold") else 0.0
+	var effects: Array = data.runUpgrades.killGold.effects
+	var run_bonus := float(effects[clampi(int(run_levels.get("killGold", 0)), 0, effects.size() - 1)])
 	return {
-		"killGoldBonusRate":kill_gold + int(run_levels.get("killGold", 0)) * float(data.runUpgrades.killGold.effectPerLevel),
+		"killGoldBonusRate":kill_gold + run_bonus,
 		"bossBountyBonusRate":_level(p, "bossBounty") * _c("bossBountyBonusPerUpgradeLevel"),
 		"bossKillGemShardBonus":int(_research(p, "crystalRecovery") * _c("bossGemShardsPerCrystalRecoveryLevel"))}
 

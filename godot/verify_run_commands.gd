@@ -83,9 +83,16 @@ func _initialize() -> void:
 	state.phase = "wave"
 	state.runUpgradeLevels = {"killGold":1}
 	for i in range(10): state = service.award_kill(state,{"type":"normal"}).state
-	check(state.gold == service.initial_state().gold+50,"fraction bonus does not round each kill")
+	check(state.gold == service.initial_state().gold+51 and is_equal_approx(state.killGoldFractionWallet,0.5),"3% kill bonus accumulates fractional gold across kills")
 	state = service.award_kill(state,{"type":"normal"}).state
 	check(state.gold == service.initial_state().gold+56,"fraction wallet eventually pays")
+	for pair in [[10,130],[11,134],[20,170],[21,175],[30,220]]:
+		var tiered: Dictionary = service.initial_state()
+		tiered.phase = "wave"
+		tiered.runUpgradeLevels = {"killGold":pair[0]}
+		var initial_gold := int(tiered.gold)
+		for i in range(20): tiered = service.award_kill(tiered,{"type":"normal"}).state
+		check(tiered.gold == initial_gold+int(pair[1]) and is_zero_approx(tiered.killGoldFractionWallet),"tiered kill bonus settlement level="+str(pair[0]))
 	var wave: Dictionary = service.complete_wave(state,1)
 	check(wave.ok and wave.state.completedRounds == 1 and wave.state.roundIndex == 1,"wave settles once")
 	check(not service.complete_wave(wave.state,1).ok,"duplicate completed wave rejected")

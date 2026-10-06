@@ -39,7 +39,7 @@ func _init() -> void:
 		check(near(outcome.state, sample.before if gated else sample.after), sample.name + ": complete state")
 		for pair in [[sample.before, sample.derived], [sample.after, sample.afterDerived]]:
 			var d := growth.derive(pair[0])
-			for run_level in [0, 1, 10]:
+			for run_level in [0, 1, 10, 11, 20, 21, 30]:
 				var levels := {"killGold":run_level}
 				var rewards: Dictionary = growth.kill_rewards(pair[0], levels)
 				var full: Dictionary = growth.derive(pair[0], {"runUpgradeLevels":levels,"distinctTurretTypeCount":4,"distinctEquippedGemTypeCount":3})
