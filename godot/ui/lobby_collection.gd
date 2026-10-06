@@ -410,12 +410,7 @@ func modules() -> void:
 	inventory_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inventory.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var items := filtered_items()
-	if items.is_empty():
-		var empty := _label("획득한 %s %s 없음" % [lobby._title(turret), PARTS.get(part_filter, "모듈")])
-		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty.custom_minimum_size.y = 26
-		inventory.add_child(empty)
-	else:
+	if not items.is_empty():
 		var info := HBoxContainer.new()
 		info.name = "ModuleInventoryInfo"
 		inventory.add_child(info)
@@ -428,33 +423,33 @@ func modules() -> void:
 		var bulk := _module_action("일괄 분해", _module_service.bind("모듈 일괄 분해",{"turretType":turret,"part":part_filter,"ids":items.map(func(item):return item.id)}), "danger", Vector2(96, 32))
 		bulk.name = "ModuleBulkDisassembleAction"
 		info.add_child(bulk)
-		var grid := GridContainer.new()
-		grid.name = "ModuleInventoryGrid"
-		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_theme_constant_override("h_separation",6)
-		grid.add_theme_constant_override("v_separation",6)
-		inventory_scroll = ScrollContainer.new()
-		inventory_scroll.name = "ModuleInventoryScroll"
-		inventory_scroll.scroll_deadzone = 10
-		inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-		inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		# Give the reclaimed lower action band to the inventory, not the turret preview.
-		inventory_scroll.custom_minimum_size.y = 72
-		inventory.add_child(inventory_scroll)
-		inventory_scroll.add_child(grid)
-		var scroll_ref: WeakRef = weakref(inventory_scroll)
-		var key: String = _inventory_key()
-		inventory_scroll.set_meta("inventory_key", key)
-		var restore := func():
-			var scroll: ScrollContainer = scroll_ref.get_ref()
-			if scroll != null: scroll.scroll_vertical = int(inventory_positions.get(key, 0))
-		restore.call_deferred()
-		lobby.get_tree().process_frame.connect(restore, CONNECT_ONE_SHOT)
-		var rebuild := func(): _layout_inventory(grid,items)
-		grid.resized.connect(rebuild)
-		rebuild.call_deferred()
+	var grid := GridContainer.new()
+	grid.name = "ModuleInventoryGrid"
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation",6)
+	grid.add_theme_constant_override("v_separation",6)
+	inventory_scroll = ScrollContainer.new()
+	inventory_scroll.name = "ModuleInventoryScroll"
+	inventory_scroll.scroll_deadzone = 10
+	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inventory_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# Give the reclaimed lower action band to the inventory, not the turret preview.
+	inventory_scroll.custom_minimum_size.y = 72
+	inventory.add_child(inventory_scroll)
+	inventory_scroll.add_child(grid)
+	var scroll_ref: WeakRef = weakref(inventory_scroll)
+	var key: String = _inventory_key()
+	inventory_scroll.set_meta("inventory_key", key)
+	var restore := func():
+		var scroll: ScrollContainer = scroll_ref.get_ref()
+		if scroll != null: scroll.scroll_vertical = int(inventory_positions.get(key, 0))
+	restore.call_deferred()
+	lobby.get_tree().process_frame.connect(restore, CONNECT_ONE_SHOT)
+	var rebuild := func(): _layout_inventory(grid,items)
+	grid.resized.connect(rebuild)
+	rebuild.call_deferred()
 	var fit := func():
 		if not is_instance_valid(viewport): return
 		var other_height := 16.0 + parent.get_theme_constant("separation") * (parent.get_child_count() - 1)
@@ -467,7 +462,7 @@ func modules() -> void:
 func _layout_inventory(grid: GridContainer, items: Array) -> void:
 	if not is_instance_valid(grid): return
 	var columns := 5 if grid.size.x < 324 else 6
-	var count := ceili(float(items.size())/columns)*columns
+	var count := maxi(1, ceili(float(items.size())/columns))*columns
 	if grid.columns != columns or grid.get_child_count() != count:
 		_clear(grid)
 		grid.columns = columns

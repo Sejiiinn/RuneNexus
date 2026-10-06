@@ -33,6 +33,17 @@ func _find(node: Node, label: String) -> Button:
 		if found: return found
 	return null
 
+func _assert_empty_inventory(body: Control, width: int) -> void:
+	var grid := body.find_child("ModuleInventoryGrid", true, false) as GridContainer
+	assert(grid != null and grid.columns == (5 if width == 320 else 6))
+	assert(grid.get_child_count() == grid.columns, "Empty inventory shows exactly one row")
+	assert(not "획득한 " in _texts(body), "Empty inventory has no acquired-none message")
+	assert(body.find_child("ModuleBulkDisassembleAction", true, false) == null)
+	for cell in grid.get_children():
+		assert(cell is PanelContainer and cell.get_child_count() == 0, "Empty cells have no item or action")
+		assert(cell.get_theme_stylebox("panel") is StyleBoxTexture)
+		assert(absf(cell.size.x - cell.size.y) < 1.1, "Empty inventory cells stay square")
+
 func _assert_module_actions(body: Control, selected: Dictionary = {}) -> void:
 	var detail := body.find_child("ModuleDetail", true, false) as Control
 	var header := body.find_child("ModuleDetailHeader", true, false) as Control
@@ -81,7 +92,12 @@ func _run() -> void:
 	helper.setup(host)
 	host.helper = helper
 	helper.modules()
-	assert("획득한 기관총 모듈 없음" in _texts(host.body))
+	for width in [320, 440]:
+		host.size = Vector2(width, 900)
+		host.body.size = Vector2(width - 24, 850)
+		helper.modules()
+		for i in range(6): await process_frame
+		_assert_empty_inventory(host.body, width)
 	var item := {"id":"test_a", "turretType":"arrow", "part":"core", "grade":"rare", "equipped":false, "options":[{"type":"damageIncrease", "value":12}]}
 	var second: Dictionary = item.duplicate(true)
 	second.id = "test_b"
@@ -91,6 +107,12 @@ func _run() -> void:
 	assert(helper.filtered_items().size() == 2)
 	helper.select_part("barrel")
 	assert(helper.filtered_items().is_empty())
+	for width in [320, 440]:
+		host.size = Vector2(width, 900)
+		host.body.size = Vector2(width - 24, 850)
+		helper.modules()
+		for i in range(6): await process_frame
+		_assert_empty_inventory(host.body, width)
 	helper.select_part("core")
 	helper.select_item(item)
 	assert("과열 연산 코어" in _texts(host.body))
