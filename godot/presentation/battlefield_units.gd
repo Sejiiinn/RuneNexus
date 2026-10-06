@@ -160,6 +160,8 @@ func _prepare_vertex_colors(model: Node) -> void:
 
 func _new_turret(type: String) -> Dictionary:
 	var root: Node3D = TURRET_MODELS[type].instantiate()
+	if type == "lightning":
+		root.scale *= 0.9
 	_prepare_vertex_colors(root)
 	world.add_child(root)
 	var barrel: Node3D = root.find_child("turret_barrel", true, false)
