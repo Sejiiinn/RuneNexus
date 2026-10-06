@@ -478,46 +478,44 @@ func research() -> void:
 		var status := research_status(id)
 		groups["완료한 연구" if status == "연구 완료" else ("잠긴 연구" if status.begins_with("스테이지") else "가능한 연구")].append(id)
 	for group in groups:
-		var presentation: Array = {"가능한 연구":["시작 가능 연구", 0xf33d, Color("e7c66a")], "잠긴 연구":["아직 해금되지 않음", 0xe3b1, Color("8da5b3")], "완료한 연구":["연구 완료", 0xe1f7, Color("bdefcf")]}[group]
+		var presentation: Array = {"가능한 연구":["해금된 연구", 0xf33d, Color("e7c66a")], "잠긴 연구":["아직 해금되지 않음", 0xe3b1, Color("8da5b3")], "완료한 연구":["연구 완료", 0xe1f7, Color("bdefcf")]}[group]
 		var section := _section(lobby.body, presentation[0], presentation[1], presentation[2])
 		if groups[group].is_empty(): continue
 		var grid := _grid(section)
 		for id in groups[group]:
 			var d: Dictionary = _growth().data.research[id]
 			var q: Dictionary = _growth().research_quote(lobby._p(), id)
+			var status := research_status(id)
+			var ready := status == "연구 가능"
 			var box := _surface(grid)
-			box.custom_minimum_size.y = 90
+			box.custom_minimum_size.y = 116
+			var panel: Control = box.get_parent()
+			panel.name = "ResearchCard_" + id
+			panel.set_meta("research_id",id)
+			panel.set_meta("research_status",status)
+			if ready:
+				# Tint the existing metallic image, keeping its bevels and corners.
+				var ready_frame := _style("ui/components/card_frame.png",8)
+				ready_frame.modulate_color = Color(0.35,1.55,1.65)
+				panel.add_theme_stylebox_override("panel",ready_frame)
+			else:
+				# Inherited modulation includes the icon, labels, rune and time.
+				panel.modulate = Color(0.48,0.58,0.68)
 			_heading(box, id, int(q.level), int(d.maxLevel), -1 if int(q.level) >= int(d.maxLevel) else int(q.cost))
 			var effect := _strong(T.label(_research_effect(id, int(q.level), int(d.maxLevel)), 10))
 			effect.add_theme_color_override("font_color", Color("b9d6e4"))
 			box.add_child(effect)
+			var spacer := Control.new(); spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL; spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE; box.add_child(spacer)
+			var footer := HBoxContainer.new(); footer.add_theme_constant_override("separation",4); box.add_child(footer)
+			var state_text := _inline(status if status in ["연구 중","연구 완료"] else "",11)
+			state_text.name = "ResearchAvailability"
+			state_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			footer.add_child(state_text)
 			if int(q.level) < int(d.maxLevel):
-				var duration := HBoxContainer.new()
-				duration.alignment = BoxContainer.ALIGNMENT_END
-				box.add_child(duration)
+				var duration := HBoxContainer.new(); duration.add_theme_constant_override("separation",3); footer.add_child(duration)
 				duration.add_child(_glyph(0xe556, 10, Color("8da5b3")))
 				duration.add_child(_inline(_duration(int(q.remainingMillis)), 9))
-			var status := research_status(id)
-			if status in ["룬 부족", "연구 완료"]:
-				var chip := PanelContainer.new()
-				chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-				chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				var border := StyleBoxFlat.new()
-				border.bg_color = Color(0,0,0,0)
-				border.border_color = Color("485b6855")
-				border.set_border_width_all(1)
-				border.set_corner_radius_all(7)
-				border.set_content_margin_all(6)
-				chip.add_theme_stylebox_override("panel", border)
-				chip.add_child(_inline(status, 10))
-				box.add_child(chip)
-			var panel: Control = box.get_parent()
-			if not _active(id).is_empty():
-				var active_visual := ProgressVisual.new()
-				active_visual.catalog = true
-				panel.add_child(active_visual)
-				panel.move_child(active_visual,0)
-			if group == "잠긴 연구": panel.self_modulate.a = 0.58
+
 			if group != "잠긴 연구" and _active(id).is_empty():
 				# BaseButton cancels its release action when the parent starts scrolling.
 				var select := Button.new()
