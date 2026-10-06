@@ -1,6 +1,7 @@
 extends Control
 ## Flutter research slot fill / 2.4-second catalog border animation.
 var catalog := false
+var slot_bar := false
 var progress := 0.0:
 	set(value): progress = value; queue_redraw()
 var phase := 0.0
@@ -17,8 +18,11 @@ func _ready() -> void:
 		_gradient.gradient.colors = PackedColorArray([Color("33d8ff26"),Color("00000010"),Color("e7c66a22")])
 		_gradient.fill_from = Vector2.ZERO
 		_gradient.fill_to = Vector2.ONE
-func set_progress(value: float) -> void:
+func set_progress(value: float, animate := true) -> void:
 	if is_instance_valid(_tween): _tween.kill()
+	if not animate:
+		progress = clampf(value,0,1)
+		return
 	_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_tween.tween_property(self,"progress",clampf(value,0,1),0.85)
 func _process(delta: float) -> void:
@@ -26,6 +30,17 @@ func _process(delta: float) -> void:
 	phase = fposmod(phase+delta/2.4,1.0)
 	queue_redraw()
 func _draw() -> void:
+	if slot_bar:
+		var outline := PackedVector2Array([Vector2(3,1),Vector2(size.x-3,1),Vector2(size.x-1,3),Vector2(size.x-1,size.y-3),Vector2(size.x-3,size.y-1),Vector2(3,size.y-1),Vector2(1,size.y-3),Vector2(1,3)])
+		draw_colored_polygon(outline,Color("06111c"))
+		var rim := outline.duplicate(); rim.append(outline[0])
+		draw_polyline(rim,Color("547c8f"),1,true)
+		var width := (size.x-6)*progress
+		if width>0:
+			draw_rect(Rect2(3,3,width,maxf(1,size.y-6)),Color("c29b39"))
+			draw_line(Vector2(3,3),Vector2(3+width,3),Color("f5dd7c"),1,true)
+			draw_line(Vector2(3,size.y-3),Vector2(3+width,size.y-3),Color("78561c"),1,true)
+		return
 	if not catalog:
 		draw_rect(Rect2(0,0,size.x*progress,size.y),Color("e7c66a22"))
 		if progress>0: draw_line(Vector2(size.x*progress,0),Vector2(size.x*progress,size.y),Color("e7c66a88"))

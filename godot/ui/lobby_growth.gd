@@ -317,37 +317,149 @@ func research_status(id: String) -> String:
 	if int(lobby._p().get("runes", 0)) < int(q.cost): return "룬 부족"
 	return "연구 가능"
 
+func _slot_button(parent: Node, text: String, callback: Callable, primary := false) -> Button:
+	var action := T.button(text, callback, "primary" if primary else "secondary", true)
+	var skin = preload("res://ui/button_skin.gd")
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var style: StyleBoxTexture
+		if primary:
+			style = skin.surface("primary",Vector2(9,5))
+		else:
+			style = StyleBoxTexture.new()
+			style.texture = T.texture("ui/components/research_slot_a_stop.png")
+			style.set_texture_margin_all(10)
+			style.set_content_margin_all(5)
+		if state == "hover": style.modulate_color = Color(1.12,1.12,1.12)
+		elif state == "pressed": style.modulate_color = Color(0.8,0.9,0.94)
+		elif state == "disabled": style.modulate_color = Color("607887")
+		action.add_theme_stylebox_override(state,style)
+	action.add_theme_color_override("font_color",Color("e8f8ff") if primary else Color("eba971"))
+	action.add_theme_font_size_override("font_size",11)
+	action.custom_minimum_size = Vector2(54,26)
+	action.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	parent.add_child(action)
+	return action
+
+func _research_slot(parent: Node, item: Dictionary) -> void:
+	var card := PanelContainer.new()
+	card.name = "ResearchSlot_" + str(item.type)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
+	var frame := Frame.new("ui/components/research_slot_a_frame.png",10)
+	frame.source_scale = 6
+	frame.source_center = Rect2(16,10,318.8,58.3)
+	card.add_theme_stylebox_override("panel",frame)
+	parent.add_child(card)
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation",6)
+	card.add_child(row)
+	var identity := HBoxContainer.new()
+	identity.add_theme_constant_override("separation",8)
+	row.add_child(identity)
+	var icon := _icon(str(item.type),48)
+	icon.name = "ResearchSlotIcon"
+	icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	identity.add_child(icon)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation",3)
+	identity.add_child(info)
+	var heading := HBoxContainer.new()
+	heading.add_theme_constant_override("separation",5)
+	info.add_child(heading)
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_theme_constant_override("separation",1)
+	heading.add_child(words)
+	var title := _strong(T.label(str(TITLES.get(item.type,item.type)),12))
+	title.name = "ResearchSlotTitle"
+	title.add_theme_color_override("font_color",Color("e8f8ff"))
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_child(title)
+	var level := _inline("Lv.%d/%d" % [int(item.targetLevel)-1,int(_growth().data.research[item.type].maxLevel)],11)
+	level.name = "ResearchSlotLevel"
+	words.add_child(level)
+	var stop := _slot_button(heading,"중단",_cancel_confirm.bind(str(item.type)))
+	stop.name = "ResearchSlotStop"
+	stop.tooltip_text = "연구 중단"
+	var progress_row := HBoxContainer.new()
+	progress_row.add_theme_constant_override("separation",5)
+	info.add_child(progress_row)
+	var fill := ProgressVisual.new()
+	fill.name = "ResearchSlotProgress"
+	fill.slot_bar = true
+	fill.custom_minimum_size = Vector2(0,9)
+	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	progress_row.add_child(fill)
+	var percent := _inline("",10)
+	percent.name = "ResearchSlotPercent"
+	percent.custom_minimum_size.x = 29
+	percent.add_theme_color_override("font_color",Color("82afc7"))
+	progress_row.add_child(percent)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation",5)
+	row.add_child(actions)
+	var time_row := HBoxContainer.new()
+	time_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	time_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	time_row.add_theme_constant_override("separation",3)
+	actions.add_child(time_row)
+	time_row.add_child(_glyph(0xe556,13,Color("92bed8")))
+	var clock := _inline("",10)
+	clock.name = "ResearchSlotClock"
+	time_row.add_child(clock)
+	var instant := _slot_button(actions,"",_instant_confirm.bind(str(item.type)),true)
+	instant.name = "ResearchSlotInstant"
+	instant.custom_minimum_size = Vector2(112,28)
+	var content := HBoxContainer.new()
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_theme_constant_override("separation",5)
+	instant.add_child(content)
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.offset_left=9; content.offset_right=-9; content.offset_top=4; content.offset_bottom=-4
+	var caption := _inline("즉시 완료",11)
+	caption.add_theme_color_override("font_color",Color("e8f8ff"))
+	content.add_child(caption)
+	var divider := ColorRect.new()
+	divider.color=Color("35bbd4")
+	divider.custom_minimum_size.x=1
+	divider.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	content.add_child(divider)
+	var diamond := _inline("◇",15)
+	diamond.add_theme_color_override("font_color",Color("31d9ed"))
+	content.add_child(diamond)
+	var cost_label := _inline("",11)
+	cost_label.name = "ResearchSlotCost"
+	cost_label.add_theme_color_override("font_color",Color("e8f8ff"))
+	content.add_child(cost_label)
+	var update := func(animate := true):
+		var current := _active(str(item.type))
+		var remain := _remaining(current) if not current.is_empty() else 0
+		clock.text = "연구 완료" if remain==0 else _time(remain)+" 남음"
+		var cost := ceili(float(remain)/60000)
+		cost_label.text = str(cost)
+		instant.tooltip_text = "즉시 완료 · 다이아 %d" % cost
+		instant.disabled = lobby.diamonds()<cost or current.is_empty()
+		content.modulate = Color("718a97") if instant.disabled else Color.WHITE
+		instant.custom_minimum_size.x = maxf(112,content.get_combined_minimum_size().x+18)
+		# A resumed research stores its remaining duration and prior elapsed separately.
+		var total := int(current.get("durationMillis",0)) + int(current.get("initialElapsedMillis",0))
+		var progress := clampf(1.0-float(remain)/maxf(1,float(total)),0,1)
+		percent.text = "%d%%" % int(progress*100)
+		fill.set_progress(progress,animate)
+	update.call(false)
+	var timer := Timer.new()
+	timer.name="ResearchSlotTimer"; timer.wait_time=1
+	row.add_child(timer); timer.timeout.connect(update); timer.start()
+
 func research() -> void:
 	var slots := _section(lobby.body, "연구 슬롯", 0xf499, Color("b9d6e4"))
 	var active: Array = lobby._p().get("activeResearches", [])
 	var count := 2 if lobby._p().get("researchSlotTwoUnlocked", false) else 1
 	for i in range(count):
 		if i < active.size():
-			var item: Dictionary = active[i]
-			var row := _surface(slots, "ui/components/row_frame.png",9)
-			var fill := ProgressVisual.new()
-			row.get_parent().add_child(fill)
-			row.get_parent().move_child(fill,0)
-			var heading := HBoxContainer.new(); row.add_child(heading)
-			heading.add_child(_glyph(0xe33c,18,Color("e7c66a")))
-			var title := _strong(T.label("%s Lv.%d/%d" % [TITLES[item.type],int(item.targetLevel)-1,int(_growth().data.research[item.type].maxLevel)],12))
-			title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			heading.add_child(title)
-			_button(heading,"×",_cancel_confirm.bind(str(item.type))).size_flags_horizontal = Control.SIZE_SHRINK_END
-			var actions := HBoxContainer.new(); row.add_child(actions)
-			var clock := T.label("",10); clock.size_flags_horizontal = Control.SIZE_EXPAND_FILL; actions.add_child(clock)
-			var instant := _button(actions,"",_instant_confirm.bind(str(item.type)))
-			instant.custom_minimum_size = Vector2(104,26)
-			var update := func():
-				var current := _active(str(item.type))
-				var remain := _remaining(current) if not current.is_empty() else 0
-				clock.text = "연구 완료" if remain==0 else _time(remain)+" 남음"
-				var cost := ceili(float(remain)/60000)
-				instant.text = "즉시 완료  ◇ %d" % cost
-				instant.disabled = lobby.diamonds()<cost or current.is_empty()
-				fill.set_progress(1.0-float(remain)/maxf(1,float(item.durationMillis)))
-			update.call()
-			var timer := Timer.new(); timer.wait_time=1; row.add_child(timer); timer.timeout.connect(update); timer.start()
+			_research_slot(slots,active[i])
 
 		else:
 			var empty := _surface(slots, "ui/components/row_frame.png", 9)
