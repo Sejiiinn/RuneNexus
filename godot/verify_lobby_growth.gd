@@ -79,7 +79,7 @@ func verify() -> void:
 	ui._submit("startResearch", "researchEfficiency")
 	ui.research()
 	assert(_texts(host.body).contains("즉시 완료"),"Slot exposes direct instant completion")
-	assert(_texts(host.body).contains("×"),"Slot exposes direct cancel")
+	assert(_texts(host.body).contains("중단"),"Slot exposes direct cancel")
 	ui._details("researchEfficiency")
 	var clock_before := _texts(host.modal)
 	host.state.activeResearches[0].startedAtMillis = int(Time.get_unix_time_from_system()*1000)-int(host.state.activeResearches[0].durationMillis)+59000
