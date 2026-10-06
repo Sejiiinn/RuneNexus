@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-06 Android 0.2.14 / code 6043 — 공개 완료
+
+- APK 대상 `993de3fa34ecd86f6c6baff50709657fceac170a`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37448415598)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6043). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6043/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검증한 build-only 산출물 5개를 그대로 공개했다.
+- 연구 중 슬롯에 승인된 A안의 남청 금속 카드·연구 아이콘·금색 진행바와 진행률·남은 시간·청동색 중단 버튼·청록색 즉시 완료와 다이아 비용을 적용했다. 재개한 연구의 경과 시간을 보존하고 초기 진행률을 바로 표시한다. 이전 공개본 이후 main의 골렘 보스 보행·사망, 웨이브 예고와 실제 적 구성 일치, 탱커 사망 계산 정리, 텍스처 압축도 포함한다. 미승인 로컬 변경·기존 미푸시 커밋은 제외했고 서버·DB 재배포는 없다.
+- 별도 검증자가 배포 후보의 연구 슬롯·중단·상세·성장 규칙·저장 관련 회귀와 1/2슬롯 각각 320/440 실제 Godot 화면을 확인했다. CI 전체 검사·서명 빌드·Android 패치 디코더·6040/6041/6042 서명 일치와 Kotlin 차등 복원이 통과했다. 첫 CI의 기존 `×` 기대 문구를 승인된 `중단`으로 고친 뒤 해당 검사와 최종 CI를 통과했다.
+- APK **442,508,014 bytes**, SHA-256 `e7288a84c4a1d0a5f7aebea0202add6b867649494be07096dd401f17b888816f`. 6042 대비 **+26,888,936 bytes(+6.47%)**이며 거의 전부 PCK 증가다. ASTC 텍스처 +57,324,908 bytes, 기존 기타 텍스처 -34,271,800 bytes, 가져온 장면 +3,259,588 bytes(주로 보스)가 주요 원인이다. PCK 214,283,708 bytes·1149항목·완전 중복 0, 제작 원본 포함 없음. ABI 3종과 네이티브 라이브러리 크기·CRC를 유지하며 6042→6043 패치는 152,849,661 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치, 자산 5개의 크기·GitHub SHA-256과 검수본 일치, 익명 APK HTTP 200을 확인했다. 연결된 Android 기기가 없어 실기기 설치·로그인·저장 유지·지속 성능은 미검증이다. 근거는 로컬 `build/release-verification/apk-6043/`에 보관한다.
+
 ## 2026-10-04 Android 0.2.13 / code 6042 — 공개 완료
 
 - APK 대상 `74c7d33d37055dc37ff05d5eeec6e6d24227573e`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37169361846)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6042). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6042/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 build-only 산출물 5개를 그대로 공개했다.
