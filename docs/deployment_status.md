@@ -6,6 +6,15 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-07 Android 0.2.16 / code 6045 — 공개 완료
+
+- APK 대상 `d859b80d944f6a9712bbf9c616ebc399381f78c5`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37565375644)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6045). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6045/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검수한 build-only 산출물 5개를 그대로 공개했다.
+- 포탑 모듈 코어·포신·프레임의 등급별 아이콘 12종과 유니크 전용 배경 후광, 빈 모듈 인벤토리의 슬롯 한 줄, 라이트닝 포탑 표시 크기 10% 축소, 설치 시 0.22초·최대 2px 상하 충격을 포함한다. 화상·독 지속피해는 방어구 감쇄를 무시하되 보호막→방어구→체력 순서를 유지하며, 장갑병 처치 보상은 7→8골드다. 서버·DB·운영 설정 변경이나 재배포는 없다.
+- 독립 검증자가 승인 원본과 최종 모듈 화면·관련 입력·공유 의존성을 대조하고, 기존 지속피해 독립 89건의 입력 유효성을 확인했다. 실제 App 격리 실행에서 장갑병 보상 6건, 라이트닝 미리보기·설치 90% 크기와 상하 충격·HUD 고정·일시정지/4배속 64건, 빈 인벤토리 320px 12건이 통과했다. 부모도 최종 모듈·빈 인벤토리·전장 화면과 설치 시간축을 직접 확인했다. 추가 실제 실행은 Godot 4.7.2·macOS Apple M4·Metal Forward Mobile의 데스크톱 결과다.
+- CI Python 77개·콘텐츠·Godot 네이티브 회귀 57개·계정/AppServices 검사, 서명 빌드·Android 패치 디코더·6042/6043/6044 서명 일치와 Kotlin 차등 복원이 통과했다. 실제 APK의 버전·운영 설정·대상 build, 최종 콘텐츠 JSON과 장갑병 8골드, 모듈 텍스처 13개와 변경된 컴파일 스크립트의 포함도 확인했다.
+- APK **445,192,210 bytes**, SHA-256 `6a013a85740b9c0a3f1ea4e0b99b1009d49a90b8d2ff9bc7028a4c04610e25a2`. 6044 대비 **+2,674,056 bytes(+0.6043%)**로 모두 PCK 증가이며 새 모듈 아이콘·후광이 주요 원인이다. PCK 216,967,904 bytes·1177항목·완전 중복 0, 제작 원본 포함 없음. ABI 3종과 네이티브 라이브러리 크기·CRC를 유지한다. 6044→6045 패치는 157,161,555 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치, 자산 5개의 크기·GitHub SHA-256과 검수본 일치 및 익명 APK HTTP 200을 확인했다. 다운로드 정체는 받은 바이트를 보존하고 이어받아 복구했으며 전체 아티팩트의 GitHub SHA-256을 대조했다. 로컬 산출물과 검증 자료는 외장 SSD의 `build/release-verification/apk-6045/`에 보관한다. 연결된 Android 기기가 없어 실기기 설치·로그인·저장 유지·터치/수명주기·모바일 GPU/지속 성능은 미검증이다.
+
 ## 2026-10-06 Android 0.2.15 / code 6044 — 공개 완료
 
 - APK 대상 `d8f19196c5bd08fe1ef11926036c8e87840ba71d`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37468968196)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6044). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6044/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검증한 build-only 산출물 5개를 그대로 공개했다.
