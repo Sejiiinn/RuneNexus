@@ -1,7 +1,7 @@
 {
   "enemyDefinitions": {
     "normal": {"name": "일반", "maxHp": 31.5, "maxShield": 0.0, "maxArmor": 0.0, "speed": 31.5, "shieldRegenRate": 0.0, "rewardGold": 5, "coreDamage": 1, "color": 4291284694, "isBoss": false},
-    "armored": {"name": "장갑병", "maxHp": 36.0, "maxShield": 0.0, "maxArmor": 25.2, "speed": 28.0, "shieldRegenRate": 0.0, "rewardGold": 7, "coreDamage": 1, "color": 4293974136, "isBoss": false},
+    "armored": {"name": "장갑병", "maxHp": 36.0, "maxShield": 0.0, "maxArmor": 25.2, "speed": 28.0, "shieldRegenRate": 0.0, "rewardGold": 8, "coreDamage": 1, "color": 4293974136, "isBoss": false},
     "shielded": {"name": "보호막병", "maxHp": 32.4, "maxShield": 37.8, "maxArmor": 0.0, "speed": 29.0, "shieldRegenRate": 0.04, "rewardGold": 8, "coreDamage": 1, "color": 4284668415, "isBoss": false},
     "fast": {"name": "빠름", "maxHp": 19.8, "maxShield": 0.0, "maxArmor": 0.0, "speed": 54.6, "shieldRegenRate": 0.0, "rewardGold": 5, "coreDamage": 1, "color": 4288474111, "isBoss": false},
     "tank": {"name": "탱커", "maxHp": 93.6, "maxShield": 0.0, "maxArmor": 0.0, "speed": 21.0, "shieldRegenRate": 0.0, "rewardGold": 9, "coreDamage": 2, "color": 4289299818, "isBoss": false},
@@ -128,7 +128,7 @@
       "isDebug": false,
       "name": "장갑병",
       "color": 4293974136,
-      "rewardGold": 7
+      "rewardGold": 8
     },
     "shielded": {
       "type": "shielded",
