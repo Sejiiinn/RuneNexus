@@ -12,6 +12,7 @@ const BattlefieldEnvironment = preload("res://environment/battlefield_environmen
 const CombatSpaceBackground = preload("res://environment/combat_space_background.gd")
 const BattlefieldUnits = preload("res://presentation/battlefield_units.gd")
 const BattlefieldProjectiles = preload("res://presentation/battlefield_projectiles.gd")
+const BattlefieldPath = preload("res://presentation/battlefield_path.gd")
 const LightningPresentation = preload("res://presentation/lightning_presentation.gd")
 const TURRET_MODELS = BattlefieldUnits.TURRET_MODELS
 const ENEMY_MODELS = BattlefieldUnits.ENEMY_MODELS
@@ -152,6 +153,7 @@ var _generic_projectile_pool: Dictionary:
 var _units := BattlefieldUnits.new(world, camera)
 var _lightning_presentation := LightningPresentation.new(world)
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
+var _path_guide := BattlefieldPath.new(world)
 var _environment := BattlefieldEnvironment.new(terrain, _world_environment, sun, _fill_light)
 var _space_background := CombatSpaceBackground.new()
 var effects_prepared := false
@@ -225,6 +227,7 @@ func _exit_tree() -> void:
 	if RenderingServer.frame_pre_draw.is_connected(_report_presentation):
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	_environment.dispose()
+	_path_guide.dispose()
 
 
 func _fail(message: String) -> void:
@@ -545,6 +548,7 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 	_update_impacts(last_frame.get("impacts", []))
 	RuntimeProfile.finish("impacts", impacts_tick)
 	_environment.update_frame(frame)
+	_path_guide.update_time(float(frame.get("time", 0.0)))
 
 
 func _clear_scene() -> void:
@@ -564,6 +568,7 @@ func _clear_scene() -> void:
 	_applied_groups.clear()
 	_units.clear()
 	_projectile_renderer.clear(effects_prepared)
+	_path_guide.clear()
 	_environment.clear()
 	_map_revision = -1
 	_map_request.clear()
@@ -578,6 +583,7 @@ func _clear_scene() -> void:
 func _build_terrain(map: Dictionary) -> bool:
 	if not _environment.build_terrain(map):
 		return false
+	_path_guide.build(map)
 	_space_background.apply_theme(str(map.get("theme", "chapterOne")))
 	_battlefield_camera.invalidate_layout()
 	return true
