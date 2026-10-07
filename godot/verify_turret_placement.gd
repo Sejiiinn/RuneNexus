@@ -59,7 +59,7 @@ func run() -> void:
 		model.position.y = 0
 		host.placement.apply_entry(id,entries[id],map.columns,map.rows)
 		check(host.placement.placements[id].started_usec == started,kinds[index]+" duplicate submission retains clock")
-	check(host.placement.shake_pixels().length() <= 2.0,"rapid placement impact stays within two actual pixels")
+	check(host.placement.shake_pixels().length() <= 4.0,"rapid placement impact stays within four actual pixels")
 	check(host.placement.shake_pixels().x == 0.0,"placement impact is strictly vertical")
 	var cues: int = host.accepted.size()
 	check(not app.apply_run_command({"kind":"build","x":tiles[0].x,"y":tiles[0].y,"type":"arrow"}) and host.accepted.size() == cues,"occupied failure does not animate")

@@ -50,5 +50,5 @@ func shake_pixels() -> Vector2:
 		if progress >= 1.0: continue
 		var decay := pow(1.0-progress,1.5)
 		# A small vertical impact followed by a weaker rebound; HUD stays still.
-		offset.y += cos(progress*TAU*1.5)*2.0*decay
-	return offset.limit_length(2.0)
+		offset.y += cos(progress*TAU*1.5)*4.0*decay
+	return offset.limit_length(4.0)
