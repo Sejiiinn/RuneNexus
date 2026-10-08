@@ -127,7 +127,7 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 						var coat := _coat.duplicate() as ShaderMaterial
 						coat.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[kind])
 						coat.set_shader_parameter("preserve_colored_core", true)
-						coat.set_shader_parameter("preserve_red_core", kind == "boss")
+						coat.set_shader_parameter("preserve_red_core", kind in ["boss", "normal"])
 						# Tank eyes emit subtly; its recessed mineral rune does not.
 						coat.set_shader_parameter("preserve_colored_with_emission", kind == "tank")
 						coat.set_shader_parameter("body_albedo", source.albedo_texture)

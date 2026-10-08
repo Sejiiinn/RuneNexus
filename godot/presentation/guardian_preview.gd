@@ -16,6 +16,7 @@ const TANK_DEATH_PATH := "res://assets/enemies/tank_death.glb"
 const TankDeath = preload("res://effects/tank_death.gd")
 const TANK_NUCLEUS_SHADER = preload("res://effects/tank_amber_nucleus.gdshader")
 const HoundDeath = preload("res://effects/hound_death.gd")
+const NormalDeath = preload("res://effects/normal_death.gd")
 const FAST_DEATH_PATH := "res://assets/enemies/fast_death.glb"
 const FAST_DEATH_SECONDS := 0.55
 const DEATH_PATH := "res://assets/enemies/normal_death.glb"
@@ -24,16 +25,20 @@ const FAST_VISUAL_SCALE := 0.90
 # Keep content's .65 presentation size, while the authored geometry uses the
 # normal .55 reference with the same common 1.15 display enlargement.
 const TANK_VISUAL_SCALE := (0.55 / 0.65) * NORMAL_VISUAL_SCALE
-const STRIDE_TILES := 0.284375 * NORMAL_VISUAL_SCALE
+const TANK_STRIDE_TILES := 0.284375 * NORMAL_VISUAL_SCALE
+# Game Walk contact distance from the authored foot IK; native speed stays authoritative.
+const NORMAL_MODEL_SCALE := 1.0940977489373418
+const STRIDE_TILES := 0.44 * NORMAL_MODEL_SCALE * 0.55 * NORMAL_VISUAL_SCALE
+const NORMAL_WALK_SECONDS := 1.6
 const WALK_SECONDS := 26.0 / 60.0
 const RUN_PATH := "res://assets/enemies/fast.glb"
 const RUN_SECONDS := 34.0 / 60.0
 # Scale the authored contact distance with the body; combat speed stays unchanged.
 const RUN_STRIDE_TILES := (54.6 / 48.0) * RUN_SECONDS * FAST_VISUAL_SCALE
-const DEATH_SECONDS := 0.6
+const DEATH_SECONDS := 1.4
 const QUARTER_TURN_SECONDS := 0.12
-# V4's normalized mesh retains this floor offset; the new walk has Y=0 feet.
-const DEATH_FLOOR := 0.008475561626255512
+# Approved v2 Walk and Death share the same root/floor coordinates.
+const DEATH_FLOOR := 0.0
 
 var _world: Node3D
 var _walk_scene: PackedScene
@@ -249,7 +254,7 @@ func new_walker(kind: String = "normal") -> Dictionary:
 			failure.emit("빠른 룬 하운드 GLB를 불러오지 못했습니다.")
 			return {}
 		return _instantiate(_run_scene, 0.0, kind)
-	return _instantiate(_walk_scene, 0.0) if prepare() else {}
+	return _instantiate(_walk_scene, 0.0, "normal", "Walk") if prepare() else {}
 
 
 static func visual_scale(kind: String) -> float:
@@ -287,8 +292,8 @@ func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 		entry.distance = 0.0
 	entry.last_position = logical
 	entry.last_time = time
-	var stride := RUN_STRIDE_TILES if entry.type == "fast" else STRIDE_TILES
-	var seconds := RUN_SECONDS if entry.type == "fast" else WALK_SECONDS
+	var stride := RUN_STRIDE_TILES if entry.type == "fast" else (TANK_STRIDE_TILES if entry.type == "tank" else STRIDE_TILES)
+	var seconds := RUN_SECONDS if entry.type == "fast" else (WALK_SECONDS if entry.type == "tank" else NORMAL_WALK_SECONDS)
 	if entry.type in BOSS_KINDS:
 		# Share the authored gait, retaining each stage variant's display scale.
 		stride = BOSS_STRIDE_TILES * float(data[5]) / 0.79 if data.size() > 5 else BOSS_STRIDE_TILES
@@ -370,7 +375,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 				continue
 		var corpse := _tank_death_scene if kind == "tank" else (_fast_death_scene if kind == "fast" else _death_scene)
 		if kind in BOSS_KINDS: corpse = _boss_scene
-		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else "")
+		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else ("Death" if kind == "normal" else ""))
 		if entry.is_empty(): continue
 		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + runtime._visual_enemy_offset(enemy)) / runtime.tile_size
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
@@ -379,6 +384,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		entry.root.rotation.y = walker.root.rotation.y if not walker.is_empty() and is_instance_valid(walker.root) else PI / 2.0 - float(enemy.facingAngle)
 		var scale_factor := visual_scale(kind)
 		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.48 if kind == "fast" else 0.55)) * scale_factor
+		if kind == "normal": NormalDeath.attach(entry)
 		if kind == "fast": HoundDeath.attach(entry)
 		if kind == "tank":
 			if not walker.is_empty() and is_instance_valid(walker.root):
@@ -403,7 +409,7 @@ func update_deaths(time: float) -> void:
 	for id in deaths.keys():
 		var entry: Dictionary = deaths[id]
 		var age := time - float(entry.born)
-		var duration := TankDeath.LIFETIME if entry.type == "tank" else (FAST_DEATH_SECONDS if entry.type == "fast" else DEATH_SECONDS)
+		var duration := TankDeath.LIFETIME if entry.type == "tank" else (FAST_DEATH_SECONDS if entry.type == "fast" else NormalDeath.LIFETIME)
 		if entry.type in BOSS_KINDS: duration = BossDeath.LIFETIME
 		if age < 0.0 or age >= duration:
 			entry.root.free()
@@ -411,6 +417,12 @@ func update_deaths(time: float) -> void:
 			continue
 		if entry.type in BOSS_KINDS:
 			BossDeath.sample(entry, age)
+		elif entry.type == "normal":
+			# Keep the approved final pose throughout settle/fade, including 4x
+			# updates that cross the collapse boundary. Rewinds resample the clip.
+			if age < DEATH_SECONDS or not entry.get("death_settled", false):
+				entry.player.seek(minf(age, DEATH_SECONDS), true)
+				entry.death_settled = age >= DEATH_SECONDS
 		elif entry.type == "tank":
 			# The settled bones no longer change, but fade/dust still use live age.
 			# Rewinds into collapse must sample again and invalidate the hold.
@@ -419,5 +431,6 @@ func update_deaths(time: float) -> void:
 				entry.death_settled = age >= TankDeath.COLLAPSE
 		else:
 			entry.player.seek(age, true)
+		if entry.type == "normal": NormalDeath.sample(entry, age)
 		if entry.type == "fast": HoundDeath.sample(entry, age)
 		if entry.type == "tank": TankDeath.sample(entry, age)

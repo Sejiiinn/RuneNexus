@@ -24,7 +24,7 @@ func run() -> void:
 	Burn._ensure_shared()
 	var output := {}
 	for label in ["EnemyFrost", "EnemyBurn"]:
-		var groups := _build_groups(model, body, skeleton, _source_templates(label), enemy_kind == "boss")
+		var groups := _build_groups(model, body, skeleton, _source_templates(label), enemy_kind in ["boss", "normal"])
 		_bake_meshes(body, skeleton, groups, label)
 		output[label] = []
 		for group: Dictionary in groups:

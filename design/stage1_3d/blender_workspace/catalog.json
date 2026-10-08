@@ -359,6 +359,42 @@
         "design/turret_placement_dust/2026-10-04/burst_manifest.json"
       ],
       "limitation": "편집 가능한 3D 체적 밀도 원본과 native closed-proxy MultiMesh의 밀도 적분·opaque depth clipping을 사용한다. 실제 게임 고정/드론 시점에서 먼지 가독성과 포탑 가림을 확인한다."
+    },
+    "normal-golem-v2": {
+      "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-ingame-v1/blender/stonegolem-ingame-walk-v1.blend",
+      "source_sha256": "b35fe572e2a0f7bb9446ebe154867dd58fd3c2b489b5f19e82308e3a17f912af",
+      "guide": "design/enemy_concepts/2026-10-08/normal-ingame-v2/README.md",
+      "steps": [
+        {
+          "script": "design/enemy_concepts/2026-10-08/normal-ingame-v2/export_runtime.py",
+          "entrypoint": "stage()",
+          "context": "승인 형상·팔 보행과 Death를 보존한 게임용 발 IK 원본에서 Walk를 분리하고 승인 원본에서 Death를 분리한다. 메시·스킨·텍스처·선택 키·BIN은 재샘플링하지 않고 공용 root 균등 표시 정규화만 추가한다."
+        },
+        {
+          "script": "scripts/bake_skinned_enemy_status.gd",
+          "entrypoint": "run() -- normal",
+          "context": "준비한 Godot 프로젝트에서 새 스킨에 공용 화상·성에 부착점을 굽고 normal_status_*.res만 원본 에셋으로 옮긴다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/enemies/normal.glb",
+        "assets/images/stage1_3d/enemies/normal_death.glb",
+        "assets/images/stage1_3d/enemies/normal_status_burn.res",
+        "assets/images/stage1_3d/enemies/normal_status_frost_shards.res",
+        "assets/images/stage1_3d/enemies/normal_status_frost_grains.res"
+      ],
+      "checks": [
+        "godot/verify_skinned_enemy_presentation.gd",
+        "godot/verify_enemy_burn.gd",
+        "godot/verify_enemy_frost.gd",
+        "godot/verify_effect_preparation.gd"
+      ],
+      "records": [
+        "design/enemy_concepts/2026-10-08/normal-ingame-v2/runtime-contract.json"
+      ],
+      "limitation": "원본은 사용자 외장 SSD 보관 정책을 따른다. 사망 추가 수정은 보류하며 승인 Death를 보존한다. Android·배포 검증은 별도다.",
+      "approved_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-rig-v2/blender/stonegolem-rig-walk-death-v2.blend",
+      "approved_source_sha256": "8004975f8c635afa3638793e2eca1f73b371a28c5b8193bf050b06704cd8de73"
     }
   }
 }

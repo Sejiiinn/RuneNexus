@@ -67,6 +67,7 @@ func check_single_evaluation(world: Node3D) -> void:
 	check(sampled.writes == 1, "Living manual pose evaluates once")
 	sampled.writes = 0
 	entry.born = 1.0
+	Motion.NormalDeath.attach(entry)
 	motion.deaths[10] = entry
 	motion.update_deaths(1.3)
 	check(sampled.writes == 1, "Death manual pose evaluates once")
@@ -135,6 +136,8 @@ func run() -> void:
 		world.free()
 		quit(1)
 		return
+	check(normal.clip == "Walk" and is_equal_approx(normal.player.get_animation(normal.clip).length, Motion.NORMAL_WALK_SECONDS), "Normal explicitly samples approved Walk 1.6s")
+	check(is_equal_approx(Motion.STRIDE_TILES, 0.30448740352926223), "Normal contact stride matches game Walk handoff at preserved display size")
 	check(fast.type == "fast" and fast.player.get_animation(fast.clip).length > 0.56, "Fast Run imported")
 	check(is_equal_approx(Motion.RUN_STRIDE_TILES, 0.6445833333333333 * Motion.FAST_VISUAL_SCALE), "Fast stride follows visual scale without changing combat speed")
 	check(tank.clip == "Walk" and is_equal_approx(tank.player.get_animation(tank.clip).length, Motion.WALK_SECONDS), "Tank imports approved 26-frame Walk")
@@ -143,8 +146,8 @@ func run() -> void:
 	for entry: Dictionary in [normal, fast, tank]:
 		check_legacy_pose(entry, entry.type + " initial")
 		var id := {"normal":1, "fast":2, "tank":3}[entry.type] as int
-		var stride: float = Motion.RUN_STRIDE_TILES if entry.type == "fast" else Motion.STRIDE_TILES
-		var seconds: float = Motion.RUN_SECONDS if entry.type == "fast" else Motion.WALK_SECONDS
+		var stride: float = Motion.RUN_STRIDE_TILES if entry.type == "fast" else (Motion.TANK_STRIDE_TILES if entry.type == "tank" else Motion.STRIDE_TILES)
+		var seconds: float = Motion.RUN_SECONDS if entry.type == "fast" else (Motion.WALK_SECONDS if entry.type == "tank" else Motion.NORMAL_WALK_SECONDS)
 		var data := [id, 0.0, 0.0, 0.0, 0.0, 0.48, 0.0, entry.type, false, false, false, false, 0.0, 0.0]
 		runtime.enemies[str(id)] = {"id": id, "type": entry.type, "distanceTravelled": stride * 48.0 * 0.25, "facingAngle": 0.0}
 		motion.observe_native(runtime, 1.0, Vector2i(8, 8))
@@ -187,6 +190,8 @@ func run() -> void:
 		var coat: ShaderMaterial = body.get_active_material(0).next_pass
 		check(coat.get_shader_parameter("body_albedo") == original.albedo_texture and coat.get_shader_parameter("preserve_colored_core"), entry.type + " frost preserves own cyan/purple core atlas")
 		check(is_equal_approx(coat.get_shader_parameter("coordinate_scale"), Frost.COORDINATE_SCALES[entry.type]), entry.type + " frost uses own normalization")
+		if entry.type == "normal":
+			check(coat.get_shader_parameter("preserve_red_core"), "Normal frost preserves approved red eyes/core as well as purple rune")
 		if entry.type == "fast":
 			check(coat.get_shader_parameter("preserve_emission_core") and coat.get_shader_parameter("body_emission") == original.emission_texture, "Blue hound stone receives frost; only authored emission is protected")
 		if entry.type == "tank":
@@ -212,6 +217,11 @@ func run() -> void:
 	motion.observe_native(runtime, 2.0, Vector2i(8, 8))
 	check(motion.deaths.has(1) and motion.deaths.has(2), "Both authored kinds create their own death clip")
 	check(motion.deaths.has(3) and motion.deaths[3].clip == "Death", "Tank uses its own authored heavy collapse")
+	check(motion.deaths[1].clip == "Death" and is_equal_approx(motion.deaths[1].player.get_animation("Death").length, Motion.DEATH_SECONDS), "Normal uses its approved Death 1.4s")
+	var normal_death: Dictionary = motion.deaths[1]
+	var normal_body: MeshInstance3D = normal_death.death_bodies[0]
+	var normal_original: StandardMaterial3D = normal_death.death_originals[0][0]
+	check(normal_body.get_active_material(0) == normal_original, "Normal collapse retains the original opaque PBR material")
 	var tank_death: Dictionary = motion.deaths[3]
 	var live_skeleton: Skeleton3D = tank.root.find_children("*", "Skeleton3D", true, false)[0]
 	for bone in range(live_skeleton.get_bone_count()):
@@ -235,10 +245,10 @@ func run() -> void:
 	motion.update_deaths(2.30)
 	check(is_equal_approx(corpse.player.current_animation_position, 0.30) and is_equal_approx((1.0 - float(corpse.death_bodies[0].get_instance_shader_parameter("death_opacity"))), fade), "Paused combat clock freezes pose and fade")
 	motion.update_deaths(2.56)
-	check(not motion.deaths.has(2) and motion.deaths.has(1), "Fast cleans up at .55 seconds; normal retains its .6 second lifetime")
+	check(not motion.deaths.has(2) and motion.deaths.has(1), "Fast cleans up at .55 seconds; normal keeps its approved collapse before fading")
 	check(motion.deaths.has(3), "Tank residue remains after the old corpse lifetimes")
 	motion.update_deaths(2.9)
-	check(motion.deaths.size() == 1 and is_equal_approx(tank_death.player.current_animation_position, .7), "Tank holds the settled pose after .7s")
+	check(motion.deaths.size() == 2 and is_equal_approx(tank_death.player.current_animation_position, .7), "Tank holds the settled pose after .7s")
 	check(is_zero_approx(float(tank_death.death_bodies[0].get_instance_shader_parameter("death_light"))), "Tank core is off after the single impact pulse")
 	var settled := pose_snapshot(tank_death)
 	motion.update_deaths(3.2)
@@ -250,7 +260,31 @@ func run() -> void:
 	check(is_equal_approx(float(tank_death.death_dust.get_instance_shader_parameter("death_age")), 1.2), "Authored tank dust continues using combat age during fade")
 	check_legacy_pose(tank_death, "tank held terminal")
 	motion.update_deaths(3.41)
-	check(motion.deaths.is_empty(), "Tank corpse and dust are removed after 1.4s")
+	check(not motion.deaths.has(3) and motion.deaths.has(1), "Tank cleanup stays at 1.4s while normal settles")
+	check(is_equal_approx(normal_death.player.current_animation_position, Motion.DEATH_SECONDS), "Normal holds the approved terminal collapse pose")
+	check(normal_body.get_active_material(0) == normal_original and is_equal_approx(float(normal_body.get_instance_shader_parameter("death_opacity")), 1.0), "Normal is fully opaque throughout collapse and settle")
+	var normal_settled := pose_snapshot(normal_death)
+	# Four 1/30-second ticks at 4x cross the fade boundary without looping Death.
+	motion.update_deaths(3.41 + 4.0 / 30.0)
+	var normal_opacity := float(normal_body.get_instance_shader_parameter("death_opacity"))
+	check(normal_opacity > 0.0 and normal_opacity < 1.0, "Normal fades only after the complete approved collapse and settle")
+	var normal_fade: ShaderMaterial = normal_body.get_active_material(0)
+	check(normal_fade.shader == preload("res://effects/normal_death_body.gdshader"), "Normal uses the opaque stone coverage fade shader")
+	check(normal_fade.shader.code.contains("FRAGCOORD.xy") and normal_fade.shader.code.contains("if (coverage > death_opacity) discard;") and not normal_fade.shader.code.contains("ALPHA ="), "Normal matches tank/boss coverage discard while retaining opaque depth")
+	check(normal_fade.get_shader_parameter("emission_map") == normal_original.emission_texture and normal_fade.get_shader_parameter("emission_tint") == normal_original.emission * normal_original.emission_energy_multiplier, "Normal stone exit preserves the authored emission texture and factor")
+	check(normal_fade.get_shader_parameter("albedo_map") == normal_original.albedo_texture and normal_fade.get_shader_parameter("normal_map") == normal_original.normal_texture, "Normal fade preserves approved stone, rune, eyes/core and tangent normal textures")
+	check(normal_fade.get_shader_parameter("roughness_map") == normal_original.roughness_texture and is_equal_approx(normal_fade.get_shader_parameter("roughness_factor"), normal_original.roughness), "Normal fade preserves roughness texture and factor")
+	var normal_held := pose_snapshot(normal_death)
+	for index in range(normal_settled.size()):
+		check(normal_settled[index].is_equal_approx(normal_held[index]), "Normal holds every node/bone throughout fade")
+	motion.update_deaths(3.41 + 4.0 / 30.0)
+	check(is_equal_approx(float(normal_body.get_instance_shader_parameter("death_opacity")), normal_opacity), "Pause freezes normal fade on combat clock")
+	motion.update_deaths(3.3)
+	check(normal_body.get_active_material(0) == normal_original and not normal_death.death_settled, "Rewind into collapse restores opaque material and changing pose")
+	motion.update_deaths(3.84)
+	check(motion.deaths.has(1) and float(normal_body.get_instance_shader_parameter("death_opacity")) < 0.01, "Normal reaches near-zero opacity before cleanup")
+	motion.update_deaths(2.0 + Motion.NormalDeath.LIFETIME)
+	check(motion.deaths.is_empty() and not is_instance_valid(normal_body), "Normal held corpse is completely removed at the fade lifetime")
 	motion.forget_walker(2)
 	fast.root.free()
 	check(not motion.walkers.has(2), "Fast removal clears motion reference and status children")

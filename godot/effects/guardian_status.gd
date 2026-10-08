@@ -19,7 +19,7 @@ const MESHES := {
 		"EnemyFrost": [preload("res://assets/enemies/tank_status_frost_shards.res"), preload("res://assets/enemies/tank_status_frost_grains.res")],
 	},
 }
-const COORDINATE_SCALES := {"normal": 0.242158934474, "fast": 0.522027035655198, "tank": 0.2997284531593323, "boss": 1.292772412300}
+const COORDINATE_SCALES := {"normal": 1.0940977489373418, "fast": 0.522027035655198, "tank": 0.2997284531593323, "boss": 1.292772412300}
 static var _materials := {}
 
 

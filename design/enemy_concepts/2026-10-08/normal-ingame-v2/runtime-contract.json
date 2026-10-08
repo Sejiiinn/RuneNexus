@@ -1,0 +1,26 @@
+{
+  "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-rig-v2/exports/stonegolem-rig-walk-death-v2.glb",
+  "source_sha256": "bfbc450101e547ad162c58c62cc22bc429ac8be051eae0d4a40b06f6813b750b",
+  "walk_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-ingame-v1/exports/stonegolem-ingame-walk-v1.glb",
+  "walk_source_sha256": "8bda2628b6800db14b9337eeaad23603f49504b45b16302e5ef1be401e9ec0ef",
+  "normalization": 1.0940977489373418,
+  "forward": "+Z",
+  "up": "+Y",
+  "native_stride": 0.44,
+  "exports": [
+    {
+      "path": "assets/images/stage1_3d/enemies/normal.glb",
+      "clip": "Walk",
+      "sha256": "12c7157351a624342f65f6f659fddaef7ba641de36f83a71f5bf86491085397d",
+      "bytes": 3044808,
+      "source_binary_payload_exact": true
+    },
+    {
+      "path": "assets/images/stage1_3d/enemies/normal_death.glb",
+      "clip": "Death",
+      "sha256": "f9bc38192b16d2c4631aa20e0a20a4b58b7fb988de584207619aa2a8dae40c5b",
+      "bytes": 3044844,
+      "source_binary_payload_exact": true
+    }
+  ]
+}

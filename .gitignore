@@ -801,3 +801,6 @@ __pycache__/
 
 # Disposable crop-session copies; keep PNG references and final XCF sources.
 /design/module_icon_concepts/2026-10-06/production/source/*-reference.xcf
+
+# Normal golem integration: one-off runtime captures, receipts and old copies.
+/design/enemy_concepts/2026-10-08/normal-ingame-v2/verification/
