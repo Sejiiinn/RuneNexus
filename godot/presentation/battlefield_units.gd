@@ -3,6 +3,8 @@ extends RefCounted
 signal failure(message: String)
 
 const GemOrbit = preload("res://effects/gem_orbit.gd")
+const GemEquipBurst = preload("res://effects/gem_equip_burst.gd")
+const GemPalette = preload("res://ui/battle_rewards.gd")
 const Placement = preload("res://presentation/turret_placement.gd")
 const PlacementDust = preload("res://effects/placement_dust.gd")
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
@@ -131,6 +133,13 @@ func sync_gem_orbits(selection: Dictionary, revision: int, time: float) -> void:
 func camera_changed() -> void:
 	for entry: Dictionary in turrets.values():
 		_update_weapon_camera(entry)
+
+
+func play_gem_equip_burst(id: int, gem: String) -> void:
+	if not turrets.has(id) or not GemPalette.GEM_COLORS.has(gem): return
+	var burst := GemEquipBurst.new()
+	burst.color = Color(str(GemPalette.GEM_COLORS[gem]))
+	turrets[id].root.add_child(burst)
 
 
 func enemy_label_tops() -> Dictionary:

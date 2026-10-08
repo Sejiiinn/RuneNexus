@@ -604,6 +604,10 @@ func _sync_enemies(units: Array) -> void:
 	_units.sync_sniper_aim()
 
 
+func play_gem_equip_burst(id: int, gem: String) -> void:
+	_units.play_gem_equip_burst(id, gem)
+
+
 func _sync_build_preview(data) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
 	_units._sync_build_preview(data)

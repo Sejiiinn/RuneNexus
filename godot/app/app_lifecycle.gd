@@ -261,7 +261,12 @@ func apply_run_command(request: Dictionary) -> bool:
 	if save_failed and not persist_progression(): return false
 	if not super.apply_run_command(request): return false
 	refresh_selection()
-	return persist_progression()
+	if not persist_progression(): return false
+	# Command receipts, rather than equipment snapshots, own this transient cue.
+	# Loading, removing gems and repeated selection frames cannot replay it.
+	if request.get("kind") in ["equipGem", "chooseRewardGemEquip"] and scene.has_method("play_gem_equip_burst"):
+		scene.play_gem_equip_burst(int(request.get("id", -1)), str(request.get("type", "")))
+	return true
 
 func start_wave() -> void:
 	if startup_blocked or in_lobby: return
