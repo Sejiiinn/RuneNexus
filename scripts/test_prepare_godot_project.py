@@ -74,6 +74,58 @@ class MaterialPresetSyncTest(unittest.TestCase):
                     self.assertIn("mipmaps/generate=true", policy)
                     self.assertIn("compress/mode=0", unrelated.read_text())
 
+    def test_environment_caps_keep_lossless_mips_and_source_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assets = Path(directory) / "assets"
+            (assets / "environment").mkdir(parents=True)
+            (assets / "shared_textures").mkdir()
+            model = assets / "environment/terrain.glb"
+            document = json.dumps({"images": [{"uri": "../shared_textures/terrain.png"}]}).encode()
+            document += b" " * (-len(document) % 4)
+            original = struct.pack("<IIIII", 0x46546C67, 2, 20 + len(document),
+                                   len(document), 0x4E4F534A) + document
+            model.write_bytes(original)
+            texture = assets / "shared_textures/terrain.png"
+            texture.write_bytes(b"original 2K artwork")
+            unrelated = assets / "shared_textures/actor.png.import"
+            unrelated.write_text("[params]\ncompress/mode=2\nprocess/size_limit=1024\n")
+            with patch.object(preparation, "ASSETS", assets):
+                for _ in range(2):
+                    preparation._prepare_environment_texture_limit(model)
+            policy = texture.with_suffix(".png.import").read_text()
+            self.assertIn("compress/mode=0\n", policy)
+            self.assertIn("mipmaps/generate=true\n", policy)
+            self.assertIn("process/size_limit=1024\n", policy)
+            self.assertNotIn("compress/high_quality", policy)
+            self.assertEqual(model.read_bytes(), original)
+            self.assertEqual(texture.read_bytes(), b"original 2K artwork")
+            self.assertIn("compress/mode=2\n", unrelated.read_text())
+
+    def test_hud_caps_preserve_sources_and_leave_other_ui_unchanged(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "godot"
+            (source / "ui").mkdir(parents=True)
+            (source / "ui/assets.json").write_text(json.dumps([
+                "ui/hud/icons/home_button.png", "ui/hud/icons/home.png"]))
+            image_root = root / "assets/images/ui/hud/icons"
+            image_root.mkdir(parents=True)
+            for name in ("home_button.png", "home.png"):
+                (image_root / name).write_bytes(b"original artwork")
+            output = root / "build/assets"
+            with patch.multiple(preparation, ROOT=root, SOURCE=source, ASSETS=output):
+                preparation._prepare_app_ui()
+            home = output / "app/ui/hud/icons/home_button.png"
+            self.assertEqual(home.read_bytes(), b"original artwork")
+            self.assertIn("process/size_limit=256\n", home.with_suffix(".png.import").read_text())
+            self.assertIn("mipmaps/generate=false\n", home.with_suffix(".png.import").read_text())
+            self.assertFalse((output / "app/ui/hud/icons/home.png.import").exists())
+            diamond = output / "diamond.png"
+            diamond.write_bytes(b"original diamond")
+            preparation._prepare_hud_texture_limit(diamond)
+            self.assertIn("process/size_limit=256\n", diamond.with_suffix(".png.import").read_text())
+            self.assertEqual(diamond.read_bytes(), b"original diamond")
+
     def test_repeated_prepare_updates_and_removes_presets_without_deleting_imports(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

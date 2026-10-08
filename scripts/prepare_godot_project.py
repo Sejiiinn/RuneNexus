@@ -106,6 +106,32 @@ def _prepare_compressed_model_textures(model: Path, size_limit: int = 0) -> None
         )
 
 
+def _prepare_environment_texture_limit(model: Path) -> None:
+    """Cap approved terrain maps at 1K, retaining lossless mipmapped imports."""
+    raw = model.read_bytes()
+    json_size = struct.unpack_from("<I", raw, 12)[0]
+    document = json.loads(raw[20:20 + json_size])
+    for image in document.get("images", []):
+        texture = (model.parent / image["uri"]).resolve()
+        texture.relative_to((ASSETS / "shared_textures").resolve())
+        texture.with_suffix(texture.suffix + ".import").write_text(
+            '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+            '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+            'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
+            'process/size_limit=1024\n'
+        )
+
+
+def _prepare_hud_texture_limit(texture: Path) -> None:
+    """Keep original artwork; only the imported GPU image is capped at 256px."""
+    texture.with_suffix(texture.suffix + ".import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+        'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
+        'process/size_limit=256\n'
+    )
+
+
 def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
     # 실제 식생의 잎과 투영 차폐를 유지한다. 같은 GLB의 바위 LOD는 그대로 둔다.
     path = ASSETS / "environment" / (filename + ".import")
@@ -206,6 +232,8 @@ def _prepare_app_ui() -> None:
         target = ASSETS / "app" / path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+        if relative == "ui/hud/icons/home_button.png":
+            _prepare_hud_texture_limit(target)
 
 
 def _prepare_combat_background() -> None:
@@ -321,6 +349,8 @@ def prepare() -> Path:
     for name in TURRET_TYPES:
         _prepare_compressed_model_textures(ASSETS / "turrets" / f"{name}.glb",
                                            1024 if name == "frost" else 0)
+    for name in ("terrain", "chapter3_tiles"):
+        _prepare_environment_texture_limit(ASSETS / "environment" / f"{name}.glb")
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
     for source in sorted((SOURCE_ASSETS / "ui").rglob("*")):
@@ -331,6 +361,7 @@ def prepare() -> Path:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
     shutil.copy2(ROOT / "assets/images/diamond_currency.png", ui_target / "diamond_currency.png")
+    _prepare_hud_texture_limit(ui_target / "diamond_currency.png")
     shutil.copy2(ROOT / "assets/fonts/NotoSansKR-VF.ttf", ui_target / "NotoSansKR-VF.ttf")
     for name in ("MaterialIcons-Regular.otf", "MaterialIcons_LICENSE.txt"):
         shutil.copy2(ROOT / "assets/fonts" / name, ui_target / name)
