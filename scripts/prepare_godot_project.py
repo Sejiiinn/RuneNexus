@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gzip
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -287,10 +288,18 @@ def _prepare_app_ui() -> None:
 
 
 def _prepare_combat_background() -> None:
+    # Generated offline. Never bake or convert the field at app/stage startup.
     source = ROOT / "assets/images/backgrounds/combat_space_nebula.png"
+    mask = source.with_name("combat_space_nearby.res")
+    metadata = json.loads(mask.with_suffix(".json").read_text())
+    for key, path in (("source_sha256", source), ("mask_sha256", mask),
+                      ("generator_sha256", ROOT / "scripts/generate_combat_space_mask.gd")):
+        if metadata.get(key) != hashlib.sha256(path.read_bytes()).hexdigest():
+            raise RuntimeError("Stale combat space luminance field; run scripts/generate_combat_space_mask.gd")
     target = ASSETS / "backgrounds" / source.name
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, target)
+    shutil.copy2(mask, target.with_name(mask.name))
     target.with_suffix(".png.import").write_text(
         '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
         '[params]\ncompress/mode=0\ncompress/normal_map=2\n'

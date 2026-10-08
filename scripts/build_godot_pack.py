@@ -24,10 +24,13 @@ VERSION = "4.7.2.stable"
 def input_digest():
     inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py",
               ROOT / "scripts/prepare_shared_gltf_textures.py",
+              ROOT / "scripts/generate_combat_space_mask.gd",
               ROOT / "scripts/content_compiler.py", ROOT / "scripts/content_runtime_format.py",
               ROOT / "scripts/stage_progression.py",
               ROOT / "scripts/compile_progression.py"]
     inputs += [ROOT / "assets/images/backgrounds/combat_space_nebula.png",
+               ROOT / "assets/images/backgrounds/combat_space_nearby.res",
+               ROOT / "assets/images/backgrounds/combat_space_nearby.json",
                ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf",
                ROOT / "assets/fonts/MaterialIcons-Regular.otf", ROOT / "assets/fonts/MaterialIcons_LICENSE.txt"]
     manifest = ROOT / "godot/ui/assets.json"

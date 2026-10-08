@@ -1,0 +1,18 @@
+{
+	"color_space": "LDR canvas (sRGB values)",
+	"format": "RH",
+	"generator_sha256": "30b1127e5b136b458987c3bb45e84e23c8b426dfed0ee6be918c96c3dab81585",
+	"halo_texels": 1,
+	"mask_sha256": "3ebd6a18cc35515d0a258478e60badcb727978a41238005c65d3fdd228b35634",
+	"mask_size": [
+		1026,
+		1538
+	],
+	"mipmaps": false,
+	"offset_texels": 3,
+	"source_sha256": "3120831e3ab2f627d089746ba6e71884527eaa42d7c7fe191f311d074b6529eb",
+	"source_size": [
+		1024,
+		1536
+	]
+}

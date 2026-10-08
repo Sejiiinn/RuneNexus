@@ -55,7 +55,7 @@ func finish(mode: String) -> void:
 
 func gather_battle_paths(path: String) -> void:
 	for filename in DirAccess.get_files_at(path):
-		if filename.get_extension().to_lower() in ["glb", "png", "jpg", "jpeg", "webp", "hdr", "exr"]:
+		if filename.get_extension().to_lower() in ["glb", "png", "jpg", "jpeg", "webp", "hdr", "exr", "res"]:
 			battle_paths.append(path.path_join(filename))
 	for folder in DirAccess.get_directories_at(path): gather_battle_paths(path.path_join(folder))
 

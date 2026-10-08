@@ -2,6 +2,7 @@
 
 import base64
 import json
+import hashlib
 from pathlib import Path
 import struct
 import tempfile
@@ -12,6 +13,32 @@ import prepare_godot_project as preparation
 
 
 class MaterialPresetSyncTest(unittest.TestCase):
+    def test_background_rejects_stale_derived_field(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            folder = root / "assets/images/backgrounds"
+            folder.mkdir(parents=True)
+            (folder / "combat_space_nebula.png").write_bytes(b"source")
+            (folder / "combat_space_nearby.res").write_bytes(b"field")
+            generator = root / "scripts/generate_combat_space_mask.gd"
+            generator.parent.mkdir()
+            generator.write_bytes(b"generator")
+            metadata = {
+                "source_sha256": hashlib.sha256(b"source").hexdigest(),
+                "mask_sha256": hashlib.sha256(b"field").hexdigest(),
+                "generator_sha256": hashlib.sha256(b"generator").hexdigest(),
+            }
+            manifest = folder / "combat_space_nearby.json"
+            with patch.object(preparation, "ROOT", root), patch.object(preparation, "ASSETS", root / "staged"):
+                for key in metadata:
+                    manifest.write_text(json.dumps({**metadata, key: "stale"}))
+                    with self.assertRaisesRegex(RuntimeError, "Stale combat space"):
+                        preparation._prepare_combat_background()
+                manifest.write_text(json.dumps(metadata))
+                preparation._prepare_combat_background()
+                self.assertEqual((root / "staged/backgrounds/combat_space_nebula.png").read_bytes(), b"source")
+                self.assertEqual((root / "staged/backgrounds/combat_space_nearby.res").read_bytes(), b"field")
+
     def test_production_config_requires_all_values_and_https(self):
         variables = {
             "RUNE_NEXUS_REQUIRE_PRODUCTION_CONFIG": "true",
@@ -238,6 +265,13 @@ class MaterialPresetSyncTest(unittest.TestCase):
             write(assets / "ui/turret_levels.png", b"badge atlas")
             write(root / "assets/images/diamond_currency.png", b"diamond icon")
             write(root / "assets/images/backgrounds/combat_space_nebula.png", b"approved space background")
+            write(root / "assets/images/backgrounds/combat_space_nearby.res", b"offline luminance field")
+            write(root / "scripts/generate_combat_space_mask.gd", b"generator fixture")
+            write(root / "assets/images/backgrounds/combat_space_nearby.json", json.dumps({
+                "source_sha256": hashlib.sha256(b"approved space background").hexdigest(),
+                "mask_sha256": hashlib.sha256(b"offline luminance field").hexdigest(),
+                "generator_sha256": hashlib.sha256(b"generator fixture").hexdigest(),
+            }).encode())
             write(root / "assets/fonts/NotoSansKR-VF.ttf", b"font fixture")
             write(root / "assets/fonts/MaterialIcons-Regular.otf", b"icon font fixture")
             write(root / "assets/fonts/MaterialIcons_LICENSE.txt", b"icon font license")
@@ -370,6 +404,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 self.assertIn("animation/fps=60", (project / "assets/enemies/tank_death.glb.import").read_text())
                 self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
                 self.assertEqual((project / "assets/backgrounds/combat_space_nebula.png").read_bytes(), b"approved space background")
+                self.assertEqual((project / "assets/backgrounds/combat_space_nearby.res").read_bytes(), b"offline luminance field")
                 self.assertEqual((project / "assets/ui/NotoSansKR-VF.ttf").read_bytes(), b"font fixture")
                 self.assertEqual((project / "assets/ui/MaterialIcons-Regular.otf").read_bytes(), b"icon font fixture")
                 self.assertTrue((project / "assets/ui/MaterialIcons_LICENSE.txt").is_file())

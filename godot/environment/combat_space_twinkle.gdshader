@@ -1,5 +1,8 @@
 shader_type canvas_item;
 render_mode unshaded;
+// Offline neighbor luminance, LDR canvas, RH + one-texel halo, no mipmaps.
+// Keep nonlinear thresholds after filtering, so star edges stay unchanged.
+uniform sampler2D nearby_luminance : filter_linear, repeat_disable;
 uniform vec3 nebula_tint = vec3(0.38, 0.83, 1.0);
 
 float stable_hash(vec2 cell) {
@@ -12,11 +15,8 @@ void fragment() {
 	float luminance = dot(base.rgb, luma_weights);
 	// 중앙 우주는 보호하고 외곽의 낮은 밝기 성운만 색을 바꾼다.
 	// 주변보다 밝은 별점/별의 밝은 중심은 원본의 차가운 흰빛을 유지한다.
-	vec2 offset = TEXTURE_PIXEL_SIZE * 3.0;
-	float nearby = dot((texture(TEXTURE, UV + vec2(offset.x, 0.0)).rgb
-		+ texture(TEXTURE, UV - vec2(offset.x, 0.0)).rgb
-		+ texture(TEXTURE, UV + vec2(0.0, offset.y)).rgb
-		+ texture(TEXTURE, UV - vec2(0.0, offset.y)).rgb) * 0.25, luma_weights);
+	vec2 mask_uv = (UV + TEXTURE_PIXEL_SIZE) / (vec2(1.0) + 2.0 * TEXTURE_PIXEL_SIZE);
+	float nearby = texture(nearby_luminance, mask_uv).r;
 	float star_protection = max(smoothstep(0.10, 0.20, luminance),
 		smoothstep(0.012, 0.050, luminance - nearby));
 	float outer_nebula = smoothstep(0.12, 0.35, abs(UV.x - 0.5));

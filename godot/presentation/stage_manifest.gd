@@ -21,6 +21,7 @@ static func for_stage(catalog, index: int, derived: Dictionary, restored_state: 
 		if Units.ENEMY_MODELS.has(kind): _add(paths, Units.ENEMY_MODELS[kind])
 		if kind in ["normal", "fast", "tank"]: _add(paths, "res://assets/enemies/%s_death.glb" % kind)
 	_add(paths, "res://assets/backgrounds/combat_space_nebula.png")
+	_add(paths, "res://assets/backgrounds/combat_space_nearby.res")
 	_add(paths, "res://assets/ui/turret_levels.png")
 	_add(paths, "res://assets/ui/death_silhouettes.png")
 	return {"stage_id":catalog.stage_id(index),"enemy_types":enemies,"tower_types":towers,
