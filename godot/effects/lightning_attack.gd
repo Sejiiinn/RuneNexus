@@ -1,4 +1,5 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## Approved Lightning A: actual spatial current tubes and a softly bounded aura.
 ## The caller owns event identity, pooling and authoritative event age. This node
@@ -15,26 +16,27 @@ const MAX_ELECTRODES := 4
 const TUBE_SHADER := preload("res://effects/lightning_attack_tubes.gdshader")
 const AURA_SHADER := preload("res://effects/lightning_attack_aura.gdshader")
 const CHARGE_MESHES := [
-	preload("res://effects/lightning_attack_meshes/charge00.res"),
-	preload("res://effects/lightning_attack_meshes/charge01.res"),
-	preload("res://effects/lightning_attack_meshes/charge02.res"),
-	preload("res://effects/lightning_attack_meshes/charge03.res"),
+	"res://effects/lightning_attack_meshes/charge00.res",
+	"res://effects/lightning_attack_meshes/charge01.res",
+	"res://effects/lightning_attack_meshes/charge02.res",
+	"res://effects/lightning_attack_meshes/charge03.res",
 ]
 const BEAM_MESHES := [
-	preload("res://effects/lightning_attack_meshes/beam00.res"),
-	preload("res://effects/lightning_attack_meshes/beam01.res"),
-	preload("res://effects/lightning_attack_meshes/beam02.res"),
-	preload("res://effects/lightning_attack_meshes/beam03.res"),
-	preload("res://effects/lightning_attack_meshes/beam04.res"),
-	preload("res://effects/lightning_attack_meshes/beam05.res"),
+	"res://effects/lightning_attack_meshes/beam00.res",
+	"res://effects/lightning_attack_meshes/beam01.res",
+	"res://effects/lightning_attack_meshes/beam02.res",
+	"res://effects/lightning_attack_meshes/beam03.res",
+	"res://effects/lightning_attack_meshes/beam04.res",
+	"res://effects/lightning_attack_meshes/beam05.res",
 ]
 const FEED_MESHES := [
-	preload("res://effects/lightning_attack_meshes/feed00.res"),
-	preload("res://effects/lightning_attack_meshes/feed01.res"),
-	preload("res://effects/lightning_attack_meshes/feed02.res"),
-	preload("res://effects/lightning_attack_meshes/feed03.res"),
+	"res://effects/lightning_attack_meshes/feed00.res",
+	"res://effects/lightning_attack_meshes/feed01.res",
+	"res://effects/lightning_attack_meshes/feed02.res",
+	"res://effects/lightning_attack_meshes/feed03.res",
 ]
-const IMPACT_MESH := preload("res://effects/lightning_attack_meshes/impact.res")
+const IMPACT_MESH := "res://effects/lightning_attack_meshes/impact.res"
+static var _mesh_cache := {}
 static var _aura_mesh: SphereMesh
 
 var _configured := false
@@ -98,7 +100,7 @@ func sample_charge(charge_pose: Transform3D, age: float, duration: float = CHARG
 	var scale_value := maxf(0.001, charge_pose.basis.get_scale().abs().dot(Vector3.ONE) / 3.0)
 	var pose := Transform3D(charge_pose.basis.orthonormalized(), charge_pose.origin)
 	_charge.visible = true
-	_charge.mesh = CHARGE_MESHES[phase]
+	_charge.mesh = _mesh(CHARGE_MESHES[phase])
 	_charge.global_transform = Transform3D(pose.basis.scaled_local(Vector3.ONE * size * scale_value), pose.origin)
 	_charge.force_update_transform()
 	_set_current(_charge_material, energy, age, sequence)
@@ -112,7 +114,7 @@ func sample_charge(charge_pose: Transform3D, age: float, duration: float = CHARG
 		# Tiny alternating termination offsets preserve distinct spatial feeds.
 		var side := -1.0 if index % 2 == 0 else 1.0
 		var endpoint := pose.origin + pose.basis.x * (0.055 * side * size * scale_value)
-		feed.mesh = FEED_MESHES[phase]
+		feed.mesh = _mesh(FEED_MESHES[phase])
 		_set_link(feed, _feed_materials[index], electrode_sources[index], endpoint, scale_value)
 		_set_current(_feed_materials[index], energy * 0.86, age, sequence + index)
 
@@ -131,14 +133,14 @@ func sample_discharge(source: Vector3, target: Vector3, age: float,
 	var phase := mini(BEAM_MESHES.size() - 1, int(floor(progress * float(BEAM_MESHES.size()))))
 	var energy := pow(maxf(0.0, 1.0 - progress), 0.58)
 	# Immediate forceful discharge, then the authored progressively sparse forks.
-	_beam.mesh = BEAM_MESHES[phase]
+	_beam.mesh = _mesh(BEAM_MESHES[phase])
 	_set_link(_beam, _beam_material, source, target, visual_scale)
 	_set_current(_beam_material, energy * (1.0 + 0.32 * (1.0 - smoothstep(0.0, 0.24, progress))), age, sequence)
 	var basis := _link_basis(source, target)
 	var rupture := 1.0 - smoothstep(0.04, 0.48, progress)
 	_charge.visible = rupture > 0.001
 	if _charge.visible:
-		_charge.mesh = CHARGE_MESHES[posmod(sequence + phase, CHARGE_MESHES.size())]
+		_charge.mesh = _mesh(CHARGE_MESHES[posmod(sequence + phase, CHARGE_MESHES.size())])
 		_charge.global_transform = Transform3D(basis.scaled_local(Vector3.ONE * visual_scale * (0.86 + progress)), source)
 		_charge.force_update_transform()
 		_set_current(_charge_material, rupture * 0.7, age, sequence)
@@ -164,9 +166,9 @@ func _prepare() -> void:
 	_aura_material = _material(AURA_SHADER)
 	_contact_material = _material(AURA_SHADER)
 	_contact_material.set_shader_parameter("impact", true)
-	_charge = _mesh_node("ChargeCurrents", CHARGE_MESHES[0], _charge_material)
-	_beam = _mesh_node("DischargeCurrent", BEAM_MESHES[0], _beam_material)
-	_impact = _mesh_node("ContactForks", IMPACT_MESH, _impact_material)
+	_charge = _mesh_node("ChargeCurrents", _mesh(CHARGE_MESHES[0]), _charge_material)
+	_beam = _mesh_node("DischargeCurrent", _mesh(BEAM_MESHES[0]), _beam_material)
+	_impact = _mesh_node("ContactForks", _mesh(IMPACT_MESH), _impact_material)
 	if _aura_mesh == null:
 		_aura_mesh = SphereMesh.new()
 		# The low-detail hull encloses the exact analytic sphere integrated
@@ -180,7 +182,7 @@ func _prepare() -> void:
 	for i in range(MAX_ELECTRODES):
 		var material := _material(TUBE_SHADER)
 		_feed_materials.append(material)
-		_feeds.append(_mesh_node("ElectrodeFeed%d" % i, FEED_MESHES[0], material))
+		_feeds.append(_mesh_node("ElectrodeFeed%d" % i, _mesh(FEED_MESHES[0]), material))
 	_configured = true
 
 
@@ -249,3 +251,15 @@ static func _link_basis(start: Vector3, end: Vector3) -> Basis:
 
 static func _valid_sample(age: float, duration: float) -> bool:
 	return is_finite(age) and is_finite(duration) and age >= 0.0 and duration > 0.0 and age < duration
+
+
+static func _mesh(path: String) -> Mesh:
+	if not _mesh_cache.has(path):
+		_mesh_cache[path] = StageResources.load_resource(path) as Mesh
+	return _mesh_cache[path]
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "lightning" in tower_types: return
+	_mesh_cache.clear()
+	_aura_mesh = null

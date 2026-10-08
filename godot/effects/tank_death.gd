@@ -73,3 +73,10 @@ static func sample(entry: Dictionary, age: float) -> void:
 		body.set_instance_shader_parameter("death_opacity",opacity)
 		body.set_instance_shader_parameter("death_light",light)
 	entry.death_dust.set_instance_shader_parameter("death_age",age)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "tank" in enemy_types: return
+	_materials.clear()
+	_dust = null
+	_dust_material = null

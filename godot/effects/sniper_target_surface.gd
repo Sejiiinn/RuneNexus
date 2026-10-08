@@ -2,18 +2,21 @@ extends RefCounted
 ## Read-only rays against the actual rendered mesh. Authored normal/fast skinning
 ## is rigid (one bone per triangle); cache per-bone BVHs once, sample bone poses.
 static var _geometry := {}
+static var _geometry_kinds := {}
+const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 var pieces: Array = []
 var _pose_revision := -1
 var _aim_point := Vector3.ZERO
 var _head_center := Vector3.ZERO
 var _body_center := Vector3.ZERO
 
-func _init(root: Node3D) -> void:
+func _init(root: Node3D, kind: String = "") -> void:
 	for instance: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
 		if instance.mesh == null or instance.has_meta("exclude_selection_mask"): continue
 		var skeleton: Skeleton3D = instance.get_node_or_null(instance.skeleton) as Skeleton3D
 		var skin: Skin = instance.skin
 		var key := instance.mesh.get_instance_id()
+		_geometry_kinds[key] = AttachmentKind.resolve(kind)
 		if not _geometry.has(key): _geometry[key] = _prepare(instance.mesh, skeleton != null and skin != null)
 		for group: Dictionary in _geometry[key]:
 			var bind := int(group.bind)
@@ -110,3 +113,12 @@ func first_hit(from: Vector3, toward: Vector3) -> Vector3:
 		var distance := from.distance_squared_to(world)
 		if distance<nearest: nearest=distance;point=world
 	return point-direction*.00025 if point.is_finite() else Vector3.INF
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	var kinds := {}
+	for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
+	for key in _geometry.keys():
+		if (not "sniper" in tower_types and not "lightning" in tower_types) or not kinds.has(_geometry_kinds.get(key, "")):
+			_geometry.erase(key)
+			_geometry_kinds.erase(key)

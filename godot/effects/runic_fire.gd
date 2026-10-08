@@ -1,4 +1,5 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## 승인된 Blender 입체 불꽃 메시 + Godot 기본 재질·GPU 입자.
 ## 전투 프레임의 시계만 받는다. _process/TIME/커스텀 셰이더는 사용하지 않는다.
@@ -302,7 +303,7 @@ func _make_particles(label: String, key: String, count: int, lifetime: float, on
 static func _load_meshes() -> bool:
 	if not _meshes.is_empty():
 		return true
-	var packed := load(ASSET) as PackedScene
+	var packed := StageResources.load_resource(ASSET) as PackedScene
 	if packed == null:
 		push_error("룬 화염 원본 메시를 불러오지 못했습니다: " + ASSET)
 		return false
@@ -375,3 +376,14 @@ static func _scroll_materials(time: float) -> void:
 		var material: StandardMaterial3D = _materials[key]
 		material.uv1_offset = Vector3(fposmod(time * 0.08 + (0.37 if core else 0.0), 1.0),
 			fposmod(-time * 0.85 + (0.21 if core else 0.0), 1.0), 0.0)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "magic" in tower_types: return
+	_meshes.clear()
+	_materials.clear()
+	_flame_noise = null
+	_material_time = -INF
+	_animation_times = [-INF, -INF]
+	_animation_poses = [[], []]
+	_diagnostic_instances.clear()

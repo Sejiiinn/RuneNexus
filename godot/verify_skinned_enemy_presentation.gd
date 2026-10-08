@@ -181,7 +181,7 @@ func run() -> void:
 		Frost.apply(entry, true)
 		check(entry.burn.get_child_count() == 1 and entry.frost.get_child_count() == 2, entry.type + " status remains three shared meshes")
 		var burn_mesh: MeshInstance3D = entry.burn.get_child(0)
-		check(burn_mesh.mesh == Status.MESHES[entry.type].EnemyBurn[0] and burn_mesh.skin == body.skin, entry.type + " species mesh reuses own skin")
+		check(burn_mesh.mesh == load("res://presentation/stage_resources.gd").load_resource(Status.MESHES[entry.type].EnemyBurn[0]) and burn_mesh.skin == body.skin, entry.type + " species mesh reuses own skin")
 		check(burn_mesh.get_node(burn_mesh.skeleton) == body.get_node(body.skeleton), entry.type + " status follows live skeleton")
 		check(is_equal_approx(burn_mesh.material_override.get_shader_parameter("coordinate_scale"), Status.COORDINATE_SCALES[entry.type]), entry.type + " burn rise and billboard use own rig normalization")
 		var coat: ShaderMaterial = body.get_active_material(0).next_pass

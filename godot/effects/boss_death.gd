@@ -1,4 +1,5 @@
 extends RefCounted
+const StageResources = preload("res://presentation/stage_resources.gd")
 ## Shared authored stone/core, one collapse pulse and combat-clock-only residue.
 ## Root-owned attachments disappear with their walker/corpse; no process/tweens.
 const LIFETIME := 2.75
@@ -8,7 +9,7 @@ const CONTACT := 70.0 / 60.0
 const CORE_EMISSION := 0.30
 const CORE_LIGHT := 0.004
 const CORE_SHADER = preload("res://effects/boss_core.gdshader")
-const CORE_MASK = preload("res://assets/effects/boss_core_mask.png")
+const CORE_MASK := "res://assets/effects/boss_core_mask.png"
 static var _materials := {}
 static var _chip_meshes: Array[BoxMesh] = []
 static var _chip_material: ShaderMaterial
@@ -33,7 +34,7 @@ static func prepare(entry: Dictionary, model: Node3D) -> void:
 				material.set_shader_parameter("roughness_map", original.roughness_texture)
 				material.set_shader_parameter("metallic_map", original.metallic_texture)
 				material.set_shader_parameter("emission_map", original.emission_texture)
-				material.set_shader_parameter("core_mask", CORE_MASK)
+				material.set_shader_parameter("core_mask", StageResources.load_resource(CORE_MASK))
 				material.set_shader_parameter("albedo_factor", original.albedo_color)
 				material.set_shader_parameter("emission_factor", Vector3(original.emission.r, original.emission.g, original.emission.b))
 				material.set_shader_parameter("roughness_factor", original.roughness)
@@ -172,3 +173,12 @@ static func _sample_debris(entry: Dictionary, age: float) -> void:
 		puff.mesh.position = puff.origin + puff.velocity * age
 		puff.mesh.scale = Vector3(1.0, 0.3, 0.8) * (1.0 + age * 2.5)
 		puff.mesh.set_instance_shader_parameter("dust_alpha", 1.0 - smoothstep(0.1, 0.6, age))
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "boss" in enemy_types or "shieldBoss" in enemy_types or "forgeBoss" in enemy_types: return
+	_materials.clear()
+	_chip_meshes.clear()
+	_chip_material = null
+	_puff_mesh = null
+	_puff_material = null

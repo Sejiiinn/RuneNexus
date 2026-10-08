@@ -552,14 +552,14 @@ func _start(index: int) -> void:
 		content.add_child(AppTheme.label("진행 중인 전투를 종료하고 스테이지 %s에 도전할까요?" % Progression.stage_label(index + 1), 13))
 		var confirm := AppTheme.button("새 전투 시작", func():
 			close_modal()
-			if not app.start_stage(index): _failure()
+			if not await app.start_stage(index): _failure()
 		)
 		confirm.name = "ConfirmNewRun"
 		content.add_child(confirm)
 		content.add_child(AppTheme.button("취소", close_modal))
 	else:
 		close_modal()
-		if not app.start_stage(index): _failure()
+		if not await app.start_stage(index): _failure()
 
 func _node_details(id: String) -> void: core.node_details(id)
 func _skills() -> void: core.skills()

@@ -110,12 +110,17 @@ func _ready() -> void:
 		variation.variation_opentype = {WEIGHT_AXIS: 900.0}
 		_font = variation
 	_diamond = load("res://assets/ui/diamond_currency.png")
-	_silhouettes = load("res://assets/ui/death_silhouettes.png")
+
+
+func prepare_assets() -> void:
+	if _silhouettes == null:
+		_silhouettes = load("res://assets/ui/death_silhouettes.png")
 
 func supported_groups() -> Array:
 	return ["effects"] if _font != null and _diamond != null and _silhouettes != null else []
 
 func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
+	prepare_assets()
 	var generation := int(frame.get("generation", 0))
 	if generation < _generation:
 		return

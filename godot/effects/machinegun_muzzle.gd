@@ -1,7 +1,8 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## 고정 수의 포구 화염·분리된 연기·불티를 실제 발사 순번에 맞춰 재사용.
-const FLAME = preload("res://assets/effects/machinegun_muzzle.glb")
+const FLAME := "res://assets/effects/machinegun_muzzle.glb"
 const FLASH_SHADER = preload("res://effects/machinegun_flash.gdshader")
 const SMOKE_SHADER = preload("res://effects/machinegun_smoke.gdshader")
 const FLASH_SECONDS := 0.055
@@ -57,7 +58,7 @@ func _ready() -> void:
 		material.emission_energy_multiplier = 2.0
 		_spark_mesh.material = material
 	for port in range(2):
-		var flame: Node3D = FLAME.instantiate()
+		var flame: Node3D = (StageResources.load_resource(FLAME) as PackedScene).instantiate()
 		var material := ShaderMaterial.new()
 		material.shader = FLASH_SHADER
 		for mesh: MeshInstance3D in flame.find_children("*", "MeshInstance3D", true, false):
@@ -196,3 +197,10 @@ func update_camera(camera: Camera3D) -> void:
 		material.set_shader_parameter("u_ray_direction", inverse.basis * -camera_pose.basis.z)
 		material.set_shader_parameter("u_orthographic", camera.projection == Camera3D.PROJECTION_ORTHOGONAL)
 		material.set_shader_parameter("u_camera_inside", absf(local_camera.x) < 0.5 and absf(local_camera.y) < 0.5 and absf(local_camera.z) < 0.5)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "arrow" in tower_types: return
+	_noise = null
+	_smoke_box = null
+	_spark_mesh = null

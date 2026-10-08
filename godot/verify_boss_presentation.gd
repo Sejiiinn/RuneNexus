@@ -102,7 +102,7 @@ func run() -> void:
 		data[8] = true; data[9] = true
 		units._sync_enemies([data])
 		check(entry.burn.visible and entry.frost.visible, kind + " burn and frost coexist")
-		check(entry.burn.get_child(0).mesh == Status.MESHES.boss.EnemyBurn[0], kind + " aliases share boss status geometry")
+		check(entry.burn.get_child(0).mesh == load("res://presentation/stage_resources.gd").load_resource(Status.MESHES.boss.EnemyBurn[0]), kind + " aliases share boss status geometry")
 		data[8] = false; data[9] = false
 		units._sync_enemies([data])
 		check(not entry.burn.visible and not entry.frost.visible, kind + " status expires")

@@ -1,4 +1,7 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
+const StageManifest = preload("res://presentation/stage_manifest.gd")
+const EffectPreparation = preload("res://presentation/effect_preparation.gd")
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 const FrameMetrics = preload("res://app/frame_metrics.gd")
 
@@ -154,17 +157,36 @@ var _lightning_presentation := LightningPresentation.new(world)
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
 var _environment := BattlefieldEnvironment.new(terrain, _world_environment, sun, _fill_light)
 var _space_background := CombatSpaceBackground.new()
+var _camera_models: Array = []
+var _stage_preparation_generation := 0
+var _realizing_battle := false
+var _battle_deferred := false
+var _battle_visible := true
+var _battle_requested_visible := true
+var _stage_manifest: Dictionary = {}
+var _pending_stage_manifest: Dictionary = {}
+var _preparation_was_deferred := false
+var _prepared_stage_key := ""
+var _stage_preparation_pending := false
+var _stage_preparation_error := ""
+var _stage_entry_active := false
+var _lighting_attached := false
 var effects_prepared := false
 var _effects_preparing := false
 signal effects_preparation_finished(success: bool)
 
 func prepare_effects() -> bool:
+	var generation := _stage_preparation_generation
 	if effects_prepared: return true
-	if _effects_preparing: return await effects_preparation_finished
+	if _effects_preparing:
+		await effects_preparation_finished
+		if generation != _stage_preparation_generation: return false
+		return true if effects_prepared else await prepare_effects()
 	_effects_preparing = true
 	var preparation = load("res://presentation/effect_preparation.gd").new()
 	add_child(preparation)
-	effects_prepared = await preparation.prepare(self)
+	var prepared: bool = await preparation.prepare(self, _stage_manifest)
+	effects_prepared = prepared and generation == _stage_preparation_generation
 	preparation.queue_free()
 	_effects_preparing = false
 	effects_preparation_finished.emit(effects_prepared)
@@ -196,14 +218,18 @@ func _ready() -> void:
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	# 실제 맵·모델·효과 경계로 _fit_camera_depth에서 설정한다.
 	camera.current = true
-	_environment.attach_lighting(self)
 	_apply_graphics_options()
 	_units.failure.connect(_fail)
 	_projectile_renderer.failure.connect(_fail)
 	_environment.failed.connect(_fail)
 	_environment.camera_reset_requested.connect(func(): camera_mode = "")
-	if not _projectile_renderer.initialize() or not _environment.initialize():
-		return
+	if not _environment.initialize(): return
+	if not _app_mode:
+		_presentation_nodes["effects"].prepare_assets()
+		_ensure_battle_base()
+		if not _projectile_renderer.initialize(): return
+	else:
+		begin_deferred_battle_presentation()
 	get_viewport().size_changed.connect(_update_camera)
 	# Tween은 _process 뒤에 진행되므로 실제 렌더 직전의 카메라로 투영을 보고.
 	RenderingServer.frame_pre_draw.connect(_report_presentation)
@@ -225,15 +251,28 @@ func _exit_tree() -> void:
 	if RenderingServer.frame_pre_draw.is_connected(_report_presentation):
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	_environment.dispose()
+	_camera_models.clear()
+	_units.clear()
+	_units.retain_stage([])
+	_projectile_renderer.clear()
+	_projectile_renderer.field = {}
+	_projectile_renderer._projectile_meshes.clear()
+	_lightning_presentation.clear()
+	EffectPreparation.retain_stage([], [])
+	StageResources.clear()
 
 
 func _fail(message: String) -> void:
+	if _stage_entry_active:
+		_stage_preparation_error = message
+		return
 	push_error(message)
 	var boot=get_tree().get_first_node_in_group("rune_app_boot")
 	if boot!=null: boot.fail_preparation(message)
 
 
 func _process(delta: float) -> void:
+	if not _battle_visible or _stage_preparation_pending: return
 	RuntimeProfile.apply_render_partition(get_viewport(), _native_combat.session.get("phase", "") == "wave")
 	_frame_metrics.begin_frame()
 	if standalone_playing and not last_frame.is_empty():
@@ -270,7 +309,7 @@ func _set_profile_enabled(enabled: bool) -> void:
 func _apply_options() -> void:
 	_presentation_nodes["effects"].diagnostic_skip = str(options.get("diagnostic_skip_canvas", ""))
 	RunicFire.set_diagnostic_mode(str(options.get("runic_fire_mode", "all")))
-	world.visible = not bool(options["empty"])
+	world.visible = _battle_visible and not bool(options["empty"])
 	_apply_graphics_options()
 	_update_camera()
 	if not last_frame.is_empty():
@@ -303,7 +342,7 @@ func _apply_graphics_options() -> void:
 
 
 func _update_camera() -> void:
-	_battlefield_camera.update_envelope(terrain, last_frame, Vector2i(columns, rows), [TURRET_MODELS, ENEMY_MODELS])
+	_battlefield_camera.update_envelope(terrain, last_frame, Vector2i(columns, rows), _camera_model_libraries())
 	_battlefield_camera.update_mode(options["camera"], _using_forge)
 	_on_camera_pose_changed()
 
@@ -419,6 +458,7 @@ func presentation() -> Dictionary:
 
 
 func _report_presentation() -> void:
+	if not _battle_visible or _battle_deferred: return
 	_units.update_placements()
 	_apply_world_shake()
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
@@ -432,6 +472,15 @@ func cancel_turret_placement(id: int) -> void:
 
 
 func _apply_frame(frame: Dictionary) -> void:
+	if _battle_deferred or (_app_mode and not _battle_visible and not _realizing_battle):
+		var epoch := int(frame.get("sceneEpoch", 0))
+		if epoch < _scene_epoch: return
+		if bool(frame.get("reset", false)) or epoch > _scene_epoch:
+			_clear_scene()
+			_scene_epoch = epoch
+		if not bool(frame.get("reset", false)):
+			last_frame = frame.duplicate(true)
+		return
 	var owned_snapshot := false
 	var whole_tick := RuntimeProfile.begin()
 	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
@@ -578,6 +627,7 @@ func _clear_scene() -> void:
 func _build_terrain(map: Dictionary) -> bool:
 	if not _environment.build_terrain(map):
 		return false
+	_space_background.prepare()
 	_space_background.apply_theme(str(map.get("theme", "chapterOne")))
 	_battlefield_camera.invalidate_layout()
 	return true
@@ -658,3 +708,162 @@ func _session_frame_delta(delta: float, host_active: bool, activation: int) -> f
 		_session_activation_revision = activation
 		return 0.0
 	return delta
+
+
+func _ensure_battle_base() -> void:
+	if not _lighting_attached:
+		_environment.attach_lighting(self)
+		_lighting_attached = true
+	_apply_graphics_options()
+
+func begin_deferred_battle_presentation() -> void:
+	_stage_preparation_generation += 1
+	_battle_deferred = true
+	set_battle_visible(false)
+
+func set_battle_visible(active: bool) -> void:
+	_battle_requested_visible = active
+	_battle_visible = active and not _battle_deferred and not _stage_preparation_pending
+	world.visible = _battle_visible and not bool(options.get("empty", false))
+	world.process_mode = Node.PROCESS_MODE_INHERIT if _battle_visible else Node.PROCESS_MODE_DISABLED
+	_space_background.visible = _battle_visible
+	_space_background.process_mode = Node.PROCESS_MODE_INHERIT if _battle_visible else Node.PROCESS_MODE_DISABLED
+	camera.current = _battle_visible
+	get_viewport().disable_3d = not _battle_visible
+	_battlefield_camera.set_process(_battle_visible)
+	if is_instance_valid(camera_transition) and camera_transition.is_valid():
+		if _battle_visible: camera_transition.play()
+		else: camera_transition.pause()
+	if not _battle_visible:
+		for node: Node2D in _presentation_nodes.values():
+			node.hide()
+			node.set_process(false)
+			if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(false)
+		_turret_level_labels.hide()
+		_screen_feedback.hide()
+	else:
+		for node: Node2D in _presentation_nodes.values(): node.set_process(true)
+		_turret_level_labels.show()
+
+func stage_preparation_current(generation: int) -> bool:
+	return is_inside_tree() and generation == _stage_preparation_generation
+
+func stage_feedback_frame() -> void:
+	# process_frame alone runs before drawing. Wait for submission as well on a
+	# real renderer; the next process frame keeps work out of post-draw callbacks.
+	if DisplayServer.get_name() != "headless": await RenderingServer.frame_post_draw
+	await get_tree().process_frame
+
+func prepare_stage_resources(catalog, index: int, derived: Dictionary, restored_state: Dictionary = {}) -> bool:
+	_stage_entry_active = true
+	_stage_preparation_error = ""
+	_preparation_was_deferred = _battle_deferred
+	var manifest := StageManifest.for_stage(catalog, index, derived, restored_state)
+	var paths: Array = manifest.paths
+	for path: String in EffectPreparation.resource_paths(manifest.enemy_types, manifest.tower_types):
+		if path not in paths: paths.append(path)
+	var environment_paths: Array = _environment.resource_paths(manifest.map)
+	if environment_paths.is_empty(): return false
+	for path: String in environment_paths:
+		if path not in paths: paths.append(path)
+	manifest.key = "%s:%s:%s" % [manifest.stage_id, str(manifest.enemy_types), str(manifest.tower_types)]
+	_pending_stage_manifest = manifest
+	_battle_deferred = true
+	# Retained same-stage Continue/restart needs no overlay or asynchronous work.
+	if manifest.key == _prepared_stage_key and effects_prepared: return true
+	_stage_preparation_generation += 1
+	var generation := _stage_preparation_generation
+	_stage_preparation_pending = true
+	var boot = get_tree().get_first_node_in_group("rune_app_boot")
+	if boot != null:
+		boot._effects_pending = true
+		boot._refresh()
+	if is_instance_valid(_standalone_session): _standalone_session._refresh_ui()
+	set_battle_visible(_battle_requested_visible)
+	await stage_feedback_frame()
+	if not stage_preparation_current(generation): return false
+	return await StageResources.prepare_threaded(paths, self, generation)
+
+func request_stage_preparation_cancel() -> void:
+	_stage_preparation_generation += 1
+
+func cancel_stage_preparation() -> void:
+	_stage_entry_active = false
+	_pending_stage_manifest.clear()
+	StageResources.retain(_stage_manifest.get("paths", []), _prepared_stage_key)
+	_battle_deferred = _preparation_was_deferred
+	_stage_preparation_pending = false
+	set_battle_visible(_battle_requested_visible)
+
+func _commit_stage_resources() -> bool:
+	if _pending_stage_manifest.is_empty(): return true
+	var manifest := _pending_stage_manifest
+	var key: String = manifest.key
+	if key != _prepared_stage_key:
+		effects_prepared = false
+		_prepared_stage_key = ""
+		_camera_models.clear()
+		_battlefield_camera._camera_actor_bounds = AABB()
+		# The durable transition has committed. Retire old instances only now.
+		_units.clear()
+		_lightning_presentation.clear()
+		if not _environment.prepare_for_map(manifest.map): return false
+		if _stage_preparation_pending: await stage_feedback_frame()
+		_units.retain_stage(manifest.enemy_types)
+		if not _projectile_renderer.configure_stage(manifest.tower_types): return false
+		EffectPreparation.retain_stage(manifest.enemy_types, manifest.tower_types)
+		StageResources.retain(manifest.paths, key)
+		effects_prepared = false
+		_prepared_stage_key = key
+	_stage_manifest = manifest
+	_pending_stage_manifest = {}
+	return true
+
+func realize_battle_presentation() -> bool:
+	var generation := _stage_preparation_generation
+	if not await _commit_stage_resources(): return false
+	# Finish the ownership commit before honoring Back; it must never leave half
+	# an old stage retained after the durable run has already changed.
+	if not stage_preparation_current(generation): return false
+	if _stage_preparation_pending: await stage_feedback_frame()
+	if not stage_preparation_current(generation): return false
+	_ensure_battle_base()
+	_presentation_nodes["effects"].prepare_assets()
+	if _stage_preparation_pending: await stage_feedback_frame()
+	if not stage_preparation_current(generation): return false
+	_battle_deferred = false
+	var frame: Dictionary = _native_combat_base_frame if not _native_combat_base_frame.is_empty() else last_frame
+	if frame.is_empty(): return false
+	_realizing_battle = true
+	_apply_frame(frame)
+	_realizing_battle = false
+	if _stage_preparation_pending: await stage_feedback_frame()
+	if not stage_preparation_current(generation) or not _stage_preparation_error.is_empty(): return false
+	if _app_mode and not effects_prepared:
+		if not await prepare_effects(): return false
+	if not stage_preparation_current(generation) or not _stage_preparation_error.is_empty(): return false
+	_stage_preparation_pending = false
+	_stage_entry_active = false
+	set_battle_visible(_battle_requested_visible)
+	return true
+
+func resource_snapshot() -> Dictionary:
+	return {"resources":StageResources.snapshot(),"manifest":_stage_manifest.duplicate(true),
+		"battle_deferred":_battle_deferred,"battle_visible":_battle_visible,
+		"environment":_environment.resource_snapshot(),"render_3d_disabled":get_viewport().disable_3d,
+		"effects_prepared":effects_prepared,"preparing":_stage_preparation_pending}
+
+func battle_preparation_pending() -> bool:
+	return _stage_preparation_pending
+
+
+func _camera_model_libraries() -> Array:
+	if _app_mode and _stage_manifest.is_empty(): return []
+	if _camera_models.is_empty():
+		for pair in [[TURRET_MODELS, _stage_manifest.get("tower_types", TURRET_MODELS.keys())],
+			[ENEMY_MODELS, _stage_manifest.get("enemy_types", ENEMY_MODELS.keys())]]:
+			var selected := {}
+			for kind: String in pair[1]:
+				selected[kind] = StageResources.load_resource(pair[0][kind])
+			_camera_models.append(selected)
+	return _camera_models

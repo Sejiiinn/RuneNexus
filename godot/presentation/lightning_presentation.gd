@@ -45,7 +45,7 @@ func _surface(id: int, enemies: Dictionary):
 	var entry: Dictionary = enemies.get(id, {})
 	if entry.is_empty() or not is_instance_valid(entry.get("root")): return null
 	if not entry.has("lightning_surface"):
-		entry["lightning_surface"] = TargetSurface.new(entry.root)
+		entry["lightning_surface"] = TargetSurface.new(entry.root, str(entry.get("type", "")))
 	var surface = entry.lightning_surface
 	surface.update_pose(_pose_revision)
 	return surface

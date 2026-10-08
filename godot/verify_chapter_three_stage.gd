@@ -110,7 +110,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 	if scene._current_map != frame["map"]:
 		return
 	_check(scene._using_forge and is_equal_approx(scene.sun.light_energy, 1.35), "용광로 조명 미적용")
-	_check(scene._world_environment.sky == scene.ForgeReflectionSky, "용광로 반사 환경 미적용")
+	_check(scene._world_environment.sky == load(scene.ForgeReflectionSky), "용광로 반사 환경 미적용")
 	var columns: int = frame["map"]["columns"]
 	var rows: int = frame["map"]["rows"]
 	_check(scene.columns == columns and scene.rows == rows, "맵 크기 변경")
@@ -250,7 +250,7 @@ func _verify() -> void:
 	_check_stage(scene, restored, 11)
 	scene._clear_scene()
 	_check(not scene._using_forge, "장 전환 후 용광로 상태 잔류")
-	_check(scene._world_environment.sky == scene.ReflectionSky and is_equal_approx(scene.sun.light_energy, 1.50), "장 전환 후 공용 조명 복원 실패")
+	_check(scene._world_environment.sky == load(scene.ReflectionSky) and is_equal_approx(scene.sun.light_energy, 1.50), "장 전환 후 공용 조명 복원 실패")
 	viewport.queue_free()
 	await process_frame
 	print("Chapter three verification: %d failures" % failures)

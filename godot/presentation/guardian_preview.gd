@@ -2,6 +2,7 @@ extends RefCounted
 ## Authored guardian, hound, tank and boss motion. Reads combat state; never changes it.
 signal failure(message: String)
 
+const StageResources = preload("res://presentation/stage_resources.gd")
 const WALK_PATH := "res://assets/enemies/normal.glb"
 const BOSS_PATH := "res://assets/enemies/boss.glb"
 const BOSS_KINDS := ["boss", "shieldBoss", "forgeBoss"]
@@ -70,8 +71,8 @@ func prepare() -> bool:
 		if not ResourceLoader.exists(path):
 			failure.emit("Guardian 에셋이 없습니다: %s" % path)
 			return false
-	_walk_scene = load(WALK_PATH) as PackedScene
-	_death_scene = load(DEATH_PATH) as PackedScene
+	_walk_scene = StageResources.load_resource(WALK_PATH) as PackedScene
+	_death_scene = StageResources.load_resource(DEATH_PATH) as PackedScene
 	if _walk_scene == null or _death_scene == null:
 		failure.emit("Guardian GLB를 불러오지 못했습니다.")
 		return false
@@ -225,16 +226,16 @@ func _prepare_tank_core(model: Node3D) -> void:
 
 func new_walker(kind: String = "normal") -> Dictionary:
 	if kind in BOSS_KINDS:
-		if _boss_scene == null: _boss_scene = load(BOSS_PATH) as PackedScene
+		if _boss_scene == null: _boss_scene = StageResources.load_resource(BOSS_PATH) as PackedScene
 		if _boss_scene == null:
 			failure.emit("보스 GLB를 불러오지 못했습니다.")
 			return {}
 		return _instantiate(_boss_scene, 0.0, kind, "HeavyWalk")
 	if kind == "tank":
 		if _tank_death_scene == null:
-			_tank_death_scene = load(TANK_DEATH_PATH) as PackedScene
+			_tank_death_scene = StageResources.load_resource(TANK_DEATH_PATH) as PackedScene
 		if _tank_scene == null:
-			_tank_scene = load(TANK_PATH) as PackedScene
+			_tank_scene = StageResources.load_resource(TANK_PATH) as PackedScene
 		if _tank_scene == null:
 			failure.emit("탱커 GLB를 불러오지 못했습니다.")
 			return {}
@@ -242,9 +243,9 @@ func new_walker(kind: String = "normal") -> Dictionary:
 	if kind == "fast":
 		# Load before combat kills, rather than importing the corpse on impact.
 		if _fast_death_scene == null:
-			_fast_death_scene = load(FAST_DEATH_PATH) as PackedScene
+			_fast_death_scene = StageResources.load_resource(FAST_DEATH_PATH) as PackedScene
 		if _run_scene == null:
-			_run_scene = load(RUN_PATH) as PackedScene
+			_run_scene = StageResources.load_resource(RUN_PATH) as PackedScene
 		if _run_scene == null:
 			failure.emit("빠른 룬 하운드 GLB를 불러오지 못했습니다.")
 			return {}
@@ -329,7 +330,6 @@ func forget_walker(id: int) -> void:
 
 
 func observe_native(runtime, time: float, map_size: Vector2i) -> void:
-	if not prepare(): return
 	if runtime.epoch != _epoch or time < _last_time:
 		var rewound: bool = runtime.epoch == _epoch and time < _last_time
 		clear()
@@ -353,18 +353,19 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		if enemy.is_empty(): continue
 		var kind: String = enemy.get("type", "normal")
 		if kind not in ["normal", "fast", "tank"] and kind not in BOSS_KINDS: continue
+		if kind == "normal" and not prepare(): continue
 		if kind in BOSS_KINDS and _boss_scene == null:
-			_boss_scene = load(BOSS_PATH) as PackedScene
+			_boss_scene = StageResources.load_resource(BOSS_PATH) as PackedScene
 			if _boss_scene == null:
 				failure.emit("보스 사망 GLB를 불러오지 못했습니다.")
 				continue
 		if kind == "tank" and _tank_death_scene == null:
-			_tank_death_scene = load(TANK_DEATH_PATH) as PackedScene
+			_tank_death_scene = StageResources.load_resource(TANK_DEATH_PATH) as PackedScene
 			if _tank_death_scene == null:
 				failure.emit("탱커 사망 GLB를 불러오지 못했습니다.")
 				continue
 		if kind == "fast" and _fast_death_scene == null:
-			_fast_death_scene = load(FAST_DEATH_PATH) as PackedScene
+			_fast_death_scene = StageResources.load_resource(FAST_DEATH_PATH) as PackedScene
 			if _fast_death_scene == null:
 				failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
 				continue
@@ -421,3 +422,21 @@ func update_deaths(time: float) -> void:
 			entry.player.seek(age, true)
 		if entry.type == "fast": HoundDeath.sample(entry, age)
 		if entry.type == "tank": TankDeath.sample(entry, age)
+
+
+func retain_stage(enemy_types: Array) -> void:
+	if "normal" not in enemy_types:
+		_walk_scene = null
+		_death_scene = null
+		_attempted = false
+	if "fast" not in enemy_types:
+		_run_scene = null
+		_fast_death_scene = null
+	if "tank" not in enemy_types:
+		_tank_scene = null
+		_tank_death_scene = null
+		_tank_core_materials.clear()
+		_tank_head_bounds_ready = false
+	if not enemy_types.any(func(kind): return kind in BOSS_KINDS):
+		_boss_scene = null
+		_boss_head_bounds_ready = false

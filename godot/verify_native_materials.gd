@@ -47,7 +47,7 @@ static func run(scene: Node3D, output: String) -> bool:
 	frozen_foliage.code = original_foliage.code.replace("TIME", "0.0")
 	scene._foliage_material.shader = frozen_foliage
 	var report := {"platform": OS.get_name(), "renderer": RenderingServer.get_current_rendering_method(), "engine": Engine.get_version_info(), "glb_sha256": FileAccess.get_sha256("res://assets/environment/landmarks.glb"), "mesh_aabb": str(crystal.get_aabb()), "source": material_data(source), "candidate": material_data(native), "foliage_time": 0.0, "samples": [], "representatives": []}
-	for model: Node in [scene._landmark_library, scene._terrain_library, scene.TURRET_MODELS["cannon"].instantiate()]:
+	for model: Node in [scene._landmark_library, scene._terrain_library, (scene.StageResources.load_resource(scene.TURRET_MODELS["cannon"]) as PackedScene).instantiate()]:
 		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 			for surface in range(mesh.mesh.get_surface_count()):
 				var mat := mesh.mesh.surface_get_material(surface)

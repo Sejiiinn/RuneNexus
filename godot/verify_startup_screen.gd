@@ -191,17 +191,17 @@ func _boot_checks():
  if coordinator!=null:
   check(coordinator.updates==boot.updates and boot.updates.calls==2,"AppServices reuses boot updater without duplicate check")
   check(application.loads==1 and native.reads==1,"Save and secure restoration start once after gate pass")
-  check(boot.screen.visible and boot.blocks_app_ui() and not boot.game.visible,"Prepared services cannot expose game before effect preparation completes")
-  boot.game.finish_preparation.emit(false);await frames()
-  check(boot.blocks_app_ui() and not boot._failure.is_empty() and boot.screen.primary_button!=null,"Effect preparation failure keeps loading gate and offers retry")
+  check(not boot.screen.visible and not boot.blocks_app_ui(),"Lobby starts after services without rehearsing battle effects")
+  boot._effects_pending=true;boot._refresh()
+  check(boot.screen.visible and boot.blocks_app_ui(),"Explicit battle preparation can reuse startup overlay")
+  boot.fail_preparation("fixture stage failure")
+  check(boot.blocks_app_ui() and not boot._failure.is_empty() and boot.screen.primary_button!=null,"Stage preparation failure keeps gate and retry")
   var previous_game=weakref(boot.game)
   boot._action()
   for frame in 90:
    await process_frame
    if created==2 and not coordinator._startup_pending:break
-  check(created==2 and previous_game.get_ref()==null and boot.blocks_app_ui(),"Retry discards failed game and waits for the replacement's effects")
-  boot.game.finish_preparation.emit(true);await frames()
-  check(not boot.screen.visible and not boot.blocks_app_ui(),"Preparation ends after services initialize")
+  check(created==2 and previous_game.get_ref()==null and not boot.blocks_app_ui(),"Retry restores lobby without eagerly loading battle effects")
   boot._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
   check(boot.updates.calls==2,"After attachment only application lifecycle owns resume checks")
  boot.queue_free();await frames()

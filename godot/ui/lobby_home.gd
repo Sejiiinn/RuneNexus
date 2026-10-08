@@ -165,7 +165,7 @@ func _build_canvas(w: float, h: float) -> void:
 	_label(canvas, detail, Rect2(62, top + 26 + title_h, w - 124, detail_h), 12, 700, SECONDARY, true)
 	if active:
 		_stage_button(canvas, "ContinueRun", "이어서 진행", Rect2(62, top + panel_h - 18 - action_h, w - 124, action_h), false, func():
-			if not lobby.app.resume_run(): lobby._failure()
+			if not await lobby.app.resume_run(): lobby._failure()
 		).disabled = blocked
 	# Bottom content is anchored within the same fitted canvas, never a ScrollContainer.
 	var bottom_lines := 1

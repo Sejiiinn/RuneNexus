@@ -15,6 +15,7 @@ var _failure := ""
 var _last_view := {}
 var _first_frame_ready := false
 var _effects_pending := true
+var _stage_retry := Callable()
 
 func _ready() -> void:
 	if "--fixture" in OS.get_cmdline_user_args() or "--session" in OS.get_cmdline_user_args():
@@ -83,14 +84,7 @@ func _instantiate(packed: PackedScene) -> void:
 	if game is Node3D: game.visible=false
 	add_child(game)
 	_refresh()
-	var preparing_game := game
-	var prepared := true
-	# main's lifecycle has now applied this device's actual graphics options.
-	if game.has_method("prepare_effects"): prepared = await game.prepare_effects()
-	if not is_instance_valid(preparing_game) or game != preparing_game: return
-	if not prepared:
-		fail_preparation("전투 효과를 준비하지 못했습니다. 다시 시도해 주세요.")
-		return
+	# Battle preparation belongs to explicit stage entry, never lobby startup.
 	_effects_pending = false
 	_refresh()
 	if services != null: services.app._refresh_ui()
@@ -100,6 +94,19 @@ func _notification(what: int) -> void:
 	# application lifecycle owns them, including its Google-login return guard.
 	if what==NOTIFICATION_APPLICATION_RESUMED and _first_frame_ready and services==null and updates!=null and not updates.busy:
 		updates.check()
+
+func fail_stage_preparation(reason: String, retry: Callable) -> void:
+	_stage_retry = retry
+	_effects_pending = false
+	_failure = reason
+	_refresh()
+
+func dismiss_stage_failure() -> bool:
+	if not _stage_retry.is_valid(): return false
+	_stage_retry = Callable()
+	_failure = ""
+	_refresh()
+	return true
 
 func fail_preparation(reason: String) -> void:
 	_loading=false;_failure=reason
@@ -146,7 +153,13 @@ func presentation() -> Dictionary:
 		"can_continue":not release.is_empty() and not required}
 
 func _action() -> void:
-	if not _failure.is_empty():
+	if not _failure.is_empty() and _stage_retry.is_valid():
+		# A stage failure keeps the current main, account slot and checkpoint.
+		var retry := _stage_retry
+		_stage_retry = Callable()
+		_failure = ""
+		await retry.call()
+	elif not _failure.is_empty():
 		_failure="";_load_started=false;_effects_pending=true
 		if is_instance_valid(game): game.queue_free();game=null
 		services=null;_advance()

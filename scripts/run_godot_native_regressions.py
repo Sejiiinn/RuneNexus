@@ -115,7 +115,8 @@ def prepare(directory: Path, executable: str) -> Path:
     copy_files(ROOT / "godot/app", project / "app", {".gd"})
     copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
     (project / "presentation").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / "godot/presentation/turret_placement.gd", project / "presentation/turret_placement.gd")
+    for name in ("turret_placement.gd", "stage_resources.gd"):
+        shutil.copy2(ROOT / "godot/presentation" / name, project / "presentation" / name)
     for name in ("inputs", "expected"):
         path = f"godot_save_codec_{name}.json"
         shutil.copy2(ROOT / "test/fixtures" / path, project / "fixtures" / path)

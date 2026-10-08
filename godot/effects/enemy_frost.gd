@@ -1,13 +1,14 @@
 extends RefCounted
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## 공통 성에 shader를 원래 몸체 재질의 next_pass로 연결한다.
 ## 적별 데이터는 결정 부착 변환뿐이며 모든 종이 같은 두 원형을 사용한다.
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
-const CRYSTALS = preload("res://assets/effects/enemy_frost/crystals.glb")
+const CRYSTALS := "res://assets/effects/enemy_frost/crystals.glb"
 const COAT_SHADER = preload("res://effects/enemy_frost.gdshader")
 const CRYSTAL_SHADER = preload("res://effects/enemy_frost_crystals.gdshader")
-const GRAIN = preload("res://assets/effects/enemy_frost/grain.png")
+const GRAIN := "res://assets/effects/enemy_frost/grain.png"
 static var _coat: ShaderMaterial
 static var _skinned_coats: Dictionary = {}
 # glTF rest normalization, used only to sample the common authored frost volume.
@@ -20,6 +21,7 @@ static var _attachments: Dictionary = {}
 static var _variants: Array = []
 static var _multimeshes: Dictionary = {}
 static var _body_materials: Dictionary = {}
+static var _body_material_kinds: Dictionary = {}
 
 
 static func _ensure_shared() -> void:
@@ -38,7 +40,7 @@ static func _ensure_shared() -> void:
 	_coat = ShaderMaterial.new()
 	_coat.shader = COAT_SHADER
 	_coat.set_shader_parameter("rime_mask", mask)
-	_coat.set_shader_parameter("grain_texture", GRAIN)
+	_coat.set_shader_parameter("grain_texture", StageResources.load_resource(GRAIN))
 	var palette := Image.create(13, 40, false, Image.FORMAT_RGBAF)
 	var colors := [Color(0.29, 0.70, 0.87).srgb_to_linear(), Color(0.65, 0.89, 0.97).srgb_to_linear(), Color(0.87, 0.97, 1.0).srgb_to_linear()]
 	var roughness := [0.16, 0.24, 0.44]
@@ -54,7 +56,7 @@ static func _ensure_shared() -> void:
 	_grain_material = StandardMaterial3D.new()
 	_grain_material.albedo_color = Color(0.87, 0.97, 1.0)
 	_grain_material.roughness = 0.44
-	var library := CRYSTALS.instantiate()
+	var library := (StageResources.load_resource(CRYSTALS) as PackedScene).instantiate()
 	_shard_mesh = library.find_child("FrostShard", true, false).mesh
 	_grain_mesh = library.find_child("FrostGrain", true, false).mesh
 	library.free()
@@ -138,9 +140,10 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 						_skinned_coats[original] = coat
 					coated.next_pass = _skinned_coats[original] if guardian else _coat
 					_body_materials[original] = coated
+					_body_material_kinds[original] = kind
 				bodies.append([mesh, surface, mesh.get_surface_override_material(surface), _body_materials[original]])
 		entry["frost_bodies"] = bodies
-		var instances := _instances(entry["type"])
+		var instances: Array = [] if guardian else _instances(entry["type"])
 		if guardian:
 			frost.free()
 			frost = GuardianStatus.attach(entry, instances, [_ice, _grain_material], "EnemyFrost")
@@ -158,3 +161,24 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 	entry["frost"].visible = slowed
 	for body: Array in entry["frost_bodies"]:
 		body[0].set_surface_override_material(body[1], body[3] if slowed else body[2])
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	var kinds := {}
+	if "frost" in tower_types:
+		for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
+	for kind: String in _multimeshes.keys():
+		if not kinds.has(kind): _multimeshes.erase(kind)
+	for original in _body_materials.keys():
+		if not kinds.has(_body_material_kinds.get(original, "")):
+			_body_materials.erase(original)
+			_skinned_coats.erase(original)
+			_body_material_kinds.erase(original)
+	if kinds.is_empty():
+		_coat = null
+		_ice = null
+		_grain_material = null
+		_shard_mesh = null
+		_grain_mesh = null
+		_attachments.clear()
+		_variants.clear()

@@ -1,10 +1,11 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## Presentation only: combat owns cooldown, area damage and slow. One static
 ## shared 32-instance batch; vertex motion uses the external combat clock.
 const CHARGE_SHADER = preload("res://effects/frost_charge.gdshader")
 const MIST_SHADER = preload("res://effects/frost_mist.gdshader")
-const MIST_MODEL = preload("res://assets/effects/frost_tower/mist-volume.glb")
+const MIST_MODEL := "res://assets/effects/frost_tower/mist-volume.glb"
 const MIST_DURATION := 1.05
 static var _instances: MultiMesh
 static var _noise: NoiseTexture2D
@@ -21,7 +22,7 @@ var _radius := 1.58
 
 static func _ensure_shared() -> void:
 	if _instances != null: return
-	var source := MIST_MODEL.instantiate()
+	var source := (StageResources.load_resource(MIST_MODEL) as PackedScene).instantiate()
 	_instances = MultiMesh.new()
 	_instances.transform_format = MultiMesh.TRANSFORM_3D
 	_instances.use_custom_data = true
@@ -91,3 +92,10 @@ func update_state(time: float, shot: int, _feedback: float, state: Dictionary, s
 	var age := (time - _fire_start) / MIST_DURATION
 	mist.visible = show_mist and age >= 0.0 and age < 1.0
 	if mist.visible: mist_material.set_shader_parameter("age", age)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "frost" in tower_types: return
+	_instances = null
+	_noise = null
+	_charge_material = null

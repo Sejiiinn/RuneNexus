@@ -2,7 +2,8 @@ extends CanvasLayer
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 
 ## 포탑과 같은 Godot 프레임의 화면 정면 배지. 그림은 기존 Flutter 배지를 재사용한다.
-const ATLAS = preload("res://assets/ui/turret_levels.png")
+const ATLAS = "res://assets/ui/turret_levels.png"
+const StageResources = preload("res://presentation/stage_resources.gd")
 const ATLAS_PIXELS_PER_TILE := 256.0
 var badges := {}
 var _poses := {}
@@ -50,7 +51,7 @@ func update(camera: Camera3D, turrets: Dictionary, enabled: bool) -> void:
 		if not badges.has(id):
 			var badge := Sprite2D.new()
 			RuntimeProfile.tag_canvas(badge, "badges")
-			badge.texture = ATLAS
+			badge.texture = StageResources.load_resource(ATLAS)
 			badge.hframes = 10
 			badge.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 			add_child(badge)

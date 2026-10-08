@@ -44,12 +44,12 @@ func run() -> void:
 	assert(second._aura.mesh == effect._aura.mesh)
 	var ids := []
 	for i in Effect.BEAM_MESHES + Effect.CHARGE_MESHES + Effect.FEED_MESHES:
-		ids.append(i.get_instance_id())
+		ids.append(Effect._mesh(i).get_instance_id())
 	for frame in range(5000):
 		effect.sample_discharge(charge.origin, target, float(frame % 27) / 100.0, 0.28, frame)
 	var after := []
 	for i in Effect.BEAM_MESHES + Effect.CHARGE_MESHES + Effect.FEED_MESHES:
-		after.append(i.get_instance_id())
+		after.append(Effect._mesh(i).get_instance_id())
 	assert(ids == after)
 	effect.sample_charge(charge, 0.3)
 	assert(not effect.visible)

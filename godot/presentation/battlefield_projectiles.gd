@@ -34,17 +34,46 @@ func _init(world_root: Node3D, battlefield_camera: Camera3D) -> void:
 
 
 func initialize() -> bool:
-	for index in range(4):
-		var light := OmniLight3D.new()
-		light.light_color = Color(1.0, 0.42, 0.08)
-		light.light_energy = 0.0
-		world.add_child(light)
-		impact_lights.append(light)
+	# A lobby may construct the presenter, but battle fields wait for a stage.
+	return true
+
+
+func _ensure_field() -> bool:
+	if not field.is_empty(): return true
 	field = FieldCache.load_shared()
 	if field.is_empty():
 		failure.emit("폭발 필드 캐시를 불러오지 못했습니다.")
 		return false
+	if impact_lights.is_empty():
+		for index in range(4):
+			var light := OmniLight3D.new()
+			light.light_color = Color(1.0, 0.42, 0.08)
+			light.light_energy = 0.0
+			world.add_child(light)
+			impact_lights.append(light)
 	return true
+
+
+func configure_stage(tower_types: Array) -> bool:
+	clear(true)
+	for kind: String in _ballistic_pool:
+		if not kind in tower_types: _free_pool(_ballistic_pool[kind])
+	for kind: String in _generic_projectile_pool:
+		if not kind in tower_types: _free_pool(_generic_projectile_pool[kind])
+	if not "magic" in tower_types: _free_pool(_fire_projectile_pool)
+	for kind: String in _projectile_meshes.keys():
+		if not kind in tower_types: _projectile_meshes.erase(kind)
+	if "cannon" in tower_types: return _ensure_field()
+	_free_pool(impact_pool)
+	field = {}
+	for light in impact_lights: light.free()
+	impact_lights.clear()
+	return true
+
+
+func _free_pool(pool: Array) -> void:
+	for effect: Node3D in pool: effect.free()
+	pool.clear()
 
 
 func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> void:
@@ -55,12 +84,24 @@ func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> vo
 
 
 func adopt_prepared(source) -> void:
-	for pair in [[source._ballistic_pool.cannon, _ballistic_pool.cannon],
-		[source._fire_projectile_pool, _fire_projectile_pool], [source.impact_pool, impact_pool]]:
-		while not pair[0].is_empty():
-			var effect: Node3D = pair[0].pop_back()
-			effect.reparent(world, false)
-			pair[1].append(effect)
+	for kind: String in _ballistic_pool:
+		_adopt_pool(source._ballistic_pool[kind], _ballistic_pool[kind])
+	for kind: String in _generic_projectile_pool:
+		_adopt_pool(source._generic_projectile_pool[kind], _generic_projectile_pool[kind])
+	_adopt_pool(source._fire_projectile_pool, _fire_projectile_pool)
+	_adopt_pool(source.impact_pool, impact_pool)
+	_projectile_meshes.merge(source._projectile_meshes)
+
+
+func _adopt_pool(source: Array, destination: Array) -> void:
+	while not source.is_empty():
+		var effect: Node3D = source.pop_back()
+		if destination.size() >= 2:
+			effect.free()
+			continue
+		effect.reparent(world, false)
+		destination.append(effect)
+
 
 func clear(keep_prepared: bool = false) -> void:
 	if keep_prepared:
@@ -68,16 +109,13 @@ func clear(keep_prepared: bool = false) -> void:
 		# projectile metadata, ages, transforms, emitting tails, or impact lights.
 		_sync_projectiles([], {})
 		_update_impacts([])
-		for pool: Array in [_ballistic_pool.cannon, _fire_projectile_pool, impact_pool]:
+		for pool: Array in _ballistic_pool.values() + _generic_projectile_pool.values() + [_fire_projectile_pool, impact_pool]:
 			while pool.size() > 2:
 				pool.pop_back().free()
 			for effect: Node3D in pool:
 				if effect.has_method("reset"): effect.reset()
 				effect.visible = false
 				effect.transform = Transform3D.IDENTITY
-		for pool: Array in [_ballistic_pool.arrow, _generic_projectile_pool.sniper, _generic_projectile_pool.frost]:
-			for effect: Node3D in pool: effect.free()
-			pool.clear()
 		return
 	for entry: Dictionary in projectiles.values():
 		entry["root"].free()
@@ -97,6 +135,7 @@ func clear(keep_prepared: bool = false) -> void:
 	impact_pool.clear()
 	for light in impact_lights:
 		light.light_energy = 0.0
+	_projectile_meshes.clear()
 
 
 func camera_changed() -> void:
@@ -267,6 +306,7 @@ func _update_fire_projectile(entry: Dictionary, data: Array, turrets: Dictionary
 
 
 func _update_impacts(units: Array) -> void:
+	if not units.is_empty() and not _ensure_field(): return
 	var alive := {}
 	for light in impact_lights:
 		light.light_energy = 0.0

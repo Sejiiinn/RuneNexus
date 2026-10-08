@@ -1,4 +1,5 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 ## One shared 3D mesh/batch. Per-instance GPU age drives the authored burst.
 const DUST_SCENE := "res://assets/effects/placement_dust.glb"
 const SHADER = preload("res://effects/placement_dust.gdshader")
@@ -20,7 +21,10 @@ var _geometry_pose := Transform3D.IDENTITY
 func _ready() -> void:
 	name = "PlacementDust"
 	set_meta("exclude_selection_mask",true)
-	var packed = load(DUST_SCENE)
+
+func _prepare() -> void:
+	if is_instance_valid(_batch): return
+	var packed = StageResources.load_resource(DUST_SCENE)
 	if not packed is PackedScene:
 		push_error("Placement dust 3D mesh is missing")
 		return
@@ -117,6 +121,7 @@ func begin_cue(id: int, cue: Dictionary) -> void:
 	emit_build(id,Vector3(cue.x+0.5-map_size.x/2.0,0,cue.y+0.5-map_size.y/2.0))
 
 func emit_build(id: int, origin: Vector3) -> void:
+	_prepare()
 	if bursts.has(id) or not is_instance_valid(_batch): return
 	if _ids.size() >= MAX_BURSTS: cancel_build(_ids[0])
 	bursts[id] = {"origin":origin,"started":_seconds(),"seed":id*17+int(Time.get_ticks_usec()%997)}

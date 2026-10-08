@@ -83,3 +83,10 @@ func update_camera(camera: Camera3D) -> void:
 	material.set_shader_parameter("u_ray_direction", inverse.basis * -pose.basis.z)
 	material.set_shader_parameter("u_orthographic", camera.projection == Camera3D.PROJECTION_ORTHOGONAL)
 	material.set_shader_parameter("u_camera_inside", absf(local_camera.x) < 0.5 and absf(local_camera.y) < 0.5 and absf(local_camera.z) < 0.5)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "cannon" in tower_types: return
+	_noise = null
+	_box = null
+	_spark_mesh = null

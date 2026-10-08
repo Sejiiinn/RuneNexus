@@ -100,7 +100,7 @@ func _verify() -> void:
 	scene._sync_enemies(units)
 	var common_mask = Frost._coat.get_shader_parameter("rime_mask")
 	check(common_mask is ImageTexture3D and common_mask.get_width() == 64 and common_mask.get_depth() == 64, "공통 3D 성에 마스크 누락")
-	check(Frost._coat.get_shader_parameter("grain_texture") == Frost.GRAIN, "공통 미세 성에 텍스처 누락")
+	check(Frost._coat.get_shader_parameter("grain_texture") == load("res://presentation/stage_resources.gd").load_resource(Frost.GRAIN), "공통 미세 성에 텍스처 누락")
 	for i in range(kinds.size()):
 		var entry: Dictionary = scene.enemies[i]
 		var frost: Node3D = entry["frost"]
@@ -130,7 +130,7 @@ func _verify() -> void:
 		check(frost.find_children("*", "AnimationPlayer", true, false).is_empty(), "감속과 무관한 서리 자체 시계 추가")
 	var first: Node3D = scene.enemies[1]["frost"]
 	var first_meshes := first.find_children("*", "MultiMeshInstance3D", true, false)
-	check(Frost._multimeshes.size() == 6, "보스 변형이 boss 부착 리소스를 재사용하지 않음")
+	check(Frost._multimeshes.size() == 2 and Frost._multimeshes.has("armored") and Frost._multimeshes.has("shielded"), "강체 적만 부착 배치를 만들고 스킨 적은 공유 원본 메시를 사용함")
 	var boss_meshes: Array = scene.enemies[5]["frost"].find_children("*", "MeshInstance3D", true, false)
 	for index in [6, 7]:
 		var variant_meshes: Array = scene.enemies[index]["frost"].find_children("*", "MeshInstance3D", true, false)

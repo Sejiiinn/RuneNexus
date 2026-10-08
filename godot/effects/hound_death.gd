@@ -58,3 +58,10 @@ static func sample(entry: Dictionary, age: float) -> void:
 		# GeometryInstance3D.transparency is ignored by the shipping Mobile renderer.
 		body.set_instance_shader_parameter("death_opacity", 1.0 - fade)
 	entry.death_motes.set_instance_shader_parameter("death_age", age)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "fast" in enemy_types: return
+	_motes = null
+	_material = null
+	_body_materials.clear()
