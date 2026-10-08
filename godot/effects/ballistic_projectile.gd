@@ -1,4 +1,5 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## 실제 비행 좌표와 짧게 보존된 종료 경로를 탄체·입체 예광으로 표시.
 const TRACER_SHADER = preload("res://effects/projectile_tracer.gdshader")
@@ -25,7 +26,7 @@ func _init(projectile_type: String = "arrow") -> void:
 	var heavy := type == "cannon"
 	if heavy:
 		# 철구의 형태·단조 표면·후방 열기는 승인 원본의 native PBR 그대로 공유.
-		var packed := load("res://assets/projectiles/cannonball.glb") as PackedScene
+		var packed := StageResources.load_resource("res://assets/projectiles/cannonball.glb") as PackedScene
 		if packed == null:
 			push_error("대포 철구 GLB를 불러오지 못했습니다.")
 			return
@@ -157,3 +158,8 @@ func update_flight(data: Array, time: float, map_offset: Vector3, muzzle_pose = 
 func update_camera(camera: Camera3D) -> void:
 	if _cannon_flight:
 		_cannon_flight.update_camera(camera)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	for kind: String in _templates.keys():
+		if not kind in tower_types: _templates.erase(kind)

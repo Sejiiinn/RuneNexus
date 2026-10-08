@@ -5,8 +5,34 @@ const Checkpoint = preload("res://session/session_checkpoint.gd")
 class Host extends Node3D:
 	var _native_combat = preload("res://combat/native_combat_runtime.gd").new()
 	var _native_combat_base_frame: Dictionary = {}
+	var presentation_deferred := false
+	var presentation_frames := 0
+	var battle_visible := false
+	var prepared_stages: Array = []
+	var preparation_fails := false
+	var realization_fails := false
+	var preparation_pending := false
+	var preparation_cancels := 0
+	func battle_preparation_pending() -> bool: return preparation_pending
+	func cancel_stage_preparation() -> void: preparation_cancels += 1
+	func begin_deferred_battle_presentation() -> void:
+		presentation_deferred = true
+		battle_visible = false
+	func prepare_stage_resources(_catalog, index: int, _derived: Dictionary, _restored_state: Dictionary = {}) -> bool:
+		if preparation_fails: return false
+		prepared_stages.append(index)
+		return true
+	func realize_battle_presentation() -> bool:
+		if realization_fails: return false
+		presentation_deferred = false
+		_apply_frame(_native_combat_base_frame)
+		return true
+	func set_battle_visible(active: bool) -> void: battle_visible = active
 	func _apply_frame(frame: Dictionary) -> void:
-		if frame.get("reset", false): _native_combat.active = false
+		if frame.get("reset", false):
+			_native_combat.active = false
+			_native_combat_base_frame = {}
+		elif not presentation_deferred: presentation_frames += 1
 var failures: Array = []
 var checks := 0
 var directory := ""
@@ -42,7 +68,7 @@ func same_schedule(left: Dictionary, right: Dictionary) -> bool:
 	return true
 
 func start_pending_wave(app, label: String) -> void:
-	check(app.start_stage(0), label + " start")
+	check(await app.start_stage(0), label + " start")
 	# One completed round gives abandonment a nonzero progression reward. The
 	# second round still uses the production catalog/bootstrap/spawn schedule.
 	app.next_round = 1
@@ -79,7 +105,7 @@ func successful_abandon() -> void:
 		check(app.prepare_run_transition() and app.persist_progression(), "repeat terminal save " + str(repeat))
 	check(app.run_domain.state.progression == rewarded and queue.state.pendingRewards.size() == 1,
 		"repeat terminal save does not duplicate rewards")
-	check(app.start_stage(0), "new stage starts without app restart")
+	check(await app.start_stage(0), "new stage starts without app restart")
 	check(app.run_domain.state.economyRunId != identity and app.run_domain.state.phase == "preparation" and not app.in_lobby and not app.save_failed,
 		"new run playable after abandon")
 	check(queue.state.pendingRewards.size() == 1, "replacement retains single abandoned reward")
@@ -101,7 +127,7 @@ func failed_abandon(outbox_failure: bool) -> void:
 	check(app.scene._native_combat.wave.snapshot() == schedule and app.scene._native_combat.session.paused,
 		label + " failure preserves pending spawn schedule and pauses")
 	check(queue.state.get("pendingRewards", []).is_empty(), label + " failure does not expose reward")
-	check(not app.start_stage(0) and app.epoch == epoch and app.scene._native_combat.wave.snapshot() == schedule,
+	check(not await app.start_stage(0) and app.epoch == epoch and app.scene._native_combat.wave.snapshot() == schedule,
 		label + " failure blocks replacement without clearing queue")
 	failing_store._valid_slot = true
 	free_app(app)
@@ -111,11 +137,11 @@ func failed_abandon(outbox_failure: bool) -> void:
 	check(same_schedule(app.scene._native_combat.wave.snapshot(), schedule), label + " failed transition restart restores queue")
 	check(app.run_domain.state.progression == before.progression, label + " failed transition restart restores progression")
 	check(queue.state.pendingRewards.is_empty(), label + " failed transition restart has no premature reward")
-	check(app.resume_run(), label + " failed transition restart resumes")
+	check(await app.resume_run(), label + " failed transition restart resumes")
 	check(app.abandon_run() and not app.save_failed, label + " recovered abandon succeeds")
 	check(app.scene._native_combat.wave.queue.is_empty() and queue.state.pendingRewards.size() == 1,
 		label + " recovery cancels and rewards exactly once")
-	check(app.start_stage(0), label + " recovery permits reentry")
+	check(await app.start_stage(0), label + " recovery permits reentry")
 	check(queue.state.pendingRewards.size() == 1, label + " recovery retains one reward")
 	free_app(app)
 
@@ -128,7 +154,7 @@ func save_and_resume() -> void:
 	check(not app.run_domain.is_finished() and app.scene._native_combat.wave.snapshot() == schedule,
 		"save and leave preserves active spawn schedule")
 	check(app.checkpoint.rewards().state.pendingRewards.is_empty(), "resumable leave awards nothing")
-	check(app.resume_run() and not app.in_lobby and app.scene._native_combat.session.paused,
+	check(await app.resume_run() and not app.in_lobby and app.scene._native_combat.session.paused,
 		"same-process continue opens existing battle paused")
 	check(app.run_domain.state.economyRunId == identity and app.scene._native_combat.wave.snapshot() == schedule,
 		"same-process continue retains run and pending spawns")
@@ -139,7 +165,7 @@ func save_and_resume() -> void:
 		"saved wave restored with same run identity")
 	var restored: Dictionary = app.scene._native_combat.wave.snapshot()
 	check(same_schedule(restored, schedule), "saved wave restores all pending spawns")
-	check(app.resume_run() and not app.in_lobby and app.scene._native_combat.session.paused,
+	check(await app.resume_run() and not app.in_lobby and app.scene._native_combat.session.paused,
 		"continue opens existing battle paused")
 	check(app.checkpoint.rewards().state.pendingRewards.is_empty(), "continue does not finish or enqueue")
 	free_app(app)
@@ -155,11 +181,134 @@ func run() -> void:
 	failed_abandon(false)
 	failed_abandon(true)
 	save_and_resume()
+	deferred_save_integrity()
 	crash_boundaries()
 	journal_failures()
 	journal_read_and_isolation()
 	print("RUN_TRANSITION failures=", failures, " checks=", checks)
 	quit(0 if failures.is_empty() else 1)
+
+func deferred_save_integrity() -> void:
+	var app = create_app("deferred")
+	var host = app.scene
+	check(host.presentation_deferred and host.prepared_stages.is_empty() and host.presentation_frames == 0,
+		"fresh lobby never prepares or presents a battle")
+	start_pending_wave(app, "deferred")
+	check(not host.presentation_deferred and host.battle_visible and host.prepared_stages == [0],
+		"explicit start prepares and realizes the selected battle")
+	host.preparation_pending = true
+	var warming_identity: String = app.run_domain.state.economyRunId
+	var warming_sequence: int = host._native_combat.sequence
+	check(not await app.start_stage(0) and not await app.retry_stage() and not await app.resume_run()
+		and not app.apply_run_command({"kind":"build","x":2,"y":1,"type":"arrow"}), "warmup blocks repeated entry and run commands")
+	app.start_wave()
+	app.toggle_pause()
+	app.toggle_speed()
+	app.set_speed(4)
+	app.board_tap(Vector2i(2, 1))
+	check(host._native_combat.sequence == warming_sequence and app.run_domain.state.economyRunId == warming_identity
+		and app.selected == Vector2i(-1, -1), "warmup command gate preserves battle and selection")
+	check(app.pause_and_save(), "background save remains available during warmup")
+	host.preparation_pending = false
+	app.toggle_pause()
+	for frame in 90: host._native_combat.advance_session(1.0 / 60.0)
+	check(app.pause_and_save(), "deferred checkpoint seed")
+	var original: Dictionary = app.checkpoint.store.load_save().activeRun
+	var identity: String = original.economyRunId
+	check(not original.enemies.is_empty() and not original.spawnQueue.is_empty(), "deferred seed has live enemies and queued spawns")
+	app.show_lobby()
+	check(not host.battle_visible and not host.presentation_deferred and host.prepared_stages == [0],
+		"same-process lobby hides but retains prepared battle resources")
+	free_app(app)
+	app = create_app("deferred")
+	host = app.scene
+	check(host.presentation_deferred and host.prepared_stages.is_empty() and host.presentation_frames == 0,
+		"saved cold lobby restores no battle presentation")
+	check(host._native_combat.active and host._native_combat.session.paused and not app.run_domain.is_finished(),
+		"saved cold lobby retains paused simulation and Continue metadata")
+	check(app.run_domain.state.economyRunId == identity and app.stage == 0 and app.next_round == 2,
+		"saved cold lobby retains run identity, stage and next round")
+	var elapsed: float = host._native_combat.elapsed
+	for frame in 30: host._native_combat.advance_session(1.0 / 60.0)
+	check(host._native_combat.elapsed == elapsed, "deferred checkpoint cannot advance while in lobby")
+	app._process(11.0)
+	var before: Dictionary = app.checkpoint.store.load_save().activeRun
+	check(before.economyRunId == identity and before.phase == original.phase and before.enemies.size() == original.enemies.size()
+		and before.spawnQueue == original.spawnQueue and before.gold == original.gold and before.nexusHp == original.nexusHp,
+		"lobby autosave retains active run, enemies, pending spawns and balances")
+	check(app.apply_growth_command({"kind":"unequipCoreCombatSkill"}), "growth applies to deferred saved run")
+	var after: Dictionary = app.checkpoint.store.load_save()
+	check(after.activeRun == before and after.progression.coreCombatSkill == null and app.progression_inputs.coreCombatSkill == null,
+		"lobby growth preserves the complete active checkpoint and frozen run skill")
+	check(host.presentation_frames == 0 and host.prepared_stages.is_empty(), "autosave and growth do not realize battle resources")
+	var growth_before: Dictionary = app.progression_inputs.duplicate(true)
+	app.checkpoint.store._valid_slot = false
+	check(not app.apply_growth_command({"kind":"equipCoreCombatSkill","id":"guardianBeam"}), "deferred growth write failure reported")
+	check(app.progression_inputs == growth_before and app.run_domain.state.progression == growth_before,
+		"deferred growth failure preserves progression")
+	check(not await app.resume_run() and host.presentation_frames == 0, "failed checkpoint write blocks presentation and resume")
+	app.checkpoint.store._valid_slot = true
+	check(app.persist_progression(), "deferred failed save recovery")
+	host.preparation_fails = true
+	check(not await app.start_stage(0) and app.run_domain.state.economyRunId == identity and app.checkpoint.rewards().state.pendingRewards.is_empty(),
+		"resource preflight failure never abandons a deferred saved run")
+	check(host.preparation_cancels == 1, "failed preflight releases partial asynchronous preparation")
+	host.preparation_fails = false
+	var queue = app.checkpoint.rewards()
+	queue._valid_slot = false
+	check(not await app.start_stage(0) and host.preparation_cancels == 2 and app.run_domain.state.economyRunId == identity
+		and host.presentation_deferred and host.presentation_frames == 0, "failed durable transition cancels destination presentation preparation")
+	queue._valid_slot = true
+	check(app.persist_progression(), "failed deferred transition recovers original checkpoint")
+	host.realization_fails = true
+	check(not await app.resume_run() and app.in_lobby and host._native_combat.session.paused and app.run_domain.state.economyRunId == identity,
+		"presentation failure preserves resumable paused checkpoint")
+	host.realization_fails = false
+	check(await app.resume_run() and not host.presentation_deferred and host.battle_visible, "retry realizes deferred battle")
+	check(app.run_domain.state.economyRunId == identity and host._native_combat.session.paused and host._native_combat.elapsed == elapsed,
+		"deferred resume keeps exact run identity and paused combat")
+	app.show_lobby()
+	free_app(app)
+	# Replacement from a fresh saved lobby must settle the old run exactly once,
+	# even though its presentation has never been realized in this process.
+	app = create_app("deferred")
+	check(await app.start_stage(0), "replace deferred run without first resuming")
+	check(app.run_domain.state.economyRunId != identity and app.checkpoint.rewards().state.pendingRewards.size() == 1
+		and app.checkpoint.rewards().state.pendingRewards[0].runId == identity,
+		"deferred replacement preserves exactly one abandoned reward")
+	var guest_identity: String = app.run_domain.state.economyRunId
+	check(app.pause_and_save(), "save guest before slot isolation check")
+	free_app(app)
+	var owner := "12345678-1234-1234-1234-123456789abc"
+	app = create_app("deferred", owner)
+	check(await app.start_stage(0) and app.pause_and_save(), "seed account run for deferred switch")
+	var account_identity: String = app.run_domain.state.economyRunId
+	var service = load("res://services/app_services.gd").new()
+	service.app = app
+	service.root_path = directory.path_join("deferred")
+	var prepared_count: int = app.scene.prepared_stages.size()
+	check(service._load_slot("guest"), "load guest through actual account-slot replacement")
+	check(app.scene.presentation_deferred and app.scene.prepared_stages.size() == prepared_count and not app.scene.battle_visible
+		and app.run_domain.state.economyRunId == guest_identity, "account switch defers saved guest and preserves slot identity")
+	check(app.persist_progression() and service._load_slot(owner), "save deferred guest then switch back to account")
+	check(app.scene.presentation_deferred and app.run_domain.state.economyRunId == account_identity
+		and app.checkpoint.rewards().state.pendingRewards.is_empty(), "account run and reward queue remain isolated")
+	prepared_count = app.scene.prepared_stages.size()
+	var presentation_count: int = app.scene.presentation_frames
+	var authoritative := {"authorityState":"server_authoritative","authorityEpoch":"deferred-test","authorityVersion":1,"catalogVersion":1,"economyRevision":3,"serverTime":"2026-09-21T00:00:00Z","wallet":{"freeDiamonds":42,"paidDiamonds":7,"moduleTickets":5},"turretModules":{"drawCount":0,"ticketPurchaseCount":0,"items":[]},"entitlements":{"researchSlotTwoUnlocked":true},"pendingProgressionEffects":[],"claimedRewardKeys":[]}
+	check(app.checkpoint.apply_economy_snapshot(app, authoritative), "authoritative snapshot applies to deferred account run")
+	var account_saved: Dictionary = app.checkpoint.store.load_save()
+	check(account_saved.activeRun.economyRunId == account_identity and account_saved.progression.freeDiamonds == 42
+		and account_saved.turretModules.tickets == 5, "authority update preserves deferred account checkpoint")
+	var updated: Dictionary = app.progression_inputs.duplicate(true)
+	updated.runes += 1
+	check(service._store_progression(updated), "service progression update applies to deferred account run")
+	account_saved = app.checkpoint.store.load_save()
+	check(account_saved.activeRun.economyRunId == account_identity and account_saved.progression.runes == updated.runes
+		and app.scene.prepared_stages.size() == prepared_count and app.scene.presentation_frames == presentation_count,
+		"service progression and authoritative updates never discard run or realize presentation")
+	service.free()
+	free_app(app)
 
 class FaultJournal extends "res://app/run_transition_journal.gd":
 	var fail_decision := ""

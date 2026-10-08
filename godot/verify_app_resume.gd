@@ -30,7 +30,7 @@ func run() -> void:
 	var folder := OS.get_environment("TMPDIR").path_join("rune-resume-" + str(Time.get_ticks_usec()))
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(folder)
 	scene._standalone_session = app; scene.add_child(app); app.set_process(false)
-	check(app.start_stage(0), "Start isolated run")
+	check(await app.start_stage(0), "Start isolated run")
 	app.start_wave()
 	for frame in 120: scene._native_combat.advance_session(1.0 / 60.0)
 	app.selected = Vector2i(2, 1)

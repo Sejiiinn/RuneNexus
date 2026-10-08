@@ -442,6 +442,15 @@ func _refresh_economy_ui() -> void:
 	if app.has_method("refresh_economy_ui"): app.refresh_economy_ui()
 	else: app._refresh_ui()
 
+func _progression_for_update() -> Dictionary:
+	# Background economy requests do not pause combat. Settle pending events and
+	# use the live progression at receipt time, not the last saved input cache.
+	# Callers map and persist this owned value synchronously before publishing it.
+	if app.scene._native_combat.active and not app.run_domain.state.is_empty():
+		if not app.command(): return {}
+		return app.run_domain.state.progression.duplicate(true)
+	return app.progression_inputs.duplicate(true)
+
 func _store_progression(value: Dictionary) -> bool:
 	if app.run_domain.state.is_empty() or not app.scene._native_combat.active:
 		if app.checkpoint.save_progression(app,value) != OK: return false
@@ -457,7 +466,8 @@ func _store_progression(value: Dictionary) -> bool:
 	return true
 
 func _apply_receipt(receipt: Dictionary) -> bool:
-	var p: Dictionary = app.progression_inputs
+	var p := _progression_for_update()
+	if p.is_empty(): return false
 	var period: String = receipt.period
 	var weekly := period == "weekly"
 	var key: String = "weeklyQuestWeekKey" if weekly else "dailyQuestDayKey"
@@ -477,7 +487,8 @@ func _apply_effect(effect: Dictionary) -> bool:
 	var id: String = payload.get("researchType","")
 	var level := int(payload.get("targetLevel",0))
 	if level <= 0: return false
-	var p: Dictionary = app.progression_inputs.duplicate(true)
+	var p := _progression_for_update()
+	if p.is_empty(): return false
 	if id == "bossBounty":
 		p.bossBountyUpgradeLevel = maxi(int(p.get("bossBountyUpgradeLevel",0)),mini(level,20))
 		p.researchLevels.erase(id)

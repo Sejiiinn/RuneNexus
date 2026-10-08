@@ -80,7 +80,7 @@ func build(state: Dictionary) -> void:
 	_settlement(body)
 	var actions := HBoxContainer.new(); actions.name = "ResultActions"
 	actions.add_theme_constant_override("separation",10); body.add_child(actions)
-	_action(actions,"다시 시작","restart_button_frame","ResultRestart",func(): hud.app.retry_stage(); hud.refresh(),false)
+	_action(actions,"다시 시작","restart_button_frame","ResultRestart",func(): await hud.app.retry_stage(); hud.refresh(),false)
 	_action(actions,"스테이지 선택","confirm_button_frame","ResultStageSelect",func(): hud.app.open_stage_menu_destination(),true)
 
 func text(parent: Node, value: String, font_size: int, color: Color, centered := false) -> Label:

@@ -1,8 +1,9 @@
 extends MeshInstance3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 
 ## 기존 Blender 포구·연기 아틀라스. 착탄 체적과 독립적인 발사 보조 표현.
-const FLASH_TEXTURE: Texture2D = preload("res://assets/effects/muzzle_flash.png")
-const SMOKE_TEXTURE: Texture2D = preload("res://assets/effects/gun_smoke.png")
+const FLASH_TEXTURE := "res://assets/effects/muzzle_flash.png"
+const SMOKE_TEXTURE := "res://assets/effects/gun_smoke.png"
 const SHADER_BODY := """
 uniform sampler2D atlas : source_color, filter_linear, repeat_disable;
 uniform vec2 frame_offset = vec2(0.0);
@@ -35,7 +36,7 @@ func configure(flash: bool, tint: Color = Color.WHITE) -> void:
 	mesh = quad
 	_material = ShaderMaterial.new()
 	_material.shader = _flash_shader if flash else _smoke_shader
-	_material.set_shader_parameter("atlas", FLASH_TEXTURE if flash else SMOKE_TEXTURE)
+	_material.set_shader_parameter("atlas", StageResources.load_resource(FLASH_TEXTURE if flash else SMOKE_TEXTURE))
 	_material.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
 	material_override = _material
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -57,3 +58,9 @@ func update_camera(camera: Camera3D) -> void:
 	# 부모의 조준 회전과 별개로 투영된 포구 방향을 유지하는 전역 기저.
 	global_basis = camera.global_basis * Basis(Vector3.BACK, display_angle) \
 		* Basis.from_scale(Vector3(display_size.x, display_size.y, 1.0))
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "cannon" in tower_types: return
+	_flash_shader = null
+	_smoke_shader = null

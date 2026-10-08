@@ -11,10 +11,13 @@ var game_scene_path := "res://main.tscn"
 var _load_started := false
 var _loading := false
 var _load_progress := 0.0
+var _requested_path := ""
+var _load_generation := 0
 var _failure := ""
 var _last_view := {}
 var _first_frame_ready := false
 var _effects_pending := true
+var _stage_retry := Callable()
 
 func _ready() -> void:
 	if "--fixture" in OS.get_cmdline_user_args() or "--session" in OS.get_cmdline_user_args():
@@ -52,45 +55,74 @@ func _update_changed() -> void:
 
 func _advance() -> void:
 	if updates==null or updates.blocked or _load_started: return
-	_load_started=true;_loading=true;_failure=""
+	_load_started=true;_loading=true;_failure="";_load_progress=0.0
+	_load_generation += 1
 	_refresh()
-	_start_load.call_deferred()
+	_start_load.call_deferred(_load_generation)
 
-func _start_load() -> void:
+func _start_load(generation: int) -> void:
+	if not is_inside_tree() or generation != _load_generation: return
 	await get_tree().process_frame
+	if not is_inside_tree() or generation != _load_generation or not _loading: return
 	if ResourceLoader.load_threaded_request(game_scene_path,"PackedScene",true)!=OK:
 		fail_preparation("게임 파일을 불러오지 못했습니다. 다시 시도해 주세요.")
+		return
+	_requested_path = game_scene_path
 
 func _process(_delta: float) -> void:
-	if not _loading: return
+	if not _loading or _requested_path.is_empty(): return
 	var progress: Array=[]
-	var status=ResourceLoader.load_threaded_get_status(game_scene_path,progress)
+	var status=ResourceLoader.load_threaded_get_status(_requested_path,progress)
 	if not progress.is_empty():
 		_load_progress=float(progress[0]);_refresh()
-	if status==ResourceLoader.THREAD_LOAD_LOADED:
-		_loading=false
-		var packed=ResourceLoader.load_threaded_get(game_scene_path) as PackedScene
-		if packed==null: fail_preparation("게임 파일을 불러오지 못했습니다. 다시 시도해 주세요.");return
-		_instantiate.call_deferred(packed)
-	elif status==ResourceLoader.THREAD_LOAD_FAILED:
+	if status==ResourceLoader.THREAD_LOAD_IN_PROGRESS: return
+	_loading=false
+	var path := _requested_path
+	_requested_path = ""
+	# FAILED owns a user token too. Collect every terminal request exactly once
+	# so a retry can start a fresh load; never wait on IN_PROGRESS on the UI thread.
+	var packed = ResourceLoader.load_threaded_get(path) as PackedScene if status != ResourceLoader.THREAD_LOAD_INVALID_RESOURCE else null
+	if status!=ResourceLoader.THREAD_LOAD_LOADED or packed==null:
 		fail_preparation("게임 파일을 불러오지 못했습니다. 다시 시도해 주세요.")
+		return
+	_instantiate_current.call_deferred(packed, _load_generation)
+
+func _exit_tree() -> void:
+	_load_generation += 1
+	_loading = false
+	_load_started = false
+	if _requested_path.is_empty(): return
+	var path := _requested_path
+	_requested_path = ""
+	_discard_threaded_request(path, get_tree())
+
+static func _discard_threaded_request(path: String, tree: SceneTree) -> void:
+	# Godot has no cancellation API. Finish collecting without retaining the
+	# boot node or instantiating a scene after its owner has left the tree.
+	var status := ResourceLoader.load_threaded_get_status(path)
+	while status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		await tree.process_frame
+		status = ResourceLoader.load_threaded_get_status(path)
+	if status != ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+		ResourceLoader.load_threaded_get(path)
+
+func _instantiate_current(packed: PackedScene, generation: int) -> void:
+	if is_inside_tree() and generation == _load_generation:
+		_instantiate(packed)
 
 func _instantiate(packed: PackedScene) -> void:
+	var generation := _load_generation
 	# Keep the preparation canvas visible while main's GLB instances initialize.
 	await get_tree().process_frame
-	while updates.blocked: await updates.changed
+	if not is_inside_tree() or generation != _load_generation: return
+	while updates.blocked:
+		await updates.changed
+		if not is_inside_tree() or generation != _load_generation: return
 	game=packed.instantiate()
 	if game is Node3D: game.visible=false
 	add_child(game)
 	_refresh()
-	var preparing_game := game
-	var prepared := true
-	# main's lifecycle has now applied this device's actual graphics options.
-	if game.has_method("prepare_effects"): prepared = await game.prepare_effects()
-	if not is_instance_valid(preparing_game) or game != preparing_game: return
-	if not prepared:
-		fail_preparation("전투 효과를 준비하지 못했습니다. 다시 시도해 주세요.")
-		return
+	# Battle preparation belongs to explicit stage entry, never lobby startup.
 	_effects_pending = false
 	_refresh()
 	if services != null: services.app._refresh_ui()
@@ -100,6 +132,19 @@ func _notification(what: int) -> void:
 	# application lifecycle owns them, including its Google-login return guard.
 	if what==NOTIFICATION_APPLICATION_RESUMED and _first_frame_ready and services==null and updates!=null and not updates.busy:
 		updates.check()
+
+func fail_stage_preparation(reason: String, retry: Callable) -> void:
+	_stage_retry = retry
+	_effects_pending = false
+	_failure = reason
+	_refresh()
+
+func dismiss_stage_failure() -> bool:
+	if not _stage_retry.is_valid(): return false
+	_stage_retry = Callable()
+	_failure = ""
+	_refresh()
+	return true
 
 func fail_preparation(reason: String) -> void:
 	_loading=false;_failure=reason
@@ -146,7 +191,13 @@ func presentation() -> Dictionary:
 		"can_continue":not release.is_empty() and not required}
 
 func _action() -> void:
-	if not _failure.is_empty():
+	if not _failure.is_empty() and _stage_retry.is_valid():
+		# A stage failure keeps the current main, account slot and checkpoint.
+		var retry := _stage_retry
+		_stage_retry = Callable()
+		_failure = ""
+		await retry.call()
+	elif not _failure.is_empty():
 		_failure="";_load_started=false;_effects_pending=true
 		if is_instance_valid(game): game.queue_free();game=null
 		services=null;_advance()

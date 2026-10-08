@@ -141,7 +141,7 @@ func read_phase(app, phase: String) -> void:
 		check(runtime.clock > 0 and runtime.turrets.values()[0].shotSequence > 0, phase+" actual shots continue after restart")
 	if phase == "failure":
 		var progression: Dictionary = app.run_domain.state.progression.duplicate(true)
-		check(app.retry_stage(), "durably queued run can retry")
+		check(await app.retry_stage(), "durably queued run can retry")
 		check(app.checkpoint.rewards().state.pendingRewards.size() == 1, "retry preserves pending diamond reward")
 		runtime = app.scene._native_combat
 		check(runtime.defense.hp > 0 and not runtime.defense.failed and runtime.turrets.is_empty() and runtime.events.is_empty() and not runtime.wave.active, "retry starts clean combat")

@@ -1,4 +1,5 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 ## Presentation only. The caller supplies the authoritative combat clock.
 ## Geometry is cached by membership count; time updates rotate one parent only.
 
@@ -37,7 +38,7 @@ func configure(gem_colors: Array) -> void:
 	if _colors.is_empty():
 		return
 	if _gem_scene == null:
-		_gem_scene = load(GEM_PATH) as PackedScene
+		_gem_scene = StageResources.load_resource(GEM_PATH) as PackedScene
 	if _gem_scene == null:
 		push_error("Satellite gem asset is unavailable: " + GEM_PATH)
 		return
@@ -152,3 +153,11 @@ static func _tint_gem(node: Node, material: Material) -> void:
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for child in node.get_children():
 		_tint_gem(child, material)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if not tower_types.is_empty(): return
+	_gem_scene = null
+	_ribbon_meshes.clear()
+	_gem_materials.clear()
+	_ribbon_materials.clear()

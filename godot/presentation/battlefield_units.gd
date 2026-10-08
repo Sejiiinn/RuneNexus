@@ -2,6 +2,7 @@ extends RefCounted
 ## Owns battlefield actor models and their frame-driven weapon/status visuals.
 signal failure(message: String)
 
+const StageResources = preload("res://presentation/stage_resources.gd")
 const GemOrbit = preload("res://effects/gem_orbit.gd")
 const GemEquipBurst = preload("res://effects/gem_equip_burst.gd")
 const GemPalette = preload("res://ui/battle_rewards.gd")
@@ -19,23 +20,23 @@ const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
 const GuardianPreview = preload("res://presentation/guardian_preview.gd")
 const TURRET_MODELS := {
-	"arrow": preload("res://assets/turrets/arrow.glb"),
-	"cannon": preload("res://assets/turrets/cannon.glb"),
-	"magic": preload("res://assets/turrets/magic.glb"),
-	"frost": preload("res://assets/turrets/frost.glb"),
-	"sniper": preload("res://assets/turrets/sniper.glb"),
-	"lightning": preload("res://assets/turrets/lightning.glb"),
+	"arrow": "res://assets/turrets/arrow.glb",
+	"cannon": "res://assets/turrets/cannon.glb",
+	"magic": "res://assets/turrets/magic.glb",
+	"frost": "res://assets/turrets/frost.glb",
+	"sniper": "res://assets/turrets/sniper.glb",
+	"lightning": "res://assets/turrets/lightning.glb",
 }
 const ENEMY_MODELS := {
-	"normal": preload("res://assets/enemies/normal.glb"),
-	"armored": preload("res://assets/enemies/armored.glb"),
-	"shielded": preload("res://assets/enemies/shielded.glb"),
-	"fast": preload("res://assets/enemies/fast.glb"),
-	"tank": preload("res://assets/enemies/tank.glb"),
-	"boss": preload("res://assets/enemies/boss.glb"),
+	"normal": "res://assets/enemies/normal.glb",
+	"armored": "res://assets/enemies/armored.glb",
+	"shielded": "res://assets/enemies/shielded.glb",
+	"fast": "res://assets/enemies/fast.glb",
+	"tank": "res://assets/enemies/tank.glb",
+	"boss": "res://assets/enemies/boss.glb",
 	# 실드/HP/상태 표시는 실제 프레임을 유지하고 기존 보스 본체를 공유한다.
-	"shieldBoss": preload("res://assets/enemies/boss.glb"),
-	"forgeBoss": preload("res://assets/enemies/boss.glb"),
+	"shieldBoss": "res://assets/enemies/boss.glb",
+	"forgeBoss": "res://assets/enemies/boss.glb",
 }
 
 var world: Node3D
@@ -168,7 +169,7 @@ func _prepare_vertex_colors(model: Node) -> void:
 
 
 func _new_turret(type: String) -> Dictionary:
-	var root: Node3D = TURRET_MODELS[type].instantiate()
+	var root: Node3D = (StageResources.load_resource(TURRET_MODELS[type]) as PackedScene).instantiate()
 	if type == "lightning":
 		root.scale *= 0.9
 	_prepare_vertex_colors(root)
@@ -432,7 +433,7 @@ func _sync_enemies(units: Array) -> void:
 				if entry.is_empty(): continue
 				enemies[id] = entry
 			else:
-				var model: Node3D = ENEMY_MODELS[type].instantiate()
+				var model: Node3D = (StageResources.load_resource(ENEMY_MODELS[type]) as PackedScene).instantiate()
 				_prepare_vertex_colors(model)
 				world.add_child(model)
 				enemies[id] = {"root": model, "type": type}
@@ -493,8 +494,12 @@ func sync_sniper_aim() -> void:
 		if not bool(state.get("aimActive",false)) or target.is_empty():
 			effect.hide_aim();continue
 		if not target.has("sniper_surface"):
-			target.sniper_surface=SniperTargetSurface.new(target.root)
+			target.sniper_surface=SniperTargetSurface.new(target.root, str(target.get("type", "")))
 		var surface: SniperTargetSurface=target.sniper_surface
 		surface.update_pose(_sniper_pose_revision)
 		var from: Vector3=entry.barrel.to_global(SniperVfx.LENS_ORIGIN)
 		effect.show_aim(surface.first_hit(from,surface.aim_point()),float(state.get("aimRatio",0.0)),_time)
+
+
+func retain_stage(enemy_types: Array) -> void:
+	_guardian_preview.retain_stage(enemy_types)

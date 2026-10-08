@@ -99,7 +99,7 @@ func free_app(app):
 func run():
 	directory = OS.get_cache_dir().path_join("godot-result-settlement-" + Id.uuid())
 	var app = make_app("online")
-	check(app.start_stage(0), "online starts")
+	check(await app.start_stage(0), "online starts")
 	var service = attach(app)
 	var http = service.account.transport
 	http.hold = true
@@ -126,7 +126,7 @@ func run():
 	free_app(app)
 	# Lost response survives restart with exact immutable request and key.
 	app = make_app("retry")
-	check(app.start_stage(0), "retry starts")
+	check(await app.start_stage(0), "retry starts")
 	service = attach(app); http = service.account.transport
 	http.response = {"ok":false,"status":0,"code":"NETWORK_UNAVAILABLE","body":{}}
 	run_id = finish(app, false)
@@ -148,7 +148,7 @@ func run():
 	free_app(app)
 	# Writer failures are retryable, and a permanent server denial is diagnosed.
 	app = make_app("writer")
-	check(app.start_stage(0), "writer starts")
+	check(await app.start_stage(0), "writer starts")
 	service = attach(app); http = service.account.transport
 	service.online.fail_sync = true
 	run_id = finish(app)
@@ -166,7 +166,7 @@ func run():
 	free_app(app)
 	# A late success cannot cross a slot transition or retire the old request.
 	app = make_app("stale")
-	check(app.start_stage(0), "stale starts")
+	check(await app.start_stage(0), "stale starts")
 	service = attach(app); http = service.account.transport
 	http.hold = true
 	run_id = finish(app)
@@ -183,7 +183,7 @@ func run():
 	free_app(app)
 	# Lost local receipt persistence retries the successful server command exactly.
 	app = make_app("receipt-write")
-	check(app.start_stage(0), "receipt write starts")
+	check(await app.start_stage(0), "receipt write starts")
 	service = attach(app); http = service.account.transport
 	http.hold = true
 	run_id = finish(app)
@@ -204,7 +204,7 @@ func run():
 	free_app(app)
 	# Local write failure, guest and account binding never submit rewards.
 	app = make_app("save-failure")
-	check(app.start_stage(0), "save failure starts")
+	check(await app.start_stage(0), "save failure starts")
 	service = attach(app); http = service.account.transport
 	app.checkpoint.rewards()._valid_slot = false
 	app.run_domain.state.phase = "success"
@@ -215,7 +215,7 @@ func run():
 	app.checkpoint.rewards()._valid_slot = true
 	free_app(app)
 	app = make_app("guest", "guest")
-	check(app.start_stage(0), "guest starts")
+	check(await app.start_stage(0), "guest starts")
 	service = attach(app); http = service.account.transport
 	run_id = finish(app)
 	service.request_run_settlement(true)

@@ -25,6 +25,7 @@ SCRIPTS = {
     "verify_growth_rules.gd": "PASS growth rules",
     "verify_content_catalog.gd": "PASS content catalog:",
     "verify_startup_screen.gd": "STARTUP_SCREEN failures=0",
+    "verify_boot_load_lifecycle.gd": "BOOT_LOAD_LIFECYCLE checks=",
     "verify_economy_service.gd": "ECONOMY_SERVICE failures=0",
     "verify_result_settlement.gd": "failures=0",
     "verify_battle_result_entrance.gd": "RESULT_ENTRANCE checks=",
@@ -34,6 +35,7 @@ SCRIPTS = {
     "verify_legacy_combat_regressions.gd": "PASS legacy combat replacements:",
     "verify_shared_turret_stats.gd": "SHARED_TURRET_STATS checks=",
     "verify_native_combat_runtime.gd": "PASS native combat runtime:",
+    "verify_lightning_target_priority.gd": "LIGHTNING_TARGET_PRIORITY checks=",
     "verify_turret_placement.gd": "TURRET_PLACEMENT checks=",
     "verify_battlefield_path.gd": "BATTLEFIELD_PATH checks=",
     "verify_native_session.gd": "PASS native session:",
@@ -117,7 +119,7 @@ def prepare(directory: Path, executable: str) -> Path:
     copy_files(ROOT / "godot/app", project / "app", {".gd"})
     copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
     (project / "presentation").mkdir(parents=True, exist_ok=True)
-    for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader"):
+    for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader", "stage_resources.gd"):
         shutil.copy2(ROOT / "godot/presentation" / name, project / "presentation" / name)
     for name in ("inputs", "expected"):
         path = f"godot_save_codec_{name}.json"
@@ -163,7 +165,15 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
     except subprocess.TimeoutExpired as error:
         raise RuntimeError(f"{name} timed out after {timeout}s: {error.stdout} {error.stderr}") from error
     output = f"{process.stdout}\n{process.stderr}"
-    if process.returncode or ERROR.search(output):
+    # Only these controlled boot fixtures deliberately return ERR_FILE_CORRUPT.
+    # Keep every other loader/script error fatal, including errors in this test.
+    checked_output = output
+    if name == "verify_boot_load_lifecycle.gd":
+        checked_output = re.sub(
+            r"(?m)^ERROR: Failed loading resource: res://boot-lifecycle-(?:retry|dispose-failed)\.bootprobe\.\n"
+            r"[ \t]+at: _load \(core/io/resource_loader\.cpp:\d+\)\n?",
+            "", output)
+    if process.returncode or ERROR.search(checked_output):
         raise RuntimeError(f"{name} failed (exit {process.returncode}):\n{output}")
     if expected is not None:
         if expected not in output:

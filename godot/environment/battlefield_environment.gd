@@ -1,11 +1,12 @@
 extends RefCounted
 
-const Terrain = preload("res://assets/environment/terrain.glb")
-const Landmarks = preload("res://assets/environment/landmarks.glb")
-const Dressing = preload("res://assets/environment/dressing.glb")
+# Paths are inert at script load. Source nodes own the selected stage's meshes/materials.
+const TERRAIN_PATH := "res://assets/environment/terrain.glb"
+const LANDMARKS_PATH := "res://assets/environment/landmarks.glb"
+const DRESSING_PATH := "res://assets/environment/dressing.glb"
 const PortalVortex = preload("res://environment/portal_vortex.gdshader")
-const ReflectionSky = preload("res://materials/battlefield_reflection_sky.tres")
-const ForgeReflectionSky = preload("res://materials/forge_reflection_sky.tres")
+const ReflectionSky = "res://materials/battlefield_reflection_sky.tres"
+const ForgeReflectionSky = "res://materials/forge_reflection_sky.tres"
 const FoliageWind = preload("res://environment/foliage_wind.gdshader")
 const ChapterThreeProps = preload("res://environment/chapter_three_props.gd")
 const ChapterThreeTiles = preload("res://environment/chapter_three_tiles.gd")
@@ -14,6 +15,7 @@ const BattlefieldCamera = preload("res://session/battlefield_camera.gd")
 const TeleportDevice = preload("res://environment/teleport_device.gd")
 const TeleportHostCut = preload("res://environment/teleport_host_cut.gd")
 const TeleportPairs = preload("res://combat/teleport_pairs.gd")
+const StageResources = preload("res://presentation/stage_resources.gd")
 const REFLECTION_TERRAIN_LAYER := 1 << 1
 const REFLECTION_CRYSTAL_LAYER := 1 << 2
 
@@ -32,6 +34,7 @@ var _chapter_three_terrain_library: Node3D
 var _chapter_two_terrain_library: Node3D
 var _chapter_two_paving_library: Node3D
 var _chapter_two_expansion_paving_loaded := false
+var _chapter_two_expansion_library: Node3D
 var _chapter_two_props_library: Node3D
 var _environment_geology_library: Node3D
 var _environment_props_library: Node3D
@@ -56,6 +59,11 @@ var _portals: Array[Node3D] = []
 var _cores: Array[Dictionary] = []
 var _teleport_devices: Array[Node3D] = []
 var _teleport_cut_report := {}
+var _initialized := false
+var _resource_map := {}
+var _asset_load_counts := {}
+var _loaded_resource_paths: Array[String] = []
+var _sky_path := ""
 
 func _init(terrain_node: Node3D, environment: Environment, sun_light: DirectionalLight3D, fill_light: DirectionalLight3D) -> void:
 	terrain = terrain_node
@@ -65,15 +73,46 @@ func _init(terrain_node: Node3D, environment: Environment, sun_light: Directiona
 
 
 func initialize() -> bool:
-	_terrain_library = Terrain.instantiate()
-	prepare_vertex_colors(_terrain_library)
-	_prepare_terrain_surfaces(_terrain_library)
-	_landmark_library = Landmarks.instantiate()
+	if _initialized:
+		return true
+	# Metadata is small; no scene or texture is loaded until build_terrain selects a map.
+	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://assets/terrain_manifest.json"))
+	if not (manifest is Dictionary):
+		_fail("지형 원본의 맵 정보를 읽지 못했습니다.")
+		return false
+	_terrain_manifest = manifest
+	var dressing_manifests = JSON.parse_string(FileAccess.get_file_as_string("res://assets/dressing_manifests.json"))
+	if not dressing_manifests is Array:
+		_fail("스테이지 환경 원본의 맵 정보를 읽지 못했습니다.")
+		return false
+	_dressing_variants = dressing_manifests
+	_initialized = true
+	return true
+
+
+func _load_scene(path: String) -> PackedScene:
+	var packed := StageResources.load_resource(path) as PackedScene
+	if packed != null:
+		_asset_load_counts[path] = int(_asset_load_counts.get(path, 0)) + 1
+		if path not in _loaded_resource_paths:
+			_loaded_resource_paths.append(path)
+	return packed
+
+
+func _prepare_landmarks() -> bool:
+	if is_instance_valid(_landmark_library):
+		return true
+	var packed := _load_scene(LANDMARKS_PATH)
+	if packed == null:
+		_fail("공용 포탈·코어 GLB를 불러오지 못했습니다.")
+		return false
+	_landmark_library = packed.instantiate()
 	prepare_vertex_colors(_landmark_library)
 	var vortex := _landmark_library.find_child("portal_vortex", true, false) as MeshInstance3D
 	var crystal := _landmark_library.find_child("core_crystal", true, false) as MeshInstance3D
 	if not vortex or not crystal:
 		_fail("공용 포탈·코어 GLB의 소용돌이·결정 노드를 찾지 못했습니다.")
+		_release_landmarks()
 		return false
 	# 타일별 복사본도 메시·재질을 공유하고 전투 시계만 한 번 전달.
 	_portal_material = ShaderMaterial.new()
@@ -92,34 +131,221 @@ func initialize() -> bool:
 			has_crystal_shell = true
 	if not has_crystal_shell:
 		_fail("공용 코어 GLB의 결정 외피 재질을 찾지 못했습니다.")
+		_release_landmarks()
 		return false
 	crystal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_dressing_library = Dressing.instantiate()
-	# 기존 표시 레이어 유지. 모든 PBR 소재는 공용 환경 반사를 수신.
-	for library: Node3D in [_terrain_library, _landmark_library]:
-		for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
-			mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+
+	for mesh: MeshInstance3D in _landmark_library.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
 	crystal.layers = REFLECTION_CRYSTAL_LAYER
-	# 전장 전체의 바람에 하나의 재질·GPU 시계 공유.
-	_foliage_material = ShaderMaterial.new()
-	_foliage_material.shader = FoliageWind
-	if not _prepare_dressing(_dressing_library):
-		return false
-	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://assets/terrain_manifest.json"))
-	if not (manifest is Dictionary):
-		_fail("지형 원본의 맵 정보를 읽지 못했습니다.")
-		return false
-	_terrain_manifest = manifest
-	var dressing_manifests = JSON.parse_string(FileAccess.get_file_as_string("res://assets/dressing_manifests.json"))
-	if not dressing_manifests is Array:
-		_fail("스테이지 환경 원본의 맵 정보를 읽지 못했습니다.")
-		return false
-	_dressing_variants = dressing_manifests
 	return true
 
 
+func _prepare_chapter_one() -> bool:
+	if not is_instance_valid(_terrain_library):
+		var packed := _load_scene(TERRAIN_PATH)
+		if packed == null:
+			_fail("챕터 1 지형 GLB를 불러오지 못했습니다.")
+			return false
+		_terrain_library = packed.instantiate()
+		prepare_vertex_colors(_terrain_library)
+		_prepare_terrain_surfaces(_terrain_library)
+		for mesh: MeshInstance3D in _terrain_library.find_children("*", "MeshInstance3D", true, false):
+			mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+	if _foliage_material == null:
+		_foliage_material = ShaderMaterial.new()
+		_foliage_material.shader = FoliageWind
+	return true
+
+
+static func _matches_manifest(map: Dictionary, manifest: Dictionary) -> bool:
+	return int(manifest.get("columns", 0)) == int(map.get("columns", 0)) \
+		and int(manifest.get("rows", 0)) == int(map.get("rows", 0)) \
+		and manifest.get("tileTypes", []) == map.get("tiles", [])
+
+
+func _chapter_environment_for_map(map: Dictionary) -> Dictionary:
+	if str(map.get("theme", "chapterOne")) != "chapterTwoRift":
+		return {}
+	for manifest: Dictionary in _environment_manifests:
+		if _matches_manifest(map, manifest):
+			return manifest
+	return {}
+
+
+func _free_library(property: String) -> void:
+	var library := get(property) as Node3D
+	if is_instance_valid(library):
+		library.free()
+	set(property, null)
+
+
+func _release_landmarks() -> void:
+	_free_library("_landmark_library")
+	_portal_material = null
+
+
+func _release_paving() -> void:
+	# The expansion node is parented under the paving source and dies with it.
+	_free_library("_chapter_two_paving_library")
+	_chapter_two_expansion_library = null
+	_chapter_two_expansion_paving_loaded = false
+
+
+func _load_environment_manifests() -> bool:
+	if not _environment_manifests.is_empty():
+		return true
+	var manifests = JSON.parse_string(FileAccess.get_file_as_string("res://assets/chapter2_environment_manifests.json"))
+	if not manifests is Array:
+		_fail("챕터 2 절벽 원본의 맵 정보를 읽지 못했습니다.")
+		return false
+	_environment_manifests = manifests
+	return true
+
+
+func resource_paths(map: Dictionary) -> Array[String]:
+	if not initialize():
+		return []
+	var theme := str(map.get("theme", "chapterOne"))
+	var paths: Array[String] = [LANDMARKS_PATH, ForgeReflectionSky if theme == "chapterThreeForge" else ReflectionSky]
+	if theme == "chapterThreeForge":
+		paths.append_array(["res://assets/environment/chapter3_tiles.glb", "res://assets/environment/chapter3_props.glb"])
+	elif theme == "chapterTwoRift":
+		if not _load_environment_manifests():
+			return []
+		paths.append("res://assets/environment/chapter2_tiles.glb")
+		var manifest := _chapter_environment_for_map(map)
+		if manifest.is_empty():
+			paths.append("res://assets/environment/chapter2_props.glb")
+		else:
+			var stage := int(manifest["stage"])
+			paths.append("res://assets/environment/chapter2_stage%d_geology.glb" % stage)
+			paths.append("res://assets/environment/chapter2_stage%d_props.glb" % stage)
+			paths.append("res://assets/environment/chapter2_tiles_optimized.glb")
+			if _map_uses_expansion_paving(map):
+				paths.append("res://assets/environment/chapter2_tiles_expansion.glb")
+	elif theme == "chapterOne":
+		paths.append(TERRAIN_PATH)
+		if _matches_manifest(map, _terrain_manifest):
+			paths.append(DRESSING_PATH)
+		else:
+			for variant: Dictionary in _dressing_variants:
+				if _matches_manifest(map, variant):
+					paths.append(str(variant["resource"]))
+					break
+	else:
+		return []
+	if not map.get("teleportPairs", []).is_empty():
+		paths.append(TeleportDevice.MODEL_PATH)
+	return paths
+
+
+static func _map_uses_expansion_paving(map: Dictionary) -> bool:
+	var map_columns := int(map.get("columns", 0))
+	var map_rows := int(map.get("rows", 0))
+	var tiles: Array = map.get("tiles", [])
+	if map_columns <= 0 or map_rows <= 0:
+		return false
+	for index in range(tiles.size()):
+		if tiles[index] == "blocked":
+			continue
+		var mask := _paving_mask(index, tiles, map_columns, map_rows)
+		# The authored expansion GLB adds these three missing topology variants.
+		if mask == 1 or (tiles[index] != "build" and mask == 3):
+			return true
+	return false
+
+
+func prepare_for_map(map: Dictionary) -> bool:
+	if not initialize():
+		return false
+	var theme := str(map.get("theme", "chapterOne"))
+	if theme not in ["chapterOne", "chapterTwoRift", "chapterThreeForge"]:
+		_fail("지원하지 않는 3D 전장 테마: " + theme)
+		return false
+	if theme == "chapterTwoRift" and not _load_environment_manifests():
+		return false
+	if map == _resource_map:
+		return true
+	# Release rendered copies before their source resources; keep only the next map's intersection.
+	_clear_instances()
+	if theme != "chapterOne":
+		_free_library("_terrain_library")
+		_foliage_material = null
+	if theme != "chapterOne" or not _matches_manifest(map, _terrain_manifest):
+		_free_library("_dressing_library")
+	for variant: Dictionary in _dressing_variants:
+		if theme != "chapterOne" or not _matches_manifest(map, variant):
+			if is_instance_valid(variant.get("library")):
+				variant["library"].free()
+			variant.erase("library")
+	if theme != "chapterThreeForge":
+		_free_library("_chapter_three_terrain_library")
+		_free_library("_chapter_three_props_library")
+	var manifest := _chapter_environment_for_map(map)
+	if theme != "chapterTwoRift":
+		_free_library("_chapter_two_terrain_library")
+		_free_library("_chapter_two_props_library")
+		_release_paving()
+	elif manifest.is_empty():
+		_release_paving()
+	else:
+		# Authored stage scenery supplies its own props; fallback props would be unused.
+		_free_library("_chapter_two_props_library")
+		_release_unused_expansion(map)
+	if int(manifest.get("stage", 0)) != _environment_stage:
+		_release_chapter_environment()
+	if map.get("teleportPairs", []).is_empty():
+		TeleportDevice.release_resources()
+	var next_paths := resource_paths(map)
+	if not _sky_path.is_empty() and _sky_path not in next_paths:
+		_world_environment.sky = null
+		_sky_path = ""
+	var outgoing: Array[String] = []
+	for path: String in _loaded_resource_paths:
+		if path not in next_paths:
+			outgoing.append(path)
+	StageResources.release(outgoing)
+	for path: String in outgoing:
+		_loaded_resource_paths.erase(path)
+	_resource_map = map.duplicate(true)
+	return true
+
+
+func _release_unused_expansion(map: Dictionary) -> void:
+	if not is_instance_valid(_chapter_two_expansion_library) or _map_uses_expansion_paving(map):
+		return
+	_free_library("_chapter_two_expansion_library")
+	_chapter_two_expansion_paving_loaded = false
+
+
+func resource_snapshot() -> Dictionary:
+	var libraries: Array[String] = []
+	for property in ["_terrain_library", "_landmark_library", "_dressing_library",
+			"_chapter_two_terrain_library", "_chapter_two_props_library", "_chapter_two_paving_library",
+			"_chapter_two_expansion_library", "_chapter_three_terrain_library", "_chapter_three_props_library",
+			"_environment_geology_library", "_environment_props_library"]:
+		var library := get(property) as Node3D
+		if is_instance_valid(library):
+			libraries.append(library.scene_file_path)
+	for variant: Dictionary in _dressing_variants:
+		if is_instance_valid(variant.get("library")):
+			libraries.append(str(variant["resource"]))
+	return {"libraries": libraries, "library_count": libraries.size(),
+		"asset_load_counts": _asset_load_counts.duplicate(), "environment_stage": _environment_stage,
+		"sky_path": _sky_path, "sky_loaded": _world_environment.sky != null,
+		"teleport": TeleportDevice.resource_snapshot()}
+
+
 func apply_stage_lighting() -> void:
-	_world_environment.sky = ForgeReflectionSky if _using_forge else ReflectionSky
+	var path: String = ForgeReflectionSky if _using_forge else ReflectionSky
+	if _world_environment.sky == null or _sky_path != path:
+		_world_environment.sky = StageResources.load_resource(path) as Sky
+		if _world_environment.sky != null:
+			_sky_path = path
+			_asset_load_counts[path] = int(_asset_load_counts.get(path, 0)) + 1
+			if path not in _loaded_resource_paths:
+				_loaded_resource_paths.append(path)
 	if _using_forge:
 		sun.light_energy = 1.35
 		sun.light_color = Color(1.0, 0.94, 0.86)
@@ -184,34 +410,22 @@ func build_terrain(map: Dictionary) -> bool:
 	if theme not in ["chapterOne", "chapterTwoRift", "chapterThreeForge"]:
 		_fail("지원하지 않는 3D 전장 테마: " + theme)
 		return false
+	if not prepare_for_map(map) or not _prepare_landmarks():
+		return false
 	var chapter_three := theme == "chapterThreeForge"
 	if chapter_three and (not _prepare_chapter_three() or not _prepare_chapter_three_props()):
 		return false
 	var chapter_two := theme == "chapterTwoRift"
-	if chapter_two and not _prepare_chapter_two():
+	var matched_manifest := _chapter_environment_for_map(map)
+	if chapter_two and not _prepare_chapter_two(matched_manifest.is_empty()):
 		return false
-	if chapter_two and _environment_manifests.is_empty():
-		var manifests = JSON.parse_string(FileAccess.get_file_as_string("res://assets/chapter2_environment_manifests.json"))
-		if not manifests is Array:
-			_fail("챕터 2 절벽 원본의 맵 정보를 읽지 못했습니다.")
-			return false
-		_environment_manifests = manifests
-	var matched_manifest: Dictionary = {}
-	if chapter_two:
-		for manifest: Dictionary in _environment_manifests:
-			if int(manifest.get("columns", 0)) == next_columns and int(manifest.get("rows", 0)) == next_rows and manifest.get("tileTypes", []) == tiles:
-				matched_manifest = manifest
-				break
+	if not chapter_two and not chapter_three and not _prepare_chapter_one():
+		return false
 	var tile_library := _chapter_two_terrain_library if chapter_two else (_chapter_three_terrain_library if chapter_three else _terrain_library)
 	var forge_variants := ChapterThreeTiles.variants(map) if chapter_three else {}
 	columns = next_columns
 	rows = next_rows
-	for child in terrain.get_children():
-		child.free()
-	_portals.clear()
-	_cores.clear()
-	_teleport_devices.clear()
-	_teleport_cut_report.clear()
+	_clear_instances()
 	# 이전 맵의 인스턴스를 해제한 뒤 다음 원본을 읽어 대형 지형 캐시가 누적되지 않게 한다.
 	if matched_manifest.is_empty():
 		_release_chapter_environment()
@@ -228,11 +442,20 @@ func build_terrain(map: Dictionary) -> bool:
 		terrain.add_child(_environment_props_library.duplicate())
 		_add_environment_accent_lights()
 		_environment_bounds = BattlefieldCamera.mesh_bounds(_environment_geology_library).merge(BattlefieldCamera.mesh_bounds(_environment_props_library))
-	var authored := _terrain_library.find_child("stage1_environment", true, false)
+	var authored := _terrain_library.find_child("stage1_environment", true, false) if is_instance_valid(_terrain_library) else null
 	_using_authored = not chapter_two and not chapter_three and authored != null and int(_terrain_manifest.get("columns", 0)) == columns \
 		and int(_terrain_manifest.get("rows", 0)) == rows and _terrain_manifest.get("tileTypes", []) == tiles
 	_build_tile_slots.clear()
 	if _using_authored:
+		if not is_instance_valid(_dressing_library):
+			var packed := _load_scene(DRESSING_PATH)
+			if packed == null:
+				_fail("스테이지 1 환경 GLB를 불러오지 못했습니다.")
+				return false
+			_dressing_library = packed.instantiate()
+			if not _prepare_dressing(_dressing_library):
+				_free_library("_dressing_library")
+				return false
 		terrain.add_child(authored.duplicate())
 		# 동일한 맵 원본에 배치된 환경 장식만 지형 수명에 연결.
 		terrain.add_child(_dressing_library.duplicate())
@@ -241,9 +464,9 @@ func build_terrain(map: Dictionary) -> bool:
 		for variant: Dictionary in _dressing_variants:
 			if int(variant.get("columns", 0)) != columns or int(variant.get("rows", 0)) != rows or variant.get("tileTypes", []) != tiles:
 				continue
-			# 첫 진입에만 해당 맵 장식을 준비하고 이후 맵 재방문은 자원을 공유.
+			# 선택 맵의 장식만 보관하고 같은 맵 로비 복귀·재시작에는 재사용.
 			if not is_instance_valid(variant.get("library")):
-				var packed := load(str(variant["resource"])) as PackedScene
+				var packed := _load_scene(str(variant["resource"]))
 				if packed == null:
 					_fail("스테이지 환경 GLB를 불러오지 못했습니다.")
 					return false
@@ -353,7 +576,7 @@ func _build_teleport_devices(map: Dictionary) -> bool:
 func _prepare_chapter_three_props() -> bool:
 	if is_instance_valid(_chapter_three_props_library):
 		return true
-	var packed := load("res://assets/environment/chapter3_props.glb") as PackedScene
+	var packed := _load_scene("res://assets/environment/chapter3_props.glb")
 	if packed == null:
 		_fail("챕터 3 환경 소품 GLB를 불러오지 못했습니다.")
 		return false
@@ -373,7 +596,7 @@ func _prepare_chapter_three_props() -> bool:
 func _prepare_chapter_three() -> bool:
 	if is_instance_valid(_chapter_three_terrain_library):
 		return true
-	var packed := load("res://assets/environment/chapter3_tiles.glb") as PackedScene
+	var packed := _load_scene("res://assets/environment/chapter3_tiles.glb")
 	if packed == null:
 		_fail("챕터 3 타일 GLB를 불러오지 못했습니다.")
 		return false
@@ -409,8 +632,8 @@ func _prepare_chapter_environment(manifest: Dictionary) -> bool:
 	if _environment_stage == stage and is_instance_valid(_environment_geology_library) and is_instance_valid(_environment_props_library):
 		return true
 	_release_chapter_environment()
-	var geology := load("res://assets/environment/chapter2_stage%d_geology.glb" % stage) as PackedScene
-	var props := load("res://assets/environment/chapter2_stage%d_props.glb" % stage) as PackedScene
+	var geology := _load_scene("res://assets/environment/chapter2_stage%d_geology.glb" % stage)
+	var props := _load_scene("res://assets/environment/chapter2_stage%d_props.glb" % stage)
 	if geology == null or props == null:
 		_fail("스테이지 %d 절벽·환경 GLB를 불러오지 못했습니다." % stage)
 		return false
@@ -442,25 +665,28 @@ func _prepare_chapter_environment(manifest: Dictionary) -> bool:
 	return true
 
 
-func _prepare_chapter_two() -> bool:
-	if is_instance_valid(_chapter_two_terrain_library) and is_instance_valid(_chapter_two_props_library):
-		return true
-	var tiles := load("res://assets/environment/chapter2_tiles.glb") as PackedScene
-	var props := load("res://assets/environment/chapter2_props.glb") as PackedScene
-	if tiles == null or props == null:
-		_fail("챕터 2 지형·환경 GLB를 불러오지 못했습니다.")
-		return false
-	_chapter_two_terrain_library = tiles.instantiate()
-	_chapter_two_props_library = props.instantiate()
-	for kind in ["path_tile", "build_tile"]:
-		if _chapter_two_terrain_library.find_child(kind, true, false) == null:
-			_fail("챕터 2 지형 GLB 노드 누락: " + kind)
-			_chapter_two_terrain_library.free()
-			_chapter_two_props_library.free()
-			_chapter_two_terrain_library = null
-			_chapter_two_props_library = null
+func _prepare_chapter_two(include_props := true) -> bool:
+	var prepared: Array[Node3D] = []
+	if not is_instance_valid(_chapter_two_terrain_library):
+		var tiles := _load_scene("res://assets/environment/chapter2_tiles.glb")
+		if tiles == null:
+			_fail("챕터 2 지형 GLB를 불러오지 못했습니다.")
 			return false
-	for library in [_chapter_two_terrain_library, _chapter_two_props_library]:
+		_chapter_two_terrain_library = tiles.instantiate()
+		for kind in ["path_tile", "build_tile"]:
+			if _chapter_two_terrain_library.find_child(kind, true, false) == null:
+				_fail("챕터 2 지형 GLB 노드 누락: " + kind)
+				_free_library("_chapter_two_terrain_library")
+				return false
+		prepared.append(_chapter_two_terrain_library)
+	if include_props and not is_instance_valid(_chapter_two_props_library):
+		var props := _load_scene("res://assets/environment/chapter2_props.glb")
+		if props == null:
+			_fail("챕터 2 환경 GLB를 불러오지 못했습니다.")
+			return false
+		_chapter_two_props_library = props.instantiate()
+		prepared.append(_chapter_two_props_library)
+	for library in prepared:
 		prepare_vertex_colors(library)
 		_prepare_terrain_surfaces(library)
 		for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
@@ -476,7 +702,7 @@ func _prepare_chapter_two() -> bool:
 func _prepare_chapter_two_paving() -> bool:
 	if is_instance_valid(_chapter_two_paving_library):
 		return true
-	var packed := load("res://assets/environment/chapter2_tiles_optimized.glb") as PackedScene
+	var packed := _load_scene("res://assets/environment/chapter2_tiles_optimized.glb")
 	if packed == null:
 		_fail("챕터 2 병합 타일 GLB를 불러오지 못했습니다.")
 		return false
@@ -510,14 +736,18 @@ func _prepare_chapter_two_paving() -> bool:
 
 
 func _chapter_two_paving_mask(index: int, tiles: Array) -> int:
-	var cell := Vector2i(index % columns, floori(float(index) / columns))
+	return _paving_mask(index, tiles, columns, rows)
+
+
+static func _paving_mask(index: int, tiles: Array, map_columns: int, map_rows: int) -> int:
+	var cell := Vector2i(index % map_columns, floori(float(index) / map_columns))
 	var inverse := Basis(Vector3.UP, float(index % 4) * PI / 2.0).inverse()
 	var mask := 0
 	for offset: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
 		var neighbor := cell + offset
-		if neighbor.x < 0 or neighbor.x >= columns or neighbor.y < 0 or neighbor.y >= rows:
+		if neighbor.x < 0 or neighbor.x >= map_columns or neighbor.y < 0 or neighbor.y >= map_rows:
 			continue
-		if tiles[neighbor.y * columns + neighbor.x] == "blocked":
+		if tiles[neighbor.y * map_columns + neighbor.x] == "blocked":
 			continue
 		var local := inverse * Vector3(offset.x, 0, offset.y)
 		if roundi(local.x) == -1: mask |= 1
@@ -542,7 +772,7 @@ func _build_chapter_two_paving(tiles: Array) -> bool:
 			var root := _chapter_two_paving_library.find_child(variant, true, false) as Node3D
 			if root == null and not _chapter_two_expansion_paving_loaded:
 				# 기존 맵 마스크·재질을 유지하고 새 맵의 인접 형태만 저장된 타일 파생 원본에서 읽는다.
-				var expansion := load("res://assets/environment/chapter2_tiles_expansion.glb") as PackedScene
+				var expansion := _load_scene("res://assets/environment/chapter2_tiles_expansion.glb")
 				if expansion != null:
 					var extra := expansion.instantiate()
 					prepare_vertex_colors(extra)
@@ -554,6 +784,7 @@ func _build_chapter_two_paving(tiles: Array) -> bool:
 								material.refraction_enabled = false
 								material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 								mesh.mesh.surface_set_material(surface,material)
+					_chapter_two_expansion_library = extra
 					_chapter_two_paving_library.add_child(extra)
 					_chapter_two_expansion_paving_loaded = true
 					root = _chapter_two_paving_library.find_child(variant,true,false) as Node3D
@@ -645,15 +876,17 @@ func update_occupancy(units: Array, supported_types: Dictionary) -> void:
 					occupied.y |= 1 << (slot - 16)
 	if occupied != _occupied_build_tiles:
 		_occupied_build_tiles = occupied
-		_foliage_material.set_shader_parameter("occupied_build_tiles", occupied)
+		if _foliage_material != null:
+			_foliage_material.set_shader_parameter("occupied_build_tiles", occupied)
 
 
 func update_frame(frame: Dictionary) -> void:
 	var time := float(frame.get("time", 0.0))
 	for device in _teleport_devices:
 		device.update_time(time)
-	_portal_material.set_shader_parameter("battle_time", time)
-	_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
+	if _portal_material != null:
+		_portal_material.set_shader_parameter("battle_time", time)
+		_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
 	var core_hit := clampf(float(frame.get("nexusHit", 0.0)), 0.0, 1.0)
 	for core: Dictionary in _cores:
 		var crystal: Node3D = core["crystal"]
@@ -663,7 +896,7 @@ func update_frame(frame: Dictionary) -> void:
 		crystal.scale *= 1.0 + core_hit * 0.025
 
 
-func clear() -> void:
+func _clear_instances() -> void:
 	for child: Node in terrain.get_children():
 		child.free()
 	_portals.clear()
@@ -671,42 +904,41 @@ func clear() -> void:
 	_teleport_devices.clear()
 	_teleport_cut_report.clear()
 	_current_map = {}
+	_build_tile_slots.clear()
+	_occupied_build_tiles = Vector2i.ZERO
+	if _foliage_material != null:
+		_foliage_material.set_shader_parameter("occupied_build_tiles", _occupied_build_tiles)
+
+
+func clear() -> void:
+	# Lobby/restart clears presentation only; selected-map source resources stay reusable.
+	_clear_instances()
 	_using_authored = false
 	_using_dressing = false
 	_using_forge = false
-	_release_chapter_environment()
-	apply_stage_lighting()
-	_build_tile_slots.clear()
-	if _occupied_build_tiles != Vector2i.ZERO:
-		_occupied_build_tiles = Vector2i.ZERO
-		_foliage_material.set_shader_parameter("occupied_build_tiles", _occupied_build_tiles)
+	_using_chapter_environment = false
+	_environment_bounds = AABB()
 
 
 func dispose() -> void:
 	clear()
-	if is_instance_valid(_terrain_library):
-		_terrain_library.free()
-	if is_instance_valid(_chapter_three_props_library):
-		_chapter_three_props_library.free()
-	if is_instance_valid(_chapter_three_terrain_library):
-		_chapter_three_terrain_library.free()
-	if is_instance_valid(_chapter_two_terrain_library):
-		_chapter_two_terrain_library.free()
-	if is_instance_valid(_chapter_two_paving_library):
-		_chapter_two_paving_library.free()
-	if is_instance_valid(_chapter_two_props_library):
-		_chapter_two_props_library.free()
-	if is_instance_valid(_environment_geology_library):
-		_environment_geology_library.free()
-	if is_instance_valid(_environment_props_library):
-		_environment_props_library.free()
-	if is_instance_valid(_landmark_library):
-		_landmark_library.free()
-	if is_instance_valid(_dressing_library):
-		_dressing_library.free()
+	for property in ["_terrain_library", "_chapter_three_props_library", "_chapter_three_terrain_library",
+			"_chapter_two_terrain_library", "_chapter_two_props_library", "_dressing_library"]:
+		_free_library(property)
+	_release_paving()
+	_release_chapter_environment()
+	_release_landmarks()
 	for variant: Dictionary in _dressing_variants:
 		if is_instance_valid(variant.get("library")):
 			variant["library"].free()
+		variant.erase("library")
+	_foliage_material = null
+	_resource_map = {}
+	_world_environment.sky = null
+	_sky_path = ""
+	TeleportDevice.release_resources()
+	StageResources.release(_loaded_resource_paths)
+	_loaded_resource_paths.clear()
 
 
 
@@ -724,7 +956,6 @@ func attach_lighting(scene_root: Node3D) -> void:
 	environment.ambient_light_color = Color(0.78, 0.86, 1.0)
 	environment.ambient_light_energy = 0.16
 	# 공용 하늘 반사. 배경과 확산 환경광은 별도 설정을 유지한다.
-	environment.sky = ReflectionSky
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment_node.environment = environment

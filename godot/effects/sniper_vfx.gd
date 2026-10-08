@@ -1,7 +1,8 @@
 extends Node3D
+const StageResources = preload("res://presentation/stage_resources.gd")
 ## Approved solid SWIFT effects; presentation only, no light or combat mutation.
-const FLASH = preload("res://assets/effects/sniper/flash.glb")
-const AIM_LINE = preload("res://assets/effects/sniper/aim_line.glb")
+const FLASH := "res://assets/effects/sniper/flash.glb"
+const AIM_LINE := "res://assets/effects/sniper/aim_line.glb"
 const AIM_ENERGY = preload("res://effects/sniper_aim_energy.gdshader")
 const LENS_ORIGIN := Vector3(0,.420,.196) # Blender barrel-local (0,-.196,.420).
 const FLASH_SECONDS := .105
@@ -23,8 +24,8 @@ var aim_materials: Array[ShaderMaterial] = []
 
 func configure(barrel_node: Node3D, muzzle: Node3D) -> void:
 	barrel=barrel_node
-	flash=FLASH.instantiate();flash.name="SWIFT_SolidFlash";muzzle.add_child(flash)
-	line=AIM_LINE.instantiate();line.name="SWIFT_LensAimLine";add_child(line)
+	flash=(StageResources.load_resource(FLASH) as PackedScene).instantiate();flash.name="SWIFT_SolidFlash";muzzle.add_child(flash)
+	line=(StageResources.load_resource(AIM_LINE) as PackedScene).instantiate();line.name="SWIFT_LensAimLine";add_child(line)
 	for model in [flash,line]:
 		model.set_meta("exclude_selection_mask",true)
 		for mesh: MeshInstance3D in model.find_children("*","MeshInstance3D",true,false):
@@ -43,7 +44,7 @@ func configure(barrel_node: Node3D, muzzle: Node3D) -> void:
 	_materials_ready=true
 	aim_layers.append(line)
 	for index in range(3):
-		var glow:Node3D=AIM_LINE.instantiate()
+		var glow:Node3D=(StageResources.load_resource(AIM_LINE) as PackedScene).instantiate()
 		glow.name=["SWIFT_SoftEnvelope","SWIFT_LensGlow","SWIFT_SurfaceGlow"][index]
 		add_child(glow);aim_layers.append(glow)
 		glow.set_meta("exclude_selection_mask",true)
@@ -98,3 +99,7 @@ func _update_aim_charge(progress: float, clock: float) -> void:
 		material.set_shader_parameter("charge",ratio)
 		material.set_shader_parameter("game_time",clock)
 		material.set_shader_parameter("phase_offset",line_start.x*.37+line_start.z*.61)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if not "sniper" in tower_types: _materials_ready = false

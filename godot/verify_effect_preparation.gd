@@ -1,5 +1,9 @@
 extends SceneTree
 ## Full prepared project required, as with verify_projectiles/verify_frost_charge.
+const Preparation = preload("res://presentation/effect_preparation.gd")
+const Resources = preload("res://presentation/stage_resources.gd")
+const ALL_ENEMIES := ["normal", "fast", "armored", "shielded", "tank", "boss", "shieldBoss", "forgeBoss"]
+const ALL_TOWERS := ["arrow", "cannon", "magic", "frost", "sniper", "lightning"]
 var failures: Array[String] = []
 func _initialize() -> void: run.call_deferred()
 func check(value: bool, message: String) -> void:
@@ -8,6 +12,7 @@ func run() -> void:
 	var scene = load("res://main.tscn").instantiate()
 	root.add_child(scene)
 	scene.set_process(false)
+	select_fixture(scene)
 	var before: Dictionary = scene.last_frame.duplicate(true)
 	var rng_state: int = scene._native_combat.rng.state
 	var field: Texture3D = scene.field.texture
@@ -55,6 +60,7 @@ func run() -> void:
 	var cancelled = load("res://main.tscn").instantiate()
 	root.add_child(cancelled)
 	cancelled.set_process(false)
+	select_fixture(cancelled)
 	var cancelled_ref: WeakRef = weakref(cancelled)
 	cancelled.prepare_effects()
 	cancelled.queue_free()
@@ -64,6 +70,7 @@ func run() -> void:
 	var retry = load("res://main.tscn").instantiate()
 	root.add_child(retry)
 	retry.set_process(false)
+	select_fixture(retry)
 	var outcomes: Array = []
 	prepare_again(retry, outcomes)
 	prepare_again(retry, outcomes)
@@ -76,3 +83,11 @@ func run() -> void:
 
 func prepare_again(scene, outcomes: Array) -> void:
 	outcomes.append(await scene.prepare_effects())
+
+
+func select_fixture(scene) -> void:
+	# This fixture deliberately exercises every species/weapon. App stages pass
+	# their own selected manifest instead of globally warming this full list.
+	scene._stage_manifest = {"enemy_types": ALL_ENEMIES.duplicate(), "tower_types": ALL_TOWERS.duplicate()}
+	check(Resources.prepare(Preparation.resource_paths(ALL_ENEMIES, ALL_TOWERS)), "Fixture resources resolve")
+	check(scene._projectile_renderer.configure_stage(ALL_TOWERS), "Fixture cannon field prepares")

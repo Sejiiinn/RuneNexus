@@ -40,7 +40,7 @@ func _check_landmarks(scene: Node3D, frame: Dictionary) -> void:
 	var other_crystal := scene._cores[1]["crystal"] as MeshInstance3D
 	var environment: Environment = scene.camera.get_world_3d().environment
 	_check(scene.world.find_children("*", "ReflectionProbe", true, false).is_empty(), "공용 sky 반사와 불필요한 probe가 중복됨")
-	_check(environment.sky == scene.ReflectionSky and environment.sky.radiance_size == Sky.RADIANCE_SIZE_128 and environment.reflected_light_source == Environment.REFLECTION_SOURCE_SKY, "공용 128px 환경 반사 누락")
+	_check(environment.sky == load(scene.ReflectionSky) and environment.sky.radiance_size == Sky.RADIANCE_SIZE_128 and environment.reflected_light_source == Environment.REFLECTION_SOURCE_SKY, "공용 128px 환경 반사 누락")
 	var crystal_light := scene.get_node("CoreSpecularLight") as DirectionalLight3D
 	_check(crystal_light != null and crystal_light.light_cull_mask == crystal_mesh.layers and not crystal_light.shadow_enabled, "결정 전용 보조광의 레이어·그림자 비용 계약 오류")
 	var crystal_light_transform := crystal_light.transform

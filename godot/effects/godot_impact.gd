@@ -257,3 +257,10 @@ static func _triangle_mesh(source: PackedVector3Array) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return mesh
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if "cannon" in tower_types: return
+	_spark_mesh = null
+	_fragment_mesh = null
+	_particle_texture = null

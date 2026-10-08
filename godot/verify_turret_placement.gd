@@ -28,7 +28,7 @@ func run() -> void:
 	app.checkpoint.allow_progression_only = true
 	check(app.catalog.load_catalog() and app.run_domain.growth.load_catalog() and app.retry_load(),"actual domain/save startup")
 	app.progression_inputs.clearedStageNumbers = range(1,61)
-	check(app.start_stage(0) and host.accepted.is_empty(),"initial session never creates placement cue")
+	check(await app.start_stage(0) and host.accepted.is_empty(),"initial session never creates placement cue")
 	var state: Dictionary = app.run_domain.state
 	state.gold = 100000
 	var map: Dictionary = app.catalog.stage_map(0)
@@ -94,7 +94,7 @@ func run() -> void:
 	entries[id].type = "replacement"
 	host.placement.apply_entry(id,entries[id],map.columns,map.rows)
 	check(not host.placement.placements.has(id),"type replacement cancels instead of replaying")
-	check(app.start_stage(0) and host.placement.placements.is_empty() and host.accepted.size() == cues,"new session clears placement state without restoration cue")
+	check(await app.start_stage(0) and host.placement.placements.is_empty() and host.accepted.size() == cues,"new session clears placement state without restoration cue")
 	for model in models.values(): model.free()
 	host.free()
 	app.free()

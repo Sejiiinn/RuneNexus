@@ -1,22 +1,23 @@
 extends RefCounted
+const StageResources = preload("res://presentation/stage_resources.gd")
 ## Each authored rig shares three offline-merged meshes: burn + shards + grains.
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const MESHES := {
 	"normal": {
-		"EnemyBurn": [preload("res://assets/enemies/normal_status_burn.res")],
-		"EnemyFrost": [preload("res://assets/enemies/normal_status_frost_shards.res"), preload("res://assets/enemies/normal_status_frost_grains.res")],
+		"EnemyBurn": ["res://assets/enemies/normal_status_burn.res"],
+		"EnemyFrost": ["res://assets/enemies/normal_status_frost_shards.res", "res://assets/enemies/normal_status_frost_grains.res"],
 	},
 	"fast": {
-		"EnemyBurn": [preload("res://assets/enemies/fast_status_burn.res")],
-		"EnemyFrost": [preload("res://assets/enemies/fast_status_frost_shards.res"), preload("res://assets/enemies/fast_status_frost_grains.res")],
+		"EnemyBurn": ["res://assets/enemies/fast_status_burn.res"],
+		"EnemyFrost": ["res://assets/enemies/fast_status_frost_shards.res", "res://assets/enemies/fast_status_frost_grains.res"],
 	},
 	"boss": {
-		"EnemyBurn": [preload("res://assets/enemies/boss_status_burn.res")],
-		"EnemyFrost": [preload("res://assets/enemies/boss_status_frost_shards.res"), preload("res://assets/enemies/boss_status_frost_grains.res")],
+		"EnemyBurn": ["res://assets/enemies/boss_status_burn.res"],
+		"EnemyFrost": ["res://assets/enemies/boss_status_frost_shards.res", "res://assets/enemies/boss_status_frost_grains.res"],
 	},
 	"tank": {
-		"EnemyBurn": [preload("res://assets/enemies/tank_status_burn.res")],
-		"EnemyFrost": [preload("res://assets/enemies/tank_status_frost_shards.res"), preload("res://assets/enemies/tank_status_frost_grains.res")],
+		"EnemyBurn": ["res://assets/enemies/tank_status_burn.res"],
+		"EnemyFrost": ["res://assets/enemies/tank_status_frost_shards.res", "res://assets/enemies/tank_status_frost_grains.res"],
 	},
 }
 const COORDINATE_SCALES := {"normal": 1.0940977489373418, "fast": 0.522027035655198, "tank": 0.2997284531593323, "boss": 1.292772412300}
@@ -46,7 +47,10 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 	var meshes: Array = MESHES[kind][label]
 	for index in range(meshes.size()):
 		var effect := MeshInstance3D.new()
-		effect.mesh = meshes[index]
+		effect.mesh = StageResources.load_resource(meshes[index]) as Mesh
+		# Target geometry must expire with its status family, even when the same
+		# enemy and sniper/lightning remain eligible in the next stage.
+		effect.set_meta("target_geometry_weapon", "magic" if label == "EnemyBurn" else "frost")
 		effect.skin = body.skin
 		effect.material_override = _materials[material_key][index]
 		effect.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -62,3 +66,12 @@ static func set_burn_time(time: float) -> void:
 	for key: String in _materials:
 		if key.begins_with("EnemyBurn:"):
 			_materials[key][0].set_shader_parameter("burn_time", time)
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	var kinds := {}
+	for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
+	for key: String in _materials.keys():
+		var pieces := key.split(":")
+		if not kinds.has(pieces[1]) or (pieces[0] == "EnemyBurn" and not "magic" in tower_types) or (pieces[0] == "EnemyFrost" and not "frost" in tower_types):
+			_materials.erase(key)

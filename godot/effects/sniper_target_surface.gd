@@ -2,26 +2,58 @@ extends RefCounted
 ## Read-only rays against the actual rendered mesh. Authored normal/fast skinning
 ## is rigid (one bone per triangle); cache per-bone BVHs once, sample bone poses.
 static var _geometry := {}
+static var _geometry_kinds := {}
+# Own the immutable source while its acceleration data is cached. Instance IDs
+# alone neither retain resources nor protect against a subsequently reused ID.
+static var _geometry_sources := {}
+static var _geometry_builds := 0
+const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 var pieces: Array = []
 var _pose_revision := -1
 var _aim_point := Vector3.ZERO
 var _head_center := Vector3.ZERO
 var _body_center := Vector3.ZERO
 
-func _init(root: Node3D) -> void:
+func _init(root: Node3D, kind: String = "") -> void:
 	for instance: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
 		if instance.mesh == null or instance.has_meta("exclude_selection_mask"): continue
 		var skeleton: Skeleton3D = instance.get_node_or_null(instance.skeleton) as Skeleton3D
 		var skin: Skin = instance.skin
-		var key := instance.mesh.get_instance_id()
-		if not _geometry.has(key): _geometry[key] = _prepare(instance.mesh, skeleton != null and skin != null)
-		for group: Dictionary in _geometry[key]:
+		for group: Dictionary in _groups(instance, kind):
 			var bind := int(group.bind)
 			var bone := -1
 			if bind >= 0 and skeleton != null and skin != null:
 				bone = skin.get_bind_bone(bind)
 				if bone < 0: bone = skeleton.find_bone(skin.get_bind_name(bind))
 			pieces.append({"instance":instance,"skeleton":skeleton,"skin":skin,"bind":bind,"bone":bone,"mesh":group.mesh,"bounds":group.bounds,"head":bone>=0 and skeleton.get_bone_name(bone).to_lower()=="head"})
+
+# Loading rehearsal and unexpected runtime models use exactly the same builder.
+# Only bind-space triangles/BVHs/bounds are shared, never live nodes or poses.
+static func prewarm(root: Node3D, kind: String) -> void:
+	for instance: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
+		if instance.mesh == null or instance.has_meta("exclude_selection_mask"): continue
+		_groups(instance, kind)
+
+
+static func _groups(instance: MeshInstance3D, kind: String) -> Array:
+	var skinned := instance.skin != null and instance.get_node_or_null(instance.skeleton) is Skeleton3D
+	# The same source can be attached with or without a skin. Bind grouping must
+	# not accidentally inherit whichever interpretation was encountered first.
+	var key := "%d:%s" % [instance.mesh.get_instance_id(), skinned]
+	if not _geometry.has(key):
+		_geometry[key] = _prepare(instance.mesh, skinned)
+		_geometry_sources[key] = instance.mesh
+		_geometry_kinds[key] = {}
+		_geometry_builds += 1
+	var family := AttachmentKind.resolve(kind)
+	if not _geometry_kinds[key].has(family): _geometry_kinds[key][family] = {}
+	_geometry_kinds[key][family][str(instance.get_meta("target_geometry_weapon", ""))] = true
+	return _geometry[key]
+
+
+static func cache_snapshot() -> Dictionary:
+	return {"count":_geometry.size(), "builds":_geometry_builds}
+
 
 static func _prepare(mesh: Mesh, skinned: bool) -> Array:
 	var by_bind := {}
@@ -110,3 +142,23 @@ func first_hit(from: Vector3, toward: Vector3) -> Vector3:
 		var distance := from.distance_squared_to(world)
 		if distance<nearest: nearest=distance;point=world
 	return point-direction*.00025 if point.is_finite() else Vector3.INF
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	var kinds := {}
+	if "sniper" in tower_types or "lightning" in tower_types:
+		for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
+	for key in _geometry.keys():
+		var retained := {}
+		for kind in _geometry_kinds[key]:
+			if not kinds.has(kind): continue
+			var requirements := {}
+			for weapon: String in _geometry_kinds[key][kind]:
+				if weapon.is_empty() or weapon in tower_types: requirements[weapon] = true
+			if not requirements.is_empty(): retained[kind] = requirements
+		if retained.is_empty():
+			_geometry.erase(key)
+			_geometry_kinds.erase(key)
+			_geometry_sources.erase(key)
+		else:
+			_geometry_kinds[key] = retained

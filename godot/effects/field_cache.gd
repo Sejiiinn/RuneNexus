@@ -99,3 +99,7 @@ static func load_shared(
 	var result: Dictionary = {"texture": texture, "manifest": manifest}
 	_shared[cache_key] = result
 	return result
+
+
+static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
+	if not "cannon" in tower_types: _shared.clear()

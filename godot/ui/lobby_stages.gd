@@ -238,7 +238,7 @@ func _reward_icons(stage: int) -> Array:
 
 func _continue() -> void:
 	lobby.close_modal()
-	if not lobby.app.resume_run(): lobby._failure()
+	if not await lobby.app.resume_run(): lobby._failure()
 
 func start(stage: int) -> void:
 	if not unlocked(stage): return

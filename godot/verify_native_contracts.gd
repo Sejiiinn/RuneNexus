@@ -93,7 +93,7 @@ func _verify() -> void:
 	await process_frame
 	scene.set_process(false)
 	var tested := {}
-	var cannon: Node3D = scene.TURRET_MODELS["cannon"].instantiate()
+	var cannon: Node3D = (scene.StageResources.load_resource(scene.TURRET_MODELS["cannon"]) as PackedScene).instantiate()
 	for model: Node in [scene._landmark_library, scene._terrain_library, cannon]:
 		_import_contracts(model, tested)
 	cannon.free()

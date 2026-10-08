@@ -148,7 +148,7 @@ func read_terminal(app, directory: String) -> void:
 	var settlement: Dictionary = await app.settle_pending_rewards({"accountId":"aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa", "accessToken":"test-only", "writerGeneration":1, "sessionId":"test"}, func(): return {"ok":true}, transport)
 	check(not settlement.get("ok", false) and calls[0] == 0, "guest queue never calls remote even with account context")
 	check(outbox.state.accountIdBinding == "guest" and outbox.state.pendingRewards == [expected.reward], "account context cannot adopt guest queue")
-	check(app.retry_stage(), "pending guest reward permits safe retry")
+	check(await app.retry_stage(), "pending guest reward permits safe retry")
 	var after_retry: Dictionary = expected.progression.duplicate(true)
 	for key in ["lastRunRuneReward", "lastRunCorePointReward", "lastRunTurretModuleTicketReward"]: after_retry[key] = 0
 	check(app.run_domain.state.progression == after_retry, "retry retains progression and clears previous reward summary")
@@ -163,7 +163,7 @@ func failed_transition(app, directory: String) -> void:
 	app.run_domain.state.pendingEconomyDiamonds = 5
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	var epoch: int = app.epoch
-	check(not app.retry_stage(), "disk failure blocks retry")
+	check(not await app.retry_stage(), "disk failure blocks retry")
 	check(app.epoch == epoch and app.run_domain.state == before and app.scene._native_combat.active, "disk failure preserves active run")
 	app.enter_next()
 	check(app.epoch == epoch and app.run_domain.state == before, "disk failure blocks Stage replacement")
@@ -171,7 +171,7 @@ func failed_transition(app, directory: String) -> void:
 	var outbox = app.checkpoint.rewards()
 	outbox.primary_path = blocker.path_join("queue.json")
 	outbox.backup_path = blocker.path_join("queue.backup.json")
-	check(not app.retry_stage(), "outbox disk failure blocks retry after checkpoint write")
+	check(not await app.retry_stage(), "outbox disk failure blocks retry after checkpoint write")
 	check(app.epoch == epoch and app.run_domain.state == before, "outbox disk failure preserves active run")
 
 func write_expected(path: String, value: Dictionary) -> void:

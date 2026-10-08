@@ -1,6 +1,7 @@
 extends Node3D
 ## Reusable one-tile device. No placement or independent clock is implicit.
 
+const StageResources = preload("res://presentation/stage_resources.gd")
 const MODEL_PATH := "res://assets/teleport/teleport_device.glb"
 const SurfaceShader = preload("res://environment/teleport_surface.gdshader")
 const ParticleShader = preload("res://environment/teleport_particle.gdshader")
@@ -17,9 +18,20 @@ var _surface_material: ShaderMaterial
 var _particle_material: ShaderMaterial
 
 
+static func release_resources() -> void:
+	# Call only after outgoing stage devices are freed. A teleport-to-teleport map keeps this cache.
+	_model = null
+	_materials.clear()
+	StageResources.release([MODEL_PATH])
+
+
+static func resource_snapshot() -> Dictionary:
+	return {"model_loaded": _model != null, "material_count": _materials.size()}
+
+
 func configure(color: String, is_out: bool) -> bool:
 	if not COLORS.has(color): return false
-	if _model == null: _model = load(MODEL_PATH) as PackedScene
+	if _model == null: _model = StageResources.load_resource(MODEL_PATH) as PackedScene
 	if _model == null: return false
 	for child in get_children(): child.free()
 	color_key = color
