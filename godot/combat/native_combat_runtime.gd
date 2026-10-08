@@ -707,7 +707,10 @@ func _release(d: Dictionary) -> void:
 	var a: Dictionary = d.attack
 	var from := _vec(t.position) if d.kind == "charge" else _vec(d.position)
 	var excluded: Array = d.get("excluded", [])
-	var target := _target(from, a.range if d.kind == "charge" else a.lightningChainJumpRange, "first", excluded, d.kind == "charge")
+	# Reacquire at discharge so dead/out-of-range enemies cannot be hit. Only
+	# the first strike uses the turret priority; chained jumps retain first.
+	var priority: String = t.get("targetPriority", t.state.get("targetPriority", "first")) if d.kind == "charge" else "first"
+	var target := _target(from, a.range if d.kind == "charge" else a.lightningChainJumpRange, priority, excluded, d.kind == "charge")
 	var used := int(d.get("used", 0))
 	if target.is_empty():
 		_lightning_complete(t, a, used)

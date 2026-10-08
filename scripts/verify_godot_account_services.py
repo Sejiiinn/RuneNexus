@@ -46,6 +46,7 @@ def main():
             for name in files:
                 shutil.copyfile(ROOT / "godot" / folder / name, project / folder / name)
         shutil.copyfile(ROOT / "godot/verify_account_services.gd", project / "verify.gd")
+        shutil.copyfile(ROOT / "godot/verify_durable_record.gd", project / "verify_durable_record.gd")
         imported = subprocess.run([str(GODOT), "--headless", "--editor", "--path", str(project), "--quit"], capture_output=True, text=True, timeout=60)
         if imported.returncode or ENGINE_ERROR.search(imported.stdout + imported.stderr):
             raise SystemExit(imported.stdout + imported.stderr)
@@ -53,11 +54,12 @@ def main():
             threading.Thread(target=server.serve_forever, daemon=True).start()
             env = dict(os.environ, RUNE_ACCOUNT_TEST_ROOT=str(project / "state"), RUNE_ACCOUNT_HASH_FIXTURE=str(ROOT / "test/fixtures/godot_account_payload_hashes.json"), RUNE_ACCOUNT_CODEC_FIXTURE=str(ROOT / "test/fixtures/godot_save_codec_expected.json"), RUNE_ACCOUNT_HTTP_FIXTURE=f"http://127.0.0.1:{server.server_port}")
             try:
-                result = subprocess.run([str(GODOT), "--headless", "--path", str(project), "--script", "verify.gd"], env=env, capture_output=True, text=True, timeout=60)
-                print(result.stdout, end="")
-                print(result.stderr, end="")
-                if result.returncode or ENGINE_ERROR.search(result.stdout + result.stderr) or "PASS:" not in result.stdout:
-                    raise SystemExit(result.returncode or 1)
+                for script in ("verify_durable_record.gd", "verify.gd"):
+                    result = subprocess.run([str(GODOT), "--headless", "--path", str(project), "--script", script], env=env, capture_output=True, text=True, timeout=60)
+                    print(result.stdout, end="")
+                    print(result.stderr, end="")
+                    if result.returncode or ENGINE_ERROR.search(result.stdout + result.stderr) or "PASS:" not in result.stdout:
+                        raise SystemExit(result.returncode or 1)
             finally:
                 server.shutdown()
 
