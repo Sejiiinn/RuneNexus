@@ -48,6 +48,9 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 	for index in range(meshes.size()):
 		var effect := MeshInstance3D.new()
 		effect.mesh = StageResources.load_resource(meshes[index]) as Mesh
+		# Target geometry must expire with its status family, even when the same
+		# enemy and sniper/lightning remain eligible in the next stage.
+		effect.set_meta("target_geometry_weapon", "magic" if label == "EnemyBurn" else "frost")
 		effect.skin = body.skin
 		effect.material_override = _materials[material_key][index]
 		effect.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

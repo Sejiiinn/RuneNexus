@@ -7,6 +7,7 @@ const Frost = preload("res://effects/frost_tower.gd")
 const Burn = preload("res://effects/enemy_burn.gd")
 const Lightning = preload("res://effects/lightning_attack.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
+const TargetSurface = preload("res://effects/sniper_target_surface.gd")
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const EFFECT_CACHES := [
 	Fire, Frost, Burn, Lightning, GuardianStatus,
@@ -20,7 +21,7 @@ const EFFECT_CACHES := [
 	preload("res://effects/field_cache.gd"),
 	preload("res://effects/ballistic_projectile.gd"),
 	preload("res://effects/sniper_vfx.gd"),
-	preload("res://effects/sniper_target_surface.gd"),
+	TargetSurface,
 	preload("res://effects/gem_orbit.gd"),
 	preload("res://effects/weapon_atlas.gd"),
 ]
@@ -160,6 +161,13 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 	for kind: String in enemy_types:
 		units._sync_enemies([[10, 4.0, 5.0, 0.0, 0.0, 1.0, 0.0, kind,
 			"magic" in tower_types, "frost" in tower_types]])
+		# Prepare all possible stage targets while loading, not at first aim/fire.
+		# Reuse the real model path, including skinned walkers and boss variants.
+		# Each family yields to the loading UI; no posed hit points survive it.
+		if "sniper" in tower_types or "lightning" in tower_types:
+			var target: Dictionary = units.enemies.get(10, {})
+			if target.is_empty(): _failed = true
+			else: TargetSurface.prewarm(target.root, kind)
 		await _draw()
 		if not _is_current(scene):
 			_dispose(scene, units, projectiles, viewport)
