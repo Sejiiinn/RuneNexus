@@ -74,32 +74,100 @@ class MaterialPresetSyncTest(unittest.TestCase):
                     self.assertIn("mipmaps/generate=true", policy)
                     self.assertIn("compress/mode=0", unrelated.read_text())
 
-    def test_environment_caps_keep_lossless_mips_and_source_bytes(self):
+    def test_environment_policies_merge_shared_caps_and_preserve_source_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             assets = Path(directory) / "assets"
             (assets / "environment").mkdir(parents=True)
             (assets / "shared_textures").mkdir()
-            model = assets / "environment/terrain.glb"
-            document = json.dumps({"images": [{"uri": "../shared_textures/terrain.png"}]}).encode()
-            document += b" " * (-len(document) % 4)
-            original = struct.pack("<IIIII", 0x46546C67, 2, 20 + len(document),
-                                   len(document), 0x4E4F534A) + document
-            model.write_bytes(original)
-            texture = assets / "shared_textures/terrain.png"
-            texture.write_bytes(b"original 2K artwork")
+            originals = {}
+            for name in preparation._ENVIRONMENT_MODELS:
+                names = list(sorted(preparation._ENVIRONMENT_512_NAMES.get(name, ())))
+                names.append("untouched_albedo")
+                images = []
+                for image_name in names:
+                    # C2 normal aliases intentionally resolve to one shared import.
+                    filename = image_name if image_name.startswith("chapter2_") else name + image_name
+                    texture = assets / "shared_textures" / (filename + ".png")
+                    texture.write_bytes(b"original artwork")
+                    images.append({"name": image_name, "uri": "../shared_textures/" + texture.name})
+                model = assets / "environment" / (name + ".glb")
+                document = json.dumps({"images": images}).encode()
+                document += b" " * (-len(document) % 4)
+                original = struct.pack("<IIIII", 0x46546C67, 2, 20 + len(document),
+                                       len(document), 0x4E4F534A) + document
+                model.write_bytes(original)
+                originals[model] = original
             unrelated = assets / "shared_textures/actor.png.import"
-            unrelated.write_text("[params]\ncompress/mode=2\nprocess/size_limit=1024\n")
+            unrelated.write_text("actor policy must stay unchanged")
             with patch.object(preparation, "ASSETS", assets):
                 for _ in range(2):
-                    preparation._prepare_environment_texture_limit(model)
-            policy = texture.with_suffix(".png.import").read_text()
-            self.assertIn("compress/mode=0\n", policy)
-            self.assertIn("mipmaps/generate=true\n", policy)
-            self.assertIn("process/size_limit=1024\n", policy)
-            self.assertNotIn("compress/high_quality", policy)
-            self.assertEqual(model.read_bytes(), original)
-            self.assertEqual(texture.read_bytes(), b"original 2K artwork")
-            self.assertIn("compress/mode=2\n", unrelated.read_text())
+                    preparation._prepare_environment_texture_imports()
+                    for model, original in originals.items():
+                        self.assertEqual(model.read_bytes(), original)
+                        data = json.loads(original[20:20 + struct.unpack_from("<I", original, 12)[0]])
+                        for image in data["images"]:
+                            texture = (model.parent / image["uri"]).resolve()
+                            self.assertEqual(texture.read_bytes(), b"original artwork")
+                            policy = texture.with_suffix(".png.import").read_text()
+                            self.assertIn("compress/mode=2\n", policy)
+                            self.assertIn("compress/high_quality=true\n", policy)
+                            self.assertIn("compress/normal_map=2\n", policy)
+                            self.assertIn("mipmaps/generate=true\n", policy)
+                            self.assertIn("detect_3d/compress_to=0\n", policy)
+                            if image["name"] != "untouched_albedo":
+                                self.assertIn("process/size_limit=512\n", policy)
+                            elif model.stem in ("terrain", "chapter3_tiles"):
+                                self.assertIn("process/size_limit=1024\n", policy)
+                            else:
+                                self.assertNotIn("process/size_limit", policy)
+                    self.assertEqual(unrelated.read_text(), "actor policy must stay unchanged")
+                with patch.object(preparation, "_ENVIRONMENT_MODELS", tuple(reversed(preparation._ENVIRONMENT_MODELS))):
+                    preparation._prepare_environment_texture_imports()
+                self.assertIn("process/size_limit=512\n", (assets / "shared_textures/chapter2_build_normal.png.import").read_text())
+
+    def test_shared_environment_caps_choose_smallest_nonzero_in_any_order(self):
+        for broad in ("chapter2_props", "terrain"):
+            with self.subTest(broad=broad), tempfile.TemporaryDirectory() as directory:
+                assets = Path(directory)
+                (assets / "environment").mkdir()
+                (assets / "shared_textures").mkdir()
+                texture = assets / "shared_textures/shared.png"
+                texture.write_bytes(b"preserved shared texture")
+                for name, image_name in ((broad,"uncapped_or_1k"),("chapter2_tiles","chapter2_build_normal")):
+                    doc = json.dumps({"images":[{"name":image_name,"uri":"../shared_textures/shared.png"}]}).encode()
+                    doc += b" " * (-len(doc) % 4)
+                    (assets / "environment" / (name + ".glb")).write_bytes(
+                        struct.pack("<IIIII",0x46546C67,2,20+len(doc),len(doc),0x4E4F534A)+doc)
+                for models in ((broad,"chapter2_tiles"),("chapter2_tiles",broad)):
+                    with patch.multiple(preparation, ASSETS=assets, _ENVIRONMENT_MODELS=models):
+                        preparation._prepare_environment_texture_imports()
+                    self.assertIn("process/size_limit=512\n", texture.with_suffix(".png.import").read_text())
+                self.assertEqual(texture.read_bytes(), b"preserved shared texture")
+
+    def test_app_ui_limits_are_exact_and_exclude_cropped_or_fullscreen_art(self):
+        self.assertEqual(len(preparation._CORE_FRAME_NAMES), 8)
+        self.assertEqual(len(preparation._GEM_NAMES), 14)
+        for relative in preparation._CORE_FRAME_NAMES:
+            self.assertEqual(preparation._app_texture_size_limit(relative), 512)
+        for name in preparation._GEM_NAMES:
+            self.assertEqual(preparation._app_texture_size_limit("gems/" + name + ".png"), 256)
+        self.assertEqual(preparation._app_texture_size_limit("turret_modules/icons/unique_backglow.png"), 256)
+        for relative in ("core_passive_tree/connection_segment_v1.png",
+                         "core_passive_tree/connection_junction_v1.png",
+                         "core_passive_tree/connection_segment_inactive_v1.png",
+                         "core_passive_tree/nexus_core.png", "core_passive_tree/tree_circuit_background.png",
+                         "turret_modules/icons/frame_unique.png", "gems/futureGem.png", "main_menu_background.jpg"):
+            self.assertEqual(preparation._app_texture_size_limit(relative), 0)
+        with tempfile.TemporaryDirectory() as directory:
+            for limit in (256, 512):
+                image = Path(directory) / f"ui{limit}.png"
+                image.write_bytes(b"unchanged artwork")
+                preparation._prepare_hud_texture_limit(image, limit)
+                policy = image.with_suffix(".png.import").read_text()
+                self.assertIn(f"process/size_limit={limit}\n", policy)
+                self.assertIn("compress/mode=0\n", policy)
+                self.assertIn("mipmaps/generate=false\n", policy)
+                self.assertEqual(image.read_bytes(), b"unchanged artwork")
 
     def test_hud_caps_preserve_sources_and_leave_other_ui_unchanged(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -106,29 +106,78 @@ def _prepare_compressed_model_textures(model: Path, size_limit: int = 0) -> None
         )
 
 
-def _prepare_environment_texture_limit(model: Path) -> None:
-    """Cap approved terrain maps at 1K, retaining lossless mipmapped imports."""
-    raw = model.read_bytes()
-    json_size = struct.unpack_from("<I", raw, 12)[0]
-    document = json.loads(raw[20:20 + json_size])
-    for image in document.get("images", []):
-        texture = (model.parent / image["uri"]).resolve()
-        texture.relative_to((ASSETS / "shared_textures").resolve())
+# Explicit authored families, resolved through staged content-hash references.
+# Keep albedo/emission limits from the accepted 1K terrain/tile policy.
+_ENVIRONMENT_MODELS = ("terrain", "chapter2_tiles", "chapter2_props",
+                       "chapter3_tiles", "chapter3_props")
+_ENVIRONMENT_512_NAMES = {
+    "terrain": frozenset({
+        "C1_natural_rock_faces_normal",
+        "C1_natural_rock_faces_cavity-C1_natural_rock_faces_roughness",
+        "C1_mossy_PBR_stone_normal",
+        "C1_mossy_PBR_stone_cavity-C1_mossy_PBR_stone_roughness",
+        "C1_worn_earth_cobbles_normal",
+        "C1_worn_earth_cobbles_cavity-C1_worn_earth_cobbles_roughness",
+    }),
+    "chapter2_tiles": frozenset({"chapter2_build_normal", "chapter2_path_normal",
+                                 "chapter2_side_normal"}),
+    "chapter2_props": frozenset({"chapter2_build_normal", "chapter2_side_normal"}),
+    "chapter3_props": frozenset({"chapter3-normal", "Chapter3 metallic-Chapter3 roughness"}),
+}
+
+
+def _prepare_environment_texture_imports() -> None:
+    """Resolve approved family policies once per shared image, independent of order."""
+    policies = {}
+    for name in _ENVIRONMENT_MODELS:
+        model = ASSETS / "environment" / (name + ".glb")
+        raw = model.read_bytes()
+        size = struct.unpack_from("<I", raw, 12)[0]
+        for image in json.loads(raw[20:20 + size]).get("images", []):
+            texture = (model.parent / image["uri"]).resolve()
+            texture.relative_to((ASSETS / "shared_textures").resolve())
+            limit = 1024 if name in ("terrain", "chapter3_tiles") else 0
+            if image.get("name") in _ENVIRONMENT_512_NAMES.get(name, ()):
+                limit = 512
+            previous = policies.get(texture, 0)
+            policies[texture] = min(previous, limit) if previous and limit else previous or limit
+    for texture, limit in policies.items():
         texture.with_suffix(texture.suffix + ".import").write_text(
             '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
-            '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
-            'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
-            'process/size_limit=1024\n'
+            '[params]\ncompress/mode=2\ncompress/high_quality=true\n'
+            'compress/normal_map=2\nmipmaps/generate=true\ndetect_3d/compress_to=0\n'
+            + (f'process/size_limit={limit}\n' if limit else '')
         )
 
 
-def _prepare_hud_texture_limit(texture: Path) -> None:
-    """Keep original artwork; only the imported GPU image is capped at 256px."""
+_CORE_FRAME_NAMES = frozenset(
+    f"core_passive_tree/node_frame_{size}_a{state}_v1.png"
+    for size in ("small", "medium", "large") for state in ("", "_active")
+) | {"core_passive_tree/center_socket_v1.png", "core_passive_tree/selection_ring_v1.png"}
+_GEM_NAMES = frozenset({
+    "damageAmplifier", "attackSpeed", "armorPiercing", "damageOverTime", "chain",
+    "elementalDamage", "range", "criticalChance", "aimSpeed", "lightWeapon",
+    "heavyWeapon", "multipleProjectiles", "explosion", "physicalDamage",
+})
+
+
+def _app_texture_size_limit(relative: str) -> int:
+    if relative in _CORE_FRAME_NAMES:
+        return 512
+    if relative in {"ui/hud/icons/home_button.png", "turret_modules/icons/unique_backglow.png"}:
+        return 256
+    if relative in {f"gems/{name}.png" for name in _GEM_NAMES}:
+        return 256
+    return 0
+
+
+def _prepare_hud_texture_limit(texture: Path, size_limit: int = 256) -> None:
+    """Keep original artwork; only the imported UI image is capped; never use VRAM compression."""
     texture.with_suffix(texture.suffix + ".import").write_text(
         '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
         '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
         'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
-        'process/size_limit=256\n'
+        f'process/size_limit={size_limit}\n'
     )
 
 
@@ -232,8 +281,9 @@ def _prepare_app_ui() -> None:
         target = ASSETS / "app" / path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
-        if relative == "ui/hud/icons/home_button.png":
-            _prepare_hud_texture_limit(target)
+        limit = _app_texture_size_limit(relative)
+        if limit:
+            _prepare_hud_texture_limit(target, limit)
 
 
 def _prepare_combat_background() -> None:
@@ -338,8 +388,7 @@ def prepare() -> Path:
         'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
     )
     # Actor PBR maps use the accepted boss ASTC/BPTC policy. Live/death maps
-    # remain content-hash shared. UI, environment and special VFX retain their
-    # existing policies. Cap only the costly fast/tank/frost runtime atlases;
+    # remain content-hash shared. Special VFX retain their existing policies. Cap only the costly fast/tank/frost runtime atlases;
     # smaller maps are not upscaled, and source images/geometry/UVs stay intact.
     _prepare_boss_imports()
     for name in ENEMY_TYPES + ("normal_death", "fast_death", "tank_death"):
@@ -349,8 +398,7 @@ def prepare() -> Path:
     for name in TURRET_TYPES:
         _prepare_compressed_model_textures(ASSETS / "turrets" / f"{name}.glb",
                                            1024 if name == "frost" else 0)
-    for name in ("terrain", "chapter3_tiles"):
-        _prepare_environment_texture_limit(ASSETS / "environment" / f"{name}.glb")
+    _prepare_environment_texture_imports()
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
     for source in sorted((SOURCE_ASSETS / "ui").rglob("*")):
