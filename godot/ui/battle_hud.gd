@@ -136,7 +136,9 @@ func _ready() -> void:
 		home.add_theme_stylebox_override(state,StyleBoxEmpty.new())
 	var home_art := TextureRect.new(); home_art.name = "HomeArtwork"
 	var home_region := AtlasTexture.new(); home_region.atlas = AppTheme.texture("ui/hud/icons/home_button.png")
-	home_region.region = Rect2(207,207,840,840); home_region.filter_clip = true
+	# Keep the approved crop at any imported texture resolution.
+	var home_scale := home_region.atlas.get_size() / Vector2(1254,1254)
+	home_region.region = Rect2(Vector2(207,207) * home_scale, Vector2(840,840) * home_scale); home_region.filter_clip = true
 	home_art.texture = home_region; home_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	home_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	home_art.mouse_filter = Control.MOUSE_FILTER_IGNORE; home.add_child(home_art)

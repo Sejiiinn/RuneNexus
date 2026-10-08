@@ -7,6 +7,8 @@ var failures := 0
 var texture_references := 0
 var materials_checked := 0
 var opaque_pixels_checked := 0
+var resized_images_checked := 0
+var compressed_images_checked := 0
 var alpha_texture_paths: Array[String] = []
 var shared: Dictionary = {}
 
@@ -114,7 +116,25 @@ func _verify_pixels() -> void:
 		var imported := texture.get_image()
 		_check(imported != null and not imported.is_empty(), "imported texture 이미지 누락: " + path)
 		if imported == null or imported.is_empty(): continue
-		_check(original.get_size() == imported.get_size(), "texture 원본 크기 변경: " + path)
+		var config := ConfigFile.new()
+		_check(config.load(path + ".import") == OK, "Missing import policy: " + path)
+		var limit: int = int(config.get_value("params", "process/size_limit", 0))
+		var expected_size := original.get_size()
+		if limit > 0 and maxi(expected_size.x, expected_size.y) > limit:
+			expected_size = Vector2i(Vector2(expected_size) * float(limit) / float(maxi(expected_size.x, expected_size.y)))
+		_check(expected_size == imported.get_size(), "Unexpected imported size: " + path)
+		var mode: int = int(config.get_value("params", "compress/mode", 0))
+		_check(mode in [0, 2], "Unexpected shared texture compression: " + path)
+		_check(imported.has_mipmaps() == bool(config.get_value("params", "mipmaps/generate", true)), "Mipmap policy mismatch: " + path)
+		if mode == 2:
+			_check(imported.is_compressed(), "Expected compressed actor image: " + path)
+			compressed_images_checked += 1
+			continue
+		if expected_size != original.get_size():
+			_check(limit == 1024, "Unexpected environment cap: " + path)
+			_check(imported.get_format() == Image.FORMAT_RGB8, "Expected RGB environment image: " + path)
+			resized_images_checked += 1
+			continue
 		# importer의 투명 경계 RGB 보정은 합법적이므로 완전 불투명 PNG만 전체 byte 비교.
 		if original.detect_alpha() != Image.ALPHA_NONE:
 			alpha_texture_paths.append(path)
@@ -122,8 +142,9 @@ func _verify_pixels() -> void:
 		original.convert(Image.FORMAT_RGBA8)
 		imported.clear_mipmaps()
 		imported.convert(Image.FORMAT_RGBA8)
-		_check(original.get_data() == imported.get_data(), "불투명 texture base level byte 변경: " + path)
-		opaque_pixels_checked += 1
+		var pixels_match := original.get_data() == imported.get_data()
+		_check(pixels_match, "불투명 texture base level byte 변경: " + path)
+		if pixels_match: opaque_pixels_checked += 1
 
 func _verify() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -163,4 +184,5 @@ func _verify() -> void:
 	_check(labels.textures.get("diamond_currency") == load("res://assets/ui/diamond_currency.png"), "UI diamond 공용 texture 연결 실패")
 	labels.free()
 	print("Shared textures verification: %d failures; %d GLBs, %d materials, %d texture references -> %d shared objects, %d opaque PNGs byte-exact, %d alpha PNGs dimensions checked, labels supported" % [failures, paths.size(), materials_checked, texture_references, shared.size(), opaque_pixels_checked, alpha_texture_paths.size()])
+	print("Import policy verification: %d resized lossless images, %d compressed images" % [resized_images_checked, compressed_images_checked])
 	quit(0 if failures == 0 else 1)
