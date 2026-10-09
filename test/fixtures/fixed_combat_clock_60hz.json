@@ -1,0 +1,150 @@
+{
+  "sourceCommit": "d4221a9",
+  "engine": "Godot 4.7.2 stable ed1daf0bf",
+  "gameSeconds": 12,
+  "seed": 71423,
+  "notes": "Existing variable-step implementation at 60 Hz and 1x. Magic and mixed are excluded because continuous-effect expiry integration is intentionally corrected. Burst is level-10 arrow with +500% attack rate and chain. Synthetic replay inputs and commands are defined in verify_fixed_combat_clock.gd.",
+  "scenarios": {
+    "arrow": {
+      "arrivals": [
+        3,
+        2,
+        7,
+        6
+      ],
+      "clock": 12.0,
+      "damage": 198.148500066536,
+      "durability": 30280.8514999335,
+      "kills": [
+        1
+      ],
+      "rewards": {
+        "completedRounds": 0,
+        "gemShards": 0,
+        "gold": 175,
+        "killGoldFractionWallet": 0.0,
+        "pendingEconomyDiamonds": 1
+      },
+      "rng": "1425365217666047317",
+      "shots": 28
+    },
+    "burst": {
+      "arrivals": [
+        3,
+        6
+      ],
+      "clock": 12.0,
+      "damage": 16682.5419633514,
+      "durability": 13796.4580366485,
+      "kills": [
+        1,
+        2,
+        4,
+        5,
+        7,
+        8,
+        20
+      ],
+      "rewards": {
+        "completedRounds": 0,
+        "gemShards": 0,
+        "gold": 205,
+        "killGoldFractionWallet": 0.0,
+        "pendingEconomyDiamonds": 3
+      },
+      "rng": "3139892132093483537",
+      "shots": 235
+    },
+    "cannon": {
+      "arrivals": [
+        3,
+        2,
+        6
+      ],
+      "clock": 12.0,
+      "damage": 354.550956048454,
+      "durability": 30124.4490439516,
+      "kills": [
+        1,
+        4,
+        7
+      ],
+      "rewards": {
+        "completedRounds": 0,
+        "gemShards": 0,
+        "gold": 185,
+        "killGoldFractionWallet": 0.0,
+        "pendingEconomyDiamonds": 2
+      },
+      "rng": "5111261103172633785",
+      "shots": 5
+    },
+    "frost": {
+      "arrivals": [
+        3,
+        2,
+        7,
+        6
+      ],
+      "clock": 12.0,
+      "damage": 102.710867556226,
+      "durability": 30347.2991353245,
+      "kills": [],
+      "rewards": {
+        "completedRounds": 0,
+        "gemShards": 0,
+        "gold": 170,
+        "killGoldFractionWallet": 0.0,
+        "pendingEconomyDiamonds": 0
+      },
+      "rng": "5111261103172633785",
+      "shots": 5
+    },
+    "lightning": {
+      "arrivals": [
+        3,
+        6
+      ],
+      "clock": 12.0,
+      "damage": 344.286395161587,
+      "durability": 30134.7136048384,
+      "kills": [
+        1,
+        7,
+        2
+      ],
+      "rewards": {
+        "completedRounds": 0,
+        "gemShards": 0,
+        "gold": 185,
+        "killGoldFractionWallet": 0.0,
+        "pendingEconomyDiamonds": 2
+      },
+      "rng": "2842531442343129857",
+      "shots": 7
+    },
+    "sniper": {
+      "arrivals": [
+        3,
+        7,
+        6
+      ],
+      "clock": 12.0,
+      "damage": 260.255650162327,
+      "durability": 30218.7443498377,
+      "kills": [
+        1,
+        2
+      ],
+      "rewards": {
+        "completedRounds": 0,
+        "gemShards": 0,
+        "gold": 180,
+        "killGoldFractionWallet": 0.0,
+        "pendingEconomyDiamonds": 1
+      },
+      "rng": "5111261103172633785",
+      "shots": 5
+    }
+  }
+}

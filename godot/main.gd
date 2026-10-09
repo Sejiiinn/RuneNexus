@@ -32,11 +32,16 @@ const REFLECTION_TERRAIN_LAYER := 1 << 1
 const REFLECTION_CRYSTAL_LAYER := 1 << 2
 
 var _screen_feedback = preload("res://session/screen_feedback.gd").new()
-var _session_activation_revision := -1
+var _session_frame_clock = preload("res://session/combat_frame_clock.gd").new()
+var _session_now_usec: Callable = func(): return Time.get_ticks_usec()
+var _session_control_boundary_usec: int = -1
+var _session_host_revision := 0
+var _session_has_focus := true
+var _session_suspended := false
 var _session_input = preload("res://session/battlefield_input.gd").new(self)
 var _standalone_session: Node
 var _app_mode := "--app" in OS.get_cmdline_user_args() or (not "--session" in OS.get_cmdline_user_args() and not "--fixture" in OS.get_cmdline_user_args() and not "--script" in OS.get_cmdline_args() and not "-s" in OS.get_cmdline_args())
-var _native_combat := NativeCombatRuntime.new()
+var _native_combat := _new_native_combat()
 var _native_combat_base_frame: Dictionary = {}
 var camera := Camera3D.new()
 var _battlefield_camera := BattlefieldCamera.new(camera)
@@ -290,8 +295,8 @@ func _process(delta: float) -> void:
 				frame["impacts"].append([100 + index, target[1], target[2], 1.2, progress])
 		_apply_frame(frame)
 	if _native_combat.native_session():
-		var host_active: bool = true
-		var activation: int = 0
+		var host_active: bool = _session_has_focus and not _session_suspended
+		var activation: int = _session_host_revision
 		var session_delta := _session_frame_delta(delta, host_active, activation)
 		var combat_tick := RuntimeProfile.begin()
 		var advanced := _native_combat.advance_session(session_delta, host_active)
@@ -602,8 +607,9 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 
 func _clear_scene() -> void:
 	_lightning_presentation.clear()
-	_native_combat = NativeCombatRuntime.new()
-	_session_activation_revision = -1
+	_native_combat.active = false
+	_native_combat = _new_native_combat()
+	_session_frame_clock.reset()
 	_session_input.reset()
 	_battlefield_camera.reset()
 	_screen_feedback.hide()
@@ -710,14 +716,67 @@ func _update_session_presentation() -> void:
 	if camera_adjusted: _update_camera_visuals()
 
 
-func _session_frame_delta(delta: float, host_active: bool, activation: int) -> float:
-	if not host_active: return 0.0
-	# A suspended engine may never sample inactive. The platform generation is
-	# observed after resume and discards even an arbitrarily long first delta.
-	if activation != _session_activation_revision:
-		_session_activation_revision = activation
-		return 0.0
-	return delta
+func _new_native_combat() -> NativeCombatRuntime:
+	var runtime = NativeCombatRuntime.new()
+	runtime.clock_control_changing.connect(_on_session_clock_changing.bind(weakref(runtime)))
+	runtime.clock_control_changed.connect(_on_session_clock_changed.bind(weakref(runtime)))
+	return runtime
+
+func _on_session_clock_changing(source: WeakRef) -> void:
+	if source.get_ref() != _native_combat: return
+	_session_control_boundary_usec = -1
+	# Deterministic commands inside an already accepted simulation frame must
+	# not also charge physical CPU time. Manual test drivers own their own time.
+	if not is_processing() or _native_combat._advancing_session: return
+	_session_control_boundary_usec = int(_session_now_usec.call())
+	var host_active := _battle_visible and not _stage_preparation_pending and _session_has_focus and not _session_suspended
+	var elapsed := _session_frame_delta(0.0, host_active, _session_host_revision, _session_control_boundary_usec)
+	_native_combat.accrue_session_time(elapsed, host_active)
+
+func _on_session_clock_changed(source: WeakRef) -> void:
+	if source.get_ref() != _native_combat: return
+	if _session_control_boundary_usec < 0 or _native_combat._advancing_session: return
+	var host_active := _battle_visible and not _stage_preparation_pending and _session_has_focus and not _session_suspended
+	# Establish the new controls at the same exact boundary, so processing time
+	# after it belongs to the new rate rather than being lost or charged twice.
+	_session_frame_clock.reset()
+	_session_frame_delta(0.0, host_active, _session_host_revision, _session_control_boundary_usec)
+	_session_control_boundary_usec = -1
+
+func _notification(what: int) -> void:
+	# Both the formal app and development sessions use the actual Godot host
+	# lifecycle. A suspended engine need not render an inactive frame at all.
+	match what:
+		NOTIFICATION_APPLICATION_FOCUS_OUT:
+			_set_session_host_state(false, _session_suspended)
+		NOTIFICATION_APPLICATION_FOCUS_IN:
+			_set_session_host_state(true, _session_suspended)
+		NOTIFICATION_APPLICATION_PAUSED:
+			_set_session_host_state(_session_has_focus, true)
+		NOTIFICATION_APPLICATION_RESUMED:
+			_set_session_host_state(_session_has_focus, false)
+
+
+func _set_session_host_state(has_focus: bool, suspended: bool) -> void:
+	if has_focus == _session_has_focus and suspended == _session_suspended: return
+	# Close the old interval before the host gate or a child's pause command can
+	# hide it. These boundaries only accrue debt, never run combat/ACK callbacks.
+	var source: WeakRef = weakref(_native_combat)
+	_on_session_clock_changing(source)
+	_session_has_focus = has_focus
+	_session_suspended = suspended
+	_session_host_revision += 1
+	# Rebase at the same timestamp, including host-only resume without a command.
+	# A second gate/repeated notification cannot charge background time twice.
+	_on_session_clock_changed(source)
+
+
+func _session_frame_delta(_engine_delta: float, host_active: bool, activation: int, now_usec: int = -1) -> float:
+	# Engine _process delta is capped after stalls. Sample actual monotonic time
+	# instead, while rejecting suspended/paused/hidden intervals at their gates.
+	if now_usec < 0: now_usec = int(_session_now_usec.call())
+	return _session_frame_clock.sample(now_usec, host_active and _native_combat._session_time_enabled(),
+		activation, _native_combat.clock_control_revision)
 
 
 func _ensure_battle_base() -> void:
@@ -732,6 +791,7 @@ func begin_deferred_battle_presentation() -> void:
 	set_battle_visible(false)
 
 func set_battle_visible(active: bool) -> void:
+	if active != _battle_requested_visible: _session_frame_clock.reset()
 	_battle_requested_visible = active
 	_battle_visible = active and not _battle_deferred and not _stage_preparation_pending
 	world.visible = _battle_visible and not bool(options.get("empty", false))

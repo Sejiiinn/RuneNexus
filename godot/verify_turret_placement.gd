@@ -94,7 +94,9 @@ func run() -> void:
 	entries[id].type = "replacement"
 	host.placement.apply_entry(id,entries[id],map.columns,map.rows)
 	check(not host.placement.placements.has(id),"type replacement cancels instead of replaying")
+	var reused_runtime = host._native_combat
 	check(await app.start_stage(0) and host.placement.placements.is_empty() and host.accepted.size() == cues,"new session clears placement state without restoration cue")
+	check(host._native_combat == reused_runtime and reused_runtime.step_completed.get_connections().size() == 1,"reused runtime keeps exactly one session boundary subscriber after reentry")
 	for model in models.values(): model.free()
 	host.free()
 	app.free()

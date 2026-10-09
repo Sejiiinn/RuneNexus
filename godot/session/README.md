@@ -3,13 +3,21 @@
 `session_controller.gd`는 콘텐츠 전투 명령·이벤트 ACK·시간/연구 처리·체크포인트·정산 연결을 공유한다. 정식 `app/app_lifecycle.gd`와 개발 `standalone.gd`는 이를 각각 상속하며, 개발 툴바·진단 라벨·고정 fixture 상태와 명령은 `standalone.gd`에만 둔다. 공통 책임 회귀는 `verify_session_controller.gd`로 확인한다.
 
 
-`NativeCombatRuntime.advance_session()`을 `main.gd::_process()`에서 호출한다. `session.clock=godot`인 패킷의 `dt`, `steps`, `dtSteps`는 실행하지 않는다. 기존 명시적 step 경로는 회귀 검사에 남긴다.
+## 전투 시계
 
-입력 패킷 `session`: `clock`, `phase`, `running`(디버그 전투 포함), `paused`, `loading`, `backgrounded`, `speed`. 첫 bootstrap에서 `effectTime`, `squaredSteps`로 진행 중인 효과 시계를 인계한다. 일반 Android 본게임에서 성장·골드·저장·보상 권위는 기존 Flutter/Dart 앱 도메인이다. 별도 `--session`에서는 아래 Godot 런·성장 도메인을 사용한다.
+`main.gd::_process()`는 `combat_frame_clock.gd`의 단조 증가 마이크로초 시계로 잰 활성 프레임 시간을 `NativeCombatRuntime.advance_session()`에 전달한다. 긴 프레임에서 Godot가 제한하는 `_process(delta)`를 전투 경과 시간으로 사용하지 않는다. 전투는 **게임 시간 1/60초 고정 스텝**으로만 진행한다. 실제 시간 × 배속을 누적하고, 1·2·4배속은 같은 스텝의 실행 횟수만 바꾼다. 렌더 사이에 배속·정지 상태를 바꾸면 명령 직전까지의 활성 시간을 이전 설정으로 먼저 적립하고 같은 시각부터 새 설정을 적용한다. 이 적립은 전투 스텝이나 이벤트 ACK를 재귀 실행하지 않는다. 이동·공격·쿨다운·탄환·지속피해·웨이브·코어 스킬과 전투 난수는 같은 시계를 사용한다. 스텝 내부의 적 갱신 → 공격/탄환 → 생성 → 코어 스킬 → 웨이브 완료 순서는 유지한다.
 
-응답은 동일 `ackSequence`에서도 `stateRevision`이 증가한다. `session.wallElapsed`, `effectTime`, `squaredSteps`, `coreDestructionElapsed`, `nexusAlert`, `phase`가 Godot 시계의 읽기 모델이다. `events`는 클라이언트가 `ackEvent`를 보낼 때까지 유지한다. 화면 입력 `boardTap(column,row)` 및 `cameraChanged(camera,zoom)`도 같은 저널을 사용한다. 새로운 scene epoch에서는 시계·선택·이벤트가 초기화되고 과거 bootstrap을 거절한다.
+프레임당 최대 64스텝을 처리하고 나머지 시간은 누적값으로 보존한다. 큰 프레임 간격을 잘라 버리거나 스텝 크기를 늘리지 않는다. 지속적인 과부하에서는 전투가 실제 시간보다 뒤처질 수 있으며, 이는 프레임 응답을 보호하기 위한 제한이다. 이 제한이나 합성 프레임 검사는 Android 실기기의 FPS·발열 개선을 보증하지 않는다.
 
-Android는 `is_session_active()`로 백그라운드·뷰 분리·포커스 상실을 즉시 차단하며 복귀 시 누적 시간을 재생하지 않는다. Flutter에는 최대 10Hz 상태를 보고하고 3D와 VFX는 Godot 프레임마다 갱신한다. 화면의 논리 크기·HUD 영역이 변경될 때만 외부 frame이 필요하다. `inputBlocked`와 논리 좌표 `rewardViewport=[x,y,width,height]`는 앱 UI 경계를 전달한다.
+각 완료 스텝 경계에서 앱이 전투 이벤트·보상·다음 웨이브를 반영한다. 명령은 epoch·sequence 순서대로 스텝 사이에서 동기 처리한다. 같은 초기 상태·난수 시드·게임 시점의 명령을 사용하면 렌더 프레임 분할과 배속에 관계없이 같은 전투를 진행한다. 실제 터치가 도착하는 프레임까지 같다는 보장은 아니다. `session.clock=godot`인 패킷의 `dt`, `steps`, `dtSteps`는 실행하지 않으며, 명시적 가변 step 경로는 과거 회귀 fixture 전용이다.
+
+고정 스텝은 기존 60Hz·1배속의 스텝 크기를 기준으로 한다. 기존 쿨다운 초과분과 이동 경유점 초과분을 버리는 규칙까지 함께 재설계하지 않는다. 낮은 FPS·고배속에서 기존에 누락되던 공격과 이동 갱신이 회복되므로 이전 가변 스텝과 전투 결과가 달라질 수 있다. 첫 적 생성 지연도 배속에 곱하지 않는 게임 시간이다. 독·화상 만료 경계의 의도적인 피해 차이는 [지속피해 규칙](../../docs/damage_calculation_rules.md#지속피해와-방어구)을 따른다.
+
+입력 패킷 `session`: `clock`, `phase`, `running`(디버그 전투 포함), `paused`, `loading`, `backgrounded`, `speed`. 첫 bootstrap에서 `effectTime`, `squaredSteps`로 진행 중 효과 시계를 인계한다. 응답은 같은 `ackSequence`에서도 `stateRevision`이 증가하며, `session.wallElapsed`, `effectTime`, `squaredSteps`, `coreDestructionElapsed`, `nexusAlert`, `phase`가 읽기 모델이다. 플레이 시간은 실제 활성 시간이고 전투 시뮬레이션 시간과 구분한다. 코어 파괴 연출의 3.2초는 실제 시간이며 전투 판정을 재개하지 않는다.
+
+일시정지·보상 선택·로딩·백그라운드에서는 새 전투 시간을 적립하지 않고 이미 적립한 미처리 시간만 유지한다. 보상 화면 직전의 긴 프레임에서 적립한 시간이 남았다면 선택 후 제한된 스텝 수로 따라잡는다. 실제 입력 시각이나 보상 대기시간까지 서로 다른 실행의 동일성을 의미하지 않는다. 복귀 첫 프레임의 중단 시간은 전투로 재생하지 않는다. 새 scene epoch·스테이지·재시도·불러오기는 누적 시계를 새로 시작한다. 기존 v2 체크포인트는 미처리 시간·진행 중 탄환·코어 주기 시계를 저장하지 않으므로 저장/불러오기는 전체 시뮬레이션의 동일 재생을 보장하지 않는다. 복원 시 이전 누적 시간의 지연 폭주를 만들지 않는다. [저장 계약](../app/README.md)을 따른다.
+
+`events`는 누적 `ackEvent`까지 유지한다. `boardTap(column,row)`, `cameraChanged(camera,zoom)`도 같은 저널을 사용하며 새 epoch에서는 선택·이벤트·시계가 초기화되고 과거 bootstrap을 거절한다. 3D/VFX는 렌더 프레임마다 최신 확정 상태를 표시하며, 별도 보간은 추가하지 않는다. `inputBlocked`와 `rewardViewport=[x,y,width,height]`는 앱 UI 경계다.
 
 ## 실행 경로의 구분
 

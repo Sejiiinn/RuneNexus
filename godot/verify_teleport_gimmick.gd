@@ -98,7 +98,8 @@ func _runtime() -> void:
 	check(answer.accepted,"runtime accepts compiled metadata")
 	check(not runtime.advance_session(1.0) and runtime.enemies["42"].x == 0.0,"paused session blocks teleport")
 	runtime.process_command({"epoch":1,"sequence":1,"session":{"paused":false}})
-	runtime.advance_session(0.25)
+	# Preserve existing 60 Hz movement rounding: the entrance is reached on tick 61.
+	runtime.advance_session(61.0 * Runtime.FIXED_STEP / 4.0)
 	check(runtime.enemies["42"].x == 144.0 and runtime.events.size() == 1 and runtime.events[0].kind == "teleport","4x simulation teleports with existing clock")
 	check(runtime.events[0].fromX == 48.0 and runtime.events[0].x == 144.0,"event coordinates use logical board pixels")
 	var frame: Dictionary = runtime.decorate_frame({"enemies":[]})
@@ -176,7 +177,7 @@ func _save(disconnected: bool = false) -> void:
 	bootstrap.enemies = [raw]
 	var runtime = Runtime.new()
 	runtime.process_command({"epoch":1,"sequence":0,"bootstrap":bootstrap,"session":{"clock":"godot","phase":"wave","paused":false}})
-	runtime.advance_session(1.0)
+	runtime.advance_session(61.0 * Runtime.FIXED_STEP)
 	runtime.process_command({"epoch":1,"sequence":1,"ackEvent":runtime.event_id,"session":{"paused":true}})
 	var before: Dictionary = runtime.enemies["100000"].duplicate(true)
 	check(int(before.get("teleportSerial",0)) == 1,"save fixture actually teleported")

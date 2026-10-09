@@ -17,6 +17,9 @@ func enemy(extra: Dictionary={}) -> Dictionary:
 func _initialize() -> void:
 	_path_revision_checks()
 	_dot_armor_checks()
+	_dot_expiry_checks()
+	_dot_reapplication_checks()
+	_dot_expiry_event_checks()
 	var e := enemy({"speed":0.0,"maxShield":100.0,"shield":20.0,"shieldRegenRate":0.1,"maxArmor":100.0,"armor":10.0})
 	Enemy.add_burn(e,{"damagePerSecond":30.0,"duration":1.0})
 	Enemy.step(e,1.0)
@@ -38,9 +41,9 @@ func _initialize() -> void:
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":2})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":2.0,"sourceX":2,"sourceY":3})
 	Enemy.step(e,0.5)
-	close(e.hp,990,"strongest burn clips own lifetime, no remainder tick")
+	close(e.hp,970,"strongest burn expires into weaker remainder")
 	Enemy.step(e,0.5)
-	close(e.hp,965,"weaker burn remains independently")
+	close(e.hp,945,"weaker burn remains independently")
 	Enemy.add_burn(e,{"damagePerSecond":25.0,"duration":4.0,"damageMultiplier":2.0,"sourceX":2,"sourceY":3,"ignoreArmorReduction":true})
 	var transfer := Enemy.burn_transfer(e,{"x":2,"y":3})
 	close(transfer.damagePerSecond,50,"same source retains strongest dps")
@@ -53,7 +56,7 @@ func _initialize() -> void:
 	Enemy.add_poison(e,10,0.01,3)
 	Enemy.add_poison(e,10,0.01,3)
 	Enemy.step(e,0.5)
-	close(e.hp,990,"poison legacy last tick uses full dt")
+	close(e.hp,999.8,"poison last tick clips to active lifetime")
 	check(e.poisonStacks==0,"poison expiration clears stacks")
 	e=enemy()
 	Enemy.add_slow(e,0.2,0.1)
@@ -205,3 +208,187 @@ func _path_revision_checks() -> void:
 		Enemy.step(legacy,0.1,invalid_path)
 		Enemy.step(versioned,0.1,invalid_path,4)
 		check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "empty and short path behavior preserved")
+
+
+func _advance_dot(e: Dictionary,total: float,dt: float) -> Array:
+	var events: Array = []
+	var remaining := total
+	while remaining > 0.000000001:
+		var tick := minf(remaining,dt)
+		events.append_array(Enemy.step(e,tick))
+		remaining -= tick
+	return events
+
+func _damage_total(events: Array,kind: String) -> float:
+	var damage := 0.0
+	for event in events:
+		if event.type == "damage" and event.kind == kind: damage += event.damage
+	return damage
+
+func _dot_expiry_checks() -> void:
+	# The oracle is the continuous active interval, independent of caller dt.
+	# The maximum active burn is 100*.1 + 50*.27 + 25*.43 = 34.25.
+	for dt in [1.0/120.0,1.0/60.0,1.0/30.0,4.0/60.0,0.1,0.5,1.0]:
+		var suffix := " dt="+str(dt)
+		var poisoned := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
+		for stack in range(3): Enemy.add_poison(poisoned,40.0,0.37,3)
+		var events := _advance_dot(poisoned,1.0,dt)
+		close(_damage_total(events,"poison"),44.4,"poison active interval total"+suffix)
+		close(poisoned.shield,0,"poison expiry shield layer"+suffix)
+		close(poisoned.armor,0,"poison expiry armor layer"+suffix)
+		close(poisoned.hp,990.6,"poison expiry HP overflow"+suffix)
+		check(poisoned.shieldBroken,"poison expiry keeps shield break"+suffix)
+		check(poisoned.poisonStacks==0 and poisoned.poisonRemaining==0 and poisoned.poisonDamagePerSecond==0,"poison expiry clears damage state"+suffix)
+		close(poisoned.poisonNumberDamage,0,"poison expiry flushes damage number"+suffix)
+		var burning := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
+		Enemy.add_burn(burning,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
+		Enemy.add_burn(burning,{"damagePerSecond":50.0,"duration":0.37,"sourceX":2,"sourceY":2})
+		Enemy.add_burn(burning,{"damagePerSecond":25.0,"duration":0.8,"sourceX":3,"sourceY":3})
+		events = _advance_dot(burning,1.0,dt)
+		close(_damage_total(events,"burn"),34.25,"burn integrates each strongest-active interval"+suffix)
+		close(burning.shield,0,"burn expiry shield layer"+suffix)
+		close(burning.armor,0.75,"burn expiry armor remainder"+suffix)
+		close(burning.hp,1000,"burn expiry armor protects HP"+suffix)
+		check(burning.burnInstances.is_empty(),"all burn expiries removed"+suffix)
+		close(burning.burnNumberDamage,0,"burn expiry flushes damage number"+suffix)
+	# Exactly aligned endpoints and zero dt cannot introduce another tick.
+	for kind in ["burn","poison"]:
+		var e := enemy({"speed":0.0})
+		if kind == "burn": Enemy.add_burn(e,{"damagePerSecond":64.0,"duration":0.125})
+		else: Enemy.add_poison(e,64.0,0.125,1)
+		close(_damage_total(Enemy.step(e,0.0),kind),0,kind+" zero dt does not tick")
+		close(e.hp,1000,kind+" zero dt preserves HP")
+		close(_damage_total(Enemy.step(e,0.125),kind),8,kind+" exact boundary has one active interval")
+		close(_damage_total(Enemy.step(e,0.5),kind),0,kind+" expired effect cannot tick again")
+		close(e.hp,992,kind+" exact lifetime damage")
+	# A weaker effect that ends under a stronger effect contributes no damage.
+	var hidden := enemy({"speed":0.0})
+	Enemy.add_burn(hidden,{"damagePerSecond":20.0,"duration":0.1,"sourceX":1,"sourceY":1})
+	Enemy.add_burn(hidden,{"damagePerSecond":50.0,"duration":0.2,"sourceX":2,"sourceY":2})
+	close(_damage_total(Enemy.step(hidden,0.5),"burn"),10,"expired weaker burn does not reappear")
+	# Restoring mid-effect preserves the same remaining-time integral.
+	var saved := enemy({"speed":0.0,"burnInstances":[{"remaining":0.1,"damagePerSecond":100.0},{"remaining":0.5,"damagePerSecond":50.0}],"poisonRemaining":0.05,"poisonDamagePerSecond":20.0,"poisonStacks":2})
+	var restored := Enemy.create(Enemy.snapshot(saved))
+	var original_events := Enemy.step(saved,0.5)
+	var restored_events := Enemy.step(restored,0.5)
+	check(original_events==restored_events,"DoT expiry events roundtrip through saved remaining time")
+	close(restored.hp,968,"restored DoTs use actual active intervals")
+
+func _dot_reapplication_checks() -> void:
+	var e := enemy({"speed":0.0})
+	Enemy.add_poison(e,10.0,0.2,2)
+	Enemy.add_poison(e,20.0,0.2,2)
+	Enemy.add_poison(e,30.0,0.2,2,1.5)
+	check(e.poisonStacks==2,"poison reapplication respects stack cap")
+	Enemy.step(e,0.1)
+	close(e.hp,994,"poison capped stacks before refresh")
+	Enemy.add_poison(e,5.0,0.15,2,2.0)
+	close(e.poisonRemaining,0.15,"poison refresh replaces remaining duration")
+	close(e.poisonDamagePerSecond,5,"poison refresh replaces rather than maximizes DPS")
+	close(e.poisonDamageMultiplier,2,"poison refresh retains latest display multiplier")
+	Enemy.step(e,0.2)
+	close(e.hp,992.5,"refreshed poison clips only its new lifetime")
+	Enemy.add_poison(e,12.0,0.1,2)
+	check(e.poisonStacks==1,"poison after expiry starts a new stack")
+	Enemy.step(e,0.2)
+	close(e.hp,991.3,"new poison after expiry clips new lifetime")
+	e = enemy({"speed":0.0})
+	Enemy.add_burn(e,{"damagePerSecond":60.0,"duration":0.1,"sourceX":1,"sourceY":2})
+	Enemy.step(e,0.04)
+	Enemy.add_burn(e,{"damagePerSecond":30.0,"duration":0.2,"damageMultiplier":2.0,"sourceX":1,"sourceY":2,"ignoreArmorReduction":true})
+	check(e.burnInstances.size()==1,"same source burn refresh keeps one instance")
+	close(e.burnInstances[0].damagePerSecond,60,"burn refresh keeps stronger DPS")
+	close(e.burnInstances[0].remaining,0.2,"burn refresh extends remaining duration")
+	close(e.burnInstances[0].damageMultiplier,2,"burn refresh keeps maximum display multiplier")
+	check(e.burnInstances[0].ignoreArmorReduction,"burn refresh keeps saved armor bypass flag")
+	Enemy.step(e,0.5)
+	close(e.hp,985.6,"refreshed burn clips extended lifetime")
+	Enemy.add_burn(e,{"damagePerSecond":30.0,"duration":0.1,"sourceX":1,"sourceY":2})
+	Enemy.step(e,0.5)
+	close(e.hp,982.6,"same source after expiry starts new burn")
+
+func _dot_expiry_event_checks() -> void:
+	var e := enemy({"speed":0.0})
+	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":2,"sourceY":2})
+	Enemy.add_poison(e,20.0,0.1,1)
+	var events := Enemy.step(e,0.5)
+	var damages := events.filter(func(event): return event.type=="damage")
+	check(damages.size()==3,"two burn intervals precede the poison tick")
+	if damages.size()==3:
+		check(damages[0].kind=="burn" and damages[0].sourceX==1,"strongest interval retains first burn source")
+		check(damages[1].kind=="burn" and damages[1].sourceX==2,"weaker remainder retains second burn source")
+		check(damages[2].kind=="poison","burn intervals remain before poison")
+		close(damages[0].damage,10,"strong burn interval event damage")
+		close(damages[1].damage,20,"weak burn remainder event damage")
+		close(damages[2].damage,2,"poison event clips duration")
+	var numbers := events.filter(func(event): return event.type=="damageNumber")
+	check(numbers.size()==2,"expiry keeps one aggregate number per DoT kind")
+	if numbers.size()==2:
+		close(numbers[0].damage,30,"burn number aggregates both intervals")
+		close(numbers[1].damage,2,"poison number uses clipped interval")
+		check(numbers[0].kind=="burn" and numbers[1].kind=="poison","damage-number order stays burn then poison")
+	# Full-step regeneration still precedes every burn interval; breaking is final.
+	e = enemy({"speed":0.0,"maxShield":100.0,"shield":5.0,"shieldRegenRate":0.1,"maxArmor":10.0,"armor":10.0})
+	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5})
+	Enemy.step(e,0.5)
+	close(e.shield,0,"regen occurs once before piecewise burn")
+	check(e.shieldBroken,"piecewise burn latches shield break")
+	close(e.armor,0,"burn remainder crosses broken shield into armor")
+	close(e.hp,990,"burn remainder reaches HP after armor")
+	Enemy.step(e,0.5)
+	close(e.shield,0,"piecewise-broken shield never regenerates")
+	e = enemy({"speed":0.0,"maxShield":100.0,"shield":5.0,"shieldRegenRate":0.1})
+	Enemy.add_poison(e,40.0,0.1,1)
+	Enemy.step(e,0.5)
+	close(e.shield,6,"poison expiry avoids excess shield damage after regen")
+	check(not e.shieldBroken,"short poison does not falsely latch shield break")
+	Enemy.step(e,1.0)
+	close(e.shield,16,"unbroken shield regenerates after poison expiry")
+	# A kill in the weaker remainder belongs to that source, once only.
+	e = enemy({"hp":12.0})
+	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":2,"sourceY":2})
+	Enemy.add_poison(e,100.0,0.5,1)
+	events = Enemy.step(e,0.3)
+	check(count(events,"killed")==1,"weaker remainder kills exactly once before poison")
+	var kills := events.filter(func(event): return event.type=="killed")
+	if kills.size()==1:
+		var transfer: Dictionary = kills[0].burnTransfer
+		check(not transfer.is_empty(),"burn remainder kill retains a burn transfer")
+		if not transfer.is_empty():
+			check(transfer.sourceX==2,"weaker remainder kill uses the weaker source")
+			close(transfer.remaining,0.2,"kill transfer retains end-of-step lifetime")
+			Enemy.step(e,0.1)
+			close(transfer.remaining,0.2,"kill transfer remains an independent snapshot")
+	check(events.size()==3 and events[0].type=="damage" and events[1].type=="killed" and events[2].type=="damage","kill is emitted before its lethal damage event")
+	close(_damage_total(events,"burn"),12,"burn damage events clamp to actual HP on death")
+	close(_damage_total(events,"poison"),0,"poison after burn death does not deal damage")
+	close(e.x,0,"death in a burn remainder prevents movement")
+	check(count(Enemy.step(e,0.5),"killed")==0,"repeated dead step never repeats remainder kill")
+
+	# A short poison must not kill using damage from its inactive remainder.
+	e = enemy({"hp":0.5})
+	Enemy.add_poison(e,10.0,0.01,1)
+	events = Enemy.step(e,0.5)
+	close(e.hp,0.4,"short poison does not overkill past its lifetime")
+	check(count(events,"killed")==0,"short poison does not emit a false kill")
+	close(e.x,5,"surviving poison expiry still permits movement")
+	Enemy.add_poison(e,40.0,0.1,1)
+	events = Enemy.step(e,0.5)
+	check(count(events,"killed")==1,"lethal poison reapplication kills exactly once")
+	close(e.hp,0,"lethal poison clamps HP to zero")
+	close(e.x,5,"poison death prevents movement")
+	check(events.size()==2 and events[0].type=="killed" and events[1].type=="damage","poison kill precedes its damage event")
+	check(count(Enemy.step(e,0.5),"killed")==0,"dead poison does not kill twice")
+	# Equal-DPS attribution changes only when the last instance expires.
+	e = enemy({"speed":0.0})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":1,"sourceY":1})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.1,"sourceX":2,"sourceY":2})
+	events = Enemy.step(e,0.5)
+	damages = events.filter(func(event): return event.type=="damage")
+	close(e.hp,975,"equal-DPS burn continues after selected instance expires")
+	check(damages.size()==2,"equal-DPS expiry has both attributed intervals")
+	if damages.size()==2:
+		check(damages[0].sourceX==2 and damages[1].sourceX==1,"equal-DPS latest-instance tie break holds across expiry")

@@ -123,6 +123,8 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	var control := {"clock":"godot","phase":"preparation","paused":false,"speed":1.0}
 	control.merge(session_state, true)
 	scene._native_combat.process_command({"epoch":epoch,"sequence":0,"session":control,"bootstrap":initial})
+	if not scene._native_combat.step_completed.is_connected(_on_combat_step_completed):
+		scene._native_combat.step_completed.connect(_on_combat_step_completed)
 
 func command(commands: Array = [], patch: Dictionary = {}) -> bool:
 	var before: Array = []
@@ -192,7 +194,7 @@ func board_tap(tile: Vector2i) -> void:
 	if tile.x < 0:
 		scene._native_combat_base_frame.buildPreview = null
 		return
-	scene._native_combat_base_frame.buildPreview = [-1,tile.x + 0.5,tile.y + 0.5,run_domain.service.initial_aim_angle(turret_type),0,0,turret_type]
+	scene._native_combat_base_frame.buildPreview = [-1,tile.x + 0.5,tile.y + 0.5,run_domain.Commands.initial_aim_angle(turret_type),0,0,turret_type]
 
 func build_selected() -> void:
 	if selected.x < 0 or not scene._native_combat.active: return
@@ -208,7 +210,7 @@ func start_wave() -> void:
 		return
 	var inputs := battle_inputs.duplicate(true)
 	if not inputs.has("initialDelay"):
-		inputs.initialDelay = catalog.initial_delay() * float(scene._native_combat.session.get("speed", 1.0))
+		inputs.initialDelay = catalog.initial_delay()
 	if not inputs.has("spawnValues"):
 		inputs.spawnValues = catalog.random_spawn_values(stage, next_round, spawn_rng)
 	var wave: Dictionary = catalog.wave(stage, next_round, next_enemy_id, inputs)
@@ -246,6 +248,15 @@ func exit_stage() -> void:
 		if checkpoint.save_session(self) != OK: return
 	epoch += 1
 	scene._apply_frame({"reset":true,"sceneEpoch":epoch})
+
+func _on_combat_step_completed() -> void:
+	# The runtime has finished all movement/attacks/wave/core work and deducted
+	# this step's debt. ACK/configuration changes therefore affect the next step,
+	# regardless of how many simulation steps fit in the current render frame.
+	var runtime = scene._native_combat
+	if is_content_session() and runtime.active and not run_domain.state.is_empty():
+		if runtime.event_id > run_domain.event_ack or runtime.session.get("phase") != run_domain.state.phase:
+			if not command(): runtime.session.paused = true
 
 func _process(_delta: float) -> void:
 	var runtime = scene._native_combat

@@ -1,7 +1,7 @@
 extends RefCounted
 ## Authoritative enemy state. Coordinates and distance use logical board pixels.
-## Preserve EnemyComponent's discrete frame order, including discarded waypoint
-## overshoot and poison's full-dt final tick (burn instead clips its lifetime).
+## Preserve discrete update order and discarded waypoint overshoot.
+## Continuous damage integrates only the interval where each effect is active.
 
 static func create(raw: Dictionary) -> Dictionary:
 	var e: Dictionary = raw.duplicate(true)
@@ -207,15 +207,17 @@ static func add_rift_mark(e: Dictionary,amplification: float,duration: float) ->
 	e.riftMarkDamageAmplification=maxf(e.riftMarkDamageAmplification,amplification)
 	e.riftMarkRemaining=maxf(e.riftMarkRemaining,duration)
 
-static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array) -> float:
+static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array,burn_step_dt: float=0.0) -> float:
 	# Continuous damage ignores armor reduction, but still consumes shield/armor
 	# before HP. Saved burn flags remain compatible and do not gate this rule.
 	attack["ignoreArmorReduction"] = true
 	var result := apply_hit(e,attack)
 	if result.killed and kind == "burn":
-		# The per-tick attack borrows the live burn. Only a retained kill event
-		# needs its own transfer snapshot, before subsequent ticks change it.
-		result.events[0].burnTransfer = attack.burnTransfer.duplicate(true)
+		# Burn lifetimes advance after all active intervals have been resolved.
+		# Retain the existing end-of-step transfer lifetime and independent copy.
+		var transfer: Dictionary = attack.burnTransfer.duplicate(true)
+		transfer.remaining = maxf(0,float(transfer.remaining)-burn_step_dt)
+		result.events[0].burnTransfer = transfer
 	events.append_array(result.events)
 	if result.actualDamage>0:
 		events.append(_event(e,"damage",{"kind":kind,"damage":result.actualDamage,"bonusDamage":result.bonusDamage,"sourceX":attack.get("sourceX"),"sourceY":attack.get("sourceY")}))
@@ -275,30 +277,34 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 		e.shield=minf(e.maxShield,e.shield+e.maxShield*e.shieldRegenRate*dt)
 	if not e.burnInstances.is_empty():
 		e.burnNumberTimer+=dt
-		var strongest: Dictionary={}
-		var tick := 0.0
-		for i in range(e.burnInstances.size()-1,-1,-1):
-			var b: Dictionary=e.burnInstances[i]
-			var duration := minf(dt,b.remaining)
-			b.remaining=maxf(0,b.remaining-dt)
-			if duration>0 and (strongest.is_empty() or b.damagePerSecond>strongest.damagePerSecond):
-				strongest=b
-				tick=duration
-		if not strongest.is_empty():
-			var attack := {"damage":strongest.damagePerSecond*tick,
+		var elapsed := 0.0
+		while elapsed < dt and e.hp > 0:
+			var strongest: Dictionary = {}
+			# Reverse traversal preserves the latest-instance tie break. We only
+			# split when the strongest expires; hidden weaker expiries add no DPS.
+			for i in range(e.burnInstances.size()-1,-1,-1):
+				var b: Dictionary = e.burnInstances[i]
+				if b.remaining > elapsed and (strongest.is_empty() or b.damagePerSecond > strongest.damagePerSecond):
+					strongest = b
+			if strongest.is_empty(): break
+			var interval_end := minf(dt,float(strongest.remaining))
+			var attack := {"damage":strongest.damagePerSecond*(interval_end-elapsed),
 				"ignoreArmorReduction":strongest.ignoreArmorReduction,
 				"sourceX":strongest.sourceX,"sourceY":strongest.sourceY,
 				"burnTransfer":strongest}
-			e.burnNumberDamage+=_dot_hit(e,attack,"burn",events)
+			e.burnNumberDamage+=_dot_hit(e,attack,"burn",events,dt)
+			elapsed = interval_end
+		for b in e.burnInstances: b.remaining=maxf(0,b.remaining-dt)
 		e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
 		if e.hp>0 and (e.burnNumberTimer>=0.28 or e.burnInstances.is_empty()) and e.burnNumberDamage>0:
 			events.append(_event(e,"damageNumber",{"kind":"burn","damage":e.burnNumberDamage,"damageMultiplier":_max_burn_multiplier(e)}))
 			e.burnNumberDamage=0.0
 			e.burnNumberTimer=0.0
 	if e.poisonRemaining>0:
+		var poison_tick := minf(dt,float(e.poisonRemaining))
 		e.poisonRemaining=maxf(0,e.poisonRemaining-dt)
 		e.poisonNumberTimer+=dt
-		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*e.poisonStacks*dt},"poison",events)
+		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*e.poisonStacks*poison_tick},"poison",events)
 		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonRemaining==0):
 			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":e.poisonDamageMultiplier}))
 			e.poisonNumberDamage=0.0

@@ -13,6 +13,18 @@ const BLAST_DURATION: float = 1.1
 const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
 # Extend fired shots without changing turret or chain target acquisition ranges.
 const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
+# Game seconds, independent of render cadence and playback speed. Keep the
+# existing 60 Hz integrators (including their cooldown/waypoint overshoot rules).
+const FIXED_STEP: float = 1.0 / 60.0
+const MAX_STEPS_PER_FRAME: int = 64
+const STEP_EPSILON: float = 1.0e-10
+# Emitted only after a complete step. Application events/commands may be settled
+# synchronously here, before another step consumes debt in this render frame.
+signal step_completed
+# Host wall-clock boundaries accrue at the old controls without advancing the
+# simulation. Bootstrap, stale packets and duplicate ACKs never emit these.
+signal clock_control_changing
+signal clock_control_changed
 var epoch: int = -1
 var active: bool = false
 var running: bool = true
@@ -33,6 +45,10 @@ var damage_number_index: int = 0
 var event_id: int = 0
 var projectile_id: int = 0
 var clock: float = 0.0
+var simulation_tick: int = 0
+var simulation_debt: float = 0.0
+var clock_control_revision: int = 0
+var _advancing_session: bool = false
 var path: Array = []
 var teleport_pairs: Array = []
 var _path_revision := 0
@@ -60,16 +76,20 @@ var portal_alert: float = 0.0
 func native_session() -> bool:
 	return session.get("clock", "") == "godot"
 
-func advance_session(delta: float, host_active: bool = true) -> bool:
-	if not active or not native_session() or not host_active or delta <= 0:
-		return false
-	if bool(session.get("paused", false)) or bool(session.get("loading", false)) or bool(session.get("backgrounded", false)):
-		return false
+func _session_time_enabled() -> bool:
+	return active and native_session() and not bool(session.get("paused", false)) \
+		and not bool(session.get("loading", false)) and not bool(session.get("backgrounded", false)) \
+		and session.get("phase", "preparation") not in ["ended", "failure", "failed", "success", "restored"]
+
+func _session_clock_gate() -> String:
+	if not _session_time_enabled(): return "stopped"
+	return "reward" if session.get("phase") == "reward" else "active"
+
+func accrue_session_time(delta: float, host_active: bool = true) -> bool:
+	if not host_active or not is_finite(delta) or delta <= 0 or not _session_time_enabled(): return false
 	var phase: String = session.get("phase", "preparation")
-	if phase in ["ended", "failure", "failed", "success", "restored"]:
-		return false
-	# No catch-up after suspension; the same variable timestep used by the old
-	# host is delivered once, scaled here and nowhere else.
+	# Called by the render clock and before a host control change. This path may
+	# only accrue time; it must never run combat or recursively collect/ACK events.
 	nexus_alert = maxf(0, nexus_alert-delta)
 	portal_alert = maxf(0, portal_alert-delta)
 	wall_elapsed += delta
@@ -77,20 +97,44 @@ func advance_session(delta: float, host_active: bool = true) -> bool:
 		phase = "coreDestruction"
 		session.phase = phase
 	if phase == "coreDestruction":
+		# Collapse is a real-time presentation timer, not combat debt.
 		destruction_elapsed = minf(3.2, destruction_elapsed + delta)
 		effect_time += delta * 0.25
 		effect_squared += pow(delta*0.25,2)
 		clock += delta * 0.25
 		if destruction_elapsed >= 3.2: session.phase = "failure"
-	elif phase != "reward":
-		var dt := delta * clampf(float(session.get("speed", 1.0)), 0.1, 4.0)
-		effect_time += dt
-		effect_squared += dt*dt
-		running = bool(session.get("running", phase in ["wave", "running"])) and not (wave_configured and wave.completed)
-		if not terminal: _step(dt)
-		if terminal and defense.failed: session.phase = "coreDestruction"
+	elif phase != "reward" and not terminal:
+		simulation_debt += delta * clampf(float(session.get("speed", 1.0)), 0.1, 4.0)
 	state_revision += 1
 	return true
+
+func advance_session(delta: float, host_active: bool = true) -> bool:
+	if _advancing_session or not host_active or not is_finite(delta) or delta < 0 or not _session_time_enabled():
+		return false
+	var accrued := accrue_session_time(delta, host_active)
+	var steps := 0
+	var frame_epoch := epoch
+	_advancing_session = true
+	while simulation_debt + STEP_EPSILON >= FIXED_STEP and steps < MAX_STEPS_PER_FRAME:
+		if not _session_time_enabled() or terminal or session.get("phase") in ["reward", "coreDestruction"]: break
+		# A tiny negative remainder is floating-point subtraction noise only;
+		# overload never clamps or drops legitimately earned game time.
+		simulation_debt = maxf(0.0, simulation_debt - FIXED_STEP)
+		simulation_tick += 1
+		steps += 1
+		effect_time += FIXED_STEP
+		effect_squared += FIXED_STEP * FIXED_STEP
+		var phase: String = session.get("phase", "preparation")
+		running = bool(session.get("running", phase in ["wave", "running"])) and not (wave_configured and wave.completed)
+		_step(FIXED_STEP)
+		if terminal and defense.failed: session.phase = "coreDestruction"
+		state_revision += 1
+		step_completed.emit()
+		# New bootstrap/load/retry explicitly begins a new clock. Never let an
+		# old render's work continue in its replacement epoch.
+		if epoch != frame_epoch: break
+	_advancing_session = false
+	return accrued or steps > 0
 
 func submit_input(event: Dictionary) -> void:
 	if not active or not native_session(): return
@@ -100,11 +144,19 @@ func submit_input(event: Dictionary) -> void:
 func session_snapshot() -> Dictionary:
 	var result := session.duplicate(true)
 	result.merge({"wallElapsed": wall_elapsed, "effectTime": effect_time,"squaredSteps":effect_squared,
+		"simulationTick":simulation_tick,"simulationDebt":simulation_debt,
 		"coreDestructionElapsed": destruction_elapsed,"nexusAlert":nexus_alert/0.65}, true)
 	return result
 
 # Local application commands only need an ACK; host callers retain full snapshots.
+func _changes_clock_controls(incoming: Dictionary) -> bool:
+	for key in ["clock", "phase", "paused", "loading", "backgrounded", "speed"]:
+		if incoming.has(key) and incoming[key] != session.get(key): return true
+	return false
+
 func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dictionary:
+	var same_native_epoch: bool = native_session() and int(packet.get("epoch", -1)) == epoch
+	var previous_clock_gate := _session_clock_gate()
 	if int(packet.get("epoch", -1)) < epoch:
 		return {"accepted":false,"reason":"staleEpoch","epoch":epoch,"ackSequence":sequence}
 	if epoch != packet.get("epoch"):
@@ -123,6 +175,8 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 			var teleport_error := Teleports.validate_compiled(teleport_pairs,command.get("path",path))
 			if not teleport_error.is_empty():
 				return {"accepted":false,"reason":"invalidTeleportPairs","detail":teleport_error}
+	var clock_change: bool = same_native_epoch and packet.get("session") is Dictionary and _changes_clock_controls(packet.session)
+	if clock_change: clock_control_changing.emit()
 	var ack_event := int(packet.get("ackEvent", 0))
 	for event in events:
 		if int(event.id) <= ack_event and event.kind in ["kill","arrival"]:
@@ -148,8 +202,10 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	elif float(packet.get("dt", 0)) > 0:
 		pending_steps.append({"dt":packet.dt,"running":running})
 	_drain_steps()
+	if _session_clock_gate() != previous_clock_gate: clock_control_revision += 1
 	sequence = int(packet.sequence)
 	state_revision += 1
+	if clock_change: clock_control_changed.emit()
 	return snapshot() if include_snapshot else {"accepted":true,"epoch":epoch,"ackSequence":sequence}
 
 func _reset(packet: Dictionary) -> void:
@@ -157,6 +213,11 @@ func _reset(packet: Dictionary) -> void:
 	session = {}
 	state_revision = 0
 	wall_elapsed = 0.0
+	# Runtime-only scheduler state is intentionally not added to the v2 save.
+	# Checkpoint restore starts paused at its last simulated state, without old debt.
+	simulation_tick = 0
+	simulation_debt = 0.0
+	clock_control_revision = 0
 	effect_time = float(packet.get("session", {}).get("effectTime", 0.0))
 	effect_squared = float(packet.get("session", {}).get("squaredSteps", 0.0))
 	destruction_elapsed = 0.0

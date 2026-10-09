@@ -15,9 +15,27 @@ func run() -> void:
 	scene.add_child(app)
 	app.set_process(false)
 	var runtime = scene._native_combat
-	check(scene._session_frame_delta(300.0,true,1)==0.0,"first activation discards suspended delta")
-	check(scene._session_frame_delta(0.016,true,1)==0.016,"active frame uses unmodified delta")
-	check(scene._session_frame_delta(600.0,true,2)==0.0,"resume generation discards delta even without inactive tick")
+	check(scene._session_frame_delta(300.0,true,1,1000000)==0.0,"first activation discards suspended delta")
+	check(scene._session_frame_delta(0.016,true,1,1016000)==0.016,"active frame uses monotonic elapsed time")
+	check(scene._session_frame_delta(600.0,true,2,9016000)==0.0,"resume generation discards delta even without inactive tick")
+	# Use the production default Time.get_ticks_usec path, not a synthetic clock.
+	# Even a deliberately capped engine delta must retain the full active stall.
+	scene._session_frame_clock.reset()
+	check(scene._session_frame_delta(0.1,true,3) == 0.0,"real monotonic sampler starts without catch-up")
+	OS.delay_msec(300)
+	check(scene._session_frame_delta(0.1,true,3) >= 0.29,"real 300ms stall survives fake capped engine delta")
+	var host_revision: int = scene._session_host_revision
+	scene._notification(MainLoop.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	check(not scene._session_has_focus,"focus loss closes actual host gate")
+	check(scene._session_frame_delta(600.0,scene._session_has_focus,scene._session_host_revision) == 0.0,"focus loss contributes no elapsed time")
+	scene._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
+	check(scene._session_suspended,"application pause closes suspension gate")
+	scene._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
+	scene._notification(MainLoop.NOTIFICATION_APPLICATION_FOCUS_IN)
+	check(scene._session_has_focus and not scene._session_suspended and scene._session_host_revision > host_revision,"resume restores host gate and changes generation")
+	check(scene._session_frame_delta(600.0,true,scene._session_host_revision) == 0.0,"actual resumed generation rejects offline delta")
+	_verify_control_boundaries(scene)
+	_verify_host_boundaries(scene)
 	check(runtime.native_session() and scene._scene_epoch == app.epoch,"standalone entry owns session")
 	for stage in [0,5,10,14,0]:
 		app.enter_stage(stage)
@@ -128,3 +146,105 @@ func run() -> void:
 	else:
 		for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
+
+func _verify_control_boundaries(scene) -> void:
+	var runtime = scene._native_combat
+	var real_clock: Callable = scene._session_now_usec
+	var time := {"usec":1000000}
+	scene._session_now_usec = func(): return time.usec
+	scene._session_frame_clock.reset()
+	scene.set_process(true)
+	scene._session_frame_delta(0.0,true,scene._session_host_revision)
+	time.usec = 1050000
+	var speed_packet := {"epoch":runtime.epoch,"sequence":runtime.sequence+1,"session":{"speed":4.0}}
+	runtime.process_command(speed_packet, false)
+	check(is_equal_approx(runtime.simulation_debt,0.05) and runtime.simulation_tick == 0,"speed command accrues preceding half-interval at old 1x without stepping")
+	check(runtime.sequence == int(speed_packet.sequence),"accrual-only boundary cannot recursively consume command sequence")
+	time.usec = 1100000
+	var elapsed: float = scene._session_frame_delta(0.1,true,scene._session_host_revision)
+	runtime.advance_session(elapsed)
+	check(runtime.simulation_tick == 15 and is_equal_approx(runtime.clock,0.25) and is_equal_approx(runtime.wall_elapsed,0.1),"half interval 1x plus half interval 4x produces exactly 0.25 game seconds")
+	var sampled: int = scene._session_frame_clock.sampled_usec
+	time.usec = 1125000
+	runtime.process_command(speed_packet, false)
+	check(scene._session_frame_clock.sampled_usec == sampled and runtime.simulation_tick == 15 and is_equal_approx(runtime.wall_elapsed,0.1),"duplicate ACK does not sample, accrue, step or rebase host time")
+	time.usec = 1150000
+	runtime.process_command({"epoch":runtime.epoch,"sequence":runtime.sequence+1,"session":{"paused":true}},false)
+	check(is_equal_approx(runtime.simulation_debt,0.2) and runtime.simulation_tick == 15,"pause retains active interval at old speed without advancing combat")
+	time.usec = 901150000
+	runtime.process_command({"epoch":runtime.epoch,"sequence":runtime.sequence+1,"session":{"paused":false}},false)
+	time.usec += 50000
+	elapsed = scene._session_frame_delta(900.0,true,scene._session_host_revision)
+	runtime.advance_session(elapsed)
+	check(is_equal_approx(elapsed,0.05) and runtime.simulation_tick == 39 and is_equal_approx(runtime.wall_elapsed,0.2),"pause/resume between renders excludes 900 offline seconds and retains active time")
+	var next_tick: int = runtime.simulation_tick + 1
+	var boundary := func():
+		if runtime.simulation_tick != next_tick: return
+		time.usec += 1000000
+		runtime.process_command({"epoch":runtime.epoch,"sequence":runtime.sequence+1,"session":{"speed":1.0}},false)
+	runtime.step_completed.connect(boundary)
+	sampled = scene._session_frame_clock.sampled_usec
+	var wall: float = runtime.wall_elapsed
+	runtime.advance_session(1.0/60.0)
+	runtime.step_completed.disconnect(boundary)
+	check(runtime.simulation_tick == 43 and scene._session_frame_clock.sampled_usec == sampled and is_equal_approx(runtime.wall_elapsed,wall+1.0/60.0),"game-timestamped callback skips physical sampling and rebase inside accepted frame")
+	# A retained old runtime cannot charge time into its scene replacement.
+	var replacement = scene._new_native_combat()
+	scene._native_combat = replacement
+	sampled = scene._session_frame_clock.sampled_usec
+	time.usec += 1000000
+	runtime.process_command({"epoch":runtime.epoch,"sequence":runtime.sequence+1,"session":{"speed":2.0}},false)
+	check(replacement.simulation_debt == 0.0 and replacement.wall_elapsed == 0.0 and scene._session_frame_clock.sampled_usec == sampled,"retired runtime control signals cannot accrue or rebase replacement clock")
+	scene._native_combat = runtime
+	scene.set_process(false)
+	scene._session_now_usec = real_clock
+	scene._session_frame_clock.reset()
+
+func _verify_host_boundaries(scene) -> void:
+	var original_runtime = scene._native_combat
+	var real_clock: Callable = scene._session_now_usec
+	var time := {"usec":1000000}
+	scene._session_now_usec = func(): return time.usec
+	scene.set_process(true)
+	var focus_out := MainLoop.NOTIFICATION_APPLICATION_FOCUS_OUT
+	var focus_in := MainLoop.NOTIFICATION_APPLICATION_FOCUS_IN
+	var paused := MainLoop.NOTIFICATION_APPLICATION_PAUSED
+	var resumed := MainLoop.NOTIFICATION_APPLICATION_RESUMED
+	for outgoing in [[focus_out], [paused], [focus_out, paused], [paused, focus_out]]:
+		for incoming in [[focus_in, resumed], [resumed, focus_in]]:
+			for child_pause in [false, true]:
+				for speed in [1.0, 4.0]:
+					var runtime = scene._new_native_combat()
+					scene._native_combat = runtime
+					scene._session_has_focus = true
+					scene._session_suspended = false
+					scene._session_frame_clock.reset()
+					time.usec = 1000000
+					runtime.process_command({"epoch":1,"sequence":0,"session":{"clock":"godot","phase":"wave","speed":speed},"bootstrap":{}}, false)
+					scene._session_frame_delta(0.0,true,scene._session_host_revision)
+					time.usec = 1500000
+					for notification in outgoing:
+						scene._notification(notification)
+						if child_pause:
+							runtime.process_command({"epoch":1,"sequence":runtime.sequence+1,"session":{"paused":true}},false)
+						# Repeated and second-gate notifications at later physical
+						# timestamps must not spend debt or accept background time.
+						time.usec += 100000
+						scene._notification(notification)
+					check(is_equal_approx(runtime.simulation_debt,0.5*speed) and is_equal_approx(runtime.wall_elapsed,0.5),"host close preserves exactly the pre-suspend interval")
+					check(runtime.simulation_tick == 0 and runtime.event_id == 0 and runtime.sequence == (outgoing.size() if child_pause else 0),"host notifications accrue only, without combat/events/nested ACKs")
+					time.usec = 901500000
+					for notification in incoming: scene._notification(notification)
+					if child_pause:
+						runtime.process_command({"epoch":1,"sequence":runtime.sequence+1,"session":{"paused":false}},false)
+					time.usec += 25000
+					for notification in incoming: scene._notification(notification)
+					time.usec += 25000
+					var elapsed: float = scene._session_frame_delta(900.0,true,scene._session_host_revision)
+					runtime.advance_session(elapsed)
+					while runtime.simulation_debt + 0.0000000001 >= 1.0/60.0: runtime.advance_session(0.0)
+					check(is_equal_approx(elapsed,0.05) and is_equal_approx(runtime.clock,0.55*speed) and is_equal_approx(runtime.wall_elapsed,0.55),"both host notification orders exclude 900 seconds and preserve active prefix/suffix at 1x/4x")
+	scene._native_combat = original_runtime
+	scene._session_now_usec = real_clock
+	scene._session_frame_clock.reset()
+	scene.set_process(false)

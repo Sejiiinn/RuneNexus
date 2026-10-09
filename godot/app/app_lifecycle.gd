@@ -396,6 +396,16 @@ func set_auto_start_mode(value: String) -> void:
 		checkpoint.preferences.autoStartMode = previous
 	_refresh_ui()
 
+func _on_combat_step_completed() -> void:
+	var previous_phase: String = str(run_domain.state.get("phase", ""))
+	super._on_combat_step_completed()
+	if startup_blocked or save_failed or _stage_entry_pending: return
+	if str(run_domain.state.get("phase", "")) != previous_phase:
+		if not persist_progression(): return
+	# Resolve automatic round entry at the same boundary as completion, before
+	# a second fixed step in this frame can advance the preparation state.
+	_maybe_auto_start()
+
 func _maybe_auto_start() -> void:
 	if in_lobby or auto_start_mode == "pauseEachRound" or run_domain.state.is_empty(): return
 	if run_domain.state.phase != "preparation" or bool(scene._native_combat.session.get("paused", false)): return

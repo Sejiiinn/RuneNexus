@@ -35,6 +35,7 @@ SCRIPTS = {
     "verify_legacy_combat_regressions.gd": "PASS legacy combat replacements:",
     "verify_shared_turret_stats.gd": "SHARED_TURRET_STATS checks=",
     "verify_native_combat_runtime.gd": "PASS native combat runtime:",
+    "verify_fixed_combat_clock.gd": "FIXED_COMBAT_CLOCK checks=",
     "verify_lightning_target_priority.gd": "LIGHTNING_TARGET_PRIORITY checks=",
     "verify_turret_placement.gd": "TURRET_PLACEMENT checks=",
     "verify_battlefield_path.gd": "BATTLEFIELD_PATH checks=",
@@ -79,7 +80,7 @@ SCRIPTS = {
     "verify_app_presentation.gd": "PASS independent presentation:",
 }
 FIXTURES = (
-    "turret_stat_calculation.json", "native_wave_core_timing.json",
+    "turret_stat_calculation.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
     "quest_progress_cases.json", "reward_snapshot_cases.json",
     "growth_cases.json", "growth_game_cases.json", "growth_progression_cases.json", "game_content_cases.json",
 )
@@ -155,8 +156,9 @@ def prepare(directory: Path, executable: str) -> Path:
 
 def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
-    # Transition durability cases deliberately restart isolated Godot processes.
-    timeout = 60 if name == "verify_run_transition.gd" else 20
+    # Transition cases restart processes; fixed-clock replay covers 120 seeded
+    # scenarios across render cadences/speeds. Existing case limits are unchanged.
+    timeout = 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],
