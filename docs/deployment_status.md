@@ -6,6 +6,15 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-10-09 Android 0.2.17 / code 6046 — 공개 완료
+
+- APK 대상 `a63ce407374191b0e415b2d8c6e8d23c79899bd6`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37882057710)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6046). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6046/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검수한 build-only 산출물 5개를 그대로 공개했다.
+- 승인 일반 골렘·최적화 탱커·UltraTex 보스 모델과 보행·사망 표시, 젬 장착 VFX, 이동 경로 선과 설치 충격 조정을 포함한다. 스테이지 자원 수명·로딩 안내·타깃 메시 준비·UI/환경 텍스처 메모리·별 배경 조회를 최적화하고, 저장 오류·타깃 처리·고정 전투 시간 간격·지속피해·앱 전환 시간 보정을 반영했다. 서버·API·DB·Android 호스트·운영 설정 변경이나 재배포는 없다.
+- 독립 검토에서 최종 탱커 입력·상태 에셋과 실제 Mobile/Metal 게임의 이동·일시정지·12조각 사망·냉각 핵 보호 근거가 일치했고, 최신 전투 시계·지속피해 집중 회귀 2개를 격리 실행해 통과했다. 기존 일반·보스·기타 표현 근거는 관련 입력·공유 의존성 범위에서 활용했다. 부모도 대표 실제 게임 화면을 확인했다. 이는 데스크톱 및 헤드리스 결과이며 최종 Android 실행 검증과 구분한다.
+- 최초 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37881409226)는 젬 보상창 resize 검사에서 약 0.000015px 부동소수점 오차를 완전 일치로 비교해 실패했다. 런타임·기대 좌표는 보존하고 기존 중심 검사와 같은 근사 비교로 수정했다. 별도 검증자가 원본 실패와 수정 후 45개 통과, 중심/배치 각각 1px 오류 주입 시 실패를 확인했다. 최종 CI의 Python 83개·콘텐츠·Godot 회귀 62개·계정/AppServices·서명 빌드·Android 패치 디코더·6043/6044/6045 서명 일치와 Kotlin 차등 복원이 통과했다. 실제 APK의 패키지·버전·운영 설정·대상 build·콘텐츠 JSON·변경 컴파일 스크립트와 탱커 상태 자료 포함을 대조했다. 별도 검증자가 실제 APK의 PCK에서 normal/normal_death/tank/tank_death/boss 5씬을 직접 로드·생성해 삼각형·스킨·클립·공유 맵을 확인했다. 탱커 Walk 49키·Death 61키의 24Hz 원본 키 보존, 상태 자료 9개·관련 셰이더 3개의 원본 일치, 최종 compiled 고정 시계·보폭·사체 수명도 확인했다.
+- APK **422,783,846 bytes**, SHA-256 `ff9fd36ae8b84d6fa18ef5c289123a22c6f78822691b54dd63e7f3e609a7bbf7`. 6045 대비 **22,408,364 bytes 감소(-5.0334%)**로 PCK 감소와 일치한다. 텍스처 payload -25,195,642 bytes가 주요 감소 원인이며 새 별 배경 자료 +2,596,638 bytes 등을 반영했다. PCK 194,559,540 bytes·1181항목, 제작 원본 포함 없음, 지원 ABI 3종과 네이티브 라이브러리 크기·CRC 유지. 챕터2 건설칸·측면·길 노멀맵 3개의 512 축소·ASTC 결과가 같아 699,208 bytes의 완전 중복이 남는다. 원본의 최대 1/255 소수 픽셀 차이가 축소 후 사라진 것으로 출처·로드 참조를 확인했으며 잘못된 맵 포함으로 보지 않는다. 6045→6046 패치는 139,948,602 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치, 자산 5개의 크기·GitHub SHA-256과 검수본 일치 및 익명 APK HTTP 200을 확인했다. 로컬 산출물과 상세 검증은 외장 SSD의 `build/release-verification/apk-6046/`에 보관한다. 새 격리 Android API37 AVD는 앱 실행 전 `super` 파티션 경로 오류로 커널 재부팅을 반복했고 구성/렌더러 대체에서도 복구되지 않았다. API36 대체 이미지·연결 실기기가 없어 최종 APK 설치·본게임·로그인·저장 유지·터치/수명주기·모바일 GPU/지속 성능은 **미검증**이다. 기존 사용자 저장·계정·AVD는 보존했다.
+
 ## 2026-10-07 Android 0.2.16 / code 6045 — 공개 완료
 
 - APK 대상 `d859b80d944f6a9712bbf9c616ebc399381f78c5`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/37565375644)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6045). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6045/rune-nexus.apk). **선택 업데이트·최소 지원 코드 6039**를 유지하며 검수한 build-only 산출물 5개를 그대로 공개했다.
