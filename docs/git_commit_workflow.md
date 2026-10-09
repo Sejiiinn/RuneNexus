@@ -16,7 +16,7 @@ fatal: Unable to create '.git/index.lock': Permission denied
 
 - 작업 범위가 섞여 있으면 `git add -A`를 사용하지 않는다.
 - 커밋 대상 파일을 명시한다.
-- 서버 로그, PID 파일, 스크린샷, 플랫폼 generated 줄바꿈 변경은 별도 요청 없이는 커밋하지 않는다.
+- 서버 로그, PID 파일, 일회성 검증 스크린샷, 플랫폼 generated 줄바꿈 변경은 별도 요청 없이는 커밋하지 않는다.
 - 실제 권한 오류가 나면 원인을 확인하고 현재 세션 정책이 허용하는 경우에만 필요한 실행 권한을 요청한다.
 - 명령 이름이나 예상 오류만으로 사전 승인을 요청하지 않는다. 승인 요청이 금지된 세션에서는 확대 요청·우회를 하지 않는다.
 
@@ -48,6 +48,7 @@ git add -- <파일1> <파일2>
 ```powershell
 git diff --cached --name-only
 git diff --cached --stat
+git diff --cached
 git diff --cached --check
 git status --short --branch
 ```
