@@ -82,7 +82,8 @@ func run() -> void:
 	check(entrance.started_usec == start,"resize retains the original timeline")
 	var resized_position: Vector2 = (hud.get_viewport_rect().size-hud.overlay.size)*0.5
 	entrance._apply(0.20)
-	check(entrance._frame_track.position.is_equal_approx(resized_position) and hud.overlay.pivot_offset == hud.overlay.size*0.5,"resize adopts current native placement and current frame center")
+	# Animated offsets can round native Control size; compare centers as above.
+	check(entrance._frame_track.position.is_equal_approx(resized_position) and hud.overlay.pivot_offset.is_equal_approx(hud.overlay.size*0.5),"resize adopts current native placement and current frame center")
 	entrance._apply(entrance.elapsed())
 	Engine.time_scale = 0.05
 	paused = true
