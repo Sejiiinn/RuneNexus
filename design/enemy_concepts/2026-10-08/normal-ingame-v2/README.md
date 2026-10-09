@@ -17,7 +17,7 @@
 
 ## 게임 동작과 상태 효과
 
-`godot/presentation/guardian_preview.gd`가 normal Walk와 Death를 명시적으로 선택한다. Walk 위상은 native 이동 거리, 방향 보간·사망은 전투 시계를 사용한다. 일시정지·배속·감속·순간이동·역행의 기존 책임을 유지한다. 탱커의 기존 26프레임 Walk와 보폭은 별도 상수로 유지한다. 일반 사체는 승인 Death를 1.4초 전부 재생하고 마지막 자세를 0.10초 유지한 뒤 0.35초 동안 부드럽게 사라진다. `normal_death.gd`는 붕괴 중 원래 PBR 재질을 유지하며, 퇴장 구간에서는 일반 전용 셰이더에 원래 기본색·tangent normal·roughness·발광 맵과 계수를 전달한다. 탱커·보스와 같은 화면 고정 coverage/discard로 표면을 점진적으로 지우며 불투명 깊이와 눈·핵의 가림을 유지한다. 1.85 전투초에 표시 사체만 정리하며 처치·보상·저장과 다른 적의 퇴장 시간은 변경하지 않는다.
+`godot/presentation/guardian_preview.gd`가 normal Walk와 Death를 명시적으로 선택한다. Walk 위상은 native 이동 거리, 방향 보간·사망은 전투 시계를 사용한다. 일시정지·배속·감속·순간이동·역행의 기존 책임을 유지한다. 탱커의 Walk·보폭과 사망 재생은 [탱커 게임 연결](../../2026-10-09/tank-game-integration/README.md)의 별도 계약을 따른다. 일반 사체는 승인 Death를 1.4초 전부 재생하고 마지막 자세를 0.10초 유지한 뒤 0.35초 동안 부드럽게 사라진다. `normal_death.gd`는 붕괴 중 원래 PBR 재질을 유지하며, 퇴장 구간에서는 일반 전용 셰이더에 원래 기본색·tangent normal·roughness·발광 맵과 계수를 전달한다. 탱커·보스와 같은 화면 고정 coverage/discard로 표면을 점진적으로 지우며 불투명 깊이와 눈·핵의 가림을 유지한다. 1.85 전투초에 표시 사체만 정리하며 처치·보상·저장과 다른 적의 퇴장 시간은 변경하지 않는다.
 
 기존 화상·성에 모양을 새 스킨에 `scripts/bake_skinned_enemy_status.gd -- normal`로 굽는다. `normal_status_burn.res`, `normal_status_frost_shards.res`, `normal_status_frost_grains.res`만 갱신한다. 상태 좌표 배율은 실제 Godot 가져오기에서 확인한 1.094098을 사용한다. 성에는 보라색 룬과 붉은 눈/핵을 기존 보호 옵션으로 보존하며 다른 종의 부착 자료는 유지한다.
 

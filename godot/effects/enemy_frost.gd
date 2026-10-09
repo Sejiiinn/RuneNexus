@@ -9,6 +9,15 @@ const CRYSTALS := "res://assets/effects/enemy_frost/crystals.glb"
 const COAT_SHADER = preload("res://effects/enemy_frost.gdshader")
 const CRYSTAL_SHADER = preload("res://effects/enemy_frost_crystals.gdshader")
 const GRAIN := "res://assets/effects/enemy_frost/grain.png"
+# Four UV islands of the approved tank chest core, measured from its source
+# atlas/mesh. Together they select only 28 of 11933 source triangles around
+# the recessed amber core; brown stone and shoulder moss remain frost-coated.
+const TANK_AMBER_UV_RECTS := [
+	Vector4(.209228515625, .138916015625, .216552734375, .145263671875),
+	Vector4(.286865234375, .162353515625, .2955636978149414, .170654296875),
+	Vector4(.536865234375, .161865234375, .544677734375, .172607421875),
+	Vector4(.859130859375, .486083984375, .863037109375, .495361328125),
+]
 static var _coat: ShaderMaterial
 static var _skinned_coats: Dictionary = {}
 # glTF rest normalization, used only to sample the common authored frost volume.
@@ -128,6 +137,11 @@ static func apply(entry: Dictionary, slowed: bool) -> void:
 					if guardian and not _skinned_coats.has(original):
 						var coat := _coat.duplicate() as ShaderMaterial
 						coat.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[kind])
+						coat.set_shader_parameter("coordinate_offset", GuardianStatus.COORDINATE_OFFSETS.get(kind, Vector3.ZERO))
+						coat.set_shader_parameter("preserve_amber_core", kind == "tank")
+						if kind == "tank":
+							for index in range(TANK_AMBER_UV_RECTS.size()):
+								coat.set_shader_parameter("amber_core_uv_" + str(index), TANK_AMBER_UV_RECTS[index])
 						coat.set_shader_parameter("preserve_colored_core", true)
 						coat.set_shader_parameter("preserve_red_core", kind in ["boss", "normal"])
 						# Tank eyes emit subtly; its recessed mineral rune does not.

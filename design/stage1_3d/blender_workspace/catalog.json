@@ -395,6 +395,40 @@
       "limitation": "원본은 사용자 외장 SSD 보관 정책을 따른다. 사망 추가 수정은 보류하며 승인 Death를 보존한다. Android·배포 검증은 별도다.",
       "approved_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-rig-v2/blender/stonegolem-rig-walk-death-v2.blend",
       "approved_source_sha256": "8004975f8c635afa3638793e2eca1f73b371a28c5b8193bf050b06704cd8de73"
+    },
+    "tank-natural-rubble-v4": {
+      "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/tank-shoulder-03-multiview-20261008-512/rigging/death-rubble-v4-optimized/blender/tank-shoulder03-death-rubble-optimized-v4.blend",
+      "source_sha256": "81a1d5008a7a909b0ca3f58c975cb3d39b8abced2693320210d02f0db8bb2ab4",
+      "guide": "design/enemy_concepts/2026-10-09/tank-game-integration/README.md",
+      "steps": [
+        {
+          "script": "design/enemy_concepts/2026-10-09/tank-game-integration/export_runtime.py",
+          "entrypoint": "module body",
+          "context": "승인된 Walk와 최적화한 12조각 Death를 별도 GLB로 내보낸다. 원본 형상·재질·애니메이션을 보존하고 공용 바닥·균등 표시 정규화만 적용한다. 열린 Blender와 SSD 원본을 덮지 않는다."
+        },
+        {
+          "script": "scripts/bake_skinned_enemy_status.gd",
+          "entrypoint": "run() -- tank",
+          "context": "격리한 Godot 프로젝트에서 새 탱커 스킨에 공용 화상·성에 부착점을 굽고 tank_status_*.res만 원본 에셋으로 회수한다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/enemies/tank.glb",
+        "assets/images/stage1_3d/enemies/tank_death.glb",
+        "assets/images/stage1_3d/enemies/tank_status_burn.res",
+        "assets/images/stage1_3d/enemies/tank_status_frost_shards.res",
+        "assets/images/stage1_3d/enemies/tank_status_frost_grains.res"
+      ],
+      "checks": [
+        "godot/verify_skinned_enemy_presentation.gd",
+        "godot/verify_enemy_burn.gd",
+        "godot/verify_enemy_frost.gd",
+        "godot/verify_effect_preparation.gd"
+      ],
+      "records": [
+        "design/enemy_concepts/2026-10-09/tank-game-integration/runtime-contract.json"
+      ],
+      "limitation": "원본은 사용자 외장 SSD에 유지한다. 실제 데스크톱 게임 적용 상태는 안내 문서가 기준이며 Android 실기기·배포·FPS 검증은 별도다."
     }
   }
 }

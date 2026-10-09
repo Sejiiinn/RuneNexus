@@ -80,6 +80,17 @@ def _prepare_battlefield_verification() -> None:
 
 
 
+def _prepare_tank_imports() -> None:
+    # Preserve the approved 24fps contact/hold keys. Godot optimizer otherwise
+    # shifts source bounds and introduces drift in the stationary rubble hold.
+    for name in ("tank", "tank_death"):
+        (ASSETS / "enemies" / f"{name}.glb.import").write_text(
+            '[remap]\nimporter="scene"\ntype="PackedScene"\n\n'
+            '[params]\nanimation/fps=24\n'
+            '_subresources={"nodes":{"PATH:AnimationPlayer":{"optimizer/enabled":false}}}\n'
+        )
+
+
 def _prepare_boss_imports() -> None:
     """Keep accepted boss contact keys and material-friendly mobile compression."""
     boss = ASSETS / "enemies/boss.glb"
@@ -370,12 +381,7 @@ def prepare() -> Path:
         shutil.copy2(source, ASSETS / "enemies" / source.name)
     shutil.copy2(SOURCE_ASSETS / "effects/placement_dust.json", ASSETS / "effects/placement_dust.json")
     texture_manifest = externalize_textures(ASSETS)
-    # Preserve the 60fps contact extrema during the fast authored kneel.
-    # Default 30fps resampling otherwise puts feet briefly below the tile.
-    (ASSETS / "enemies/tank_death.glb.import").write_text(
-        '[remap]\nimporter="scene"\ntype="PackedScene"\n\n'
-        '[params]\nanimation/fps=60\n'
-    )
+    _prepare_tank_imports()
     (PROJECT.parent / "shared_texture_manifest.json").write_text(
         json.dumps(texture_manifest, ensure_ascii=False, indent=2) + "\n"
     )

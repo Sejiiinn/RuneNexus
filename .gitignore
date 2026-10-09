@@ -804,3 +804,6 @@ __pycache__/
 
 # Normal golem integration: one-off runtime captures, receipts and old copies.
 /design/enemy_concepts/2026-10-08/normal-ingame-v2/verification/
+
+# Tank optimized model integration: disposable captures, old copies and checks.
+/design/enemy_concepts/2026-10-09/tank-game-integration/checks/

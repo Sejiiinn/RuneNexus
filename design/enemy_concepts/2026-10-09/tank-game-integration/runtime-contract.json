@@ -1,0 +1,88 @@
+{
+  "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/tank-shoulder-03-multiview-20261008-512/rigging/death-rubble-v4-optimized/blender/tank-shoulder03-death-rubble-optimized-v4.blend",
+  "source_sha256": "81a1d5008a7a909b0ca3f58c975cb3d39b8abced2693320210d02f0db8bb2ab4",
+  "source_up": "+Y",
+  "source_front": "+Z",
+  "uniform_scale": 1.6920935396859471,
+  "source_floor": -0.42562058568000793,
+  "normalized_rest_height": 1.37216152,
+  "source_stride": 0.2032258064516129,
+  "display_stride_tiles": 0.2175022494278573,
+  "content_scale": 0.65,
+  "renderer_visual_scale": 0.973076923076923,
+  "death": {
+    "authored_seconds": 2.5,
+    "terminal_hold_seconds": 0.1,
+    "fade_seconds": 0.35,
+    "lifetime_seconds": 2.95,
+    "rigid_chunks": 12,
+    "back_chunk_lies_on_ground": true
+  },
+  "exports": [
+    {
+      "path": "assets/images/stage1_3d/enemies/tank.glb",
+      "sha256": "fa916b3fbfe0d6caff5c5e9e7edee6d9e66c5cda8716f30de7f60ba61d0ee07b",
+      "bytes": 6988016,
+      "clip": "Walk",
+      "seconds": 2,
+      "triangles": 11933,
+      "meshes": 1,
+      "bone_count": 14
+    },
+    {
+      "path": "assets/images/stage1_3d/enemies/tank_death.glb",
+      "sha256": "80501e485d350be897b6969369e0cbe5c7ac85bb82a5e573521b88b4bc88bfa8",
+      "bytes": 7426788,
+      "clip": "Death",
+      "seconds": 2.5,
+      "triangles": 16118,
+      "meshes": 12,
+      "bone_count": 0
+    }
+  ],
+  "validation": "PASS_desktop_native_runtime_and_independent_visual_review",
+  "status_assets": [
+    {
+      "path": "assets/images/stage1_3d/enemies/tank_status_burn.res",
+      "sha256": "6dc8c609b7136c6600316b91ce33cdd36ddaf5d20e311b44e8e6e896e87ca526",
+      "bytes": 15889
+    },
+    {
+      "path": "assets/images/stage1_3d/enemies/tank_status_frost_shards.res",
+      "sha256": "4b2728fbaee6e8fcf48fb0d0fa6984aaf61303e084af71c5fe848c9b2c36e509",
+      "bytes": 136961
+    },
+    {
+      "path": "assets/images/stage1_3d/enemies/tank_status_frost_grains.res",
+      "sha256": "79b7dabb20128d8df51efdb9377cd33a36cf7be4dd6180c3d8957e3905785603",
+      "bytes": 400121
+    }
+  ],
+  "status_coordinate_scale": 1.6920935396859471,
+  "status_y_offset": 0.7201898694038391,
+  "animation_import_fps": 24,
+  "animation_optimizer_enabled": false,
+  "pack": {
+    "path": "build/godot/android-assets/rune_nexus.pck",
+    "bytes": 194640684,
+    "sha256": "8a51e7629f64b61e192911854bea8215056af07db1d54fbf0e2e16274649cffa",
+    "inputs_sha256": "36910c9b35542651b25a89a9ba0b1c6ad4eda673e9ca16f0ead0b2c773cfbf8b",
+    "engine": "4.7.2.stable.official.ed1daf0bf",
+    "apk_built": false
+  },
+  "frost_core_protection": "tank-only four chestcore UV islands; 28 source triangles; body coat retained; existing status anchors outside core",
+  "verified_at": "2026-10-09",
+  "verification": {
+    "renderer": "Godot4.7.2 / Metal4 ForwardMobile / Apple M4 (Apple9) / 440x900",
+    "native_scenario": "isolated stage 1 wave 5; native tower placement, attacks and kill; test checkpoint 1000 gold and boot service bypass",
+    "walk_pause_death_fade_cleanup": "PASS",
+    "tank_frost_core_and_body_coat_same_native_state": "PASS",
+    "focused_regression_failures": 0,
+    "pack_inventory_and_inputs": "PASS",
+    "source_sha_unchanged": true,
+    "independent_review": "PASS",
+    "representative_frame": "game-preview.png",
+    "local_evidence_directory": "checks/reviewer (git-ignored, local only)",
+    "android_apk_and_device_performance": "not tested; APK not built"
+  }
+}

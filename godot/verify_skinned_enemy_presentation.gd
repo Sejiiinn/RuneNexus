@@ -45,11 +45,11 @@ func check_single_evaluation(world: Node3D) -> void:
 	model.add_child(player)
 	player.owner = model
 	var animation := Animation.new()
-	animation.length = 1.0
+	animation.length = 3.0
 	var track := animation.add_track(Animation.TYPE_VALUE)
 	animation.track_set_path(track, NodePath("PoseProbe:value"))
 	animation.track_insert_key(track, 0.0, 0.0)
-	animation.track_insert_key(track, 1.0, 1.0)
+	animation.track_insert_key(track, 3.0, 3.0)
 	var library := AnimationLibrary.new()
 	library.add_animation("Walk", animation)
 	player.add_animation_library("", library)
@@ -74,34 +74,29 @@ func check_single_evaluation(world: Node3D) -> void:
 	motion.clear()
 	# Reuse the property-track probe with real tank effect sampling. No GLB
 	# import/cache writes are included in these per-update evaluation counts.
-	for first_age in [0.0, 0.9]:
+	for first_age in [0.0, 2.7]:
 		entry = motion._instantiate(scene, 0.0)
 		sampled = entry.root.get_child(0).get_node("PoseProbe")
 		entry.type = "tank"
 		entry.born = 0.0
-		var skeleton := Skeleton3D.new()
-		entry.root.add_child(skeleton)
-		entry.death_skeleton = skeleton
-		entry.death_start_pose = []
+		entry.death_start_transforms = {}
 		entry.death_bodies = []
-		var dust := MultiMeshInstance3D.new()
-		entry.root.add_child(dust)
-		entry.death_dust = dust
+		entry.death_originals = []
+		entry.death_fading = false
 		motion.deaths[10] = entry
 		sampled.writes = 0
 		motion.update_deaths(first_age)
 		check(sampled.writes == 1, "Fresh tank samples even when first update is already settled")
 		var terminal_sampled: bool = first_age >= Motion.TankDeath.COLLAPSE
-		for age in [0.05, 0.05, 0.3, 0.7, 0.9, 0.9, 1.2, 0.3, 0.8, 1.3]:
+		for age in [0.05, 0.05, 1.3, 2.5, 2.6, 2.6, 2.8, 0.3, 2.5, 2.9]:
 			sampled.writes = 0
 			motion.update_deaths(age)
 			var expected := 0 if age >= Motion.TankDeath.COLLAPSE and terminal_sampled else 1
 			check(sampled.writes == expected, "Tank evaluates only changing collapse or first terminal pose at " + str(age))
 			terminal_sampled = age >= Motion.TankDeath.COLLAPSE
 			check(is_equal_approx(sampled.value, minf(age, Motion.TankDeath.COLLAPSE)), "Tank pose time survives pause and rewind")
-			check(is_equal_approx(float(dust.get_instance_shader_parameter("death_age")), age), "Dust age updates even when terminal pose is held")
 		motion.update_deaths(Motion.TankDeath.LIFETIME)
-		check(motion.deaths.is_empty() and not is_instance_valid(dust), "Tank lifetime removes held corpse and dust")
+		check(motion.deaths.is_empty() and not is_instance_valid(sampled), "Tank lifetime removes held corpse")
 		motion.clear()
 
 func pose_snapshot(entry: Dictionary) -> Array[Transform3D]:
@@ -122,6 +117,74 @@ func check_legacy_pose(entry: Dictionary, label: String) -> void:
 	for index in range(single.size()):
 		check(single[index].is_equal_approx(legacy[index]), label + " pose matches legacy at transform " + str(index))
 
+func check_tank_core_mask(body: MeshInstance3D) -> void:
+	var arrays := body.mesh.surface_get_arrays(0)
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+	var protected_triangles := 0
+	for offset in range(0, indices.size(), 3):
+		var a := indices[offset]
+		var b := indices[offset + 1]
+		var c := indices[offset + 2]
+		var uv := (uvs[a] + uvs[b] + uvs[c]) / 3.0
+		var protected := false
+		for rect: Vector4 in Frost.TANK_AMBER_UV_RECTS:
+			protected = protected or (uv.x >= rect.x and uv.y >= rect.y and uv.x <= rect.z and uv.y <= rect.w)
+		if not protected: continue
+		protected_triangles += 1
+		var point := (vertices[a] + vertices[b] + vertices[c]) / 3.0
+		check(point.x > -.057 and point.x < .031 and point.y > .752 and point.y < .812 and point.z > .333 and point.z < .394, "Tank amber mask stays confined to source chest-core surfaces")
+	check(protected_triangles == 28 and indices.size() / 3 == 11933, "Tank amber mask protects only 28 chest-core triangles and retains frost on the stone body")
+
+func check_tank_residue(motion: RefCounted, entry: Dictionary, born: float) -> void:
+	var body: MeshInstance3D = entry.death_bodies[0]
+	var original: StandardMaterial3D = entry.death_originals[0][0]
+	motion.update_deaths(born + 1.5)
+	var source_hold := pose_snapshot(entry)
+	motion.update_deaths(born + Motion.TankDeath.COLLAPSE)
+	check(is_equal_approx(entry.player.current_animation_position, 2.5), "Tank reaches the full terminal object pose")
+	var terminal := pose_snapshot(entry)
+	for index in range(source_hold.size()):
+		check(source_hold[index].is_equal_approx(terminal[index]), "Tank preserves approved stationary object hold from frame37 through frame60")
+	motion.update_deaths(born + Motion.TankDeath.FADE_START + .15)
+	var held := pose_snapshot(entry)
+	for index in range(terminal.size()):
+		check(terminal[index].is_equal_approx(held[index]), "Tank holds every rubble object during fade")
+	var opacity := float(body.get_instance_shader_parameter("death_opacity"))
+	check(opacity > 0.0 and opacity < 1.0, "Tank fades only after the complete approved clip and hold")
+	var faded: ShaderMaterial = body.get_active_material(0)
+	check(faded.get_shader_parameter("albedo_map") == original.albedo_texture and faded.get_shader_parameter("normal_map") == original.normal_texture, "Tank fade retains the new approved albedo and tangent normal")
+	check(faded.get_shader_parameter("roughness_map") == original.roughness_texture and is_equal_approx(faded.get_shader_parameter("roughness_factor"), original.roughness), "Tank fade retains authored roughness map/factor")
+	check(faded.get_shader_parameter("metallic_map") == original.metallic_texture and is_equal_approx(faded.get_shader_parameter("metallic_factor"), original.metallic), "Tank fade retains authored metallic map/factor")
+	var interior_count := 0
+	for index in range(entry.death_bodies.size()):
+		var chunk: MeshInstance3D = entry.death_bodies[index]
+		for surface in range(chunk.mesh.get_surface_count()):
+			var source: StandardMaterial3D = entry.death_originals[index][surface]
+			var residue: ShaderMaterial = chunk.get_active_material(surface)
+			check(residue.get_shader_parameter("use_albedo") == (source.albedo_texture != null), "Tank fade supports atlas and untextured cut interiors")
+			check(residue.get_shader_parameter("use_normal") == (source.normal_enabled and source.normal_texture != null), "Tank fade preserves valid tangent normals and flat cut interiors")
+			check(residue.get_shader_parameter("use_roughness") == (source.roughness_texture != null), "Tank fade preserves textureless interior roughness")
+			check(residue.get_shader_parameter("albedo_tint") == source.albedo_color and is_equal_approx(residue.get_shader_parameter("roughness_factor"), source.roughness), "Tank fade preserves each surface color and roughness factor")
+			check(residue.shader.code.contains("render_mode cull_disabled;"), "Tank fade preserves approved double-sided chunk surfaces")
+			if source.albedo_texture == null: interior_count += 1
+	check(interior_count > 0, "Tank keeps the approved real cut interior surfaces")
+	check(faded.shader.code.contains("if (coverage > death_opacity) discard;") and not faded.shader.code.contains("ALPHA ="), "Tank stone residue uses opaque coverage fade")
+	motion.update_deaths(born + Motion.TankDeath.FADE_START + .15)
+	check(is_equal_approx(float(body.get_instance_shader_parameter("death_opacity")), opacity), "Tank pause freezes fade on combat clock")
+	motion.update_deaths(born + .05)
+	check(body.get_active_material(0) == original and not entry.death_settled, "Tank rewind restores original PBR and handoff sampling")
+	var rewind := pose_snapshot(entry)
+	motion.update_deaths(born + .05)
+	var paused := pose_snapshot(entry)
+	for index in range(rewind.size()):
+		check(rewind[index].is_equal_approx(paused[index]), "Tank rewind handoff does not accumulate")
+	motion.update_deaths(born + Motion.TankDeath.LIFETIME - .01)
+	check(motion.deaths.has(3) and float(body.get_instance_shader_parameter("death_opacity")) < .01, "Tank reaches near-zero opacity before cleanup")
+	motion.update_deaths(born + Motion.TankDeath.LIFETIME)
+	check(motion.deaths.is_empty() and not is_instance_valid(body), "Tank cleanup removes all held rubble at 2.95s")
+
 func run() -> void:
 	var world := Node3D.new()
 	root.add_child(world)
@@ -140,7 +203,8 @@ func run() -> void:
 	check(is_equal_approx(Motion.STRIDE_TILES, 0.30448740352926223), "Normal contact stride matches game Walk handoff at preserved display size")
 	check(fast.type == "fast" and fast.player.get_animation(fast.clip).length > 0.56, "Fast Run imported")
 	check(is_equal_approx(Motion.RUN_STRIDE_TILES, 0.6445833333333333 * Motion.FAST_VISUAL_SCALE), "Fast stride follows visual scale without changing combat speed")
-	check(tank.clip == "Walk" and is_equal_approx(tank.player.get_animation(tank.clip).length, Motion.WALK_SECONDS), "Tank imports approved 26-frame Walk")
+	check(tank.clip == "Walk" and is_equal_approx(tank.player.get_animation(tank.clip).length, Motion.WALK_SECONDS), "Tank imports approved 2.0s Walk v2")
+	check(is_equal_approx(Motion.TANK_STRIDE_TILES, .2175022494278573), "Tank contact travel uses approved virtual stride and preserved common display scale")
 	check(is_equal_approx(.65 * Motion.visual_scale("tank"), .55 * Motion.NORMAL_VISUAL_SCALE), "Tank shares common display size without changing content .65")
 	check(tank.has("label_bounds") and tank.label_bounds.size.y > 0.0 and not normal.has("label_bounds") and not fast.has("label_bounds"), "Only tank head supplies the new visual bar anchor")
 	for entry: Dictionary in [normal, fast, tank]:
@@ -194,17 +258,18 @@ func run() -> void:
 			check(coat.get_shader_parameter("preserve_red_core"), "Normal frost preserves approved red eyes/core as well as purple rune")
 		if entry.type == "fast":
 			check(coat.get_shader_parameter("preserve_emission_core") and coat.get_shader_parameter("body_emission") == original.emission_texture, "Blue hound stone receives frost; only authored emission is protected")
+		check(bool(coat.get_shader_parameter("preserve_amber_core")) == (entry.type == "tank"), entry.type + " retains its own core protection without changing other species")
 		if entry.type == "tank":
+			check_tank_core_mask(body)
+			for index in range(Frost.TANK_AMBER_UV_RECTS.size()):
+				check(coat.get_shader_parameter("amber_core_uv_" + str(index)) == Frost.TANK_AMBER_UV_RECTS[index], "Tank frost receives the exact approved chest core atlas island " + str(index))
+			check(not bool(coat.get_shader_parameter("preserve_red_core")), "Tank brown stone remains eligible for frost")
 			check(coat.get_shader_parameter("preserve_colored_with_emission"), "Tank protects both subtle eyes and nonemitting mineral rune")
-			var core_count := 0
-			for mesh: MeshInstance3D in entry.root.find_children("*", "MeshInstance3D", true, false):
-				var core := mesh.get_active_material(0)
-				if core.resource_name.ends_with("_crystal"):
-					core_count += 1
-					check(core.next_pass == null, "Tank frost keeps nested amber sphere material")
-					if core.resource_name == "Tank_AmberNucleus_crystal":
-						check(core is ShaderMaterial and core.shader == Motion.TANK_NUCLEUS_SHADER, "Tank keeps authored camera-facing amber depth on real sphere")
-			check(core_count == 2, "Tank keeps both real amber spheres")
+			check(is_equal_approx(float(coat.get_shader_parameter("coordinate_scale")), Motion.TANK_MODEL_SCALE), "Tank frost samples the newly normalized source coordinates")
+			check(coat.get_shader_parameter("coordinate_offset").is_equal_approx(Vector3(0, 0, .7201898694038391)), "Tank frost mask follows the authored floor wrapper")
+			check(is_equal_approx(float(entry.burn.get_child(0).material_override.get_shader_parameter("coordinate_scale")), Motion.TANK_MODEL_SCALE), "Tank flame size and rise use the new source normalization")
+			check(coat.get_shader_parameter("body_albedo") == original.albedo_texture, "Tank frost reads the approved new atlas")
+			check(body.get_active_material(0) is StandardMaterial3D and body.get_active_material(0).normal_texture != null, "Tank keeps approved tangent-normal PBR without obsolete amber substitution")
 		Burn.apply(entry, false, 1.16)
 		Frost.apply(entry, false)
 		check(not entry.burn.visible and not entry.frost.visible and body.get_active_material(0) == original, entry.type + " status expiry restores material")
@@ -224,8 +289,14 @@ func run() -> void:
 	check(normal_body.get_active_material(0) == normal_original, "Normal collapse retains the original opaque PBR material")
 	var tank_death: Dictionary = motion.deaths[3]
 	var live_skeleton: Skeleton3D = tank.root.find_children("*", "Skeleton3D", true, false)[0]
-	for bone in range(live_skeleton.get_bone_count()):
-		check(tank_death.death_skeleton.get_bone_pose(bone).is_equal_approx(live_skeleton.get_bone_pose(bone)), "Tank kill retains current gait pose at bone %d" % bone)
+	check(live_skeleton.get_bone_count() == 14 and live_skeleton.find_bone("Head") >= 0, "Tank imports the approved 14-bone rig and Head anchor")
+	check(tank_death.root.find_children("*", "Skeleton3D", true, false).is_empty(), "Tank Death is rigid object animation, without a copied skeleton")
+	check(tank_death.death_bodies.size() == 12 and tank_death.death_start_transforms.size() == 12, "All twelve rubble chunks receive interrupted gait handoff")
+	check(is_equal_approx(tank_death.player.get_animation("Death").length, 2.5), "Tank plays the entire approved 60-frame 24fps Death")
+	for chunk: MeshInstance3D in tank_death.death_bodies:
+		check(chunk.name.begins_with("DeathStone_") and chunk.skin == null, "Tank chunk retains approved rigid topology: " + chunk.name)
+		check(chunk.transform.is_equal_approx(tank_death.death_start_transforms[chunk]), "Tank kill retains live gait delta for " + chunk.name)
+		check(chunk.get_active_material(0) == tank_death.death_originals[tank_death.death_bodies.find(chunk)][0], "Tank collapse preserves approved original PBR")
 	check(motion.deaths[2].type == "fast" and motion.deaths[2].clip != "Run", "Fast kill uses Death rather than Run")
 	check(is_equal_approx(motion.deaths[2].root.scale.x, 0.48 * Motion.FAST_VISUAL_SCALE), "Fast corpse retains live visual scale")
 	for entry: Dictionary in motion.deaths.values():
@@ -248,19 +319,10 @@ func run() -> void:
 	check(not motion.deaths.has(2) and motion.deaths.has(1), "Fast cleans up at .55 seconds; normal keeps its approved collapse before fading")
 	check(motion.deaths.has(3), "Tank residue remains after the old corpse lifetimes")
 	motion.update_deaths(2.9)
-	check(motion.deaths.size() == 2 and is_equal_approx(tank_death.player.current_animation_position, .7), "Tank holds the settled pose after .7s")
-	check(is_zero_approx(float(tank_death.death_bodies[0].get_instance_shader_parameter("death_light"))), "Tank core is off after the single impact pulse")
-	var settled := pose_snapshot(tank_death)
-	motion.update_deaths(3.2)
-	var held := pose_snapshot(tank_death)
-	for index in range(settled.size()):
-		check(settled[index].is_equal_approx(held[index]), "Tank holds each authored node/bone during fade")
-	var tank_opacity := float(tank_death.death_bodies[0].get_instance_shader_parameter("death_opacity"))
-	check(tank_opacity > 0.0 and tank_opacity < 1.0, "Tank fade progresses while terminal pose evaluation is skipped")
-	check(is_equal_approx(float(tank_death.death_dust.get_instance_shader_parameter("death_age")), 1.2), "Authored tank dust continues using combat age during fade")
-	check_legacy_pose(tank_death, "tank held terminal")
+	check(motion.deaths.size() == 2 and is_equal_approx(tank_death.player.current_animation_position, .9), "Tank continues authored rubble collapse beyond the old .7s clamp")
+	check(is_equal_approx(float(tank_death.death_bodies[0].get_instance_shader_parameter("death_opacity")), 1.0), "Tank remains fully opaque throughout its approved clip")
 	motion.update_deaths(3.41)
-	check(not motion.deaths.has(3) and motion.deaths.has(1), "Tank cleanup stays at 1.4s while normal settles")
+	check(motion.deaths.has(3) and motion.deaths.has(1), "Tank keeps its full 2.5s clip while normal settles")
 	check(is_equal_approx(normal_death.player.current_animation_position, Motion.DEATH_SECONDS), "Normal holds the approved terminal collapse pose")
 	check(normal_body.get_active_material(0) == normal_original and is_equal_approx(float(normal_body.get_instance_shader_parameter("death_opacity")), 1.0), "Normal is fully opaque throughout collapse and settle")
 	var normal_settled := pose_snapshot(normal_death)
@@ -284,7 +346,8 @@ func run() -> void:
 	motion.update_deaths(3.84)
 	check(motion.deaths.has(1) and float(normal_body.get_instance_shader_parameter("death_opacity")) < 0.01, "Normal reaches near-zero opacity before cleanup")
 	motion.update_deaths(2.0 + Motion.NormalDeath.LIFETIME)
-	check(motion.deaths.is_empty() and not is_instance_valid(normal_body), "Normal held corpse is completely removed at the fade lifetime")
+	check(not motion.deaths.has(1) and not is_instance_valid(normal_body) and motion.deaths.has(3), "Normal cleanup does not truncate the longer tank clip")
+	check_tank_residue(motion, tank_death, 2.0)
 	motion.forget_walker(2)
 	fast.root.free()
 	check(not motion.walkers.has(2), "Fast removal clears motion reference and status children")

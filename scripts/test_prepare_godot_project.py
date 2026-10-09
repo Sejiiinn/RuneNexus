@@ -77,6 +77,24 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     preparation._prepare_app_ui()
 
+    def test_tank_import_preserves_approved_walk_and_object_key_rate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assets = Path(directory) / "assets"
+            (assets / "enemies").mkdir(parents=True)
+            death = assets / "enemies/tank_death.glb"
+            death.write_bytes(b"approved rigid rubble")
+            unrelated = assets / "enemies/boss.glb.import"
+            unrelated.write_text("[params]\nanimation/fps=60\n")
+            with patch.object(preparation, "ASSETS", assets):
+                preparation._prepare_tank_imports()
+                for name in ("tank", "tank_death"):
+                    self.assertIn("animation/fps=24", (assets / "enemies" / f"{name}.glb.import").read_text())
+                    policy = (assets / "enemies" / f"{name}.glb.import").read_text()
+                    value = next(line.split("=", 1)[1] for line in policy.splitlines() if line.startswith("_subresources="))
+                    self.assertEqual(json.loads(value), {"nodes": {"PATH:AnimationPlayer": {"optimizer/enabled": False}}})
+                self.assertEqual(death.read_bytes(), b"approved rigid rubble")
+                self.assertIn("animation/fps=60", unrelated.read_text())
+
     def test_boss_imports_keep_contact_keys_and_do_not_touch_unrelated_textures(self):
         with tempfile.TemporaryDirectory() as directory:
             assets = Path(directory) / "assets"
@@ -401,7 +419,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")
                 self.assertEqual((project / "assets/enemies/fast_status_burn.res").read_bytes(), b"rig fixture")
                 self.assertTrue((project / "assets/enemies/tank_death.glb").is_file())
-                self.assertIn("animation/fps=60", (project / "assets/enemies/tank_death.glb.import").read_text())
+                self.assertIn("animation/fps=24", (project / "assets/enemies/tank_death.glb.import").read_text())
                 self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
                 self.assertEqual((project / "assets/backgrounds/combat_space_nebula.png").read_bytes(), b"approved space background")
                 self.assertEqual((project / "assets/backgrounds/combat_space_nearby.res").read_bytes(), b"offline luminance field")

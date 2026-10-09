@@ -26,6 +26,10 @@
 
 [승인된 일반 골렘의 게임 연결](../../enemy_concepts/2026-10-08/normal-ingame-v2/README.md)은 외장 SSD의 편집 원본과 Walk/Death GLB를 기준으로 한다. `normal-golem-v2` workflow가 원본 SHA와 현재 게임 출력·상태 메시 재생성 경로를 등록한다. 기존 Scene 06은 이전 적 라이브러리이며 최신 일반 골렘 원본은 링크의 SSD 파일을 사용한다. 열린 Blender와 기존 허브는 변경하지 않는다.
 
+## 최적화 탱커 원본
+
+[탱커 Walk와 12조각 붕괴의 게임 연결](../../enemy_concepts/2026-10-09/tank-game-integration/README.md)은 외장 SSD의 승인 편집 원본과 `tank-natural-rubble-v4` workflow를 따른다. 기존 Scene 06과 2026-10-02 제작 기록은 이전 모델이며 최신 게임 원본을 재생성하는 입력으로 사용하지 않는다.
+
 ## 신규 저격 C 제작 원본
 
 [저격 C 제작 기준·산출물](../../sniper_tower_concepts/2026-09-26/README.md)은 기존 게임 저격 모델과 분리된 독립 제작 경로다. `sniper-c` workflow로 편집 원본과 준비 GLB를 찾을 수 있다. sniper-c 등록과 기존 허브 Scene은 최초 고해상도 제작/이전 모델 기록이다. 현재 전투용 본체는 [승인 SWIFT 경량본의 게임 적용 기록](../../sniper_tower_concepts/2026-09-26/README.md#전투용-본체-게임-적용)을 따른다. 허브 파일과 열린 원본은 이번 이식에서 변경하지 않았다.

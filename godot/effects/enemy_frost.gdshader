@@ -4,21 +4,33 @@ render_mode blend_mix, depth_prepass_alpha, cull_back, diffuse_burley, specular_
 uniform sampler3D rime_mask : filter_linear, repeat_disable;
 uniform sampler2D grain_texture : filter_linear_mipmap, repeat_enable;
 uniform float coordinate_scale = 1.0;
+uniform vec3 coordinate_offset = vec3(0.0);
 uniform bool preserve_colored_core = false;
 // The boss chest seal is red pigment, separate from its emissive eyes/rune cuts.
 uniform bool preserve_red_core = false;
 uniform sampler2D body_albedo : source_color, filter_linear_mipmap;
 uniform bool preserve_emission_core = false;
 uniform bool preserve_colored_with_emission = false;
+// Only the tank opts into its approved atlas core islands. UV masking avoids
+// confusing amber pigment with the brown stone's linear source-color samples.
+uniform bool preserve_amber_core = false;
+uniform vec4 amber_core_uv_0 = vec4(0.0);
+uniform vec4 amber_core_uv_1 = vec4(0.0);
+uniform vec4 amber_core_uv_2 = vec4(0.0);
+uniform vec4 amber_core_uv_3 = vec4(0.0);
 uniform sampler2D body_emission : source_color, filter_linear_mipmap;
 instance uniform float frost_amount : hint_range(0.0, 1.0) = 1.0;
 varying vec3 object_position;
 varying vec3 object_normal;
 varying float object_scale;
 
+bool inside_uv_rect(vec2 uv, vec4 rect) {
+	return all(greaterThanEqual(uv, rect.xy)) && all(lessThanEqual(uv, rect.zw));
+}
+
 void vertex() {
 	// Original mesh coordinates, converted back to the Blender authoring axes.
-	object_position = vec3(VERTEX.x, -VERTEX.z, VERTEX.y) * coordinate_scale;
+	object_position = vec3(VERTEX.x, -VERTEX.z, VERTEX.y) * coordinate_scale + coordinate_offset;
 	object_normal = vec3(NORMAL.x, -NORMAL.z, NORMAL.y);
 	object_scale = length(MODEL_MATRIX[0].xyz);
 	VERTEX += NORMAL * 0.004;
@@ -43,6 +55,9 @@ void fragment() {
 	bool protected_core = preserve_emission_core ? max(emission_mask.r, max(emission_mask.g, emission_mask.b)) > 0.01 : colored_core;
 	protected_core = protected_core || (preserve_colored_with_emission && colored_core);
 	protected_core = protected_core || (preserve_red_core && body_color.r > body_color.g * 1.5 && body_color.r > body_color.b * 1.5);
+	protected_core = protected_core || (preserve_amber_core && (
+		inside_uv_rect(UV, amber_core_uv_0) || inside_uv_rect(UV, amber_core_uv_1)
+		|| inside_uv_rect(UV, amber_core_uv_2) || inside_uv_rect(UV, amber_core_uv_3)));
 	ALPHA = protected_core ? 0.0 : coverage * frost_amount;
 	// Surface-gradient bump in view space, independent of each enemy's UVs.
 	vec3 dx = dFdx(VERTEX);
