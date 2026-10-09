@@ -1,0 +1,154 @@
+{
+  "base_commit": "23958fe961c9d838ddfed4bb7b9b9646b3923c4e",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "runtime_size": [
+    128,
+    128
+  ],
+  "raw_rgba_pixel_bytes": 917504,
+  "runtime_png_bytes": 294451,
+  "originals_unchanged": true,
+  "approved_128_preserved": {
+    "attackSpeed": true,
+    "damageAmplifier": true
+  },
+  "checks": {
+    "python_preparation_tests": "12 passed",
+    "godot_gem_ui": "passed",
+    "godot_battle_rewards": "passed",
+    "godot_texture_ids_dimensions_alpha": "14 passed",
+    "actual_rendered_ui": "passed: native 16/32/40 gallery (all 14 original/128/256), inventory 320/440, turret gem panel, reward choice; implementer and parent visual review",
+    "android": "not run; no Android-specific change",
+    "commit_push_deployment": "not performed at validation snapshot; publication tracked by Git history",
+    "independent_code_review": "passed: no blocking findings; exact 14 routing, original git-HEAD hash parity, staging byte parity, and in-memory pack digest invalidation probe",
+    "full_pack_digest": "not run: sparse checkout intentionally omits unrelated 3D/background assets; targeted cache probe passed, no APK build"
+  },
+  "files": {
+    "aimSpeed": {
+      "runtime": "assets/images/gems/simplified/aimSpeed.png",
+      "runtime_sha256": "3ccdff080d74ba830135dc33d4d406c1322f885668fc57b678d52c6adab336a9",
+      "runtime_bytes": 29533,
+      "original_sha256": "a6e94435d5f1ea0fd3b3ff50597155ccd4e2fba7069421a57a15f41df7d00661",
+      "source_sha256": "72cdf560106a3438be7fb92142be14e20ac7a672b40bc0676b0f316bd4c33a89",
+      "source": "design/gem_simplification/2026-10-09/source/aimSpeed.png"
+    },
+    "armorPiercing": {
+      "runtime": "assets/images/gems/simplified/armorPiercing.png",
+      "runtime_sha256": "d98adf79ca6f6dcacd1dcbcdaea4554cf22353e72129d5483042227d0e4bd209",
+      "runtime_bytes": 18624,
+      "original_sha256": "d142929e2dd15659cbf17e5616a259042f5cb39c59222f446d9d7989de9dc196",
+      "source_sha256": "e83ba3d6c763d0d772355e9e02ebdb2637de3a848941abab81ad15235d0d072c",
+      "source": "design/gem_simplification/2026-10-09/source/armorPiercing.png"
+    },
+    "attackSpeed": {
+      "runtime": "assets/images/gems/simplified/attackSpeed.png",
+      "runtime_sha256": "b7cc686145124c985af30a621ea312c8ec286a3cf8f396c1a702d573399e1e73",
+      "runtime_bytes": 19347,
+      "original_sha256": "749438c6d1d284babde5946afd28453b6017e75ecdebc531ee51770e59914945",
+      "source_sha256": "0fd2d9a53600b9123aa322ef5a5df166f41c99b37ecd6bd349bc2eb20605e4ac",
+      "source": "design/gem_simplification/2026-10-09/source/attackSpeed.png"
+    },
+    "chain": {
+      "runtime": "assets/images/gems/simplified/chain.png",
+      "runtime_sha256": "0ce3990e9dd98937833ef17f944519450a1e353131cacbc78133f00cce645331",
+      "runtime_bytes": 15763,
+      "original_sha256": "2f8e481c22a4c26b3e85760ae5bd6e8cae805a536739850c287a3be86f2f4e63",
+      "source_sha256": "1ec911f821bea2f5e14352ba9b9a352352f2dfa11da78c5716ceb72c96e7824f",
+      "source": "design/gem_simplification/2026-10-09/source/chain.png"
+    },
+    "criticalChance": {
+      "runtime": "assets/images/gems/simplified/criticalChance.png",
+      "runtime_sha256": "d5f9ed759119c516e857c2682918225c0e63ef7df4890f74240a0021076c9783",
+      "runtime_bytes": 17963,
+      "original_sha256": "da00af932cdf4e623a2cfca9a057d39fb9d943b30b3a592df629cb07ba4d33f6",
+      "source_sha256": "61f205266170d2181944a1bb29d54c2ab4cb39466f055a27549faddae246123a",
+      "source": "design/gem_simplification/2026-10-09/source/criticalChance.png"
+    },
+    "damageAmplifier": {
+      "runtime": "assets/images/gems/simplified/damageAmplifier.png",
+      "runtime_sha256": "05f53882d74f7067706a4ee7cd66b40ab07c9173120ce0ec8a902aac67b73b80",
+      "runtime_bytes": 21546,
+      "original_sha256": "6b83578509100b14eee06d4a50ea29a4c06bcbf7dd52ccfe06d9841f52567f75",
+      "source_sha256": "6a69aecfa4096027b1df08fba5cb1b35bfab3d1dc46e14e82a664403ee793ae2",
+      "source": "design/gem_simplification/2026-10-09/source/damageAmplifier.png"
+    },
+    "damageOverTime": {
+      "runtime": "assets/images/gems/simplified/damageOverTime.png",
+      "runtime_sha256": "1c4e85276587c9741883cfbdb2aa0eaae0eb855486e6cc4b23da68e71f4d86e5",
+      "runtime_bytes": 23504,
+      "original_sha256": "17137e98fb1dc3ee5e3a4781f6e24e519e64e328c7ab53947ad3d63dee04bfac",
+      "source_sha256": "7ffd63d9da295c86c80ce2b10f5057cac996efa95ff82bf5b5cf222dc8cd6e4b",
+      "source": "design/gem_simplification/2026-10-09/source/damageOverTime.png"
+    },
+    "elementalDamage": {
+      "runtime": "assets/images/gems/simplified/elementalDamage.png",
+      "runtime_sha256": "96bef03d9eae53e1996fb6851743481c5a04bab616d2a970a896ef7f375cc0c4",
+      "runtime_bytes": 18662,
+      "original_sha256": "4eeab9aee2f2868d0b42fe0a535c04e87780d332f207512732be79cd4501bc59",
+      "source_sha256": "956f7cf8ef3ec1ab4cf50d89cb0579fb04b36d772ac3d95c3ee547cc03bab68b",
+      "source": "design/gem_simplification/2026-10-09/source/elementalDamage.png"
+    },
+    "explosion": {
+      "runtime": "assets/images/gems/simplified/explosion.png",
+      "runtime_sha256": "83f301b6584647bb84ef5733d28ca076aa55e06ddc23d2671c4fb3c44e0df6e7",
+      "runtime_bytes": 25405,
+      "original_sha256": "9c606602202590591e0c5a07639bee61e3201bd9cca1775684c3172f3ba2c3fa",
+      "source_sha256": "16b98deac4577718307c03e863acdfb9b3cefacbcf040703a6f7e31073fde93d",
+      "source": "design/gem_simplification/2026-10-09/source/explosion.png"
+    },
+    "heavyWeapon": {
+      "runtime": "assets/images/gems/simplified/heavyWeapon.png",
+      "runtime_sha256": "c0691b786823beb237bec497be8febdf19f3a5eaadad852b492aa6c7f1474db1",
+      "runtime_bytes": 24381,
+      "original_sha256": "55196a2c1ce4c7dbdc9b9324f76a1cedf2c890cceef0856647a944426254c98b",
+      "source_sha256": "5af4f8a9b31663c6e1a2c42fd615c1b1fce69b3d61a8ad278f6ecd44fd3cf6e5",
+      "source": "design/gem_simplification/2026-10-09/source/heavyWeapon.png"
+    },
+    "lightWeapon": {
+      "runtime": "assets/images/gems/simplified/lightWeapon.png",
+      "runtime_sha256": "bdfa169208321327d3107ac0237410004cc158be7cd2072744411009c8960c1e",
+      "runtime_bytes": 20797,
+      "original_sha256": "b3b8d8c938faa431c7c55365a2371b2b4b932852ab6de285ef946fcf921f5c09",
+      "source_sha256": "b260558fb01ba5c3ef0e12639d6ea92d3cef67984b755cf922e8a5c887117889",
+      "source": "design/gem_simplification/2026-10-09/source/lightWeapon.png"
+    },
+    "multipleProjectiles": {
+      "runtime": "assets/images/gems/simplified/multipleProjectiles.png",
+      "runtime_sha256": "dbf55f2735820e2cb9e2031b885447e4f749df113131c060c7ba3ed92edfc016",
+      "runtime_bytes": 17285,
+      "original_sha256": "ffe88096f07b0a2d57e383be35a0ae61fcc664129645c438397fb8aba3be21a0",
+      "source_sha256": "22f4e8fda3e57648bfee33d32b6b0ebf486e24c10128416cd252c330c1f26bd8",
+      "source": "design/gem_simplification/2026-10-09/source/multipleProjectiles.png"
+    },
+    "physicalDamage": {
+      "runtime": "assets/images/gems/simplified/physicalDamage.png",
+      "runtime_sha256": "9ed21e8f49cf028940a8f078d6f543a80f47d01b9844e9a97404e22d1fa23bc5",
+      "runtime_bytes": 25587,
+      "original_sha256": "b79d4ecd3e1c287d10f23a5d0bf2df6538be542bd1ec7aa1932450effebd2235",
+      "source_sha256": "4b1516c02e6aa2a913394c37652a969fa296a967505c7e8ab1895f3f30f8670e",
+      "source": "design/gem_simplification/2026-10-09/source/physicalDamage.png"
+    },
+    "range": {
+      "runtime": "assets/images/gems/simplified/range.png",
+      "runtime_sha256": "35c34028b54f82ab9a93c08587caef247500d22c70883bc8958fa309ab5c6cb8",
+      "runtime_bytes": 16054,
+      "original_sha256": "8c534b8fe9c5f5ca3e2871c60ecb5c99980704cf46f4f3d3be9f2db43b10b31d",
+      "source_sha256": "764e536ec0565e472f633b396d27859053a41cb3c339a9364fcff8d74c60f5fd",
+      "source": "design/gem_simplification/2026-10-09/source/range.png"
+    }
+  },
+  "renderer": {
+    "method": "gl_compatibility",
+    "api": "OpenGL 4.5",
+    "device": "Mesa llvmpipe LLVM 19.1.7",
+    "scope": "Actual BattleHUD fixture with production AppTheme texture loader and real run domain; no full 3D battlefield or Android rendering",
+    "warnings": "Audio unavailable, automatically fell back to dummy; V-Sync setting unsupported by software driver."
+  },
+  "screenshots": {
+    "inventory-320.png": "5fe8fe1820d2161e2311515a2b42faae98baedf2186e989116b328add39f6f31",
+    "inventory-440.png": "60d9dbf5b88aa051a9384b5180d04f67a13fa2c162939caa5ac6e1eaf4be1ef8",
+    "native-size-comparison.png": "da7b4f71ee3d81fd7af6e1047d10394e21e898937822811560ed6e396fec1084",
+    "reward-choice.png": "c508c1701d78a66dc70eb82793e10ea5fb02604ef48fba972b7bb820d32ff38f",
+    "turret-gems.png": "82608c1c3559aa38522a00f2b2f6c837045b21348387b90c60ecca96bb396846"
+  }
+}

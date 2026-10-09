@@ -807,3 +807,6 @@ __pycache__/
 
 # Tank optimized model integration: disposable captures, old copies and checks.
 /design/enemy_concepts/2026-10-09/tank-game-integration/checks/
+
+# Gem art verification: local captures and logs.
+/design/gem_simplification/2026-10-09/local/

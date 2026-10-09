@@ -13,6 +13,7 @@ import sys
 import tempfile
 from content_compiler import check_generated
 from compile_progression import compile_progression
+from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
@@ -137,7 +138,7 @@ def prepare(directory: Path, executable: str) -> Path:
             raise ValueError(f"Invalid UI asset path: {relative}")
         destination = app_assets / path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / "assets/images" / path, destination)
+        shutil.copy2(app_ui_source(ROOT, relative), destination)
     shutil.copytree(ROOT / "assets/images/stage1_3d/ui", project / "assets/ui", dirs_exist_ok=True)
     for source, target in (("assets/images/diamond_currency.png", "diamond_currency.png"),
                            ("assets/fonts/NotoSansKR-VF.ttf", "NotoSansKR-VF.ttf"),

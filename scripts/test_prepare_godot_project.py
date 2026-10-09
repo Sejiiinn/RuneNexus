@@ -189,6 +189,41 @@ class MaterialPresetSyncTest(unittest.TestCase):
                     self.assertIn("process/size_limit=512\n", texture.with_suffix(".png.import").read_text())
                 self.assertEqual(texture.read_bytes(), b"preserved shared texture")
 
+    def test_simplified_gems_preserve_originals_and_runtime_ids(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "godot"
+            (source / "ui").mkdir(parents=True)
+            names = sorted(preparation._GEM_NAMES)
+            (source / "ui/assets.json").write_text(json.dumps([f"gems/{name}.png" for name in names]))
+            originals = root / "assets/images/gems"
+            finals = originals / "simplified"
+            finals.mkdir(parents=True)
+            for name in names:
+                (originals / f"{name}.png").write_bytes(b"original:" + name.encode())
+                (finals / f"{name}.png").write_bytes(b"simplified:" + name.encode())
+            output = root / "build/assets"
+            with patch.multiple(preparation, ROOT=root, SOURCE=source, ASSETS=output):
+                preparation._prepare_app_ui()
+            for name in names:
+                self.assertEqual((output / f"app/gems/{name}.png").read_bytes(), b"simplified:" + name.encode())
+                self.assertEqual((originals / f"{name}.png").read_bytes(), b"original:" + name.encode())
+            self.assertEqual(preparation.app_ui_source(root, "gems/futureGem.png"), originals / "futureGem.png")
+            self.assertFalse((output / "app/gems/simplified").exists())
+            (finals / f"{names[0]}.png").unlink()
+            with patch.multiple(preparation, ROOT=root, SOURCE=source, ASSETS=output):
+                with self.assertRaises(FileNotFoundError):
+                    preparation._prepare_app_ui()
+
+    def test_shipped_simplified_gems_are_exact_128_rgba_set(self):
+        folder = preparation.ROOT / "assets/images/gems/simplified"
+        self.assertEqual({p.stem for p in folder.glob("*.png")}, preparation._GEM_NAMES)
+        for name in preparation._GEM_NAMES:
+            header = (folder / f"{name}.png").read_bytes()[:33]
+            self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
+            self.assertEqual(struct.unpack(">II", header[16:24]), (128, 128), name)
+            self.assertEqual(header[25], 6, f"{name} must preserve RGBA alpha")
+
     def test_app_ui_limits_are_exact_and_exclude_cropped_or_fullscreen_art(self):
         self.assertEqual(len(preparation._CORE_FRAME_NAMES), 8)
         self.assertEqual(len(preparation._GEM_NAMES), 14)
