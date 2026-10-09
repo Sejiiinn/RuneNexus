@@ -36,6 +36,9 @@ var turrets: Dictionary = {}
 var projectiles: Array = []
 var delayed: Array = []
 var events: Array = []
+# ACK retires gameplay records before render. Keep only immutable death display
+# data until the next presentation observation; never include it in saves.
+var _presentation_deaths: Array = []
 var visual_effects: Array = []
 # Canonical static payloads are immutable; raw journal units stay compatible
 # with public frames, 3D impacts and development sessions.
@@ -180,6 +183,7 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	var ack_event := int(packet.get("ackEvent", 0))
 	for event in events:
 		if int(event.id) <= ack_event and event.kind in ["kill","arrival"]:
+			if event.kind == "kill": _retain_death_presentation(event)
 			enemies.erase(str(event.enemyId))
 	events = events.filter(func(e): return int(e.id) > ack_event)
 	if packet.get("session") is Dictionary:
@@ -236,6 +240,7 @@ func _reset(packet: Dictionary) -> void:
 	projectiles.clear()
 	delayed.clear()
 	events.clear()
+	_presentation_deaths.clear()
 	visual_effects.clear()
 	_prepared_effects.clear()
 	event_id = 0
@@ -946,6 +951,23 @@ func _emit(event: Dictionary) -> void:
 	event_id += 1
 	event.id = event_id
 	events.append(event)
+
+func _retain_death_presentation(event: Dictionary) -> void:
+	var enemy: Dictionary = enemies.get(str(event.enemyId), {})
+	if enemy.is_empty(): return
+	var display := event.duplicate(true)
+	display.enemyPresentation = {
+		"type":enemy.get("type", "normal"), "facingAngle":enemy.get("facingAngle", 0.0),
+		"presentationScale":enemy.get("presentationScale", 0.48 if enemy.get("type") == "fast" else 0.55),
+		"teleportSerial":enemy.get("teleportSerial", 0),
+	}
+	display.visualOffset = _visual_enemy_offset(enemy)
+	_presentation_deaths.append(display)
+
+func take_death_presentations() -> Array:
+	var pending := _presentation_deaths
+	_presentation_deaths = []
+	return pending
 
 func snapshot() -> Dictionary:
 	var enemy_states: Array = []
