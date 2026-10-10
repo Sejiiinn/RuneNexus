@@ -34,6 +34,14 @@ var _economy_ui_pending := false
 var _settlement_scheduled := false
 var _settlement_retry_at := 0
 var _settlement_attempts: Dictionary = {}
+# Server summary counts eligible, unclaimed mail, including already-read mail.
+const MAILBOX_REFRESH_MSEC := 30000
+var mailbox_unclaimed_count := 0
+var _mailbox_owner := ""
+var _mailbox_generation := 0
+var _mailbox_pending := false
+var _mailbox_refresh_queued := false
+var _mailbox_refresh_at := 0
 
 func setup(application, native_platform: Object = null, settings: Dictionary = {}) -> void:
 	app = application
@@ -128,12 +136,55 @@ func _handle_session_end() -> void:
 	epoch += 1
 	online_ready = false
 	economy.invalidate()
+	_reset_mailbox_summary()
 	if online != null: online.dispose()
 	profile = {}
 	if not _load_slot("guest"): issue = "GUEST_SAVE_LOAD_FAILED"
 	_session_end_pending = false
 	_quiesced = false
 	changed.emit()
+
+func has_unclaimed_mail() -> bool:
+	return connected() and online_ready and _mailbox_owner == str(account.credentials.get("accountId", "")).to_lower() and mailbox_unclaimed_count > 0
+
+func _reset_mailbox_summary() -> void:
+	_mailbox_generation += 1
+	_mailbox_owner = ""
+	mailbox_unclaimed_count = 0
+	_mailbox_pending = false
+	_mailbox_refresh_queued = false
+	_mailbox_refresh_at = 0
+	changed.emit()
+
+func refresh_mailbox_summary(after_mutation := false) -> void:
+	if not connected() or not online_ready or (updates != null and updates.blocked): return
+	if _mailbox_pending:
+		# Repeated UI/foreground refreshes coalesce. A claim/read needs one newer
+		# summary after the in-flight read, whose older count must not be shown.
+		_mailbox_refresh_queued = _mailbox_refresh_queued or after_mutation
+		return
+	_mailbox_pending = true
+	var generation := _mailbox_generation
+	var binding := epoch
+	var owner := str(account.credentials.accountId).to_lower()
+	var result: Dictionary = await request("GET", "v1/mailbox/summary")
+	if generation != _mailbox_generation or binding != epoch: return
+	_mailbox_pending = false
+	if not connected() or not online_ready or owner != str(account.credentials.accountId).to_lower(): return
+	_mailbox_refresh_at = Time.get_ticks_msec() + MAILBOX_REFRESH_MSEC
+	if _mailbox_refresh_queued:
+		_mailbox_refresh_queued = false
+		refresh_mailbox_summary.call_deferred()
+		return
+	var count: Variant = result.get("body", {}).get("unclaimedCount")
+	# Failure retains the last known count and retries at the normal cadence.
+	if not result.get("ok", false) or not count is int or count < 0: return
+	_mailbox_owner = owner
+	mailbox_unclaimed_count = count
+	changed.emit()
+
+func _mail_claimed() -> void:
+	refresh_mailbox_summary(true)
 
 func configured() -> bool:
 	return platform != null and account != null and not config.get("googleClientId", "").is_empty()
@@ -215,6 +266,7 @@ func _bind(interactive: bool) -> Dictionary:
 	var binding := epoch
 	online_ready = false
 	economy.invalidate()
+	_reset_mailbox_summary()
 	profile = {}
 	if online != null:
 		online.dispose()
@@ -242,7 +294,12 @@ func _bind(interactive: bool) -> Dictionary:
 	online_ready = true
 	_interactive_login = false
 	economy.configure(account,app.checkpoint.rewards(),{"sync":sync,"snapshot":_apply_snapshot,"snapshot_current":_snapshot_current,"receipt":_apply_receipt,"effect":_apply_effect})
-	return await economy.refresh()
+	if not economy.mail_claimed.is_connected(_mail_claimed): economy.mail_claimed.connect(_mail_claimed)
+	result = await economy.refresh()
+	# Recovery can replay a previously sent mail claim. Query after that replay;
+	# its receipt signal may already have started or completed the same check.
+	if binding == epoch and _mailbox_owner.is_empty(): refresh_mailbox_summary()
+	return result
 
 func _load_slot(owner: String) -> bool:
 	app.startup_blocked = true
@@ -264,6 +321,7 @@ func logout() -> Dictionary:
 	busy = true
 	epoch += 1
 	economy.invalidate()
+	_reset_mailbox_summary()
 	online_ready = false
 	var result: Dictionary = await account.logout()
 	if account.credentials.is_empty():
@@ -305,6 +363,7 @@ func retry() -> Dictionary:
 					economy.outbox = app.checkpoint.rewards()
 					online.acknowledge_reload()
 			if result.get("ok",false): result = await economy.refresh()
+			refresh_mailbox_summary()
 	else:
 		result = await account.restore()
 		if result.get("ok",false) and connected(): result = await _bind(false)
@@ -322,6 +381,7 @@ func perform(action: String, values: Dictionary = {}) -> Dictionary:
 	if binding != epoch: return {"ok":false,"code":"STALE_BINDING"}
 	issue = "" if result.get("ok",false) else str(result.get("code","REQUEST_FAILED"))
 	_economy_ui_pending = false
+	if action in ["mail_claim", "mail_claim_all"] and not result.get("ok", false): refresh_mailbox_summary(true)
 	if action == "claim_reward": _refresh_economy_ui()
 	else: app._refresh_ui()
 	changed.emit()
@@ -381,6 +441,11 @@ func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
 	if binding != epoch:
 		if nickname: busy = false
 		return {"ok":false,"code":"STALE_BINDING"}
+	if result.get("ok", false):
+		var endpoint := path.trim_prefix("/")
+		if method == "POST" and endpoint.begins_with("v1/mailbox/") and endpoint.ends_with("/read"):
+			refresh_mailbox_summary(true)
+
 	# A nickname is immutable; a lost success can be recovered by reading profile.
 	if nickname and (result.get("ok",false) or result.get("code") == "NICKNAME_ALREADY_SET"):
 		result = await _bind(_interactive_login)
@@ -511,6 +576,7 @@ func _process(delta: float) -> void:
 		economy.outbox = app.checkpoint.rewards()
 		online.acknowledge_reload()
 	request_run_settlement()
+	if not busy and Time.get_ticks_msec() >= _mailbox_refresh_at: refresh_mailbox_summary()
 	if busy or not online_ready or not connected() or economy.busy or _settlement_scheduled or app.startup_blocked: return
 	sync_elapsed += delta
 	if sync_elapsed < 30.0: return

@@ -5,6 +5,7 @@ const Json = preload("res://app/save_json.gd")
 const COMPATIBILITY := 5
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
+signal mail_claimed
 var account
 var outbox
 var callbacks: Dictionary = {}
@@ -259,6 +260,7 @@ func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
 		var applied: Dictionary = await _apply(data.get("economy",{}),token)
 		if not applied.get("ok",false): return applied
 	if not _retire(command, command.kind == "run_settlement"): return _failure("OUTBOX_WRITE_FAILED")
+	if command.kind in ["mail_claim", "mail_claim_all"]: mail_claimed.emit()
 	return {"ok":true,"body":data}
 
 func _effects(token: int) -> Dictionary:
