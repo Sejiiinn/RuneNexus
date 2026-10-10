@@ -40,6 +40,7 @@ def main():
         for folder, files in {
             "app": ["save_codec.gd", "save_json.gd", "local_save_slot.gd", "local_save_store.gd",
                     "run_transition_journal.gd", "reward_outbox.gd", "reward_settlement.gd"],
+            "content": ["stage_progression.gd", "generated_progression.gd"],
             "services": ["http_transport.gd", "durable_record.gd", "account_session.gd", "online_save.gd", "save_payload_hash.gd"],
         }.items():
             (project / folder).mkdir()

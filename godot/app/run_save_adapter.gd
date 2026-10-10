@@ -15,6 +15,10 @@ static func map_signature(map: Dictionary, path: Array) -> String:
 	for point in path:
 		# Presentation fixture paths use tile centres; persisted map paths are grid points.
 		value += "%d,%d;" % [floori(float(point[0])), floori(float(point[1]))]
+	for route in map.get("routes", []):
+		value += "|route:" + str(route.id) + ":"
+		for point in route.path: value += "%d,%d;" % [int(point[0]),int(point[1])]
+		value += JSON.stringify(route.get("teleportPairs", []))
 	return value
 
 static func capture(envelope: Dictionary, snapshot: Dictionary, turret_templates: Dictionary, saved_at: int) -> Variant:

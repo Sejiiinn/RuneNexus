@@ -1,4 +1,5 @@
 extends "res://app/local_save_store.gd"
+const StageProgression = preload("res://content/stage_progression.gd")
 ## Account-compatible Dart economy outbox. Guest queue is local only and never
 ## automatically transferred to an account. Failed reads never initialize over data.
 var owner: String
@@ -100,7 +101,7 @@ static func valid_reward(value: Variant) -> bool:
 	for key in ["stageNumber", "completedRounds", "pendingDiamonds", "createdAtMillis"]:
 		if not value.get(key) is int or value[key] < 0: return false
 	var tickets: Variant = value.get("firstClearModuleTickets", 0)
-	return value.stageNumber > 0 and value.stageNumber <= 25 and value.completedRounds <= 40 and value.pendingDiamonds <= (value.completedRounds + 1) * 300 and tickets is int and (tickets == 0 or (tickets == 5 and value.success and value.stageNumber == 11))
+	return StageProgression.ordinal_for(value.stageNumber) > 0 and value.completedRounds <= 40 and value.pendingDiamonds <= (value.completedRounds + 1) * 300 and tickets is int and (tickets == 0 or (tickets == 5 and value.success and value.stageNumber == 11))
 
 func _recover(path: String) -> Error:
 	if not FileAccess.file_exists(path):

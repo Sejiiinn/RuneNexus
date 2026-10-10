@@ -1,4 +1,5 @@
 extends RefCounted
+const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 ## Stage menus and board details; modal lifetime remains HUD-owned.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
@@ -47,7 +48,8 @@ func _end_stage_confirm() -> void:
 	reward_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var reward_row = HBoxContainer.new(); reward_row.alignment = BoxContainer.ALIGNMENT_CENTER; reward_row.add_theme_constant_override("separation",10); summary.add_child(reward_row)
 	hud._icon(reward_row,"ui/hud/icons/rune.png",32)
-	var amount = hud._label(reward_row,"+%d 룬" % reward,26)
+	var amount = hud._label(reward_row,"+%s 룬" % HudNumber.compact_integer(reward),26)
+	amount.tooltip_text = "+%d 룬" % reward
 	amount.name = "EndRewardAmount"; amount.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; amount.autowrap_mode = TextServer.AUTOWRAP_OFF; amount.modulate = Color("ffd166")
 	var completed = hud._label(summary,"완료 %d웨이브 기준" % int(hud.app.run_domain.state.get("completedRounds",0)),12)
 	completed.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -86,7 +88,7 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 	if tile == "core":
 		hud._label(hud.body,"코어 방어",16)
 		var defense = hud.app.scene._native_combat.defense
-		hud.core_label = hud._label(hud.body,"체력 %d / %d" % [ceili(defense.hp),ceili(defense.max_hp)],13)
+		hud.core_label = hud._label(hud.body,"체력 %s / %s" % [HudNumber.compact_integer(ceili(defense.hp)),HudNumber.compact_integer(ceili(defense.max_hp))],13)
 		var bar = ProgressBar.new(); bar.max_value = maxf(1,defense.max_hp); bar.value = defense.hp; bar.show_percentage = false; bar.custom_minimum_size.y = 10; hud.body.add_child(bar); hud.core_bar = bar
 		hud.core_metric = hud._label(hud.body,"",12)
 		return
@@ -95,15 +97,45 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 	var index = int(state.get("completedRounds",0))
 	if index >= count: hud._label(hud.body,"모든 웨이브를 완료했습니다.",12); return
 	var wave: Dictionary = hud.app.catalog.wave_summary(hud.app.stage,index)
-	var summary = hud._button(hud.body,("포탈 1" if preparing else "전투 진행 중")+"\n"+(str(wave.get("previewText",""))+" · %d/%d" % [index+1,count] if preparing else "진행 상태 확인"),func(): _portal_details(wave,index))
+	var summary = hud._button(hud.body,(_portal_title() if preparing else "전투 진행 중")+"\n"+(str(wave.get("previewText",""))+" · %d/%d" % [index+1,count] if preparing else "진행 상태 확인"),func(): _portal_details(wave,index))
 	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	summary.disabled = not preparing
 
+func _portal_title() -> String:
+	for portal: Dictionary in hud.app.catalog.spawn_portals(hud.app.stage):
+		var cell: Array = portal.cell
+		if Vector2i(int(cell[0]),int(cell[1])) == hud.app.selected:
+			var label := str(portal.get("label",""))
+			return "포탈 " + str(portal.id) + (" · " + label if not label.is_empty() else "") if portal.id != "default" else "포탈 1"
+	return "출현 경로" if hud.app.catalog.stage_map(hud.app.stage).has("spawnPortals") else "포탈 1"
+
 func _portal_details(wave: Dictionary,index: int) -> void:
-	var box = hud.open_modal("포탈 1 · %d/%d 웨이브" % [int(hud.app.run_domain.state.get("completedRounds",0))+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
+	var box = hud.open_modal("%s · %d/%d 웨이브" % [_portal_title(),int(hud.app.run_domain.state.get("completedRounds",0))+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
 	var header: HBoxContainer = box.get_child(0)
 	var icon = hud._material_icon(header,0xe283,20); icon.modulate = Color("e3b7ff"); header.move_child(icon,0)
-	hud._label(box,str(wave.get("previewText","")),13)
+	var preview_text := str(wave.get("previewText",""))
+	# Structured rows below use actual wave-start offsets. Do not repeat source
+	# prose that expresses the same groups relative to the first spawn instead.
+	if wave.get("routeGroups",[]).any(func(group): return not str(group.get("routeLabel","")).is_empty()):
+		preview_text = preview_text.get_slice(" | ",0)
+	hud._label(box,preview_text,13)
+	# Keep groups distinct: two groups of the same enemy may take different routes.
+	# Compiler metadata is already in actual chronological dispatch order.
+	var route_groups: Array = wave.get("routeGroups", [])
+	var primary_portal: Dictionary = hud.app.catalog.spawn_portal(hud.app.stage)
+	for group: Dictionary in route_groups:
+		var enemy: Dictionary = hud.app.catalog.enemy_template(str(group.enemyType))
+		var route_label := str(group.get("routeLabel", group.get("routeId", "")))
+		var portal_label := str(group.get("spawnPortalLabel",""))
+		if route_label.is_empty(): route_label = portal_label
+		elif not portal_label.is_empty(): route_label = portal_label + " / " + route_label
+		if route_label.is_empty(): continue
+		var start_time := float(group.get("spawnDelay",0.0)) + float(hud.app.catalog.initial_delay())
+		var label = hud._label(box,"묶음 %d · 시작 +%.1f초\n%s ×%d · %s" % [int(group.get("groupIndex",0))+1,start_time,enemy.get("name",group.enemyType),int(group.count),route_label],12)
+		label.name = "WaveRouteGroup"
+		label.modulate = Color("b9e9ff")
+		if str(group.get("spawnPortalId","default")) != str(primary_portal.get("id","default")):
+			label.modulate = Color("ffd0a8")
 	var counts: Dictionary = wave.enemyCounts
 	for type in counts:
 		var enemy: Dictionary = hud.app.catalog.enemy_template(type)
@@ -114,12 +146,12 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 		hud._icon(heading,"ui/hud/enemies/"+type+".png",28)
 		hud._label(heading,"%s x%d" % [enemy.get("name",type),counts[type]],12)
 		var pills = HFlowContainer.new(); content.add_child(pills)
-		hud._stat_pill(pills,"체력",str(roundi(float(durability.get("maxHp",enemy.get("maxHp",0))))))
+		hud._stat_pill(pills,"체력",HudNumber.compact_integer(roundi(float(durability.get("maxHp",enemy.get("maxHp",0))))))
 		for spec in [["방어구","maxArmor"],["보호막","maxShield"]]:
-			if float(durability.get(spec[1],0))>0: hud._stat_pill(pills,spec[0],str(roundi(float(durability[spec[1]]))))
+			if float(durability.get(spec[1],0))>0: hud._stat_pill(pills,spec[0],HudNumber.compact_integer(roundi(float(durability[spec[1]]))))
 		hud._stat_pill(pills,"속도",str(roundi(float(enemy.get("speed",0)))))
-		hud._stat_pill(pills,"넥서스 피해","-%d" % int(enemy.get("coreDamage",0)))
-		hud._stat_pill(pills,"보상","+%d" % int(enemy.get("rewardGold",0)))
+		hud._stat_pill(pills,"넥서스 피해","-"+HudNumber.compact_integer(int(enemy.get("coreDamage",0))))
+		hud._stat_pill(pills,"보상","+"+HudNumber.compact_integer(int(enemy.get("rewardGold",0))))
 		var resistances = HFlowContainer.new(); content.add_child(resistances)
 		var names = {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
 		for field in ["familyResistances","tagResistances"]:
@@ -130,14 +162,17 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 func _refresh_core() -> void:
 	if not is_instance_valid(hud.core_label): return
 	var runtime = hud.app.scene._native_combat
-	hud.core_label.text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
+	hud.core_label.text = "체력 %s / %s" % [HudNumber.compact_integer(ceili(runtime.defense.hp)),HudNumber.compact_integer(ceili(runtime.defense.max_hp))]
+	hud.core_label.tooltip_text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
 	hud.core_bar.max_value = maxf(1,runtime.defense.max_hp); hud.core_bar.value = runtime.defense.hp
 	var core = runtime.get("core")
 	if core == null: hud.core_metric.text = "전투 스킬 없음"; return
 	if core.skill == "guardianBeam":
 		var damage: float = maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),hud.total_dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))*core.power_for_activation(core.activation_count+1)
-		hud.core_metric.text = "수호 광선 · 코어에 가까운 적에게 집중 피해\n광선 피해 %.1f    총 피해 %.1f" % [damage,core.direct_damage_dealt]
+		hud.core_metric.text = "수호 광선 · 코어에 가까운 적에게 집중 피해\n광선 피해 %s    총 피해 %s" % [HudNumber.compact(damage),HudNumber.compact(core.direct_damage_dealt)]
+		hud.core_metric.tooltip_text = "광선 피해 %.1f · 총 피해 %.1f" % [damage,core.direct_damage_dealt]
 	elif core.skill == "riftMark":
 		var power: float = 25.0*core.power_for_activation(core.activation_count+1)
-		hud.core_metric.text = "균열 낙인 · 내구도 높은 적 4명\n다음 낙인 %.1f%% 증폭 (보스 %.1f%%)\n총 추가 피해 %.1f" % [power,power/2.0,core.bonus_damage_dealt]
+		hud.core_metric.text = "균열 낙인 · 내구도 높은 적 4명\n다음 낙인 %.1f%% 증폭 (보스 %.1f%%)\n총 추가 피해 %s" % [power,power/2.0,HudNumber.compact(core.bonus_damage_dealt)]
+		hud.core_metric.tooltip_text = "총 추가 피해 %.1f" % core.bonus_damage_dealt
 	else: hud.core_metric.text = "전투 스킬 없음\n코어 전투 스킬이 장착되어 있지 않습니다."

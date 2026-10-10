@@ -5,6 +5,7 @@ const T = preload("res://ui/app_theme.gd")
 const DetailTheme = preload("res://ui/stage_detail_theme.gd")
 const RewardArt = preload("res://ui/stage_reward_art.gd")
 const Quests = preload("res://app/quest_progress.gd")
+const Numbers = preload("res://ui/hud_number.gd")
 const REFERENCE := Vector2(789, 1566)
 const STAGE := "ui/stage_reference/"
 const WHITE := Color("e8f8ff")
@@ -193,10 +194,10 @@ func _active_card(stage: int) -> void:
 	_text("진행 중", Rect2(157,326,80,34), 20, Color("68fff0"), true)
 	_text("스테이지 %s" % Progression.stage_label(stage), Rect2(157,370,330,53), 34)
 	_badge(Rect2(595,346,145,48), Color("28261fb9"), Color.TRANSPARENT, 7)
-	_text("룬 +%d" % rune_reward(stage), Rect2(595,346,145,48), 24, GOLD, true)
+	_text("룬 +%s" % Numbers.compact_integer(rune_reward(stage)), Rect2(595,346,145,48), 24, GOLD, true)
 	var state := _state()
 	var gold := int(state.get("gold", 0))
-	var values := ["%d/%d" % [int(state.get("roundIndex", 0)) + 1, lobby.app.catalog.wave_count(stage - 1)], str(state.get("turrets", []).size()), "%.1fK" % (float(gold)/1000) if gold >= 1000 else str(gold)]
+	var values := ["%d/%d" % [int(state.get("roundIndex", 0)) + 1, lobby.app.catalog.wave_count(stage - 1)], str(state.get("turrets", []).size()), Numbers.compact_integer(gold)]
 	for i in range(3):
 		_text(values[i], Rect2(57 + i * 227,436,226,39), 30, GOLD if i == 2 else WHITE, true)
 		_text(["라운드", "포탑", "골드"][i], Rect2(57 + i * 227,475,226,29), 22, Color("b9d6e4"), true, 700)
@@ -214,7 +215,7 @@ func _row(stage: int, top: float) -> void:
 	_text("스테이지 %s" % Progression.stage_label(stage), Rect2(169,top+17,270,48), 34, WHITE if enabled else MUTED)
 	if not enabled: _glyph("f888", Rect2(169,top+68,22,22), 22, Color("667987"))
 	_text(status(stage), Rect2(169 if enabled else 198,top+61,180 if enabled else 151,36), 23, ACCENTS[chapter-1] if enabled else Color("667987"), false, 700)
-	_text("룬 +%d" % rune_reward(stage), Rect2(409,top+35,180,52), 24, SECONDARIES[chapter-1] if enabled else Color("667987"), true)
+	_text("룬 +%s" % Numbers.compact_integer(rune_reward(stage)), Rect2(409,top+35,180,52), 24, SECONDARIES[chapter-1] if enabled else Color("667987"), true)
 	var icons := _reward_icons(stage)
 	# Flutter's 52x32 reward row is scaled into its 94x72 reference slot.
 	var badge_scale := 94.0 / 52.0
@@ -393,7 +394,7 @@ func details(stage: int) -> void:
 	stat_row.custom_minimum_size.y = 74
 	stat_row.add_theme_constant_override("separation",8)
 	box.add_child(stat_row)
-	var stat_data := [["최고 기록", record(stage), "best_record"], ["총 라운드", "%d라운드" % lobby.app.catalog.wave_count(stage - 1), "total_rounds"], ["룬 보상", "+%d" % rune_reward(stage), "rune_reward"]]
+	var stat_data := [["최고 기록", record(stage), "best_record"], ["총 라운드", "%d라운드" % lobby.app.catalog.wave_count(stage - 1), "total_rounds"], ["룬 보상", "+%s" % Numbers.compact_integer(rune_reward(stage)), "rune_reward"]]
 	for i in range(stat_data.size()):
 		if i > 0:
 			var separator := VSeparator.new()

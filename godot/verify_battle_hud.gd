@@ -57,9 +57,9 @@ class App extends Node:
 
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
-	for case in [[0,0,"0"],[0,1,"0.0"],[999,0,"999"],[999,1,"999.0"],[1000,1,"1K"],[1250,1,"1.25K"],[1000000,1,"1M"],[999990,1,"999.99K"],[999999,1,"1M"],[-1250,1,"-1.25K"],[-999999,1,"-1M"]]:
+	for case in [[0,0,"0"],[0,1,"0.0"],[999,0,"999"],[999,1,"999.0"],[1000,1,"1,000.0"],[1250,1,"1,250.0"],[9999,0,"9,999"],[10000,0,"10K"],[12500,1,"12.5K"],[1000000,1,"1M"],[999990,1,"1M"],[999999,1,"1M"],[-1250,1,"-1,250.0"],[-999999,1,"-1M"]]:
 		assert(HudNumber.compact(float(case[0]),int(case[1])) == case[2],"Compact boundary: "+str(case))
-	for case in [[999,"999"],[1000,"1K"],[1250,"1.25K"],[12500,"12.5K"],[123456789,"123M"],[999499,"999K"],[999500,"1M"],[1000000,"1M"],[-999500,"-1M"]]:
+	for case in [[999,"999"],[1000,"1,000"],[1250,"1,250"],[9999,"9,999"],[10000,"10K"],[12500,"12.5K"],[123456789,"123.5M"],[999499,"999.5K"],[999500,"999.5K"],[1000000,"1M"],[-999500,"-999.5K"]]:
 		assert(HudNumber.compact_price(float(case[0])) == case[1],"Compact price boundary: "+str(case))
 	root.content_scale_size = Vector2i(440,880)
 	root.size = Vector2i(440,880)
@@ -78,6 +78,28 @@ func run() -> void:
 	assert(resource_style.texture.resource_path.ends_with("ui/hud/resource_panel.png"))
 	assert(resource_style.texture_margin_left == 14 and resource_style.texture_margin_top == 14)
 	assert(resource_style.content_margin_left == 8 and resource_style.content_margin_top == 8)
+	# Disable periodic refresh so layout must position the camera itself.
+	hud.set_process(false)
+	# Currency and HP thresholds use the same display policy at both phone widths.
+	for width in [320,440]:
+		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
+		for sample in [[1250,"1,250"],[9999,"9,999"],[10000,"10K"],[12500,"12.5K"],[999950,"1M"]]:
+			app.run_domain.state.gold = sample[0]; app.run_domain.state.gemShards = sample[0]
+			app.scene._native_combat.defense.hp = float(sample[0]); app.scene._native_combat.defense.max_hp = float(sample[0])
+			var before: Dictionary = app.run_domain.state.duplicate(true)
+			hud.refresh()
+			for frame in range(4): await process_frame
+			assert(hud.gold_label.text == sample[1] and hud.shard_label.text == sample[1])
+			assert(hud.gold_label.tooltip_text == str(sample[0]))
+			assert(hud.status.text == "♡ %s/%s" % [sample[1],sample[1]])
+			assert(app.run_domain.state == before,"Numeric refresh must not alter gameplay values")
+			assert_label_fits(hud.gold_label); assert_label_fits(hud.shard_label); assert_label_fits(hud.status)
+			assert(resource_panel.get_global_rect().end.x <= width+0.1,"Resource HUD must fit grouped amounts")
+			assert(hud.status.get_global_rect().end.x <= hud.wave_label.get_global_rect().position.x)
+			assert(hud.wave_label.get_global_rect().end.x <= hud.home.get_global_rect().position.x)
+			assert(hud.camera_button.get_global_rect().position.y >= hud.top.get_global_rect().end.y+5.9,"Camera follows first/resize layout before the next refresh poll")
+	hud.set_process(true)
+	app.scene._native_combat.defense.hp = 100.0; app.scene._native_combat.defense.max_hp = 100.0
 	app.run_domain.state.gold = 10000
 	app.run_domain.state.gemShards = 100
 	var map: Dictionary = app.catalog.stage_map(0)
@@ -433,17 +455,17 @@ func run() -> void:
 	for label in dense_panel.find_children("*","Label",true,false):
 		assert_label_fits(label)
 	var dense_price := dense_panel.find_child("TurretUpgradePrice",true,false) as Label
-	assert(dense_price.text.trim_suffix(" G") == "123K", "Use the same compact format for prices")
+	assert(dense_price.text.trim_suffix(" G") == "123.5K", "Use the same compact format for prices")
 	assert(dense_price.get_theme_font_size("font_size") >= 8, "Do not solve narrow prices with unreadable font shrink")
 	assert(dense_price.tooltip_text == "123456 G")
 	var dense_nodes := node_identities(dense_panel)
 	for width in [304,424]:
 		dense_panel.size.x = width
-		for price in ["602 G","1250 G","12500 G","123456 G","123456789 G"]:
+		for price in ["602 G","1250 G","9999 G","10000 G","12500 G","123456 G","123456789 G"]:
 			dense_panel.update_values({"level":"9→10","upgrade_title":"강화 확정","price":price,"maximum":false,"trait_count":2})
 			for frame in range(8): await process_frame
 			assert(node_identities(dense_panel) == dense_nodes)
-			assert(dense_price.text.trim_suffix(" G") == HudNumber.compact_price(price.trim_suffix(" G").to_float()))
+			assert(dense_price.text.trim_suffix(" G") == HudNumber.compact_price(price.trim_suffix(" G").to_int()))
 			assert(dense_price.tooltip_text == price)
 			assert(dense_price.get_line_count() == 1,"Keep price and unit together")
 			assert(dense_price.get_theme_font_size("font_size") >= 8)
@@ -489,16 +511,36 @@ func run() -> void:
 	assert(not hud._stats(app.run_domain.state,app.run_domain.state.turrets[0]).has("dps"),"HUD decorations must not mutate cached raw stats")
 	app.run_domain.state.gold = 10000000; hud.refresh()
 	assert(hud.gold_label.text == "10M" and hud.gold_label.tooltip_text == "10000000")
-	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage") == "1.23M")
+	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage") == "1.2M")
 	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage",true) == "1234567.9")
 	app.scene._native_combat.turrets[str(app.run_domain.state.turrets[0].id)].directDamageDealt = 1234560.0
 	hud.refresh()
-	assert(hud.damage_label.text == "1.23M" and hud.damage_label.tooltip_text == "누적 피해 1234567.0")
+	assert(hud.damage_label.text == "1.2M" and hud.damage_label.tooltip_text == "누적 피해 1234567.0")
 	assert((hud.body.find_child("TurretUpgradePrice",true,false) as Label).text == "최대 레벨")
+	assert(hud.turret_panel._stat_value({"damage":1250.25},"damage") == "1,250.3")
+	assert(hud.turret_panel._stat_value({"attackRate":1.25},"attackRate") == "1.25회/초")
+	assert(hud.build_panel._upgrade_value("waveGold",12500) == "+12.5K G")
+	assert(hud.build_panel._upgrade_value("towerDamage",0.25) == "+25%")
+	# Narrow purchase controls keep the 9,999 boundary legible and charges exact.
+	for width in [320,440]:
+		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
+		for cost in [9999,10000,12500]:
+			app.run_domain.growth.data.runUpgrades.towerDamage.baseCost = cost
+			app.run_domain.state.runUpgradeLevels.towerDamage = 0
+			app.run_domain.state.gold = cost-1
+			hud.main_tab = "upgrades"; hud.body_key = ""; hud.refresh()
+			for frame in range(5): await process_frame
+			var purchase: Button = hud.body.get_node("RunUpgradeRows/Upgrade_towerDamage/Purchase")
+			var price: Label = purchase.find_child("PurchasePrice",true,false)
+			assert(purchase.disabled and price.text == HudNumber.compact_price(cost))
+			assert(price.tooltip_text == "%d G" % cost and price.get_line_count() == 1)
+			assert_label_fits(price)
+			app.run_domain.state.gold = cost; hud.refresh()
+			assert(not purchase.disabled and app.run_domain.state.gold == cost)
 	# 999999 and 1000000 both display 1M, but affordability/charges stay exact.
 	app.run_domain.growth.data.runUpgrades.towerDamage.baseCost = 1000000
 	app.run_domain.state.runUpgradeLevels.towerDamage = 0
-	app.run_domain.state.gold = 999999; hud.main_tab = "upgrades"; hud.refresh()
+	app.run_domain.state.gold = 999999; hud.main_tab = "upgrades"; hud.body_key = ""; hud.refresh()
 	var exact_purchase: Button = hud.body.get_node("RunUpgradeRows/Upgrade_towerDamage/Purchase")
 	assert(int(app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost) == 1000000)
 	assert(hud.gold_label.text == "1M" and exact_purchase.disabled)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Source-only regeneration, exact compatibility, editing and stale rejection."""
 import copy
+from content_test_helpers import without_dispatch_metadata
 import json
 from pathlib import Path
 import shutil
@@ -19,11 +20,12 @@ import run_godot_native_regressions as regressions
 class ContentCompilerTests(unittest.TestCase):
     def test_preview_changes_preserve_every_other_typed_value(self):
         content = compile_content()
+        content['stages'] = [s for s in content['stages'] if s['id'] <= 25]
         for stage in content['stages']:
             for wave in stage['waves']:
                 del wave['previewText']
         fixture = read_json(ROOT / 'test/fixtures/content_source_baseline.json')
-        self.assertEqual(typed_digest(content), fixture['withoutPreviewDigest'])
+        self.assertEqual(typed_digest(without_dispatch_metadata(content)), fixture['withoutPreviewDigest'])
 
     def test_preview_claims_reject_missing_types_and_single_type_mixtures(self):
         cases = [('', ['normal']), ('  ', ['normal']),
@@ -95,9 +97,11 @@ class ContentCompilerTests(unittest.TestCase):
             self.assertFalse((root / 'godot/content/game_content.json').exists())
             self.assertFalse((root / 'design').exists())
             content = compile_content(root)
-            self.assertEqual(typed_digest(content), fixture['typedDigest'])
-            self.assertEqual({str(s['id']): typed_digest(s) for s in content['stages']}, fixture['stageDigests'])
-            self.assertEqual(sum(len(w['spawnQueue']) for s in content['stages'] for w in s['waves']), fixture['spawns'])
+            baseline = without_dispatch_metadata(content)
+            baseline['stages'] = [s for s in baseline['stages'] if s['id'] <= 25]
+            self.assertEqual(typed_digest(baseline), fixture['typedDigest'])
+            self.assertEqual({str(s['id']): typed_digest(s) for s in baseline['stages']}, fixture['stageDigests'])
+            self.assertEqual(sum(len(w['spawnQueue']) for s in baseline['stages'] for w in s['waves']), fixture['spawns'])
             write_generated(root)
             first = (root / 'godot/content/game_content.json').read_bytes()
             write_generated(root)

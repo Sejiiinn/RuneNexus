@@ -782,6 +782,9 @@ static func _object(name: String, v: Variant) -> Variant:
 	if not _is_map(v): return null
 	var out := _fields(name, v)
 	var required := {}
+	if name in ["SavedEnemy", "SavedSpawnRequest"] and v.has("routeId"):
+		if not v.routeId is String or v.routeId.is_empty(): return null
+		out.routeId = v.routeId
 	match name:
 		"SavedActiveResearch": required = {"type": "ResearchType"}
 		"SavedTurret": required = {"type": "TurretType"}

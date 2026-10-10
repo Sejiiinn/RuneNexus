@@ -314,26 +314,30 @@ func forget_walker(id: int) -> void:
 
 
 func observe_native(runtime, time: float, map_size: Vector2i) -> void:
+	# ACKed deaths precede the still-live journal by event id. They own the
+	# minimal display state needed after reward settlement removes the enemy.
+	var observed: Array = runtime.take_death_presentations() if runtime.has_method("take_death_presentations") else []
+	observed.append_array(runtime.events)
 	if runtime.epoch != _epoch or time < _last_time:
 		var rewound: bool = runtime.epoch == _epoch and time < _last_time
 		clear()
 		_epoch = runtime.epoch
 		# A presentation rewind must not replay the retained old journal.
 		if rewound:
-			for event: Dictionary in runtime.events:
+			for event: Dictionary in observed:
 				_event_id = maxi(_event_id, int(event.id))
 	_last_time = time
 	distances.clear()
 	for enemy: Dictionary in runtime.enemies.values():
 		distances[int(enemy.id)] = float(enemy.distanceTravelled) / runtime.tile_size
-	for event: Dictionary in runtime.events:
+	for event: Dictionary in observed:
 		if int(event.id) <= _event_id: continue
 		_event_id = int(event.id)
 		if event.get("kind", "") != "kill": continue
 		var id := int(event.enemyId)
 		if _killed_ids.has(id): continue
 		_killed_ids[id] = true
-		var enemy: Dictionary = runtime.enemies.get(str(id), {})
+		var enemy: Dictionary = event.get("enemyPresentation", runtime.enemies.get(str(id), {}))
 		if enemy.is_empty(): continue
 		var kind: String = enemy.get("type", "normal")
 		if kind not in ["normal", "fast", "tank"] and kind not in BOSS_KINDS: continue
@@ -357,7 +361,8 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		if kind in BOSS_KINDS: corpse = _boss_scene
 		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else ("Death" if kind in ["normal", "tank"] else ""))
 		if entry.is_empty(): continue
-		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + runtime._visual_enemy_offset(enemy)) / runtime.tile_size
+		var offset: Vector2 = event.visualOffset if event.has("visualOffset") else runtime._visual_enemy_offset(enemy)
+		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + offset) / runtime.tile_size
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
 		# Keep the last visible body direction if death interrupts a turn.
 		var walker: Dictionary = walkers.get(id, {})

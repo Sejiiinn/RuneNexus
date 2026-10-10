@@ -1,4 +1,5 @@
 extends SceneTree
+const HudNumber = preload("res://ui/hud_number.gd")
 const Fixture = preload("res://verify_battle_hud.gd")
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
@@ -118,7 +119,8 @@ func run() -> void:
 	hud.rewards._select_replacement_slot(2)
 	assert(hud.rewards.replacement_slot == 2 and app.run_domain.state == before_choice)
 	assert(_confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text == "슬롯 추가 후 장착 ·")
-	assert(_confirm_button(hud.overlay_body).find_child("ConfirmPrice",true,false).get_node("Amount").text == str(slot_cost))
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmPrice",true,false).get_node("Amount").text == HudNumber.compact_integer(slot_cost))
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmPrice",true,false).get_node("Amount").tooltip_text == str(slot_cost))
 	assert(not _confirm_button(hud.overlay_body).disabled)
 	hud.rewards._confirm_replacement()
 	assert(app.run_domain.state.phase == "preparation")
@@ -156,6 +158,7 @@ func run() -> void:
 		app.run_domain.state.phase = phase; hud.refresh()
 		assert(hud.overlay.visible and hud.blocks_board_input())
 		assert(bounds == hud.battlefield_rect())
+	await _assert_large_number_summaries(hud,app)
 	print("PASS battle rewards: target equip, preview-only replacement selection, confirmed slot/inventory, back/reset, store, results, stable camera")
 	hud.queue_free(); app.queue_free(); await process_frame; quit()
 
@@ -367,3 +370,23 @@ func _assert_invalidated_purchase(hud,app) -> void:
 		assert(app.run_domain.state == invalid,"Invalid confirmation must not mutate the reward: "+reason)
 	app.run_domain.state = original
 	print("PASS invalidated reward purchase: gold, level and research changes disable confirmation")
+
+func _assert_large_number_summaries(hud,app) -> void:
+	for width in [320,440]:
+		root.size = Vector2i(width,900); root.content_scale_size = root.size
+		var parent := VBoxContainer.new(); root.add_child(parent)
+		var money: HBoxContainer = hud.rewards._replacement_money(parent,"필요",12500,"QuotedMoney",12)
+		assert(money.get_node("Amount").text == "12.5K")
+		assert(money.get_node("Amount").tooltip_text == "12500")
+		parent.queue_free()
+		app.run_domain.state.phase = "success"
+		app.run_domain.state.progression.lastRunRuneReward = 18225
+		app.run_domain.state.progression.runes = 11092
+		var before: Dictionary = app.run_domain.state.duplicate(true)
+		hud.rewards.key = ""; hud.refresh()
+		for frame in range(5): await process_frame
+		var amount: Label = hud.overlay_body.find_child("lastRunRuneReward",true,false).get_node("RewardAmount")
+		assert(amount.text == "+18.2K" and amount.tooltip_text == "+18225")
+		var wallet: Label = hud.overlay_body.find_child("Record3",true,false).get_node("Value")
+		assert(wallet.text == "11.1K" and wallet.tooltip_text == "11092")
+		assert(app.run_domain.state == before,"Result formatting must preserve settlement values")

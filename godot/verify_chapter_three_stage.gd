@@ -183,7 +183,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 				vent_count += 1
 				vent_categories[variants[index] if tiles[index] == "build" else "path"] = true
 				_check(scene.ChapterThreeTiles.exposed(frame["map"], index, entry["side"]), "안쪽 면 환기구 배치")
-	_check(slots.size() == tile_count * 4, "네 측면 패널 누락")
+	_check(slots.size() == scene.ChapterThreeTiles.panel_layout(frame["map"]).size(), "노출·개방 타일 패널 누락")
 	_check(vent_categories.has("build_tile") and vent_categories.has("plain_build_tile") and vent_categories.has("path"), "포탑 설치 타일 또는 길의 환기구 누락")
 	_check(vent_count == maxi(1, floori(float(tile_count) / 10.0)), "외곽 소수 환기구 배치 오류")
 	_check(plain_count > 0 and ring_count > 0 and plain_count + ring_count == tiles.count("build"), "두 건설 타일 혼합 배치 오류")

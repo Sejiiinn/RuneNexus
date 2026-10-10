@@ -173,6 +173,16 @@ _GEM_NAMES = frozenset({
 })
 
 
+def app_ui_source(root: Path, relative: str) -> Path:
+    """Use simplified gem art without changing runtime IDs or original artwork."""
+    path = Path(relative)
+    if path.is_absolute() or ".." in path.parts:
+        raise RuntimeError(f"잘못된 Godot UI 자산 경로: {relative}")
+    if relative in {f"gems/{name}.png" for name in _GEM_NAMES}:
+        return root / "assets/images/gems/simplified" / path.name
+    return root / "assets/images" / path
+
+
 def _app_texture_size_limit(relative: str) -> int:
     if relative in _CORE_FRAME_NAMES:
         return 512
@@ -289,7 +299,7 @@ def _prepare_app_ui() -> None:
         path = Path(relative)
         if path.is_absolute() or ".." in path.parts:
             raise RuntimeError(f"잘못된 Godot UI 자산 경로: {relative}")
-        source = ROOT / "assets/images" / path
+        source = app_ui_source(ROOT, relative)
         target = ASSETS / "app" / path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)

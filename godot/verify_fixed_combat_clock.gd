@@ -332,6 +332,13 @@ func controller_replay(pattern: Array, speed: float) -> Dictionary:
 	check(app.run_domain.state.completedRounds == 1 and app.run_domain.state.pendingEconomyDiamonds == 1, "same-step kill and wave rewards settled once")
 	check(r.events.is_empty() and not r.enemies.has("999"), "same-step terminal enemy ACK retires after reward")
 	check(app.run_domain.event_ack == r.event_id, "callback drains all generated wave and kill events")
+	var deaths: Array = r.take_death_presentations()
+	check(deaths.size() == 1 and int(deaths[0].enemyId) == 999, "ACK retains the final enemy death across every cadence/speed and automatic wave entry")
+	check(not r.snapshot().has("_presentation_deaths"), "death display queue is runtime-only, never checkpoint state")
+	if deaths.size() == 1:
+		check(deaths[0].enemyPresentation.type == "normal" and deaths[0].has("visualOffset"), "death owns immutable presentation inputs after gameplay removal")
+	app.command()
+	check(r.take_death_presentations().is_empty(), "presentation consumption and repeated reward ACK cannot replay death")
 	var result := {"wave":r.wave.snapshot(),"core":r.core.snapshot(),"clock":r.clock,"ticks":r.simulation_tick,"rng":str(r.rng.state),"spawnRng":str(app.spawn_rng.state),"gold":app.run_domain.state.gold,"diamonds":app.run_domain.state.pendingEconomyDiamonds,"completed":app.run_domain.state.completedRounds,"saves":app.checkpoint_writes}
 	app.scene.free()
 	app.free()

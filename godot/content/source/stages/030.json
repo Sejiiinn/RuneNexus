@@ -1,0 +1,735 @@
+{
+  "id": 30,
+  "name": "서쪽 계단과 동쪽 이중 턱",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 13,
+    "rows": 13,
+    "tileTheme": "chapterThreeForge",
+    "tiles": [
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "spawn",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "spawn",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "build",
+      "blocked",
+      "build",
+      "build",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "build",
+      "blocked",
+      "blocked",
+      "build",
+      "blocked",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "core",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked"
+    ],
+    "path": [
+      [0, 2],
+      [1, 2],
+      [2, 2],
+      [2, 3],
+      [3, 3],
+      [3, 4],
+      [4, 4],
+      [4, 5],
+      [5, 5],
+      [5, 6],
+      [6, 6],
+      [6, 7],
+      [7, 7],
+      [8, 7],
+      [9, 7],
+      [9, 8],
+      [9, 9],
+      [9, 10]
+    ],
+    "routes": [
+      {
+        "id": "west",
+        "label": "A·서쪽",
+        "path": [
+          [0, 2],
+          [1, 2],
+          [2, 2],
+          [2, 3],
+          [3, 3],
+          [3, 4],
+          [4, 4],
+          [4, 5],
+          [5, 5],
+          [5, 6],
+          [6, 6],
+          [6, 7],
+          [7, 7],
+          [8, 7],
+          [9, 7],
+          [9, 8],
+          [9, 9],
+          [9, 10]
+        ],
+        "spawnPortalId": "A"
+      },
+      {
+        "id": "northeast",
+        "label": "B·북동",
+        "path": [
+          [12, 0],
+          [12, 1],
+          [11, 1],
+          [10, 1],
+          [9, 1],
+          [8, 1],
+          [8, 2],
+          [8, 3],
+          [9, 3],
+          [10, 3],
+          [11, 3],
+          [11, 4],
+          [11, 5],
+          [10, 5],
+          [9, 5],
+          [9, 6],
+          [9, 7],
+          [9, 8],
+          [9, 9],
+          [9, 10]
+        ],
+        "spawnPortalId": "B"
+      }
+    ],
+    "spawnPortals": [
+      {
+        "id": "A",
+        "label": "A·서쪽",
+        "cell": [0, 2]
+      },
+      {
+        "id": "B",
+        "label": "B·북동",
+        "cell": [12, 0]
+      }
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "A·서쪽 단독 · 진입 훈련 · 진입로 분담",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "armored", "count": 5, "interval": 1.23, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "normal", "count": 5, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 2,
+      "previewText": "B·북동 단독 · 진입 훈련 · 입구 차폐",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "fast", "count": 3, "interval": 0.88, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"}
+      ]
+    },
+    {
+      "round": 3,
+      "previewText": "A·서쪽 단독 · 진입 훈련 · 계단과 턱 호위",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 5, "interval": 1.18, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 4,
+      "previewText": "B·북동 단독 · 진입 훈련 · 합류 전 감축",
+      "clearRewardGold": 32,
+      "groups": [
+        {"enemyType": "normal", "count": 6, "interval": 1.1, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 5, "interval": 1.2, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"}
+      ]
+    },
+    {
+      "round": 5,
+      "previewText": "A·서쪽 단독 · 진입 훈련 · 최후 삼칸 시험",
+      "clearRewardGold": 63,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 6,
+      "previewText": "B·북동 단독 · 진입 훈련 · 진입로 분담",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.23, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "normal", "count": 6, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"}
+      ]
+    },
+    {
+      "round": 7,
+      "previewText": "A·서쪽 단독 · 진입 훈련 · 입구 차폐",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "fast", "count": 3, "interval": 0.88, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 8,
+      "previewText": "B·북동 단독 · 진입 훈련 · 계단과 턱 호위",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 6, "interval": 1.18, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"}
+      ]
+    },
+    {
+      "round": 9,
+      "previewText": "A·서쪽 단독 · 진입 훈련 · 합류 전 감축",
+      "clearRewardGold": 37,
+      "groups": [
+        {"enemyType": "normal", "count": 7, "interval": 1.1, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 6, "interval": 1.2, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 10,
+      "previewText": "B·북동 단독 · 서쪽 계단과 동쪽 이중 턱 파쇄자 1 · 선행 돌파 | 파쇄자→B·북동",
+      "clearRewardGold": 123,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 1.12, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 11.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"}
+      ]
+    },
+    {
+      "round": 11,
+      "previewText": "A·서쪽 단독 · 시차 교차 · 진입로 분담",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 1.23, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "normal", "count": 7, "interval": 1.2, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 12,
+      "previewText": "B·북동 단독 · 시차 교차 · 입구 차폐",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "shielded", "count": 7, "interval": 1.2, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.88, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 13,
+      "previewText": "A·서쪽 단독 · 시차 교차 · 계단과 턱 호위",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "armored", "count": 7, "interval": 1.18, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 14,
+      "previewText": "B·북동 단독 · 시차 교차 · 합류 전 감축",
+      "clearRewardGold": 42,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "normal", "count": 8, "interval": 1.1, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "armored", "count": 7, "interval": 1.2, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 15,
+      "previewText": "A·서쪽 단독 · 시차 교차 · 최후 삼칸 시험",
+      "clearRewardGold": 83,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 8, "interval": 1.12, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "fast", "count": 4, "interval": 0.9, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g04"}
+      ]
+    },
+    {
+      "round": 16,
+      "previewText": "B·북동 단독 · 시차 교차 · 진입로 분담",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 8, "interval": 1.23, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "normal", "count": 8, "interval": 1.2, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 17,
+      "previewText": "A·서쪽 단독 · 시차 교차 · 입구 차폐",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "shielded", "count": 8, "interval": 1.2, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.88, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 18,
+      "previewText": "B·북동 단독 · 시차 교차 · 계단과 턱 호위",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "armored", "count": 8, "interval": 1.18, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 19,
+      "previewText": "A·서쪽 단독 · 시차 교차 · 합류 전 감축",
+      "clearRewardGold": 47,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "normal", "count": 9, "interval": 1.1, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "armored", "count": 8, "interval": 1.2, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 20,
+      "previewText": "B·북동 단독 · 서쪽 계단과 동쪽 이중 턱 파쇄자 2 · 장갑 선봉 | 파쇄자→B·북동",
+      "clearRewardGold": 153,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "armored", "count": 9, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"},
+        {"enemyType": "fast", "count": 4, "interval": 0.9, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g05"}
+      ]
+    },
+    {
+      "round": 21,
+      "previewText": "A·서쪽 단독 · 내구 분담 · 진입로 분담",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "armored", "count": 9, "interval": 1.23, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "normal", "count": 9, "interval": 1.2, "startDelay": 6.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 22,
+      "previewText": "A+B 동시 출현 · 내구 분담 · 입구 차폐",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "shielded", "count": 4, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "fast", "count": 3, "interval": 0.88, "startDelay": 8.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "fast", "count": 2, "interval": 0.88, "startDelay": 8.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"}
+      ]
+    },
+    {
+      "round": 23,
+      "previewText": "A·서쪽 단독 · 내구 분담 · 계단과 턱 호위",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 9, "interval": 1.18, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 24,
+      "previewText": "B·북동 단독 · 내구 분담 · 합류 전 감축",
+      "clearRewardGold": 52,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 1.1, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 9, "interval": 1.2, "startDelay": 7.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"}
+      ]
+    },
+    {
+      "round": 25,
+      "previewText": "A+B 동시 출현 · 내구 분담 · 최후 삼칸 시험",
+      "clearRewardGold": 103,
+      "groups": [
+        {"enemyType": "armored", "count": 5, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 5, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 6.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.2, "startDelay": 6.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 10.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g05"},
+        {"enemyType": "fast", "count": 2, "interval": 0.9, "startDelay": 10.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g06"}
+      ]
+    },
+    {
+      "round": 26,
+      "previewText": "B·북동 단독 · 내구 분담 · 진입로 분담",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "armored", "count": 10, "interval": 1.23, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "normal", "count": 10, "interval": 1.2, "startDelay": 6.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"}
+      ]
+    },
+    {
+      "round": 27,
+      "previewText": "A·서쪽 단독 · 내구 분담 · 입구 차폐",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "fast", "count": 5, "interval": 0.88, "startDelay": 8.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 28,
+      "previewText": "A+B 동시 출현 · 내구 분담 · 계단과 턱 호위",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "armored", "count": 5, "interval": 1.18, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "armored", "count": 5, "interval": 1.18, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"}
+      ]
+    },
+    {
+      "round": 29,
+      "previewText": "A·서쪽 단독 · 내구 분담 · 합류 전 감축",
+      "clearRewardGold": 57,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 1.1, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 10, "interval": 1.2, "startDelay": 7.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"}
+      ]
+    },
+    {
+      "round": 30,
+      "previewText": "A+B 동시 출현 · 서쪽 계단과 동쪽 이중 턱 파쇄자 3 · 차폐 선봉 | 파쇄자→A·서쪽",
+      "clearRewardGold": 183,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"},
+        {"enemyType": "armored", "count": 6, "interval": 1.12, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g04"},
+        {"enemyType": "armored", "count": 5, "interval": 1.12, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g05"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g06"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.2, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g07"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g08"},
+        {"enemyType": "fast", "count": 2, "interval": 0.9, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g09"}
+      ]
+    },
+    {
+      "round": 31,
+      "previewText": "A·서쪽 단독 · 종합 압박 · 진입로 분담",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "armored", "count": 11, "interval": 1.23, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "normal", "count": 11, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 32,
+      "previewText": "B·북동 단독 · 종합 압박 · 입구 차폐",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "fast", "count": 6, "interval": 0.88, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 33,
+      "previewText": "A+B 동시 출현 · 종합 압박 · 계단과 턱 호위",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "armored", "count": 6, "interval": 1.18, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "armored", "count": 5, "interval": 1.18, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g05"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g06"}
+      ]
+    },
+    {
+      "round": 34,
+      "previewText": "B·북동 단독 · 종합 압박 · 합류 전 감축",
+      "clearRewardGold": 62,
+      "groups": [
+        {"enemyType": "normal", "count": 12, "interval": 1.1, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 11, "interval": 1.2, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 35,
+      "previewText": "A+B 동시 출현 · 종합 압박 · 최후 삼칸 시험",
+      "clearRewardGold": 123,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 6, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g05"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g06"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g07"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g08"}
+      ]
+    },
+    {
+      "round": 36,
+      "previewText": "B·북동 단독 · 종합 압박 · 진입로 분담",
+      "clearRewardGold": 64,
+      "groups": [
+        {"enemyType": "armored", "count": 12, "interval": 1.23, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "normal", "count": 12, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"}
+      ]
+    },
+    {
+      "round": 37,
+      "previewText": "A·서쪽 단독 · 종합 압박 · 입구 차폐",
+      "clearRewardGold": 65,
+      "groups": [
+        {"enemyType": "shielded", "count": 12, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "fast", "count": 6, "interval": 0.88, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 38,
+      "previewText": "A+B 동시 출현 · 종합 압박 · 계단과 턱 호위",
+      "clearRewardGold": 66,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g02"},
+        {"enemyType": "armored", "count": 6, "interval": 1.18, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"},
+        {"enemyType": "armored", "count": 6, "interval": 1.18, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g04"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g05"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g06"}
+      ]
+    },
+    {
+      "round": 39,
+      "previewText": "A·서쪽 단독 · 종합 압박 · 합류 전 감축",
+      "clearRewardGold": 67,
+      "groups": [
+        {"enemyType": "normal", "count": 13, "interval": 1.1, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g01"},
+        {"enemyType": "armored", "count": 12, "interval": 1.2, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.25, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g03"}
+      ]
+    },
+    {
+      "round": 40,
+      "previewText": "A+B 동시 출현 · 서쪽 계단과 동쪽 이중 턱 파쇄자 4 · 이중 추격 | 파쇄자→B·북동",
+      "clearRewardGold": 213,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g02"},
+        {"enemyType": "armored", "count": 6, "interval": 1.12, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g03"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g04"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.2, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g05"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g06"},
+        {"enemyType": "fast", "count": 3, "interval": 0.9, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g07"},
+        {"enemyType": "shielded", "count": 2, "interval": 1.1, "startDelay": 11.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g08"},
+        {"enemyType": "shielded", "count": 1, "interval": 1.1, "startDelay": 11.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g09"},
+        {"enemyType": "fast", "count": 2, "interval": 0.85, "startDelay": 15.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "west", "id": "g10"},
+        {"enemyType": "fast", "count": 1, "interval": 0.85, "startDelay": 15.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "northeast", "id": "g11"}
+      ]
+    }
+  ],
+  "design": {
+    "chapter": 3,
+    "chapterStage": 10,
+    "buildClusters": [
+      {
+        "id": "west_front",
+        "cells": [
+          [1, 3],
+          [1, 4],
+          [2, 4],
+          [2, 5]
+        ],
+        "role_ko": "서쪽 계단의 초입 전용 포대"
+      },
+      {
+        "id": "east_front",
+        "cells": [
+          [12, 3],
+          [12, 4],
+          [12, 5],
+          [12, 6],
+          [11, 6]
+        ],
+        "role_ko": "동쪽 갈고리의 바깥 턱 전용 포대"
+      },
+      {
+        "id": "channel_island",
+        "cells": [
+          [10, 2],
+          [11, 2]
+        ],
+        "role_ko": "북동 경로의 왕복 구간 사이에 끼인 두 칸 섬 거점"
+      },
+      {
+        "id": "limited_shared",
+        "cells": [
+          [8, 8],
+          [8, 9],
+          [8, 10]
+        ],
+        "role_ko": "합류 직후만 보조하도록 작게 남긴 공동 포대"
+      }
+    ],
+    "geometryRevision": "branch-portal-3-10"
+  }
+}

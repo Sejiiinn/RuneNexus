@@ -232,7 +232,7 @@ func _fit_price() -> void:
 	if _price_label == null or _price_icon == null or _price_row.size.x <= 0: return
 	var desired := maxi(8,roundi(50.0*_ratio))
 	var font := _price_label.get_theme_font("font")
-	var display := _price_text if _maximum else HudNumber.compact_price(_price_text.trim_suffix(" G").to_float())+" G"
+	var display := _price_text if _maximum else HudNumber.compact_price(_price_text.trim_suffix(" G").to_int())+" G"
 	var full_width := font.get_string_size(display,HORIZONTAL_ALIGNMENT_LEFT,-1,desired).x
 	var compact := not _maximum and full_width > _price_row.size.x-ceilf(69.0*_ratio)-ceilf(7.0*_ratio)
 	# The gold icon already identifies the currency. When space is tight, keep

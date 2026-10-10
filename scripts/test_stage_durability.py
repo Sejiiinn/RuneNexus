@@ -33,7 +33,7 @@ class StageDurabilityTests(unittest.TestCase):
 
     def test_every_fixed_stage_round_and_enemy_uses_ordinal(self):
         self.assertEqual(len(self.content['enemyDefinitions']), 8)
-        self.assertEqual([s['id'] for s in self.content['stages']], list(range(1, 26)))
+        self.assertEqual([s['id'] for s in self.content['stages']], list(range(1, 31)))
         count = 0
         for stage in self.content['stages']:
             self.assertEqual([w['round'] for w in stage['waves']], list(range(1, 41)))
@@ -46,12 +46,12 @@ class StageDurabilityTests(unittest.TestCase):
                                                    base[field] * factor, rel_tol=1e-12, abs_tol=1e-12),
                                         (stage['id'], wave['round'], kind, field))
                     count += 1
-        self.assertEqual(count, 25 * 40 * 8)
+        self.assertEqual(count, 30 * 40 * 8)
 
     def test_adjacent_logical_stages_have_fifteen_percent_growth(self):
         order = list(self.ordinals)
         # Regression anchors cross the inserted and original chapter boundaries.
-        for a, b in ((5, 16), (20, 6), (10, 21), (25, 11)):
+        for a, b in ((5, 16), (20, 6), (10, 21), (25, 11), (15, 26)):
             self.assertEqual(self.ordinals[b], self.ordinals[a] + 1)
         by_id = {s['id']: s for s in self.content['stages']}
         for first, second in zip(order, order[1:]):

@@ -18,7 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = 4
+	CurrentClientCompatibilityVersion       = 5
 )
 
 var (
@@ -216,7 +216,7 @@ func (service *Service) ClaimWriter(
 
 	snapshot, snapshotErr := txQueries.GetSaveSnapshot(ctx, databaseAccountID)
 	if snapshotErr == nil {
-		if err := ValidateGrowthClient(snapshot.Progression, request.ClientCompatibilityVersion); err != nil {
+		if err := ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, request.ClientCompatibilityVersion); err != nil {
 			return ClaimWriterResult{}, err
 		}
 	} else if !errors.Is(snapshotErr, pgx.ErrNoRows) {
@@ -352,6 +352,14 @@ func (service *Service) Update(
 		currentProgression = snapshot.Progression
 	} else if !errors.Is(snapshotErr, pgx.ErrNoRows) {
 		return UpdateResult{}, fmt.Errorf("read growth compatibility: %w", snapshotErr)
+	}
+	if snapshotErr == nil {
+		if err := ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, request.ClientCompatibilityVersion); err != nil {
+			return UpdateResult{}, err
+		}
+	}
+	if err := ValidateContentClient(request.Data.Progression, request.Data.ActiveRun, request.ClientCompatibilityVersion); err != nil {
+		return UpdateResult{}, err
 	}
 	if err := ValidateGrowthUpdate(currentProgression, request.Data.Progression, request.ClientCompatibilityVersion); err != nil {
 		return UpdateResult{}, err

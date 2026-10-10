@@ -13,9 +13,16 @@ import sys
 import tempfile
 from content_compiler import check_generated
 from compile_progression import compile_progression
+from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_chapter_three_panels.gd": None,
+    "verify_dispatch_portals.gd": None,
+    "verify_chapter_three_normal_combat.gd": None,
+    "verify_chapter_three_combat_checkpoint.gd": "PASS chapter three native-coordinate checkpoint and Continue UI contract",
+    "verify_chapter_three_lifecycle.gd": None,
+    "verify_enemy_routes.gd": None,
     "verify_runtime_content_format.gd": "PASS runtime content format:",
     "verify_catalog_session_boundaries.gd": "PASS catalog session boundaries:",
     "verify_battle_menu_parity.gd": "PASS battle menu parity:",
@@ -55,6 +62,8 @@ SCRIPTS = {
     "verify_reward_snapshot.gd": "authoritative snapshot Dart parity PASS:",
     "verify_reward_settlement.gd": '"ok":true',
     "verify_run_commands.gd": "failures=[]",
+    "verify_hud_numbers.gd": "HUD_NUMBERS checks=",
+    "verify_hud_number_layout.gd": "HUD_NUMBER_LAYOUT checks=",
     "verify_battle_hud.gd": "PASS battle HUD:",
     "verify_battlefield_input.gd": "PASS battlefield input:",
     "verify_diamond_event.gd": "PASS diamond event:",
@@ -76,10 +85,12 @@ SCRIPTS = {
     "verify_ui_layout_stability.gd": "PASS UI_LAYOUT_STABILITY",
     "verify_modal_refresh.gd": "MODAL_REFRESH checks=",
     "verify_lobby_stages.gd": "PASS stage restoration:",
+    "verify_lobby_numbers.gd": "LOBBY_NUMBERS checks=",
     "verify_app_selection.gd": "PASS app selection:",
     "verify_app_presentation.gd": "PASS independent presentation:",
 }
 FIXTURES = (
+    "chapter_three_map_signature_baseline.json",
     "turret_stat_calculation.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
     "quest_progress_cases.json", "reward_snapshot_cases.json",
     "growth_cases.json", "growth_game_cases.json", "growth_progression_cases.json", "game_content_cases.json",
@@ -119,6 +130,8 @@ def prepare(directory: Path, executable: str) -> Path:
         copy_files(ROOT / "godot" / folder, project / folder, {".gd", ".gdshader", ".json"})
     copy_files(ROOT / "godot/app", project / "app", {".gd"})
     copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
+    (project / "environment").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "godot/environment/chapter_three_tiles.gd", project / "environment/chapter_three_tiles.gd")
     (project / "presentation").mkdir(parents=True, exist_ok=True)
     for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader", "stage_resources.gd"):
         shutil.copy2(ROOT / "godot/presentation" / name, project / "presentation" / name)
@@ -137,7 +150,7 @@ def prepare(directory: Path, executable: str) -> Path:
             raise ValueError(f"Invalid UI asset path: {relative}")
         destination = app_assets / path
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / "assets/images" / path, destination)
+        shutil.copy2(app_ui_source(ROOT, relative), destination)
     shutil.copytree(ROOT / "assets/images/stage1_3d/ui", project / "assets/ui", dirs_exist_ok=True)
     for source, target in (("assets/images/diamond_currency.png", "diamond_currency.png"),
                            ("assets/fonts/NotoSansKR-VF.ttf", "NotoSansKR-VF.ttf"),
@@ -158,7 +171,7 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
     # Transition cases restart processes; fixed-clock replay covers 120 seeded
     # scenarios across render cadences/speeds. Existing case limits are unchanged.
-    timeout = 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
+    timeout = 120 if name == "verify_chapter_three_normal_combat.gd" else 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],

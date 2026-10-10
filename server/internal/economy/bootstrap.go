@@ -268,7 +268,7 @@ func lockWriterAndSave(
 	if err != nil {
 		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, fmt.Errorf("read economy source save: %w", err)
 	}
-	if err := gamesave.ValidateGrowthClient(snapshot.Progression, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
+	if err := gamesave.ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
 		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, err
 	}
 	return writer, snapshot, nil

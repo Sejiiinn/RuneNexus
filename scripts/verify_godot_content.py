@@ -58,7 +58,7 @@ def verify() -> None:
     stages = game["stages"]
     if not stages or [stage["id"] for stage in stages] != list(range(1, len(stages) + 1)):
         raise ValueError("Stage IDs must be contiguous from 1")
-    if len(stages) != 25: raise ValueError("Expansion requires 25 fixed stage IDs")
+    if len(stages) != len(stage_ordinals()): raise ValueError("Stage inventory differs from progression registry")
     ordinals = stage_ordinals()
     for stage in stages:
         game_map = stage["map"]
@@ -105,7 +105,7 @@ def verify() -> None:
                 raise ValueError(f"{name} has non-finite number")
         numbers(data)
     print(f"PASS Godot content: {len(stages)} stages, {len(enemies)} enemies, "
-          f"{len(turrets)} turrets, 25x40x{len(enemies)} ordinal durability, checked-in growth and combat fixtures")
+          f"{len(turrets)} turrets, {len(stages)}x40x{len(enemies)} ordinal durability, checked-in growth and combat fixtures")
 
 
 if __name__ == "__main__":

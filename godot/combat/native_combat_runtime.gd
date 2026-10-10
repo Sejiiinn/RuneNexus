@@ -36,6 +36,9 @@ var turrets: Dictionary = {}
 var projectiles: Array = []
 var delayed: Array = []
 var events: Array = []
+# ACK retires gameplay records before render. Keep only immutable death display
+# data until the next presentation observation; never include it in saves.
+var _presentation_deaths: Array = []
 var visual_effects: Array = []
 # Canonical static payloads are immutable; raw journal units stay compatible
 # with public frames, 3D impacts and development sessions.
@@ -51,6 +54,8 @@ var clock_control_revision: int = 0
 var _advancing_session: bool = false
 var path: Array = []
 var teleport_pairs: Array = []
+var routes: Dictionary = {}
+var spawn_portal_id := ""
 var _path_revision := 0
 var origin := Vector2.ZERO
 var tile_size: float = 1.0
@@ -165,12 +170,16 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 		var teleport_error := Teleports.validate_compiled(packet.bootstrap.get("teleportPairs",[]),packet.bootstrap.get("path",[]))
 		if not teleport_error.is_empty():
 			return {"accepted":false,"reason":"invalidTeleportPairs","detail":teleport_error}
+		var route_error := _validate_routes(packet.bootstrap)
+		if not route_error.is_empty(): return {"accepted":false,"reason":"invalidRoutes","detail":route_error}
 		_reset(packet)
 	if int(packet.get("sequence", -1)) <= sequence:
 		return snapshot() if include_snapshot else {"accepted":true,"epoch":epoch,"ackSequence":sequence}
 	if sequence >= 0 and int(packet.sequence) != sequence + 1:
 		return {"accepted": false, "reason": "sequenceGap", "epoch": epoch, "ackSequence": sequence}
 	for command in packet.get("commands",[]):
+		var route_error := _validate_command_routes(command)
+		if not route_error.is_empty(): return {"accepted":false,"reason":"invalidRoutes","detail":route_error}
 		if command.get("kind") == "layout":
 			var teleport_error := Teleports.validate_compiled(teleport_pairs,command.get("path",path))
 			if not teleport_error.is_empty():
@@ -180,6 +189,7 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	var ack_event := int(packet.get("ackEvent", 0))
 	for event in events:
 		if int(event.id) <= ack_event and event.kind in ["kill","arrival"]:
+			if event.kind == "kill": _retain_death_presentation(event)
 			enemies.erase(str(event.enemyId))
 	events = events.filter(func(e): return int(e.id) > ack_event)
 	if packet.get("session") is Dictionary:
@@ -236,6 +246,7 @@ func _reset(packet: Dictionary) -> void:
 	projectiles.clear()
 	delayed.clear()
 	events.clear()
+	_presentation_deaths.clear()
 	visual_effects.clear()
 	_prepared_effects.clear()
 	event_id = 0
@@ -245,6 +256,10 @@ func _reset(packet: Dictionary) -> void:
 	rng.seed = int(b.get("seed", 71423))
 	path = _path(b.get("path", []))
 	teleport_pairs = b.get("teleportPairs",[]).duplicate(true)
+	spawn_portal_id = b.get("spawnPortalId", "")
+	routes.clear()
+	for route in b.get("routes", []):
+		routes[route.id] = {"path":_path(route.path),"teleportPairs":route.get("teleportPairs",[]).duplicate(true),"spawnPortalId":route.get("spawnPortalId","")}
 	_path_revision += 1
 	origin = _vec(b.get("origin", [0, 0]))
 	tile_size = maxf(0.001, b.get("tileSize", 1.0))
@@ -335,13 +350,18 @@ func _core_base_damage() -> float:
 func _boss(e: Dictionary) -> bool:
 	return bool(e.get("isBoss",false)) or e.get("type","") in ["boss","shieldBoss","forgeBoss"]
 
+# Larger score means nearer the core. Subtracting each route's own length
+# preserves every same-path ordering/tie while comparing unequal routes fairly.
+func _progress_score(enemy: Dictionary) -> float:
+	return float(enemy.get("distanceTravelled",0.0)) - float(enemy.get("_total",0.0))
+
 func _core_beam_tick(tick_damage: float) -> void:
 	var target: Dictionary = {}
 	var progress := -INF
 	for e in enemies.values():
-		if _alive(e) and float(e.distanceTravelled)>progress:
+		if _alive(e) and _progress_score(e)>progress:
 			target = e
-			progress = float(e.distanceTravelled)
+			progress = _progress_score(e)
 	if target.is_empty(): return
 	var cap: float = core.config.get("bossHpCapRate",0.025) if _boss(target) else core.config.get("enemyHpCapRate",0.35)
 	cap *= float(target.maxHp)*float(core.config.get("guardianBeamTickInterval",0.1))/float(core.config.get("guardianBeamDuration",1.0))
@@ -361,7 +381,7 @@ func _core_rift_mark(power: float) -> void:
 	candidates.sort_custom(func(a,b):
 		var durability_a := _durability(a)
 		var durability_b := _durability(b)
-		return float(a.distanceTravelled)>float(b.distanceTravelled) if durability_a == durability_b else durability_a>durability_b)
+		return _progress_score(a)>_progress_score(b) if durability_a == durability_b else durability_a>durability_b)
 	candidates = candidates.slice(0,int(core.config.get("riftMarkTargetCount",4)))
 	for target in candidates:
 		var amp: float = core.config.get("riftMarkBossDamageAmplification",0.125) if _boss(target) else core.config.get("riftMarkDamageAmplification",0.25)
@@ -422,12 +442,81 @@ func _path(raw: Array) -> Array:
 		result.append({"x": v.x, "y": v.y})
 	return result
 
+func _validate_routes(b: Dictionary) -> String:
+	if b.has("spawnPortalId") and (not b.spawnPortalId is String or b.spawnPortalId.is_empty()): return "Invalid default spawn portal ID"
+	if not b.get("routes", []) is Array: return "Routes must be an array"
+	var ids := {}
+	for route in b.get("routes", []):
+		if not route is Dictionary or not route.get("id") is String or route.id.is_empty() or ids.has(route.id): return "Invalid/duplicate route ID"
+		if route.has("spawnPortalId") and (not route.spawnPortalId is String or route.spawnPortalId.is_empty()): return "Invalid route spawn portal ID"
+		if not route.get("path") is Array or route.path.size() < 2: return "Invalid route path"
+		for point in route.path:
+			if not ((point is Array and point.size() == 2) or (point is Dictionary and point.has_all(["x","y"]))): return "Invalid route point"
+			var x: Variant = point[0] if point is Array else point.x
+			var y: Variant = point[1] if point is Array else point.y
+			if not (x is float or x is int) or not (y is float or y is int): return "Invalid route coordinates"
+			var p := _vec(point)
+			if not p.is_finite(): return "Non-finite route point"
+		var problem := Teleports.validate_compiled(route.get("teleportPairs", []),route.path)
+		if not problem.is_empty(): return problem
+		ids[route.id] = true
+	for enemy in b.get("enemies", []):
+		var problem := _validate_spawn_route({"enemy":enemy},ids)
+		if not problem.is_empty(): return problem
+		problem = Teleports.validate_compiled(enemy.get("teleportPairs", []),enemy.get("path",b.get("path", [])))
+		if not problem.is_empty(): return problem
+	for request in b.get("wave", {}).get("spawnQueue", []):
+		var problem := _validate_spawn_route(request,ids)
+		if not problem.is_empty(): return problem
+	return ""
+
+func _validate_spawn_route(request: Dictionary, known_routes: Dictionary) -> String:
+	# A request may carry route identity without duplicating it in its prepared
+	# enemy. Validate every supplied copy before Wave.start normalizes them.
+	var enemy_value: Variant = request.get("enemy",{})
+	if not enemy_value is Dictionary: return "Invalid prepared spawn enemy"
+	var state_value: Variant = enemy_value.get("state",{})
+	if not state_value is Dictionary: return "Invalid prepared enemy state"
+	var chosen: Variant = null
+	for source: Dictionary in [request,enemy_value,state_value]:
+		if not source.has("routeId"): continue
+		if not source.routeId is String: return "Invalid spawn route ID"
+		if chosen != null and chosen != source.routeId: return "Spawn route differs from prepared enemy"
+		chosen = source.routeId
+	if chosen != null and not chosen.is_empty() and not known_routes.has(chosen): return "Unknown spawn route"
+	return ""
+
+func _validate_command_routes(command: Dictionary) -> String:
+	if command.get("kind") == "spawn":
+		var problem := _validate_spawn_route({"enemy":command.get("enemy",{})},routes)
+		if not problem.is_empty(): return problem
+	if command.get("kind") == "waveStart":
+		for request in command.get("wave", {}).get("spawnQueue", []):
+			var problem := _validate_spawn_route(request,routes)
+			if not problem.is_empty(): return problem
+	if command.get("kind") == "layout" and (command.has("routes") or command.has("spawnPortalId")):
+		var problem := _validate_routes(command)
+		if not problem.is_empty(): return problem
+	return ""
+
+func _transform_path(points: Array, old_origin: Vector2, new_origin: Vector2, ratio: float) -> Array:
+	var result: Array = []
+	for point in points:
+		var p := (_vec(point)-old_origin)*ratio+new_origin
+		result.append({"x":p.x,"y":p.y})
+	return result
+
 func _spawn(raw: Dictionary) -> void:
 	var value: Dictionary = raw.get("state", {}).duplicate(true)
 	value.merge(raw, true)
-	value.path = _path(raw.get("path", path))
+	var route: Dictionary = routes.get(str(value.get("routeId", "")), {})
+	var portal_id: String = route.get("spawnPortalId",spawn_portal_id)
+	value.erase("spawnPortalId")
+	if not portal_id.is_empty(): value.spawnPortalId = portal_id
+	value.path = _path(route.get("path",value.get("path", path)))
+	var pairs: Array = route.get("teleportPairs",value.get("teleportPairs",teleport_pairs))
 	value.erase("teleportPairs")
-	if not teleport_pairs.is_empty(): value.teleportPairs = teleport_pairs
+	if not pairs.is_empty(): value.teleportPairs = pairs
 	value.boardDistanceScale = board_scale
 	value.collisionRadius = raw.get("radius", raw.get("collisionRadius", 8.0))
 	enemies[str(raw.id)] = Enemy.create(value)
@@ -468,18 +557,28 @@ func _command(c: Dictionary) -> void:
 		"layout":
 			var old_origin := origin
 			var old_tile := tile_size
+			var old_path := path
 			origin = _vec(c.get("origin", [origin.x,origin.y]))
 			tile_size = float(c.get("tileSize", tile_size))
 			var ratio := tile_size / maxf(old_tile,0.001)
 			board_scale = float(c.get("boardDistanceScale", board_scale))
 			path = _path(c.get("path", path))
 			_path_revision += 1
+			# Layout transforms every route, including custom per-enemy paths.
+			for route in routes.values(): route.path = _transform_path(route.path,old_origin,origin,ratio)
+			for route in c.get("routes", []): routes[route.id] = {"path":_path(route.path),"teleportPairs":route.get("teleportPairs",[]).duplicate(true),"spawnPortalId":route.get("spawnPortalId",routes.get(route.id,{}).get("spawnPortalId",""))}
 			for e in enemies.values():
 				e.boardDistanceScale = board_scale
 				e.collisionRadius = _radius(e)*ratio
 				if e.has("targetingRadius"): e.targetingRadius *= ratio
 				if e.has("presentationSize"): e.presentationSize = [e.presentationSize[0]*ratio,e.presentationSize[1]*ratio]
-				Enemy.update_path(e,path)
+				var selected_route: Dictionary = routes.get(str(e.get("routeId", "")),{})
+				if not selected_route.is_empty():
+					e.erase("teleportPairs")
+					if not selected_route.teleportPairs.is_empty(): e.teleportPairs = selected_route.teleportPairs.duplicate(true)
+				# Pair indices belong to the selected path and must be replaced
+				# before update_path restores any teleport exit position.
+				Enemy.update_path(e,selected_route.get("path",path if e.path == old_path else _transform_path(e.path,old_origin,origin,ratio)))
 			for t in turrets.values():
 				var p := (_vec(t.position)-old_origin)*ratio+origin
 				t.position = [p.x,p.y]
@@ -492,7 +591,11 @@ func _command(c: Dictionary) -> void:
 				prepared.x = at.x
 				prepared.y = at.y
 				prepared.position = {"x":at.x,"y":at.y}
-				prepared.path = path.duplicate(true)
+				var selected_route: Dictionary = routes.get(str(prepared.get("routeId", "")),{})
+				if not selected_route.is_empty():
+					prepared.erase("teleportPairs")
+					if not selected_route.teleportPairs.is_empty(): prepared.teleportPairs = selected_route.teleportPairs.duplicate(true)
+				prepared.path = selected_route.get("path",path if prepared.get("path",old_path) == old_path else _transform_path(prepared.get("path",old_path),old_origin,origin,ratio)).duplicate(true)
 				prepared.boardDistanceScale = board_scale
 				for key in ["collisionRadius","targetingRadius"]:
 					if prepared.has(key): prepared[key] *= ratio
@@ -541,7 +644,7 @@ func _step(dt: float) -> void:
 	var burn_sources: Dictionary = {}
 	for e in enemies.values():
 		if _alive(e):
-			_collect(Enemy.step(e, dt, path, _path_revision), burn_sources)
+			_collect(Enemy.step(e, dt), burn_sources)
 			if terminal: return
 	_finish_step(dt)
 
@@ -647,7 +750,7 @@ func _target(from: Vector2, radius: float, priority: String, excluded: Array = [
 		var distance := from.distance_squared_to(_pos(e))
 		if distance > pow(radius + (_target_radius(e) if body else 0.0), 2):
 			continue
-		var progress: float = e.get("distanceTravelled", 0.0)
+		var progress := _progress_score(e)
 		var current_score := progress
 		var current_tie := -distance
 		match priority:
@@ -947,6 +1050,23 @@ func _emit(event: Dictionary) -> void:
 	event.id = event_id
 	events.append(event)
 
+func _retain_death_presentation(event: Dictionary) -> void:
+	var enemy: Dictionary = enemies.get(str(event.enemyId), {})
+	if enemy.is_empty(): return
+	var display := event.duplicate(true)
+	display.enemyPresentation = {
+		"type":enemy.get("type", "normal"), "facingAngle":enemy.get("facingAngle", 0.0),
+		"presentationScale":enemy.get("presentationScale", 0.48 if enemy.get("type") == "fast" else 0.55),
+		"teleportSerial":enemy.get("teleportSerial", 0), "routeId":enemy.get("routeId", ""), "spawnPortalId":enemy.get("spawnPortalId", ""),
+	}
+	display.visualOffset = _visual_enemy_offset(enemy)
+	_presentation_deaths.append(display)
+
+func take_death_presentations() -> Array:
+	var pending := _presentation_deaths
+	_presentation_deaths = []
+	return pending
+
 func snapshot() -> Dictionary:
 	var enemy_states: Array = []
 	for e in enemies.values():
@@ -1006,7 +1126,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		var poisoned: bool = float(e.poisonRemaining) > 0
 		var diamond: bool = int(e.get("diamondReward", 0)) > 0
 		rows.append([e.id, p.x,p.y,e.facingAngle,e.visualPhase,e.get("presentationScale",_radius(e)*2.0/tile_size),e.hitFlashTimer,e.get("type","normal"),burning,slowed,poisoned,diamond,logical.x,logical.y])
-		if not teleport_pairs.is_empty(): rows[-1].append({"teleportSerial":int(e.get("teleportSerial",0))})
+		if not e.get("teleportPairs", []).is_empty(): rows[-1].append({"teleportSerial":int(e.get("teleportSerial",0))})
 		labels.append({"id":e.id,"position":[p.x,p.y],"size":e.get("presentationSize",[_radius(e)*2,_radius(e)*2]),"hp":e.hp,"maxHp":e.maxHp,"armor":e.armor,"maxArmor":e.maxArmor,"shield":e.shield,"maxShield":e.maxShield,"effectTime":e.statusEffectTime,"enemyCount":enemies.size(),"burning":burning,"slowed":slowed,"poisoned":poisoned,"riftMarked":e.riftMarkRemaining>0,"diamondCarrier":diamond})
 	frame.enemies = rows
 	frame.turrets = []

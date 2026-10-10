@@ -1,4 +1,5 @@
 extends SceneTree
+const HudNumber = preload("res://ui/hud_number.gd")
 const Fixture = preload("res://verify_battle_hud.gd")
 class App extends Fixture.App:
 	var allow_destination := true
@@ -38,7 +39,8 @@ func run() -> void:
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	hud.menu_panel._stage_menu(); hud.menu_panel._end_stage_confirm()
 	assert(app.run_domain.state == before,"Reward preview must not mutate the run/progression")
-	var reward_text := "+%d 룬" % hud.menu_panel._projected_failure_reward()
+	var reward_text := "+%s 룬" % HudNumber.compact_integer(hud.menu_panel._projected_failure_reward())
+	assert(hud.modal_body.find_child("EndRewardAmount",true,false).tooltip_text == "+%d 룬" % hud.menu_panel._projected_failure_reward())
 	assert(all_text(hud.modal_body).count(reward_text) == 1,"Reward is displayed once")
 	assert(all_text(hud.modal_body).contains("완료 2웨이브 기준"))
 	assert(not all_text(hud.modal_body).contains("정산 예상"))

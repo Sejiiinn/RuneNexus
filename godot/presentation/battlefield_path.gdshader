@@ -3,9 +3,6 @@ render_mode unshaded, cull_disabled, depth_draw_never, shadows_disabled;
 
 uniform float battle_time = 0.0;
 uniform float pulse_count = 1.0;
-uniform vec4 glow_color : source_color = vec4(0.556863, 0.901961, 1.0, 1.0);
-uniform vec4 line_color : source_color = vec4(0.913725, 0.992157, 1.0, 1.0);
-uniform vec4 pulse_color : source_color = vec4(0.749020, 0.956863, 1.0, 1.0);
 
 void fragment() {
 	// Original guide: 0.13 glow / 0.05 line, 1.32 spacing, 0.36 pulses.
@@ -24,6 +21,10 @@ void fragment() {
 	float pulse = pulse_alpha * dash * (1.0 - smoothstep(0.0305, 0.0545, lateral));
 	float core = pulse_alpha * 0.35 * dash * (1.0 - smoothstep(0.013, 0.017, lateral));
 	float alpha = glow + line + pulse + core;
-	ALBEDO = (glow_color.rgb * glow + line_color.rgb * line + pulse_color.rgb * pulse + vec3(core)) / max(alpha, 0.00001);
+	// Per-vertex origin tint keeps one shared shader/material for both portals.
+	vec3 glow_color = COLOR.rgb;
+	vec3 line_color = mix(COLOR.rgb, vec3(1.0), 0.62);
+	vec3 pulse_color = mix(COLOR.rgb, vec3(1.0), 0.34);
+	ALBEDO = (glow_color * glow + line_color * line + pulse_color * pulse + vec3(core)) / max(alpha, 0.00001);
 	ALPHA = alpha;
 }

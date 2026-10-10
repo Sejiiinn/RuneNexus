@@ -12,6 +12,7 @@ import sys
 
 from content_compiler import check_generated
 from compile_progression import compile_progression
+from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build/godot"
@@ -35,7 +36,7 @@ def input_digest():
                ROOT / "assets/fonts/MaterialIcons-Regular.otf", ROOT / "assets/fonts/MaterialIcons_LICENSE.txt"]
     manifest = ROOT / "godot/ui/assets.json"
     if manifest.is_file():
-        inputs += [ROOT / "assets/images" / relative for relative in json.loads(manifest.read_text())]
+        inputs += [app_ui_source(ROOT, relative) for relative in json.loads(manifest.read_text())]
     for folder in (ROOT / "godot", ROOT / "assets/images/stage1_3d"):
         inputs.extend(
             path for path in folder.rglob("*")

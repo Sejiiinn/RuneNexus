@@ -14,8 +14,20 @@ func start(raw: Dictionary) -> void:
 	elapsed = 0.0
 	next_index = 0
 	queue = raw.get("spawnQueue", []).duplicate(true)
+	for request in queue:
+		if not request.get("enemy") is Dictionary: continue
+		var enemy: Dictionary = request.enemy
+		var route_id: String = request.get("routeId",enemy.get("routeId",enemy.get("state",{}).get("routeId","")))
+		if not route_id.is_empty():
+			request.routeId = route_id
+			enemy.routeId = route_id
+
 	# Restore delays are already remaining delays. Never apply the .18 gap again.
-	queue.sort_custom(func(a, b): return float(a.delay) < float(b.delay))
+	# Concurrent routes can share timestamps. Preserve the compiled tie order so
+	# remaining queues still match the deterministic save/resume schedule suffix.
+	for index in range(queue.size()): queue[index]._spawnOrder = index
+	queue.sort_custom(func(a, b): return int(a._spawnOrder) < int(b._spawnOrder) if float(a.delay) == float(b.delay) else float(a.delay) < float(b.delay))
+	for request in queue: request.erase("_spawnOrder")
 
 func advance(dt: float) -> Array:
 	var ready: Array = []
@@ -47,4 +59,6 @@ func snapshot() -> Dictionary:
 	for index in range(next_index, queue.size()):
 		# Save/mirror contract intentionally excludes prepared enemy configurations.
 		remaining.append({"enemyType":queue[index].enemyType,"delay":maxf(0,float(queue[index].delay)-elapsed)})
+		var route_id: String = queue[index].get("routeId",queue[index].get("enemy",{}).get("routeId",""))
+		if not route_id.is_empty(): remaining[-1].routeId = route_id
 	return {"id":id,"active":active,"completed":completed,"spawnQueue":remaining}

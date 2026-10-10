@@ -161,6 +161,7 @@ func _ready() -> void:
 	camera_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	camera_button.custom_minimum_size = Vector2(68,32); camera_button.size = Vector2(68,32)
 	_style_hud_button(camera_button,"quiet",false,Vector2(5,2))
+	top.resized.connect(_position_camera_button)
 	message = _label(top,"",11)
 	retry_save = _button(top,"저장 다시 시도",func(): app.persist_progression(); refresh())
 	dock = PanelContainer.new()
@@ -282,13 +283,14 @@ func refresh(polled := false) -> void:
 			var projectile := str(turret.type) in ["arrow","cannon"]
 			total_dps += _dps(stats,str(turret.type)) + float(stats.damage)*float(stats.attackRate)*(int(stats.projectileCount)-1 if projectile else 0)
 	# Compact numeric presentation only; all balances, quotes and arithmetic stay exact.
-	gold_label.text = HudNumber.compact(float(state.gold),0); gold_label.tooltip_text = str(state.gold)
-	shard_label.text = HudNumber.compact(float(state.gemShards),0); shard_label.tooltip_text = str(state.gemShards)
+	gold_label.text = HudNumber.compact(int(state.gold),0); gold_label.tooltip_text = str(state.gold)
+	shard_label.text = HudNumber.compact(int(state.gemShards),0); shard_label.tooltip_text = str(state.gemShards)
 	resources.text = "전투력 "+HudNumber.compact(total_dps); resources.tooltip_text = "전투력 %.1f" % total_dps
 	for label in [gold_label,shard_label,resources]: label.get_parent().tooltip_text = label.tooltip_text
 	var wave_count: int = app.catalog.wave_count(app.stage)
 	_refresh_intel(state,wave_count)
-	status.text = "♡ %d/%d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
+	status.text = "♡ %s/%s" % [HudNumber.compact_integer(ceili(runtime.defense.hp)),HudNumber.compact_integer(ceili(runtime.defense.max_hp))]
+	status.tooltip_text = "체력 %d/%d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
 	wave_label.text = "웨이브 %d/%d" % [mini(int(state.get("completedRounds",0))+1,wave_count),wave_count]
 	hp.max_value = maxf(1,runtime.defense.max_hp); hp.value = runtime.defense.hp
 	for value in speed_buttons:
@@ -311,8 +313,7 @@ func refresh(polled := false) -> void:
 	start.disabled = phase not in ["preparation","wave"] or (phase == "wave" and not paused) or app.get("save_failed") == true
 	pause_button.visible = phase == "wave" and not paused
 	camera_button.text = ("드론" if app.scene.options.get("camera","angled") == "drone" else "고정")+" ↔"
-	camera_button.offset_right = -8-insets.z; camera_button.offset_left = camera_button.offset_right-68
-	camera_button.offset_top = top.offset_top+top.size.y+6; camera_button.offset_bottom = camera_button.offset_top+32
+	_position_camera_button()
 	home.disabled = phase == "reward"
 	var auto_index: int = maxi(0,AUTO_MODES.find(app.auto_start_mode))
 	auto_start.text = AUTO_CAPTIONS[auto_index]+(" ▴" if auto_start_popup.visible else " ▾")
@@ -373,6 +374,14 @@ func refresh(polled := false) -> void:
 	menu_panel._refresh_core()
 	if rewards != null: rewards.refresh(state)
 	RuntimeProfile.finish("hud", hud_tick)
+
+func _position_camera_button() -> void:
+	# The first refresh runs before container layout. Follow its settled height
+	# immediately so the camera control never waits for the next HUD poll.
+	if not is_instance_valid(camera_button): return
+	var insets := safe_insets()
+	camera_button.offset_right = -8-insets.z; camera_button.offset_left = camera_button.offset_right-68
+	camera_button.offset_top = top.offset_top+top.size.y+6; camera_button.offset_bottom = camera_button.offset_top+32
 
 func _open_auto_start() -> void:
 	target_priority_popup.hide()
@@ -654,7 +663,8 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 	var shard_rewards: Array = app.run_domain.growth.data.get("roundShardRewards",[])
 	var shards := int(shard_rewards[index+1]) if index+1 < shard_rewards.size() else 0
 	enemy_caption.text = "다음 적" if state.phase == "preparation" else "등장 적"
-	reward_label.text = "+%d G · 파편 %d" % [gold,shards]
+	reward_label.text = "+%s G · 파편 %s" % [HudNumber.compact_integer(gold),HudNumber.compact_integer(shards)]
+	reward_label.tooltip_text = "+%d G · 파편 %d" % [gold,shards]
 	var types: Array = wave.enemyCounts.keys()
 	for type in types.slice(0,3):
 		var button := _button(enemy_intel,"",func():

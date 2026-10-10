@@ -16,6 +16,7 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 	sockets.add_theme_constant_override("separation",0)
 	hud.body.add_child(sockets)
 	var buttons: Array[Button] = []
+	var price_tags: Array[Label] = []
 	for i in range(clampi(max_slots,3,6)):
 		var locked := i >= int(turret.slotLimit)
 		if i > 0:
@@ -60,10 +61,13 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 		tag.name = "GemSlotPrice%d" % i
 		tag.custom_minimum_size.y = 16
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		tag.autowrap_mode = TextServer.AUTOWRAP_OFF
+		tag.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		price_tags.append(tag)
 		if locked:
 			var price := _slot_price(state,int(turret.id),i)
-			tag.text = HudNumber.compact_price(price)+" G" if price > 0 else "—"
+			tag.set_meta("price_amount",HudNumber.compact_price(price) if price > 0 else "—")
+			tag.text = tag.get_meta("price_amount")+" G" if price > 0 else "—"
+			tag.tooltip_text = "%d G" % price if price > 0 else ""
 			socket.tooltip_text = "%d G" % price if price > 0 else ""
 			cell.tooltip_text = socket.tooltip_text
 			tag.modulate = Color("f0d28a")
@@ -80,8 +84,9 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			icon.offset_left = 7; icon.offset_right = -7; icon.offset_top = 7; icon.offset_bottom = -7
 	var fit := func():
 		var available := minf(sockets.size.x,hud.get_viewport_rect().size.x-32)
-		var extent := clampf((available-12*(buttons.size()-1))/buttons.size(),36,54)
+		var extent := clampf(floorf((available-12*(buttons.size()-1))/buttons.size()),36,54)
 		for button in buttons: button.custom_minimum_size = Vector2(extent,extent)
+		for tag in price_tags: _fit_slot_price(tag,extent-2)
 	sockets.resized.connect(fit)
 	var viewport: Viewport = hud.get_viewport()
 	viewport.size_changed.connect(fit)
@@ -139,6 +144,20 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			row.resized.connect(fit_detail)
 			fit_detail.call_deferred()
 	_inventory_strip(hud.body,state,turret)
+
+func _fit_slot_price(tag: Label, available: float) -> void:
+	if not tag.has_meta("price_amount"): return
+	var amount := str(tag.get_meta("price_amount"))
+	var display := amount+" G" if amount != "—" else amount
+	var font := tag.get_theme_font("font")
+	# Slot width is owned by the row, not by the price's minimum text width.
+	# Keep the decimal amount and exact tooltip; omit the currency suffix first.
+	if font.get_string_size(display,HORIZONTAL_ALIGNMENT_LEFT,-1,10).x > available:
+		display = amount
+	var width := font.get_string_size(display,HORIZONTAL_ALIGNMENT_LEFT,-1,10).x
+	var font_size := clampi(floori(10*available/maxf(1,width)),8,10)
+	tag.text = display
+	tag.add_theme_font_size_override("font_size",font_size)
 
 func _slot_price(state: Dictionary, turret_id: int, slot: int) -> int:
 	# Quote a hypothetical opened count with the same production pricing rules.

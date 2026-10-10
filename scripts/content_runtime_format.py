@@ -16,11 +16,26 @@ import struct
 
 SCHEMA_VERSION = 2
 SPAWN_COLUMNS = ("enemyType", "delay")
+ROUTE_SPAWN_COLUMNS = SPAWN_COLUMNS + ("routeId",)
 DURABILITY_COLUMNS = ("maxHp", "maxShield", "maxArmor")
 ROOT_FIELDS = {"schemaVersion", "units", "defaults", "randomization", "defenseConfig",
                "enemyDefinitions", "enemies", "turrets", "stages"}
 STAGE_FIELDS = {"id", "name", "firstClearCorePointReward", "firstClearTurretModuleTicketReward", "map", "waves"}
 WAVE_FIELDS = {"round", "previewText", "clearRewardGold", "groups", "spawnQueue", "enemyDurability"}
+SCHEDULING_POLICY = {"version": 1, "scope": "global", "minimumInterval": 0.18,
+                     "tieBreak": "source-group-member-order", "dispatchTimeBasis": "spawn-queue-seconds"}
+
+
+def _dispatch_fields(game, base_fields, label):
+    """Old fixture documents remain readable; the policy opts into a complete contract."""
+    annotated = isinstance(game, dict) and "schedulingPolicy" in game
+    _fields(game, base_fields | ({"schedulingPolicy"} if annotated else set()), label)
+    if annotated:
+        policy = game["schedulingPolicy"]
+        _fields(policy, set(SCHEDULING_POLICY), "scheduling policy")
+        if typed_digest(policy) != typed_digest(SCHEDULING_POLICY):
+            raise ValueError("Unsupported scheduling policy")
+    return annotated
 
 
 def typed_digest(value) -> str:
@@ -40,14 +55,16 @@ def typed_digest(value) -> str:
 def schedule_digest(queue: list) -> str:
     """Cross-runtime exact queue identity: UTF-8 kinds and IEEE754 delay bits.
 
-    Prefix rune-spawn-v1\0; each row is uint32-LE UTF-8 byte length,
-    the bytes, then float64-LE delay. No JSON printer behavior is involved.
+    Legacy queues retain rune-spawn-v1\0 and their original byte encoding.
+    Routed queues use rune-spawn-routes-v1\0 and append a length-prefixed
+    UTF-8 route ID after each delay (empty when the entry has no route ID).
     """
     if not isinstance(queue, list) or not queue:
         raise ValueError("Invalid/empty spawn schedule")
-    payload = bytearray(b"rune-spawn-v1\0")
+    routed = any(isinstance(entry, dict) and "routeId" in entry for entry in queue)
+    payload = bytearray(b"rune-spawn-routes-v1\0" if routed else b"rune-spawn-v1\0")
     for entry in queue:
-        _fields(entry, set(SPAWN_COLUMNS), "spawn entry")
+        _spawn_fields(entry)
         if type(entry["enemyType"]) is not str:
             raise ValueError("Invalid spawn enemyType")
         _float(entry["delay"], "spawn delay")
@@ -55,12 +72,28 @@ def schedule_digest(queue: list) -> str:
         payload.extend(struct.pack("<I", len(kind)))
         payload.extend(kind)
         payload.extend(struct.pack("<d", entry["delay"]))
+        if routed:
+            route = entry.get("routeId", "").encode("utf-8")
+            payload.extend(struct.pack("<I", len(route)))
+            payload.extend(route)
     return hashlib.sha256(payload).hexdigest()
 
 
 def _fields(value, expected, label):
     if not isinstance(value, dict) or set(value) != expected:
         raise ValueError(f"Invalid {label} fields")
+
+
+def _route_id(value):
+    if type(value) is not str or not value or value != value.strip():
+        raise ValueError("Invalid routeId")
+
+
+def _spawn_fields(entry):
+    if not isinstance(entry, dict) or set(entry) not in (set(SPAWN_COLUMNS), set(ROUTE_SPAWN_COLUMNS)):
+        raise ValueError("Invalid spawn entry fields")
+    if "routeId" in entry:
+        _route_id(entry["routeId"])
 
 
 def _integer(value, label, minimum=0):
@@ -91,7 +124,7 @@ def _queue(queue, enemies):
         raise ValueError("Invalid/empty spawn schedule")
     previous = None
     for entry in queue:
-        _fields(entry, set(SPAWN_COLUMNS), "spawn entry")
+        _spawn_fields(entry)
         if type(entry["enemyType"]) is not str or entry["enemyType"] not in enemies:
             raise ValueError("Unknown spawn enemyType")
         _float(entry["delay"], "spawn delay")
@@ -126,13 +159,33 @@ def _stage(stage):
     validate_map(stage["map"])
 
 
-def _wave(wave, enemies):
+def _wave(wave, enemies, map_data):
     _integer(wave["round"], "wave round", 1)
     _integer(wave["clearRewardGold"], "clearRewardGold")
     if type(wave["previewText"]) is not str or not isinstance(wave["groups"], list) or not wave["groups"]:
         raise ValueError("Invalid wave preview/groups")
-    from content_compiler import queue_for
-    queue_for(wave["groups"])
+    from content_compiler import validate_wave_routes
+    # Validate authoring records without reconstructing or re-sorting a schedule.
+    group_ids = set()
+    for index, group in enumerate(wave["groups"]):
+        required = {"enemyType", "count", "interval", "startDelay"}
+        allowed = required | {"id", "startAfterPrevious", "followDelay", "routeId"}
+        if not isinstance(group, dict) or not required <= set(group) or set(group) - allowed:
+            raise ValueError("Invalid spawn group fields")
+        identifier = group.get("id", f"g{index + 1:02d}")
+        if type(identifier) is not str or not identifier or identifier != identifier.strip() or identifier in group_ids:
+            raise ValueError("Invalid/duplicate spawn group id")
+        group_ids.add(identifier)
+        _integer(group["count"], "spawn group count", 1)
+        _float(group["interval"], "spawn group interval")
+        if group["interval"] <= 0.0:
+            raise ValueError("Invalid spawn group interval")
+        _float(group["startDelay"], "spawn group startDelay")
+        if "startAfterPrevious" in group and type(group["startAfterPrevious"]) is not bool:
+            raise ValueError("Invalid spawn group relative flag")
+        if group.get("startAfterPrevious", False):
+            _float(group.get("followDelay"), "spawn group followDelay")
+    validate_wave_routes(map_data, wave["groups"])
     if any(type(group["enemyType"]) is not str or group["enemyType"] not in enemies for group in wave["groups"]):
         raise ValueError("Unknown spawn group enemyType")
     durability = wave["enemyDurability"]
@@ -152,7 +205,7 @@ def _order(game):
 
 def encode_runtime(game: dict) -> dict:
     """Copy expanded schema v1 into exact, deterministic runtime schema v2."""
-    _fields(game, ROOT_FIELDS, "expanded root")
+    annotated = _dispatch_fields(game, ROOT_FIELDS, "expanded root")
     if type(game["schemaVersion"]) is not int or game["schemaVersion"] != 1:
         raise ValueError("Unsupported expanded content schemaVersion")
     enemies = _metadata(game)
@@ -163,12 +216,18 @@ def encode_runtime(game: dict) -> dict:
     for stage in result["stages"]:
         _stage(stage)
         for wave in stage["waves"]:
-            _fields(wave, WAVE_FIELDS, "expanded wave")
-            _wave(wave, enemies)
-            queue = wave.pop("spawnQueue")
+            _fields(wave, WAVE_FIELDS | ({"groupDispatch"} if annotated else set()), "expanded wave")
+            _wave(wave, enemies, stage["map"])
+            queue = wave["spawnQueue"]
             _queue(queue, enemies)
+            from content_compiler import validate_wave_routes
+            validate_wave_routes(stage["map"], wave["groups"], queue)
+            if annotated:
+                from content_compiler import validate_group_dispatch
+                validate_group_dispatch(wave, stage["map"])
+            del wave["spawnQueue"]
             identifier = "schedule_" + schedule_digest(queue)
-            rows = [[entry[column] for column in SPAWN_COLUMNS] for entry in queue]
+            rows = [[entry[column] for column in (ROUTE_SPAWN_COLUMNS if "routeId" in entry else SPAWN_COLUMNS)] for entry in queue]
             if identifier in schedules and schedules[identifier] != rows:
                 raise ValueError("Spawn schedule digest collision")
             schedules[identifier] = rows
@@ -184,7 +243,7 @@ def encode_runtime(game: dict) -> dict:
 
 def decode_runtime(document: dict) -> dict:
     """Validate and expand storage without sharing schedules between callers/waves."""
-    _fields(document, ROOT_FIELDS | {"runtimeFormat", "spawnSchedules"}, "runtime root")
+    annotated = _dispatch_fields(document, ROOT_FIELDS | {"runtimeFormat", "spawnSchedules"}, "runtime root")
     if type(document["schemaVersion"]) is not int or document["schemaVersion"] != SCHEMA_VERSION:
         raise ValueError("Unsupported runtime content schemaVersion")
     _fields(document["runtimeFormat"], {"spawnColumns", "durabilityColumns"}, "runtime format")
@@ -201,9 +260,9 @@ def decode_runtime(document: dict) -> dict:
             raise ValueError("Invalid spawn schedule ID/rows")
         queue = []
         for row in rows:
-            if not isinstance(row, list) or len(row) != len(SPAWN_COLUMNS):
+            if not isinstance(row, list) or len(row) not in (len(SPAWN_COLUMNS), len(ROUTE_SPAWN_COLUMNS)):
                 raise ValueError("Invalid spawn schedule row")
-            queue.append(dict(zip(SPAWN_COLUMNS, row)))
+            queue.append(dict(zip(ROUTE_SPAWN_COLUMNS, row)))
         _queue(queue, enemies)
         if identifier != "schedule_" + schedule_digest(queue):
             raise ValueError("Spawn schedule content digest differs")
@@ -215,13 +274,18 @@ def decode_runtime(document: dict) -> dict:
     for stage in result["stages"]:
         _stage(stage)
         for wave in stage["waves"]:
-            _fields(wave, WAVE_FIELDS - {"spawnQueue"} | {"spawnSchedule"}, "runtime wave")
-            _wave(wave, enemies)
+            _fields(wave, WAVE_FIELDS - {"spawnQueue"} | {"spawnSchedule"} | ({"groupDispatch"} if annotated else set()), "runtime wave")
+            _wave(wave, enemies, stage["map"])
             identifier = wave.pop("spawnSchedule")
             if type(identifier) is not str or identifier not in queues:
                 raise ValueError("Missing/invalid spawn schedule reference")
             used.add(identifier)
             wave["spawnQueue"] = copy.deepcopy(queues[identifier])
+            from content_compiler import validate_wave_routes
+            validate_wave_routes(stage["map"], wave["groups"], wave["spawnQueue"])
+            if annotated:
+                from content_compiler import validate_group_dispatch
+                validate_group_dispatch(wave, stage["map"])
             for kind, values in wave["enemyDurability"].items():
                 if not isinstance(values, list) or len(values) != len(DURABILITY_COLUMNS):
                     raise ValueError("Invalid durability row")

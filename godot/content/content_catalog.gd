@@ -20,6 +20,9 @@ func load_catalog(path: String = "res://content/game_content.json") -> bool:
 	if not parsed.ok:
 		error = "Invalid content JSON: " + str(parsed.error)
 		return false
+	if not parsed.value is Dictionary or not parsed.value.has("schedulingPolicy"):
+		error = "Shipped content requires compiled scheduling metadata"
+		return false
 	return _accept_content(parsed.value)
 
 func _accept_content(candidate: Variant) -> bool:
@@ -92,7 +95,16 @@ func wave_summary(stage_index: int, round_index: int) -> Dictionary:
 	var counts := {}
 	for row in _schedule(stage_index, round_index):
 		counts[row[0]] = int(counts.get(row[0], 0)) + 1
-	return {"round": source.round, "previewText": source.get("previewText", ""),
+	# Compiler owns group membership, timeline and chronological order. Summaries
+	# only add presentation labels; they never reconstruct dispatch scheduling.
+	var route_groups: Array = source.get("groupDispatch", []).duplicate(true)
+	for group in route_groups:
+		var route := route_map(stage_index,group.routeId)
+		var portal := spawn_portal(stage_index,group.routeId)
+		group.routeLabel = route.get("label", "")
+		group.spawnPortalLabel = portal.get("label", "")
+		group.spawnDelay = group.firstDispatch
+	return {"routeGroups":route_groups,"round": source.round, "previewText": source.get("previewText", ""),
 		"clearRewardGold": source.get("clearRewardGold", 0), "spawnCount": _schedule(stage_index, round_index).size(),
 		"boss": wave_has_boss(stage_index, round_index), "enemyCounts": counts}
 
@@ -183,12 +195,58 @@ func _layout(inputs: Dictionary) -> Dictionary:
 		return {}
 	return {"tileSize": float(tile), "boardDistanceScale": float(tile) / float(_data.units.tileSize), "origin": [float(origin[0]), float(origin[1])]}
 
+# Empty route IDs retain the legacy primary path; explicit IDs never silently fall back.
+func route_map(stage_index: int, route_id: String = "") -> Dictionary:
+	if not _valid_stage(stage_index): return {}
+	var map: Dictionary = _data.stages[stage_index].map
+	if route_id.is_empty(): return map
+	for route in map.get("routes", []):
+		if route.id == route_id: return route
+	error = "Unknown route: " + route_id
+	return {}
+
+# Portal identity is derived from authored metadata, never separately persisted.
+# Static helpers let map-only presentation share the exact same fallback rule.
+static func map_spawn_portals(map: Dictionary) -> Array:
+	if map.has("spawnPortals"): return map.spawnPortals.duplicate(true)
+	if map.get("path", []).is_empty(): return []
+	return [{"id":"default","label":"","cell":map.path[0].duplicate()}]
+
+static func map_route_portal(map: Dictionary, route_id: String = "") -> Dictionary:
+	var portals := map_spawn_portals(map)
+	if portals.is_empty(): return {}
+	var selected: Dictionary = map
+	if not map.get("routes", []).is_empty():
+		selected = map.routes[0] if route_id.is_empty() else {}
+		for route in map.routes:
+			if route.id == route_id: selected = route; break
+	elif not route_id.is_empty(): return {}
+	if selected.is_empty(): return {}
+	var portal_id: String = selected.get("spawnPortalId",portals[0].id)
+	for portal in portals:
+		if portal.id == portal_id: return portal
+	return {}
+
+func spawn_portals(stage_index: int) -> Array:
+	return map_spawn_portals(_data.stages[stage_index].map) if _valid_stage(stage_index) else []
+
+func spawn_portal(stage_index: int, route_id: String = "") -> Dictionary:
+	if not _valid_stage(stage_index): return {}
+	var result := map_route_portal(_data.stages[stage_index].map,route_id)
+	if result.is_empty(): error = "Unknown route or spawn portal: " + route_id
+	return result
+
+func route_portal(stage_index: int, route_id: String = "") -> Dictionary:
+	return spawn_portal(stage_index,route_id)
+
 func world_path(stage_index: int, inputs: Dictionary = {}) -> Array:
 	if not _valid_stage(stage_index): return []
 	var layout := _layout(inputs)
 	if layout.is_empty(): return []
 	var result: Array = []
-	for point in _data.stages[stage_index].map.path:
+	var selected := route_map(stage_index, str(inputs.get("routeId", "")))
+	if selected.is_empty(): return []
+	for point in selected.path:
 		result.append({"x": layout.origin[0] + (float(point[0]) + 0.5) * layout.tileSize, "y": layout.origin[1] + (float(point[1]) + 0.5) * layout.tileSize})
 	return result
 
@@ -218,6 +276,15 @@ func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
 	if result.path.is_empty(): return {}
 	var pairs := Teleports.compile_map(_data.stages[stage_index].map)
 	if not pairs.is_empty(): result.teleportPairs = pairs
+	if _data.stages[stage_index].map.has("spawnPortals"): result.spawnPortalId = spawn_portal(stage_index).id
+	if _data.stages[stage_index].map.has("routes"):
+		result.routes = []
+		for route in _data.stages[stage_index].map.routes:
+			var route_inputs := inputs.duplicate()
+			route_inputs.routeId = route.id
+			var compiled := {"id":route.id,"path":world_path(stage_index,route_inputs),"teleportPairs":Teleports.compile_map(route)}
+			if route.has("spawnPortalId"): compiled.spawnPortalId = route.spawnPortalId
+			result.routes.append(compiled)
 	result.defense = {"config": _data.defenseConfig.duplicate(true)}
 	if inputs.has("defenseConfig"): result.defense.config.merge(inputs.defenseConfig, true)
 	if inputs.has("coreConfig"): result.coreConfig = inputs.coreConfig.duplicate(true)
@@ -229,6 +296,7 @@ func _enemy_layout(stage_index: int, round_index: int, type: String, inputs: Dic
 		error = "Unknown enemy type"
 		return {}
 	if not _valid_enemy_values(inputs.get("enemyValues", {})): return {}
+	if route_map(stage_index,str(inputs.get("routeId", ""))).is_empty(): return {}
 	var layout := _layout(inputs)
 	if layout.is_empty() or _data.stages[stage_index].map.path.is_empty(): return {}
 	return layout
@@ -257,6 +325,12 @@ func enemy(stage_index: int, round_index: int, type: String, id: int = 100000, i
 		if inputs.get("enemyValues", {}).has(key): result[key] = inputs.enemyValues[key]
 	result.path = world_path(stage_index, inputs)
 	if result.path.is_empty(): return {}
+	var route_id := str(inputs.get("routeId", ""))
+	if route_id.is_empty() and not _data.stages[stage_index].map.get("routes", []).is_empty(): route_id = _data.stages[stage_index].map.routes[0].id
+	if not route_id.is_empty(): result.routeId = route_id
+	if _data.stages[stage_index].map.has("spawnPortals"): result.spawnPortalId = spawn_portal(stage_index,route_id).id
+	var pairs := Teleports.compile_map(route_map(stage_index,str(inputs.get("routeId", ""))))
+	if not pairs.is_empty(): result.teleportPairs = pairs
 	result.x = result.path[0].x
 	result.y = result.path[0].y
 	result.position = {"x": result.x, "y": result.y}
@@ -290,11 +364,14 @@ func wave(stage_index: int, round_index: int, first_enemy_id: int = 100000, inpu
 	var queue: Array = []
 	for index in range(schedule.size()):
 		var entry: Array = schedule[index]
-		var prepared := enemy(stage_index, round_index, entry[0], first_enemy_id + index, inputs)
+		var spawn_inputs := inputs.duplicate()
+		if entry.size() > 2: spawn_inputs.routeId = entry[2]
+		var prepared := enemy(stage_index, round_index, entry[0], first_enemy_id + index, spawn_inputs)
 		if prepared.is_empty(): return {}
 		if inputs.has("spawnValues"):
 			prepared.merge(inputs.spawnValues[index], true)
 		queue.append({"enemyType": entry[0], "delay": entry[1] + float(delay), "enemy": prepared})
+		if prepared.has("routeId"): queue[-1].routeId = prepared.routeId
 	return {"id": source.round, "active": true, "spawnQueue": queue}
 
 func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:

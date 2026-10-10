@@ -1,5 +1,6 @@
 extends RefCounted
 ## Result presentation reads the finished run; reward ownership stays in services.
+const HudNumber = preload("res://ui/hud_number.gd")
 const Art = preload("res://ui/app_theme.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const CYAN := Color("96eff4")
@@ -53,7 +54,9 @@ func build(state: Dictionary) -> void:
 		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		column.add_theme_constant_override("separation",1); row.add_child(column)
 		var icon: TextureRect = rewards._icon(column,spec[2],36); icon.name = "RewardIcon"
-		text(column,"+%d" % int(p.get(spec[0],0)),24,PALE,true).name = "RewardAmount"
+		var amount := text(column,"+"+HudNumber.compact_integer(int(p.get(spec[0],0))),24,PALE,true)
+		amount.name = "RewardAmount"
+		amount.tooltip_text = "+%d" % int(p.get(spec[0],0))
 		text(column,spec[1],13,MUTED,true).name = "RewardCaption"
 		if spec[0] == "lastRunTurretModuleTicketReward":
 			var kind := str(rewards._settlement_state().get("status",""))
@@ -64,7 +67,7 @@ func build(state: Dictionary) -> void:
 	records.add_theme_constant_override("separation",0); _section(body,records,"section_frame")
 	var best := int(p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1),0))
 	var greatest := _highest_damage(state)
-	var record_specs := [["도달 라운드","%dR" % int(state.get("completedRounds",0))],["기록",rewards._record_text(state,p,best)],["최고 피해",greatest],["현재 룬",str(p.get("runes",0))]]
+	var record_specs := [["도달 라운드","%dR" % int(state.get("completedRounds",0))],["기록",rewards._record_text(state,p,best)],["최고 피해",greatest],["현재 룬",HudNumber.compact_integer(int(p.get("runes",0)))]]
 	for i in record_specs.size():
 		if i > 0: _rule(records,Color("23505c88"))
 		var line := HBoxContainer.new(); line.name = "Record%d" % i
@@ -73,6 +76,8 @@ func build(state: Dictionary) -> void:
 		label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		var value := text(line,record_specs[i][1],13,PALE)
 		value.name = "Value"; value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		if i == 2: value.tooltip_text = _highest_damage(state,true)
+		elif i == 3: value.tooltip_text = str(p.get("runes",0))
 	if state.get("lastRunFirstClear",false): _unlocks(body,hud.app.stage+1)
 	# Preserve generous terminal-result space even when rewards/unlocks are absent.
 	var spacer := Control.new(); spacer.name = "ResultBreathingSpace"
@@ -110,7 +115,7 @@ func _vertical_rule(parent: Node) -> void:
 	var style := StyleBoxLine.new(); style.color = Color("35607199"); style.thickness = 1; style.vertical = true
 	line.add_theme_stylebox_override("separator",style); parent.add_child(line)
 
-func _highest_damage(state: Dictionary) -> String:
+func _highest_damage(state: Dictionary, exact := false) -> String:
 	var damage := 0.0
 	var tower_name := ""
 	var runtime_turrets = hud.app.scene._native_combat.get("turrets")
@@ -121,7 +126,7 @@ func _highest_damage(state: Dictionary) -> String:
 			for field in ["directDamageDealt","splashDamageDealt","chainDamageDealt","burnDamageDealt"]:
 				dealt += float(runtime_turrets[str(turret.id)].get(field,0))
 		if dealt > damage: damage = dealt; tower_name = str(hud.TOWERS.get(turret.type,turret.type))
-	return "%s %s" % [tower_name,String.num(damage,1)] if damage > 0 else "기록 없음"
+	return "%s %s" % [tower_name,String.num(damage,1) if exact else HudNumber.format_number(damage,{"small_decimals":1})] if damage > 0 else "기록 없음"
 
 func _unlocks(body: Node, stage: int) -> void:
 	var items: Array = Progression.unlock_items(stage)

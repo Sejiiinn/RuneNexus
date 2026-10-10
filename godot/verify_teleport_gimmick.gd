@@ -47,7 +47,7 @@ func _validation() -> void:
 		map.tiles[1] = tile
 		check(Teleports.validate_map(map) == "Teleport endpoint must be a path tile","non-path endpoint rejected " + tile)
 	var catalog = Catalog.new()
-	check(catalog.load_catalog() and catalog.stage_count() == 25,"real catalog retains existing stages plus expansion")
+	check(catalog.load_catalog() and catalog.stage_count() >= 25,"real catalog retains existing stages plus expansion")
 	for i in range(15): check(not catalog.stage(i).map.has("teleportPairs") and not catalog.bootstrap(i).has("teleportPairs"),"real stage unchanged " + str(i))
 	var invalid: Dictionary = catalog.domain_snapshot()
 	invalid.stages[0].map.teleportPairs = [{"color":"red"}]
