@@ -1,4 +1,5 @@
 extends RefCounted
+const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 ## Reward preview is presentation state. Settlement and equip are one domain transaction.
 const Art = preload("res://ui/app_theme.gd")
@@ -214,10 +215,11 @@ func _cards(state: Dictionary, width: float) -> void:
 		if RULES.has(type): _text(body,RULES[type],10).modulate = Color("939aa4")
 	if not state.get("isPurchasedGemReward",false):
 		var amount := int(hud.app.run_domain.growth.data.constants.gemShardRewardFallbackAmount)
-		var shard: Button = hud._button(body,"젬 대신 파편 획득\n파편 +%d · 현재 보유 %d" % [amount,state.gemShards],func():
+		var shard: Button = hud._button(body,"젬 대신 파편 획득\n파편 +%s · 현재 보유 %s" % [HudNumber.compact_integer(amount),HudNumber.compact_integer(int(state.gemShards))],func():
 			if gem_entrance.active: return
 			shard_selected = true; key = ""; hud.refresh())
 		shard.name = "GemRewardShards"
+		shard.tooltip_text = "파편 +%d · 현재 보유 %d" % [amount,state.gemShards]
 		shard.icon = Art.texture("res://assets/app/ui/hud/icons/shard.png")
 		shard.expand_icon = true
 		shard.add_theme_constant_override("icon_max_width",24)
@@ -387,7 +389,7 @@ func _replacement(state: Dictionary) -> void:
 			_replacement_money(detail,"새 슬롯 추가 ·",display_cost,"SlotPrice",14)
 		var reason := "기존 젬 유지 · 새 슬롯에 장착"
 		if cost <= 0: reason = "포탑 Lv.5부터 추가 가능"
-		elif int(state.gold) < cost: reason = "골드 %d 부족" % (cost-int(state.gold))
+		elif int(state.gold) < cost: reason = "골드 %s 부족" % HudNumber.compact_integer(cost-int(state.gold))
 		var description := _text(detail,reason,10 if narrow else 11)
 		description.name = "AddSlotDescription"
 		var owned := _replacement_money(content,"보유",int(state.gold),"OwnedGold",10 if narrow else 11)
@@ -436,7 +438,8 @@ func _replacement_money(parent: Node, prefix: String, amount: int, node_name: St
 		label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var icon := _icon(row,"ui/hud/icons/gold.png",14); icon.name = "GoldIcon"
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var value := _text(row,str(amount),font_size); value.name = "Amount"
+	var value := _text(row,HudNumber.compact_integer(amount),font_size); value.name = "Amount"
+	value.tooltip_text = str(amount)
 	value.autowrap_mode = TextServer.AUTOWRAP_OFF; value.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	return row
 

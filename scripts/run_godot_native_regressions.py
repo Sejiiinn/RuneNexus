@@ -61,6 +61,8 @@ SCRIPTS = {
     "verify_reward_snapshot.gd": "authoritative snapshot Dart parity PASS:",
     "verify_reward_settlement.gd": '"ok":true',
     "verify_run_commands.gd": "failures=[]",
+    "verify_hud_numbers.gd": "HUD_NUMBERS checks=",
+    "verify_hud_number_layout.gd": "HUD_NUMBER_LAYOUT checks=",
     "verify_battle_hud.gd": "PASS battle HUD:",
     "verify_battlefield_input.gd": "PASS battlefield input:",
     "verify_diamond_event.gd": "PASS diamond event:",

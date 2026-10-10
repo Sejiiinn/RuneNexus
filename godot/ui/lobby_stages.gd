@@ -197,7 +197,7 @@ func _active_card(stage: int) -> void:
 	_text("룬 +%s" % Numbers.compact_integer(rune_reward(stage)), Rect2(595,346,145,48), 24, GOLD, true)
 	var state := _state()
 	var gold := int(state.get("gold", 0))
-	var values := ["%d/%d" % [int(state.get("roundIndex", 0)) + 1, lobby.app.catalog.wave_count(stage - 1)], str(state.get("turrets", []).size()), "%.1fK" % (float(gold)/1000) if gold >= 1000 else str(gold)]
+	var values := ["%d/%d" % [int(state.get("roundIndex", 0)) + 1, lobby.app.catalog.wave_count(stage - 1)], str(state.get("turrets", []).size()), Numbers.compact_integer(gold)]
 	for i in range(3):
 		_text(values[i], Rect2(57 + i * 227,436,226,39), 30, GOLD if i == 2 else WHITE, true)
 		_text(["라운드", "포탑", "골드"][i], Rect2(57 + i * 227,475,226,29), 22, Color("b9d6e4"), true, 700)

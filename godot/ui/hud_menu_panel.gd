@@ -1,4 +1,5 @@
 extends RefCounted
+const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 ## Stage menus and board details; modal lifetime remains HUD-owned.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
@@ -47,7 +48,8 @@ func _end_stage_confirm() -> void:
 	reward_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var reward_row = HBoxContainer.new(); reward_row.alignment = BoxContainer.ALIGNMENT_CENTER; reward_row.add_theme_constant_override("separation",10); summary.add_child(reward_row)
 	hud._icon(reward_row,"ui/hud/icons/rune.png",32)
-	var amount = hud._label(reward_row,"+%d 룬" % reward,26)
+	var amount = hud._label(reward_row,"+%s 룬" % HudNumber.compact_integer(reward),26)
+	amount.tooltip_text = "+%d 룬" % reward
 	amount.name = "EndRewardAmount"; amount.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; amount.autowrap_mode = TextServer.AUTOWRAP_OFF; amount.modulate = Color("ffd166")
 	var completed = hud._label(summary,"완료 %d웨이브 기준" % int(hud.app.run_domain.state.get("completedRounds",0)),12)
 	completed.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -86,7 +88,7 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 	if tile == "core":
 		hud._label(hud.body,"코어 방어",16)
 		var defense = hud.app.scene._native_combat.defense
-		hud.core_label = hud._label(hud.body,"체력 %d / %d" % [ceili(defense.hp),ceili(defense.max_hp)],13)
+		hud.core_label = hud._label(hud.body,"체력 %s / %s" % [HudNumber.compact_integer(ceili(defense.hp)),HudNumber.compact_integer(ceili(defense.max_hp))],13)
 		var bar = ProgressBar.new(); bar.max_value = maxf(1,defense.max_hp); bar.value = defense.hp; bar.show_percentage = false; bar.custom_minimum_size.y = 10; hud.body.add_child(bar); hud.core_bar = bar
 		hud.core_metric = hud._label(hud.body,"",12)
 		return
@@ -144,12 +146,12 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 		hud._icon(heading,"ui/hud/enemies/"+type+".png",28)
 		hud._label(heading,"%s x%d" % [enemy.get("name",type),counts[type]],12)
 		var pills = HFlowContainer.new(); content.add_child(pills)
-		hud._stat_pill(pills,"체력",str(roundi(float(durability.get("maxHp",enemy.get("maxHp",0))))))
+		hud._stat_pill(pills,"체력",HudNumber.compact_integer(roundi(float(durability.get("maxHp",enemy.get("maxHp",0))))))
 		for spec in [["방어구","maxArmor"],["보호막","maxShield"]]:
-			if float(durability.get(spec[1],0))>0: hud._stat_pill(pills,spec[0],str(roundi(float(durability[spec[1]]))))
+			if float(durability.get(spec[1],0))>0: hud._stat_pill(pills,spec[0],HudNumber.compact_integer(roundi(float(durability[spec[1]]))))
 		hud._stat_pill(pills,"속도",str(roundi(float(enemy.get("speed",0)))))
-		hud._stat_pill(pills,"넥서스 피해","-%d" % int(enemy.get("coreDamage",0)))
-		hud._stat_pill(pills,"보상","+%d" % int(enemy.get("rewardGold",0)))
+		hud._stat_pill(pills,"넥서스 피해","-"+HudNumber.compact_integer(int(enemy.get("coreDamage",0))))
+		hud._stat_pill(pills,"보상","+"+HudNumber.compact_integer(int(enemy.get("rewardGold",0))))
 		var resistances = HFlowContainer.new(); content.add_child(resistances)
 		var names = {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
 		for field in ["familyResistances","tagResistances"]:
@@ -160,14 +162,17 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 func _refresh_core() -> void:
 	if not is_instance_valid(hud.core_label): return
 	var runtime = hud.app.scene._native_combat
-	hud.core_label.text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
+	hud.core_label.text = "체력 %s / %s" % [HudNumber.compact_integer(ceili(runtime.defense.hp)),HudNumber.compact_integer(ceili(runtime.defense.max_hp))]
+	hud.core_label.tooltip_text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
 	hud.core_bar.max_value = maxf(1,runtime.defense.max_hp); hud.core_bar.value = runtime.defense.hp
 	var core = runtime.get("core")
 	if core == null: hud.core_metric.text = "전투 스킬 없음"; return
 	if core.skill == "guardianBeam":
 		var damage: float = maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),hud.total_dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))*core.power_for_activation(core.activation_count+1)
-		hud.core_metric.text = "수호 광선 · 코어에 가까운 적에게 집중 피해\n광선 피해 %.1f    총 피해 %.1f" % [damage,core.direct_damage_dealt]
+		hud.core_metric.text = "수호 광선 · 코어에 가까운 적에게 집중 피해\n광선 피해 %s    총 피해 %s" % [HudNumber.compact(damage),HudNumber.compact(core.direct_damage_dealt)]
+		hud.core_metric.tooltip_text = "광선 피해 %.1f · 총 피해 %.1f" % [damage,core.direct_damage_dealt]
 	elif core.skill == "riftMark":
 		var power: float = 25.0*core.power_for_activation(core.activation_count+1)
-		hud.core_metric.text = "균열 낙인 · 내구도 높은 적 4명\n다음 낙인 %.1f%% 증폭 (보스 %.1f%%)\n총 추가 피해 %.1f" % [power,power/2.0,core.bonus_damage_dealt]
+		hud.core_metric.text = "균열 낙인 · 내구도 높은 적 4명\n다음 낙인 %.1f%% 증폭 (보스 %.1f%%)\n총 추가 피해 %s" % [power,power/2.0,HudNumber.compact(core.bonus_damage_dealt)]
+		hud.core_metric.tooltip_text = "총 추가 피해 %.1f" % core.bonus_damage_dealt
 	else: hud.core_metric.text = "전투 스킬 없음\n코어 전투 스킬이 장착되어 있지 않습니다."

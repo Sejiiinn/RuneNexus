@@ -30,7 +30,9 @@ func _build(state: Dictionary) -> void:
 		var definition: Dictionary = hud.app.catalog.turret_definition(type)
 		hud._label(hud.body,("물리" if definition.damageFamily == "physical" else "원소")+" · "+str({"arrow":"경량화기","cannon":"중화기 · 폭발","magic":"지속 피해","frost":"감속","sniper":"중화기 · 조준","lightning":"연쇄"}.get(type,"")),10)
 		var stats = hud._stats(state,{"type":type,"level":1,"equippedGemSlots":[],"primaryTrait":null,"secondaryTrait":null})
-		hud._label(hud.body,"피해 %.1f     초당 %.2f회     사거리 %.0f" % [stats.damage,stats.attackRate,stats.range],11)
+		var preview: Label = hud._label(hud.body,"피해 %s     초당 %.2f회     사거리 %.0f" % [HudNumber.compact(stats.damage),stats.attackRate,stats.range],11)
+		preview.name = "BuildStatPreview"
+		preview.tooltip_text = "피해 %.1f     초당 %.2f회     사거리 %.0f" % [stats.damage,stats.attackRate,stats.range]
 	var picker_scroll = ScrollContainer.new(); picker_scroll.name = "TurretPicker"
 	picker_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	picker_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
@@ -186,4 +188,4 @@ func _upgrade_label(parent: Node,text: String,size: int,node_name: String) -> La
 	return label
 
 func _upgrade_value(type: String,value: float) -> String:
-	return "+%.0f G" % value if type == "waveGold" else "+%.0f%%" % (value*100)
+	return "+%s G" % HudNumber.compact_integer(roundi(value)) if type == "waveGold" else "+%.0f%%" % (value*100)

@@ -61,11 +61,11 @@ func verify() -> void:
 	var minimum: int = -9223372036854775807 - 1
 	check(Numbers.exact_integer(minimum) == "-9,223,372,036,854,775,808", "exact minimum signed integer")
 	check(Numbers.compact_integer(minimum) == "-9223372036854.8M", "compact minimum signed integer")
-	# Existing combat and price callers retain their separate policy.
-	for sample in [[0,0,"0"],[0,1,"0.0"],[999,0,"999"],[999,1,"999.0"],[1000,1,"1K"],[1250,1,"1.25K"],[1000000,1,"1M"],[999990,1,"999.99K"],[999999,1,"1M"],[-1250,1,"-1.25K"],[-999999,1,"-1M"]]:
-		check(Numbers.compact(sample[0],sample[1]) == sample[2], "legacy compact: " + str(sample))
-	for sample in [[999,"999"],[1000,"1K"],[1250,"1.25K"],[12500,"12.5K"],[123456789,"123M"],[999499,"999K"],[999500,"1M"],[1000000,"1M"],[-999500,"-1M"]]:
-		check(Numbers.compact_price(sample[0]) == sample[1], "legacy price: " + str(sample))
+	# Existing entry points use the shared policy; small fractional stats keep precision.
+	for sample in [[0,0,"0"],[0,1,"0.0"],[999,0,"999"],[999,1,"999.0"],[1000,1,"1,000.0"],[1250,1,"1,250.0"],[9999,0,"9,999"],[10000,0,"10K"],[12500,1,"12.5K"],[1000000,1,"1M"],[999990,1,"1M"],[999999,1,"1M"],[-1250,1,"-1,250.0"],[-999999,1,"-1M"]]:
+		check(Numbers.compact(sample[0],sample[1]) == sample[2], "combat compact: " + str(sample))
+	for sample in [[999,"999"],[1000,"1,000"],[1250,"1,250"],[9999,"9,999"],[10000,"10K"],[12500,"12.5K"],[123456789,"123.5M"],[999499,"999.5K"],[999500,"999.5K"],[1000000,"1M"],[-999500,"-999.5K"]]:
+		check(Numbers.compact_price(sample[0]) == sample[1], "compact price: " + str(sample))
 	for width in [320,440]:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = Vector2i(width,900)
@@ -120,7 +120,7 @@ func verify() -> void:
 		ui.render()
 		await settle()
 		check(labels(ui.canvas).any(func(label): return label.text == "룬 +18.2K"), "active reward compact")
-		check(labels(ui.canvas).any(func(label): return label.text == "1.2K"), "active gold policy unchanged")
+		check(labels(ui.canvas).any(func(label): return label.text == "1,200"), "active gold shares common threshold")
 		ui.details(30)
 		await settle()
 		check(labels(host.modal).any(func(label): return label.text == "+18.2K"), "active detail uses compact reward")
