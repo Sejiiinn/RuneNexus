@@ -26,7 +26,7 @@
 
 ## 게임용 텍스처 import 정책
 
-- [디자인 예산](../DESIGNS.md#3d-적포탑-텍스처-예산)에 맞춰 원본 PNG/GLB는 보존하고 게임용 크기만 import의 `process/size_limit`으로 제한한다. 현재 C안은 fast/tank·공유 사망 맵과 냉각 포탑에 최대 1K를 적용하며, 보스와 기존 1K/512 크기는 유지한다.
+- [디자인 예산](design_decisions/enemies_turrets.md#3d-적포탑-텍스처-예산)에 맞춰 원본 PNG/GLB는 보존하고 게임용 크기만 import의 `process/size_limit`으로 제한한다. 현재 C안은 fast/tank·공유 사망 맵과 냉각 포탑에 최대 1K를 적용하며, 보스와 기존 1K/512 크기는 유지한다.
 - 적·포탑 PBR 맵은 현재 Godot 4.7.2의 고품질 VRAM 압축(Android ASTC 4×4, 데스크톱 BPTC)과 밉맵을 사용한다. UI·특수 효과·정밀 마스크에는 일괄 적용하지 않으며, 공유 맵에는 같은 크기·압축 정책을 사용한다.
 
 ## 재사용할 제작·이관 경로

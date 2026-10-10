@@ -11,7 +11,7 @@
 | 앞으로의 큰 개발 계획 정리 | [개발 계획 TODO](TODO.md) | 사용자 확정 계획과 검토 중 아이디어를 구분; 우선순위 임의 지정 금지 |
 | 현재 구현 작업의 마무리 | [구현·검증 체크리스트](implementation_checklist.md) | 버그·검증·배포 선행 조건; 사용자 미래 계획과 별도 |
 | Godot 단일 앱의 실행 경로·전환 상태 | [Godot 단일 앱 전환 상태](godot_unified_app_roadmap.md) | [현행 전투 책임](godot_combat_migration_boundaries.md), [1단계 구현 검증](analysis/flutter_host_removal_20260921/README.md), [2단계 저장 기반](analysis/godot_save_foundation_20260921/README.md) |
-| UI·시각 에셋 수정 | [DESIGNS.md](../DESIGNS.md) | 해당 화면의 design/ 기록, [인앱 검증](../.agents/in_app_test_guide.md) |
+| UI·시각 에셋 수정 | [DESIGNS.md](../DESIGNS.md)와 [영역별 결정](../DESIGNS.md#화면별-확정-결정과-기준-자료) 중 해당 문서 | 해당 화면의 design/ 기록, [인앱 검증](../.agents/in_app_test_guide.md) |
 | Godot UI의 보존 기준·이관 배경 | [게임 UI 보존·정리 기준과 상태별 차이](godot_ui_restoration_baseline.md) | 현재 외형은 [DESIGNS.md](../DESIGNS.md), 실행 검증은 [인앱 검증](../.agents/in_app_test_guide.md) |
 | Blender → Godot 이관 | [현행 제작·이관 기준](stage1_native_material_workflow.md) | [기존 원본·명령 요약](../design/stage1_3d/blender_workspace/README.md#수정부터-게임-반영까지); 과거 실험은 원인 조사 때만 참조 |
 | 성능 개선·대량 표시·CPU/GPU 작업 분배 | [최적화 지침](performance_optimization_guidelines.md) | 해당 기능의 코드·측정 기록, [인앱 검증](../.agents/in_app_test_guide.md), [APK 용량 점검](android_apk_distribution.md#용량-점검) |
