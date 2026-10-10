@@ -45,7 +45,8 @@ func compare(lobby: Control, app: Fixture.FakeApp) -> void:
 		assert(panel.find_children("*","Control",true,false).all(func(node):return not node is ProgressVisual),"Catalog cards have no active gold animation")
 		var status: String=panel.get_meta("research_status")
 		var selector=panel.find_child("ResearchSelect_"+id,true,false)
-		assert((selector==null)==(status=="연구 중" or status.begins_with("스테이지")),"Existing active/locked selection boundary remains")
+		var locked: bool=status!="연구 완료" and (not Progression.has_unlock(app.progression_inputs,"research",id) or not app.run_domain.growth.research_prerequisites_met(app.progression_inputs,id))
+		assert((selector==null)==(status=="연구 중" or locked),"Active, stage-locked and prerequisite-locked cards cannot select details: "+id)
 		if status=="연구 완료": assert(texts(panel).contains("연구 완료"))
 		if status=="연구 중": assert(texts(panel).contains("연구 중"))
 	var expected_order: Array=app.run_domain.growth.data.research.keys()
@@ -83,6 +84,12 @@ func run() -> void:
 		root.size=Vector2i(width,900); root.content_scale_size=root.size; await settle(); compare(lobby,app)
 		assert(lobby.body.find_children("*","GridContainer",true,false).all(func(grid):return grid.columns==2),"320/440 keep two columns")
 		await capture("research-availability-%d" % width)
+	# Clearing 3-10 alone leaves link II locked until link I is completed.
+	assert(card(lobby,"linkExpansionTwo").get_meta("research_status")=="링크 확장 I 연구 완료 필요")
+	assert(card(lobby,"linkExpansionTwo").find_child("ResearchSelect_linkExpansionTwo",true,false)==null)
+	app.progression_inputs.researchLevels={"linkExpansionOne":1}; lobby.refresh(); await settle(); compare(lobby,app)
+	assert(card(lobby,"linkExpansionTwo").find_child("ResearchSelect_linkExpansionTwo",true,false)!=null,"Completing the prerequisite allows detail selection even with insufficient runes")
+	app.progression_inputs=baseline.duplicate(true); lobby.refresh(); await settle()
 	# Cards show eligibility at exactly the actual cost boundary, including discounts.
 	for levels in [{},{"researchCostEfficiency":5}]:
 		app.progression_inputs.researchLevels=levels
