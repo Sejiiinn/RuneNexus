@@ -1,0 +1,88 @@
+{
+  "source_sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+  "output_sha256": "efb65415c4b69e9e25ecd3625b49daed7805bd78eac25a8eda01c24cefc1221f",
+  "blend_sha256": "0a43ba24f0f21f43b462118b36846e54a7289ce843e10ab4a7ced9d59741d082",
+  "triangles": 11760,
+  "maps": [
+    "Frost rebake basecolor",
+    "Frost rebake normal",
+    "Frost rebake orm",
+    "Frost rebake emission"
+  ],
+  "atlas_size": 2048,
+  "normal_space": "TANGENT OpenGL +X/+Y/+Z",
+  "source_projection": "125 isolated original components; GLB source UV v converted to Blender 1-v",
+  "cage_extrusion": 0.02,
+  "max_ray_distance": 0.06,
+  "geometry_normals": "source corner with maximum face-direction agreement; fin cap flat and side radial",
+  "constant_materials_unchanged": [
+    "Frost | cold aluminum fins",
+    "Frost | cold circulating core",
+    "Frost | dark deep coolant column",
+    "Frost | recessed cavity",
+    "Frost | transparent ice outer skin",
+    "Frost | submerged branching ice fractures",
+    "Frost | crystalline rim hoarfrost"
+  ],
+  "ownership": [
+    {
+      "mesh": 0,
+      "triangles": 7330,
+      "materials": {
+        "Frost | aged bronze pivot and restraint": 600,
+        "Frost | bronze pivot edge": 306,
+        "Frost | cold aluminum fins": 1584,
+        "Frost | cold circulating core": 2696,
+        "Frost | graphite blue-black machined steel": 606,
+        "Frost | worn edge steel": 459,
+        "Frost | dark deep coolant column": 156,
+        "Frost | recessed cavity": 314,
+        "Frost | basalt housing": 609
+      },
+      "fin_parts": 72
+    },
+    {
+      "mesh": 1,
+      "triangles": 192,
+      "materials": {
+        "Frost | transparent ice outer skin": 192
+      },
+      "fin_parts": 0
+    },
+    {
+      "mesh": 2,
+      "triangles": 4238,
+      "materials": {
+        "Frost | aged bronze pivot and restraint": 318,
+        "Frost | bronze pivot edge": 510,
+        "Frost | cold circulating core": 754,
+        "Frost | graphite blue-black machined steel": 757,
+        "Frost | worn edge steel": 321,
+        "Frost | recessed cavity": 342,
+        "Frost | submerged branching ice fractures": 288,
+        "Frost | crystalline rim hoarfrost": 756,
+        "Frost | deeply fractured blue ice lens": 192
+      },
+      "fin_parts": 0
+    }
+  ],
+  "packed_images": [
+    "Frost rebake basecolor",
+    "Frost rebake emission",
+    "Frost rebake normal",
+    "Frost rebake orm",
+    "frost_surface_basecolor",
+    "frost_surface_normal",
+    "frost_surface_orm",
+    "ice_basecolor",
+    "ice_emission",
+    "ice_normal",
+    "ice_roughness"
+  ],
+  "dirty": false,
+  "visual_status": "PASS",
+  "independent_review": "review.md",
+  "runtime_summary": "review/runtime-summary.json",
+  "game_applied": false,
+  "performance_measured": false
+}

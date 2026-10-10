@@ -1,0 +1,73 @@
+{
+  "blender_version": "5.2.2 LTS",
+  "engine": "CYCLES",
+  "samples": 48,
+  "resolution": [
+    1100,
+    1100
+  ],
+  "views": {
+    "hero": {
+      "camera_location": [
+        1.9605669975280762,
+        -2.7774698734283447,
+        2.1869218349456787
+      ],
+      "camera_rotation": [
+        1.056760549545288,
+        -1.0621939772192945e-08,
+        0.6146628260612488
+      ],
+      "ortho_scale": 1.0619736909866333
+    },
+    "opposite": {
+      "camera_location": [
+        -2.287328004837036,
+        2.614089250564575,
+        1.7376251220703125
+      ],
+      "camera_rotation": [
+        1.1703460216522217,
+        5.501432642773807e-09,
+        -2.422762632369995
+      ],
+      "ortho_scale": 1.0619736909866333
+    }
+  },
+  "sources": {
+    "before": {
+      "path": "assets/images/stage1_3d/turrets/frost.glb",
+      "sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+      "bounds": [
+        [
+          -0.4084514379501343,
+          0.4084514379501343
+        ],
+        [
+          -0.4084514379501343,
+          0.4084514379501343
+        ],
+        [
+          0.0,
+          0.5344000458717346
+        ]
+      ],
+      "triangles": 47912,
+      "mesh_objects": [
+        "Frost fixed body solid",
+        "Frost fixed iris skin",
+        "Frost fixed iris solid"
+      ],
+      "images": [
+        "frost_surface_basecolor",
+        "frost_surface_normal",
+        "frost_surface_orm",
+        "ice_basecolor",
+        "ice_emission",
+        "ice_normal",
+        "ice_roughness"
+      ],
+      "revision": "d83e73f32ee59112505b7e00c9222c4b774b0ef8"
+    }
+  }
+}

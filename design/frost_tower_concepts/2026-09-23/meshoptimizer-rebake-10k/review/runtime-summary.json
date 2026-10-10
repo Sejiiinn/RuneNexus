@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "candidate_sha256": "efb65415c4b69e9e25ecd3625b49daed7805bd78eac25a8eda01c24cefc1221f",
+  "source_sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+  "comparison": "macOS Godot Mobile fixture; actual 1440x3120 SubViewport; not Android/full app HUD",
+  "camera_crop_matching": true,
+  "representative_charge_mist_matching": true,
+  "samples": 16,
+  "visual_parent": "PASS: black strips, metal overexposure and lower-ring missing patches resolved; frost/bronze/lens/fin structure preserved",
+  "limits": "Full combat/Android/FPS not tested; game source unchanged"
+}

@@ -1,0 +1,12 @@
+{
+  "shared_prepare": "PASS",
+  "shared_staged_sha256": "c3b58fca0c1f53e922931fce37db4b2fcd2bae6dd452feac8d6c9ddea7d5f857",
+  "private_staged_identical": true,
+  "binary_nodes_meshes_accessors_materials_identical": true,
+  "four_maps_bytes_and_production_policy_identical": true,
+  "editor_prepare": "PASS: narrow frost and four referenced maps sync; custom config preserved",
+  "editor_config_sha256_before_and_after": "d01ea40bd533e16eefd522ddb19e7bd2a0fa3c6d8a631c694d32202d19db47bb",
+  "editor_staged_sha256": "c3b58fca0c1f53e922931fce37db4b2fcd2bae6dd452feac8d6c9ddea7d5f857",
+  "editor_frost_and_four_maps_identical": true,
+  "editor_state_only_five_asset_keys_updated": true
+}

@@ -817,3 +817,12 @@ __pycache__/
 
 # 챕터 3 추가 감량의 일회성 후보·실행 근거
 /design/chapter3_3d/optimized-game-distance-v2/checks/
+
+# 냉각 포탑 meshoptimizer 후보의 일회성 검사·로그
+/design/frost_tower_concepts/2026-09-23/meshoptimizer-preview/checks/
+
+# 냉각 포탑 1만면 후보의 일회성 검사·로그
+/design/frost_tower_concepts/2026-09-23/meshoptimizer-preview-10k/checks/
+
+# 냉각 포탑 UV·노멀 재베이크의 일회성 검사·로그
+/design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/checks/

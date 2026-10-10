@@ -1,0 +1,33 @@
+{
+  "game_sha256": "efb65415c4b69e9e25ecd3625b49daed7805bd78eac25a8eda01c24cefc1221f",
+  "staged_sha256": "c3b58fca0c1f53e922931fce37db4b2fcd2bae6dd452feac8d6c9ddea7d5f857",
+  "binary_buffer_identical": true,
+  "nodes_meshes_accessors_materials_identical": true,
+  "triangles": 11760,
+  "embedded_source_images": 4,
+  "texture_policy": {
+    "compress_mode": 2,
+    "high_quality": true,
+    "normal_map": 2,
+    "mipmaps": true,
+    "size_limit": 1024
+  },
+  "textures": [
+    {
+      "path": "assets/shared_textures/033381eb4fc2ba195c6a5759c96a7b0a63e62e53b38a61b4f1eaee6c4ab0ec89.png",
+      "sha256": "033381eb4fc2ba195c6a5759c96a7b0a63e62e53b38a61b4f1eaee6c4ab0ec89"
+    },
+    {
+      "path": "assets/shared_textures/08c79b814feaaadbbd967599da266e677ba44568b4e0dbc5f0f828a90c70e53d.png",
+      "sha256": "08c79b814feaaadbbd967599da266e677ba44568b4e0dbc5f0f828a90c70e53d"
+    },
+    {
+      "path": "assets/shared_textures/5dd8e4f397f80ece36cc4a50c303e7010a7fe509229dc53ad1f01a89e796dc5d.png",
+      "sha256": "5dd8e4f397f80ece36cc4a50c303e7010a7fe509229dc53ad1f01a89e796dc5d"
+    },
+    {
+      "path": "assets/shared_textures/52516c18badd35cbe5590ced2dcea69ff9f1e5829076dd8a13dadbb50c7ceb9c.png",
+      "sha256": "52516c18badd35cbe5590ced2dcea69ff9f1e5829076dd8a13dadbb50c7ceb9c"
+    }
+  ]
+}

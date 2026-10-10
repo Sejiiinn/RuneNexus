@@ -1,4 +1,6 @@
-# 냉각 포탑 경량화·게임 반영
+# 냉각 포탑 47,912삼각형 경량화 기록
+
+현재 게임 적용본은 [11,760삼각형 재베이크 결과](../meshoptimizer-rebake-10k/README.md)다. 아래는 이전 47,912삼각형 적용 단계의 기록이며 제작 원본과 근거는 보존한다.
 
 > 원시 로그·일회성 검사·측정 덤프는 로컬 기록으로 Git 추적에서 제외했다. 본문의 요약 결과와 유지되는 회귀 테스트는 보존하며, 아래 로컬 기록은 새 체크아웃에 포함되지 않는다.
 
@@ -18,7 +20,7 @@
 
 원본은 [production/frost.blend](../production/frost.blend), SHA `ef01cba269112570b380788010a0700abc5591ff57bffac95578103ecdb09aff`이다. 비교 원본 GLB는 git `0c63df5fa22c1f5b7bcfd5a3f3f9ec8b448aa047:assets/images/stage1_3d/turrets/frost.glb`, SHA `e84d5a97650056d139fd6a61868e621042955937d0584c996416dc6cc59a8544`로 고정한다. 현재 게임 파일을 비교 원본으로 사용하지 않는다.
 
-최종 게임 GLB SHA: `7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39`.
+당시 게임 GLB SHA: `7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39`.
 
 ## 검증
 

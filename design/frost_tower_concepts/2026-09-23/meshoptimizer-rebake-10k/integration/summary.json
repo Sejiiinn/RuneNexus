@@ -1,0 +1,79 @@
+{
+  "source_head": "4f53dc39434bea8c8e515d3b3e5bdc2a3760d633",
+  "game_sha256": "efb65415c4b69e9e25ecd3625b49daed7805bd78eac25a8eda01c24cefc1221f",
+  "staged_sha256": "c3b58fca0c1f53e922931fce37db4b2fcd2bae6dd452feac8d6c9ddea7d5f857",
+  "import_exit_code": 0,
+  "frost_charge_exit_code": 0,
+  "frost_charge_failures": [],
+  "app_exit_code": 0,
+  "capture_resolution_requested": [
+    900,
+    1500
+  ],
+  "actual_captures": [
+    {
+      "file": "app-4x.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "0a718b64cc1c13b01f4d71844bbaa6dbda8f0fd4394730efb365c8a5a6cb2ae0"
+    },
+    {
+      "file": "app-angled-selected.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "dbd49db90164fad5c091c21db0d49014a74cd8e68b40a9998b3e63f9c45ff255"
+    },
+    {
+      "file": "app-drone.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "d210a76b53a1a6936686f57c8f28709926bd015962e448424d194812f2af0223"
+    },
+    {
+      "file": "app-paused-release.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "c1ed83dd38ff2667ad71017734bc292b348fd54aa81e12b2293e95f338b34c17"
+    },
+    {
+      "file": "app-release-slowed.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "65c9cb2a6f16332a099fe6f4f1846517918a4dc75d8de61ad3b0e11e76c9d8c5"
+    },
+    {
+      "file": "detail-charging.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "9151dc0db91f9db9c291b04aa8289bd680aeb6034d8efc7cc3085043905ee0c4"
+    },
+    {
+      "file": "detail-release.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "bde749d8d70420af43393de95bff976b09ff8310e781e161108af417ddc4edb5"
+    },
+    {
+      "file": "structure-low-angle.png",
+      "dimensions": [
+        900,
+        1288
+      ],
+      "sha256": "89ad22961560c04290df52eee91e79ec01d8fd1fb0b73ca5de454023d5ef95b5"
+    }
+  ]
+}

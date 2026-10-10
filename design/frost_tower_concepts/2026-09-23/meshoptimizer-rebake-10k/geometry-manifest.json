@@ -1,0 +1,6712 @@
+{
+  "source_sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+  "before_triangles": 47912,
+  "after_triangles": 11760,
+  "method": "meshopt_simplifyWithAttributes options0; no position movement; per-component representative extrema and fin cap anchors",
+  "library_sha256": "cc5531e73d4d589385811ee74b092451a10461554e17ab27cfee505ee0ae4133",
+  "records": [
+    {
+      "mesh": 0,
+      "before": 30648,
+      "after": 7330,
+      "components": 193,
+      "fin_components": 72,
+      "parts": [
+        {
+          "component": 0,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004729131702333689,
+          "bounds_exact": true
+        },
+        {
+          "component": 1,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004549454431980848,
+          "bounds_exact": true
+        },
+        {
+          "component": 2,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.0044711558148264885,
+          "bounds_exact": true
+        },
+        {
+          "component": 3,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004461273085325956,
+          "bounds_exact": true
+        },
+        {
+          "component": 4,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.0044713448733091354,
+          "bounds_exact": true
+        },
+        {
+          "component": 5,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004461084492504597,
+          "bounds_exact": true
+        },
+        {
+          "component": 6,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004729142412543297,
+          "bounds_exact": true
+        },
+        {
+          "component": 7,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004544985480606556,
+          "bounds_exact": true
+        },
+        {
+          "component": 8,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.0044710272923111916,
+          "bounds_exact": true
+        },
+        {
+          "component": 9,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004368944093585014,
+          "bounds_exact": true
+        },
+        {
+          "component": 10,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004471257794648409,
+          "bounds_exact": true
+        },
+        {
+          "component": 11,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 132,
+          "target": 18,
+          "after": 18,
+          "effective_error": 0.03,
+          "actual_error": 0.004471406806260347,
+          "bounds_exact": true
+        },
+        {
+          "component": 12,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.02546435408294201,
+          "bounds_exact": true
+        },
+        {
+          "component": 13,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.025464516133069992,
+          "bounds_exact": true
+        },
+        {
+          "component": 14,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.025464395061135292,
+          "bounds_exact": true
+        },
+        {
+          "component": 15,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.025464363396167755,
+          "bounds_exact": true
+        },
+        {
+          "component": 16,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.02861885540187359,
+          "bounds_exact": true
+        },
+        {
+          "component": 17,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.028619034215807915,
+          "bounds_exact": true
+        },
+        {
+          "component": 18,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.028619060292840004,
+          "bounds_exact": true
+        },
+        {
+          "component": 19,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 16,
+          "effective_error": 0.03,
+          "actual_error": 0.028618674725294113,
+          "bounds_exact": true
+        },
+        {
+          "component": 20,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.01539947371929884,
+          "bounds_exact": true
+        },
+        {
+          "component": 21,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.015399324707686901,
+          "bounds_exact": true
+        },
+        {
+          "component": 22,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.014979523606598377,
+          "bounds_exact": true
+        },
+        {
+          "component": 23,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.014980197884142399,
+          "bounds_exact": true
+        },
+        {
+          "component": 24,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.01733536086976528,
+          "bounds_exact": true
+        },
+        {
+          "component": 25,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.01733548380434513,
+          "bounds_exact": true
+        },
+        {
+          "component": 26,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.0173344649374485,
+          "bounds_exact": true
+        },
+        {
+          "component": 27,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.017335515469312668,
+          "bounds_exact": true
+        },
+        {
+          "component": 28,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027044393122196198,
+          "bounds_exact": true
+        },
+        {
+          "component": 29,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027044393122196198,
+          "bounds_exact": true
+        },
+        {
+          "component": 30,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027041496708989143,
+          "bounds_exact": true
+        },
+        {
+          "component": 31,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027041496708989143,
+          "bounds_exact": true
+        },
+        {
+          "component": 32,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027044370770454407,
+          "bounds_exact": true
+        },
+        {
+          "component": 33,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027044370770454407,
+          "bounds_exact": true
+        },
+        {
+          "component": 34,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027546381577849388,
+          "bounds_exact": true
+        },
+        {
+          "component": 35,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.027546381577849388,
+          "bounds_exact": true
+        },
+        {
+          "component": 36,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.02454160712659359,
+          "bounds_exact": true
+        },
+        {
+          "component": 37,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02444521151483059,
+          "bounds_exact": true
+        },
+        {
+          "component": 38,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02460172399878502,
+          "bounds_exact": true
+        },
+        {
+          "component": 39,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02934296987950802,
+          "bounds_exact": true
+        },
+        {
+          "component": 40,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.01979580707848072,
+          "bounds_exact": true
+        },
+        {
+          "component": 41,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.022344380617141724,
+          "bounds_exact": true
+        },
+        {
+          "component": 42,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.027304096147418022,
+          "bounds_exact": true
+        },
+        {
+          "component": 43,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02653193473815918,
+          "bounds_exact": true
+        },
+        {
+          "component": 44,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.026267211884260178,
+          "bounds_exact": true
+        },
+        {
+          "component": 45,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02860262431204319,
+          "bounds_exact": true
+        },
+        {
+          "component": 46,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.021465042605996132,
+          "bounds_exact": true
+        },
+        {
+          "component": 47,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.023528410121798515,
+          "bounds_exact": true
+        },
+        {
+          "component": 48,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004438892006874,
+          "bounds_exact": true
+        },
+        {
+          "component": 49,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004017934203148,
+          "bounds_exact": true
+        },
+        {
+          "component": 50,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004017934203148,
+          "bounds_exact": true
+        },
+        {
+          "component": 51,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004017934203148,
+          "bounds_exact": true
+        },
+        {
+          "component": 52,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004017934203148,
+          "bounds_exact": true
+        },
+        {
+          "component": 53,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004017934203148,
+          "bounds_exact": true
+        },
+        {
+          "component": 54,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400478906929493,
+          "bounds_exact": true
+        },
+        {
+          "component": 55,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400430105626583,
+          "bounds_exact": true
+        },
+        {
+          "component": 56,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400430105626583,
+          "bounds_exact": true
+        },
+        {
+          "component": 57,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400478906929493,
+          "bounds_exact": true
+        },
+        {
+          "component": 58,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400430105626583,
+          "bounds_exact": true
+        },
+        {
+          "component": 59,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400430105626583,
+          "bounds_exact": true
+        },
+        {
+          "component": 60,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024003975093364716,
+          "bounds_exact": true
+        },
+        {
+          "component": 61,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400394156575203,
+          "bounds_exact": true
+        },
+        {
+          "component": 62,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400394156575203,
+          "bounds_exact": true
+        },
+        {
+          "component": 63,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400394156575203,
+          "bounds_exact": true
+        },
+        {
+          "component": 64,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400394156575203,
+          "bounds_exact": true
+        },
+        {
+          "component": 65,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400394156575203,
+          "bounds_exact": true
+        },
+        {
+          "component": 66,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004077538847923,
+          "bounds_exact": true
+        },
+        {
+          "component": 67,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004261940717697,
+          "bounds_exact": true
+        },
+        {
+          "component": 68,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004261940717697,
+          "bounds_exact": true
+        },
+        {
+          "component": 69,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004077538847923,
+          "bounds_exact": true
+        },
+        {
+          "component": 70,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004261940717697,
+          "bounds_exact": true
+        },
+        {
+          "component": 71,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004261940717697,
+          "bounds_exact": true
+        },
+        {
+          "component": 72,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004261940717697,
+          "bounds_exact": true
+        },
+        {
+          "component": 73,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004044011235237,
+          "bounds_exact": true
+        },
+        {
+          "component": 74,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004044011235237,
+          "bounds_exact": true
+        },
+        {
+          "component": 75,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004044011235237,
+          "bounds_exact": true
+        },
+        {
+          "component": 76,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004044011235237,
+          "bounds_exact": true
+        },
+        {
+          "component": 77,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004044011235237,
+          "bounds_exact": true
+        },
+        {
+          "component": 78,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400403469800949,
+          "bounds_exact": true
+        },
+        {
+          "component": 79,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024003904312849045,
+          "bounds_exact": true
+        },
+        {
+          "component": 80,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024003904312849045,
+          "bounds_exact": true
+        },
+        {
+          "component": 81,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400403469800949,
+          "bounds_exact": true
+        },
+        {
+          "component": 82,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024003904312849045,
+          "bounds_exact": true
+        },
+        {
+          "component": 83,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024003904312849045,
+          "bounds_exact": true
+        },
+        {
+          "component": 84,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004250764846802,
+          "bounds_exact": true
+        },
+        {
+          "component": 85,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004047736525536,
+          "bounds_exact": true
+        },
+        {
+          "component": 86,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004047736525536,
+          "bounds_exact": true
+        },
+        {
+          "component": 87,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004047736525536,
+          "bounds_exact": true
+        },
+        {
+          "component": 88,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004047736525536,
+          "bounds_exact": true
+        },
+        {
+          "component": 89,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004047736525536,
+          "bounds_exact": true
+        },
+        {
+          "component": 90,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.0240049809217453,
+          "bounds_exact": true
+        },
+        {
+          "component": 91,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004308506846428,
+          "bounds_exact": true
+        },
+        {
+          "component": 92,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004308506846428,
+          "bounds_exact": true
+        },
+        {
+          "component": 93,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.0240049809217453,
+          "bounds_exact": true
+        },
+        {
+          "component": 94,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004308506846428,
+          "bounds_exact": true
+        },
+        {
+          "component": 95,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004308506846428,
+          "bounds_exact": true
+        },
+        {
+          "component": 96,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004578590393066,
+          "bounds_exact": true
+        },
+        {
+          "component": 97,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004532024264336,
+          "bounds_exact": true
+        },
+        {
+          "component": 98,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004532024264336,
+          "bounds_exact": true
+        },
+        {
+          "component": 99,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004532024264336,
+          "bounds_exact": true
+        },
+        {
+          "component": 100,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004532024264336,
+          "bounds_exact": true
+        },
+        {
+          "component": 101,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004532024264336,
+          "bounds_exact": true
+        },
+        {
+          "component": 102,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004649370908737,
+          "bounds_exact": true
+        },
+        {
+          "component": 103,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 104,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 105,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004649370908737,
+          "bounds_exact": true
+        },
+        {
+          "component": 106,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 107,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 108,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004049599170685,
+          "bounds_exact": true
+        },
+        {
+          "component": 109,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004286155104637,
+          "bounds_exact": true
+        },
+        {
+          "component": 110,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004286155104637,
+          "bounds_exact": true
+        },
+        {
+          "component": 111,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004286155104637,
+          "bounds_exact": true
+        },
+        {
+          "component": 112,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004286155104637,
+          "bounds_exact": true
+        },
+        {
+          "component": 113,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.024004286155104637,
+          "bounds_exact": true
+        },
+        {
+          "component": 114,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400420419871807,
+          "bounds_exact": true
+        },
+        {
+          "component": 115,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 116,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 117,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400420419871807,
+          "bounds_exact": true
+        },
+        {
+          "component": 118,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 119,
+          "materials": [
+            2,
+            3
+          ],
+          "fin": true,
+          "before": 124,
+          "target": 48,
+          "after": 56,
+          "effective_error": 0.025,
+          "actual_error": 0.02400396391749382,
+          "bounds_exact": true
+        },
+        {
+          "component": 120,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.013410794548690319,
+          "bounds_exact": true
+        },
+        {
+          "component": 121,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.013343393802642822,
+          "bounds_exact": true
+        },
+        {
+          "component": 122,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.016750385984778404,
+          "bounds_exact": true
+        },
+        {
+          "component": 123,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.01674974150955677,
+          "bounds_exact": true
+        },
+        {
+          "component": 124,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 384,
+          "target": 96,
+          "after": 192,
+          "effective_error": 0.0075,
+          "actual_error": 0.006705921143293381,
+          "bounds_exact": true
+        },
+        {
+          "component": 125,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007804408203810453,
+          "bounds_exact": true
+        },
+        {
+          "component": 126,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.0067083146423101425,
+          "bounds_exact": true
+        },
+        {
+          "component": 127,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007803805638104677,
+          "bounds_exact": true
+        },
+        {
+          "component": 128,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007785243913531303,
+          "bounds_exact": true
+        },
+        {
+          "component": 129,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.006818816065788269,
+          "bounds_exact": true
+        },
+        {
+          "component": 130,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007804057095199823,
+          "bounds_exact": true
+        },
+        {
+          "component": 131,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007803819607943296,
+          "bounds_exact": true
+        },
+        {
+          "component": 132,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.006814444903284311,
+          "bounds_exact": true
+        },
+        {
+          "component": 133,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007804046384990215,
+          "bounds_exact": true
+        },
+        {
+          "component": 134,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007803960703313351,
+          "bounds_exact": true
+        },
+        {
+          "component": 135,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.006608772091567516,
+          "bounds_exact": true
+        },
+        {
+          "component": 136,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 156,
+          "target": 21,
+          "after": 20,
+          "effective_error": 0.03,
+          "actual_error": 0.007803971413522959,
+          "bounds_exact": true
+        },
+        {
+          "component": 137,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 276,
+          "target": 38,
+          "after": 38,
+          "effective_error": 0.03,
+          "actual_error": 0.019031262025237083,
+          "bounds_exact": true
+        },
+        {
+          "component": 138,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 276,
+          "target": 38,
+          "after": 38,
+          "effective_error": 0.03,
+          "actual_error": 0.018532825633883476,
+          "bounds_exact": true
+        },
+        {
+          "component": 139,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 276,
+          "target": 38,
+          "after": 38,
+          "effective_error": 0.03,
+          "actual_error": 0.01919429749250412,
+          "bounds_exact": true
+        },
+        {
+          "component": 140,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 276,
+          "target": 38,
+          "after": 38,
+          "effective_error": 0.03,
+          "actual_error": 0.018343714997172356,
+          "bounds_exact": true
+        },
+        {
+          "component": 141,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 34,
+          "effective_error": 0.03,
+          "actual_error": 0.019973216578364372,
+          "bounds_exact": true
+        },
+        {
+          "component": 142,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02902878075838089,
+          "bounds_exact": true
+        },
+        {
+          "component": 143,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.029026338830590248,
+          "bounds_exact": true
+        },
+        {
+          "component": 144,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 32,
+          "effective_error": 0.03,
+          "actual_error": 0.024193542078137398,
+          "bounds_exact": true
+        },
+        {
+          "component": 145,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.028684765100479126,
+          "bounds_exact": true
+        },
+        {
+          "component": 146,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 180,
+          "target": 25,
+          "after": 24,
+          "effective_error": 0.03,
+          "actual_error": 0.02902810089290142,
+          "bounds_exact": true
+        },
+        {
+          "component": 147,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.021245354786515236,
+          "bounds_exact": true
+        },
+        {
+          "component": 148,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.021571731194853783,
+          "bounds_exact": true
+        },
+        {
+          "component": 149,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.022040653973817825,
+          "bounds_exact": true
+        },
+        {
+          "component": 150,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.01958523876965046,
+          "bounds_exact": true
+        },
+        {
+          "component": 151,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.020388318225741386,
+          "bounds_exact": true
+        },
+        {
+          "component": 152,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.01877896673977375,
+          "bounds_exact": true
+        },
+        {
+          "component": 153,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.02124531753361225,
+          "bounds_exact": true
+        },
+        {
+          "component": 154,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.022003211081027985,
+          "bounds_exact": true
+        },
+        {
+          "component": 155,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.019863590598106384,
+          "bounds_exact": true
+        },
+        {
+          "component": 156,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.01968963071703911,
+          "bounds_exact": true
+        },
+        {
+          "component": 157,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.022003281861543655,
+          "bounds_exact": true
+        },
+        {
+          "component": 158,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.02080405130982399,
+          "bounds_exact": true
+        },
+        {
+          "component": 159,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.02181214466691017,
+          "bounds_exact": true
+        },
+        {
+          "component": 160,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.020690003409981728,
+          "bounds_exact": true
+        },
+        {
+          "component": 161,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.022245263680815697,
+          "bounds_exact": true
+        },
+        {
+          "component": 162,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.021199749782681465,
+          "bounds_exact": true
+        },
+        {
+          "component": 163,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.018604256212711334,
+          "bounds_exact": true
+        },
+        {
+          "component": 164,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.020537175238132477,
+          "bounds_exact": true
+        },
+        {
+          "component": 165,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.020538989454507828,
+          "bounds_exact": true
+        },
+        {
+          "component": 166,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.02067003957927227,
+          "bounds_exact": true
+        },
+        {
+          "component": 167,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.02053801529109478,
+          "bounds_exact": true
+        },
+        {
+          "component": 168,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.021812360733747482,
+          "bounds_exact": true
+        },
+        {
+          "component": 169,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.020689845085144043,
+          "bounds_exact": true
+        },
+        {
+          "component": 170,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.017514212056994438,
+          "bounds_exact": true
+        },
+        {
+          "component": 171,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.01565646566450596,
+          "bounds_exact": true
+        },
+        {
+          "component": 172,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.01504959724843502,
+          "bounds_exact": true
+        },
+        {
+          "component": 173,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.016437958925962448,
+          "bounds_exact": true
+        },
+        {
+          "component": 174,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.01604441925883293,
+          "bounds_exact": true
+        },
+        {
+          "component": 175,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.013639505952596664,
+          "bounds_exact": true
+        },
+        {
+          "component": 176,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 204,
+          "target": 28,
+          "after": 28,
+          "effective_error": 0.03,
+          "actual_error": 0.016778115183115005,
+          "bounds_exact": true
+        },
+        {
+          "component": 177,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 572,
+          "target": 80,
+          "after": 80,
+          "effective_error": 0.03,
+          "actual_error": 0.010620718821883202,
+          "bounds_exact": true
+        },
+        {
+          "component": 178,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 160,
+          "target": 22,
+          "after": 52,
+          "effective_error": 0.03,
+          "actual_error": 0.027354571968317032,
+          "bounds_exact": true
+        },
+        {
+          "component": 179,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 160,
+          "target": 22,
+          "after": 52,
+          "effective_error": 0.03,
+          "actual_error": 0.02845928817987442,
+          "bounds_exact": true
+        },
+        {
+          "component": 180,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 160,
+          "target": 22,
+          "after": 50,
+          "effective_error": 0.03,
+          "actual_error": 0.028825117275118828,
+          "bounds_exact": true
+        },
+        {
+          "component": 181,
+          "materials": [
+            5,
+            8
+          ],
+          "fin": false,
+          "before": 160,
+          "target": 22,
+          "after": 46,
+          "effective_error": 0.03,
+          "actual_error": 0.02845938317477703,
+          "bounds_exact": true
+        },
+        {
+          "component": 182,
+          "materials": [
+            6
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.021372614428400993,
+          "bounds_exact": true
+        },
+        {
+          "component": 183,
+          "materials": [
+            6
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.02401338703930378,
+          "bounds_exact": true
+        },
+        {
+          "component": 184,
+          "materials": [
+            6
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.021372614428400993,
+          "bounds_exact": true
+        },
+        {
+          "component": 185,
+          "materials": [
+            6
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.021372850984334946,
+          "bounds_exact": true
+        },
+        {
+          "component": 186,
+          "materials": [
+            6
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.02137315832078457,
+          "bounds_exact": true
+        },
+        {
+          "component": 187,
+          "materials": [
+            6
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 26,
+          "effective_error": 0.03,
+          "actual_error": 0.021372850984334946,
+          "bounds_exact": true
+        },
+        {
+          "component": 188,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 1620,
+          "target": 226,
+          "after": 258,
+          "effective_error": 0.0075,
+          "actual_error": 0.006644414737820625,
+          "bounds_exact": true
+        },
+        {
+          "component": 189,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.020153163000941277,
+          "bounds_exact": true
+        },
+        {
+          "component": 190,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.02015071175992489,
+          "bounds_exact": true
+        },
+        {
+          "component": 191,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.02554168365895748,
+          "bounds_exact": true
+        },
+        {
+          "component": 192,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 108,
+          "target": 15,
+          "after": 14,
+          "effective_error": 0.03,
+          "actual_error": 0.025541946291923523,
+          "bounds_exact": true
+        }
+      ]
+    },
+    {
+      "mesh": 1,
+      "before": 576,
+      "after": 192,
+      "components": 1,
+      "fin_components": 0,
+      "parts": [
+        {
+          "component": 0,
+          "materials": [
+            9
+          ],
+          "fin": false,
+          "before": 576,
+          "target": 192,
+          "after": 192,
+          "effective_error": 0.03,
+          "actual_error": 0.002231242833659053,
+          "bounds_exact": true
+        }
+      ]
+    },
+    {
+      "mesh": 2,
+      "before": 16688,
+      "after": 4238,
+      "components": 305,
+      "fin_components": 0,
+      "parts": [
+        {
+          "component": 0,
+          "materials": [
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 72,
+          "after": 72,
+          "effective_error": 0.03,
+          "actual_error": 0.021884512156248093,
+          "bounds_exact": true
+        },
+        {
+          "component": 1,
+          "materials": [
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 72,
+          "after": 72,
+          "effective_error": 0.03,
+          "actual_error": 0.02188507653772831,
+          "bounds_exact": true
+        },
+        {
+          "component": 2,
+          "materials": [
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 72,
+          "after": 72,
+          "effective_error": 0.03,
+          "actual_error": 0.023101340979337692,
+          "bounds_exact": true
+        },
+        {
+          "component": 3,
+          "materials": [
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 72,
+          "after": 72,
+          "effective_error": 0.03,
+          "actual_error": 0.021884800866246223,
+          "bounds_exact": true
+        },
+        {
+          "component": 4,
+          "materials": [
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 72,
+          "after": 72,
+          "effective_error": 0.03,
+          "actual_error": 0.021885154768824577,
+          "bounds_exact": true
+        },
+        {
+          "component": 5,
+          "materials": [
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 72,
+          "after": 72,
+          "effective_error": 0.03,
+          "actual_error": 0.02184630185365677,
+          "bounds_exact": true
+        },
+        {
+          "component": 6,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 66,
+          "after": 66,
+          "effective_error": 0.03,
+          "actual_error": 0.019041983410716057,
+          "bounds_exact": true
+        },
+        {
+          "component": 7,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 66,
+          "after": 66,
+          "effective_error": 0.03,
+          "actual_error": 0.01904228702187538,
+          "bounds_exact": true
+        },
+        {
+          "component": 8,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 66,
+          "after": 66,
+          "effective_error": 0.03,
+          "actual_error": 0.01904287375509739,
+          "bounds_exact": true
+        },
+        {
+          "component": 9,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 66,
+          "after": 66,
+          "effective_error": 0.03,
+          "actual_error": 0.01904192939400673,
+          "bounds_exact": true
+        },
+        {
+          "component": 10,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 66,
+          "after": 66,
+          "effective_error": 0.03,
+          "actual_error": 0.01904281973838806,
+          "bounds_exact": true
+        },
+        {
+          "component": 11,
+          "materials": [
+            0,
+            1
+          ],
+          "fin": false,
+          "before": 476,
+          "target": 66,
+          "after": 66,
+          "effective_error": 0.03,
+          "actual_error": 0.019042473286390305,
+          "bounds_exact": true
+        },
+        {
+          "component": 12,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 13,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 14,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 15,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 16,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 17,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 18,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 19,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 20,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 21,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 22,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 23,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 24,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 25,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 26,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 27,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 28,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 29,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 30,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 31,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 32,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 33,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 34,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 35,
+          "materials": [
+            10
+          ],
+          "fin": false,
+          "before": 12,
+          "target": 12,
+          "after": 12,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 36,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 37,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 38,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 39,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 40,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 41,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 42,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 43,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 44,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 45,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 46,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 47,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 48,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 49,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 50,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 51,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 52,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 53,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 54,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 55,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 56,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 57,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 58,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 59,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 60,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 61,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 62,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 63,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 64,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 65,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 66,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 67,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 68,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 69,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 70,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 71,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 72,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 73,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 74,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 75,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 76,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 77,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 78,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 79,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 80,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 81,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 82,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 83,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 84,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 85,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 86,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 87,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 88,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 89,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 90,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 91,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 92,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 93,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 94,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 95,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 96,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 97,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 98,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 99,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 100,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 101,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 102,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 103,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 104,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 105,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 106,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 107,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 108,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 109,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 110,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 111,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 112,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 113,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 114,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 115,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 116,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 117,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 118,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 119,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 120,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 121,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 122,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 123,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 124,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 125,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 126,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 127,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 128,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 129,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 130,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 131,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 132,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 133,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 134,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 135,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 136,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 137,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 138,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 139,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 140,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 141,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 142,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 143,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 144,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 145,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 146,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 147,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 148,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 149,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 150,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 151,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 152,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 153,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 154,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 155,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 156,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 157,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 158,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 159,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 160,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 161,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 162,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 163,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 164,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 165,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 166,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 167,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 168,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 169,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 170,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 171,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 172,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 173,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 174,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 175,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 176,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 177,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 178,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 179,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 180,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 181,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 182,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 183,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 184,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 185,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 186,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 187,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 188,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 189,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 190,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 191,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 192,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 193,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 194,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 195,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 196,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 197,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 198,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 199,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 200,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 201,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 202,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 203,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 204,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 205,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 206,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 207,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 208,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 209,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 210,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 211,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 212,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 213,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 214,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 215,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 216,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 217,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 218,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 219,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 220,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 221,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 222,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 223,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 224,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 225,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 226,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 227,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 228,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 229,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 230,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 231,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 232,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 233,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 234,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 235,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 236,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 237,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 238,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 239,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 240,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 241,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 242,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 243,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 244,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 245,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 246,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 247,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 248,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 249,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 250,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 251,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 252,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 253,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 254,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 255,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 256,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 257,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 258,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 259,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 260,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 261,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 262,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 263,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 264,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 265,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 266,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 267,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 268,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 269,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 270,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 271,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 272,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 273,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 274,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 275,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 276,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 277,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 278,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 279,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 280,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 281,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 282,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 283,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 284,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 285,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 286,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 287,
+          "materials": [
+            11
+          ],
+          "fin": false,
+          "before": 3,
+          "target": 3,
+          "after": 3,
+          "effective_error": 0.03,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 288,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 956,
+          "target": 144,
+          "after": 144,
+          "effective_error": 0.03,
+          "actual_error": 0.003936051856726408,
+          "bounds_exact": true
+        },
+        {
+          "component": 289,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 956,
+          "target": 144,
+          "after": 144,
+          "effective_error": 0.03,
+          "actual_error": 0.00346939405426383,
+          "bounds_exact": true
+        },
+        {
+          "component": 290,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 956,
+          "target": 144,
+          "after": 144,
+          "effective_error": 0.03,
+          "actual_error": 0.003701572772115469,
+          "bounds_exact": true
+        },
+        {
+          "component": 291,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 956,
+          "target": 144,
+          "after": 144,
+          "effective_error": 0.03,
+          "actual_error": 0.004503888078033924,
+          "bounds_exact": true
+        },
+        {
+          "component": 292,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 956,
+          "target": 144,
+          "after": 144,
+          "effective_error": 0.03,
+          "actual_error": 0.0038076986093074083,
+          "bounds_exact": true
+        },
+        {
+          "component": 293,
+          "materials": [
+            4,
+            5
+          ],
+          "fin": false,
+          "before": 956,
+          "target": 144,
+          "after": 144,
+          "effective_error": 0.03,
+          "actual_error": 0.00383509392850101,
+          "bounds_exact": true
+        },
+        {
+          "component": 294,
+          "materials": [
+            4
+          ],
+          "fin": false,
+          "before": 1536,
+          "target": 215,
+          "after": 214,
+          "effective_error": 0.03,
+          "actual_error": 0.007040235213935375,
+          "bounds_exact": true
+        },
+        {
+          "component": 295,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 384,
+          "target": 96,
+          "after": 370,
+          "effective_error": 0.00375,
+          "actual_error": 0.0035949088633060455,
+          "bounds_exact": true
+        },
+        {
+          "component": 296,
+          "materials": [
+            3
+          ],
+          "fin": false,
+          "before": 384,
+          "target": 96,
+          "after": 384,
+          "effective_error": 0.00375,
+          "actual_error": 0.0,
+          "bounds_exact": true
+        },
+        {
+          "component": 297,
+          "materials": [
+            12
+          ],
+          "fin": false,
+          "before": 576,
+          "target": 192,
+          "after": 192,
+          "effective_error": 0.03,
+          "actual_error": 0.0013590308371931314,
+          "bounds_exact": true
+        },
+        {
+          "component": 298,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 54,
+          "effective_error": 0.03,
+          "actual_error": 0.027047621086239815,
+          "bounds_exact": true
+        },
+        {
+          "component": 299,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 48,
+          "effective_error": 0.03,
+          "actual_error": 0.02754390798509121,
+          "bounds_exact": true
+        },
+        {
+          "component": 300,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 48,
+          "effective_error": 0.03,
+          "actual_error": 0.02754380740225315,
+          "bounds_exact": true
+        },
+        {
+          "component": 301,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 48,
+          "effective_error": 0.03,
+          "actual_error": 0.027543863281607628,
+          "bounds_exact": true
+        },
+        {
+          "component": 302,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 48,
+          "effective_error": 0.03,
+          "actual_error": 0.027544211596250534,
+          "bounds_exact": true
+        },
+        {
+          "component": 303,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 48,
+          "effective_error": 0.03,
+          "actual_error": 0.027543867006897926,
+          "bounds_exact": true
+        },
+        {
+          "component": 304,
+          "materials": [
+            7
+          ],
+          "fin": false,
+          "before": 188,
+          "target": 26,
+          "after": 48,
+          "effective_error": 0.03,
+          "actual_error": 0.027544021606445312,
+          "bounds_exact": true
+        }
+      ]
+    }
+  ]
+}

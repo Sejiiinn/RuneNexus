@@ -1,0 +1,26 @@
+{
+	"asset_sha256": "c3b58fca0c1f53e922931fce37db4b2fcd2bae6dd452feac8d6c9ddea7d5f857",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": [],
+	"fired": true,
+	"four_x_clock_delta": 0.199999999999999,
+	"four_x_hud_active": true,
+	"loaded_meshes": 3,
+	"loaded_triangles": 11760,
+	"paused_clock_frozen": true,
+	"renderer": "mobile",
+	"rig_markers_preserved": true,
+	"slowed_observed": true,
+	"user_directory": "/Users/sejin/Library/Application Support/Godot/app_userdata/RuneNexus-Frost-Rebaked-Integration-runenexus-frost-rebaked-integration-1whsfekl",
+	"video_frames": 13
+}

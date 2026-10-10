@@ -1,0 +1,44 @@
+{
+  "method": "xatlas 0.0.11",
+  "atlas_count": 1,
+  "width": 2048,
+  "height": 2048,
+  "padding": 8,
+  "lens_texel_density_multiplier": 2,
+  "constant_material_uv_overlap": "intentional at .5/.5; no textures, excluded from atlas/bake coverage checks",
+  "utilization": 0.6707262992858887,
+  "records": [
+    {
+      "mesh": 0,
+      "triangles": 7330,
+      "textured_triangles": 2580,
+      "chart_count": 666,
+      "input_scale": 4.0,
+      "uv_min": [
+        0.000244140625,
+        0.000244140625
+      ],
+      "uv_max": [
+        0.902587890625,
+        0.905517578125
+      ],
+      "geometry_correspondence_exact": true
+    },
+    {
+      "mesh": 2,
+      "triangles": 4238,
+      "textured_triangles": 2098,
+      "chart_count": 156,
+      "input_scale": 4.0,
+      "uv_min": [
+        0.000244140625,
+        0.000732421875
+      ],
+      "uv_max": [
+        0.902587890625,
+        0.905517578125
+      ],
+      "geometry_correspondence_exact": true
+    }
+  ]
+}

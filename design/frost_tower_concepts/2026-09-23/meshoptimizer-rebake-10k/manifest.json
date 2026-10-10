@@ -1,0 +1,81 @@
+{
+  "status": "PASS; installed game asset",
+  "input": {
+    "path": "assets/images/stage1_3d/turrets/frost.glb",
+    "sha256": "7d71195e972710488c6912d68b1f3d5eb54ee38adf31f9a524788a8d1d3aee39",
+    "triangles": 47912,
+    "revision": "d83e73f32ee59112505b7e00c9222c4b774b0ef8",
+    "loader": "scripts/source_input.py"
+  },
+  "output": {
+    "frost-rebaked-10k.glb": {
+      "sha256": "efb65415c4b69e9e25ecd3625b49daed7805bd78eac25a8eda01c24cefc1221f",
+      "bytes": 9668512,
+      "triangles": 11760
+    },
+    "frost-rebaked-10k.blend": {
+      "sha256": "0a43ba24f0f21f43b462118b36846e54a7289ce843e10ab4a7ced9d59741d082",
+      "bytes": 18820930,
+      "triangles": 11760
+    }
+  },
+  "reduction_percent": 75.45500083486391,
+  "meshes": 3,
+  "surfaces": 19,
+  "materials": 13,
+  "nodes": 7,
+  "preserved_components": 499,
+  "cooling_fins": 72,
+  "maps": {
+    "basecolor": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "08c79b814feaaadbbd967599da266e677ba44568b4e0dbc5f0f828a90c70e53d",
+      "bytes": 3252524
+    },
+    "normal": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "033381eb4fc2ba195c6a5759c96a7b0a63e62e53b38a61b4f1eaee6c4ab0ec89",
+      "bytes": 2221736
+    },
+    "orm": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "5dd8e4f397f80ece36cc4a50c303e7010a7fe509229dc53ad1f01a89e796dc5d",
+      "bytes": 2924791
+    },
+    "emission": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "52516c18badd35cbe5590ced2dcea69ff9f1e5829076dd8a13dadbb50c7ceb9c",
+      "bytes": 61524
+    }
+  },
+  "methods": [
+    "meshoptimizer simplifyWithAttributes options0; original positions only",
+    "xatlas 0.0.11 2048 atlas",
+    "125 corresponding original-component Cycles PBR/tangent-normal bakes"
+  ],
+  "validation": {
+    "author_maps": "map-validation.json",
+    "author_render": "render-manifest.json",
+    "packed_reopen": "bake-manifest.json",
+    "independent": "review.md",
+    "runtime": "review/runtime-summary.json",
+    "full_app_gameplay": "integration/report.json",
+    "android": "not tested",
+    "fps_gpu_memory": "not measured",
+    "production_import": "integration/import-check.json"
+  },
+  "originals": "Git-pinned 47912 source, production/optimized source Blend, prior 33566 and failed11104 candidates preserved",
+  "game_applied": true
+}

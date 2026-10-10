@@ -1,0 +1,52 @@
+{
+  "glb_sha256": "efb65415c4b69e9e25ecd3625b49daed7805bd78eac25a8eda01c24cefc1221f",
+  "textured_strict_interior_pixels": 1024986,
+  "strict_overlap_pixels": 0,
+  "basecolor_black_miss_pixels": 0,
+  "normal_miss_pixels": 0,
+  "normal_invalid_length_pixels": 0,
+  "normal_shortened_vector_pixels": 0,
+  "normal_negative_z_pixels": 0,
+  "normal_length_min_max": [
+    0.9397619962692261,
+    1.0065759420394897
+  ],
+  "normal_length_note": "Filter-averaged source/bake vectors may be shortened; normal shader normalizes nondegenerate vectors. Counts remain diagnostic.",
+  "lens_strict_pixels": 116039,
+  "constant_uv_overlap": "intentional; original untextured/charge materials do not sample UV",
+  "maps": {
+    "basecolor": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "08c79b814feaaadbbd967599da266e677ba44568b4e0dbc5f0f828a90c70e53d",
+      "bytes": 3252524
+    },
+    "normal": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "033381eb4fc2ba195c6a5759c96a7b0a63e62e53b38a61b4f1eaee6c4ab0ec89",
+      "bytes": 2221736
+    },
+    "orm": {
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "5dd8e4f397f80ece36cc4a50c303e7010a7fe509229dc53ad1f01a89e796dc5d",
+      "bytes": 2924791
+    },
+    "emission": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "52516c18badd35cbe5590ced2dcea69ff9f1e5829076dd8a13dadbb50c7ceb9c",
+      "bytes": 61524
+    }
+  },
+  "status": "PASS"
+}
