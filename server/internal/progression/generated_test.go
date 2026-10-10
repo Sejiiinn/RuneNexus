@@ -19,6 +19,7 @@ func TestGeneratedRegistryMatchesAuthoringSource(t *testing.T) {
 		Stages             []json.RawMessage         `json:"stages"`
 		Requirements       map[string]map[string]int `json:"requirements"`
 		LegacyRequirements map[string]map[string]int `json:"legacyRequirements"`
+		ResearchPrereqs    map[string]map[string]int `json:"researchPrerequisites"`
 	}
 	if err := json.Unmarshal(payload, &source); err != nil {
 		t.Fatal(err)
@@ -31,6 +32,9 @@ func TestGeneratedRegistryMatchesAuthoringSource(t *testing.T) {
 	}
 	if !reflect.DeepEqual(requirements, source.Requirements) || !reflect.DeepEqual(legacyRequirements, source.LegacyRequirements) {
 		t.Fatal("stale generated unlock requirements")
+	}
+	if !reflect.DeepEqual(researchPrerequisites, source.ResearchPrereqs) {
+		t.Fatal("stale generated research prerequisites")
 	}
 }
 

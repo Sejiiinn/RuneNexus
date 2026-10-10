@@ -16,11 +16,16 @@ func load_catalog(path: String = "res://content/growth_content.json") -> bool:
 func _c(key: String) -> float:
 	return float(data.constants.get(key, 0))
 
+func missing_research_prerequisites(p: Dictionary, key: String) -> Array:
+	var prerequisites: Dictionary = StageProgression.research_prerequisites(key)
+	return prerequisites.keys().filter(func(prerequisite): return _research(p, prerequisite) < int(prerequisites[prerequisite]))
+
 func research_prerequisites_met(p: Dictionary, key: String) -> bool:
-	var prerequisites: Dictionary = data.research.get(key, {}).get("requiredResearch", {})
-	for prerequisite in prerequisites:
-		if _research(p, prerequisite) < int(prerequisites[prerequisite]): return false
-	return true
+	return missing_research_prerequisites(p, key).is_empty()
+
+# Prerequisite research always rechecks its fixed stage gate and research chain.
+func research_chain_blocked(p: Dictionary, key: String) -> bool:
+	return not StageProgression.research_prerequisites(key).is_empty() and (not StageProgression.has_unlock(p,"research",key) or not research_prerequisites_met(p,key))
 
 func _research(p: Dictionary, key: String) -> int:
 	if not StageProgression.has_unlock(p,"research",key) or not research_prerequisites_met(p,key): return 0
@@ -259,7 +264,7 @@ func _complete_research(state: Dictionary, now: int) -> bool:
 		if now < int(active.startedAtMillis) + int(active.durationMillis): continue
 		state.activeResearches.erase(active)
 		changed = true
-		if data.research.has(active.type) and (active.type != "linkExpansionTwo" or (StageProgression.has_unlock(state,"research",active.type) and research_prerequisites_met(state,active.type))):
+		if data.research.has(active.type) and not research_chain_blocked(state,active.type):
 			state.researchLevels[active.type] = clampi(int(active.targetLevel), 0, int(data.research[active.type].maxLevel))
 			state.researchElapsedMillis.erase(active.type)
 	return changed

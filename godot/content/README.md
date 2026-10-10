@@ -10,6 +10,7 @@
 - `source/enemies.json`, `source/turrets.json`: 기본 정의와 네이티브 입력 템플릿.
 - `source/stages/001.json`~`030.json`: 고정 ID별 맵·최초 보상·40라운드의 그룹·표시 문구·클리어 보상. 그룹은 한 레코드, 타일은 보드 한 행을 한 줄로 기록한다. `spawnQueue`·`enemyDurability`는 원본에 쓰지 않는다.
 - `source/progression.json`: 진행 순서·표시·해금의 공유 원본. [진행 생성기](../../scripts/compile_progression.py)가 Godot·서버 테이블을 만든다.
+  - `researchPrerequisites`는 연구 간 선행 조건이다. 선행 조건이 있는 연구는 새 콘텐츠로 보고 고정 스테이지 조건만 인정하며, 레거시·grandfather 해금은 적용하지 않는다. 서버·Godot의 판정은 [공용 사례](../../test/fixtures/research_prerequisite_cases.json)로 함께 검사한다.
 
 스폰은 기존 상대 그룹 지연을 절대 요청 시각으로 펼치고 안정 정렬한 뒤 `max(요청 시각, 직전 실제 시각 + 0.18)`로 전개한다. 동시 요청은 그룹·멤버 순서를 유지한다. `queuePrecision: 9`가 있는 웨이브는 승인 당시의 반올림을 사용한다. 내구도는 기존 라운드·진행 순번 산식을 쓰며 `durabilityOrder: base-round-stage`는 과거 곱셈 순서를 보존한다.
 

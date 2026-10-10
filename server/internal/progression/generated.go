@@ -115,10 +115,32 @@ var legacyRequirements = map[string]map[string]int{
 	},
 }
 
+var researchPrerequisites = map[string]map[string]int{
+	"linkExpansionTwo": {
+		"linkExpansionOne": 1,
+	},
+}
+
 // Requirement returns a fixed save ID, never the display ordinal.
 func Requirement(kind, key string, legacy bool) int {
 	if legacy {
 		return legacyRequirements[kind][key]
 	}
 	return requirements[kind][key]
+}
+
+// HasResearchPrerequisites reports research gated by other research. Such
+// research is new content, so its fixed stage gate never accepts legacy rights.
+func HasResearchPrerequisites(kind string) bool {
+	return len(researchPrerequisites[kind]) > 0
+}
+
+// ResearchPrerequisitesMet reports whether levels satisfy every required research level.
+func ResearchPrerequisitesMet(kind string, levels map[string]int) bool {
+	for required, level := range researchPrerequisites[kind] {
+		if levels[required] < level {
+			return false
+		}
+	}
+	return true
 }

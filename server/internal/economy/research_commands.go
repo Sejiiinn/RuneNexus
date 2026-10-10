@@ -377,7 +377,7 @@ func researchCompletionCost(progressionJSON []byte, researchType string, now tim
 	if err := json.Unmarshal(progressionJSON, &progression); err != nil {
 		return activeResearch{}, 0, ErrInvalidCommand
 	}
-	if researchType == "linkExpansionTwo" && (!intContains(progression.ClearedStageNumbers, stageprogression.Requirement("research", researchType, false)) || progression.ResearchLevels["linkExpansionOne"] < 1) {
+	if researchChainBlocked(progression, researchType) {
 		return activeResearch{}, 0, ErrInvalidCommand
 	}
 	for _, active := range progression.ActiveResearches {
@@ -400,6 +400,13 @@ func researchCompletionCost(progressionJSON []byte, researchType string, now tim
 		return active, cost, nil
 	}
 	return activeResearch{}, 0, ErrInvalidCommand
+}
+
+// Prerequisite research always rechecks its fixed stage gate and research chain.
+func researchChainBlocked(progression researchProgression, researchType string) bool {
+	return stageprogression.HasResearchPrerequisites(researchType) &&
+		(!intContains(progression.ClearedStageNumbers, stageprogression.Requirement("research", researchType, false)) ||
+			!stageprogression.ResearchPrerequisitesMet(researchType, progression.ResearchLevels))
 }
 
 func stageCleared(progressionJSON []byte, stage int) bool {
@@ -435,7 +442,7 @@ func effectAppliedToProgression(effectJSON []byte, progressionJSON []byte) bool 
 	if json.Unmarshal(effectJSON, &effect) != nil || json.Unmarshal(progressionJSON, &progression) != nil {
 		return false
 	}
-	if effect.ResearchType == "linkExpansionTwo" && (!intContains(progression.ClearedStageNumbers, stageprogression.Requirement("research", effect.ResearchType, false)) || progression.ResearchLevels["linkExpansionOne"] < 1) {
+	if researchChainBlocked(progression, effect.ResearchType) {
 		return false
 	}
 	// A pending generation-2 boss receipt remains acknowledgeable after its

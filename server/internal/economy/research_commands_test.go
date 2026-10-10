@@ -3,6 +3,7 @@ package economy
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"testing"
 	"time"
 )
@@ -81,6 +82,30 @@ func TestFifthLinkResearchCompletionAndAcknowledgement(t *testing.T) {
 		effect, _ := json.Marshal(map[string]any{"researchType": "linkExpansionTwo", "targetLevel": tc.target})
 		if effectAppliedToProgression(effect, raw) == tc.reject {
 			t.Fatalf("ack %+v", tc)
+		}
+	}
+}
+
+// Shared with godot/verify_fifth_link.gd so both chain gates stay equivalent.
+func TestResearchPrerequisiteSharedCases(t *testing.T) {
+	payload, err := os.ReadFile("../../../test/fixtures/research_prerequisite_cases.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Cases []struct {
+			Name        string              `json:"name"`
+			Research    string              `json:"research"`
+			Progression researchProgression `json:"progression"`
+			Blocked     bool                `json:"blocked"`
+		} `json:"cases"`
+	}
+	if err := json.Unmarshal(payload, &fixture); err != nil || len(fixture.Cases) == 0 {
+		t.Fatalf("fixture: %v", err)
+	}
+	for _, tc := range fixture.Cases {
+		if researchChainBlocked(tc.Progression, tc.Research) != tc.Blocked {
+			t.Fatalf("%s: blocked=%v", tc.Name, !tc.Blocked)
 		}
 	}
 }

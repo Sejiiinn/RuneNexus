@@ -314,7 +314,8 @@ func research_status(id: String) -> String:
 	if not _active(id).is_empty(): return "연구 중"
 	if int(q.level) >= int(d.maxLevel): return "연구 완료"
 	if not Progression.has_unlock(lobby._p(), "research", id): return "스테이지 %s 클리어 필요" % Progression.stage_label(Progression.requirement("research", id))
-	if not _growth().research_prerequisites_met(lobby._p(),id): return "링크 확장 I 연구 완료 필요"
+	var missing: Array = _growth().missing_research_prerequisites(lobby._p(), id)
+	if not missing.is_empty(): return "%s 연구 완료 필요" % TITLES.get(missing[0], missing[0])
 	if lobby._p().get("activeResearches", []).size() >= (2 if lobby._p().get("researchSlotTwoUnlocked", false) else 1): return "빈 연구 슬롯 필요"
 	if int(lobby._p().get("runes", 0)) < int(q.cost): return "룬 부족"
 	return "연구 가능"

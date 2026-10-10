@@ -285,6 +285,11 @@
       "researchSlotTwoPreview": 8
     }
   },
+  "researchPrerequisites": {
+    "linkExpansionTwo": {
+      "linkExpansionOne": 1
+    }
+  },
   "unlockDisplay": [
     {
       "kind": "upgrade",

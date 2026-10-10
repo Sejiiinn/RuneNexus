@@ -65,6 +65,18 @@ def load_progression(root: Path = ROOT) -> dict:
                 if (not isinstance(key, str) or not key or type(required) is not int
                         or required != 0 and required not in ids):
                     raise ValueError(f"Invalid {field} requirement {kind}:{key}")
+    # Prerequisite research is new content: both chain ends need a fixed stage gate.
+    research = value["requirements"].get("research", {})
+    prerequisites = value.setdefault("researchPrerequisites", {})
+    if not isinstance(prerequisites, dict):
+        raise ValueError("Progression researchPrerequisites must be an object")
+    for key, required in prerequisites.items():
+        if not research.get(key) or not isinstance(required, dict) or not required:
+            raise ValueError(f"Invalid research prerequisite target {key}")
+        for prerequisite, level in required.items():
+            if (prerequisite == key or prerequisite not in research
+                    or type(level) is not int or level < 1):
+                raise ValueError(f"Invalid research prerequisite {key}:{prerequisite}")
     seen = set()
     if not isinstance(value.get("unlockDisplay"), list):
         raise ValueError("Progression unlockDisplay must be an array")

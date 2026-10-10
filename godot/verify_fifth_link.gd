@@ -108,5 +108,11 @@ func _initialize() -> void:
 		var before_sell: int=state.gold; var refund: int=commands.quotes(state,id).sell
 		result=commands.apply(state,{"kind":"sell","id":id})
 		check(result.ok and result.state.gold==before_sell+refund and result.state.gemInventory.size()==5,type+" full investment refund all gems")
+	# Shared with server/internal/economy so both chain gates stay equivalent.
+	var shared: Dictionary = preload("res://app/save_json.gd").parse_record(FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://../test/fixtures/research_prerequisite_cases.json"))).value
+	for sample in shared.cases:
+		var state: Dictionary = growth.data.defaultProgression.duplicate(true)
+		state.merge(sample.progression, true)
+		check(growth.research_chain_blocked(state,sample.research)==sample.blocked,"shared prerequisite case: "+sample.name)
 	print(JSON.stringify({"checks":checks,"failures":failures}))
 	quit(0 if failures.is_empty() else 1)

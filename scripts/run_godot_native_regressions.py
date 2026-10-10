@@ -96,6 +96,7 @@ FIXTURES = (
     "turret_stat_calculation.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
     "quest_progress_cases.json", "reward_snapshot_cases.json",
     "growth_cases.json", "growth_game_cases.json", "growth_progression_cases.json", "game_content_cases.json",
+    "research_prerequisite_cases.json",
 )
 ERROR = re.compile(r"(^|\n)\s*(?:SCRIPT ERROR:|ERROR:|Parse Error|Assertion failed)", re.I)
 

@@ -5,6 +5,7 @@ const VERSION := Registry.VERSION
 const ORDER := Registry.ORDER
 const REQUIREMENTS := Registry.REQUIREMENTS
 const LEGACY_REQUIREMENTS := Registry.LEGACY_REQUIREMENTS
+const RESEARCH_PREREQUISITES := Registry.RESEARCH_PREREQUISITES
 static func ordered_ids() -> Array:
 	return ORDER.duplicate()
 static func ordinal_for(id: int) -> int:
@@ -23,6 +24,8 @@ static func ids_for_chapter(chapter: int) -> Array:
 	return ORDER.filter(func(id): return chapter_for(id) == chapter)
 static func requirement(kind: String, key: String) -> int:
 	return int(REQUIREMENTS.get(kind,{}).get(key,0))
+static func research_prerequisites(key: String) -> Dictionary:
+	return RESEARCH_PREREQUISITES.get(key,{})
 static func _legacy_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	var cleared: Array = p.get("clearedStageNumbers",[])
 	if kind == "core": return key == "guardianBeam" or (key == "riftMark" and (int(p.get("unlockedStageCount",1)) >= 6 or p.get("coreCombatSkill") == "riftMark"))
@@ -42,7 +45,8 @@ static func has_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	if kind == "upgrade" and key in ["criticalChance","emergencySale"]: return false
 	if kind == "gem" and not REQUIREMENTS.gem.has(key): return true
 	if not REQUIREMENTS.get(kind,{}).has(key): return false
-	if kind == "research" and key == "linkExpansionTwo": return requirement(kind,key) in p.get("clearedStageNumbers",[])
+	# Prerequisite research is new content and never accepts legacy or grandfathered rights.
+	if kind == "research" and RESEARCH_PREREQUISITES.has(key): return requirement(kind,key) in p.get("clearedStageNumbers",[])
 	if kind+":"+key in p.get("grandfatherUnlocks",[]): return true
 	if int(p.get("progressionVersion",0)) < VERSION and _legacy_unlock(p,kind,key): return true
 	var required := requirement(kind,key)
