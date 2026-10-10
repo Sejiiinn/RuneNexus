@@ -4,7 +4,8 @@
 작성 기준: `main` 브랜치 커밋 `dc449a0`
 
 현재 구현 완료 여부와 다음 작업 판단에는 이 문서를 사용하지 않는다. 최신 상태는
-`docs/implementation_status.md`, 현재 우선순위는 `docs/next_work_priorities.md`,
+[구현 현황](implementation_status.md), 사용자의 큰 개발 계획은 [TODO](TODO.md),
+기술적 마무리 조건은 [구현·검증 체크리스트](implementation_checklist.md),
 계정·온라인 저장 설계는 `docs/backend_architecture.md`를 기준으로 한다.
 
 ## 문서 역할
@@ -15,7 +16,8 @@
 
 - 구현 완료 여부: `docs/implementation_status.md`
 - 현재 전투 규칙과 밸런스 수치: `docs/gameplay_balance_reference.md`
-- 다음 작업 우선순위: `docs/next_work_priorities.md`
+- 사용자의 큰 개발 계획: [TODO](TODO.md)
+- 구현 담당자의 버그·검증·배포 조건: [구현·검증 체크리스트](implementation_checklist.md)
 - 챕터 2 웨이브와 신규 몹 설계: `docs/chapter2_wave_enemy_design.md`
 - 포탑별 공격 명령 우선순위 설계: `docs/turret_target_priority_design.md`
 
@@ -163,8 +165,8 @@ Rune Nexus MVP의 목적은 모바일 세로 화면에서 로그라이트 타워
 ## 5. 당시 후속 마일스톤 후보
 
 당시에는 "챕터 2~3 이후 보상과 반복 성장 루프 강화"를 후속 후보로 정리했다.
-아래 목록은 현재의 작업 순서를 의미하지 않으며, 최신 판단은
-[다음 작업 우선순위](next_work_priorities.md)를 따른다.
+아래 목록은 현재의 작업 순서를 의미하지 않는다. 사용자의 큰 개발 계획은
+[TODO](TODO.md), 기술적 마무리 조건은 [구현·검증 체크리스트](implementation_checklist.md)를 따른다.
 
 포함 후보:
 

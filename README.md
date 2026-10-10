@@ -31,7 +31,7 @@ Rune Nexus는 Godot 단일 앱 기반 모바일 로그라이트 타워 디펜스
 
 ## 실행·검증
 
-[변경 대상별 검증](AGENTS.md#변경-대상별-검증)과 [인앱 실행 가이드](.agents/in_app_test_guide.md)에서 Godot·Android·서버에 맞는 경로를 선택합니다. Android 앱 이관의 완료 조건과 남은 검증은 [실행 로드맵](docs/godot_unified_app_roadmap.md), 배포 사실은 [배포 현황](docs/deployment_status.md)을 따릅니다. 이전 Flutter 원본은 [보관본](docs/archive/flutter_reference_20260924.tar.gz)에 있습니다.
+[변경 대상별 검증](AGENTS.md#변경-대상별-검증)과 [인앱 실행 가이드](.agents/in_app_test_guide.md)에서 Godot·Android·서버에 맞는 경로를 선택합니다. Android 앱의 전환·검증 상태는 [실행 로드맵](docs/godot_unified_app_roadmap.md), 기술적 마무리 조건은 [구현·검증 체크리스트](docs/implementation_checklist.md), 배포 사실은 [배포 현황](docs/deployment_status.md)을 따릅니다. 이전 Flutter 원본은 [보관본](docs/archive/flutter_reference_20260924.tar.gz)에 있습니다.
 
 ## 문서
 
@@ -39,4 +39,5 @@ Rune Nexus는 Godot 단일 앱 기반 모바일 로그라이트 타워 디펜스
 - [문서 작성·유지 지침](docs/documentation_guide.md)
 - [디자인 기준과 검증 완료 조건](DESIGNS.md)
 - [구현 현황](docs/implementation_status.md)
-- [다음 작업 우선순위](docs/next_work_priorities.md)
+- [앞으로의 개발 계획: TODO](docs/TODO.md)
+- [구현·검증 체크리스트](docs/implementation_checklist.md)

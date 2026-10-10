@@ -1,8 +1,8 @@
 # Rune Nexus 구현 현황
 
-역할: 기능을 찾기 위한 구현 범위 요약과 계약 안내. Godot 전환 상태는 [실행 로드맵](godot_unified_app_roadmap.md#3-단계와-의존-관계), 공개 버전·운영 검증은 [배포 인계](deployment_status.md), 작업 후보는 [백로그](next_work_priorities.md)가 원본이다.
+역할: 기능을 찾기 위한 구현 범위 요약과 계약 안내. Godot 전환 상태는 [실행 로드맵](godot_unified_app_roadmap.md#3-단계와-의존-관계), 공개 버전·운영 검증은 [배포 인계](deployment_status.md), 기술적 마무리 조건은 [구현·검증 체크리스트](implementation_checklist.md)가 원본이다. 사용자의 큰 개발 계획은 [TODO](TODO.md)에 별도로 둔다.
 
-정리: 2026-09-21. 아래는 기존 구현 기록의 요약이며 이번 문서 정리에서 기능 전체를 다시 실행·검증하지 않았다. 과거 수치·세부 항목·테스트 건수는 [기존 상세 목록](archive/implementation_status_20260921.md)에 보존한다. 수치·API·동작 변경 전 해당 계약과 코드를 확인한다.
+구현 요약 기준: 2026-09-21. 문서 역할·TODO 연결 정리: 2026-10-10 KST. 아래는 기존 구현 기록의 요약이며 이번 문서 정리에서 기능 전체를 다시 실행·검증하지 않았다. 과거 수치·세부 항목·테스트 건수는 [기존 상세 목록](archive/implementation_status_20260921.md)에 보존한다. 수치·API·동작 변경 전 해당 계약과 코드를 확인한다.
 
 ## Godot 전환 현황
 
@@ -82,10 +82,10 @@ v2 로컬 저장, legacy v1 이전, guest/account 슬롯, 원자적 교체·백�
 
 기능별 자동 검사와 플랫폼 검증은 해당 변경·배포 기록에 결과·환경·미검증 범위를 남긴다. 실행 방법은 [인앱 검증](../.agents/in_app_test_guide.md), 과거 테스트 항목은 [보관본](archive/implementation_status_20260921.md#테스트)을 참고한다.
 
-## 아직 구현하지 않은 항목
+## 구현과 남은 검증의 구분
 
-Godot 전환 미완료는 [단계별 상태](godot_unified_app_roadmap.md#3-단계와-의존-관계), 계정 E2E·PGS·identity 연결·운영 자동화·콘텐츠 후보는 [백로그](next_work_priorities.md)를 따른다. 과거 목록의 “Android/iOS 실기 실행 미검증” 같은 포괄 판정을 최신 개별 검증에 덮어쓰지 않으며, 에뮬레이터 검증도 모든 실기기 검증으로 확대하지 않는다.
+[단계별 상태](godot_unified_app_roadmap.md#3-단계와-의존-관계)는 Godot 구현/검증 사실을, [구현·검증 체크리스트](implementation_checklist.md)는 근거가 있는 기술적 미완료 조건을 관리한다. 실제 기기·계정 검증이 남았다는 이유로 이미 구현한 기능을 미구현으로 표시하지 않는다. 과거의 PGS·identity·신규 성장 제안은 채택 여부를 확인하지 않고 다음 작업으로 올리지 않는다.
 
 ## 남은 작업의 우선순위
 
-[다음 작업 우선순위](next_work_priorities.md)에서 관리한다. 최신 사용자 요청이 우선한다.
+사용자가 앞으로 하고 싶은 큰 작업과 그 우선순위는 [개발 계획 TODO](TODO.md)에, 구현 담당자가 마무리할 버그·검증·배포 조건은 [구현·검증 체크리스트](implementation_checklist.md)에 둔다. 최신 사용자 요청이 우선하며 기술적 필요를 사용자의 개발 계획으로 대신 정하지 않는다.
