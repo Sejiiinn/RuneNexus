@@ -129,18 +129,27 @@ func Requirement(kind, key string, legacy bool) int {
 	return requirements[kind][key]
 }
 
+// HasRequirement reports whether a gated unlock is registered.
+func HasRequirement(kind, key string, legacy bool) bool {
+	table := requirements
+	if legacy {
+		table = legacyRequirements
+	}
+	_, present := table[kind][key]
+	return present
+}
+
 // HasResearchPrerequisites reports research gated by other research. Such
 // research is new content, so its fixed stage gate never accepts legacy rights.
 func HasResearchPrerequisites(kind string) bool {
 	return len(researchPrerequisites[kind]) > 0
 }
 
-// ResearchPrerequisitesMet reports whether levels satisfy every required research level.
-func ResearchPrerequisitesMet(kind string, levels map[string]int) bool {
+// ResearchPrerequisites returns a copy of the required research levels.
+func ResearchPrerequisites(kind string) map[string]int {
+	result := make(map[string]int, len(researchPrerequisites[kind]))
 	for required, level := range researchPrerequisites[kind] {
-		if levels[required] < level {
-			return false
-		}
+		result[required] = level
 	}
-	return true
+	return result
 }

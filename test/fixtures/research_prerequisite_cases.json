@@ -6,6 +6,9 @@
     {"name": "prerequisite research incomplete", "research": "linkExpansionTwo", "progression": {"progressionVersion": 1, "growthVersion": 1, "clearedStageNumbers": [20, 30], "researchLevels": {"linkExpansionOne": 0}}, "blocked": true},
     {"name": "stage gate and prerequisite satisfied", "research": "linkExpansionTwo", "progression": {"progressionVersion": 1, "growthVersion": 1, "clearedStageNumbers": [20, 30], "researchLevels": {"linkExpansionOne": 1}}, "blocked": false},
     {"name": "grandfathered right never opens prerequisite research", "research": "linkExpansionTwo", "progression": {"progressionVersion": 1, "growthVersion": 1, "clearedStageNumbers": [20, 29], "researchLevels": {"linkExpansionOne": 1}, "grandfatherUnlocks": ["research:linkExpansionTwo"]}, "blocked": true},
+    {"name": "prerequisite research itself still stage locked", "research": "linkExpansionTwo", "progression": {"progressionVersion": 1, "growthVersion": 1, "clearedStageNumbers": [30], "researchLevels": {"linkExpansionOne": 1}}, "blocked": true},
+    {"name": "grandfathered prerequisite research counts", "research": "linkExpansionTwo", "progression": {"progressionVersion": 1, "growthVersion": 1, "clearedStageNumbers": [30], "researchLevels": {"linkExpansionOne": 1}, "grandfatherUnlocks": ["research:linkExpansionOne"]}, "blocked": false},
+    {"name": "unmigrated save keeps legacy prerequisite research", "research": "linkExpansionTwo", "progression": {"progressionVersion": 0, "growthVersion": 1, "clearedStageNumbers": [30], "researchLevels": {"linkExpansionOne": 1}}, "blocked": false},
     {"name": "research without prerequisites is not chain gated", "research": "linkExpansionOne", "progression": {"progressionVersion": 1, "growthVersion": 1, "clearedStageNumbers": [], "researchLevels": {}}, "blocked": false}
   ]
 }

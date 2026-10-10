@@ -70,7 +70,7 @@ func TestFifthLinkResearchCompletionAndAcknowledgement(t *testing.T) {
 	}{
 		{29, 1, 1, true}, {30, 0, 1, true}, {30, 1, 1, false}, {30, 1, 2, true},
 	} {
-		p := researchProgression{GrowthVersion: 1, ClearedStageNumbers: []int{tc.stage}, ResearchLevels: map[string]int{"linkExpansionOne": tc.first}, ActiveResearches: []activeResearch{{Type: "linkExpansionTwo", TargetLevel: tc.target, StartedAtMillis: 1000, DurationMillis: 28800000}}}
+		p := researchProgression{GrowthVersion: 1, ProgressionVersion: 1, ClearedStageNumbers: []int{20, tc.stage}, ResearchLevels: map[string]int{"linkExpansionOne": tc.first}, ActiveResearches: []activeResearch{{Type: "linkExpansionTwo", TargetLevel: tc.target, StartedAtMillis: 1000, DurationMillis: 28800000}}}
 		raw, _ := json.Marshal(p)
 		_, cost, err := researchCompletionCost(raw, "linkExpansionTwo", time.UnixMilli(61000))
 		if errors.Is(err, ErrInvalidCommand) != tc.reject || (!tc.reject && cost != 479) {

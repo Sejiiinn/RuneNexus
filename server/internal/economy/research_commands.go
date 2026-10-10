@@ -14,9 +14,12 @@ import (
 
 type researchProgression struct {
 	GrowthVersion          int              `json:"growthVersion"`
+	ProgressionVersion     int              `json:"progressionVersion"`
 	BossBountyUpgradeLevel int              `json:"bossBountyUpgradeLevel"`
 	ClearedStageNumbers    []int            `json:"clearedStageNumbers"`
+	GrandfatherUnlocks     []string         `json:"grandfatherUnlocks"`
 	ResearchLevels         map[string]int   `json:"researchLevels"`
+	ResearchElapsedMillis  map[string]int64 `json:"researchElapsedMillis"`
 	ActiveResearches       []activeResearch `json:"activeResearches"`
 }
 
@@ -405,8 +408,54 @@ func researchCompletionCost(progressionJSON []byte, researchType string, now tim
 // Prerequisite research always rechecks its fixed stage gate and research chain.
 func researchChainBlocked(progression researchProgression, researchType string) bool {
 	return stageprogression.HasResearchPrerequisites(researchType) &&
-		(!intContains(progression.ClearedStageNumbers, stageprogression.Requirement("research", researchType, false)) ||
-			!stageprogression.ResearchPrerequisitesMet(researchType, progression.ResearchLevels))
+		(!researchUnlocked(progression, researchType) || !researchPrerequisitesMet(progression, researchType))
+}
+
+// researchUnlocked mirrors the Godot research unlock rule in StageProgression.has_unlock.
+func researchUnlocked(progression researchProgression, researchType string) bool {
+	if !stageprogression.HasRequirement("research", researchType, false) {
+		return false
+	}
+	required := stageprogression.Requirement("research", researchType, false)
+	// Prerequisite research is new content and never accepts legacy or grandfathered rights.
+	if stageprogression.HasResearchPrerequisites(researchType) {
+		return intContains(progression.ClearedStageNumbers, required)
+	}
+	if contains(progression.GrandfatherUnlocks, "research:"+researchType) {
+		return true
+	}
+	if progression.ProgressionVersion < stageprogression.Version && legacyResearchUnlocked(progression, researchType) {
+		return true
+	}
+	return required == 0 || intContains(progression.ClearedStageNumbers, required)
+}
+
+func legacyResearchUnlocked(progression researchProgression, researchType string) bool {
+	if !stageprogression.HasRequirement("research", researchType, true) {
+		return false
+	}
+	required := stageprogression.Requirement("research", researchType, true)
+	if required == 0 || intContains(progression.ClearedStageNumbers, required) ||
+		progression.ResearchLevels[researchType] > 0 || progression.ResearchElapsedMillis[researchType] > 0 {
+		return true
+	}
+	for _, active := range progression.ActiveResearches {
+		if active.Type == researchType {
+			return true
+		}
+	}
+	return false
+}
+
+// A prerequisite level counts only while that research is itself available.
+func researchPrerequisitesMet(progression researchProgression, researchType string) bool {
+	for required, level := range stageprogression.ResearchPrerequisites(researchType) {
+		available := researchUnlocked(progression, required) && researchPrerequisitesMet(progression, required)
+		if !available || progression.ResearchLevels[required] < level {
+			return false
+		}
+	}
+	return true
 }
 
 func stageCleared(progressionJSON []byte, stage int) bool {
