@@ -1,5 +1,9 @@
 extends SceneTree
 const Lobby = preload("res://ui/lobby.gd")
+class MailStatus extends RefCounted:
+	signal changed
+	var ready := false
+	func has_unclaimed_mail() -> bool: return ready
 class FontMetrics extends RefCounted:
 	pass # Java fields must not be read as GDScript properties.
 class FontConversion extends RefCounted:
@@ -57,6 +61,20 @@ func _verify() -> void:
 	assert(not lobby.home.canvas.has_node("ContinueRun"))
 	for id in ["Settings", "StageSelect", "Leaderboard", "Events", "Mailbox", "Core", "Upgrades", "Research", "Modules"]:
 		assert(lobby.home.canvas.has_node(id), "Missing home action: " + id)
+	for id in ["QuestReadyDot", "MailboxReadyDot"]:
+		var badge: Panel = lobby.home.canvas.get_node(id)
+		assert(badge.size == Vector2(7, 7) and badge.get_theme_stylebox("panel").bg_color == Color("e53935"), "Both alerts retain 7px size with the same red circle")
+		assert(badge.mouse_filter == Control.MOUSE_FILTER_IGNORE, "Alerts cannot block shortcut input")
+		assert(badge.draw.get_connections().size() == 1, "Both alerts draw the shared white exclamation")
+	assert(not lobby.home.canvas.get_node("MailboxReadyDot").visible, "Guest has no mailbox alert")
+	var mail_status := MailStatus.new()
+	app.services = mail_status
+	lobby.refresh()
+	var same_home: Control = lobby.home
+	mail_status.ready = true; mail_status.changed.emit()
+	assert(lobby.home == same_home and same_home.canvas.get_node("MailboxReadyDot").visible, "Mail status signal updates existing home badge")
+	mail_status.ready = false; mail_status.changed.emit()
+	assert(lobby.home == same_home and not same_home.canvas.get_node("MailboxReadyDot").visible, "Zero remaining mail hides badge without rebuilding home")
 	app.startup_blocked = true
 	app.services = {"updates":{"blocked":true}}
 	lobby.home._layout()

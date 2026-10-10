@@ -84,6 +84,9 @@ func _ready() -> void:
 	add_child(canvas)
 	resized.connect(_layout)
 	_layout()
+	var services = lobby.app.get("services")
+	if services is Object and services.has_signal("changed"):
+		services.changed.connect(refresh_quest_indicator)
 
 func _font(weight: int) -> Font:
 	if not fonts.has(weight):
@@ -199,18 +202,9 @@ func _build_canvas(w: float, h: float) -> void:
 		line.size = Vector2(1, 20)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		canvas.add_child(line)
-	# Keep the indicator so receipt updates can change it without rebuilding home.
-	var dot := Panel.new()
-	dot.name = "QuestReadyDot"
-	dot.visible = _claimable()
-	var dot_style := StyleBoxFlat.new()
-	dot_style.bg_color = Color("8ee6ff")
-	dot_style.set_corner_radius_all(4)
-	dot.add_theme_stylebox_override("panel", dot_style)
-	dot.position = Vector2(16 + third + 28, shortcuts_y + 8)
-	dot.size = Vector2(7, 7)
-	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	canvas.add_child(dot)
+	# Keep both indicators so receipt updates do not rebuild home.
+	_alert_badge("QuestReadyDot", Vector2(16 + third + 28, shortcuts_y + 8), _claimable())
+	_alert_badge("MailboxReadyDot", Vector2(16 + third * 2 + 28, shortcuts_y + 8), _mail_claimable())
 	_stage_button(canvas, "StageSelect", "스테이지 선택", Rect2(44, stage_y, w - 88, stage_height), true, lobby.open_page.bind("스테이지"), "stage_rewards/reward_stage.png").disabled = blocked
 	_surface(canvas, Rect2(16, bottom_y, w - 32, bottom_h), "panel")
 	var entries := [["Core", "넥서스 코어", "core", "코어"], ["Upgrades", "영구 강화", "upgrade", "강화"], ["Research", "연구", "research", "연구"], ["Modules", "포탑 모듈", "turret", "포탑"]]
@@ -229,9 +223,32 @@ func _build_canvas(w: float, h: float) -> void:
 	elif not lobby.message.is_empty():
 		_label(canvas, lobby.message, Rect2(44, top + panel_h + 8, w - 88, 45), 12, 700, SECONDARY, true)
 
+func _alert_badge(id: String, at: Vector2, ready: bool) -> void:
+	var dot := Panel.new()
+	dot.name = id
+	dot.visible = ready
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("e53935")
+	style.set_corner_radius_all(4)
+	dot.add_theme_stylebox_override("panel", style)
+	dot.position = at
+	dot.size = Vector2(7, 7)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(dot)
+	# Fixed-size strokes keep the white exclamation inside the original 7px circle.
+	dot.draw.connect(func():
+		dot.draw_rect(Rect2(3, 1, 1, 3), Color.WHITE)
+		dot.draw_rect(Rect2(3, 5, 1, 1), Color.WHITE))
+
 func refresh_quest_indicator() -> void:
 	var dot := canvas.get_node_or_null("QuestReadyDot")
 	if dot != null: dot.visible = _claimable()
+	var mail_dot := canvas.get_node_or_null("MailboxReadyDot")
+	if mail_dot != null: mail_dot.visible = _mail_claimable()
+
+func _mail_claimable() -> bool:
+	var services = lobby.app.get("services")
+	return services is Object and services.has_method("has_unclaimed_mail") and services.has_unclaimed_mail()
 
 func _claimable() -> bool:
 	var p: Dictionary = lobby._p()

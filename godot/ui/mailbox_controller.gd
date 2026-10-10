@@ -94,6 +94,7 @@ func render(opening := false) -> void:
 
 func fetch() -> void:
 	if pending or not _active_view(view_epoch) or not _connected() or _services().busy: return
+	if _services().has_method("refresh_mailbox_summary"): _services().refresh_mailbox_summary()
 	if is_instance_valid(lobby.modal_scroll): mail_scroll_y = lobby.modal_scroll.scroll_vertical
 	mail_auto_armed = true
 	mail_short_prefetched = false
