@@ -17,6 +17,7 @@ from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_chapter_three_panels.gd": None,
     "verify_dispatch_portals.gd": None,
     "verify_chapter_three_normal_combat.gd": None,
     "verify_chapter_three_combat_checkpoint.gd": "PASS chapter three native-coordinate checkpoint and Continue UI contract",
@@ -129,6 +130,8 @@ def prepare(directory: Path, executable: str) -> Path:
         copy_files(ROOT / "godot" / folder, project / folder, {".gd", ".gdshader", ".json"})
     copy_files(ROOT / "godot/app", project / "app", {".gd"})
     copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
+    (project / "environment").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "godot/environment/chapter_three_tiles.gd", project / "environment/chapter_three_tiles.gd")
     (project / "presentation").mkdir(parents=True, exist_ok=True)
     for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader", "stage_resources.gd"):
         shutil.copy2(ROOT / "godot/presentation" / name, project / "presentation" / name)

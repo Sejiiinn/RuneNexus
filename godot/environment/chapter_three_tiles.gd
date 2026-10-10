@@ -41,10 +41,27 @@ static func exposed(map: Dictionary, index: int, side: int) -> bool:
 	var cell: Vector2i = Vector2i(index % columns, floori(float(index) / columns)) + SIDE_STEPS[side]
 	return cell.x < 0 or cell.y < 0 or cell.x >= columns or cell.y >= int(map["rows"]) or map["tiles"][cell.y * columns + cell.x] == "blocked"
 
+## 닫힌 상판·기단이 맞닿은 쌍만 내부 패널을 생략한다. 그레이팅과
+## 텔레포트 호스트는 안쪽을 볼 수 있으므로 양쪽 면을 모두 보존한다.
+## 승인 GLB의 패널은 타일 중앙 측면에 매립되어 모서리 틈에 걸치지 않는다.
+static func _panel_occluders(map: Dictionary, tile_variants: Dictionary) -> Dictionary:
+	var result := {}
+	var tiles: Array = map["tiles"]
+	for index in range(tiles.size()):
+		if tiles[index] in ["path", "build", "spawn", "core"] and tile_variants.get(index, "path_tile") in ["path_tile", "build_tile", "plain_build_tile"]:
+			result[index] = true
+	var columns := int(map["columns"])
+	for pair: Dictionary in map.get("teleportPairs", []):
+		for role in ["entrance", "exit"]:
+			var cell: Array = pair[role]
+			result.erase(int(cell[1]) * columns + int(cell[0]))
+	return result
+
 static func panel_layout(map: Dictionary) -> Array[Dictionary]:
 	var columns := int(map["columns"])
 	var tiles: Array = map["tiles"]
 	var tile_variants := variants(map)
+	var occluders := _panel_occluders(map, tile_variants)
 	var rng := RandomNumberGenerator.new()
 	# 전역 난수와 전투 상태를 건드리지 않고 같은 맵은 같은 장식을 유지한다.
 	rng.seed = JSON.stringify(tiles).hash()
@@ -94,6 +111,10 @@ static func panel_layout(map: Dictionary) -> Array[Dictionary]:
 		if tiles[index] == "blocked":
 			continue
 		for side in range(4):
+			if occluders.has(index) and not exposed(map, index, side):
+				var neighbor: int = index + SIDE_STEPS[side].x + SIDE_STEPS[side].y * columns
+				if occluders.has(neighbor):
+					continue
 			layout.append({"index": index, "side": side, "kind": "panel_vent" if vents.get(index, -1) == side else "panel_solid"})
 	return layout
 
