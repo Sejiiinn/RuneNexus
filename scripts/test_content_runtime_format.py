@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise generated storage boundaries independently of source generation."""
 import copy
+from content_test_helpers import without_dispatch_metadata
 import json
 from pathlib import Path
 import tempfile
@@ -33,18 +34,26 @@ class RuntimeFormatTests(unittest.TestCase):
     def test_full_typed_baseline_roundtrip_and_deterministic_render(self):
         fixture = read_json(ROOT / 'test/fixtures/content_source_baseline.json')
         restored = decode_runtime(json.loads(runtime_text(self.runtime)))
-        self.assertEqual(typed_digest(restored), fixture['typedDigest'])
+        legacy = without_dispatch_metadata(restored)
+        legacy['stages'] = [s for s in legacy['stages'] if s['id'] <= 25]
+        self.assertEqual(typed_digest(legacy), fixture['typedDigest'])
         self.assertEqual(typed_digest(restored), typed_digest(self.domain))
         self.assertEqual(runtime_text(self.runtime), runtime_text(encode_runtime(restored)))
-        self.assertEqual(len(self.runtime['spawnSchedules']), 481)
-        self.assertEqual(sum(len(rows) for rows in self.runtime['spawnSchedules'].values()), 9400)
+        legacy_runtime = encode_runtime(legacy)
+        self.assertEqual(len(legacy_runtime['spawnSchedules']), 481)
+        self.assertEqual(sum(len(rows) for rows in legacy_runtime['spawnSchedules'].values()), 9400)
         self.assertEqual(self.runtime['enemies'], self.domain['enemies'])
         self.assertEqual(self.runtime['turrets'], self.domain['turrets'])
         self.assertEqual([s['map'] for s in self.runtime['stages']], [s['map'] for s in self.domain['stages']])
 
     def test_one_queue_edit_preserves_unaffected_stable_ids(self):
         edited = copy.deepcopy(self.domain)
-        edited['stages'][0]['waves'][0]['spawnQueue'][-1]['delay'] += 0.125
+        wave = edited['stages'][0]['waves'][0]
+        wave['spawnQueue'][-1]['delay'] += 0.125
+        for row in wave['groupDispatch']:
+            if row['spawnIndices'][-1] == len(wave['spawnQueue']) - 1:
+                row['lastDispatch'] = wave['spawnQueue'][-1]['delay']
+                if row['count'] == 1: row['firstDispatch'] = row['lastDispatch']
         changed = encode_runtime(edited)
         refs = lambda game: [w['spawnSchedule'] for s in game['stages'] for w in s['waves']]
         before, after = refs(self.runtime), refs(changed)

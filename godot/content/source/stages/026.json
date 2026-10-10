@@ -1,0 +1,693 @@
+{
+  "id": 26,
+  "name": "비대칭 나선 포대",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 13,
+    "rows": 13,
+    "tileTheme": "chapterThreeForge",
+    "tiles": [
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "spawn",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "build",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "core",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "path",
+      "build",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked"
+    ],
+    "path": [
+      [0, 3],
+      [1, 3],
+      [2, 3],
+      [3, 3],
+      [3, 2],
+      [3, 1],
+      [4, 1],
+      [5, 1],
+      [6, 1],
+      [7, 1],
+      [8, 1],
+      [9, 1],
+      [10, 1],
+      [10, 2],
+      [10, 3],
+      [11, 3],
+      [12, 3],
+      [12, 4],
+      [12, 5],
+      [12, 6],
+      [12, 7],
+      [12, 8],
+      [12, 9],
+      [12, 10],
+      [11, 10],
+      [10, 10],
+      [10, 11],
+      [10, 12],
+      [9, 12],
+      [8, 12],
+      [7, 12],
+      [6, 12],
+      [5, 12],
+      [4, 12],
+      [3, 12],
+      [2, 12],
+      [1, 12],
+      [1, 11],
+      [1, 10],
+      [1, 9],
+      [1, 8],
+      [1, 7],
+      [1, 6],
+      [2, 6],
+      [3, 6],
+      [4, 6],
+      [5, 6],
+      [5, 5],
+      [5, 4],
+      [6, 4],
+      [7, 4],
+      [8, 4],
+      [8, 5],
+      [8, 6],
+      [8, 7],
+      [8, 8],
+      [8, 9],
+      [7, 9],
+      [6, 9],
+      [5, 9],
+      [4, 9]
+    ],
+    "spawnPortals": [
+      {
+        "id": "A",
+        "label": "A·입구",
+        "cell": [0, 3]
+      }
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "진입 훈련 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 25,
+      "groups": [
+        {"enemyType": "armored", "count": 7, "interval": 0.69, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "fast", "count": 5, "interval": 0.44, "startDelay": 2.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 2,
+      "previewText": "진입 훈련 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 26,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 0.73, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "normal", "count": 8, "interval": 0.61, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 3,
+      "previewText": "진입 훈련 · 중앙 재교전 준비",
+      "clearRewardGold": 27,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 6, "interval": 0.65, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.46, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 4,
+      "previewText": "진입 훈련 · 나선 장갑 압축",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 0.58, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 3, "interval": 0.75, "startDelay": 2.3, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 5,
+      "previewText": "진입 훈련 · 안쪽 귀환 겹침",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "normal", "count": 9, "interval": 0.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 0.62, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.43, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 6,
+      "previewText": "진입 훈련 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 0.69, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "fast", "count": 6, "interval": 0.44, "startDelay": 2.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 7,
+      "previewText": "진입 훈련 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 31,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 0.73, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "normal", "count": 9, "interval": 0.61, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 8,
+      "previewText": "진입 훈련 · 중앙 재교전 준비",
+      "clearRewardGold": 32,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 0.65, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.46, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 9,
+      "previewText": "진입 훈련 · 나선 장갑 압축",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "armored", "count": 9, "interval": 0.58, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 3, "interval": 0.75, "startDelay": 2.3, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 10,
+      "previewText": "비대칭 나선 포대 파쇄자 1 · 선행 돌파",
+      "clearRewardGold": 119,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 8, "interval": 0.62, "startDelay": 4.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.43, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 11,
+      "previewText": "시차 교차 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "fast", "count": 7, "interval": 0.44, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 9, "interval": 0.69, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 12,
+      "previewText": "시차 교차 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 36,
+      "groups": [
+        {"enemyType": "normal", "count": 10, "interval": 0.61, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 7, "interval": 0.73, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 13,
+      "previewText": "시차 교차 · 중앙 재교전 준비",
+      "clearRewardGold": 37,
+      "groups": [
+        {"enemyType": "fast", "count": 5, "interval": 0.46, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 8, "interval": 0.65, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "tank", "count": 2, "interval": 1.15, "startDelay": 4.4, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 14,
+      "previewText": "시차 교차 · 나선 장갑 압축",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "shielded", "count": 4, "interval": 0.75, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 10, "interval": 0.58, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 15,
+      "previewText": "시차 교차 · 안쪽 귀환 겹침",
+      "clearRewardGold": 79,
+      "groups": [
+        {"enemyType": "fast", "count": 5, "interval": 0.43, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 9, "interval": 0.62, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "normal", "count": 11, "interval": 0.55, "startDelay": 4.4, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 16,
+      "previewText": "시차 교차 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "fast", "count": 8, "interval": 0.44, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 10, "interval": 0.69, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 17,
+      "previewText": "시차 교차 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 41,
+      "groups": [
+        {"enemyType": "normal", "count": 11, "interval": 0.61, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 8, "interval": 0.73, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 18,
+      "previewText": "시차 교차 · 중앙 재교전 준비",
+      "clearRewardGold": 42,
+      "groups": [
+        {"enemyType": "fast", "count": 5, "interval": 0.46, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 9, "interval": 0.65, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "tank", "count": 2, "interval": 1.15, "startDelay": 4.4, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 19,
+      "previewText": "시차 교차 · 나선 장갑 압축",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "shielded", "count": 4, "interval": 0.75, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 11, "interval": 0.58, "startDelay": 2.2, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"}
+      ]
+    },
+    {
+      "round": 20,
+      "previewText": "비대칭 나선 포대 파쇄자 2 · 장갑 선봉",
+      "clearRewardGold": 149,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "armored", "count": 10, "interval": 0.62, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "fast", "count": 5, "interval": 0.43, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 21,
+      "previewText": "내구 분담 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 11, "interval": 0.69, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 9, "interval": 0.44, "startDelay": 5.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 22,
+      "previewText": "내구 분담 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 46,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 9, "interval": 0.73, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "normal", "count": 12, "interval": 0.61, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 23,
+      "previewText": "내구 분담 · 중앙 재교전 준비",
+      "clearRewardGold": 47,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "tank", "count": 3, "interval": 1.15, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "armored", "count": 10, "interval": 0.65, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "fast", "count": 6, "interval": 0.46, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 24,
+      "previewText": "내구 분담 · 나선 장갑 압축",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 12, "interval": 0.58, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 5, "interval": 0.75, "startDelay": 5.3, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 25,
+      "previewText": "내구 분담 · 안쪽 귀환 겹침",
+      "clearRewardGold": 99,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "normal", "count": 13, "interval": 0.55, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "armored", "count": 11, "interval": 0.62, "startDelay": 4.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "fast", "count": 6, "interval": 0.43, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 26,
+      "previewText": "내구 분담 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 12, "interval": 0.69, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 10, "interval": 0.44, "startDelay": 5.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 27,
+      "previewText": "내구 분담 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 51,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 10, "interval": 0.73, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "normal", "count": 13, "interval": 0.61, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 28,
+      "previewText": "내구 분담 · 중앙 재교전 준비",
+      "clearRewardGold": 52,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "tank", "count": 3, "interval": 1.15, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "armored", "count": 11, "interval": 0.65, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "fast", "count": 6, "interval": 0.46, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 29,
+      "previewText": "내구 분담 · 나선 장갑 압축",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.2, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 13, "interval": 0.58, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 5, "interval": 0.75, "startDelay": 5.3, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 30,
+      "previewText": "비대칭 나선 포대 파쇄자 3 · 차폐 선봉",
+      "clearRewardGold": 179,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "armored", "count": 12, "interval": 0.62, "startDelay": 3.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "fast", "count": 6, "interval": 0.43, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 31,
+      "previewText": "종합 압박 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "armored", "count": 13, "interval": 0.69, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "fast", "count": 11, "interval": 0.44, "startDelay": 9.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 32,
+      "previewText": "종합 압박 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 56,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 0.73, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "normal", "count": 14, "interval": 0.61, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 33,
+      "previewText": "종합 압박 · 중앙 재교전 준비",
+      "clearRewardGold": 57,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 12, "interval": 0.65, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 7, "interval": 0.46, "startDelay": 9.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 34,
+      "previewText": "종합 압박 · 나선 장갑 압축",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "armored", "count": 14, "interval": 0.58, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 6, "interval": 0.75, "startDelay": 2.3, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 35,
+      "previewText": "종합 압박 · 안쪽 귀환 겹침",
+      "clearRewardGold": 119,
+      "groups": [
+        {"enemyType": "normal", "count": 15, "interval": 0.55, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 13, "interval": 0.62, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 7, "interval": 0.43, "startDelay": 9.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 36,
+      "previewText": "종합 압박 · 외곽 장갑 대열과 추격",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "armored", "count": 14, "interval": 0.69, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "fast", "count": 12, "interval": 0.44, "startDelay": 9.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 37,
+      "previewText": "종합 압박 · 차폐 뒤 밀집 대열",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "shielded", "count": 12, "interval": 0.73, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "normal", "count": 15, "interval": 0.61, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 38,
+      "previewText": "종합 압박 · 중앙 재교전 준비",
+      "clearRewardGold": 62,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 13, "interval": 0.65, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 7, "interval": 0.46, "startDelay": 9.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"}
+      ]
+    },
+    {
+      "round": 39,
+      "previewText": "종합 압박 · 나선 장갑 압축",
+      "clearRewardGold": 63,
+      "groups": [
+        {"enemyType": "armored", "count": 15, "interval": 0.58, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "shielded", "count": 6, "interval": 0.75, "startDelay": 2.3, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "shielded", "count": 4, "interval": 0.72, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"}
+      ]
+    },
+    {
+      "round": 40,
+      "previewText": "비대칭 나선 포대 파쇄자 4 · 이중 추격",
+      "clearRewardGold": 209,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g01"},
+        {"enemyType": "armored", "count": 14, "interval": 0.62, "startDelay": 1.8, "startAfterPrevious": false, "followDelay": 0.7, "id": "g02"},
+        {"enemyType": "fast", "count": 7, "interval": 0.43, "startDelay": 5.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g03"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.1, "startDelay": 11.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g04"},
+        {"enemyType": "fast", "count": 3, "interval": 0.85, "startDelay": 15.0, "startAfterPrevious": false, "followDelay": 0.7, "id": "g05"}
+      ]
+    }
+  ],
+  "design": {
+    "chapter": 3,
+    "chapterStage": 6,
+    "buildClusters": [
+      {
+        "id": "central_battery",
+        "cells": [
+          [6, 6],
+          [7, 6],
+          [6, 7],
+          [7, 7]
+        ],
+        "purpose_ko": "중앙 2×2 포대. 안쪽 진입·우측 회전·코어 접근의 세 사격창을 집중 담당한다."
+      },
+      {
+        "id": "north_l_bank",
+        "cells": [
+          [6, 2],
+          [7, 2],
+          [6, 3]
+        ],
+        "purpose_ko": "상단 L자 포대. 긴 외곽 초반을 처리하고 일부 안쪽 상단을 다시 조준한다."
+      },
+      {
+        "id": "west_strongpoint",
+        "cells": [
+          [2, 10]
+        ],
+        "purpose_ko": "서남쪽 고립 거점. 중앙 포대가 닿기 어려운 외곽 하단·좌측 상승을 맡는다."
+      },
+      {
+        "id": "east_pair",
+        "cells": [
+          [11, 7],
+          [11, 8]
+        ],
+        "purpose_ko": "동쪽 2칸 거점. 바깥 긴 하강 구간을 맡아 중앙 집중 투자의 공백을 보완한다."
+      }
+    ],
+    "geometryRevision": "ground-3-6"
+  }
+}

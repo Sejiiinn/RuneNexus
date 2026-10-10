@@ -21,6 +21,8 @@ from content_runtime_format import encode_runtime, runtime_text, typed_digest
 ROOT = Path(__file__).resolve().parents[1]
 FIELDS = ("maxHp", "maxShield", "maxArmor")
 FORMULA = "ordinal-v1"
+SCHEDULING_POLICY = {"version": 1, "scope": "global", "minimumInterval": 0.18,
+                     "tieBreak": "source-group-member-order", "dispatchTimeBasis": "spawn-queue-seconds"}
 
 
 def unique_pairs(pairs):
@@ -68,42 +70,61 @@ def apply_ulps(value: float, delta: int) -> float:
 
 
 def queue_for(groups: list, precision: int | None = None) -> list:
+    return schedule_for(groups, precision)[0]
+
+
+def schedule_for(groups: list, precision: int | None = None):
     if precision is not None and (type(precision) is not int or precision != 9):
         raise ValueError("queuePrecision must be null or 9")
     events = []
     previous_end = 0.0
-    for group in groups:
+    group_indices = [[] for _ in groups]
+    requested_starts, ids = [], set()
+    for group_index, group in enumerate(groups):
         if not isinstance(group, dict) or not {"enemyType", "count", "interval", "startDelay"} <= group.keys():
             raise ValueError("Incomplete spawn group")
-        if (set(group) - {"enemyType", "count", "interval", "startDelay", "startAfterPrevious", "followDelay"}
+        if (set(group) - {"enemyType", "count", "interval", "startDelay", "startAfterPrevious", "followDelay", "routeId", "id"}
                 or ("startAfterPrevious" in group and type(group["startAfterPrevious"]) is not bool)):
             raise ValueError("Invalid spawn group fields")
         if (type(group["count"]) is not int or group["count"] <= 0
                 or type(group["interval"]) is not float or not math.isfinite(group["interval"]) or group["interval"] <= 0
                 or type(group["startDelay"]) is not float or not math.isfinite(group["startDelay"]) or group["startDelay"] < 0):
             raise ValueError("Invalid spawn group numeric types/values")
+        if "routeId" in group and (not isinstance(group["routeId"], str) or not group["routeId"].strip()):
+            raise ValueError("Invalid spawn group routeId")
+        group_id = group.get("id", f"g{group_index + 1:02}")
+        if (not isinstance(group_id, str) or not group_id.strip() or group_id != group_id.strip()
+                or group_id in ids):
+            raise ValueError("Invalid/duplicate spawn group id")
+        ids.add(group_id)
         start = group["startDelay"]
         if group.get("startAfterPrevious", False):
             follow = group.get("followDelay")
             if type(follow) is not float or not math.isfinite(follow) or follow < 0:
                 raise ValueError("Invalid relative group followDelay")
             start = previous_end + follow
+        requested_starts.append(start)
         previous_end = start + (group["count"] - 1) * group["interval"]
-        events.extend((start + index * group["interval"], group["enemyType"])
+        events.extend((start + index * group["interval"], group["enemyType"], group.get("routeId"), group_index)
                       for index in range(group["count"]))
     # Stable sort: equal timestamps keep original group and member order.
     events.sort(key=lambda event: event[0])
-    previous = -0.18
+    minimum_interval = SCHEDULING_POLICY["minimumInterval"]
+    previous = -minimum_interval
     queue = []
-    for requested, kind in events:
-        actual = max(requested, previous + 0.18)
+    for requested, kind, route_id, group_index in events:
+        actual = max(requested, previous + minimum_interval)
         if precision is not None:
             actual = round(actual, precision)
         if not math.isfinite(actual):
             raise ValueError("Non-finite spawn time")
-        queue.append({"enemyType": kind, "delay": actual})
+        entry = {"enemyType": kind, "delay": actual}
+        if route_id is not None:
+            entry["routeId"] = route_id
+        group_indices[group_index].append(len(queue))
+        queue.append(entry)
         previous = actual
-    return queue
+    return queue, group_indices, requested_starts
 
 
 def durability_for(definition, round_number, ordinal, order="factor-first"):
@@ -189,6 +210,155 @@ def validate_map(map_data: dict):
         if abs(start[0] - end[0]) + abs(start[1] - end[1]) != 1 and jumps.get(index) != index + 1:
             raise ValueError("Disconnected path must be a registered teleport jump")
 
+    routes = map_data.get("routes")
+    if "routes" in map_data:
+        if not isinstance(routes, list) or len(routes) < 2:
+            raise ValueError("routes must contain at least two routes")
+        ids = set()
+        for route in routes:
+            if (not isinstance(route, dict) or not {"id", "label", "path"} <= route.keys()
+                    or set(route) - {"id", "label", "path", "teleportPairs", "spawnPortalId"}
+                    or not isinstance(route["id"], str) or not route["id"].strip() or route["id"] != route["id"].strip()
+                    or route["id"] in ids or not isinstance(route["label"], str) or not route["label"].strip()):
+                raise ValueError("Invalid/duplicate map route")
+            ids.add(route["id"])
+            child = {key: value for key, value in map_data.items() if key not in ("routes", "teleportPairs", "spawnPortals")}
+            child["path"] = route["path"]
+            child["teleportPairs"] = route.get("teleportPairs", [])
+            validate_map(child)
+            route_path = route["path"]
+            if (tiles[route_path[0][1] * columns + route_path[0][0]] != "spawn"
+                    or route_path[-1] != path[-1]
+                    or tiles[route_path[-1][1] * columns + route_path[-1][0]] != "core"
+                    or any(tiles[p[1] * columns + p[0]] != "path" for p in route_path[1:-1])
+                    or len({tuple(p) for p in route_path}) != len(route_path)):
+                raise ValueError("Route must follow traversable tiles from spawn to common core")
+        if routes[0]["path"] != path:
+            raise ValueError("Default map path must match first route")
+
+    if "spawnPortals" in map_data:
+        portals = map_data["spawnPortals"]
+        if not isinstance(portals, list) or not portals:
+            raise ValueError("spawnPortals must be a nonempty array")
+        by_id, cells = {}, set()
+        for portal in portals:
+            if (not isinstance(portal, dict) or set(portal) != {"id", "label", "cell"}
+                    or not isinstance(portal["id"], str) or not portal["id"].strip()
+                    or portal["id"] != portal["id"].strip() or portal["id"] in by_id
+                    or not isinstance(portal["label"], str) or not portal["label"].strip()
+                    or not valid_point(portal["cell"])
+                    or tiles[portal["cell"][1] * columns + portal["cell"][0]] != "spawn"
+                    or tuple(portal["cell"]) in cells):
+                raise ValueError("Invalid/duplicate spawn portal")
+            by_id[portal["id"]] = portal
+            cells.add(tuple(portal["cell"]))
+        used = set()
+        if routes:
+            for route in routes:
+                portal_id = route.get("spawnPortalId")
+                if not isinstance(portal_id, str) or portal_id not in by_id or by_id[portal_id]["cell"] != route["path"][0]:
+                    raise ValueError("Route spawnPortalId must match its starting cell")
+                used.add(portal_id)
+        elif len(portals) != 1 or portals[0]["cell"] != path[0]:
+            raise ValueError("Single-path map requires one matching spawn portal")
+        else:
+            used.add(portals[0]["id"])
+        if used != set(by_id):
+            raise ValueError("Unreferenced spawn portal")
+        if cells != {(index % columns, index // columns) for index, tile in enumerate(tiles) if tile == "spawn"}:
+            raise ValueError("Spawn portal registry must cover every spawn tile")
+    elif routes and any("spawnPortalId" in route for route in routes):
+        raise ValueError("Route spawnPortalId requires map spawnPortals")
+
+
+def spawn_portal_id(map_data, route_id):
+    if "spawnPortals" not in map_data:
+        return "default"
+    if not route_id:
+        return map_data["spawnPortals"][0]["id"]
+    return next(route["spawnPortalId"] for route in map_data["routes"] if route["id"] == route_id)
+
+
+def group_dispatch_for(wave, map_data, group_indices, requested_starts):
+    result = []
+    for index, group in enumerate(wave["groups"]):
+        indices = group_indices[index]
+        route_id = group.get("routeId", "")
+        result.append({"groupId": group.get("id", f"g{index + 1:02}"), "groupIndex": index,
+                       "enemyType": group["enemyType"], "count": group["count"],
+                       "routeId": route_id, "spawnPortalId": spawn_portal_id(map_data, route_id),
+                       "requestedDispatch": requested_starts[index],
+                       "firstDispatch": wave["spawnQueue"][indices[0]]["delay"],
+                       "lastDispatch": wave["spawnQueue"][indices[-1]]["delay"], "spawnIndices": indices})
+    return sorted(result, key=lambda row: (row["firstDispatch"], row["groupIndex"]))
+
+
+def validate_group_dispatch(wave, map_data):
+    rows, queue, groups = wave.get("groupDispatch"), wave["spawnQueue"], wave["groups"]
+    fields = {"groupId", "groupIndex", "enemyType", "count", "routeId", "spawnPortalId",
+              "requestedDispatch", "firstDispatch", "lastDispatch", "spawnIndices"}
+    if not isinstance(rows, list) or len(rows) != len(groups):
+        raise ValueError("Invalid groupDispatch coverage")
+    used, seen, ids, order = set(), set(), set(), []
+    requested_starts, previous_end = [], 0.0
+    for group in groups:
+        start = previous_end + group["followDelay"] if group.get("startAfterPrevious", False) else group["startDelay"]
+        requested_starts.append(start)
+        previous_end = start + (group["count"] - 1) * group["interval"]
+    requested_order = [None] * len(queue)
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != fields:
+            raise ValueError("Invalid groupDispatch fields")
+        index = row["groupIndex"]
+        if type(index) is not int or not 0 <= index < len(groups) or index in seen:
+            raise ValueError("Invalid/duplicate groupDispatch groupIndex")
+        seen.add(index)
+        group = groups[index]
+        group_id = row["groupId"]
+        if (not isinstance(group_id, str) or group_id != group.get("id", f"g{index + 1:02}") or group_id in ids
+                or row["enemyType"] != group["enemyType"] or type(row["count"]) is not int
+                or row["count"] != group["count"] or row["routeId"] != group.get("routeId", "")
+                or row["spawnPortalId"] != spawn_portal_id(map_data, group.get("routeId", ""))):
+            raise ValueError("groupDispatch identity differs from group/route/portal")
+        ids.add(group_id)
+        indices = row["spawnIndices"]
+        if (not isinstance(indices, list) or len(indices) != group["count"]
+                or any(type(i) is not int or not 0 <= i < len(queue) or i in used for i in indices)
+                or indices != sorted(set(indices))):
+            raise ValueError("Invalid groupDispatch spawn ownership")
+        used.update(indices)
+        for member, i in enumerate(indices):
+            requested_order[i] = (requested_starts[index] + member * group["interval"], index, member)
+            if queue[i]["enemyType"] != row["enemyType"] or queue[i].get("routeId", "") != row["routeId"]:
+                raise ValueError("groupDispatch spawn identity differs")
+        for key in ("requestedDispatch", "firstDispatch", "lastDispatch"):
+            if type(row[key]) is not float or not math.isfinite(row[key]) or row[key] < 0:
+                raise ValueError("Invalid groupDispatch dispatch time")
+        if (row["requestedDispatch"] != requested_starts[index]
+                or row["firstDispatch"] != queue[indices[0]]["delay"] or row["lastDispatch"] != queue[indices[-1]]["delay"]
+                or row["firstDispatch"] + 1e-8 < row["requestedDispatch"]):
+            raise ValueError("groupDispatch time differs from actual queue")
+        order.append((row["firstDispatch"], index))
+    if used != set(range(len(queue))) or order != sorted(order):
+        raise ValueError("groupDispatch must cover queue in chronological order")
+    if any(a > b for a, b in zip(requested_order, requested_order[1:])):
+        raise ValueError("groupDispatch ownership violates stable source request order")
+    for request, entry in zip(requested_order, queue):
+        if entry["delay"] + 1e-8 < request[0]:
+            raise ValueError("groupDispatch precedes its requested time")
+
+
+def validate_wave_routes(map_data: dict, groups: list, queue: list | None = None):
+    ids = {route["id"] for route in map_data.get("routes", [])}
+    for entry in groups + (queue or []):
+        route_id = entry.get("routeId")
+        if "routeId" in entry and (not isinstance(route_id, str) or not route_id.strip() or route_id != route_id.strip()):
+            raise ValueError("Invalid spawn routeId")
+        if ids and route_id not in ids:
+            raise ValueError("Missing/unknown spawn routeId")
+        if not ids and "routeId" in entry:
+            raise ValueError("routeId requires map routes")
+
 
 def validate_preview(text: str, groups: list, stage_id: int, round_number: int):
     """Reject explicit composition claims that the validated spawn groups cannot meet.
@@ -223,6 +393,7 @@ def validate_preview(text: str, groups: list, stage_id: int, round_number: int):
 def compile_content(root: Path = ROOT) -> dict:
     settings, definitions, turrets, sources, ordinals = load_sources(root)
     game = copy.deepcopy(settings["catalog"])
+    game["schedulingPolicy"] = copy.deepcopy(SCHEDULING_POLICY)
     game["enemyDefinitions"] = copy.deepcopy(definitions["enemyDefinitions"])
     game["enemies"] = copy.deepcopy(definitions["enemies"])
     game["turrets"] = copy.deepcopy(turrets)
@@ -257,7 +428,8 @@ def compile_content(root: Path = ROOT) -> dict:
                     or not isinstance(wave["previewText"], str) or not isinstance(wave["groups"], list)):
                 raise ValueError("Invalid wave reward/preview/groups")
             precision = source_wave.get("queuePrecision")
-            wave["spawnQueue"] = queue_for(wave["groups"], precision)
+            wave["spawnQueue"], group_indices, requested_starts = schedule_for(wave["groups"], precision)
+            validate_wave_routes(stage["map"], wave["groups"], wave["spawnQueue"])
             if any(group["enemyType"] not in enemy_kinds for group in wave["groups"]):
                 raise ValueError("Unknown enemy in spawn group")
             validate_preview(wave["previewText"], wave["groups"], stage["id"], wave["round"])
@@ -287,6 +459,8 @@ def compile_content(root: Path = ROOT) -> dict:
             if any(a["delay"] > b["delay"] or b["delay"] - a["delay"] < 0.18 - 1e-8
                    for a, b in zip(wave["spawnQueue"], wave["spawnQueue"][1:])):
                 raise ValueError("Spawn compatibility breaks normalized queue order")
+            wave["groupDispatch"] = group_dispatch_for(wave, stage["map"], group_indices, requested_starts)
+            validate_group_dispatch(wave, stage["map"])
             wave["enemyDurability"] = {}
             order = source_wave.get("durabilityOrder", "factor-first")
             overrides = compatibility.get("durabilityUlps", {})

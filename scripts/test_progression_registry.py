@@ -80,14 +80,15 @@ class ProgressionRegistryTests(unittest.TestCase):
 
     def test_new_registry_stage_does_not_require_python_hardcode(self):
         data = copy.deepcopy(load_progression())
-        data['stages'].append(dict(id=26, chapter=3, chapterStage=6))
-        data['order'].append(26)
+        next_id = max(item['id'] for item in data['stages']) + 1
+        data['stages'].append(dict(id=next_id, chapter=4, chapterStage=1))
+        data['order'].append(next_id)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             path = root / SOURCE
             path.parent.mkdir(parents=True)
             path.write_text(json.dumps(data))
-            self.assertEqual(stage_ordinals(root)[26], 26)
+            self.assertEqual(stage_ordinals(root)[next_id], len(data['order']))
             compile_progression(root)
             compile_progression(root, check=True)
             generated = root / next(iter(generated_outputs(root)))
@@ -96,9 +97,8 @@ class ProgressionRegistryTests(unittest.TestCase):
                 compile_progression(root, check=True)
 
     def test_applied_sql_migration_order_agrees_with_registry(self):
-        # Migration 012 is immutable. This guard catches source edits that require
-        # a NEW database migration; it must never encourage rewriting old SQL.
-        sql = (ROOT / 'server/db/migrations/012_expanded_stage_progression.sql').read_text()
+        # Applied migrations are immutable; validate the newest ordinal definition.
+        sql = (ROOT / 'server/db/migrations/013_chapter_three_routes.sql').read_text().split('---- create above / drop below ----')[0]
         body = re.search(r'SELECT CASE(.*?)ELSE 0 END;', sql, re.S).group(1)
         cases = re.findall(r'WHEN stage_id BETWEEN (\d+) AND (\d+) THEN stage_id(?: ([+-]) (\d+))?', body)
         self.assertEqual(len(cases), body.count('WHEN'))

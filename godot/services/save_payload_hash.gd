@@ -102,6 +102,7 @@ const ORDERS = {
 		"activationCount"
 	],
 	"SavedEnemy": [
+		"routeId",
 		"type",
 		"maxHp",
 		"hp",
@@ -128,6 +129,7 @@ const ORDERS = {
 		"riftMarkDamageAmplification"
 	],
 	"SavedSpawnRequest": [
+		"routeId",
 		"enemyType",
 		"delay"
 	],

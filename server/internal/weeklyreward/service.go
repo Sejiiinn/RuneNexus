@@ -223,7 +223,7 @@ func (service *Service) Claim(
 		return ClaimResult{}, fmt.Errorf("get weekly reward source save: %w", err)
 	}
 
-	if err := gamesave.ValidateGrowthClient(snapshot.Progression, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+	if err := gamesave.ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
 		return ClaimResult{}, err
 	}
 	periodKey, weekKey := rewardPeriod(request.Period, service.now().UTC())

@@ -53,3 +53,27 @@ func TestExpandedProgressionProtectsMigratedRights(t *testing.T) {
 		})
 	}
 }
+
+func TestRoutedContentCompatibilityIsBounded(t *testing.T) {
+	for _, tc := range []struct {
+		name, progression, run string
+		client                 int
+		reject                 bool
+	}{
+		{"old content still works", `{"progressionVersion":1,"unlockedStageIds":[1,25]}`, `{"stageNumber":25}`, 4, false},
+		{"new unlocked stage", `{"progressionVersion":1,"unlockedStageIds":[26]}`, `null`, 4, true},
+		{"new cleared stage", `{"clearedStageNumbers":[30]}`, `null`, 4, true},
+		{"new claimed stage", `{"claimedCorePointStageRewards":[26]}`, `null`, 4, true},
+		{"new active run protects pending routes", `{}`, `{"stageNumber":28}`, 4, true},
+		{"live route requires modern codec", `{}`, `{"enemies":[{"routeId":"south"}]}`, 4, true},
+		{"pending route requires modern codec", `{}`, `{"spawnQueue":[{"routeId":"west"}]}`, 4, true},
+		{"current routed save accepted", `{"progressionVersion":1,"unlockedStageIds":[26]}`, `{"stageNumber":28,"enemies":[{"routeId":"south"}]}`, 5, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateContentClient([]byte(tc.progression), []byte(tc.run), tc.client)
+			if errors.Is(err, ErrClientUpdateRequired) != tc.reject {
+				t.Fatalf("error=%v reject=%v", err, tc.reject)
+			}
+		})
+	}
+}

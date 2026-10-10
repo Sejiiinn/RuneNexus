@@ -9,12 +9,13 @@ import (
 // Growth progression is stored in schema v2. Version 1 requires generation 3
 // clients; generation 2 remains usable until this account first migrates.
 const (
-	EconomyClientCompatibilityVersion     = 2
-	GrowthClientCompatibilityVersion      = 3
-	CurrentGrowthVersion                  = 1
-	ProgressionClientCompatibilityVersion = 4
-	CurrentProgressionVersion             = progression.Version
-	CurrentStageCount                     = progression.StageCount
+	EconomyClientCompatibilityVersion       = 2
+	GrowthClientCompatibilityVersion        = 3
+	CurrentGrowthVersion                    = 1
+	ProgressionClientCompatibilityVersion   = 4
+	RoutedContentClientCompatibilityVersion = 5
+	CurrentProgressionVersion               = progression.Version
+	CurrentStageCount                       = progression.StageCount
 )
 
 func GrowthVersion(progression []byte) int {
@@ -38,6 +39,9 @@ func ClientCompatibilityFromBody(raw []byte) int {
 }
 
 func ValidateGrowthClient(progression []byte, clientVersion int) error {
+	if hasExpandedChapterThreeProgress(progression) && clientVersion < RoutedContentClientCompatibilityVersion {
+		return ErrClientUpdateRequired
+	}
 	if ProgressionVersion(progression) >= CurrentProgressionVersion && clientVersion < ProgressionClientCompatibilityVersion {
 		return ErrClientUpdateRequired
 	}
@@ -98,6 +102,51 @@ func containsValue[T comparable](values []T, expected T) bool {
 	for _, value := range values {
 		if value == expected {
 			return true
+		}
+	}
+	return false
+}
+
+// Old codecs do not preserve route IDs. Gate only saves which use the new content,
+// keeping generation four clients compatible with their existing 25-stage saves.
+func ValidateContentClient(progression, activeRun []byte, clientVersion int) error {
+	if err := ValidateGrowthClient(progression, clientVersion); err != nil {
+		return err
+	}
+	var run struct {
+		StageNumber int                          `json:"stageNumber"`
+		Enemies     []map[string]json.RawMessage `json:"enemies"`
+		SpawnQueue  []map[string]json.RawMessage `json:"spawnQueue"`
+	}
+	if json.Unmarshal(activeRun, &run) == nil && clientVersion < RoutedContentClientCompatibilityVersion {
+		if run.StageNumber > 25 {
+			return ErrClientUpdateRequired
+		}
+		for _, rows := range [][]map[string]json.RawMessage{run.Enemies, run.SpawnQueue} {
+			for _, row := range rows {
+				if _, present := row["routeId"]; present {
+					return ErrClientUpdateRequired
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func hasExpandedChapterThreeProgress(raw []byte) bool {
+	var p struct {
+		Unlocked []int `json:"unlockedStageIds"`
+		Cleared  []int `json:"clearedStageNumbers"`
+		Claimed  []int `json:"claimedCorePointStageRewards"`
+	}
+	if json.Unmarshal(raw, &p) != nil {
+		return false
+	}
+	for _, ids := range [][]int{p.Unlocked, p.Cleared, p.Claimed} {
+		for _, id := range ids {
+			if id > 25 {
+				return true
+			}
 		}
 	}
 	return false

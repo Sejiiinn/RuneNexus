@@ -315,7 +315,7 @@ func lockAuthoritativeEconomy(ctx context.Context, queries *dbgen.Queries, accou
 	if snapshotErr != nil && !errors.Is(snapshotErr, pgx.ErrNoRows) {
 		return dbgen.PlayerEconomy{}, fmt.Errorf("read economy growth compatibility: %w", snapshotErr)
 	}
-	if err := gamesave.ValidateGrowthClient(snapshot.Progression, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
+	if err := gamesave.ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
 		return dbgen.PlayerEconomy{}, err
 	}
 	return economy, nil

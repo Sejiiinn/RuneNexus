@@ -17,6 +17,11 @@ from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_dispatch_portals.gd": None,
+    "verify_chapter_three_normal_combat.gd": None,
+    "verify_chapter_three_combat_checkpoint.gd": "PASS chapter three native-coordinate checkpoint and Continue UI contract",
+    "verify_chapter_three_lifecycle.gd": None,
+    "verify_enemy_routes.gd": None,
     "verify_runtime_content_format.gd": "PASS runtime content format:",
     "verify_catalog_session_boundaries.gd": "PASS catalog session boundaries:",
     "verify_battle_menu_parity.gd": "PASS battle menu parity:",
@@ -81,6 +86,7 @@ SCRIPTS = {
     "verify_app_presentation.gd": "PASS independent presentation:",
 }
 FIXTURES = (
+    "chapter_three_map_signature_baseline.json",
     "turret_stat_calculation.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
     "quest_progress_cases.json", "reward_snapshot_cases.json",
     "growth_cases.json", "growth_game_cases.json", "growth_progression_cases.json", "game_content_cases.json",
@@ -159,7 +165,7 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
     # Transition cases restart processes; fixed-clock replay covers 120 seeded
     # scenarios across render cadences/speeds. Existing case limits are unchanged.
-    timeout = 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
+    timeout = 120 if name == "verify_chapter_three_normal_combat.gd" else 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],

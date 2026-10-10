@@ -155,6 +155,8 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 	# invocation, independently of pending enemies whose enemyValues are replaced.
 	var live_types := {}
 	for saved in run.enemies:
+		if not map.get("routes", []).is_empty() and str(saved.get("routeId", "")).is_empty(): return _reject("Missing saved route")
+		if catalog.route_map(stage,str(saved.get("routeId", ""))).is_empty(): return _reject("Unknown saved route")
 		if live_types.has(saved.type): continue
 		if not catalog.validate_enemy(stage,round_index,saved.type,inputs): return _reject(catalog.error)
 		live_types[saved.type] = true
@@ -164,7 +166,7 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 		var offset: int = schedule.size() - run.spawnQueue.size()
 		if offset < 0: return _reject("Spawn queue exceeds wave schedule")
 		for index in range(run.spawnQueue.size()):
-			if run.spawnQueue[index].enemyType != schedule[offset+index].enemyType: return _reject("Spawn queue does not match remaining wave schedule")
+			if run.spawnQueue[index].enemyType != schedule[offset+index].enemyType or run.spawnQueue[index].get("routeId", "") != schedule[offset+index].get("routeId", ""): return _reject("Spawn queue does not match remaining wave schedule")
 		var pending_types := {}
 		for saved in run.spawnQueue:
 			if saved.delay < 0 or not is_finite(saved.delay): return _reject("Invalid spawn delay")
@@ -193,7 +195,9 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 	bootstrap.enemies = []
 	var next_enemy_id := 100000
 	for saved in run.enemies:
-		var enemy: Dictionary = catalog.enemy(stage,round_index,saved.type,next_enemy_id,inputs)
+		var enemy_inputs := inputs.duplicate()
+		enemy_inputs.routeId = saved.get("routeId", "")
+		var enemy: Dictionary = catalog.enemy(stage,round_index,saved.type,next_enemy_id,enemy_inputs)
 		if enemy.is_empty(): return _reject(catalog.error)
 		enemy.merge(saved,true)
 		enemy.distanceTravelled *= bootstrap.boardDistanceScale
@@ -213,10 +217,12 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 		for saved in run.spawnQueue:
 			var spawn_inputs := inputs.duplicate(true)
 			spawn_inputs.enemyValues = spawn_values[offset+pending_index]
+			spawn_inputs.routeId = saved.get("routeId", "")
 			var enemy: Dictionary = catalog.enemy(stage,round_index,saved.enemyType,next_enemy_id,spawn_inputs)
 			pending_index += 1
 			if enemy.is_empty(): return _reject(catalog.error)
 			queue.append({"enemyType":saved.enemyType,"delay":saved.delay,"enemy":enemy})
+			if saved.has("routeId"): queue[-1].routeId = saved.routeId
 			next_enemy_id += 1
 		bootstrap.wave = {"id":definition.round,"active":live,"spawnQueue":queue}
 	return {"state":state,"bootstrap":bootstrap,"session":{"clock":"godot","phase":phase,"paused":true,"speed":1.0},"stage":stage,"nextRound":round_index + (1 if live else 0),"nextEnemyId":next_enemy_id,"envelope":decoded}

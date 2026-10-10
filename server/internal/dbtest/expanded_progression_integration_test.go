@@ -5,6 +5,7 @@ package dbtest_test
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
@@ -44,7 +45,7 @@ func TestExpandedLeaderboardKeepsFixedIDsAndLogicalOrdering(t *testing.T) {
 			t.Fatalf("fixed ID %d did not advance from logical predecessor: stored %d", stage, stored)
 		}
 	}
-	// An ID that is numerically larger must not replace chapter 3's final map.
+	// Chapter two must not replace chapter three's final map.
 	if err := q.UpsertProgressionLeaderboardRecord(ctx, dbgen.UpsertProgressionLeaderboardRecordParams{AccountID: account, StageNumber: 25, CompletedRounds: 40, SourceCommandID: command}); err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +60,7 @@ func TestExpandedLeaderboardKeepsFixedIDsAndLogicalOrdering(t *testing.T) {
 	if err = json.Unmarshal(row.MyEntry, &own); err != nil {
 		t.Fatal(err)
 	}
-	if own.StageNumber != 15 || own.CompletedRounds != 1 {
+	if own.StageNumber != int(order[len(order)-1]) || own.CompletedRounds != 1 {
 		t.Fatalf("chapter 3 record overwritten by chapter 2: %+v", own)
 	}
 }
@@ -113,5 +114,44 @@ func TestExpandedSaveMigrationAndNewStageSettlement(t *testing.T) {
 	}
 	if first.Snapshot.EconomyRevision != again.Snapshot.EconomyRevision || first.Snapshot.Wallet.FreeDiamonds != 110 || first.Snapshot.Wallet.ModuleTickets != 2 {
 		t.Fatalf("new settlement changed old rights or duplicate reward: %+v %+v", first, again)
+	}
+}
+
+func TestRoutedSaveBlocksOldWriterAndPreservesRoutePayload(t *testing.T) {
+	ctx, fixture, accountID := openSaveService(t)
+	run := json.RawMessage(`{"stageNumber":28,"completedRounds":21,"enemies":[{"type":"armored","routeId":"south","distanceTravelled":5}],"spawnQueue":[{"enemyType":"fast","routeId":"north","delay":1}]}`)
+	request := gamesave.UpdateRequest{IdempotencyKey: firstSaveKey, ClientCompatibilityVersion: 5, RawBody: []byte(`{"clientCompatibilityVersion":5}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"growthVersion":1,"progressionVersion":1,"unlockedStageIds":[1,26,27,28],"freeDiamonds":100}`), TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`), ActiveRun: run}}
+	if _, err := fixture.Update(ctx, accountID, request); err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := fixture.service.Get(ctx, accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var actual, expected any
+	if err := json.Unmarshal(snapshot.Data.ActiveRun, &actual); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(run, &expected); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("routed run changed: %s", snapshot.Data.ActiveRun)
+	}
+	var ranked int
+	if err := fixture.pool.QueryRow(ctx, `SELECT stage_number FROM leaderboard_records WHERE account_id=$1`, accountID).Scan(&ranked); err != nil || ranked != 28 {
+		t.Fatalf("new active run missing: %d %v", ranked, err)
+	}
+	old := request
+	old.IdempotencyKey = secondSaveKey
+	old.ExpectedRevision = 1
+	old.ClientCompatibilityVersion = 4
+	old.RawBody = []byte(`{"clientCompatibilityVersion":4}`)
+	old.Data.ActiveRun = nil
+	if _, err := fixture.Update(ctx, accountID, old); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("old routed overwrite error=%v", err)
+	}
+	if _, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{IdempotencyKey: secondClaimKey, ClientInstanceID: clientInstanceID, ClientCompatibilityVersion: 4, RawBody: []byte(`{"clientCompatibilityVersion":4}`)}); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("old routed writer error=%v", err)
 	}
 }

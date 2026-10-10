@@ -1,0 +1,701 @@
+{
+  "id": 28,
+  "name": "입구에서 보이는 두 갈래",
+  "firstClearCorePointReward": 2,
+  "firstClearTurretModuleTicketReward": 0,
+  "map": {
+    "columns": 13,
+    "rows": 12,
+    "tileTheme": "chapterThreeForge",
+    "tiles": [
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "spawn",
+      "path",
+      "blocked",
+      "build",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "build",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "build",
+      "blocked",
+      "blocked",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "core",
+      "blocked",
+      "path",
+      "blocked",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "build",
+      "build",
+      "build",
+      "blocked",
+      "blocked",
+      "build",
+      "build",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "path",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked",
+      "blocked"
+    ],
+    "path": [
+      [0, 4],
+      [1, 4],
+      [1, 3],
+      [2, 3],
+      [3, 3],
+      [4, 3],
+      [5, 3],
+      [5, 4],
+      [5, 5],
+      [6, 5],
+      [7, 5],
+      [7, 6],
+      [8, 6],
+      [9, 6],
+      [10, 6],
+      [11, 6],
+      [12, 6]
+    ],
+    "routes": [
+      {
+        "id": "north",
+        "label": "위·짧은 길",
+        "path": [
+          [0, 4],
+          [1, 4],
+          [1, 3],
+          [2, 3],
+          [3, 3],
+          [4, 3],
+          [5, 3],
+          [5, 4],
+          [5, 5],
+          [6, 5],
+          [7, 5],
+          [7, 6],
+          [8, 6],
+          [9, 6],
+          [10, 6],
+          [11, 6],
+          [12, 6]
+        ],
+        "spawnPortalId": "A"
+      },
+      {
+        "id": "south",
+        "label": "아래·우회",
+        "path": [
+          [0, 4],
+          [1, 4],
+          [1, 5],
+          [1, 6],
+          [1, 7],
+          [1, 8],
+          [1, 9],
+          [2, 9],
+          [3, 9],
+          [4, 9],
+          [5, 9],
+          [6, 9],
+          [7, 9],
+          [8, 9],
+          [9, 9],
+          [9, 8],
+          [9, 7],
+          [9, 6],
+          [10, 6],
+          [11, 6],
+          [12, 6]
+        ],
+        "spawnPortalId": "A"
+      }
+    ],
+    "spawnPortals": [
+      {
+        "id": "A",
+        "label": "A·입구",
+        "cell": [0, 4]
+      }
+    ]
+  },
+  "waves": [
+    {
+      "round": 1,
+      "previewText": "진입 훈련 · 위아래 분담 | 장갑병 5기→위·짧은 길(0초) / 일반 6기→위·짧은 길(3초)",
+      "clearRewardGold": 27,
+      "groups": [
+        {"enemyType": "armored", "count": 5, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "normal", "count": 6, "interval": 1.08, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"}
+      ]
+    },
+    {
+      "round": 2,
+      "previewText": "진입 훈련 · 우회 추격 | 빠른 적 4기→아래·우회(0초) / 보호막병 5기→아래·우회(3.5초)",
+      "clearRewardGold": 28,
+      "groups": [
+        {"enemyType": "fast", "count": 4, "interval": 0.76, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "shielded", "count": 5, "interval": 1.13, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"}
+      ]
+    },
+    {
+      "round": 3,
+      "previewText": "진입 훈련 · 갈림길 호위 | 탱커 1기→위·짧은 길(0초) / 장갑병 5기→위·짧은 길(2.5초) / 일반 4기→위·짧은 길(6초)",
+      "clearRewardGold": 29,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "armored", "count": 5, "interval": 1.1, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "normal", "count": 4, "interval": 1.05, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 4,
+      "previewText": "진입 훈련 · 합류 시차 | 보호막병 5기→아래·우회(0초) / 빠른 적 5기→아래·우회(4.5초)",
+      "clearRewardGold": 30,
+      "groups": [
+        {"enemyType": "shielded", "count": 5, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "fast", "count": 5, "interval": 0.79, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"}
+      ]
+    },
+    {
+      "round": 5,
+      "previewText": "진입 훈련 · 재교전 집중 | 장갑병 6기→아래·우회(0초) / 보호막병 3기→위·짧은 길(3.5초) / 빠른 적 4기→아래·우회(7초)",
+      "clearRewardGold": 61,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.02, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 6,
+      "previewText": "진입 훈련 · 위아래 분담 | 장갑병 6기→아래·우회(0초) / 일반 7기→아래·우회(3초)",
+      "clearRewardGold": 32,
+      "groups": [
+        {"enemyType": "armored", "count": 6, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "normal", "count": 7, "interval": 1.08, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"}
+      ]
+    },
+    {
+      "round": 7,
+      "previewText": "진입 훈련 · 우회 추격 | 빠른 적 4기→위·짧은 길(0초) / 보호막병 6기→위·짧은 길(3.5초)",
+      "clearRewardGold": 33,
+      "groups": [
+        {"enemyType": "fast", "count": 4, "interval": 0.76, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 6, "interval": 1.13, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"}
+      ]
+    },
+    {
+      "round": 8,
+      "previewText": "진입 훈련 · 갈림길 호위 | 탱커 1기→아래·우회(0초) / 장갑병 6기→아래·우회(2.5초) / 일반 4기→아래·우회(6초)",
+      "clearRewardGold": 34,
+      "groups": [
+        {"enemyType": "tank", "count": 1, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "armored", "count": 6, "interval": 1.1, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "normal", "count": 4, "interval": 1.05, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 9,
+      "previewText": "진입 훈련 · 합류 시차 | 보호막병 6기→위·짧은 길(0초) / 빠른 적 6기→위·짧은 길(4.5초)",
+      "clearRewardGold": 35,
+      "groups": [
+        {"enemyType": "shielded", "count": 6, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "fast", "count": 6, "interval": 0.79, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"}
+      ]
+    },
+    {
+      "round": 10,
+      "previewText": "입구에서 보이는 두 갈래 파쇄자 1 · 선행 돌파 | 파쇄자 1기→위·짧은 길(0초) / 장갑병 7기→아래·우회(3초) / 보호막병 3기→위·짧은 길(6.5초) / 빠른 적 4기→아래·우회(10초)",
+      "clearRewardGold": 121,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 1.02, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 6.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"},
+        {"enemyType": "fast", "count": 4, "interval": 0.81, "startDelay": 10.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g04"}
+      ]
+    },
+    {
+      "round": 11,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 위아래 분담 | 일반 8기→아래·우회(0초) / 장갑병 7기→위·짧은 길(3.619초)",
+      "clearRewardGold": 37,
+      "groups": [
+        {"enemyType": "armored", "count": 7, "interval": 1.15, "startDelay": 3.619, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "normal", "count": 8, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"}
+      ]
+    },
+    {
+      "round": 12,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 우회 추격 | 보호막병 7기→위·짧은 길(0초) / 빠른 적 5기→아래·우회(6.572초)",
+      "clearRewardGold": 38,
+      "groups": [
+        {"enemyType": "fast", "count": 5, "interval": 0.76, "startDelay": 6.572, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "shielded", "count": 7, "interval": 1.13, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"}
+      ]
+    },
+    {
+      "round": 13,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 갈림길 호위 | 탱커 2기→위·짧은 길(0초) / 장갑병 7기→아래·우회(0.571초) / 일반 5기→위·짧은 길(9.905초)",
+      "clearRewardGold": 39,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "armored", "count": 7, "interval": 1.1, "startDelay": 0.571, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "normal", "count": 5, "interval": 1.05, "startDelay": 9.905, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 14,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 합류 시차 | 보호막병 7기→아래·우회(0초) / 빠른 적 7기→위·짧은 길(16.709초)",
+      "clearRewardGold": 40,
+      "groups": [
+        {"enemyType": "shielded", "count": 7, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "fast", "count": 7, "interval": 0.79, "startDelay": 16.709, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"}
+      ]
+    },
+    {
+      "round": 15,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 재교전 집중 | 보호막병 4기→아래·우회(0초) / 장갑병 8기→위·짧은 길(5.852초) / 빠른 적 5기→위·짧은 길(16.709초)",
+      "clearRewardGold": 81,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 1.02, "startDelay": 5.852, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 4, "interval": 1.14, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "fast", "count": 5, "interval": 0.81, "startDelay": 16.709, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 16,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 위아래 분담 | 장갑병 8기→아래·우회(0초) / 일반 9기→위·짧은 길(9.333초)",
+      "clearRewardGold": 42,
+      "groups": [
+        {"enemyType": "armored", "count": 8, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "normal", "count": 9, "interval": 1.08, "startDelay": 9.333, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"}
+      ]
+    },
+    {
+      "round": 17,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 우회 추격 | 보호막병 8기→아래·우회(0초) / 빠른 적 5기→위·짧은 길(16.709초)",
+      "clearRewardGold": 43,
+      "groups": [
+        {"enemyType": "fast", "count": 5, "interval": 0.76, "startDelay": 16.709, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 8, "interval": 1.13, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"}
+      ]
+    },
+    {
+      "round": 18,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 갈림길 호위 | 탱커 2기→아래·우회(0초) / 일반 5기→아래·우회(12.952초) / 장갑병 8기→위·짧은 길(16.571초)",
+      "clearRewardGold": 44,
+      "groups": [
+        {"enemyType": "tank", "count": 2, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "armored", "count": 8, "interval": 1.1, "startDelay": 16.571, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "normal", "count": 5, "interval": 1.05, "startDelay": 12.952, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 19,
+      "previewText": "합류 도착 맞춤 · 시차 교차 · 합류 시차 | 보호막병 8기→위·짧은 길(0초) / 빠른 적 8기→아래·우회(6.572초)",
+      "clearRewardGold": 45,
+      "groups": [
+        {"enemyType": "shielded", "count": 8, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "fast", "count": 8, "interval": 0.79, "startDelay": 6.572, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"}
+      ]
+    },
+    {
+      "round": 20,
+      "previewText": "입구에서 보이는 두 갈래 파쇄자 2 · 장갑 선봉 | 탱커 1기→위·짧은 길(0초) / 장갑병 9기→아래·우회(0초) / 보호막병 4기→위·짧은 길(3.5초) / 파쇄자 1기→아래·우회(6초) / 빠른 적 5기→아래·우회(7초)",
+      "clearRewardGold": 151,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "tank", "count": 1, "interval": 2.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "armored", "count": 9, "interval": 1.02, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"},
+        {"enemyType": "shielded", "count": 4, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g04"},
+        {"enemyType": "fast", "count": 5, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g05"}
+      ]
+    },
+    {
+      "round": 21,
+      "previewText": "내구 분담 · 위아래 분담 | 장갑병 9기→아래·우회(0초) / 일반 10기→위·짧은 길(3초) / 보호막병 3기→아래·우회(8초)",
+      "clearRewardGold": 47,
+      "groups": [
+        {"enemyType": "armored", "count": 9, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "normal", "count": 10, "interval": 1.08, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 22,
+      "previewText": "내구 분담 · 우회 추격 | 빠른 적 6기→위·짧은 길(0초) / 보호막병 9기→아래·우회(3.5초) / 보호막병 3기→위·짧은 길(8초)",
+      "clearRewardGold": 48,
+      "groups": [
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 9, "interval": 1.13, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 23,
+      "previewText": "내구 분담 · 갈림길 호위 | 탱커 3기→아래·우회(0초) / 장갑병 9기→위·짧은 길(2.5초) / 일반 6기→아래·우회(6초) / 보호막병 3기→위·짧은 길(8초)",
+      "clearRewardGold": 49,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "armored", "count": 9, "interval": 1.1, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "normal", "count": 6, "interval": 1.05, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g04"}
+      ]
+    },
+    {
+      "round": 24,
+      "previewText": "내구 분담 · 합류 시차 | 보호막병 9기→위·짧은 길(0초) / 빠른 적 9기→아래·우회(4.5초) / 보호막병 3기→위·짧은 길(8초)",
+      "clearRewardGold": 50,
+      "groups": [
+        {"enemyType": "shielded", "count": 9, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "fast", "count": 9, "interval": 0.79, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 25,
+      "previewText": "내구 분담 · 재교전 집중 | 장갑병 10기→아래·우회(0초) / 보호막병 5기→위·짧은 길(3.5초) / 빠른 적 6기→아래·우회(7초) / 보호막병 3기→위·짧은 길(8초)",
+      "clearRewardGold": 101,
+      "groups": [
+        {"enemyType": "armored", "count": 10, "interval": 1.02, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "shielded", "count": 5, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "fast", "count": 6, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g04"}
+      ]
+    },
+    {
+      "round": 26,
+      "previewText": "내구 분담 · 위아래 분담 | 장갑병 10기→위·짧은 길(0초) / 일반 11기→아래·우회(3초) / 보호막병 3기→위·짧은 길(8초)",
+      "clearRewardGold": 52,
+      "groups": [
+        {"enemyType": "armored", "count": 10, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "normal", "count": 11, "interval": 1.08, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 27,
+      "previewText": "내구 분담 · 우회 추격 | 빠른 적 6기→아래·우회(0초) / 보호막병 10기→위·짧은 길(3.5초) / 보호막병 3기→아래·우회(8초)",
+      "clearRewardGold": 53,
+      "groups": [
+        {"enemyType": "fast", "count": 6, "interval": 0.76, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "shielded", "count": 10, "interval": 1.13, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 28,
+      "previewText": "내구 분담 · 갈림길 호위 | 탱커 3기→위·짧은 길(0초) / 장갑병 10기→아래·우회(2.5초) / 일반 6기→위·짧은 길(6초) / 보호막병 3기→아래·우회(8초)",
+      "clearRewardGold": 54,
+      "groups": [
+        {"enemyType": "tank", "count": 3, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "armored", "count": 10, "interval": 1.1, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "normal", "count": 6, "interval": 1.05, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g04"}
+      ]
+    },
+    {
+      "round": 29,
+      "previewText": "내구 분담 · 합류 시차 | 보호막병 10기→아래·우회(0초) / 빠른 적 10기→위·짧은 길(4.5초) / 보호막병 3기→아래·우회(8초)",
+      "clearRewardGold": 55,
+      "groups": [
+        {"enemyType": "shielded", "count": 10, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "fast", "count": 10, "interval": 0.79, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 30,
+      "previewText": "입구에서 보이는 두 갈래 파쇄자 3 · 차폐 선봉 | 보호막병 3기→아래·우회(0초) / 장갑병 11기→위·짧은 길(2초) / 파쇄자 1기→위·짧은 길(4초) / 보호막병 5기→아래·우회(5.5초) / 빠른 적 6기→위·짧은 길(9초)",
+      "clearRewardGold": 181,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 4.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.0, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "armored", "count": 11, "interval": 1.02, "startDelay": 2.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"},
+        {"enemyType": "shielded", "count": 5, "interval": 1.14, "startDelay": 5.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g04"},
+        {"enemyType": "fast", "count": 6, "interval": 0.81, "startDelay": 9.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g05"}
+      ]
+    },
+    {
+      "round": 31,
+      "previewText": "종합 압박 · 위아래 분담 | 장갑병 11기→위·짧은 길(0초) / 일반 12기→아래·우회(3초) / 빠른 적 4기→위·짧은 길(12초)",
+      "clearRewardGold": 57,
+      "groups": [
+        {"enemyType": "armored", "count": 11, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "normal", "count": 12, "interval": 1.08, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 32,
+      "previewText": "종합 압박 · 우회 추격 | 빠른 적 7기→아래·우회(0초) / 보호막병 11기→위·짧은 길(3.5초) / 빠른 적 4기→아래·우회(12초)",
+      "clearRewardGold": 58,
+      "groups": [
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "shielded", "count": 11, "interval": 1.13, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 33,
+      "previewText": "종합 압박 · 갈림길 호위 | 탱커 4기→위·짧은 길(0초) / 장갑병 11기→아래·우회(2.5초) / 일반 7기→위·짧은 길(6초) / 빠른 적 4기→아래·우회(12초)",
+      "clearRewardGold": 59,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "armored", "count": 11, "interval": 1.1, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "normal", "count": 7, "interval": 1.05, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g04"}
+      ]
+    },
+    {
+      "round": 34,
+      "previewText": "종합 압박 · 합류 시차 | 보호막병 11기→아래·우회(0초) / 빠른 적 11기→위·짧은 길(4.5초) / 빠른 적 4기→아래·우회(12초)",
+      "clearRewardGold": 60,
+      "groups": [
+        {"enemyType": "shielded", "count": 11, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "fast", "count": 11, "interval": 0.79, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 35,
+      "previewText": "종합 압박 · 재교전 집중 | 장갑병 12기→위·짧은 길(0초) / 보호막병 6기→아래·우회(3.5초) / 빠른 적 7기→위·짧은 길(7초) / 빠른 적 4기→아래·우회(12초)",
+      "clearRewardGold": 121,
+      "groups": [
+        {"enemyType": "armored", "count": 12, "interval": 1.02, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 6, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "fast", "count": 7, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g04"}
+      ]
+    },
+    {
+      "round": 36,
+      "previewText": "종합 압박 · 위아래 분담 | 장갑병 12기→아래·우회(0초) / 일반 13기→위·짧은 길(3초) / 빠른 적 4기→아래·우회(12초)",
+      "clearRewardGold": 62,
+      "groups": [
+        {"enemyType": "armored", "count": 12, "interval": 1.15, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "normal", "count": 13, "interval": 1.08, "startDelay": 3.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"}
+      ]
+    },
+    {
+      "round": 37,
+      "previewText": "종합 압박 · 우회 추격 | 빠른 적 7기→위·짧은 길(0초) / 보호막병 12기→아래·우회(3.5초) / 빠른 적 4기→위·짧은 길(12초)",
+      "clearRewardGold": 63,
+      "groups": [
+        {"enemyType": "fast", "count": 7, "interval": 0.76, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "shielded", "count": 12, "interval": 1.13, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 38,
+      "previewText": "종합 압박 · 갈림길 호위 | 탱커 4기→아래·우회(0초) / 장갑병 12기→위·짧은 길(2.5초) / 일반 7기→아래·우회(6초) / 빠른 적 4기→위·짧은 길(12초)",
+      "clearRewardGold": 64,
+      "groups": [
+        {"enemyType": "tank", "count": 4, "interval": 1.9, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "armored", "count": 12, "interval": 1.1, "startDelay": 2.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "normal", "count": 7, "interval": 1.05, "startDelay": 6.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g04"}
+      ]
+    },
+    {
+      "round": 39,
+      "previewText": "종합 압박 · 합류 시차 | 보호막병 12기→위·짧은 길(0초) / 빠른 적 12기→아래·우회(4.5초) / 빠른 적 4기→위·짧은 길(12초)",
+      "clearRewardGold": 65,
+      "groups": [
+        {"enemyType": "shielded", "count": 12, "interval": 1.08, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
+        {"enemyType": "fast", "count": 12, "interval": 0.79, "startDelay": 4.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
+        {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
+      ]
+    },
+    {
+      "round": 40,
+      "previewText": "입구에서 보이는 두 갈래 파쇄자 4 · 이중 추격 | 장갑병 13기→위·짧은 길(0초) / 파쇄자 1기→아래·우회(1초) / 보호막병 6기→아래·우회(3.5초) / 빠른 적 7기→위·짧은 길(7초) / 보호막병 3기→아래·우회(11초) / 빠른 적 3기→위·짧은 길(15초)",
+      "clearRewardGold": 211,
+      "groups": [
+        {"enemyType": "forgeBoss", "count": 1, "interval": 2.6, "startDelay": 1.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g01"},
+        {"enemyType": "armored", "count": 13, "interval": 1.02, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
+        {"enemyType": "shielded", "count": 6, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"},
+        {"enemyType": "fast", "count": 7, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g04"},
+        {"enemyType": "shielded", "count": 3, "interval": 1.1, "startDelay": 11.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g05"},
+        {"enemyType": "fast", "count": 3, "interval": 0.85, "startDelay": 15.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g06"}
+      ]
+    }
+  ],
+  "design": {
+    "chapter": 3,
+    "chapterStage": 8,
+    "buildClusters": [
+      {
+        "id": "short_battery",
+        "cells": [
+          [3, 4],
+          [4, 4],
+          [4, 5]
+        ],
+        "label": "위 전용",
+        "label_cell": [3.6, 2]
+      },
+      {
+        "id": "wrap_battery",
+        "cells": [
+          [2, 8],
+          [3, 8],
+          [3, 7],
+          [4, 8],
+          [4, 7]
+        ],
+        "label": "아래 전용",
+        "label_cell": [3.3, 6]
+      },
+      {
+        "id": "shared_battery",
+        "cells": [
+          [7, 7],
+          [8, 7],
+          [7, 8],
+          [8, 8]
+        ],
+        "label": "재교전포대",
+        "label_cell": [7.6, 10.5]
+      },
+      {
+        "id": "last_point",
+        "cells": [
+          [11, 5]
+        ],
+        "label": "최후저지",
+        "label_cell": [11, 4]
+      }
+    ],
+    "geometryRevision": "v4-immediate-fork"
+  }
+}

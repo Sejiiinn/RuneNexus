@@ -1,0 +1,125 @@
+{
+  "description": "All 30 geometric map signatures before explicit spawn-portal identity and compiled group-dispatch metadata (2026-10-09).",
+  "stages": [
+    {
+      "stageId": 1,
+      "signatureSha256": "e2e435962bbdb2e1440984e6a93d64b002d2eb2542a2ebc5c4eed9d3bd868b2a"
+    },
+    {
+      "stageId": 2,
+      "signatureSha256": "17af6353c2bdaabeb520d6cb7c34758a9988a6e0de56ae3093116600ecdb727d"
+    },
+    {
+      "stageId": 3,
+      "signatureSha256": "4d5db9d4d3e2902bc93203a238f5228bc75239ba0c9307cb9b6cc0ca022f67eb"
+    },
+    {
+      "stageId": 4,
+      "signatureSha256": "0d1d41a86a831cf80f6df3d792e26063ab804471c85539a8e0fb831e3deacad3"
+    },
+    {
+      "stageId": 5,
+      "signatureSha256": "b7818ee3a42453c2e1e1a2aa1139c0ca288a731a7bbfa9382ae8ef483a8294a4"
+    },
+    {
+      "stageId": 6,
+      "signatureSha256": "9e97f6d06a1be669a876f59e58288f32c566d012bfd8af5f93a9645c085186df"
+    },
+    {
+      "stageId": 7,
+      "signatureSha256": "d5ecb8c8e3670a67393934f9494bf7fc84f462d5a8298941e1f7a812e8096389"
+    },
+    {
+      "stageId": 8,
+      "signatureSha256": "168b73341b6c25ed6d70dc1c9ff3904f53e5c7628e406a1376b4f2a1b7f03446"
+    },
+    {
+      "stageId": 9,
+      "signatureSha256": "f0038cdbd14e59e0ec4e4c12bec1e57a5c4cc0ba7d6dceba1016774ace7aea4a"
+    },
+    {
+      "stageId": 10,
+      "signatureSha256": "7a08dd574270b1389cd1f98a0a17f1b134af2faaf6528c9c28b1066e8ae8eb70"
+    },
+    {
+      "stageId": 11,
+      "signatureSha256": "68e77b3bc08c117ecf9a9c06a3acec9f731eccdab7a5d555e9a735e506d3fd55"
+    },
+    {
+      "stageId": 12,
+      "signatureSha256": "f78059e85463cef971f6bb6d6b81904f0fae1bc6adecd6f48bfb70cd2891ae9f"
+    },
+    {
+      "stageId": 13,
+      "signatureSha256": "117668239dc779322dae8d9277d02e716fe36c5c5737494aa514073aa4699446"
+    },
+    {
+      "stageId": 14,
+      "signatureSha256": "ad4a98b23527e0af150eeabaeb4a46cda1806e5e9680bfd8c056fc0fcd30c01e"
+    },
+    {
+      "stageId": 15,
+      "signatureSha256": "ad104aa389227fb6d079814c8ac9b30a199714996d143a06a6acf807de97bd90"
+    },
+    {
+      "stageId": 16,
+      "signatureSha256": "991de249d61bd3b28614a104eceee781ea9a1131025130abcff09e5c8b669502"
+    },
+    {
+      "stageId": 17,
+      "signatureSha256": "13575905651ae970c434757b08a6645376f6b5e70edc43dbe15758261fe9a7ed"
+    },
+    {
+      "stageId": 18,
+      "signatureSha256": "636c00942733463c591cd734a1bc8cf84ae017417e09506e93fa7c9070d18437"
+    },
+    {
+      "stageId": 19,
+      "signatureSha256": "8100c1590958ccb469c67aa56cef541bf62c3804df2107022e5ca2c59d36bc43"
+    },
+    {
+      "stageId": 20,
+      "signatureSha256": "82cc42fb013dbd31ab938ad015e7e93b3ae85bd9e9a5bc0e8e050995298b887b"
+    },
+    {
+      "stageId": 21,
+      "signatureSha256": "100f71bf1f3b1d8a591674e031816617a7925a9bc2da5c6120e2d6851330254d"
+    },
+    {
+      "stageId": 22,
+      "signatureSha256": "259ae7a8bba8813bd83ef87fb697816e84cd65ac532342328804814309fff7cb"
+    },
+    {
+      "stageId": 23,
+      "signatureSha256": "b2a50080b03f52a7380f773db04b95a0f10f01f9aa160022395427542645d211"
+    },
+    {
+      "stageId": 24,
+      "signatureSha256": "bbcf8c9503e1a65dbbbf814f2ad99c9b2e9c0a51ff10ab7f3e48ec5cb11c5080"
+    },
+    {
+      "stageId": 25,
+      "signatureSha256": "32fb551bc2316cf00848eb5c28d6e15bee60168227dd6bbc8c75a9e425e0a742"
+    },
+    {
+      "stageId": 26,
+      "signatureSha256": "bea0ca025a6d63a1ede385e0bbdc21958b431323839615be207357b5b1dcebb1"
+    },
+    {
+      "stageId": 27,
+      "signatureSha256": "3bc6f7804503caccad9a4408bb37081187e186e2989936f38d8217597ea82e54"
+    },
+    {
+      "stageId": 28,
+      "signatureSha256": "f6c7546662f864f806bd01ac27c178b64cb2e033a0d20eff522ad8526b5fcc82"
+    },
+    {
+      "stageId": 29,
+      "signatureSha256": "32b3edc4fa9673c59ba4b9c485968417deb42ced7a5348529454d44631a175ec"
+    },
+    {
+      "stageId": 30,
+      "signatureSha256": "b7c5d9b9fbc39ef8fdd6b9c7a8d5624c82de91844fe81c02d85e9598753761f0"
+    }
+  ]
+}
