@@ -42,6 +42,7 @@ static func has_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	if kind == "upgrade" and key in ["criticalChance","emergencySale"]: return false
 	if kind == "gem" and not REQUIREMENTS.gem.has(key): return true
 	if not REQUIREMENTS.get(kind,{}).has(key): return false
+	if kind == "research" and key == "linkExpansionTwo": return requirement(kind,key) in p.get("clearedStageNumbers",[])
 	if kind+":"+key in p.get("grandfatherUnlocks",[]): return true
 	if int(p.get("progressionVersion",0)) < VERSION and _legacy_unlock(p,kind,key): return true
 	var required := requirement(kind,key)

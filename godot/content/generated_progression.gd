@@ -3,7 +3,7 @@ extends RefCounted
 const VERSION := 1
 const LEGACY_STAGE_COUNT := 15
 const ORDER := [1,2,3,4,5,16,17,18,19,20,6,7,8,9,10,21,22,23,24,25,11,12,13,14,15,26,27,28,29,30]
-const REQUIREMENTS := {"upgrade":{"startingGold":0,"nexusHp":0,"supply":0,"fireTraining":0,"bossBounty":5,"killGold":1,"criticalDamage":4,"physicalDamageTraining":17,"elementalDamageTraining":17,"linkCostOptimization":9,"turretLevelUpOptimization":10},"research":{"researchEfficiency":0,"researchCostEfficiency":0,"emergencySale":1,"turretTargetPriority":2,"criticalChance":4,"gemAttunement":16,"linkMaintenance":18,"crystalRecovery":19,"linkExpansionOne":20,"runUpgradeCostOptimization":6,"runeResonance":8,"waveGoldLimitExpansion":11,"killGoldLimitExpansion":13,"towerDamageLimitExpansion":15},"turret":{"arrow":0,"cannon":0,"magic":0,"frost":0,"sniper":3,"lightning":7},"gem":{"aimSpeed":3,"armorPiercing":21},"core":{"guardianBeam":0,"riftMark":20},"feature":{"researchSlotTwo":25,"researchSlotTwoPreview":23}}
+const REQUIREMENTS := {"upgrade":{"startingGold":0,"nexusHp":0,"supply":0,"fireTraining":0,"bossBounty":5,"killGold":1,"criticalDamage":4,"physicalDamageTraining":17,"elementalDamageTraining":17,"linkCostOptimization":9,"turretLevelUpOptimization":10},"research":{"researchEfficiency":0,"researchCostEfficiency":0,"emergencySale":1,"turretTargetPriority":2,"criticalChance":4,"gemAttunement":16,"linkMaintenance":18,"crystalRecovery":19,"linkExpansionOne":20,"runUpgradeCostOptimization":6,"runeResonance":8,"waveGoldLimitExpansion":11,"killGoldLimitExpansion":13,"towerDamageLimitExpansion":15,"linkExpansionTwo":30},"turret":{"arrow":0,"cannon":0,"magic":0,"frost":0,"sniper":3,"lightning":7},"gem":{"aimSpeed":3,"armorPiercing":21},"core":{"guardianBeam":0,"riftMark":20},"feature":{"researchSlotTwo":25,"researchSlotTwoPreview":23}}
 const LEGACY_REQUIREMENTS := {"upgrade":{"startingGold":0,"nexusHp":0,"supply":0,"fireTraining":0,"bossBounty":0,"killGold":1,"criticalDamage":4,"physicalDamageTraining":7,"elementalDamageTraining":7,"linkCostOptimization":9,"turretLevelUpOptimization":9},"research":{"researchEfficiency":0,"researchCostEfficiency":0,"emergencySale":1,"turretTargetPriority":2,"criticalChance":4,"gemAttunement":2,"linkMaintenance":0,"crystalRecovery":5,"linkExpansionOne":5,"runUpgradeCostOptimization":8,"runeResonance":8,"waveGoldLimitExpansion":15,"killGoldLimitExpansion":15,"towerDamageLimitExpansion":15},"turret":{"arrow":0,"cannon":0,"magic":0,"frost":0,"sniper":3,"lightning":6},"gem":{"aimSpeed":3,"armorPiercing":10},"feature":{"researchSlotTwo":10,"researchSlotTwoPreview":8}}
 const STAGES := {
 	1: {"id":1,"chapter":1,"chapterStage":1},
@@ -48,6 +48,7 @@ const UNLOCKS := {
 	18: [["기초 연결 공학","research/link_maintenance.png","연구"]],
 	19: [["결정 회수","research/crystal_recovery.png","연구"]],
 	20: [["링크 확장 I","research/link_expansion_one.png","연구"],["균열 낙인","core_abilities/rift_mark.png","코어"]],
+	30: [["링크 확장 II","research/link_expansion_one.png","연구"]],
 	6: [["전투 투자 최적화","research/run_upgrade_cost_optimization.png","연구"]],
 	7: [["라이트닝 포탑","material:eedd","포탑"]],
 	8: [["룬 공명","research/rune_resonance.png","연구"]],
@@ -70,6 +71,7 @@ const REWARD_ICONS := {
 	18: ["stage_rewards/reward_research.png"],
 	19: ["stage_rewards/reward_research.png"],
 	20: ["stage_rewards/reward_research.png","stage_rewards/reward_core.png"],
+	30: ["stage_rewards/reward_research.png"],
 	6: ["stage_rewards/reward_research.png"],
 	7: ["turret:lightning"],
 	8: ["stage_rewards/reward_research.png"],

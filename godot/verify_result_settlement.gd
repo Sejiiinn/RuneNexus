@@ -111,7 +111,7 @@ func run():
 	check(not service.blocks_play(), "background settlement does not gate navigation")
 	check(posts[0].headers.Authorization == "Bearer fixture-access" and posts[0].headers.has("Idempotency-Key") and http.durable, "authenticated HTTP only after durable terminal/outbox/inFlight writes")
 	var body: Dictionary = JSON.parse_string(posts[0].body)
-	check(body.runId == run_id and body.success and body.pendingDiamonds == 15 and body.sourceSaveRevision == 8 and body.writerGeneration == 2 and body.clientCompatibilityVersion == 5, "production save-writer/run settlement contract")
+	check(body.runId == run_id and body.success and body.pendingDiamonds == 15 and body.sourceSaveRevision == 8 and body.writerGeneration == 2 and body.clientCompatibilityVersion == 6, "production save-writer/run settlement contract")
 	service.request_run_settlement(true)
 	check(app.open_stage_menu_destination() and app.in_lobby, "result exit allowed during request")
 	await frames()

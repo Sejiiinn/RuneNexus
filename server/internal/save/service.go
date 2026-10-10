@@ -18,7 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = 5
+	CurrentClientCompatibilityVersion       = FifthLinkClientCompatibilityVersion
 )
 
 var (

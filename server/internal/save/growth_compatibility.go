@@ -14,6 +14,7 @@ const (
 	CurrentGrowthVersion                    = 1
 	ProgressionClientCompatibilityVersion   = 4
 	RoutedContentClientCompatibilityVersion = 5
+	FifthLinkClientCompatibilityVersion     = 6
 	CurrentProgressionVersion               = progression.Version
 	CurrentStageCount                       = progression.StageCount
 )
@@ -39,6 +40,9 @@ func ClientCompatibilityFromBody(raw []byte) int {
 }
 
 func ValidateGrowthClient(progression []byte, clientVersion int) error {
+	if hasFifthLinkResearch(progression) && clientVersion < FifthLinkClientCompatibilityVersion {
+		return ErrClientUpdateRequired
+	}
 	if hasExpandedChapterThreeProgress(progression) && clientVersion < RoutedContentClientCompatibilityVersion {
 		return ErrClientUpdateRequired
 	}
@@ -114,11 +118,22 @@ func ValidateContentClient(progression, activeRun []byte, clientVersion int) err
 		return err
 	}
 	var run struct {
-		StageNumber int                          `json:"stageNumber"`
-		Enemies     []map[string]json.RawMessage `json:"enemies"`
-		SpawnQueue  []map[string]json.RawMessage `json:"spawnQueue"`
+		StageNumber int `json:"stageNumber"`
+		Turrets     []struct {
+			SlotLimit int `json:"slotLimit"`
+		} `json:"turrets"`
+		Enemies    []map[string]json.RawMessage `json:"enemies"`
+		SpawnQueue []map[string]json.RawMessage `json:"spawnQueue"`
 	}
-	if json.Unmarshal(activeRun, &run) == nil && clientVersion < RoutedContentClientCompatibilityVersion {
+	validRun := json.Unmarshal(activeRun, &run) == nil
+	if validRun && clientVersion < FifthLinkClientCompatibilityVersion {
+		for _, turret := range run.Turrets {
+			if turret.SlotLimit >= 5 {
+				return ErrClientUpdateRequired
+			}
+		}
+	}
+	if validRun && clientVersion < RoutedContentClientCompatibilityVersion {
 		if run.StageNumber > 25 {
 			return ErrClientUpdateRequired
 		}
@@ -147,6 +162,30 @@ func hasExpandedChapterThreeProgress(raw []byte) bool {
 			if id > 25 {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// Generation five codecs discard the new research ID. Protect only accounts
+// which have begun using it, leaving existing three/four-slot saves compatible.
+func hasFifthLinkResearch(raw []byte) bool {
+	var p struct {
+		Levels  map[string]int   `json:"researchLevels"`
+		Elapsed map[string]int64 `json:"researchElapsedMillis"`
+		Active  []struct {
+			Type string `json:"type"`
+		} `json:"activeResearches"`
+	}
+	if json.Unmarshal(raw, &p) != nil {
+		return false
+	}
+	if p.Levels["linkExpansionTwo"] > 0 || p.Elapsed["linkExpansionTwo"] > 0 {
+		return true
+	}
+	for _, active := range p.Active {
+		if active.Type == "linkExpansionTwo" {
+			return true
 		}
 	}
 	return false

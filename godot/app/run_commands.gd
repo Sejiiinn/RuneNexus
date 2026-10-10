@@ -65,7 +65,7 @@ func quotes(state: Dictionary, id: int) -> Dictionary:
 	var level_base := int(r.levelUpCosts[mini(level-1,r.levelUpCosts.size()-1)])
 	var link_base := int(r.linkUpgradeCosts[mini(slot-1,r.linkUpgradeCosts.size()-1)])
 	return {"level":maxi(1,roundi(level_base*(1-level_discount)*float(d.get("passiveTurretLevelUpCostMultiplier",1))*float(d.get("permanentTurretLevelUpCostMultiplier",1)))) if level < int(r.get("maxLevel",10)) else 0,
-		"link":maxi(1,roundi(link_base*(1-link_discount)*float(d.get("passiveTurretLinkCostMultiplier",1))*float(d.get("permanentLinkCostMultiplier",1)))) if slot < int(d.get("maxTurretLinkSlots",3)) and level >= (5 if slot >= 2 else 1) else 0,
+		"link":maxi(1,roundi(link_base*(1-link_discount)*float(d.get("passiveTurretLinkCostMultiplier",1))*float(d.get("permanentLinkCostMultiplier",1)))) if slot < int(d.get("maxTurretLinkSlots",3)) and slot <= r.linkUpgradeCosts.size() and level >= int(r.linkRequiredLevels[mini(slot-1,r.linkRequiredLevels.size()-1)]) else 0,
 		"sell":int(int(t.investedGold)*int(d.get("turretRefundPercent",50))/100),
 		"primaryTrait":maxi(1,roundi(12*float(d.get("passiveTraitShardCostMultiplier",1)))), "secondaryTrait":maxi(1,roundi(24*float(d.get("passiveTraitShardCostMultiplier",1)))),
 		"primaryTraits":r.get("primaryTraits",[]), "secondaryTraits":r.get("secondaryTraits",[])}

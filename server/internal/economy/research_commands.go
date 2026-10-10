@@ -377,6 +377,9 @@ func researchCompletionCost(progressionJSON []byte, researchType string, now tim
 	if err := json.Unmarshal(progressionJSON, &progression); err != nil {
 		return activeResearch{}, 0, ErrInvalidCommand
 	}
+	if researchType == "linkExpansionTwo" && (!intContains(progression.ClearedStageNumbers, stageprogression.Requirement("research", researchType, false)) || progression.ResearchLevels["linkExpansionOne"] < 1) {
+		return activeResearch{}, 0, ErrInvalidCommand
+	}
 	for _, active := range progression.ActiveResearches {
 		if active.Type != researchType || active.TargetLevel <= 0 || active.TargetLevel > researchMaxLevel(active.Type, progression.GrowthVersion) || active.TargetLevel <= progression.ResearchLevels[active.Type] || active.DurationMillis <= 0 {
 			continue
@@ -432,6 +435,9 @@ func effectAppliedToProgression(effectJSON []byte, progressionJSON []byte) bool 
 	if json.Unmarshal(effectJSON, &effect) != nil || json.Unmarshal(progressionJSON, &progression) != nil {
 		return false
 	}
+	if effect.ResearchType == "linkExpansionTwo" && (!intContains(progression.ClearedStageNumbers, stageprogression.Requirement("research", effect.ResearchType, false)) || progression.ResearchLevels["linkExpansionOne"] < 1) {
+		return false
+	}
 	// A pending generation-2 boss receipt remains acknowledgeable after its
 	// research was converted to the permanent upgrade. No new reward is granted.
 	if effect.ResearchType == "bossBounty" && progression.GrowthVersion >= 1 {
@@ -463,7 +469,7 @@ func researchMaxLevel(kind string, growthVersion int) int {
 		return 10
 	case "gemAttunement", "crystalRecovery":
 		return 5
-	case "turretTargetPriority", "linkExpansionOne":
+	case "turretTargetPriority", "linkExpansionOne", "linkExpansionTwo":
 		return 1
 	case "criticalChance":
 		if growthVersion >= 1 {

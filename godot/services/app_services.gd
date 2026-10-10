@@ -554,6 +554,7 @@ func _apply_effect(effect: Dictionary) -> bool:
 	if level <= 0: return false
 	var p := _progression_for_update()
 	if p.is_empty(): return false
+	if id == "linkExpansionTwo" and (not preload("res://content/stage_progression.gd").has_unlock(p,"research",id) or not app.run_domain.growth.research_prerequisites_met(p,id) or level > 1): return false
 	if id == "bossBounty":
 		p.bossBountyUpgradeLevel = maxi(int(p.get("bossBountyUpgradeLevel",0)),mini(level,20))
 		p.researchLevels.erase(id)

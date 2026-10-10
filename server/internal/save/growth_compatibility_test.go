@@ -77,3 +77,28 @@ func TestRoutedContentCompatibilityIsBounded(t *testing.T) {
 		})
 	}
 }
+
+func TestFifthLinkSelectiveClientCompatibility(t *testing.T) {
+	for _, tc := range []struct {
+		p, run   string
+		needsSix bool
+	}{
+		{`{"researchLevels":{"linkExpansionOne":1}}`, `{"turrets":[{"slotLimit":4}]}`, false},
+		{`{"clearedStageNumbers":[30]}`, `null`, false},
+		{`{"researchLevels":{"linkExpansionTwo":0}}`, `null`, false},
+		{`{"researchLevels":{"linkExpansionTwo":1}}`, `null`, true},
+		{`{"researchElapsedMillis":{"linkExpansionTwo":1000}}`, `null`, true},
+		{`{"activeResearches":[{"type":"linkExpansionTwo"}]}`, `null`, true},
+		{`{}`, `{"turrets":[{"slotLimit":5}]}`, true},
+	} {
+		if got := ValidateContentClient([]byte(tc.p), []byte(tc.run), 5); errors.Is(got, ErrClientUpdateRequired) != tc.needsSix {
+			t.Fatalf("%+v err=%v", tc, got)
+		}
+		if err := ValidateContentClient([]byte(tc.p), []byte(tc.run), 6); err != nil {
+			t.Fatalf("generation six: %v", err)
+		}
+		if tc.needsSix && tc.run == `null` && !errors.Is(ValidateGrowthUpdate([]byte(tc.p), []byte(`{}`), 5), ErrClientUpdateRequired) {
+			t.Fatal("old writer erased II")
+		}
+	}
+}

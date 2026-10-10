@@ -16,8 +16,19 @@ func load_catalog(path: String = "res://content/growth_content.json") -> bool:
 func _c(key: String) -> float:
 	return float(data.constants.get(key, 0))
 
+func research_prerequisites_met(p: Dictionary, key: String) -> bool:
+	var prerequisites: Dictionary = data.research.get(key, {}).get("requiredResearch", {})
+	for prerequisite in prerequisites:
+		if _research(p, prerequisite) < int(prerequisites[prerequisite]): return false
+	return true
+
 func _research(p: Dictionary, key: String) -> int:
-	return clampi(int(p.get("researchLevels", {}).get(key, 0)) if StageProgression.has_unlock(p,"research",key) else 0, 0, int(data.research.get(key, {}).get("maxLevel", 0)))
+	if not StageProgression.has_unlock(p,"research",key) or not research_prerequisites_met(p,key): return 0
+	return clampi(int(p.get("researchLevels", {}).get(key, 0)), 0, int(data.research.get(key, {}).get("maxLevel", 0)))
+
+func max_link_slots(p: Dictionary) -> int:
+	if _research(p,"linkExpansionOne") < 1: return 3
+	return 5 if _research(p,"linkExpansionTwo") >= 1 else 4
 
 func _level(p: Dictionary, key: String) -> int:
 	var definition: Dictionary = data.permanentUpgrades.get(key, {})
@@ -81,7 +92,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"initialGold": int(_c("baseInitialGold") + _level(p, "startingGold") * _c("startingGoldPerUpgradeLevel")),
 		"maxNexusHp": (_c("baseNexusHp") + _level(p, "nexusHp")) * core.nexusMaxHpMultiplier,
 		"startingGemShards": int(_research(p, "gemAttunement") * _c("gemShardsPerGemAttunementLevel")),
-		"maxTurretLinkSlots": 4 if _research(p, "linkExpansionOne") >= int(data.research.get("linkExpansionOne", {}).get("maxLevel", 1)) else 3,
+		"maxTurretLinkSlots": max_link_slots(p),
 		"canSetTurretTargetPriority": _research(p, "turretTargetPriority") > 0,
 		"turretRefundPercent": int(_c("baseTurretRefundPercent") + (_research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") if economy_unlocked else 0)),
 		"permanentLinkCostMultiplier": 1.0 - _level(p, "linkCostOptimization") * _c("permanentCostReductionPerUpgradeLevel"),
@@ -223,7 +234,7 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 				if action == "startResearch":
 					var d: Dictionary = data.research[id]
 					if active_index >= 0 or quote.level >= int(d.maxLevel) or state.activeResearches.size() >= (2 if state.get("researchSlotTwoUnlocked", false) else 1): return rejected
-					if not StageProgression.has_unlock(state,"research",id): return rejected
+					if not StageProgression.has_unlock(state,"research",id) or not research_prerequisites_met(state,id): return rejected
 					if int(state.get("runes", 0)) < quote.cost: return rejected
 					state.runes = int(state.get("runes", 0)) - quote.cost
 					state.activeResearches.append({"type": id, "targetLevel": quote.level + 1, "startedAtMillis": now, "durationMillis": quote.remainingMillis, "initialElapsedMillis": int(state.researchElapsedMillis.get(id, 0))})
@@ -248,7 +259,7 @@ func _complete_research(state: Dictionary, now: int) -> bool:
 		if now < int(active.startedAtMillis) + int(active.durationMillis): continue
 		state.activeResearches.erase(active)
 		changed = true
-		if data.research.has(active.type):
+		if data.research.has(active.type) and (active.type != "linkExpansionTwo" or (StageProgression.has_unlock(state,"research",active.type) and research_prerequisites_met(state,active.type))):
 			state.researchLevels[active.type] = clampi(int(active.targetLevel), 0, int(data.research[active.type].maxLevel))
 			state.researchElapsedMillis.erase(active.type)
 	return changed

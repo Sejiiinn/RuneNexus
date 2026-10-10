@@ -17,6 +17,7 @@ from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_fifth_link.gd": None,
     "verify_chapter_three_panels.gd": None,
     "verify_dispatch_portals.gd": None,
     "verify_chapter_three_normal_combat.gd": None,

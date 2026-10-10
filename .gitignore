@@ -826,3 +826,6 @@ __pycache__/
 
 # 냉각 포탑 UV·노멀 재베이크의 일회성 검사·로그
 /design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/checks/
+
+# 다섯 번째 링크 연구의 일회성 실행·캡처·격리 프로젝트.
+/design/stage_expansion_progression/fifth-link-local/

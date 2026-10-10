@@ -4,17 +4,17 @@ const Progression = preload("res://content/stage_progression.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const ProgressVisual = preload("res://ui/research_progress.gd")
 const T = preload("res://ui/app_theme.gd")
-const TITLES := {"startingGold": "시작 골드", "nexusHp": "넥서스 체력", "supply": "정비 보급", "fireTraining": "기초 화력 훈련", "physicalDamageTraining": "물리 화력 훈련", "elementalDamageTraining": "원소 화력 훈련", "criticalDamage": "치명 충격", "killGold": "처치 보상", "bossBounty": "토벌 보상", "linkCostOptimization": "연결 공정", "turretLevelUpOptimization": "강화 공정", "researchEfficiency": "연구 효율", "researchCostEfficiency": "연구 비용 효율", "turretTargetPriority": "전술 명령", "linkExpansionOne": "링크 확장 I", "gemAttunement": "젬 감응", "criticalChance": "치명 집중", "emergencySale": "긴급 매각", "linkMaintenance": "기초 연결 공학", "crystalRecovery": "결정 회수", "runeResonance": "룬 공명", "runUpgradeCostOptimization": "전투 투자 최적화", "towerDamageLimitExpansion": "포탑 화력 확장", "killGoldLimitExpansion": "처치 보너스 확장", "waveGoldLimitExpansion": "정비 보급 확장"}
+const TITLES := {"startingGold": "시작 골드", "nexusHp": "넥서스 체력", "supply": "정비 보급", "fireTraining": "기초 화력 훈련", "physicalDamageTraining": "물리 화력 훈련", "elementalDamageTraining": "원소 화력 훈련", "criticalDamage": "치명 충격", "killGold": "처치 보상", "bossBounty": "토벌 보상", "linkCostOptimization": "연결 공정", "turretLevelUpOptimization": "강화 공정", "researchEfficiency": "연구 효율", "researchCostEfficiency": "연구 비용 효율", "turretTargetPriority": "전술 명령", "linkExpansionOne": "링크 확장 I", "linkExpansionTwo": "링크 확장 II", "gemAttunement": "젬 감응", "criticalChance": "치명 집중", "emergencySale": "긴급 매각", "linkMaintenance": "기초 연결 공학", "crystalRecovery": "결정 회수", "runeResonance": "룬 공명", "runUpgradeCostOptimization": "전투 투자 최적화", "towerDamageLimitExpansion": "포탑 화력 확장", "killGoldLimitExpansion": "처치 보너스 확장", "waveGoldLimitExpansion": "정비 보급 확장"}
 const DESCRIPTIONS := {"startingGold": "새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.", "nexusHp": "모든 런의 넥서스 최대 체력이 영구적으로 증가합니다.", "supply": "웨이브를 클리어할 때마다 추가 골드를 받습니다.", "fireTraining": "모든 런에서 모든 포탑의 피해량이 증가합니다.", "physicalDamageTraining": "물리 포탑의 피해량이 증가합니다.", "elementalDamageTraining": "원소 포탑의 피해량이 증가합니다.", "criticalDamage": "모든 포탑의 치명타 추가 피해율이 증가합니다.", "killGold": "적을 처치할 때 획득하는 골드가 증가합니다.", "bossBounty": "레벨마다 보스 처치 골드가 2.5% 증가합니다.", "linkCostOptimization": "모든 포탑의 링크 확장 비용을 영구적으로 감폭합니다.", "turretLevelUpOptimization": "모든 포탑의 레벨업 비용을 영구적으로 감폭합니다."}
 ## Korean researchDescription from lib/l10n/rune_nexus_localizations.dart.
-const RESEARCH_DESCRIPTIONS := {"linkExpansionOne": "포탑의 추가 링크 홈을 열 수 있게 합니다.", "gemAttunement": "스테이지 시작 젬 파편을 +2 늘립니다.", "researchEfficiency": "레벨마다 연구 효율이 5% 증가합니다. 효율 100%는 이후 연구를 2배 빠르게 만듭니다.", "researchCostEfficiency": "레벨마다 연구 비용 효율이 5% 증가합니다. 효율 100%는 이후 연구 룬 비용을 절반으로 줄입니다.", "turretTargetPriority": "포탑별로 우선 공격 대상을 지정할 수 있도록 합니다.", "criticalChance": "레벨마다 모든 포탑의 치명타 확률이 2%p 증가합니다.", "emergencySale": "레벨마다 포탑 환불 비율이 1%p 증가합니다.", "crystalRecovery": "레벨마다 보스 처치 시 획득하는 젬 파편이 1 증가합니다.", "runeResonance": "레벨당 2%씩 합산한 비율로 런 종료 후 획득하는 룬을 증폭합니다.", "runUpgradeCostOptimization": "레벨마다 모든 런 업그레이드 비용이 2% 감소합니다.", "towerDamageLimitExpansion": "레벨마다 포탑 화력의 최대 레벨이 1 증가합니다.", "killGoldLimitExpansion": "레벨마다 처치 보너스의 최대 레벨이 1 증가합니다.", "waveGoldLimitExpansion": "레벨마다 정비 보급의 최대 레벨이 1 증가합니다."}
+const RESEARCH_DESCRIPTIONS := {"linkExpansionOne": "포탑의 네 번째 링크 홈을 골드로 열 수 있게 합니다.", "linkExpansionTwo": "링크 확장 I 연구를 마친 뒤, 포탑의 다섯 번째 링크 홈을 골드로 열 수 있게 합니다.", "gemAttunement": "스테이지 시작 젬 파편을 +2 늘립니다.", "researchEfficiency": "레벨마다 연구 효율이 5% 증가합니다. 효율 100%는 이후 연구를 2배 빠르게 만듭니다.", "researchCostEfficiency": "레벨마다 연구 비용 효율이 5% 증가합니다. 효율 100%는 이후 연구 룬 비용을 절반으로 줄입니다.", "turretTargetPriority": "포탑별로 우선 공격 대상을 지정할 수 있도록 합니다.", "criticalChance": "레벨마다 모든 포탑의 치명타 확률이 2%p 증가합니다.", "emergencySale": "레벨마다 포탑 환불 비율이 1%p 증가합니다.", "crystalRecovery": "레벨마다 보스 처치 시 획득하는 젬 파편이 1 증가합니다.", "runeResonance": "레벨당 2%씩 합산한 비율로 런 종료 후 획득하는 룬을 증폭합니다.", "runUpgradeCostOptimization": "레벨마다 모든 런 업그레이드 비용이 2% 감소합니다.", "towerDamageLimitExpansion": "레벨마다 포탑 화력의 최대 레벨이 1 증가합니다.", "killGoldLimitExpansion": "레벨마다 처치 보너스의 최대 레벨이 1 증가합니다.", "waveGoldLimitExpansion": "레벨마다 정비 보급의 최대 레벨이 1 증가합니다."}
 var lobby
 var category := "전투"
 var selected_research := ""
 var strong_font: Font
 const COMBAT := ["nexusHp", "fireTraining", "physicalDamageTraining", "elementalDamageTraining", "criticalDamage"]
 const ECONOMY := ["startingGold", "supply", "killGold", "bossBounty", "linkCostOptimization", "turretLevelUpOptimization"]
-const ICONS := {"nexusHp":"upgrades/nexus_hp.png", "fireTraining":"upgrades/tower_damage.png", "physicalDamageTraining":"upgrades/physical_damage.png", "elementalDamageTraining":"upgrades/elemental_damage.png", "criticalDamage":"upgrades/critical_damage.png", "startingGold":"upgrades/starting_gold.png", "supply":"upgrades/wave_gold.png", "killGold":"upgrades/kill_gold.png", "bossBounty":"research/boss_bounty.png", "linkCostOptimization":"upgrades/link_cost_optimization.png", "turretLevelUpOptimization":"upgrades/turret_level_up_optimization.png", "criticalChance":"upgrades/critical_chance.png", "emergencySale":"upgrades/turret_refund.png"}
+const ICONS := {"linkExpansionTwo":"research/link_expansion_one.png", "nexusHp":"upgrades/nexus_hp.png", "fireTraining":"upgrades/tower_damage.png", "physicalDamageTraining":"upgrades/physical_damage.png", "elementalDamageTraining":"upgrades/elemental_damage.png", "criticalDamage":"upgrades/critical_damage.png", "startingGold":"upgrades/starting_gold.png", "supply":"upgrades/wave_gold.png", "killGold":"upgrades/kill_gold.png", "bossBounty":"research/boss_bounty.png", "linkCostOptimization":"upgrades/link_cost_optimization.png", "turretLevelUpOptimization":"upgrades/turret_level_up_optimization.png", "criticalChance":"upgrades/critical_chance.png", "emergencySale":"upgrades/turret_refund.png"}
 const EFFECTS := {
 "startingGold":["초기 골드", "startingGoldPerUpgradeLevel", "G"], "nexusHp":["코어 체력", "", ""], "supply":["라운드 보급", "supplyGoldPerUpgradeLevel", "G"],
 "fireTraining":["모든 포탑 피해", "fireTrainingDamagePerUpgradeLevel", "%"], "physicalDamageTraining":["물리 포탑 피해", "familyDamageTrainingBonusPerUpgradeLevel", "%"], "elementalDamageTraining":["원소 포탑 피해", "familyDamageTrainingBonusPerUpgradeLevel", "%"], "criticalDamage":["치명타 피해", "criticalDamageBonusPerUpgradeLevel", "%p"], "killGold":["처치 골드", "killGoldBonusPerUpgradeLevel", "%"], "bossBounty":["보스 처치 골드", "bossBountyBonusPerUpgradeLevel", "%"], "linkCostOptimization":["링크 비용", "permanentCostReductionPerUpgradeLevel", "-%"], "turretLevelUpOptimization":["포탑 강화 비용", "permanentCostReductionPerUpgradeLevel", "-%"],
@@ -261,6 +261,7 @@ func upgrades() -> void:
 
 func effect_value(id: String, level: int) -> String:
 	if id == "linkExpansionOne": return "링크 홈 4개" if level > 0 else "링크 홈 3개"
+	if id == "linkExpansionTwo": return "링크 홈 5개" if level > 0 else "링크 홈 4개"
 	if id == "turretTargetPriority": return "목표 우선순위 설정 가능" if level > 0 else "목표 우선순위 설정 잠김"
 	var e: Array = EFFECTS.get(id, ["", "", ""])
 	var v := float(_growth().data.constants.get(e[1], 1)) * level
@@ -284,7 +285,7 @@ func _effect(box: Node, id: String, level: int, maximum: int, enabled := true) -
 		flow.add_child(next)
 
 func _research_effect(id: String, level: int, maximum: int) -> String:
-	if id == "linkExpansionOne": return "최대 링크 증가"
+	if id in ["linkExpansionOne","linkExpansionTwo"]: return "최대 링크 증가"
 	if id == "turretTargetPriority": return "포탑 공격 명령 해금"
 	var names := {"researchEfficiency":"연구 효율", "researchCostEfficiency":"비용 효율", "linkMaintenance":"첫 링크 비용", "gemAttunement":"젬 파편", "criticalChance":"치명타 확률", "emergencySale":"포탑 환불", "crystalRecovery":"보스 처치 시 젬 파편", "runeResonance":"룬 보상", "runUpgradeCostOptimization":"런 업그레이드 비용"}
 	var text: String = str(names.get(id, EFFECTS[id][0])) + " " + effect_value(id, level)
@@ -313,6 +314,7 @@ func research_status(id: String) -> String:
 	if not _active(id).is_empty(): return "연구 중"
 	if int(q.level) >= int(d.maxLevel): return "연구 완료"
 	if not Progression.has_unlock(lobby._p(), "research", id): return "스테이지 %s 클리어 필요" % Progression.stage_label(Progression.requirement("research", id))
+	if not _growth().research_prerequisites_met(lobby._p(),id): return "링크 확장 I 연구 완료 필요"
 	if lobby._p().get("activeResearches", []).size() >= (2 if lobby._p().get("researchSlotTwoUnlocked", false) else 1): return "빈 연구 슬롯 필요"
 	if int(lobby._p().get("runes", 0)) < int(q.cost): return "룬 부족"
 	return "연구 가능"
@@ -476,7 +478,7 @@ func research() -> void:
 	ids.sort_custom(func(a, b): return Progression.ordinal_for(Progression.requirement("research", a)) < Progression.ordinal_for(Progression.requirement("research", b)))
 	for id in ids:
 		var status := research_status(id)
-		groups["완료한 연구" if status == "연구 완료" else ("잠긴 연구" if status.begins_with("스테이지") else "가능한 연구")].append(id)
+		groups["완료한 연구" if status == "연구 완료" else ("잠긴 연구" if status.begins_with("스테이지") or status.ends_with("연구 완료 필요") else "가능한 연구")].append(id)
 	for group in groups:
 		var presentation: Array = {"가능한 연구":["해금된 연구", 0xf33d, Color("e7c66a")], "잠긴 연구":["아직 해금되지 않음", 0xe3b1, Color("8da5b3")], "완료한 연구":["연구 완료", 0xe1f7, Color("bdefcf")]}[group]
 		var section := _section(lobby.body, presentation[0], presentation[1], presentation[2])
@@ -570,7 +572,7 @@ func _research_detail_heading(box: VBoxContainer, id: String, level: int, maximu
 
 func _research_detail_effect(box: VBoxContainer, id: String, level: int, maximum: int) -> void:
 	# Unlock descriptions need wrapping; numeric effects fit the compact comparison.
-	var comparison: BoxContainer = VBoxContainer.new() if id in ["linkExpansionOne","turretTargetPriority"] else HBoxContainer.new()
+	var comparison: BoxContainer = VBoxContainer.new() if id in ["linkExpansionOne","linkExpansionTwo","turretTargetPriority"] else HBoxContainer.new()
 	comparison.name = "ResearchDetailEffect"; comparison.alignment = BoxContainer.ALIGNMENT_CENTER; comparison.add_theme_constant_override("separation",10); box.add_child(comparison)
 	var current = T.label("현재 " + effect_value(id,level),16); current.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; comparison.add_child(current)
 	if comparison is HBoxContainer: current.autowrap_mode = TextServer.AUTOWRAP_OFF

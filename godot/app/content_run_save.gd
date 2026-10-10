@@ -116,7 +116,7 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 		var cell := int(t.y) * int(map.columns) + int(t.x)
 		if occupied.has(cell) or map.tiles[cell] != "build": return _reject("Occupied or unbuildable turret tile")
 		occupied[cell] = true
-		if t.level < 1 or t.level > int(rule.maxLevel) or t.slotLimit < 1 or t.slotLimit > 4 or t.equippedGemSlots.size() > t.slotLimit: return _reject("Invalid turret level/slots")
+		if t.level < 1 or t.level > int(rule.maxLevel) or t.slotLimit < 1 or t.slotLimit > 5 or (t.slotLimit == 5 and growth.max_link_slots(state.progression) < 5) or t.equippedGemSlots.size() > t.slotLimit: return _reject("Invalid turret level/slots")
 		for key in ["primaryTrait","secondaryTrait"]:
 			if t[key] != null and t[key] not in rule.get(key+"s",[]): return _reject("Invalid turret trait")
 		if GemSlots.has_duplicates(t.equippedGemSlots): return _reject("Invalid turret gems")

@@ -17,7 +17,8 @@ const ENUMS = {
 		"runUpgradeCostOptimization",
 		"towerDamageLimitExpansion",
 		"killGoldLimitExpansion",
-		"waveGoldLimitExpansion"
+		"waveGoldLimitExpansion",
+		"linkExpansionTwo"
 	],
 	"TurretType": [
 		"arrow",

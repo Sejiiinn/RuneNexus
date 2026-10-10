@@ -214,7 +214,8 @@
       "runeResonance": 8,
       "waveGoldLimitExpansion": 11,
       "killGoldLimitExpansion": 13,
-      "towerDamageLimitExpansion": 15
+      "towerDamageLimitExpansion": 15,
+      "linkExpansionTwo": 30
     },
     "turret": {
       "arrow": 0,
@@ -380,6 +381,13 @@
       "kind": "research",
       "key": "linkExpansionOne",
       "title": "링크 확장 I",
+      "icon": "research/link_expansion_one.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "linkExpansionTwo",
+      "title": "링크 확장 II",
       "icon": "research/link_expansion_one.png",
       "category": "연구"
     },

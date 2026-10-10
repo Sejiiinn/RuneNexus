@@ -4945,6 +4945,21 @@
         14392833,
         15544260
       ]
+    },
+    "linkExpansionTwo": {
+      "maxLevel": 1,
+      "requiredClearedStage": 30,
+      "requiredResearch": {
+        "linkExpansionOne": 1
+      },
+      "costs": [
+        45000,
+        45000
+      ],
+      "durations": [
+        28800000,
+        28800000
+      ]
     }
   },
   "runUpgrades": {
@@ -5336,10 +5351,14 @@
       ],
       "linkUpgradeCosts": [
         90,
-        180
+        180,
+        180,
+        360
       ],
       "linkRequiredLevels": [
         1,
+        5,
+        5,
         5
       ],
       "primaryTraits": [
@@ -5382,10 +5401,14 @@
       ],
       "linkUpgradeCosts": [
         135,
-        270
+        270,
+        270,
+        540
       ],
       "linkRequiredLevels": [
         1,
+        5,
+        5,
         5
       ],
       "primaryTraits": [
@@ -5428,10 +5451,14 @@
       ],
       "linkUpgradeCosts": [
         120,
-        240
+        240,
+        240,
+        480
       ],
       "linkRequiredLevels": [
         1,
+        5,
+        5,
         5
       ],
       "primaryTraits": [
@@ -5473,10 +5500,14 @@
       ],
       "linkUpgradeCosts": [
         128,
-        255
+        255,
+        255,
+        510
       ],
       "linkRequiredLevels": [
         1,
+        5,
+        5,
         5
       ],
       "primaryTraits": [
@@ -5516,10 +5547,14 @@
       ],
       "linkUpgradeCosts": [
         180,
-        360
+        360,
+        360,
+        720
       ],
       "linkRequiredLevels": [
         1,
+        5,
+        5,
         5
       ],
       "primaryTraits": [
@@ -5560,10 +5595,14 @@
       ],
       "linkUpgradeCosts": [
         210,
-        420
+        420,
+        420,
+        840
       ],
       "linkRequiredLevels": [
         1,
+        5,
+        5,
         5
       ],
       "primaryTraits": [
