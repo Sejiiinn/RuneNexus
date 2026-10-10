@@ -82,6 +82,7 @@ SCRIPTS = {
     "verify_ui_layout_stability.gd": "PASS UI_LAYOUT_STABILITY",
     "verify_modal_refresh.gd": "MODAL_REFRESH checks=",
     "verify_lobby_stages.gd": "PASS stage restoration:",
+    "verify_lobby_numbers.gd": "LOBBY_NUMBERS checks=",
     "verify_app_selection.gd": "PASS app selection:",
     "verify_app_presentation.gd": "PASS independent presentation:",
 }
