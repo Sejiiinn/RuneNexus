@@ -28,6 +28,7 @@ SCRIPTS = {
     "verify_battle_menu_parity.gd": "PASS battle menu parity:",
     "verify_account_modal.gd": "PASS account modal:",
     "verify_content_queries.gd": "PASS content queries:",
+    "verify_menu_return.gd": "MENU_RETURN checks=",
     "verify_stage_expansion.gd": "STAGE_EXPANSION failures=0",
     "verify_growth_rules.gd": "PASS growth rules",
     "verify_content_catalog.gd": "PASS content catalog:",

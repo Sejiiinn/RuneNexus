@@ -143,8 +143,8 @@ func stage_cycles(scene, app, directory: String) -> void:
 		await wait_preparation(scene, "Continue stage %d" % stage_id)
 		check(scene.resource_snapshot().resources.loads == before.resources.loads and scene.resource_snapshot().environment.asset_load_counts == before.environment.asset_load_counts,
 			"same-stage Continue loads no assets or source libraries")
-		check(not root.disable_3d and app.run_domain.state.economyRunId == identity and scene._native_combat.session.paused,
-			"Continue reveals the same paused run")
+		check(not root.disable_3d and app.run_domain.state.economyRunId == identity and not scene._native_combat.session.paused,
+			"Continue reveals the same preparation run without pausing simulation")
 		check(await app.retry_stage(), "restart selected stage %d" % stage_id)
 		await wait_preparation(scene, "restart stage %d" % stage_id)
 		check(scene.resource_snapshot().resources.loads == before.resources.loads and scene.resource_snapshot().environment.asset_load_counts == before.environment.asset_load_counts,

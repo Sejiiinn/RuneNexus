@@ -279,7 +279,7 @@ func run() -> void:
 	var feedback_before: int = scene.feedback_entries
 	check(await app.resume_run(), "same-stage Continue succeeds")
 	check(scene.feedback_entries == feedback_before and int(Resources.snapshot().loads) == loads_before, "cached Continue introduces no feedback wait or resource reload")
-	check(app.run_domain.state.economyRunId == run_identity and scene._native_combat.session.paused, "Continue keeps the same paused run")
+	check(app.run_domain.state.economyRunId == run_identity and not scene._native_combat.session.paused, "Continue keeps the same preparation run without pausing simulation")
 	check(FileAccess.get_file_as_string(app.checkpoint.store.primary_path) == saved_before, "Continue leaves checkpoint bytes unchanged")
 
 	attempt = "cached realization failure"

@@ -19,6 +19,7 @@ var selection_view = preload("res://ui/app_selection.gd").new()
 var services
 var _stage_entry_pending := false
 var _stage_entry_cancelled := false
+var _pause_generation := 0
 
 func _ready() -> void:
 	scene = get_parent()
@@ -191,13 +192,20 @@ func resume_run() -> bool:
 	if services != null and services.blocks_play(): return false
 	if startup_blocked or not scene._native_combat.active or run_domain.state.is_empty(): return false
 	if save_failed and not persist_progression(): return false
-	# Returning to a saved battle only opens it; the HUD resumes simulation.
+	# Keep simulation paused until the returning battlefield is fully ready.
 	if not command([], {"paused":true}): return false
+	var pause_generation := _pause_generation
 	_stage_entry_pending = true
 	_stage_entry_cancelled = false
 	if not await _prepare_stage_resources(stage, run_domain.state): return _finish_stage_entry(false, resume_run)
 	if _stage_entry_cancelled: return _finish_stage_entry(false)
 	if not await _realize_battle_presentation(): return _finish_stage_entry(false, resume_run)
+	if _stage_entry_cancelled: return _finish_stage_entry(false)
+	if save_failed: return _finish_stage_entry(false, resume_run)
+	# Waiting for a wave is not a game pause. Active waves still require the
+	# HUD's explicit resume; automatic entry keeps following the selected mode.
+	if run_domain.state.get("phase") == "preparation" and pause_generation == _pause_generation:
+		if not command([], {"paused":false}): return _finish_stage_entry(false, resume_run)
 	return _finish_stage_entry(true)
 
 func _stage_boot():
@@ -430,6 +438,7 @@ func load_session() -> void:
 	if startup_blocked: retry_load()
 
 func pause_and_save() -> bool:
+	_pause_generation += 1
 	_modal_resume_allowed = false
 	if scene._native_combat.active: command([], {"paused":true})
 	return persist_progression()
