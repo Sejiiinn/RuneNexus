@@ -4,7 +4,7 @@
 
 ## 현재 상태
 
-Android 스테이지 1~15의 전투·런·저장·UI 소스는 Godot 앱에 있다. 활성 Android 호스트는 `android-godot-only/` 하나다. 이전 Flutter/Dart 원본은 [보관본](archive/flutter_reference_20260924.tar.gz)에 있으며 현재 실행·검사 경로가 아니다. 현재 콘텐츠는 스테이지 1~15이며 16 이후의 별도 2D 콘텐츠는 없다.
+Android 스테이지 1~30의 전투·런·저장·UI 소스는 Godot 앱에 있다. 활성 Android 호스트는 `android-godot-only/` 하나다. 이전 Flutter/Dart 원본은 [보관본](archive/flutter_reference_20260924.tar.gz)에 있으며 현재 실행·검사 경로가 아니다. 현재 콘텐츠는 스테이지 1~30이며 별도 2D 전투 콘텐츠는 없다.
 
 웹 배포 경로는 폐기했다. Android 외 플랫폼 지원 범위는 [이관 로드맵](godot_unified_app_roadmap.md)을 따른다. Android 소스 이관을 실제 공개 배포나 기존 설치 인계 검증으로 간주하지 않는다.
 

@@ -2,7 +2,6 @@ extends SceneTree
 const Store = preload("res://app/local_save_store.gd")
 const Slot = preload("res://app/local_save_slot.gd")
 const Codec = preload("res://app/save_codec.gd")
-const WebStore = preload("res://app/web_save_store.gd")
 class CountingStore extends Store:
 	var writes := 0
 	var reads := 0
@@ -315,8 +314,6 @@ func _initialize() -> void:
 	invalid_slot.account_id = "../unsafe"
 	var invalid := Store.new(test_directory, invalid_slot)
 	check(invalid.save_save(a) == ERR_INVALID_PARAMETER, "mutated invalid slot rejected")
-	var web := WebStore.new()
-	check(web.save_save(a) == ERR_UNAUTHORIZED, "web requires writer lock")
 	remove_tree(test_directory)
 	print(JSON.stringify({"suite":"local_save_store","checks":checks,"failures":failures}))
 	quit(0 if failures.is_empty() else 1)
