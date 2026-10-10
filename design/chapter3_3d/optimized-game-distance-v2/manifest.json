@@ -1,0 +1,378 @@
+{
+  "status": "PASS",
+  "source_files": {
+    "design/chapter3_3d/tiles/chapter3-thick-tiles.blend": "3ff4461556939f8781c3cc65e075cd17b875cd762c3124e3d224cbdb0f831299",
+    "design/chapter3_3d/export/chapter3-native-export.blend": "a6aef7c128d345244917cec38115221cff37dadb3a6f68dd83bad12210268517",
+    "design/chapter3_3d/export/chapter3-normal.png": "2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd",
+    "design/chapter3_3d/export/chapter3-metallic.png": "d8eae911c0d4bba7d28595c2d0890e108330cd799251811c8e40b5e3c5fede29",
+    "design/chapter3_3d/export/chapter3-roughness.png": "e04afee2c7319e3de59e55e1d7bfce57f1ae31e633018aa4b881b1e8c3d67065",
+    "design/chapter3_3d/export/chapter3-emission.png": "3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33",
+    "design/chapter3_3d/export/chapter3-basecolor.png": "c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765"
+  },
+  "baseline_glb_sha256": "eedef06047fe74d093e8b356fd91dc4c6d88cf039ee364e7d2b60ce48302818f",
+  "comparison_glb_sha256": "0bfe1010d9b0e65cacf267e88a2051233eff592c4e7fbc84295f46a6745d2759",
+  "candidate": "design/chapter3_3d/optimized-game-distance-v2/checks/error002-hybrid.glb",
+  "candidate_sha256": "117107ef0945516c7ba2357980f9c5c3a8a2c7f13f7fa78484be8df2ee218e76",
+  "packed_blend": "design/chapter3_3d/optimized-game-distance-v2/chapter3-tiles-optimized.blend",
+  "packed_blend_sha256": "629e009d6a1eb340fc8984492298b5f186d4e04889c42d38fc9ee74f2af8dde5",
+  "method": "meshopt_simplifyWithAttributes options0; exact position+UV temporary weld; original source corner attribute tuple export; no pixel changes",
+  "options": 0,
+  "relative_error_limit": 0.002,
+  "normal_attribute_weight": 0.03,
+  "uv_attribute_weight": 1,
+  "meshoptimizer_library": "/Volumes/KIOXIA_MAC/AI-3D/apps/Blender.app/Contents/Resources/lib/libmeshoptimizer.dylib",
+  "meshoptimizer_library_sha256": "cc5531e73d4d589385811ee74b092451a10461554e17ab27cfee505ee0ae4133",
+  "original_triangles": 102636,
+  "current_triangles": 38662,
+  "candidate_triangles": 18442,
+  "reduction_from_current_percent": 52.299415446691846,
+  "candidate_bytes": 6036104,
+  "roots": [
+    {
+      "root": "build_tile",
+      "before_triangles": 24916,
+      "after_triangles": 5624,
+      "before_vertices": 65739,
+      "after_vertices": 9849,
+      "temporary_position_uv_vertices": 18636,
+      "locked_nonmanifold_or_extrema_vertices": 1472,
+      "extra_locked_vertices": 144,
+      "relative_error_limit": 0.001,
+      "actual_error": 0.0009928299114108086,
+      "topology_before": {
+        "geometric_vertices": 12280,
+        "edges": 36782,
+        "faces": 24916,
+        "euler": 414,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 360,
+        "components": 60,
+        "zero_area_faces": 600
+      },
+      "topology_after": {
+        "geometric_vertices": 2930,
+        "edges": 8436,
+        "faces": 5624,
+        "euler": 118,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "components": 60,
+        "zero_area_faces": 8
+      },
+      "bounds_exact": true,
+      "export_attributes_source_tuple_subset": true
+    },
+    {
+      "root": "grate_tile",
+      "before_triangles": 30320,
+      "after_triangles": 5378,
+      "before_vertices": 82090,
+      "after_vertices": 9166,
+      "temporary_position_uv_vertices": 22735,
+      "locked_nonmanifold_or_extrema_vertices": 1474,
+      "extra_locked_vertices": 280,
+      "relative_error_limit": 0.002,
+      "actual_error": 0.001993141369894147,
+      "topology_before": {
+        "geometric_vertices": 14924,
+        "edges": 44784,
+        "faces": 30320,
+        "euler": 460,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 600,
+        "components": 64,
+        "zero_area_faces": 288
+      },
+      "topology_after": {
+        "geometric_vertices": 2597,
+        "edges": 7651,
+        "faces": 5378,
+        "euler": 324,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 416,
+        "components": 64,
+        "zero_area_faces": 0
+      },
+      "bounds_exact": true,
+      "export_attributes_source_tuple_subset": true
+    },
+    {
+      "root": "panel_solid",
+      "before_triangles": 2660,
+      "after_triangles": 872,
+      "before_vertices": 7586,
+      "after_vertices": 1707,
+      "temporary_position_uv_vertices": 1962,
+      "locked_nonmanifold_or_extrema_vertices": 407,
+      "extra_locked_vertices": 0,
+      "relative_error_limit": 0.002,
+      "actual_error": 0.0019993858877569437,
+      "topology_before": {
+        "geometric_vertices": 1232,
+        "edges": 3740,
+        "faces": 2660,
+        "euler": 152,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 250,
+        "components": 3,
+        "zero_area_faces": 0
+      },
+      "topology_after": {
+        "geometric_vertices": 338,
+        "edges": 1058,
+        "faces": 872,
+        "euler": 152,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 250,
+        "components": 3,
+        "zero_area_faces": 0
+      },
+      "bounds_exact": true,
+      "export_attributes_source_tuple_subset": true
+    },
+    {
+      "root": "panel_vent",
+      "before_triangles": 4048,
+      "after_triangles": 910,
+      "before_vertices": 11301,
+      "after_vertices": 1671,
+      "temporary_position_uv_vertices": 3020,
+      "locked_nonmanifold_or_extrema_vertices": 180,
+      "extra_locked_vertices": 0,
+      "relative_error_limit": 0.002,
+      "actual_error": 0.001989065669476986,
+      "topology_before": {
+        "geometric_vertices": 2016,
+        "edges": 6028,
+        "faces": 4048,
+        "euler": 36,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 36,
+        "components": 9,
+        "zero_area_faces": 32
+      },
+      "topology_after": {
+        "geometric_vertices": 463,
+        "edges": 1353,
+        "faces": 910,
+        "euler": 20,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 12,
+        "components": 9,
+        "zero_area_faces": 0
+      },
+      "bounds_exact": true,
+      "export_attributes_source_tuple_subset": true
+    },
+    {
+      "root": "path_tile",
+      "before_triangles": 24416,
+      "after_triangles": 3308,
+      "before_vertices": 66060,
+      "after_vertices": 5694,
+      "temporary_position_uv_vertices": 18616,
+      "locked_nonmanifold_or_extrema_vertices": 768,
+      "extra_locked_vertices": 0,
+      "relative_error_limit": 0.002,
+      "actual_error": 0.0019762921147048473,
+      "topology_before": {
+        "geometric_vertices": 12192,
+        "edges": 36336,
+        "faces": 24416,
+        "euler": 272,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 192,
+        "components": 64,
+        "zero_area_faces": 288
+      },
+      "topology_after": {
+        "geometric_vertices": 1782,
+        "edges": 4962,
+        "faces": 3308,
+        "euler": 128,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "components": 64,
+        "zero_area_faces": 0
+      },
+      "bounds_exact": true,
+      "export_attributes_source_tuple_subset": true
+    },
+    {
+      "root": "plain_build_tile",
+      "before_triangles": 16276,
+      "after_triangles": 2350,
+      "before_vertices": 44392,
+      "after_vertices": 3998,
+      "temporary_position_uv_vertices": 12544,
+      "locked_nonmanifold_or_extrema_vertices": 744,
+      "extra_locked_vertices": 0,
+      "relative_error_limit": 0.002,
+      "actual_error": 0.00199563498608768,
+      "topology_before": {
+        "geometric_vertices": 8080,
+        "edges": 24126,
+        "faces": 16276,
+        "euler": 230,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 192,
+        "components": 43,
+        "zero_area_faces": 288
+      },
+      "topology_after": {
+        "geometric_vertices": 1261,
+        "edges": 3525,
+        "faces": 2350,
+        "euler": 86,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "components": 43,
+        "zero_area_faces": 0
+      },
+      "bounds_exact": true,
+      "export_attributes_source_tuple_subset": true
+    }
+  ],
+  "reproduction": {
+    "fresh_baseline_sha256_identical": true,
+    "fresh_candidate_sha256_identical": true,
+    "reduced_input_rejected": true,
+    "packed_blend_saved_and_reopened": true,
+    "embedded_images_packed": 4,
+    "receipt_candidate_sha256": "117107ef0945516c7ba2357980f9c5c3a8a2c7f13f7fa78484be8df2ee218e76",
+    "export_baseline": "Blender -b --python scripts/prepare_baseline.py -- --output checks/chapter3_tiles-before.glb",
+    "reduce": "Blender bundled python3.13 scripts/optimize_tiles.py --source checks/chapter3_tiles-before.glb --error 0.002 --root-errors '{\"build_tile\":0.001}' --protect protected-regions.json --output checks/error002-hybrid.glb",
+    "reimport_reopen": "Blender -b --python scripts/verify_render.py -- --candidate checks/error002-hybrid.glb --validate-only",
+    "source_overwrite_rejected": true
+  },
+  "structural_contract": {
+    "nodes_transforms_exact": true,
+    "pbr_texture_sampler_json_exact": true,
+    "four_png_payloads_byte_exact": true,
+    "all_corner_attribute_tuples_original_subset": true,
+    "bounds_exact": true,
+    "components_and_boundary_exact": true,
+    "current_nonmanifold_counts_not_increased": true,
+    "grate_25_apertures": true,
+    "empty_seats_four_sides": true,
+    "vent_3_slots_and_heat_recession": true,
+    "source_blends_and_pngs_unchanged": true
+  },
+  "blender_visual": {
+    "current_to_candidate": "PASS",
+    "full_to_candidate": "PASS",
+    "engine": "Blender 5.2.2 LTS / Cycles 32",
+    "images": [
+      "design/chapter3_3d/optimized-game-distance-v2/review/before-hero.png",
+      "design/chapter3_3d/optimized-game-distance-v2/review/before-seats.png",
+      "design/chapter3_3d/optimized-game-distance-v2/review/after-hero.png",
+      "design/chapter3_3d/optimized-game-distance-v2/review/after-seats.png"
+    ],
+    "full_reference_images": [
+      "design/chapter3_3d/optimized-game-distance/checks/before-hero.png",
+      "design/chapter3_3d/optimized-game-distance/checks/before-seats.png"
+    ],
+    "notes": "Final root build error 0.001 restores the thin bronze ring after the initial uniform 0.002 runtime candidate made its inner shadow too dark and segmented. Thin bevel shading differences remain within the approved appearance; geometry depths and mounting seats are retained."
+  },
+  "runtime_visual": "PASS",
+  "candidate_exploration": {
+    "error001_triangles": 23802,
+    "error002_triangles": 16288,
+    "error004_triangles": 13338,
+    "error002_status": "REJECTED_RING_APPEARANCE_AND_NEW_NONMANIFOLD_EDGES",
+    "error002_protected_triangles": 16776,
+    "error002_hybrid_triangles": 18442,
+    "error002_hybrid_status": "SELECTED_PASS"
+  },
+  "FPS_measured": false,
+  "Android_measured": false,
+  "root_error_overrides": {
+    "build_tile": 0.001
+  },
+  "protected_regions": "design/chapter3_3d/optimized-game-distance-v2/protected-regions.json",
+  "protected_regions_sha256": "5fdcfac8fd6c8d541900c9bd67189e1ebd797b135425d9cc821856c6871d73f8",
+  "packed_blend_status": "PASS",
+  "final_glb": "assets/images/stage1_3d/environment/chapter3_tiles.glb",
+  "final_glb_sha256": "117107ef0945516c7ba2357980f9c5c3a8a2c7f13f7fa78484be8df2ee218e76",
+  "runtime_review": {
+    "candidate_sha256": "117107ef0945516c7ba2357980f9c5c3a8a2c7f13f7fa78484be8df2ee218e76",
+    "engine": "4.7.2-stable (official)",
+    "renderer": "mobile",
+    "device": "Apple M4",
+    "resolution": [
+      440,
+      900
+    ],
+    "stages": [
+      11,
+      30,
+      27
+    ],
+    "camera_modes": [
+      "angled",
+      "drone"
+    ],
+    "zooms": [
+      1.0,
+      2.5
+    ],
+    "actual_states": 12,
+    "parent_visual": "PASS",
+    "independent_visual": "PASS",
+    "stage_terrain_triangles": {
+      "11": 317596,
+      "30": 334568,
+      "27": 359536
+    },
+    "runtime_changes": false,
+    "LOD_or_neighbor_mask_deletions": false,
+    "FPS_measured": false,
+    "Android_measured": false
+  },
+  "independent_review": {
+    "status": "PASS",
+    "candidate_sha256": "117107ef0945516c7ba2357980f9c5c3a8a2c7f13f7fa78484be8df2ee218e76",
+    "geometry_receipt": "design/chapter3_3d/optimized-game-distance-v2/checks/independent/hybrid002-geometry.json",
+    "root_contract_pbr_embedded_pngs_original_corner_tuple_bounds_components_boundary_feature_depths": "PASS",
+    "current_to_candidate_nonmanifold_counts_preserved_or_lower": true,
+    "build_spatial_rays": 918,
+    "build_miss_changes": 0,
+    "actual_visual": "PASS 12 states: stage11/30/27 × angled/drone × zoom1/2.5",
+    "normal_tangent_interpolation": "Original corner tuples are byte exact subsets. Simplification changes face interpolation; finite grazing rays can switch UV islands and are not exhaustive displacement bounds. Final actual game A/B appearance was directly reviewed."
+  },
+  "geometry_triangle_reduction_from_original_percent": 82.03164581628279,
+  "notes": [
+    "Six original coordinate spheres (radius 0.02m) protect three local contacts that otherwise introduced four-face incidence edges in build/grate; no vertex positions move.",
+    "Uniform 0.002 candidate is rejected for the ring appearance and extra contact edge observations. Final uses build 0.001 and others 0.002 from the full baseline.",
+    "Source zero-area/overlap geometry predates optimization; final connected components and boundary edges are unchanged and current nonmanifold counts do not increase.",
+    "Runtime triangle counts are geometry measurements; FPS and Android performance were not measured."
+  ],
+  "tile_contract_checks": {
+    "status": "PASS",
+    "non_teleport_stages": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      26,
+      28,
+      29,
+      30
+    ],
+    "teleport_stage": 27,
+    "reentry_stages": [
+      11,
+      27
+    ],
+    "scope": "Tile placement, mesh/material sharing, panel rotation/depth, props contact, camera envelope and chapter transitions",
+    "non_teleport_evidence": "design/chapter3_3d/optimized-game-distance-v2/checks/tile-contracts-hybrid.log",
+    "teleport_final_evidence": "design/chapter3_3d/optimized-game-distance-v2/checks/tile-contracts-stage27-final.log",
+    "notes": "Stage 27 was rerun after updating the temporary checker for authored teleport jumps, clipped host meshes and device roots."
+  },
+  "godot_final_import": {
+    "status": "PASS",
+    "candidate_sha256": "117107ef0945516c7ba2357980f9c5c3a8a2c7f13f7fa78484be8df2ee218e76",
+    "evidence": "design/chapter3_3d/optimized-game-distance-v2/checks/final-import.log"
+  }
+}

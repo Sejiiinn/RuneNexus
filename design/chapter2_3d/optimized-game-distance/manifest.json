@@ -1,0 +1,488 @@
+{
+  "method": "meshopt_simplifyWithAttributes options0; exact position+UV temporary weld; source corner tuple export; no vertex motion, rebake or remesh",
+  "normal_attribute_weights": [
+    0.03,
+    0.03,
+    0.03
+  ],
+  "uv_attribute_weights": [
+    1,
+    1
+  ],
+  "selected_error_basis": "C2 .00025: 1.97% base reduction; .0005: 6.85%; .001: 19.54%; .0015: 32.52%. Selected .0015 after Blender and actual Godot A/B preserve stone cracks, engraved lines, steps, outer sides and tile bounds.",
+  "geometry_protection": [
+    "per material surface independent simplification",
+    "all geometric boundary/nonmanifold edge vertices locked",
+    "all primitive coordinate extrema locked",
+    "all source corner POSITION NORMAL UV tuples preserved as exact subsets",
+    "primitive surfaces and root mask/rotation/transforms unchanged",
+    "nine image payloads and three material definitions exact in each library"
+  ],
+  "library": "/Volumes/KIOXIA_MAC/AI-3D/apps/Blender.app/Contents/Resources/lib/libmeshoptimizer.dylib",
+  "library_sha256": "cc5531e73d4d589385811ee74b092451a10461554e17ab27cfee505ee0ae4133",
+  "assets": [
+    {
+      "asset": "chapter2_tiles.glb",
+      "original_editable_source": "design/chapter2_3d/tiles/chapter2-tiles.blend",
+      "source_sha256": "0890a70d16f53d7410f7e87465b1c5d6e78f5b736da602e544e3fb316ee5fb48",
+      "baseline_sha256": "1aaa1b467d18f99b9aa63f8f1db07dd1ac01fd743314db9458b13cda54bbfcde",
+      "game_output": "assets/images/stage1_3d/environment/chapter2_tiles.glb",
+      "output_sha256": "535cec242ac29878ede016804b315480c4a4195b0df9bede168e310b8cb6b981",
+      "packed_editable": "design/chapter2_3d/optimized-game-distance/chapter2-base-tiles-optimized.blend",
+      "packed_editable_sha256": "93e29b5c4c917eddf9b84f60601b3ea3973b21f1f1a1b7ea7dabd131ca0ce8e5",
+      "before_triangles": 36784,
+      "after_triangles": 24822,
+      "triangle_reduction_percent": 32.52,
+      "before_bytes": 10417488,
+      "after_bytes": 9581412,
+      "byte_reduction_percent": 8.03,
+      "relative_error_limit": 0.0015,
+      "actual_error_max": 0.0014983798610046506,
+      "material_count": 3,
+      "packed_image_count": 9,
+      "original_attributes": [
+        "NORMAL",
+        "POSITION",
+        "TEXCOORD_0"
+      ],
+      "variants": [
+        {
+          "root": "build_tile",
+          "before_triangles": 19382,
+          "after_triangles": 12850,
+          "reduction_percent": 33.7,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile",
+          "before_triangles": 17402,
+          "after_triangles": 11972,
+          "reduction_percent": 31.2,
+          "surfaces": 2
+        }
+      ]
+    },
+    {
+      "asset": "chapter2_tiles_optimized.glb",
+      "original_editable_source": "design/chapter2_3d/optimization/chapter2-tiles-optimized.blend",
+      "source_sha256": "3e4095ece34267ee6a55b43dead856eb801297cacc192d8caa9ed2d5f63fc7c2",
+      "baseline_sha256": "86d89de9bca5c04964113e00409dcd38357e732864acf419c8039d79c11bb05e",
+      "game_output": "assets/images/stage1_3d/environment/chapter2_tiles_optimized.glb",
+      "output_sha256": "b6802b8b4fb830093afc37daccbe0e1fc259d38da3da6d933bbbfcd7f159e9a8",
+      "packed_editable": "design/chapter2_3d/optimized-game-distance/chapter2-shared-tiles-optimized.blend",
+      "packed_editable_sha256": "3b8aecf3b38bdd4392aff688cf72cd4782c1f8ae9215c24882a00721822049ee",
+      "before_triangles": 250797,
+      "after_triangles": 180611,
+      "triangle_reduction_percent": 27.99,
+      "before_bytes": 24289176,
+      "after_bytes": 19675888,
+      "byte_reduction_percent": 18.99,
+      "relative_error_limit": 0.0015,
+      "actual_error_max": 0.0014998976839706302,
+      "material_count": 3,
+      "packed_image_count": 9,
+      "original_attributes": [
+        "NORMAL",
+        "POSITION",
+        "TEXCOORD_0"
+      ],
+      "variants": [
+        {
+          "root": "build_tile_mask_0",
+          "before_triangles": 12845,
+          "after_triangles": 9067,
+          "reduction_percent": 29.41,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_2",
+          "before_triangles": 11407,
+          "after_triangles": 8021,
+          "reduction_percent": 29.68,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_3",
+          "before_triangles": 9981,
+          "after_triangles": 6971,
+          "reduction_percent": 30.16,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_4",
+          "before_triangles": 11419,
+          "after_triangles": 8043,
+          "reduction_percent": 29.56,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_5",
+          "before_triangles": 9993,
+          "after_triangles": 6997,
+          "reduction_percent": 29.98,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_6",
+          "before_triangles": 9981,
+          "after_triangles": 6997,
+          "reduction_percent": 29.9,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_7",
+          "before_triangles": 8555,
+          "after_triangles": 5951,
+          "reduction_percent": 30.44,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_8",
+          "before_triangles": 11409,
+          "after_triangles": 7991,
+          "reduction_percent": 29.96,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_9",
+          "before_triangles": 9983,
+          "after_triangles": 6941,
+          "reduction_percent": 30.47,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_10",
+          "before_triangles": 9971,
+          "after_triangles": 6945,
+          "reduction_percent": 30.35,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_11",
+          "before_triangles": 8545,
+          "after_triangles": 5895,
+          "reduction_percent": 31.01,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_12",
+          "before_triangles": 9983,
+          "after_triangles": 6967,
+          "reduction_percent": 30.21,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_13",
+          "before_triangles": 8557,
+          "after_triangles": 5921,
+          "reduction_percent": 30.81,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_14",
+          "before_triangles": 8545,
+          "after_triangles": 5921,
+          "reduction_percent": 30.71,
+          "surfaces": 2
+        },
+        {
+          "root": "build_tile_mask_15",
+          "before_triangles": 7119,
+          "after_triangles": 4875,
+          "reduction_percent": 31.52,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_2",
+          "before_triangles": 9636,
+          "after_triangles": 7246,
+          "reduction_percent": 24.8,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_4",
+          "before_triangles": 9650,
+          "after_triangles": 7230,
+          "reduction_percent": 25.08,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_5",
+          "before_triangles": 8234,
+          "after_triangles": 6196,
+          "reduction_percent": 24.75,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_6",
+          "before_triangles": 8220,
+          "after_triangles": 6200,
+          "reduction_percent": 24.57,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_7",
+          "before_triangles": 6804,
+          "after_triangles": 5156,
+          "reduction_percent": 24.22,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_8",
+          "before_triangles": 9626,
+          "after_triangles": 7192,
+          "reduction_percent": 25.29,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_9",
+          "before_triangles": 8210,
+          "after_triangles": 6154,
+          "reduction_percent": 25.04,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_10",
+          "before_triangles": 8196,
+          "after_triangles": 6158,
+          "reduction_percent": 24.87,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_11",
+          "before_triangles": 6780,
+          "after_triangles": 5118,
+          "reduction_percent": 24.51,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_12",
+          "before_triangles": 8210,
+          "after_triangles": 6152,
+          "reduction_percent": 25.07,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_13",
+          "before_triangles": 6794,
+          "after_triangles": 5116,
+          "reduction_percent": 24.7,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_14",
+          "before_triangles": 6780,
+          "after_triangles": 5132,
+          "reduction_percent": 24.31,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_15",
+          "before_triangles": 5364,
+          "after_triangles": 4058,
+          "reduction_percent": 24.35,
+          "surfaces": 2
+        }
+      ]
+    },
+    {
+      "asset": "chapter2_tiles_expansion.glb",
+      "original_editable_source": "design/stage_expansion_runtime/chapter2-expansion-tile-variants.blend",
+      "source_sha256": "81c93ee21e354ee06b3807e0941d16131132499b705cfa857e4f6d3826bbc620",
+      "baseline_sha256": "adc542d99876a2cf0987150e055a576effb4ab32122be70f05eb56063bd7ee2a",
+      "game_output": "assets/images/stage1_3d/environment/chapter2_tiles_expansion.glb",
+      "output_sha256": "b61cbebba2279f7c737674ffb953bb7015c9cdee002ccfa07f4ae9fd1ec4bff0",
+      "packed_editable": "design/chapter2_3d/optimized-game-distance/chapter2-expansion-tiles-optimized.blend",
+      "packed_editable_sha256": "dc01b33f82ddf0dc5ee2f31bb62e701b170a3a9459696d8ce1546dd5fe5791a2",
+      "before_triangles": 29289,
+      "after_triangles": 21463,
+      "triangle_reduction_percent": 26.72,
+      "before_bytes": 9844196,
+      "after_bytes": 9300132,
+      "byte_reduction_percent": 5.53,
+      "relative_error_limit": 0.0015,
+      "actual_error_max": 0.0014993748627603054,
+      "material_count": 3,
+      "packed_image_count": 9,
+      "original_attributes": [
+        "NORMAL",
+        "POSITION",
+        "TEXCOORD_0"
+      ],
+      "variants": [
+        {
+          "root": "build_tile_mask_1",
+          "before_triangles": 11419,
+          "after_triangles": 8017,
+          "reduction_percent": 29.79,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_1",
+          "before_triangles": 9650,
+          "after_triangles": 7238,
+          "reduction_percent": 24.99,
+          "surfaces": 2
+        },
+        {
+          "root": "path_tile_mask_3",
+          "before_triangles": 8220,
+          "after_triangles": 6208,
+          "reduction_percent": 24.48,
+          "surfaces": 2
+        }
+      ]
+    }
+  ],
+  "all_libraries": {
+    "before_triangles": 316870,
+    "after_triangles": 226896,
+    "triangle_reduction_percent": 28.39,
+    "before_bytes": 44550860,
+    "after_bytes": 38557432,
+    "byte_reduction_percent": 13.45
+  },
+  "runtime_shared_and_expansion": {
+    "before_triangles": 280086,
+    "after_triangles": 202074,
+    "triangle_reduction_percent": 27.85,
+    "before_bytes": 34133372,
+    "after_bytes": 28976020,
+    "byte_reduction_percent": 15.11
+  },
+  "mask_reduction_range_percent": [
+    24.22,
+    31.52
+  ],
+  "verification": {
+    "geometry": "PASS; independent original-corner tuple, exact geometric boundary edges, bounds/components/nonmanifold, roots/material/image contract comparison",
+    "packed_editable_reimport_reopen": "PASS; three actual saved/reopened files, nine packed images each",
+    "fresh_checkout_source_export": "PASS; original source export-only; all node/material/image/attribute/index arrays identical",
+    "fresh_source_optimizer_reproduction": "PASS; regenerated source output matches final SHA256",
+    "repeat_reduction_guard": "PASS; reduced GLBs rejected",
+    "blender_visual": "PASS; same camera/light/render A/B base, shared boundary masks, all expansion masks",
+    "godot_actual_visual": "PASS; parent and independent reviewer stage6/23 angled/drone, default/zoom2.5 A/B",
+    "godot_final_import": "PASS; final actual app import, 10 stage layout checks and stage6 reentry; zero failures",
+    "android": "Not run; desktop geometry-only scope",
+    "fps": "Not measured",
+    "prior_hidden_geometry_pruning": "PASS; existing pruned-face masks retained, no faces restored or new removal; exact original boundary edge preservation"
+  },
+  "representative_blender_comparisons": {
+    "base": [
+      "review/before-base.png",
+      "review/after-base.png"
+    ],
+    "shared_masks": [
+      "review/before-masks.png",
+      "review/after-masks.png"
+    ],
+    "expansion_masks": [
+      "review/before-expansion.png",
+      "review/after-expansion.png"
+    ]
+  },
+  "blender_conditions": {
+    "blender": "5.2.2 LTS",
+    "engine": "Cycles",
+    "samples": 24,
+    "resolution": [
+      1500,
+      1000
+    ],
+    "view_transform": "AgX",
+    "world_color": [
+      0.11,
+      0.13,
+      0.17,
+      1
+    ],
+    "world_strength": 0.5,
+    "lights": [
+      {
+        "location": [
+          -3,
+          -4,
+          6
+        ],
+        "energy": 500,
+        "size": 4
+      },
+      {
+        "location": [
+          4,
+          2,
+          5
+        ],
+        "energy": 180,
+        "size": 4
+      }
+    ],
+    "base_camera": {
+      "location": [
+        3,
+        -5,
+        4.5
+      ],
+      "target": [
+        0,
+        0,
+        -0.15
+      ],
+      "orthographic_scale": 3.7
+    },
+    "mask_camera": {
+      "location": [
+        2.5,
+        -6,
+        2.1
+      ],
+      "target": [
+        0,
+        0,
+        -0.18
+      ],
+      "orthographic_scale": 3.5
+    }
+  },
+  "local_evidence": [
+    "checks/reimport-reopen.json",
+    "checks/baseline-reproduction.json",
+    "checks/tool-reproduction.json",
+    "checks/independent/final-comparison.json",
+    "checks/independent/independent-review.json",
+    "checks/actual-paving-final.log"
+  ],
+  "godot_conditions": {
+    "renderer": "Metal Mobile",
+    "viewport": [
+      440,
+      900
+    ],
+    "ab_stages": [
+      6,
+      23
+    ],
+    "cameras": [
+      "angled",
+      "drone"
+    ],
+    "zoom": [
+      1,
+      2.5
+    ],
+    "final_checked_stages": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      21,
+      22,
+      23,
+      24,
+      25
+    ],
+    "final_reentry_stage": 6,
+    "independent_review": "PASS"
+  }
+}

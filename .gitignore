@@ -810,3 +810,10 @@ __pycache__/
 
 # Gem art verification: local captures and logs.
 /design/gem_simplification/2026-10-09/local/
+# 챕터 3 타일 감량의 일회성 비교·실행 근거
+/design/chapter3_3d/optimized-game-distance/checks/
+# 챕터 2 타일 감량의 일회성 비교·실행 근거
+/design/chapter2_3d/optimized-game-distance/checks/
+
+# 챕터 3 추가 감량의 일회성 후보·실행 근거
+/design/chapter3_3d/optimized-game-distance-v2/checks/

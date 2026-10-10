@@ -1,5 +1,7 @@
 # 챕터 3 타일·교체 패널 — 내장 PBR 이관
 
+이 문서는 고해상도 베이크 원본과 감량 전 출력의 계약·검증 기록이다. 현재 게임 파일은 이 원본의 외형·재질을 보존한 [타일 추가 감량본](../optimized-game-distance-v2/README.md)을 사용하며, 현행 삼각형 수·파일 해시·검증 결과는 해당 기록을 기준으로 한다.
+
 [승인한 링 없는 타일](../environment_concepts/plain-turret-tile-multiview.png)과 기존 3종 상판을 함께 제공한다. [Blender 원본](../tiles/chapter3-thick-tiles.blend)의 실제 형상을 그대로 베이크했으며, 타일마다 4면 중앙에 실제 패널 좌석을 팠다. 기본 타일 메시에는 측면 주황 창이나 패널이 포함되지 않는다. 격자 상부 25개 관통구멍과 내부 열판은 유지한다.
 
 - 게임 파일: [chapter3_tiles.glb](../../../assets/images/stage1_3d/environment/chapter3_tiles.glb)
