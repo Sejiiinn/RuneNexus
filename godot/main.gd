@@ -504,11 +504,10 @@ func apply_frame(frame: Dictionary) -> void:
 		# Both real native entry points use tile units with canonical Canvas art.
 		# The development session needs the same glyph/effect conversion as --app.
 		var native_presentation := _app_mode or is_instance_valid(session_controller)
+		# Native frames already carry canonical 48-pixel Canvas units.
 		frame = combat_runtime.decorate_frame(frame, true, native_presentation)
 		owned_snapshot = true
 		RuntimeProfile.finish("decorate", decorate_tick)
-		if native_presentation:
-			frame = preload("res://ui/app_presentation.gd").normalize(frame)
 		if combat_runtime.native_session():
 			frame.zoom = _session_input.zoom
 			options.zoom = _session_input.zoom

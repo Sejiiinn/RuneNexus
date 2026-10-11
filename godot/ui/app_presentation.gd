@@ -1,6 +1,8 @@
 extends RefCounted
 ## The independent simulation uses one world unit per tile. Existing Canvas
 ## artwork has 48-pixel literals (bar height, glyph size, impact line width).
+## Converts PUBLIC (raw-unit) decorated snapshots; the battlefield's internal
+## canonical frames are produced in these units by the runtime directly.
 ## Normalize ONLY the fresh decorated frame, never its runtime/base state.
 const LOGICAL_TILE := 48.0
 const EffectFormat = preload("res://combat/effect_presentation.gd")

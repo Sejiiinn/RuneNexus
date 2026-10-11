@@ -17,6 +17,8 @@ const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
 # Game seconds, independent of render cadence and playback speed. Keep the
 # existing 60 Hz integrators (including their cooldown/waypoint overshoot rules).
 const FIXED_STEP: float = 1.0 / 60.0
+## Canvas artwork is authored for 48-pixel tiles (bars, glyphs, line widths).
+const LOGICAL_CANVAS_TILE := 48.0
 const MAX_STEPS_PER_FRAME: int = 64
 const STEP_EPSILON: float = 1.0e-10
 # Emitted only after a complete step. Application events/commands may be settled
@@ -46,7 +48,7 @@ var visual_effects: Array = []
 var _prepared_effects: Dictionary = {}
 # Internal presentation frames reuse one row object per actor id; rows are
 # rewritten in full each frame. Public snapshots always receive fresh rows.
-var _frame_row_pool := {"enemies": {}, "turrets": {}, "projectiles": {}, "impacts": {}}
+var _frame_row_pool := {"enemies": {}, "turrets": {}, "projectiles": {}, "impacts": {}, "labels": {}}
 # Step-local target candidates: [enemy, position, target radius, progress, id].
 # Valid only from the end of movement until spawns, while positions and
 # membership are fixed; alive state and durability are still read live.
@@ -260,7 +262,7 @@ func _reset(packet: Dictionary) -> void:
 	_presentation_deaths.clear()
 	visual_effects.clear()
 	_prepared_effects.clear()
-	_frame_row_pool = {"enemies": {}, "turrets": {}, "projectiles": {}, "impacts": {}}
+	_frame_row_pool = {"enemies": {}, "turrets": {}, "projectiles": {}, "impacts": {}, "labels": {}}
 	event_id = 0
 	clock = 0
 	damage_number_index = 0
@@ -1148,9 +1150,15 @@ func snapshot() -> Dictionary:
 func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effects: bool = false) -> Dictionary:
 	if not active:
 		return base
-	# Internal presentation owns fresh dynamic values; static map/selection is read-only.
-	# Keep the public snapshot isolation default for existing callers.
+	# Internal presentation (reuse_static) reads static map/selection read-only and
+	# reuses row/label objects until the next internal call; consume it at once.
+	# Public snapshots (the default) stay fully isolated for existing callers.
 	var frame := base.duplicate(not reuse_static)
+	# Canonical (internal) frames carry Canvas sizes in 48-pixel tile units, as
+	# app_presentation.normalize produces for public snapshots.
+	var canvas_tile := maxf(0.001, tile_size)
+	var canvas_ratio := LOGICAL_CANVAS_TILE / canvas_tile
+	var canvas_scaled: bool = canonical_effects and base.has("presentation") and not is_equal_approx(canvas_tile, LOGICAL_CANVAS_TILE)
 	if reuse_static and base.get("presentation") is Dictionary:
 		frame.presentation = base.presentation.duplicate()
 		for group in ["effects", "selection", "labels"]:
@@ -1176,7 +1184,8 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 			if frame.presentation.get("effects") is Dictionary:
 				# Dart's last sampled shake must never become a permanent offset.
 				var shake := sin(destruction_elapsed*78)*(1.0-destruction_elapsed/3.2)*3.4*board_scale if destruction_elapsed>0 else 0.0
-				frame.presentation.effects.shake = [shake,-shake*0.45]
+				# World shake is consumed as canonical screen pixels.
+				frame.presentation.effects.shake = [shake*canvas_ratio,-shake*0.45*canvas_ratio] if canvas_scaled else [shake,-shake*0.45]
 				frame.presentation.effects.squaredSteps = effect_squared
 	if defense.configured:
 		frame.nexusHpRatio = defense.hp/maxf(0.000001,defense.max_hp)
@@ -1184,6 +1193,8 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 	var labels: Array = []
 	var enemy_rows := {}
 	var enemy_pool: Dictionary = _frame_row_pool.enemies
+	var label_rows := {}
+	var label_pool: Dictionary = _frame_row_pool.labels
 	for e in enemies.values():
 		if not _alive(e): continue
 		# Dictionary.get evaluates its fallback first; avoid it for authored sizes.
@@ -1205,7 +1216,18 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		row.has_logical = true; row.logical_x = logical.x; row.logical_y = logical.y
 		row.teleport_serial = e.get("teleportSerial",0) if not e.get("teleportPairs", []).is_empty() else -1
 		rows.append(row)
-		labels.append({"id":e.id,"position":[p.x,p.y],"size":e.presentationSize if e.has("presentationSize") else [_radius(e)*2,_radius(e)*2],"hp":e.hp,"maxHp":e.maxHp,"armor":e.armor,"maxArmor":e.maxArmor,"shield":e.shield,"maxShield":e.maxShield,"effectTime":e.statusEffectTime,"enemyCount":enemies.size(),"burning":burning,"slowed":slowed,"poisoned":poisoned,"riftMarked":e.riftMarkRemaining>0,"diamondCarrier":diamond})
+		var size: Array = e.presentationSize if e.has("presentationSize") else [_radius(e)*2,_radius(e)*2]
+		if canvas_scaled: size = [float(size[0])*canvas_ratio,float(size[1])*canvas_ratio]
+		# Dictionary.get evaluates its fallback eagerly; look up without one.
+		var label = label_pool.get(e.id) if reuse_static else null
+		if label == null: label = {}
+		if reuse_static: label_rows[e.id] = label
+		label.id = e.id; label.position = [p.x,p.y]; label.size = size
+		label.hp = e.hp; label.maxHp = e.maxHp; label.armor = e.armor; label.maxArmor = e.maxArmor
+		label.shield = e.shield; label.maxShield = e.maxShield; label.effectTime = e.statusEffectTime
+		label.enemyCount = enemies.size(); label.burning = burning; label.slowed = slowed; label.poisoned = poisoned
+		label.riftMarked = e.riftMarkRemaining>0; label.diamondCarrier = diamond
+		labels.append(label)
 	frame.enemies = rows
 	frame.turrets = []
 	var turret_rows := {}
@@ -1238,7 +1260,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 	if frame.has("presentation"):
 		if not frame.presentation.has("labels"): frame.presentation.labels = {}
 		frame.presentation.labels.enemies = labels
-		frame.presentation.labels.logicalTileSize = tile_size
+		frame.presentation.labels.logicalTileSize = LOGICAL_CANVAS_TILE if canvas_scaled else tile_size
 		if native_session():
 			frame.presentation.labels.core = null
 			if session.get("phase") == "wave" and core.configured and core.skill != null and not path.is_empty():
@@ -1271,7 +1293,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		row.finished_at = -1.0; row.has_end = false
 		frame.projectiles.append(row)
 	if reuse_static:
-		_frame_row_pool = {"enemies": enemy_rows, "turrets": turret_rows, "projectiles": projectile_rows, "impacts": impact_rows}
+		_frame_row_pool = {"enemies": enemy_rows, "turrets": turret_rows, "projectiles": projectile_rows, "impacts": impact_rows, "labels": label_rows}
 	if frame.has("presentation") and frame.presentation.has("effects"):
 		var effects: Dictionary = frame.presentation.effects
 		var items: Array = effects.get("items", []).duplicate(true)

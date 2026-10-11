@@ -125,7 +125,9 @@ func _prepared_effect_checks(catalog) -> void:
 	target.y += 0.25
 	var moved: Dictionary = Adapter.normalize(runtime.decorate_frame(base,true,true))
 	check(moved.presentation.effects.items[beam_index].points[1] == [target.x,target.y] and moved.presentation.effects.items[chain_index].points[-1] == [target.x,target.y],"prepared beam and chain follow moving logical target")
-	check(actual == prior,"later linked frame cannot mutate earlier dynamic endpoints")
+	# Internal frames reuse row/label objects until the next internal decorate;
+	# effect payloads (the linked endpoints) stay detached per frame.
+	check(actual.presentation.effects == prior.presentation.effects,"later linked frame cannot mutate earlier dynamic endpoints")
 	var last_point: Array = moved.presentation.effects.items[beam_index].points[1].duplicate()
 	target.hp = 0
 	var dead: Dictionary = Adapter.normalize(runtime.decorate_frame(base,true,true))
