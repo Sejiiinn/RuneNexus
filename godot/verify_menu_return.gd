@@ -33,6 +33,9 @@ class Host extends Node3D:
 var checks := 0
 var failures: Array[String] = []
 var directory := ""
+# The compiled content is unchanged across cases; only App/Host/run/save state
+# needs isolation. Avoid repeatedly parsing the complete catalog on slower CI.
+var catalog = preload("res://content/content_catalog.gd").new()
 
 func check(ok: bool, label: String) -> void:
 	checks += 1
@@ -42,13 +45,14 @@ func _initialize() -> void: run.call_deferred()
 
 func create_app():
 	var app = App.new()
+	app.catalog = catalog
 	var host := Host.new()
 	app.scene = host
 	host.app = app
 	app.startup_blocked = false
 	app.in_lobby = false
 	app.checkpoint = Checkpoint.new(directory.path_join(str(checks)))
-	check(app.catalog.load_catalog(), "content loaded")
+	check(app.catalog.is_loaded() or app.catalog.load_catalog(), "content loaded")
 	app.enter_stage(0)
 	check(not app.run_domain.state.is_empty(), "run initialized")
 	return app
