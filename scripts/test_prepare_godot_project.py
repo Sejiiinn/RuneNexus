@@ -449,6 +449,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
                     frames = json.loads((project.parent / f"chapter_{chapter}_frames.json").read_text())
                     for frame in frames:
                         self.assertEqual(frame["map"]["theme"], theme)
+                        stage = next(item for item in catalog["stages"] if item["id"] == frame["stage"])
+                        self.assertEqual(frame["map"]["path"], stage["map"]["path"])
                         expected = set(preparation.ENEMY_TYPES) | ({boss} if boss else set())
                         self.assertEqual({enemy[7] for enemy in frame["enemies"]}, expected)
                 self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")

@@ -1,5 +1,6 @@
 extends SceneTree
 
+const SaveJson = preload("res://app/save_json.gd")
 var failures := 0
 
 func _initialize() -> void:
@@ -104,6 +105,12 @@ func _check_flutter_camera(scene: Node3D, frame: Dictionary, stage: int) -> void
 				_check((actual - neutral).distance_to(pan) < .05, "Stage%d Flutter 팬 이동량 변경" % stage)
 	print("Stage%d Flutter camera: centered x=196.5; zoom 1/1.25 and pan (17,-11) checked" % stage)
 
+func _teleport_jump(map: Dictionary, from: Vector2, to: Vector2) -> bool:
+	for pair: Dictionary in map.get("teleportPairs", []):
+		if from == Vector2(pair.entrance[0], pair.entrance[1]) + Vector2(0.5, 0.5) and to == Vector2(pair.exit[0], pair.exit[1]) + Vector2(0.5, 0.5):
+			return true
+	return false
+
 func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 	scene._apply_frame(frame)
 	_check(scene._current_map == frame["map"], "대장간 프레임 적용 실패")
@@ -120,11 +127,16 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 	var tile_count := 0
 	var plain_count := 0
 	var ring_count := 0
+	# Teleport endpoints carry a device and a host tile whose copied mesh has the opening cut.
+	var endpoints := {}
+	for pair: Dictionary in frame["map"].get("teleportPairs", []):
+		for role in ["entrance", "exit"]:
+			endpoints[int(pair[role][1]) * columns + int(pair[role][0])] = true
 	for index in range(tiles.size()):
 		var point := Vector3(index % columns + .5 - columns / 2.0, 0, floori(float(index) / columns) + .5 - rows / 2.0)
 		var at_tile: Array[Node3D] = []
 		for node: Node3D in scene.terrain.get_children():
-			if node.name in ["chapter_three_panels", "chapter_three_props"]:
+			if node.name in ["chapter_three_panels", "chapter_three_props"] or node.name.begins_with("Teleport_"):
 				continue
 			if node.position.is_equal_approx(point):
 				at_tile.append(node)
@@ -153,6 +165,8 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 			if source is MeshInstance3D:
 				original.push_front(source)
 			_check(actual.size() == original.size() and not actual.is_empty(), "원본 메시 누락")
+			if endpoints.has(index):
+				continue
 			for mesh_index in range(mini(actual.size(), original.size())):
 				_check(actual[mesh_index].mesh == original[mesh_index].mesh, "원본 메시 미공유")
 				for surface in range(actual[mesh_index].mesh.get_surface_count()):
@@ -209,7 +223,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 			_check(kind == "core", "원래 경로 끝점 변경")
 		if step > 0:
 			var previous := Vector2(float(path[step - 1][0]), float(path[step - 1][1]))
-			_check(is_equal_approx(point.distance_to(previous), 1.0), "원래 이동 경로 단절")
+			_check(is_equal_approx(point.distance_to(previous), 1.0) or _teleport_jump(frame["map"], previous, point), "원래 이동 경로 단절")
 	_check_flutter_camera(scene, frame, stage)
 	print("Chapter three stage%d: %dx%d, %d tiles, %d grates, %d vents, %d props, %d failures" % [stage, columns, rows, tile_count, grate_count, vent_count, scene.terrain.get_node("chapter_three_props").get_child_count(), failures])
 
@@ -224,7 +238,8 @@ func _verify() -> void:
 		push_error("3장 실제 맵 프레임 JSON 경로가 필요합니다.")
 		quit(1)
 		return
-	var frames: Array = JSON.parse_string(FileAccess.get_file_as_string(args[0]))
+	# Typed parse keeps integer map and teleport coordinates, as ContentCatalog does.
+	var frames: Array = SaveJson.parse(FileAccess.get_file_as_string(args[0]))
 	var scene: Node3D = load("res://main.tscn").instantiate()
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(393, 852)
@@ -237,20 +252,22 @@ func _verify() -> void:
 		var frame: Dictionary = frames[index].duplicate(true)
 		frame["sceneEpoch"] = epoch
 		epoch += 1
-		_check_stage(scene, frame, index + 11)
+		_check_stage(scene, frame, int(frame.get("stage", index + 11)))
 	for chapter in ["chapter_one_frames.json", "chapter_two_frames.json"]:
-		var other: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(args[0].get_base_dir().path_join(chapter)))[0]
+		var other: Dictionary = SaveJson.parse(FileAccess.get_file_as_string(args[0].get_base_dir().path_join(chapter)))[0]
 		other["sceneEpoch"] = epoch
 		epoch += 1
 		scene._apply_frame(other)
 		_check(scene.terrain.find_child("chapter_three_props", true, false) == null, "다른 장에 용광로 소품 잔류")
 		_check(scene._current_map == other["map"], "다른 장 전환 실패")
+		var chapter_light := 1.20 if scene._environment._using_chapter_environment else 1.50
+		_check(scene._world_environment.sky == load(scene.ReflectionSky) and is_equal_approx(scene.sun.light_energy, chapter_light), "장 전환 후 공용 조명 복원 실패")
 	var restored: Dictionary = frames[0].duplicate(true)
 	restored["sceneEpoch"] = epoch
-	_check_stage(scene, restored, 11)
+	_check_stage(scene, restored, int(restored.get("stage", 11)))
+	# Lobby/restart clears presentation only; the next applied map sets its own lighting.
 	scene._clear_scene()
 	_check(not scene._using_forge, "장 전환 후 용광로 상태 잔류")
-	_check(scene._world_environment.sky == load(scene.ReflectionSky) and is_equal_approx(scene.sun.light_energy, 1.50), "장 전환 후 공용 조명 복원 실패")
 	viewport.queue_free()
 	await process_frame
 	print("Chapter three verification: %d failures" % failures)

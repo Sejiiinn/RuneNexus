@@ -46,6 +46,9 @@ static func apply(terrain: Node3D, centers: Array[Vector3]) -> Dictionary:
 			tile.layers = batch.layers
 			tile.cast_shadow = batch.cast_shadow
 			tile.material_override = batch.material_override
+			if batch.has_meta("tile_indices"):
+				tile.set_meta("tile_index", batch.get_meta("tile_indices")[slot])
+				tile.set_meta("tile_type", batch.get_meta("tile_type"))
 			terrain.add_child(tile)
 			report.meshes_changed += 1
 			report.triangles_cut += int(result.cut)
@@ -64,6 +67,10 @@ static func apply(terrain: Node3D, centers: Array[Vector3]) -> Dictionary:
 			if original.use_colors: replacement.set_instance_color(i, original.get_instance_color(old))
 			if original.use_custom_data: replacement.set_instance_custom_data(i, original.get_instance_custom_data(old))
 		batch.multimesh = replacement
+		# Slot-to-tile metadata follows the compacted instance order.
+		if batch.has_meta("tile_indices"):
+			var indices: Array = batch.get_meta("tile_indices")
+			batch.set_meta("tile_indices", remaining.map(func(old: int): return indices[old]))
 	return report
 
 

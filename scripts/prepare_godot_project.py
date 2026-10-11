@@ -63,9 +63,10 @@ def _prepare_battlefield_verification() -> None:
             ("forgeBoss",) if theme == "chapterThreeForge" else ()
         )
         frame = {
-            "seq": 0, "time": 0,
+            "seq": 0, "time": 0, "stage": stage["id"],
+            # Teleport maps are only valid with their route, as in ContentCatalog.stage_map.
             "map": {"columns": columns, "rows": rows, "tiles": tiles, "theme": theme,
-                    "teleportPairs": definition.get("teleportPairs", [])},
+                    "path": definition["path"], "teleportPairs": definition.get("teleportPairs", [])},
             "turrets": [[index, *build[index % len(build)], 0, 0, 0, kind, 1]
                         for index, kind in enumerate(TURRET_TYPES)],
             "enemies": [[index + 10, *path[index % len(path)], 0, 0, 1, 0, kind]

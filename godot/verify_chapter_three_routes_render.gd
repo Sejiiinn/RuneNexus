@@ -26,8 +26,9 @@ func capture(label: String) -> void:
 func check_modal_routes(wave: Dictionary) -> void:
 	for frame in range(2): await process_frame
 	var expected := 0
+	# A group is labelled by its route, its dispatch portal, or both.
 	for group: Dictionary in wave.get("routeGroups",[]):
-		if not str(group.get("routeLabel", "")).is_empty(): expected += 1
+		if not str(group.get("routeLabel", group.get("routeId", ""))).is_empty() or not str(group.get("spawnPortalLabel", "")).is_empty(): expected += 1
 	var actual := 0
 	for label: Label in app.hud.modal.find_children("*","Label",true,false):
 		if label.text.begins_with("묶음 "):

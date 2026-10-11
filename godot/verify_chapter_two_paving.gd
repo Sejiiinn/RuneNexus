@@ -1,7 +1,8 @@
 extends SceneTree
 
 ## --script res://verify_chapter_two_paving.gd -- <chapter_two_frames.json>
-## 실제 6~10 맵의 모든 받침, 원래 회전·좌표, 방향별 열린 측면, 공유 메시와 맵 교체 검사.
+## 실제 2장 전체 맵의 모든 받침, 원래 회전·좌표, 방향별 열린 측면, 공유 메시와 맵 교체 검사.
+const SaveJson = preload("res://app/save_json.gd")
 var failures := 0
 
 func _initialize() -> void:
@@ -18,7 +19,7 @@ func _check_stage(scene: Node3D, frame: Dictionary) -> Array:
 	var rows: int = scene.rows
 	var seen := {}
 	var batches := []
-	_check(scene._using_chapter_environment, "실제 6~10 환경 원본이 선택되지 않음")
+	_check(scene._using_chapter_environment, "실제 2장 환경 원본이 선택되지 않음")
 	for node: Node in scene.terrain.get_children():
 		if not node is MultiMeshInstance3D or not node.has_meta("tile_indices"):
 			continue
@@ -59,6 +60,19 @@ func _check_stage(scene: Node3D, frame: Dictionary) -> Array:
 				var occupied := neighbor.x >= 0 and neighbor.x < columns and neighbor.y >= 0 and neighbor.y < rows
 				if occupied: occupied = tiles[neighbor.y * columns + neighbor.x] != "blocked"
 				_check(((mask & (1 << side)) != 0) == occupied, "열린/맞닿은 측면 mask 방향 오류")
+	# Teleport endpoints move their slot out of the shared batch into a cut copy.
+	var openings := 0
+	for node: Node in scene.terrain.get_children():
+		if not node is MeshInstance3D or not node.has_meta("tile_index"):
+			continue
+		var index := int(node.get_meta("tile_index"))
+		_check(not seen.has(index), "동일 타일 받침 중복")
+		seen[index] = true
+		openings += 1
+		var cell := Vector2i(index % columns, floori(float(index) / columns))
+		_check(node.position.is_equal_approx(Vector3(cell.x + 0.5 - columns / 2.0, 0, cell.y + 0.5 - rows / 2.0)), "텔레포트 구멍 타일 위치 변경")
+		_check(str(node.get_meta("tile_type")) == ("build" if tiles[index] == "build" else "path"), "텔레포트 구멍 타일 종류 오류")
+	_check(openings == 2 * frame["map"].get("teleportPairs", []).size(), "텔레포트 입구·출구 구멍 타일 수 오류")
 	_check(seen.size() == tiles.size() - tiles.count("blocked"), "길·건설·포탈·코어 받침 누락")
 	_check(scene._portals.size() == tiles.count("spawn") and scene._cores.size() == tiles.count("core"), "포탈·코어 원본 누락")
 	for mode in ["angled", "drone"]:
@@ -82,12 +96,13 @@ func _verify() -> void:
 		return
 	var args := OS.get_cmdline_user_args()
 	if args.size() != 1:
-		push_error("실제 6~10 frame fixture 경로가 필요합니다.")
+		push_error("실제 2장 frame fixture 경로가 필요합니다.")
 		quit(1)
 		return
-	var frames = JSON.parse_string(FileAccess.get_file_as_string(args[0]))
-	if not frames is Array or frames.size() != 5:
-		push_error("실제 6~10 frame 5개가 필요합니다.")
+	# Typed parse keeps integer map and teleport coordinates, as ContentCatalog does.
+	var frames = SaveJson.parse(FileAccess.get_file_as_string(args[0]))
+	if not frames is Array or frames.is_empty():
+		push_error("실제 2장 frame이 필요합니다.")
 		quit(1)
 		return
 	var scene: Node3D = load("res://main.tscn").instantiate()
@@ -96,7 +111,7 @@ func _verify() -> void:
 	scene.set_process(false)
 	var previous := []
 	var epoch := 1
-	for stage in [0, 1, 2, 3, 4, 0]:
+	for stage in range(frames.size()) + [0]:
 		var frame: Dictionary = frames[stage].duplicate(true)
 		frame["sceneEpoch"] = epoch
 		frame["seq"] = 0

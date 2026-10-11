@@ -2,6 +2,7 @@ extends SceneTree
 ## Run write and read in separate processes with the same isolated absolute root.
 const Checkpoint = preload("res://session/session_checkpoint.gd")
 const SaveJson = preload("res://app/save_json.gd")
+const StageProgression = preload("res://content/stage_progression.gd")
 var failures: Array = []
 var checks := 0
 
@@ -25,6 +26,9 @@ func run() -> void:
 	scene.add_child(app)
 	app.set_process(false)
 	app.run_domain.now_millis = func(): return 1700000000000
+	# Restart equality uses current progression; legacy migration is covered by
+	# the stage-expansion and save fixtures.
+	app.progression_inputs = StageProgression.migrate_progression({})
 	for phase in ["preparation", "wave", "reward", "failure", "naturalReward", "success"]:
 		app.checkpoint = Checkpoint.new(args[1].path_join(phase))
 		if args[0] == "write": write_phase(app, phase)
@@ -178,11 +182,15 @@ func pending_settlement(app, directory: String) -> void:
 	app.build_selected()
 	app.start_wave()
 	var runtime = app.scene._native_combat
+	# The session ACKs after every fixed step. Detach it to reproduce a kill that
+	# was produced but not yet settled when the process saved (e.g. failed command).
+	runtime.step_completed.disconnect(app._on_combat_step_completed)
 	for i in range(1200):
 		runtime.advance_session(1.0/60.0)
 		if runtime.events.any(func(event): return event.kind == "kill"): break
 		app.command()
 	check(runtime.events.any(func(event): return event.kind == "kill"), "real unacknowledged kill before save")
+	runtime.step_completed.connect(app._on_combat_step_completed)
 	var before: int = app.run_domain.state.gold
 	check(app.checkpoint.save_session(app) == OK, "save settles pending kill")
 	var paid: int = app.run_domain.state.gold

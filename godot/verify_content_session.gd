@@ -1,5 +1,6 @@
 extends SceneTree
 ## Actual-content entry and UI wiring. Runtime parity is checked separately.
+const Progression = preload("res://content/stage_progression.gd")
 var failures: Array = []
 
 func _initialize() -> void:
@@ -18,8 +19,9 @@ func run() -> void:
 	scene._standalone_session = app
 	scene.add_child(app)
 	app.set_process(false)
-	check(app.content_enabled and app.catalog.stage_count() == 15, "default entry loads actual stages")
-	if app.catalog.stage_count() != 15:
+	var stage_total: int = Progression.ORDER.size()
+	check(app.content_enabled and app.catalog.stage_count() == stage_total, "default entry loads actual stages")
+	if app.catalog.stage_count() != stage_total:
 		push_error(app.catalog.error)
 		quit(1)
 		return
@@ -72,7 +74,7 @@ func run() -> void:
 		scene._apply_frame(scene._native_combat_base_frame)
 		app._process(0)
 		await capture("content-stage-%d" % (stage+1))
-	# Select actual boss waves through the same development selector.
+	# Select actual boss waves through the same development selector (one per chapter boss kind).
 	for stage in [4, 9, 14]:
 		app.enter_stage(stage)
 		var source: Dictionary = app.stage_source(stage)

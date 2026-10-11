@@ -1,7 +1,8 @@
 extends SceneTree
 
-## Flutter 실제 맵 fixture로 공용 3D 타일·랜드마크·카메라·맵 교체를 검사한다.
+## 실제 콘텐츠 맵 fixture(prepare_godot_project.py 생성)로 공용 3D 타일·랜드마크·카메라·맵 교체를 검사한다.
 ## 실행: --script res://verify_chapter_one_stages.gd -- <frames.json>
+const SaveJson = preload("res://app/save_json.gd")
 var failures := 0
 
 func _initialize() -> void:
@@ -73,15 +74,22 @@ func _check_dressing(scene: Node3D, frame: Dictionary, label: String) -> void:
 	_check(scene._foliage_material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, label + " 철거 후 중앙 식생 가림 잔류")
 	scene._apply_frame(frame)
 
+func _teleport_jump(map: Dictionary, from: Vector2, to: Vector2) -> bool:
+	for pair: Dictionary in map.get("teleportPairs", []):
+		if from == Vector2(pair.entrance[0], pair.entrance[1]) + Vector2(0.5, 0.5) and to == Vector2(pair.exit[0], pair.exit[1]) + Vector2(0.5, 0.5):
+			return true
+	return false
+
 func _verify() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() != 1 or not FileAccess.file_exists(args[0]):
-		push_error("스테이지 1~5 실제 프레임 JSON 경로가 필요합니다.")
+		push_error("1장 실제 프레임 JSON 경로가 필요합니다.")
 		quit(1)
 		return
-	var frames = JSON.parse_string(FileAccess.get_file_as_string(args[0]))
-	if not frames is Array or frames.size() != 5:
-		push_error("스테이지 순서의 프레임 5개가 필요합니다.")
+	# Typed parse keeps integer map and teleport coordinates, as ContentCatalog does.
+	var frames = SaveJson.parse(FileAccess.get_file_as_string(args[0]))
+	if not frames is Array or frames.size() < 2 or int(frames[0].get("stage", 0)) != 1:
+		push_error("스테이지 1부터 시작하는 1장 프레임이 필요합니다.")
 		quit(1)
 		return
 	var scene: Node3D = load("res://main.tscn").instantiate()
@@ -90,13 +98,14 @@ func _verify() -> void:
 	scene.set_process(false)
 	var epoch := 1
 	# Stage1 복귀까지 검사해 전용 환경·식생 상태가 다음 맵에 남지 않게 한다.
-	for stage_index in [0, 1, 2, 3, 4, 1, 0]:
+	var order: Array = range(frames.size()) + [1, 0]
+	for stage_index in order:
 		var frame: Dictionary = frames[stage_index].duplicate(true)
 		frame["sceneEpoch"] = epoch
 		frame["seq"] = 0
 		epoch += 1
 		scene._apply_frame(frame)
-		var label := "Stage %d" % (stage_index + 1)
+		var label := "Stage %d" % int(frame.get("stage", stage_index + 1))
 		var map: Dictionary = frame["map"]
 		var columns := int(map["columns"])
 		var rows := int(map["rows"])
@@ -117,7 +126,7 @@ func _verify() -> void:
 				_check(tile == "core", label + " 경로 끝 코어 불일치")
 			if index > 0:
 				var previous := Vector2(float(path[index - 1][0]), float(path[index - 1][1]))
-				_check(is_equal_approx(point.distance_to(previous), 1.0), label + " 경로 단절")
+				_check(is_equal_approx(point.distance_to(previous), 1.0) or _teleport_jump(map, previous, point), label + " 경로 단절")
 		_check(scene.enemies.size() == frame["enemies"].size(), label + " 적 모델 누락")
 		_check(scene.turrets.size() == frame["turrets"].size(), label + " 포탑 모델 누락")
 		for data: Array in frame["turrets"]:
@@ -133,7 +142,8 @@ func _verify() -> void:
 				continue
 			var at_tile := 0
 			for node: Node3D in scene.terrain.get_children():
-				if node.find_child("stage1_dressing_foliage", true, false) != null:
+				# Teleport devices sit on their endpoint tile in addition to its paving.
+				if node.find_child("stage1_dressing_foliage", true, false) != null or node.name.begins_with("Teleport_"):
 					continue
 				if node.position.is_equal_approx(point):
 					at_tile += 1

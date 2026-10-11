@@ -1,5 +1,6 @@
 extends SceneTree
 const Lobby = preload("res://ui/lobby.gd")
+const Progression = preload("res://content/stage_progression.gd")
 class FakeApp extends RefCounted:
 	var progression_inputs: Dictionary = {"runes":1000,"unlockedStageCount":2,"totalCorePoints":5}
 	var catalog = preload("res://content/content_catalog.gd").new()
@@ -61,10 +62,13 @@ func run() -> void:
 		for stage in [1,8,11]:
 			app.progression_inputs.unlockedStageCount = 11 if stage==11 else 2
 			lobby.open_page("스테이지")
-			lobby.stages.select_chapter(ceili(stage/5.0))
+			lobby.stages.select_chapter(Progression.chapter_for(stage))
 			await create_timer(1.0).timeout
-			for target in lobby.stages.canvas.get_children():
-				if target is Button and target.tooltip_text == "스테이지 %d 상세"%stage:
+			# Stage rows live in the chapter's native scroll list.
+			for target in lobby.stages.canvas.find_children("*","Button",true,false):
+				if target.tooltip_text == "스테이지 %s 상세"%Progression.stage_label(stage):
+					(lobby.stages.canvas.get_node("StageRowsScroll") as ScrollContainer).ensure_control_visible(target)
+					await process_frame
 					click(target)
 			assert(is_instance_valid(lobby.modal),"Actual stage-row click opens details")
 			await create_timer(0.4).timeout

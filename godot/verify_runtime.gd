@@ -1,6 +1,7 @@
 extends SceneTree
 
 ## 실제 전투 계약의 모델 유형·HUD 투영·발사·맵 교체·세션 초기화 회귀 검사.
+const GuardianPreview = preload("res://presentation/guardian_preview.gd")
 var failures := 0
 
 
@@ -159,9 +160,13 @@ func _verify() -> void:
 		var enemy: Node3D = scene.enemies[index + 10]["root"]
 		var projectile: Node3D = scene.projectiles[index + 20]["root"]
 		_check(turret.scene_file_path == "res://assets/turrets/%s.glb" % turret_types[index], "포탑 유형별 원본 GLB 불일치")
-		_check(enemy.scene_file_path == "res://assets/enemies/%s.glb" % enemy_types[index], "적 유형별 원본 GLB 불일치")
+		# Animated rigs wrap the authored GLB in a root that carries the visual scale.
+		var rigged: bool = scene.enemies[index + 10].get("guardian_preview", false)
+		var enemy_model: Node3D = enemy.get_child(0) if rigged and enemy.get_child_count() > 0 else enemy
+		_check(enemy_model.scene_file_path == scene.ENEMY_MODELS[enemy_types[index]], "적 유형별 원본 GLB 불일치")
 		_check(turret.position.distance_to(Vector3(index + 1.5 - scene.columns / 2.0, 0.0, 3.5 - scene.rows / 2.0)) < 0.0001, "포탑 전투 좌표 변환 실패")
-		_check(enemy.scale.is_equal_approx(Vector3.ONE * 1.25), "적 원본 크기 배율 미적용")
+		var visual_scale: float = GuardianPreview.visual_scale(enemy_types[index]) if rigged else 1.0
+		_check(enemy.scale.is_equal_approx(Vector3.ONE * 1.25 * visual_scale), "적 원본 크기 배율 미적용")
 		_check(projectile.global_basis.z.normalized().dot(Vector3(1.0, 0.0, 0.5).normalized()) > 0.9999, "탄환 방향 변환 실패")
 		_check(projectile.get_child_count() == 3, "탄환 본체·탄두·예광 표현 누락")
 	_check_projection(scene, frame)

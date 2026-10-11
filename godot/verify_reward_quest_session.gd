@@ -66,6 +66,9 @@ func write_events(app, directory: String) -> void:
 	var runtime = app.scene._native_combat
 	var kills := 0
 	var waves := 0
+	# The session ACKs after every fixed step; poll explicitly so this test can
+	# count each produced event before the same production command consumes it.
+	runtime.step_completed.disconnect(app._on_combat_step_completed)
 	for step in range(12000):
 		# Keep production spawn, targeting, projectile, death, and wave event paths.
 		for enemy in runtime.enemies.values():
@@ -76,6 +79,7 @@ func write_events(app, directory: String) -> void:
 			if event.kind == "waveCompleted": waves += 1
 		app.command()
 		if waves > 0: break
+	runtime.step_completed.connect(app._on_combat_step_completed)
 	check(kills > 0 and waves == 1, "real native kills and completed wave")
 	for period in ["daily", "weekly"]:
 		check(progress(app, period, "killEnemies") == kills, period + " real kills exactly once")

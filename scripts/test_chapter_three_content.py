@@ -62,7 +62,8 @@ class ChapterThreeContentTests(unittest.TestCase):
         for w in self.stages[28]['waves']:
             for j,g in enumerate(w['groups']):
                 self.assertIn(f'({g["startDelay"]:g}초)', w['previewText'])
-            self.assertEqual(Counter(q['routeId'] for q in w['spawnQueue']), Counter({k:sum(g['count'] for g in w['groups'] if g['routeId']==k) for k in ['north','south']}))
+            # Unary + drops zero counts; Python < 3.10 compares Counters with them.
+            self.assertEqual(Counter(q['routeId'] for q in w['spawnQueue']), +Counter({k:sum(g['count'] for g in w['groups'] if g['routeId']==k) for k in ['north','south']}))
 
     def test_route_validation_rejects_ambiguous_or_invalid_inputs(self):
         m = self.stages[28]['map']

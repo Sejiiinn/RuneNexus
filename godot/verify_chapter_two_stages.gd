@@ -1,7 +1,8 @@
 extends SceneTree
 
 ## 실행: --script res://verify_chapter_two_stages.gd -- <chapter_two_frames.json> <chapter_one_frames.json>
-## 실제 6~10 맵·균열 타일·경로 보존·장식 경계·맵 교체를 검사한다. 시각 수용은 별도다.
+## 실제 2장 전체 맵·포탈/코어·경로(텔레포트 포함)·환경 선택·맵 교체를 검사한다. 타일 배치는 verify_chapter_two_paving.gd, 시각 수용은 별도다.
+const SaveJson = preload("res://app/save_json.gd")
 var failures := 0
 
 func _initialize() -> void:
@@ -149,6 +150,12 @@ func _check_props(scene: Node3D, tiles: Array, label: String) -> void:
 		_check(nearest_playable_distance >= 0.0399 and nearest_playable_distance <= 0.05, label + " " + kind + " 부유 암반과 최근접 플레이 타일 간격 %.6f가 0.0399~0.05 범위를 벗어남" % nearest_playable_distance)
 	print("%s props: total=%d, rune_pillar=%d, crystal_cluster=%d, void_fissure=%d" % [label, environment.get_child_count(), counts["rune_pillar"], counts["crystal_cluster"], counts["void_fissure"]])
 
+func _teleport_jump(map: Dictionary, from: Vector2, to: Vector2) -> bool:
+	for pair: Dictionary in map.get("teleportPairs", []):
+		if from == Vector2(pair.entrance[0], pair.entrance[1]) + Vector2(0.5, 0.5) and to == Vector2(pair.exit[0], pair.exit[1]) + Vector2(0.5, 0.5):
+			return true
+	return false
+
 func _check_stage(scene: Node3D, frame: Dictionary, label: String) -> void:
 	var map: Dictionary = frame["map"]
 	var columns := int(map["columns"])
@@ -169,31 +176,14 @@ func _check_stage(scene: Node3D, frame: Dictionary, label: String) -> void:
 			_check(tile == "core", label + " 경로 끝 코어 변경")
 		if i > 0:
 			var previous := Vector2(float(path[i - 1][0]), float(path[i - 1][1]))
-			_check(is_equal_approx(p.distance_to(previous), 1.0), label + " 기존 경로 단절")
+			_check(is_equal_approx(p.distance_to(previous), 1.0) or _teleport_jump(map, previous, p), label + " 기존 경로 단절")
+	# Tile paving is MultiMesh-batched; verify_chapter_two_paving.gd owns its placement checks.
 	for index in range(tiles.size()):
 		var p := _point(index, columns, rows)
-		var at_tile: Array[Node3D] = []
-		for node: Node3D in scene.terrain.get_children():
-			if node.name == "chapter_two_environment":
-				continue
-			if node.position.is_equal_approx(p):
-				at_tile.append(node)
-		var expected := 0 if tiles[index] == "blocked" else (2 if tiles[index] in ["spawn", "core"] else 1)
-		_check(at_tile.size() == expected, label + " 타일 %d 배치 수 불일치" % index)
 		if tiles[index] == "spawn":
 			_check(scene._portals.any(func(node: Node3D) -> bool: return node.position.is_equal_approx(p)), label + " 포탈 위치 변경")
 		elif tiles[index] == "core":
 			_check(scene._cores.any(func(core: Dictionary) -> bool: return core["root"].position.is_equal_approx(p)), label + " 코어 위치 변경")
-		if tiles[index] != "blocked":
-			var source_name := "build_tile" if tiles[index] == "build" else "path_tile"
-			var template: Node3D = scene._chapter_two_terrain_library.find_child(source_name, true, false)
-			var matches := at_tile.filter(func(node: Node3D) -> bool: return _matches_template(node, template))
-			_check(matches.size() == 1, label + " 2장 타일 종류·포탈/코어 받침 불일치")
-			if matches.size() == 1:
-				var instance: Node3D = matches[0]
-				_check(instance.scale.is_equal_approx(Vector3.ONE), label + " 단위 타일 원본 스케일 변경")
-				_check(is_equal_approx(instance.rotation.y / (PI / 2.0), roundf(instance.rotation.y / (PI / 2.0))), label + " 단위 타일 회전이 직각을 벗어남")
-				_check_shared_materials(instance, template, label + " " + source_name)
 	_check(scene.turrets.size() == frame["turrets"].size(), label + " 포탑 누락")
 	for turret: Array in frame["turrets"]:
 		var p := Vector3(float(turret[1]) - columns / 2.0, 0, float(turret[2]) - rows / 2.0)
@@ -203,7 +193,11 @@ func _check_stage(scene: Node3D, frame: Dictionary, label: String) -> void:
 		var id := int(enemy[0])
 		if scene.enemies.has(id):
 			_check(scene.enemies[id]["type"] == str(enemy[7]), label + " 적 표시 타입·실드 정보 계약 변경")
-	_check_props(scene, tiles, label)
+	# Matched stages use their authored environment; generated props are the fallback only.
+	if scene._using_chapter_environment:
+		_check(scene.terrain.find_child("chapter_two_environment", true, false) == null, label + " 전용 환경과 대체 장식 중복")
+	else:
+		_check_props(scene, tiles, label)
 	var first_id: int = scene.terrain.get_child(0).get_instance_id()
 	frame["seq"] = 1
 	scene._apply_frame(frame)
@@ -233,10 +227,11 @@ func _verify() -> void:
 		push_error("2장·1장 실제 맵 fixture 두 경로가 필요합니다.")
 		quit(1)
 		return
-	var frames = JSON.parse_string(FileAccess.get_file_as_string(args[0]))
-	var chapter_one = JSON.parse_string(FileAccess.get_file_as_string(args[1]))
-	if not frames is Array or frames.size() != 5 or not chapter_one is Array or chapter_one.size() != 5:
-		push_error("각 장의 실제 프레임 5개가 필요합니다.")
+	# Typed parse keeps integer map and teleport coordinates, as ContentCatalog does.
+	var frames = SaveJson.parse(FileAccess.get_file_as_string(args[0]))
+	var chapter_one = SaveJson.parse(FileAccess.get_file_as_string(args[1]))
+	if not frames is Array or frames.is_empty() or not chapter_one is Array or chapter_one.is_empty() or int(chapter_one[0].get("stage", 0)) != 1:
+		push_error("2장 프레임과 스테이지 1부터 시작하는 1장 프레임이 필요합니다.")
 		quit(1)
 		return
 	var scene: Node3D = load("res://main.tscn").instantiate()
@@ -244,15 +239,16 @@ func _verify() -> void:
 	await process_frame
 	scene.set_process(false)
 	var epoch := 1
-	for index in [0, 1, 2, 3, 4, 0]:
+	for index in range(frames.size()) + [0]:
 		var frame: Dictionary = frames[index].duplicate(true)
+		var stage_number := int(frame.get("stage", index + 6))
 		frame["sceneEpoch"] = epoch
 		frame["seq"] = 0
 		epoch += 1
 		_check(frame["map"].get("theme") == "chapterTwoRift", "2장 균열 테마 직렬화 누락")
 		scene._apply_frame(frame)
-		_check_stage(scene, frame, "Stage %d" % (index + 6))
-		print("Stage %d rift verified: %dx%d" % [index + 6, scene.columns, scene.rows])
+		_check_stage(scene, frame, "Stage %d" % stage_number)
+		print("Stage %d rift verified: %dx%d" % [stage_number, scene.columns, scene.rows])
 	var restored: Dictionary = chapter_one[0].duplicate(true)
 	restored["sceneEpoch"] = epoch
 	restored["seq"] = 0
