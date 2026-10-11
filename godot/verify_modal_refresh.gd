@@ -1,4 +1,5 @@
 extends SceneTree
+const UiTweens = preload("res://verify_support_animation.gd")
 ## Exercises real modal lifetimes with fixture state and isolated device settings.
 const LobbyFixture = preload("res://verify_lobby.gd")
 const BattleFixture = preload("res://verify_battle_hud.gd")
@@ -64,7 +65,7 @@ func run() -> void:
 	await settle()
 	lobby.home.open_settings()
 	check(is_zero_approx(lobby.home.modal_frame.modulate.a),"Initial settings open has an entrance")
-	await create_timer(0.35).timeout
+	await UiTweens.finished(self)
 	var ids := home_ids(lobby.home)
 	lobby.home.modal_scroll.scroll_vertical = 40; await settle()
 	var scroll_y: int = lobby.home.modal_scroll.scroll_vertical
@@ -76,6 +77,7 @@ func run() -> void:
 	check(Device.read().msaa==0 and app.scene.options.msaa_samples==0 and app.scene.applications==1,"Graphics choice persists and applies once")
 	var prefs_path := ProjectSettings.globalize_path(Device.PATH)
 	var saved_at := FileAccess.get_modified_time(prefs_path)
+	# File modification times have one-second resolution.
 	await create_timer(1.1).timeout
 	(lobby.home.modal.find_child("msaa_0",true,false) as Button).pressed.emit()
 	check(FileAccess.get_modified_time(prefs_path)==saved_at and app.scene.applications==1,"Already selected graphics value does not write or apply again")
@@ -93,11 +95,11 @@ func run() -> void:
 	lobby.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN)
 	lobby.home.close_modal(); await settle()
 	check(not is_instance_valid(lobby.home.modal),"Delayed focus cannot reopen closed settings")
-	lobby.home.open_settings(); await create_timer(0.3).timeout
+	lobby.home.open_settings(); await UiTweens.finished(self)
 	lobby.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN)
 	lobby.home.open_events()
 	var events_ids := home_ids(lobby.home)
-	await create_timer(0.3).timeout
+	await UiTweens.finished(self)
 	check(home_ids(lobby.home)==events_ids and not texts(lobby.home.modal).contains("MSAA"),"Delayed focus cannot replace an intentional dialog transition")
 	await dimensions(320,100)
 	lobby.home.modal_scroll.scroll_vertical=30; await settle()
@@ -105,14 +107,14 @@ func run() -> void:
 	lobby.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN); await settle()
 	check(home_ids(lobby.home)==events_ids and lobby.home.modal_scroll.scroll_vertical==events_scroll,"Event focus preserves shell and scroll")
 	await dimensions(440,900)
-	lobby.home.open_settings(); await create_timer(0.3).timeout
+	lobby.home.open_settings(); await UiTweens.finished(self)
 	lobby.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN); await settle()
 	await capture("settings-refreshed-440")
 	lobby.home.close_modal()
 	lobby.open_page("연구"); await settle()
 	lobby.growth._details("researchEfficiency")
 	check(is_zero_approx(lobby.modal_visual.modulate.a),"Initial research detail has an entrance")
-	await create_timer(0.3).timeout
+	await UiTweens.finished(self)
 	var research_ids := lobby_ids(lobby)
 	await dimensions(320,220)
 	lobby.modal_scroll.scroll_vertical=30; await settle()
@@ -138,7 +140,7 @@ func run() -> void:
 	await settle()
 	check(lobby.modal.get_instance_id()==other_id and not texts(lobby.modal).contains("즉시 완료"),"Deferred research refresh cannot overwrite another modal")
 	lobby.close_modal(); await dimensions(440,900)
-	lobby.growth._details("researchEfficiency"); await create_timer(0.3).timeout
+	lobby.growth._details("researchEfficiency"); await UiTweens.finished(self)
 	lobby.refresh_economy(); await settle()
 	await capture("research-refreshed-440")
 	lobby.free(); await settle()
@@ -154,7 +156,7 @@ func run() -> void:
 	await settle()
 	hud.turret_panel._open_current_traits()
 	check(is_zero_approx(hud.modal_panel.modulate.a),"Initial traits modal has an entrance")
-	await create_timer(0.3).timeout
+	await UiTweens.finished(self)
 	var trait_ids := battle_ids(hud)
 	var quote: Dictionary=battle.run_domain.service.quotes(battle.run_domain.state,int(battle.run_domain.state.turrets[0].id))
 	var first: String=quote.primaryTraits[0]
@@ -176,7 +178,7 @@ func run() -> void:
 	check(battle.run_domain.state.turrets[0].primaryTrait==first and battle.run_domain.state.gemShards==shards-int(quote.primaryTrait),"Trait confirmation charges actual quote once")
 	check(not hud.modal_active() and not battle.scene._native_combat.session.paused,"Trait confirmation closes and resumes combat")
 	await dimensions(440,900)
-	hud.turret_panel._open_current_traits(); await create_timer(0.3).timeout
+	hud.turret_panel._open_current_traits(); await UiTweens.finished(self)
 	var stale_tab := (hud.modal_body.find_child("TraitTier1",true,false) as Button).pressed.get_connections()[0].callable as Callable
 	(hud.modal_body.find_child("TraitTier1",true,false) as Button).pressed.emit(); await settle()
 	check((hud.modal_body.find_child("TraitConfirm",true,false) as Button).disabled,"Chosen primary trait remains immutable")

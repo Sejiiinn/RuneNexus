@@ -1,4 +1,5 @@
 extends SceneTree
+const UiTweens = preload("res://verify_support_animation.gd")
 ## Production active slots exercise actual stop/resume rules and live cost/time.
 const Fixture = preload("res://verify_lobby.gd")
 const Lobby = preload("res://ui/lobby.gd")
@@ -91,14 +92,14 @@ func run() -> void:
 	timer(fill).timeout.emit(); await settle()
 	assert(cost(fill).text=="2")
 	var old_progress: float=fill.progress
-	active.startedAtMillis-=2000; timer(fill).timeout.emit(); await create_timer(0.9).timeout
+	active.startedAtMillis-=2000; timer(fill).timeout.emit(); await UiTweens.finished(self)
 	assert(cost(fill).text=="1" and clock(fill).text.begins_with("0분"))
 	assert(fill.progress>old_progress,"Timer advances the visible fill")
 	app.progression_inputs.freeDiamonds=0; timer(fill).timeout.emit(); await settle()
 	assert((card(fill).find_child("ResearchSlotInstant",true,false) as Button).disabled)
 	app.progression_inputs.freeDiamonds=1280
 	active.startedAtMillis=int(Time.get_unix_time_from_system()*1000)-int(active.durationMillis)-1000
-	timer(fill).timeout.emit(); await create_timer(0.9).timeout
+	timer(fill).timeout.emit(); await UiTweens.finished(self)
 	assert(clock(fill).text=="연구 완료" and fill.progress>0.999,"Expired clock/fill reach completion: %s / %.6f"%[clock(fill).text,fill.progress])
 	await capture("dynamic-complete-320")
 	# The actual instant control retains its confirmation and real completion command.

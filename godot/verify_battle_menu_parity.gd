@@ -1,4 +1,5 @@
 extends SceneTree
+const UiTweens = preload("res://verify_support_animation.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const Fixture = preload("res://verify_battle_hud.gd")
 class App extends Fixture.App:
@@ -64,7 +65,7 @@ func run() -> void:
 	assert(hud.rewards._record_text({"lastRunWasNewBestRound":true,"lastRunPreviousBestRound":0,"completedRounds":3},{},3) == "3R 첫 기록")
 	assert(hud.rewards._record_text({}, {"clearedStageNumbers":[1]},3) == "클리어")
 	assert(hud.rewards._record_text({"lastRunWasNewBestRound":true,"lastRunPreviousBestRound":2,"completedRounds":3},{},3) == "2R → 3R")
-	await create_timer(0.25).timeout
+	await UiTweens.finished(self)
 	print("PASS battle menu parity: progress, frame, reward purity, cancel resume, failure retention, stage destination, portal details")
 	hud.queue_free(); app.queue_free(); await process_frame; quit()
 func button(node: Node,value: String) -> Button:

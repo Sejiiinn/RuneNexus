@@ -1,4 +1,5 @@
 extends SceneTree
+const UiTweens = preload("res://verify_support_animation.gd")
 ## Real UI with isolated fixtures: focus traversal, resize and delayed text layout.
 const LobbyFixture = preload("res://verify_lobby.gd")
 const BattleFixture = preload("res://verify_battle_hud.gd")
@@ -15,7 +16,7 @@ func dimensions(width: int, height: int) -> void:
 	await settle()
 func capture(label: String) -> void:
 	if captures.is_empty() or DisplayServer.get_name() == "headless": return
-	await create_timer(0.25).timeout
+	await UiTweens.finished(self)
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(captures.path_join(label+".png"))
 func find_text(node: Node, prefix: String) -> Label:
@@ -132,7 +133,7 @@ func run() -> void:
 		print("PASS upgrade layout width=",width," dock=",dock_bounds)
 	for width in [440,320]:
 		await dimensions(width,900)
-		hud.turret_panel._open_current_traits(); await create_timer(0.3).timeout; await settle()
+		hud.turret_panel._open_current_traits(); await UiTweens.finished(self); await settle()
 		var panel: PanelContainer = hud.modal_panel
 		var bounds: Rect2 = panel.get_global_rect()
 		var body_ids: Array = node_identities(hud.modal_body)
@@ -154,7 +155,7 @@ func run() -> void:
 		(hud.modal_body.find_child("TraitTier1",true,false) as Button).pressed.emit(); await settle()
 		assert(hud.modal_panel == panel and is_equal_approx(panel.modulate.a,1),"Returning to the first trait tier preserves the panel")
 		assert((hud.modal_body.find_child("TraitConfirm",true,false) as Button).disabled,"Tab change clears preview")
-		hud.close_modal(); await create_timer(0.25).timeout
+		hud.close_modal(); await UiTweens.finished(self)
 		print("PASS trait selection layout width=",width," modal=",bounds)
 	await dimensions(440,900)
 	hud.menu_panel._stage_menu(); await check_first_visible_frames(hud,200)
@@ -177,14 +178,14 @@ func run() -> void:
 	assert(hud.modal_panel.size.y < 220,"Short text must not leave a full-height modal")
 	await capture("battle-content-shrunk")
 	print("PASS battle resize and delayed shrink ",tall," -> ",hud.modal_panel.size.y)
-	hud.close_modal(); await create_timer(0.25).timeout
+	hud.close_modal(); await UiTweens.finished(self)
 	hud.menu_panel._portal_details({"previewText":"포탈의 적 출현 정보입니다.","enemyCounts":{}},0)
 	await settle()
 	await dimensions(320,568)
 	assert(hud.modal_panel.size.x <= 296.1)
 	assert(hud.modal_panel.get_global_rect().end.y <= 568.1)
 	await capture("battle-bottom-sheet")
-	hud.close_modal(); await create_timer(0.25).timeout
+	hud.close_modal(); await UiTweens.finished(self)
 	hud.free(); battle.free(); await settle()
 	print("PASS UI_LAYOUT_STABILITY")
 	quit()

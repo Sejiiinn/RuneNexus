@@ -94,7 +94,7 @@ SCRIPTS = {
     "verify_turret_stat_calculation.gd": None,
 }
 # Shared helpers preloaded by the cases above; never run on their own.
-HELPERS = ("verify_support_fixture_compare.gd",)
+HELPERS = ("verify_support_fixture_compare.gd", "verify_support_animation.gd")
 FIXTURES = (
     "chapter_three_map_signature_baseline.json", "combat_calculation.json",
     "turret_stat_calculation.json", "turret_stat_critical_boundaries.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
@@ -179,10 +179,14 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
     # Transition cases restart processes; fixed-clock replay covers 120 seeded
     # scenarios across render cadences/speeds. Existing case limits are unchanged.
     timeout = 120 if name == "verify_chapter_three_normal_combat.gd" else 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
+    # user:// resolves under HOME; a per-case HOME keeps saves/settings from
+    # leaking between runs and cases, and is removed with the temporary project.
+    home = temporary / "home" / name.removesuffix(".gd")
+    home.mkdir(parents=True, exist_ok=True)
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],
-                                 env={**os.environ, "TMPDIR": str(temporary)},
+                                 env={**os.environ, "HOME": str(home), "TMPDIR": str(temporary)},
                                  text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise RuntimeError(f"{name} timed out after {timeout}s: {error.stdout} {error.stderr}") from error

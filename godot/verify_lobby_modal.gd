@@ -1,4 +1,5 @@
 extends SceneTree
+const UiTweens = preload("res://verify_support_animation.gd")
 const Lobby = preload("res://ui/lobby.gd")
 const Progression = preload("res://content/stage_progression.gd")
 class FakeApp extends RefCounted:
@@ -63,7 +64,7 @@ func run() -> void:
 			app.progression_inputs.unlockedStageCount = 11 if stage==11 else 2
 			lobby.open_page("스테이지")
 			lobby.stages.select_chapter(Progression.chapter_for(stage))
-			await create_timer(1.0).timeout
+			await UiTweens.finished(self)
 			# Stage rows live in the chapter's native scroll list.
 			for target in lobby.stages.canvas.find_children("*","Button",true,false):
 				if target.tooltip_text == "스테이지 %s 상세"%Progression.stage_label(stage):
@@ -71,7 +72,7 @@ func run() -> void:
 					await process_frame
 					click(target)
 			assert(is_instance_valid(lobby.modal),"Actual stage-row click opens details")
-			await create_timer(0.4).timeout
+			await UiTweens.finished(self)
 			check(lobby)
 			for chip in lobby.modal_body.find_children("UnlockChip*","PanelContainer",true,false):
 				var reward_label: Label = chip.find_child("RewardName",true,false)
@@ -89,23 +90,23 @@ func run() -> void:
 			assert(app.starts.size() == count+(0 if stage==8 else 1),"Actual start hit")
 			if stage != 8:
 				assert(not is_instance_valid(lobby.modal), "Start closes modal")
-				await create_timer(0.3).timeout
+				await UiTweens.finished(self)
 				lobby.stages.details(stage)
-				await create_timer(0.4).timeout
+				await UiTweens.finished(self)
 				check(lobby)
 			click(lobby.modal_frame.find_child("CloseStageDetails",true,false))
 			assert(not is_instance_valid(lobby.modal),"Actual close hit")
-			await create_timer(0.3).timeout
+			await UiTweens.finished(self)
 	# A resize while the entrance tween is active must not restore its old location.
 	lobby.stages.details(1)
-	await create_timer(0.04).timeout
+	await create_timer(0.04).timeout # deliberately mid-entrance
 	root.size = Vector2i(440,1100)
-	await create_timer(0.4).timeout
+	await UiTweens.finished(self)
 	check(lobby)
 	# In a short logical viewport only body content scrolls; close remains fixed.
 	root.content_scale_size = Vector2i(320,260)
 	root.size = Vector2i(320,260)
-	await create_timer(0.3).timeout
+	await UiTweens.finished(self)
 	check(lobby)
 	assert(lobby.modal_scroll.get_v_scroll_bar().max_value > lobby.modal_scroll.size.y)
 	lobby.modal_scroll.scroll_vertical = 10000

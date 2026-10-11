@@ -1,4 +1,5 @@
 extends SceneTree
+const UiTweens = preload("res://verify_support_animation.gd")
 const ModalFrame = preload("res://ui/game_modal_frame.gd")
 const Fixture = preload("res://verify_lobby.gd")
 const Lobby = preload("res://ui/lobby.gd")
@@ -62,7 +63,7 @@ func check_shared_dismiss() -> void:
 	ModalFrame.dismiss(modal)
 	click(Vector2(50, 200))
 	assert(background_presses == 0, "Fading modal leaked background input")
-	await create_timer(0.3).timeout
+	await UiTweens.finished(self)
 	assert(not is_instance_valid(modal), "Dismissed modal remains after fade")
 	click(Vector2(50, 200))
 	assert(background_presses == 1, "Background remains blocked after dismissal")
@@ -88,7 +89,7 @@ func run() -> void:
 		await process_frame
 		var current_modal: Control = home.modal if title == "이벤트" else lobby.modal
 		assert(is_instance_valid(current_modal), title + " shortcut failed to open modal")
-		await create_timer(0.3).timeout
+		await UiTweens.finished(self)
 		await capture(shortcut_name.to_lower())
 		var close_name := "Close" if title == "이벤트" else "CloseModal"
 		var close_button := current_modal.find_child(close_name, true, false) as Button
@@ -104,12 +105,12 @@ func run() -> void:
 		click(background_shortcut.get_global_rect().get_center())
 		assert(not is_instance_valid(home.modal), title + " fade leaked to home event action")
 		assert(not is_instance_valid(lobby.modal), title + " fade leaked to home service action")
-		await create_timer(0.3).timeout
+		await UiTweens.finished(self)
 		click(background_shortcut.get_global_rect().get_center())
 		assert(is_instance_valid(home.modal if title != "이벤트" else lobby.modal), title + " dismissal did not restore home input")
 		if title == "이벤트": lobby.close_modal(true)
 		else: home.close_modal()
-		await create_timer(0.3).timeout
+		await UiTweens.finished(self)
 	print("PASS modal input: real Events/Leaderboard/Mailbox close and fade block background, input restored")
 	lobby.free()
 	quit()
