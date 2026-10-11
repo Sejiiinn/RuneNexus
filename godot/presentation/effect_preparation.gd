@@ -9,6 +9,7 @@ const Lightning = preload("res://effects/lightning_attack.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
 const TargetSurface = preload("res://effects/sniper_target_surface.gd")
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
+const Ricochet = preload("res://effects/machinegun_ricochet.gd")
 const EFFECT_CACHES := [
 	Fire, Frost, Burn, Lightning, GuardianStatus,
 	preload("res://effects/enemy_frost.gd"),
@@ -16,6 +17,7 @@ const EFFECT_CACHES := [
 	preload("res://effects/hound_death.gd"),
 	preload("res://effects/tank_death.gd"),
 	preload("res://effects/machinegun_muzzle.gd"),
+	Ricochet,
 	preload("res://effects/cannon_flight.gd"),
 	preload("res://effects/godot_impact.gd"),
 	preload("res://effects/field_cache.gd"),
@@ -115,6 +117,10 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 	if "lightning" in tower_types:
 		lightning = Lightning.new()
 		world.add_child(lightning)
+	var ricochet: Node3D
+	if "arrow" in tower_types:
+		ricochet = Ricochet.new()
+		world.add_child(ricochet)
 	units.failure.connect(func(_message): _failed = true)
 	projectiles.failure.connect(func(_message): _failed = true)
 	# Cannon owns the large impact field. A stage without cannon needs none.
@@ -177,6 +183,10 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 		var time := .05 * step
 		if lightning != null:
 			lightning.sample_discharge(Vector3(0, .45, 0), Vector3(1, .4, 1), time, .28, step)
+		if ricochet != null:
+			# Same shader variants as the first combat hit: sparks, flare and lamp.
+			ricochet.present([{"id":40,"kind":"impact","style":"spark","turretType":"arrow","x":4.0,"y":5.0,
+				"direction":[1.0,0.0],"targetId":10,"age":.02 * step}], [], Vector2(8, 10), time, true)
 		units.configure(time, Vector2i(8, 10), options)
 		units._sync_turrets(_turrets(tower_types, 1))
 		projectiles.configure(time, Vector2i(8, 10), options)
@@ -189,6 +199,7 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 			return false
 	projectiles._sync_projectiles([], {})
 	if lightning != null: lightning.reset()
+	if ricochet != null: ricochet.reset()
 	projectiles._update_impacts([])
 	if not _failed:
 		scene._projectile_renderer.adopt_prepared(projectiles)

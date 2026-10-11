@@ -829,3 +829,7 @@ __pycache__/
 
 # 다섯 번째 링크 연구의 일회성 실행·캡처·격리 프로젝트.
 /design/stage_expansion_progression/fifth-link-local/
+
+# 기관총 명중 비교의 일회성 캡처 스크립트·원본 PNG와 영상으로 대체한 GIF.
+/design/turret_vfx_concepts/machinegun_hit/runtime/
+/design/turret_vfx_concepts/machinegun_hit/compare/gif/

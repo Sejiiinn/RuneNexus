@@ -17,6 +17,7 @@ const BattlefieldUnits = preload("res://presentation/battlefield_units.gd")
 const BattlefieldProjectiles = preload("res://presentation/battlefield_projectiles.gd")
 const BattlefieldPath = preload("res://presentation/battlefield_path.gd")
 const LightningPresentation = preload("res://presentation/lightning_presentation.gd")
+const MachinegunRicochet = preload("res://effects/machinegun_ricochet.gd")
 const TURRET_MODELS = BattlefieldUnits.TURRET_MODELS
 const ENEMY_MODELS = BattlefieldUnits.ENEMY_MODELS
 const FoliageWind = BattlefieldEnvironment.FoliageWind
@@ -160,6 +161,7 @@ var _generic_projectile_pool: Dictionary:
 
 var _units := BattlefieldUnits.new(world, camera)
 var _lightning_presentation := LightningPresentation.new(world)
+var _machinegun_ricochet := MachinegunRicochet.new()
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
 var _path_guide := BattlefieldPath.new(world)
 var _environment := BattlefieldEnvironment.new(terrain, _world_environment, sun, _fill_light)
@@ -202,6 +204,8 @@ func prepare_effects() -> bool:
 
 func _ready() -> void:
 	_presentation_nodes["effects"].spatial_lightning = true
+	_presentation_nodes["effects"].spatial_ricochet = true
+	world.add_child(_machinegun_ricochet)
 	RuntimeProfile.configure()
 	_frame_metrics.attach(get_viewport())
 	_set_profile_enabled(RuntimeProfile.enabled)
@@ -266,6 +270,7 @@ func _exit_tree() -> void:
 	_projectile_renderer.field = {}
 	_projectile_renderer._projectile_meshes.clear()
 	_lightning_presentation.clear()
+	_machinegun_ricochet.clear()
 	EffectPreparation.retain_stage([], [])
 	StageResources.clear()
 
@@ -413,6 +418,7 @@ func _present_overlays() -> void:
 		if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
 		if group == "effects":
 			_lightning_presentation.present(node.items, turrets, enemies, Vector2(columns, rows), enabled, bool(options.get("volume", true)))
+			_machinegun_ricochet.present(node.items, last_frame.get("enemies", []), Vector2(columns, rows), float(last_frame.get("time", 0.0)), enabled)
 		if canvas_enabled:
 			if group == "selection":
 				node.set_turrets(turrets, _units.turret_revision)
@@ -607,6 +613,7 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 
 func _clear_scene() -> void:
 	_lightning_presentation.clear()
+	_machinegun_ricochet.clear()
 	_native_combat.active = false
 	_native_combat = _new_native_combat()
 	_session_frame_clock.reset()
@@ -877,6 +884,7 @@ func _commit_stage_resources() -> bool:
 		# The durable transition has committed. Retire old instances only now.
 		_units.clear()
 		_lightning_presentation.clear()
+		_machinegun_ricochet.clear()
 		if not _environment.prepare_for_map(manifest.map): return false
 		if _stage_preparation_pending: await stage_feedback_frame()
 		_units.retain_stage(manifest.enemy_types)

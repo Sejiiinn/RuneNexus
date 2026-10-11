@@ -2,6 +2,7 @@ extends Node2D
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 const EffectFormat = preload("res://combat/effect_presentation.gd")
 var spatial_lightning := false
+var spatial_ricochet := false
 
 ## Presentation-only: effects use the authoritative simulation clock.
 ## Diamond receipts divide its delta by playback speed for readable feedback;
@@ -326,6 +327,7 @@ func _release_surface(id: int) -> void:
 
 func _canvas_effect(effect: Dictionary) -> bool:
 	if spatial_lightning and EffectFormat.is_spatial_lightning(effect): return false
+	if spatial_ricochet and EffectFormat.is_spatial_ricochet(effect): return false
 	return effect.get("kind") != "blast" and not (effect.get("kind") == "impact" and effect.get("style") in ["flame", "frost"])
 
 

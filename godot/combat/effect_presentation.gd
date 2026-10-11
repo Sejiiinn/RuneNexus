@@ -8,6 +8,11 @@ static func is_spatial_lightning(effect: Dictionary) -> bool:
 	var kind := str(effect.get("kind", ""))
 	return kind in ["charge", "chain"] or (kind == "impact" and str(effect.get("style", "")) in ["lightning", "lightningBlast"])
 
+static func is_spatial_ricochet(effect: Dictionary) -> bool:
+	# Native machine-gun hits carry their flight direction for the 3D ricochet.
+	return str(effect.get("turretType", "")) == "arrow" and str(effect.get("kind", "")) == "impact" \
+		and str(effect.get("style", "")) == "spark" and effect.get("direction") is Array
+
 static func normalize(effect: Dictionary) -> void:
 	var source_tile := maxf(0.001, float(effect.get("tileSize", LOGICAL_TILE)))
 	if is_equal_approx(source_tile, LOGICAL_TILE): return

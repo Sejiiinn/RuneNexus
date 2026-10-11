@@ -1,0 +1,177 @@
+<title>기관총 피격 효과 비교</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 요약 → 같은 명중의 프레임별 전후 비교(시점 탭) → 실제 게임 크기 → 바뀐 점과 검증. 시안 페이지와 같은 어두운 룬·금속 단일 테마. */
+:root {
+  --bg: #0e1315;
+  --panel: #161e21;
+  --panel-2: #1c272b;
+  --line: #2a393e;
+  --fg: #dde5e2;
+  --muted: #8d9e9a;
+  --rune: #52cfc2;
+  --brass: #c9a46a;
+  --spark: #ffb648;
+  --warn: #e58a6a;
+  --font-display: "Song Myung", "Nanum Myeongjo", "AppleMyungjo", serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: grid; gap: 40px; }
+h1, h2 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.15; }
+h2 { font-size: 26px; line-height: 1.25; }
+h3 { font-size: 15px; font-weight: 600; margin: 0; }
+p { margin: 0; max-width: 70ch; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--rune); }
+.muted { color: var(--muted); }
+code { font-family: var(--font-mono); font-size: 13px; color: var(--brass); overflow-wrap: anywhere; }
+header, section { display: grid; gap: 16px; }
+.vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 680px) { .vs { grid-template-columns: minmax(0, 1fr); } }
+.vs > div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; min-width: 0; }
+.vs > div.new { border-color: color-mix(in srgb, var(--rune) 55%, var(--line)); }
+.tag { justify-self: start; font: 500 11px/1 var(--font-mono); letter-spacing: .06em; padding: 4px 7px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.tag.old { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+.tag.new { color: var(--bg); background: var(--rune); border-color: var(--rune); }
+
+.tabs { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; justify-self: start; }
+.tabs button { font: 500 13px/1 var(--font-body); color: var(--muted); background: var(--panel); border: 0; padding: 9px 13px; cursor: pointer; }
+.tabs button + button { border-left: 1px solid var(--line); }
+.tabs button[aria-selected="true"] { background: var(--panel-2); color: var(--fg); box-shadow: inset 0 -2px 0 var(--rune); }
+button:focus-visible { outline: 2px solid var(--rune); outline-offset: 2px; }
+.stripbox { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 12px; }
+.strip { display: grid; grid-template-columns: 64px repeat(var(--n), 150px); gap: 8px; align-items: center; min-width: max-content; }
+.strip .rowlabel { font: 500 12px/1.3 var(--font-mono); color: var(--muted); }
+.strip .rowlabel.new { color: var(--rune); }
+.strip .age { font: 500 11px/1 var(--font-mono); color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+.strip img { display: block; width: 150px; height: 150px; border-radius: 4px; border: 1px solid var(--line); }
+.caption { font-size: 13px; color: var(--muted); }
+
+.native { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.native figure { margin: 0; display: grid; gap: 6px; }
+.native img { width: 100%; max-width: 300px; image-rendering: auto; border-radius: 4px; border: 1px solid var(--line); }
+.native figcaption { font-size: 13px; color: var(--muted); }
+
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.spec > div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.spec ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.spec li::marker { color: var(--brass); }
+.result { display: inline-block; font: 500 11px/1 var(--font-mono); padding: 3px 6px; border-radius: 3px; margin-right: 6px; }
+.result.pass { background: color-mix(in srgb, var(--rune) 22%, transparent); color: var(--rune); }
+.result.todo { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+footer { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rune Nexus · 기관총 · A안 적용 · 2026-10-11</div>
+    <h1>기관총 피격 효과 비교</h1>
+    <p class="muted">같은 고정 전투에서 같은 명중 한 발을 프레임마다 촬영한 실제 Godot 화면입니다. 위 줄이 기존, 아래 줄이 A안(도탄 불티) 적용 결과입니다.</p>
+    <div class="vs">
+      <div>
+        <span class="tag old">기존</span>
+        <h3>평면 별모양 섬광</h3>
+        <p class="muted">명중 지점 위에 2D 캔버스로 대칭 6갈래 선과 흰 원을 0.28초 그립니다. 탄이 들어온 방향과 맞은 몸체와 관계없이 화면에 붙은 스티커처럼 보입니다.</p>
+      </div>
+      <div class="new">
+        <span class="tag new">A안</span>
+        <h3>입체 도탄 불티</h3>
+        <p class="muted">맞은 몸체 표면 앞에 백열 접점과 십자 섬광이 60ms, 불티 7개가 탄의 반대 방향과 위로 튀어 중력으로 떨어지며 90~170ms에 백색→앰버→주황으로 식습니다. 짧은 주황 표면광이 80ms 동안 몸체를 비춥니다.</p>
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="strip-title">
+    <h2 id="strip-title">같은 명중의 프레임별 비교</h2>
+    <div class="tabs" role="tablist" aria-label="촬영 조건">
+      <button type="button" role="tab" id="tab-angled" aria-selected="true" data-set="angled">비스듬한 시점 1×</button>
+      <button type="button" role="tab" id="tab-drone" aria-selected="false" data-set="drone">드론 시점 1×</button>
+      <button type="button" role="tab" id="tab-4x" aria-selected="false" data-set="4x">비스듬한 시점 4×</button>
+    </div>
+    <div class="stripbox"><div class="strip" id="strip"></div></div>
+    <p class="caption" id="strip-caption"></p>
+  </section>
+
+  <section aria-labelledby="native-title">
+    <h2 id="native-title">실제 게임 크기</h2>
+    <p class="muted">확대 없이 720×1472 렌더에서 잘라낸 원래 크기입니다. 기존 별모양과 비슷한 화면 크기로 맞추되 방향이 있는 줄기로 읽히게 했습니다.</p>
+    <div class="native">
+      <figure><img src="img/native-before-01.jpg" alt="기존 효과, 명중 17ms 후, 원래 크기" width="300" height="300"><figcaption>기존 · 17ms</figcaption></figure>
+      <figure><img src="img/native-after-01.jpg" alt="A안, 명중 17ms 후 접점 섬광, 원래 크기" width="300" height="300"><figcaption>A안 · 17ms 접점 섬광</figcaption></figure>
+      <figure><img src="img/native-before-03.jpg" alt="기존 효과, 명중 50ms 후, 원래 크기" width="300" height="300"><figcaption>기존 · 50ms</figcaption></figure>
+      <figure><img src="img/native-after-03.jpg" alt="A안, 명중 50ms 후 불티, 원래 크기" width="300" height="300"><figcaption>A안 · 50ms 불티 확산</figcaption></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="impl-title">
+    <h2 id="impl-title">바뀐 점과 검증</h2>
+    <div class="spec">
+      <div>
+        <h3>적용 범위</h3>
+        <ul>
+          <li>기관총 명중만 3D로 바꿨습니다. 저격 포탑의 2D 섬광과 다른 포탑 효과는 그대로입니다.</li>
+          <li>전투 판정·피해·충돌·저장은 바꾸지 않았습니다. 명중 표시 항목에 탄 방향과 맞은 적 ID만 추가했습니다.</li>
+          <li>카메라를 향하는 평면 없이 입체 메시로 그리고, 적 몸체에 가려지면 같이 가려집니다.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>성능 구성</h3>
+        <ul>
+          <li>명중 32발 분량 고정 풀. 명중마다 자세와 시작 시각만 한 번 기록하고 불티 운동은 GPU가 계산합니다.</li>
+          <li>표면광은 전장 전체에서 2개를 재사용합니다. 셰이더는 스테이지 로딩 중에 미리 컴파일합니다.</li>
+          <li>정지·배속·되감기·새 전투에서 같은 전투 시계를 따르고 이전 불티가 남지 않습니다.</li>
+        </ul>
+      </div>
+      <div id="verify">
+        <h3>검사 결과</h3>
+        <ul>
+          <li><span class="result pass">PASS</span>신규 회귀 검사 30항목. 변경 전 코드에 적용하면 실패해 결함을 잡는지 확인했습니다.</li>
+          <li><span class="result pass">수정</span>독립 검증에서 찾은 결함: 10분 넘게 이어진 전투에서 지난 불티가 다시 터지던 문제를 고치고 검사에 추가했습니다. 이웃 적에 번지던 표면광 반경도 줄였습니다.</li>
+          <li><span class="result pass">PASS</span>기존 효과·캐시·로딩 준비·기관총 포구·투사체 검사 7개.</li>
+          <li><span class="result pass">PASS</span>전투 런타임·고정 시계·피해 수집·세션 회귀 7개.</li>
+          <li><span class="result todo">미검증</span>Android 실기기 화면과 4배속 다중 명중 성능.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>촬영: Godot 4.7.2, Metal Forward Mobile, 데스크톱 720×1472. 고정 시계로 렌더 프레임당 전투 1스텝(1/60초) 진행, 표시 확인용으로 연사를 6발/초로 올린 개발 fixture 전투. 프레임 비교 이미지는 명중점 주변 180px를 3배 보간 확대한 것이며 별도 렌더가 아닙니다.</footer>
+</div>
+
+<script>
+(() => {
+  const SETS = {
+    angled: { frames: ['00','01','02','03','04','05','06','07','09'], step: 16.7, note: '1배속. 각 칸은 렌더 프레임 하나(전투 1/60초)입니다. A안은 약 150ms 뒤 완전히 사라집니다.' },
+    drone: { frames: ['00','01','02','03','04','05','06','07'], step: 16.7, note: '위에서 내려다보는 드론 시점, 1배속. 접점 섬광은 몸체 표면 앞에 놓입니다.' },
+    '4x': { frames: ['00','01','02','03'], step: 66.7, note: '4배속에서는 렌더 프레임 하나가 전투 약 67ms입니다. 접점 섬광 → 불티 → 소멸이 2~3프레임에 지나갑니다.' }
+  };
+  const strip = document.getElementById('strip');
+  const caption = document.getElementById('strip-caption');
+  function render(key) {
+    const set = SETS[key];
+    strip.style.setProperty('--n', set.frames.length);
+    const cells = ['<span></span>'];
+    for (const f of set.frames) cells.push(`<span class="age">${Math.round(Number(f) * set.step)}ms</span>`);
+    for (const [label, cls, file] of [['기존', '', 'before'], ['A안', 'new', 'after']]) {
+      cells.push(`<span class="rowlabel ${cls}">${label}</span>`);
+      for (const f of set.frames) {
+        cells.push(`<img src="img/${file}-${key}-${f}.jpg" alt="${label}, ${Math.round(Number(f) * set.step)}ms" width="150" height="150" loading="lazy">`);
+      }
+    }
+    strip.innerHTML = cells.join('');
+    caption.textContent = set.note;
+  }
+  document.querySelector('.tabs').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+    render(b.dataset.set);
+  });
+  render('angled');
+})();
+</script>

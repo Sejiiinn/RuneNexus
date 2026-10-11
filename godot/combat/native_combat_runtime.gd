@@ -858,7 +858,7 @@ func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> 
 			projectiles.append(p)
 		return
 	p.excluded.append(str(hit.id))
-	_impact(t, p.attack, hit, p.position, 0.5 if p.chained else 1.0, p.chained)
+	_impact(t, p.attack, hit, p.position, 0.5 if p.chained else 1.0, p.chained, p.direction)
 	if p.chains > 0:
 		var next := _target(p.position, 110.0 * board_scale, "nearest", p.excluded)
 		if not next.is_empty():
@@ -895,9 +895,14 @@ func _lightning_complete(t: Dictionary, a: Dictionary, used: int) -> void:
 		var unused := maxi(0, int(a.lightningChainMaxJumps) - used)
 		t.cooldown = minf(t.cooldown, maxf(0, float(t.lastBaseCooldown) / (1 + unused * 0.15) - float(t.lightningElapsed)))
 
-func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false) -> void:
+func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false, direction: Vector2 = Vector2.ZERO) -> void:
 	var style: String = {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning"}.get(a.definition.type, "spark")
-	_visual("blast" if style == "blast" else "impact", at, t, {"style":style,"radius":maxf(10.0 * board_scale, a.splashRadius * (0.5 if chained else 1.0))})
+	var extra := {"style":style,"radius":maxf(10.0 * board_scale, a.splashRadius * (0.5 if chained else 1.0))}
+	if a.definition.type == "arrow" and direction != Vector2.ZERO:
+		# Presentation routing only: the 3D ricochet uses the incoming flight and
+		# the struck body's lane offset. Damage and collision stay unchanged.
+		extra.merge({"turretType":"arrow", "targetId":int(target.id), "direction":[direction.x, direction.y]})
+	_visual("blast" if style == "blast" else "impact", at, t, extra)
 	var impacted: Array = [target]
 	var radius: float = a.splashRadius * (0.5 if chained else 1.0)
 	if radius > 0:

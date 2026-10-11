@@ -1,0 +1,511 @@
+<title>기관총 피격 효과 시안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 진단 한 줄 → 4분할 실시간 비교(조작바 고정) → 추천안 타임라인 → 구현 계약 → 결정 요청. 게임 HUD와 같은 어두운 룬·금속 단일 테마. */
+:root {
+  --bg: #0e1315;
+  --panel: #161e21;
+  --panel-2: #1c272b;
+  --line: #2a393e;
+  --fg: #dde5e2;
+  --muted: #8d9e9a;
+  --rune: #52cfc2;
+  --brass: #c9a46a;
+  --spark: #ffb648;
+  --warn: #e58a6a;
+  --font-display: "Song Myung", "Nanum Myeongjo", "AppleMyungjo", serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: grid; gap: 40px; }
+h1, h2 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; letter-spacing: .01em; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.15; }
+h2 { font-size: 26px; line-height: 1.25; }
+h3 { font-size: 15px; font-weight: 600; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--rune); }
+.muted { color: var(--muted); }
+header { display: grid; gap: 14px; }
+.diag { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.diag > div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.diag b { font-weight: 600; }
+code { font-family: var(--font-mono); font-size: 13px; color: var(--brass); overflow-wrap: anywhere; }
+
+section { display: grid; gap: 16px; }
+.controls {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2;
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px);
+  border-block: 1px solid var(--line); padding-block: 10px;
+}
+.group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.group > span { font-size: 12px; color: var(--muted); margin-right: 2px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.seg button, .btn {
+  font: 500 13px/1 var(--font-body); color: var(--muted); background: var(--panel);
+  border: 0; padding: 8px 11px; cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--fg); box-shadow: inset 0 -2px 0 var(--rune); }
+.btn { border: 1px solid var(--line); border-radius: 5px; color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--rune); outline-offset: 2px; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.cell { display: grid; gap: 8px; min-width: 0; }
+.cell .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cell .head h3 { font-size: 16px; }
+.tag { font: 500 11px/1 var(--font-mono); letter-spacing: .06em; padding: 4px 7px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.tag.rec { color: var(--bg); background: var(--rune); border-color: var(--rune); }
+.tag.now { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+canvas { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; border-radius: 6px; border: 1px solid var(--line); background: #11181a; }
+.cell.picked canvas { border-color: var(--rune); }
+.cell p { font-size: 14px; color: var(--muted); }
+
+.timeline { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.timeline svg { display: block; min-width: 640px; width: 100%; height: auto; }
+.timeline text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.timeline .lbl { font-family: var(--font-body); font-size: 12.5px; fill: var(--fg); }
+
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.spec > div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.spec ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.spec li::marker { color: var(--brass); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12px; }
+td.num { font-family: var(--font-mono); color: var(--spark); white-space: nowrap; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.ask { border: 1px solid color-mix(in srgb, var(--rune) 45%, var(--line)); background: color-mix(in srgb, var(--rune) 7%, var(--panel)); border-radius: 6px; padding: 18px 20px; display: grid; gap: 10px; }
+.ask ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+footer { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .controls { backdrop-filter: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rune Nexus · 전투 효과 시안 · 2026-10-11</div>
+    <h1>기관총 피격 효과 개선안</h1>
+    <p class="muted">현재 Godot 전장에서 기관총 탄이 적에 닿을 때는 명중 순간을 표시하는 효과가 없습니다. 아래 비교에서 현재 상태와 세 가지 방향을 같은 연사·시점으로 재생합니다. 2D 캔버스로 그린 동작 시안이며 실제 게임 렌더가 아닙니다.</p>
+    <div class="diag">
+      <div><b>탄체</b><span class="muted">명중 즉시 숨김. <code>ballistic_projectile.gd</code></span></div>
+      <div><b>예광</b><span class="muted">적 앞에서 멈춘 노란 선이 140ms 동안 사라짐. 피격 효과처럼 보이는 유일한 표현.</span></div>
+      <div><b>적 몸체</b><span class="muted">전투 상태의 <code>hitFlashTimer</code>(0.1초)를 전달하지만 Godot 표시 경로에서 사용하지 않음.</span></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="cmp">
+    <h2 id="cmp">같은 조건 비교</h2>
+    <div class="controls" role="toolbar" aria-label="재생 조건">
+      <div class="group"><span>재생</span>
+        <div class="seg" id="speed">
+          <button type="button" id="sp-025" data-v="0.25" aria-pressed="false">0.25×</button>
+          <button type="button" id="sp-1" data-v="1" aria-pressed="true">1×</button>
+          <button type="button" id="sp-4" data-v="4" aria-pressed="false">4×</button>
+        </div>
+        <button type="button" class="btn" id="pause">일시정지</button>
+      </div>
+      <div class="group"><span>연사</span>
+        <div class="seg" id="rate">
+          <button type="button" id="rt-base" data-v="2.27" aria-pressed="false">기본 2.3발/초</button>
+          <button type="button" id="rt-up" data-v="6" aria-pressed="true">강화 6발/초</button>
+          <button type="button" id="rt-focus" data-v="13" aria-pressed="false">집중 13발/초</button>
+        </div>
+      </div>
+      <div class="group"><span>대상</span>
+        <div class="seg" id="target">
+          <button type="button" id="tg-golem" data-v="golem" aria-pressed="true">석재 골렘</button>
+          <button type="button" id="tg-hound" data-v="hound" aria-pressed="false">룬 사냥개</button>
+        </div>
+      </div>
+      <div class="group"><span>크기</span>
+        <div class="seg" id="zoom">
+          <button type="button" id="zm-close" data-v="1.9" aria-pressed="true">근접</button>
+          <button type="button" id="zm-near" data-v="1" aria-pressed="false">전장</button>
+          <button type="button" id="zm-game" data-v="0.42" aria-pressed="false">게임 크기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="cell">
+        <div class="head"><h3>현재</h3><span class="tag now">CURRENT</span></div>
+        <canvas id="cv-now" aria-label="현재: 예광만 사라지는 명중"></canvas>
+        <p>탄이 몸체 앞에서 사라지고 선만 남습니다. 명중 위치, 맞은 재질, 맞은 순간이 전달되지 않아 빗나간 탄과 구분이 어렵습니다.</p>
+      </div>
+      <div class="cell">
+        <div class="head"><h3>A · 도탄 불티</h3><span class="tag">MINIMAL</span></div>
+        <canvas id="cv-a" aria-label="A: 금속 불티가 튕겨 나가는 명중"></canvas>
+        <p>백열 접점 1개와 표면에서 반사되는 짧은 불티 6~7개. 가장 가볍고 선명하지만 돌을 맞혀도 금속끼리 부딪힌 것처럼 읽힙니다.</p>
+      </div>
+      <div class="cell picked">
+        <div class="head"><h3>B · 석재 파편 타격</h3><span class="tag rec">추천</span></div>
+        <canvas id="cv-b" aria-label="B: 불티, 돌 조각, 먼지가 함께 터지는 명중"></canvas>
+        <p>작은 접점 섬광, 불티 4개, 대상 몸체 색의 돌 조각 4개, 옅은 먼지 한 번. 골렘과 사냥개 모두 석재라서 맞은 재질이 바로 읽히고, 탄 하나하나가 끊어져 보입니다. 맞을 때마다 몸체가 2px 정도 밀립니다.</p>
+      </div>
+      <div class="cell">
+        <div class="head"><h3>C · 몸체 피격광</h3><span class="tag">BODY FLASH</span></div>
+        <canvas id="cv-c" aria-label="C: 적 몸체가 하얗게 번쩍이는 명중"></canvas>
+        <p>기존 <code>hitFlashTimer</code>로 몸체를 0.1초 밝힙니다. 기본 연사에서는 또렷하지만 강화·집중 연사에서는 계속 켜진 상태가 되어 승인된 석재 재질을 덮습니다. 단독 사용은 권장하지 않습니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="tl">
+    <h2 id="tl">B안 한 발의 시간 구성</h2>
+    <p class="muted">모든 레이어는 명중 시각을 0으로 둔 절대 경과 시간으로 계산합니다. 정지·배속·되감기에서 같은 결과가 나와야 하는 기존 대포 착탄 규칙과 같습니다. 가장 긴 먼지도 320ms 안에 닫혀 연사 중 동시에 남는 효과 수가 제한됩니다.</p>
+    <div class="timeline">
+      <svg viewBox="0 0 760 214" role="img" aria-label="B안 레이어별 지속 시간: 접점 섬광 0~50ms, 불티 0~130ms, 예광 잔상 0~140ms, 돌 조각 0~300ms, 먼지 10~320ms, 몸체 밀림 0~70ms">
+        <g stroke="#2a393e" stroke-width="1">
+          <line x1="150" y1="18" x2="150" y2="196"/><line x1="250" y1="18" x2="250" y2="196"/><line x1="350" y1="18" x2="350" y2="196"/>
+          <line x1="450" y1="18" x2="450" y2="196"/><line x1="550" y1="18" x2="550" y2="196"/><line x1="650" y1="18" x2="650" y2="196"/>
+          <line x1="730" y1="18" x2="730" y2="196"/>
+        </g>
+        <!-- scale: 150px = 0ms, 1ms = 1.8125px (320ms → 730px) -->
+        <text x="150" y="210" text-anchor="middle">0</text><text x="250" y="210" text-anchor="middle">55</text>
+        <text x="350" y="210" text-anchor="middle">110</text><text x="450" y="210" text-anchor="middle">166</text>
+        <text x="550" y="210" text-anchor="middle">221</text><text x="650" y="210" text-anchor="middle">276</text>
+        <text x="730" y="210" text-anchor="middle">320ms</text>
+        <text class="lbl" x="14" y="38">접점 섬광</text>   <rect x="150" y="27" width="90.6" height="14" rx="2" fill="#fff1c9"/>
+        <text class="lbl" x="14" y="66">불티 4개</text>    <rect x="150" y="55" width="235.6" height="14" rx="2" fill="#ffb648"/>
+        <text class="lbl" x="14" y="94">예광 잔상</text>   <rect x="150" y="83" width="253.8" height="14" rx="2" fill="#c9a46a" fill-opacity=".55"/>
+        <text class="lbl" x="14" y="122">돌 조각 4개</text> <rect x="150" y="111" width="543.8" height="14" rx="2" fill="#7f6a52"/>
+        <text class="lbl" x="14" y="150">먼지</text>        <rect x="168" y="139" width="562" height="14" rx="2" fill="#8d8170" fill-opacity=".6"/>
+        <text class="lbl" x="14" y="178">몸체 밀림</text>   <rect x="150" y="167" width="126.9" height="14" rx="2" fill="#52cfc2"/>
+      </svg>
+    </div>
+  </section>
+
+  <section aria-labelledby="impl">
+    <h2 id="impl">게임 적용 방식</h2>
+    <div class="spec">
+      <div>
+        <h3>형태와 재질</h3>
+        <ul>
+          <li>불티는 대포 착탄과 같은 가는 입체 쐐기 메시, 돌 조각은 낮은 폴리 파편 메시를 축소해 공유합니다. 카메라를 향하는 평면 이미지는 쓰지 않습니다.</li>
+          <li>돌 조각 색은 맞은 적의 장갑색을 따릅니다. 골렘은 갈색 이끼 석재, 사냥개는 청회색 석판.</li>
+          <li>접점 섬광은 대상 표면 바로 앞에 두어 몸체에 묻히지 않게 하고, 짧은 주황 점광 하나로 주변 표면만 살짝 밝힙니다.</li>
+          <li>먼지는 기관총 포구 연기와 같은 회갈색 계열의 작은 체적 한 번입니다.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>위치와 방향</h3>
+        <ul>
+          <li>명중 좌표는 이미 전달되는 실제 피격 지점(<code>data[12..13]</code>)과 탄 진행 방향을 사용합니다. 전투 판정은 바꾸지 않습니다.</li>
+          <li>불티와 조각은 표면 법선 기준으로 반사되어 포탑 쪽과 위쪽으로 흩어집니다. 탄이 들어온 방향이 화면에서 읽혀야 합니다.</li>
+          <li>몸체 밀림은 표시용 오프셋이며 이동 경로·충돌 위치에 반영하지 않습니다. 최대 3px 상당으로 누적을 제한합니다.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>성능 예산</h3>
+        <ul>
+          <li>고정 크기 풀 하나(예: 48발 분량)를 MultiMesh로 재사용하고, 입자 운동은 셰이더가 절대 경과 시간으로 계산합니다. 입자마다 CPU 갱신을 하지 않습니다.</li>
+          <li>한 발당 입자 8개 + 먼지 1개. 집중 13발/초 × 320ms에서도 동시 노출은 약 5발 분량입니다.</li>
+          <li>풀이 가득 차면 가장 오래된 효과부터 덮어씁니다. 4배속 다중 포탑 Android 실기기에서 확인합니다.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>레이어</th><th>수</th><th>수명</th><th>크기(타일 기준)</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr><td>접점 섬광</td><td class="num">1</td><td class="num">50ms</td><td class="num">≈0.06</td><td>백색 핵 → 앰버 테두리, 십자 형태</td></tr>
+          <tr><td>불티</td><td class="num">4</td><td class="num">80–130ms</td><td class="num">길이 0.03–0.05</td><td>반사 방향 ±45°, 중력 적용</td></tr>
+          <tr><td>돌 조각</td><td class="num">4</td><td class="num">220–300ms</td><td class="num">0.012–0.02</td><td>회전하며 낙하, 대상 장갑색</td></tr>
+          <tr><td>먼지</td><td class="num">1</td><td class="num">300ms</td><td class="num">0.05 → 0.17</td><td>불투명도 최대 0.32</td></tr>
+          <tr><td>몸체 밀림</td><td class="num">—</td><td class="num">70ms</td><td class="num">≤0.02</td><td>표시 오프셋만, 누적 상한</td></tr>
+          <tr><td>예광 잔상</td><td class="num">기존</td><td class="num">140ms</td><td class="num">기존</td><td>승인된 투사체 가독성 기준 유지</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ask" aria-labelledby="ask">
+    <h2 id="ask">정해 주실 것</h2>
+    <ol>
+      <li><b>방향 선택.</b> 추천은 B입니다. A 또는 C를 원하시거나 섞고 싶은 요소가 있으면 알려 주세요.</li>
+      <li><b>몸체 피격광 범위.</b> <code>hitFlashTimer</code>는 기관총 전용이 아니라 모든 피해에서 켜집니다. 이번 작업에서는 기관총 효과만 바꾸고 몸체 피격광은 넣지 않는 쪽을 권합니다.</li>
+    </ol>
+    <p class="muted">방향이 정해지면 Godot 전장에 적용하고, 고정·드론 시점과 4배속 다중 명중을 실제 게임 화면으로 확인해 비교 캡처를 드립니다.</p>
+  </section>
+
+  <footer>근거: <code>godot/effects/ballistic_projectile.gd</code>, <code>godot/effects/projectile_events.gd</code>, <code>godot/presentation/battlefield_units.gd</code>, <code>design/turret_vfx_concepts/README.md</code>. 시안 화면의 포탑·적 외형은 설명용입니다.</footer>
+</div>
+
+<script>
+(() => {
+  const W = 400, H = 250;
+  const state = { speed: 1, rate: 6, target: 'golem', zoom: 1.9, paused: false };
+  const ENEMY = {
+    golem: { body: '#6d5a44', dark: '#4a3c2e', moss: '#5b6a3a', eye: '#ff5a4a', rune: '#b37cff',
+             chips: ['#7f6a52', '#5c4a38', '#66713f'], dust: '154,138,116', x: 296, y: 150 },
+    hound: { body: '#64737e', dark: '#434f58', moss: '#56636c', eye: '#5ee7dc', rune: '#5ee7dc',
+             chips: ['#748491', '#4f5d68', '#8a97a1'], dust: '140,151,160', x: 300, y: 158 }
+  };
+  const TURRET = { x: 70, y: 170 };
+  const BULLET_SPEED = 1100; // logical px per second
+  const TAIL = 64;
+
+  function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = Math.imul(s ^ (s >>> 15), 2246822519) ^ Math.imul(s ^ (s >>> 13), 3266489917), s ^= s >>> 16) >>> 0) / 4294967296; }
+
+  // Floor tiles generated once (stone grid with moss tone noise).
+  const tiles = [];
+  { const r = rng(91); for (let gy = -6; gy < 12; gy++) for (let gx = -8; gx < 16; gx++) tiles.push({ gx, gy, t: r(), m: r() < 0.12 }); }
+
+  const panels = ['now', 'a', 'b', 'c'].map(v => {
+    const cv = document.getElementById('cv-' + v);
+    return { v, cv, ctx: cv.getContext('2d'), shots: [], flinch: [], flashUntil: -1, nextShot: 0, seq: 0 };
+  });
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    for (const p of panels) {
+      const w = p.cv.clientWidth || W;
+      p.cv.width = Math.round(w * dpr); p.cv.height = Math.round(w * 10 / 16 * dpr);
+      p.scale = p.cv.width / W;
+    }
+  }
+
+  function hitPoint(seq) {
+    const e = ENEMY[state.target], r = rng(seq * 7919 + 3)();
+    return state.target === 'golem'
+      ? { x: e.x - 27, y: e.y - 44 + (r - 0.5) * 34 }
+      : { x: e.x - 44, y: e.y - 18 + (r - 0.5) * 12 };
+  }
+
+  let clock = 0, last = performance.now();
+  function step(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!state.paused) clock += dt * state.speed;
+    for (const p of panels) simulate(p);
+    for (const p of panels) draw(p);
+    requestAnimationFrame(step);
+  }
+
+  function simulate(p) {
+    const period = 1 / state.rate;
+    if (p.nextShot > clock + 1) p.nextShot = clock; // after rate change
+    while (p.nextShot <= clock) {
+      const seq = p.seq++;
+      const port = seq % 2;
+      const from = { x: TURRET.x + 30, y: TURRET.y - 22 + (port ? 5 : -5) };
+      const to = hitPoint(seq);
+      const dist = Math.hypot(to.x - from.x, to.y - from.y);
+      p.shots.push({ seq, t0: p.nextShot, from, to, hit: p.nextShot + dist / BULLET_SPEED, port });
+      p.nextShot += period;
+    }
+    p.shots = p.shots.filter(s => clock - s.hit < 0.4);
+  }
+
+  function drawFloor(c) {
+    for (const t of tiles) {
+      const x = t.gx * 46 + t.gy * 10, y = t.gy * 30;
+      const l = 15 + t.t * 6;
+      c.fillStyle = t.m ? `hsl(95 18% ${l + 2}%)` : `hsl(190 9% ${l}%)`;
+      c.beginPath(); c.moveTo(x + 1, y + 1); c.lineTo(x + 45, y + 1); c.lineTo(x + 55, y + 29); c.lineTo(x + 11, y + 29); c.closePath(); c.fill();
+    }
+  }
+
+  function drawTurret(c, flashPort, flashAge) {
+    const { x, y } = TURRET;
+    c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x, y + 8, 30, 12, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#2b3236'; c.beginPath(); c.ellipse(x, y, 26, 14, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#3a4246'; c.fillRect(x - 16, y - 30, 30, 22);
+    c.fillStyle = '#c9a46a'; c.fillRect(x - 10, y - 26, 8, 14);
+    for (const k of [0, 1]) {
+      const by = y - 22 + (k ? 5 : -5);
+      c.fillStyle = '#23292c'; c.fillRect(x + 8, by - 2.2, 24, 4.4);
+      if (flashPort === k && flashAge < 0.055) {
+        const a = 1 - flashAge / 0.055;
+        const g = c.createRadialGradient(x + 36, by, 0, x + 36, by, 12);
+        g.addColorStop(0, `rgba(255,248,220,${a})`); g.addColorStop(.4, `rgba(255,190,90,${a * .8})`); g.addColorStop(1, 'rgba(255,140,40,0)');
+        c.fillStyle = g; c.beginPath(); c.ellipse(x + 40, by, 13, 6, 0, 0, Math.PI * 2); c.fill();
+      }
+    }
+  }
+
+  function drawEnemy(c, ox, flash) {
+    const e = ENEMY[state.target], bob = Math.sin(clock * 5) * 1.2;
+    const x = e.x + ox, y = e.y;
+    c.fillStyle = 'rgba(0,0,0,.4)'; c.beginPath(); c.ellipse(x, y + 4, state.target === 'golem' ? 34 : 50, 11, 0, 0, Math.PI * 2); c.fill();
+    c.save(); c.translate(x, y + bob);
+    if (state.target === 'golem') {
+      poly(c, e.dark, [[-30, -6], [-26, -66], [24, -70], [32, -8], [12, 0], [-14, 0]]);
+      poly(c, e.body, [[-28, -12], [-24, -62], [20, -66], [28, -14]]);
+      poly(c, e.moss, [[-24, -62], [20, -66], [14, -58], [-18, -56]]);
+      poly(c, e.dark, [[-22, -64], [-18, -94], [16, -96], [20, -66]]);
+      poly(c, e.body, [[-19, -68], [-16, -92], [14, -93], [17, -69]]);
+      c.fillStyle = e.rune; c.fillRect(-3, -90, 5, 8);
+      c.fillStyle = e.eye; c.fillRect(-12, -79, 6, 3); c.fillRect(4, -79, 6, 3);
+      const g = c.createRadialGradient(-2, -38, 0, -2, -38, 12); g.addColorStop(0, '#ff6a50'); g.addColorStop(1, 'rgba(255,60,40,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(-2, -38, 12, 0, Math.PI * 2); c.fill();
+      poly(c, e.dark, [[-30, -54], [-40, -26], [-32, -20], [-24, -48]]);
+    } else {
+      poly(c, e.dark, [[-46, -10], [-40, -34], [40, -30], [48, -6]]);
+      poly(c, e.body, [[-42, -14], [-36, -32], [36, -28], [42, -10]]);
+      poly(c, e.dark, [[-60, -26], [-50, -44], [-30, -40], [-34, -18]]);
+      poly(c, e.body, [[-56, -28], [-48, -41], [-33, -38], [-36, -22]]);
+      c.fillStyle = e.eye; c.fillRect(-52, -35, 5, 2.5);
+      c.fillStyle = e.rune; c.fillRect(-6, -31, 16, 2.5);
+      for (const lx of [-34, -20, 22, 34]) poly(c, e.dark, [[lx - 4, -12], [lx + 4, -12], [lx + 2, 2], [lx - 3, 2]]);
+    }
+    if (flash > 0) {
+      c.globalCompositeOperation = 'lighter';
+      c.globalAlpha = flash * 0.55;
+      const pts = state.target === 'golem'
+        ? [[-30, -6], [-26, -66], [-22, -64], [-18, -94], [16, -96], [20, -66], [24, -70], [32, -8]]
+        : [[-60, -26], [-50, -44], [-30, -40], [40, -30], [48, -6], [-46, -10]];
+      poly(c, '#fff4e0', pts);
+      c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+    }
+    c.restore();
+  }
+  function poly(c, fill, pts) { c.fillStyle = fill; c.beginPath(); pts.forEach(([px, py], i) => i ? c.lineTo(px, py) : c.moveTo(px, py)); c.closePath(); c.fill(); }
+
+  function drawBullet(c, s) {
+    const fly = clock - s.t0;
+    if (fly < 0) return;
+    const total = s.hit - s.t0, dx = s.to.x - s.from.x, dy = s.to.y - s.from.y, len = Math.hypot(dx, dy);
+    const ux = dx / len, uy = dy / len;
+    const done = clock >= s.hit;
+    const headD = done ? len : (fly / total) * len;
+    const op = done ? Math.pow(Math.max(0, 1 - (clock - s.hit) / 0.14), 1.4) : 1;
+    if (op <= 0) return;
+    const tailD = Math.max(0, headD - TAIL);
+    const hx = s.from.x + ux * headD, hy = s.from.y + uy * headD;
+    const g = c.createLinearGradient(s.from.x + ux * tailD, s.from.y + uy * tailD, hx, hy);
+    g.addColorStop(0, 'rgba(255,218,120,0)'); g.addColorStop(1, `rgba(255,236,170,${0.9 * op})`);
+    c.strokeStyle = g; c.lineWidth = 2; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(s.from.x + ux * tailD, s.from.y + uy * tailD); c.lineTo(hx, hy); c.stroke();
+    if (!done) { c.fillStyle = '#e9bc73'; c.beginPath(); c.ellipse(hx, hy, 3.4, 1.6, Math.atan2(uy, ux), 0, Math.PI * 2); c.fill(); }
+  }
+
+  function star(c, x, y, age, life, size) {
+    if (age < 0 || age > life) return;
+    const k = Math.pow(1 - age / life, 1.5), r = size * k;
+    const g = c.createRadialGradient(x, y, 0, x, y, r * 2.4);
+    g.addColorStop(0, `rgba(255,250,232,${k})`); g.addColorStop(.35, `rgba(255,196,96,${k * .7})`); g.addColorStop(1, 'rgba(255,140,40,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.4, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = `rgba(255,248,225,${k})`; c.lineWidth = 1.3;
+    c.beginPath(); c.moveTo(x - r * 1.8, y); c.lineTo(x + r * 1.8, y); c.moveTo(x, y - r * 1.4); c.lineTo(x, y + r * 1.4); c.stroke();
+  }
+
+  function sparks(c, s, age, count, lifeMin, lifeMax, speedMax) {
+    const r = rng(s.seq * 131 + 17);
+    for (let i = 0; i < count; i++) {
+      // Reflect off the front surface: back toward the turret, biased upward.
+      const ang = Math.PI + (r() - 0.62) * 1.7, sp = 150 + r() * (speedMax - 150), life = lifeMin + r() * (lifeMax - lifeMin);
+      if (age > life) continue;
+      const vx = Math.cos(ang) * sp, vy = Math.sin(ang) * sp * 0.75 - 60;
+      const p = (t) => [s.to.x + vx * t, s.to.y + vy * t + 700 * t * t];
+      const [x1, y1] = p(age), [x0, y0] = p(Math.max(0, age - 0.02));
+      const f = age / life;
+      c.strokeStyle = f < 0.35 ? `rgba(255,246,214,${1 - f})` : `rgba(255,${Math.round(180 - f * 60)},${Math.round(80 - f * 50)},${1 - f})`;
+      c.lineWidth = 1.5 - f * 0.8; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+    }
+  }
+
+  function chips(c, s, age) {
+    const e = ENEMY[state.target], r = rng(s.seq * 977 + 5);
+    for (let i = 0; i < 4; i++) {
+      const ang = Math.PI + (r() - 0.55) * 1.5, sp = 90 + r() * 150, life = 0.22 + r() * 0.08, size = 1.6 + r() * 1.8, spin = (r() - 0.5) * 30, col = e.chips[i % 3];
+      if (age > life) continue;
+      const x = s.to.x + Math.cos(ang) * sp * age, y = s.to.y + (Math.sin(ang) * sp * 0.7 - 110) * age + 900 * age * age;
+      c.save(); c.translate(x, y); c.rotate(spin * age);
+      c.globalAlpha = age > life * 0.7 ? (life - age) / (life * 0.3) : 1;
+      poly(c, col, [[-size, -size * .6], [size * .8, -size], [size, size * .5], [-size * .4, size]]);
+      c.restore(); c.globalAlpha = 1;
+    }
+  }
+
+  function dust(c, s, age) {
+    const start = 0.01, life = 0.3, a = age - start;
+    if (a < 0 || a > life) return;
+    const e = ENEMY[state.target], f = a / life, r = rng(s.seq * 61 + 9);
+    for (let i = 0; i < 3; i++) {
+      const ox = -6 - r() * 8 - f * 14, oy = (r() - 0.7) * 8 - f * 10, rad = 3 + f * (9 + r() * 5);
+      const g = c.createRadialGradient(s.to.x + ox, s.to.y + oy, 0, s.to.x + ox, s.to.y + oy, rad);
+      g.addColorStop(0, `rgba(${e.dust},${0.32 * Math.pow(1 - f, 1.2)})`); g.addColorStop(1, `rgba(${e.dust},0)`);
+      c.fillStyle = g; c.beginPath(); c.arc(s.to.x + ox, s.to.y + oy, rad, 0, Math.PI * 2); c.fill();
+    }
+  }
+
+  function surfaceGlow(c, s, age, life, rad, alpha) {
+    if (age < 0 || age > life) return;
+    const k = 1 - age / life;
+    c.globalCompositeOperation = 'lighter';
+    const g = c.createRadialGradient(s.to.x + 4, s.to.y, 0, s.to.x + 4, s.to.y, rad);
+    g.addColorStop(0, `rgba(255,170,80,${alpha * k})`); g.addColorStop(1, 'rgba(255,120,40,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(s.to.x + 4, s.to.y, rad, 0, Math.PI * 2); c.fill();
+    c.globalCompositeOperation = 'source-over';
+  }
+
+  function draw(p) {
+    const c = p.ctx;
+    c.setTransform(p.scale, 0, 0, p.scale, 0, 0);
+    c.fillStyle = '#11181a'; c.fillRect(0, 0, W, H);
+    c.save();
+    const z = state.zoom, e0 = ENEMY[state.target];
+    // Close-up frames the impact side; wider views keep the turret in shot.
+    const fx = z > 1 ? e0.x - 50 : W / 2, fy = z > 1 ? e0.y - 50 : H / 2 - 10;
+    c.translate(W / 2, H / 2); c.scale(z, z); c.translate(-fx, -fy);
+    drawFloor(c);
+    // Display-only flinch (B) and body flash timer (C), both from absolute hit ages.
+    let ox = 0, flash = 0, lastShot = null;
+    for (const s of p.shots) {
+      const age = clock - s.hit;
+      if (age >= 0) {
+        if (p.v === 'b' && age < 0.07) ox += 1.8 * (1 - age / 0.07);
+        if (p.v === 'c' && age < 0.1) flash = Math.max(flash, 1 - age / 0.1 * 0.4);
+      }
+      if (clock >= s.t0 && (!lastShot || s.t0 > lastShot.t0)) lastShot = s;
+    }
+    ox = Math.min(ox, 3);
+    drawTurret(c, lastShot ? lastShot.port : -1, lastShot ? clock - lastShot.t0 : 1);
+    drawEnemy(c, ox, flash);
+    for (const s of p.shots) drawBullet(c, s);
+    for (const s of p.shots) {
+      const age = clock - s.hit;
+      if (age < 0) continue;
+      if (p.v === 'a') { surfaceGlow(c, s, age, 0.08, 18, 0.5); sparks(c, s, age, 7, 0.09, 0.17, 380); star(c, s.to.x - 1, s.to.y, age, 0.06, 4.5); }
+      if (p.v === 'b') { dust(c, s, age); surfaceGlow(c, s, age, 0.06, 13, 0.35); chips(c, s, age); sparks(c, s, age, 4, 0.08, 0.13, 300); star(c, s.to.x - 1, s.to.y, age, 0.05, 3.4); }
+      if (p.v === 'c') { star(c, s.to.x - 1, s.to.y, age, 0.04, 2.2); }
+    }
+    c.restore();
+    if (state.paused) { c.fillStyle = 'rgba(14,19,21,.6)'; c.fillRect(8, 8, 62, 20); c.fillStyle = '#dde5e2'; c.font = '500 11px "IBM Plex Mono", monospace'; c.fillText('PAUSED', 16, 22); }
+  }
+
+  function bindSeg(id, key, parse) {
+    const root = document.getElementById(id);
+    root.addEventListener('click', ev => {
+      const b = ev.target.closest('button'); if (!b) return;
+      root.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      state[key] = parse(b.dataset.v);
+      if (key === 'rate' || key === 'target') for (const p of panels) { p.shots = []; p.nextShot = clock; }
+    });
+  }
+  bindSeg('speed', 'speed', Number); bindSeg('rate', 'rate', Number); bindSeg('target', 'target', String); bindSeg('zoom', 'zoom', Number);
+  const pauseBtn = document.getElementById('pause');
+  pauseBtn.addEventListener('click', () => { state.paused = !state.paused; pauseBtn.textContent = state.paused ? '재생' : '일시정지'; });
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    state.speed = 0.25; document.querySelectorAll('#speed button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === '0.25')));
+  }
+
+  resize(); window.addEventListener('resize', resize);
+  // Warm start so the first still frame already shows hits in flight.
+  clock = 0.9; for (const p of panels) simulate(p);
+  requestAnimationFrame(t => { last = t; step(t); });
+})();
+</script>
