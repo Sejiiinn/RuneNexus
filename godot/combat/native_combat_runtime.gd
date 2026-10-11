@@ -8,6 +8,7 @@ const Defense = preload("res://combat/native_core_defense_state.gd")
 const CoreSkill = preload("res://combat/native_core_skill_state.gd")
 const Attack = preload("res://combat/attack_calculation.gd")
 const EffectFormat = preload("res://combat/effect_presentation.gd")
+const FrameRows = preload("res://presentation/frame_rows.gd")
 # Match the authored 1.1-second cannon impact; generic hits last only 0.28s.
 const BLAST_DURATION: float = 1.1
 const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
@@ -43,6 +44,9 @@ var visual_effects: Array = []
 # Canonical static payloads are immutable; raw journal units stay compatible
 # with public frames, 3D impacts and development sessions.
 var _prepared_effects: Dictionary = {}
+# Internal presentation frames reuse one row object per actor id; rows are
+# rewritten in full each frame. Public snapshots always receive fresh rows.
+var _frame_row_pool := {"enemies": {}, "turrets": {}, "projectiles": {}, "impacts": {}}
 # Step-local target candidates: [enemy, position, target radius, progress, id].
 # Valid only from the end of movement until spawns, while positions and
 # membership are fixed; alive state and durability are still read live.
@@ -256,6 +260,7 @@ func _reset(packet: Dictionary) -> void:
 	_presentation_deaths.clear()
 	visual_effects.clear()
 	_prepared_effects.clear()
+	_frame_row_pool = {"enemies": {}, "turrets": {}, "projectiles": {}, "impacts": {}}
 	event_id = 0
 	clock = 0
 	damage_number_index = 0
@@ -1177,6 +1182,8 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		frame.nexusHpRatio = defense.hp/maxf(0.000001,defense.max_hp)
 	var rows: Array = []
 	var labels: Array = []
+	var enemy_rows := {}
+	var enemy_pool: Dictionary = _frame_row_pool.enemies
 	for e in enemies.values():
 		if not _alive(e): continue
 		# Dictionary.get evaluates its fallback first; avoid it for authored sizes.
@@ -1186,29 +1193,47 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		var slowed: bool = not e.slowInstances.is_empty()
 		var poisoned: bool = float(e.poisonRemaining) > 0
 		var diamond: bool = int(e.get("diamondReward", 0)) > 0
-		rows.append([e.id, p.x,p.y,e.facingAngle,e.visualPhase,(e.presentationScale if e.has("presentationScale") else _radius(e)*2.0/tile_size),e.hitFlashTimer,e.get("type","normal"),burning,slowed,poisoned,diamond,logical.x,logical.y])
-		if not e.get("teleportPairs", []).is_empty(): rows[-1].append({"teleportSerial":int(e.get("teleportSerial",0))})
+		var row: FrameRows.Enemy = enemy_pool.get(e.id) if reuse_static else null
+		if row == null: row = FrameRows.Enemy.new()
+		if reuse_static: enemy_rows[e.id] = row
+		# Typed row fields convert the runtime's numeric values on assignment.
+		row.id = e.id; row.x = p.x; row.y = p.y
+		row.facing = e.facingAngle; row.phase = e.visualPhase
+		row.scale = e.presentationScale if e.has("presentationScale") else _radius(e)*2.0/tile_size; row.has_scale = true
+		row.hit_flash = e.hitFlashTimer; row.type = e.get("type","normal")
+		row.burning = burning; row.slowed = slowed; row.poisoned = poisoned; row.diamond = diamond
+		row.has_logical = true; row.logical_x = logical.x; row.logical_y = logical.y
+		row.teleport_serial = e.get("teleportSerial",0) if not e.get("teleportPairs", []).is_empty() else -1
+		rows.append(row)
 		labels.append({"id":e.id,"position":[p.x,p.y],"size":e.presentationSize if e.has("presentationSize") else [_radius(e)*2,_radius(e)*2],"hp":e.hp,"maxHp":e.maxHp,"armor":e.armor,"maxArmor":e.maxArmor,"shield":e.shield,"maxShield":e.maxShield,"effectTime":e.statusEffectTime,"enemyCount":enemies.size(),"burning":burning,"slowed":slowed,"poisoned":poisoned,"riftMarked":e.riftMarkRemaining>0,"diamondCarrier":diamond})
 	frame.enemies = rows
 	frame.turrets = []
+	var turret_rows := {}
+	var turret_pool: Dictionary = _frame_row_pool.turrets
 	for t in turrets.values():
 		var p := (_vec(t.position)-origin)/tile_size
-		var row := [t.id,p.x,p.y,t.aimAngle,t.shotSequence,t.fireFeedback/0.18,t.statInput.definition.type,t.statInput.level]
+		var row: FrameRows.Turret = turret_pool.get(t.id) if reuse_static else null
+		if row == null: row = FrameRows.Turret.new()
+		if reuse_static: turret_rows[t.id] = row
+		row.id = t.id; row.x = p.x; row.y = p.y; row.aim_angle = t.aimAngle
+		row.shot_sequence = t.shotSequence; row.fire_feedback = t.fireFeedback/0.18
+		row.type = t.statInput.definition.type; row.level = t.statInput.level
+		row.extension = FrameRows.NO_EXTENSION
 		if t.statInput.definition.type == "sniper":
 			# Optional visual state only; damage, targeting and saved state stay native.
 			var target: Dictionary=enemies.get(str(t.aimTargetId),{})
 			var aiming: bool=running and session.get("phase","")=="wave" and float(t.aimProgress)>0 and float(t.cooldown)<=0
 			aiming=aiming and not target.is_empty() and _alive(target) and _vec(t.position).distance_to(_pos(target))<=float(t.stats.range)+_target_radius(target)
 			var ratio := clampf(float(t.aimProgress)/maxf(.000001,float(t.stats.aimDuration)),0.0,1.0) if aiming else 0.0
-			row.append({"aimActive":aiming,"aimTargetId":int(t.aimTargetId),"aimProgress":float(t.aimProgress),"aimRatio":ratio})
+			row.extension = {"aimActive":aiming,"aimTargetId":int(t.aimTargetId),"aimProgress":float(t.aimProgress),"aimRatio":ratio}
 		if t.statInput.definition.type == "frost":
-			# Presentation extension only. Older eight-field consumers remain valid.
+			# Presentation extension only.
 			# Saves retain remaining cooldown but not lastBaseCooldown; derive a safe
 			# denominator from current attack speed without changing saved state.
 			var duration := float(t.get("lastBaseCooldown", 0.0))
 			if duration <= 0.0:
 				duration = maxf(float(t.cooldown), 1.0 / maxf(.001, float(t.stats.attackRate)))
-			row.append({"cooldown":t.cooldown, "duration":duration, "radius":float(t.stats.centeredAreaRadius)/tile_size})
+			row.extension = {"cooldown":t.cooldown, "duration":duration, "radius":float(t.stats.centeredAreaRadius)/tile_size}
 		frame.turrets.append(row)
 	if frame.has("presentation"):
 		if not frame.presentation.has("labels"): frame.presentation.labels = {}
@@ -1223,13 +1248,30 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 	frame.erase("projectileEvents")
 	frame.projectiles = []
 	frame.impacts = []
+	var impact_rows := {}
+	var projectile_rows := {}
 	for v in visual_effects:
 		if v.kind == "blast":
-			frame.impacts.append([v.id,v.x,v.y,float(v.radius)/tile_size,clampf((clock-float(v.born))/float(v.duration),0,1)])
+			var impact: FrameRows.Impact = _frame_row_pool.impacts.get(v.id) if reuse_static else null
+			if impact == null: impact = FrameRows.Impact.new()
+			if reuse_static: impact_rows[v.id] = impact
+			impact.id = v.id; impact.x = v.x; impact.y = v.y
+			impact.radius = float(v.radius)/tile_size; impact.progress = clampf((clock-float(v.born))/float(v.duration),0,1)
+			frame.impacts.append(impact)
 	for p in projectiles:
 		var at: Vector2 = (p.position - origin) / tile_size
 		var start: Vector2 = (p.origin - origin) / tile_size
-		frame.projectiles.append([p.id, at.x, at.y, p.direction.x, p.direction.y, p.attack.definition.type, start.x, start.y, int(p.owner), p.shot, p.chained, -1, null, null])
+		var row: FrameRows.Projectile = _frame_row_pool.projectiles.get(p.id) if reuse_static else null
+		if row == null: row = FrameRows.Projectile.new()
+		if reuse_static: projectile_rows[p.id] = row
+		row.id = p.id; row.x = at.x; row.y = at.y
+		row.direction_x = p.direction.x; row.direction_y = p.direction.y; row.type = p.attack.definition.type
+		row.has_launch = true; row.start_x = start.x; row.start_y = start.y
+		row.has_owner = true; row.owner_id = int(p.owner); row.shot = p.shot; row.chained = p.chained
+		row.finished_at = -1.0; row.has_end = false
+		frame.projectiles.append(row)
+	if reuse_static:
+		_frame_row_pool = {"enemies": enemy_rows, "turrets": turret_rows, "projectiles": projectile_rows, "impacts": impact_rows}
 	if frame.has("presentation") and frame.presentation.has("effects"):
 		var effects: Dictionary = frame.presentation.effects
 		var items: Array = effects.get("items", []).duplicate(true)

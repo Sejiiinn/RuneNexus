@@ -77,7 +77,7 @@ func run() -> void:
 	t.cooldown = .9
 	t.lastBaseCooldown = 0.0
 	var frame: Dictionary = runtime.decorate_frame({})
-	var state: Dictionary = frame.turrets[0][8]
+	var state: Dictionary = frame.turrets[0].extension
 	check(state.cooldown == .9 and state.duration >= .9 and state.radius == t.stats.centeredAreaRadius/48.0, "restored cooldown denominator and logical radius")
 	check(t.lastBaseCooldown == 0, "presentation never mutates combat state")
 	scene.free()

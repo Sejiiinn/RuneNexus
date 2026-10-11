@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 var failures: Array = []
 func check(ok: bool, label: String) -> void:
@@ -61,10 +62,10 @@ func _verify_blast_timing() -> void:
 		check(is_equal_approx(runtime.visual_effects[1].duration, 0.28), "ordinary impact lifetime unchanged")
 		runtime.advance_session(0.55 / speed)
 		var frame: Dictionary = runtime.decorate_frame({})
-		check(frame.impacts.size() == 1 and is_equal_approx(frame.impacts[0][4], 0.5), "blast reaches halfway after 0.55 combat seconds at " + str(speed) + "x")
+		check(frame.impacts.size() == 1 and is_equal_approx(frame.impacts[0].progress, 0.5), "blast reaches halfway after 0.55 combat seconds at " + str(speed) + "x")
 		runtime.session.paused = true
 		runtime.advance_session(1.0)
-		check(runtime.decorate_frame({}).impacts == frame.impacts, "pause freezes explosion")
+		check(FrameRows.serialized(runtime.decorate_frame({})).impacts == FrameRows.serialized(frame).impacts, "pause freezes explosion")
 		runtime.session.paused = false
 		runtime.advance_session(0.56 / speed)
 		check(runtime.decorate_frame({}).impacts.is_empty(), "blast expires after 1.1 combat seconds")

@@ -103,7 +103,7 @@ func _runtime() -> void:
 	check(runtime.enemies["42"].x == 144.0 and runtime.events.size() == 1 and runtime.events[0].kind == "teleport","4x simulation teleports with existing clock")
 	check(runtime.events[0].fromX == 48.0 and runtime.events[0].x == 144.0,"event coordinates use logical board pixels")
 	var frame: Dictionary = runtime.decorate_frame({"enemies":[]})
-	check(frame.enemies[0].size() == 15 and frame.enemies[0][14].teleportSerial == 1,"presentation optional teleport serial")
+	check(frame.enemies[0].teleport_serial == 1,"presentation optional teleport serial")
 	# Ballistic projectiles only sweep their own trajectory against final enemy
 	# centers; the skipped enemy segment must never act as a collision surface.
 	runtime.turrets["1"] = {"id":1}

@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const Adapter = preload("res://ui/app_presentation.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Catalog = preload("res://content/content_catalog.gd")
@@ -98,7 +99,7 @@ func _prepared_effect_checks(catalog) -> void:
 	var actual: Dictionary = Adapter.normalize(runtime.decorate_frame(base,true,true))
 	check(actual.presentation.effects.get("_canonicalNativeEffects",false),"internal canonical effects bypass repeated conversion")
 	actual.presentation.effects.erase("_canonicalNativeEffects")
-	check(actual == expected,"prepared internal effects equal public normalize for mixed legacy entries and every dynamic kind")
+	check(FrameRows.serialized(actual) == FrameRows.serialized(expected),"prepared internal effects equal public normalize for mixed legacy entries and every dynamic kind")
 	check(base == original,"prepared mixed frame preserves original base entries")
 	var marked_legacy := {"presentation":{"labels":{"logicalTileSize":48.0},"effects":{"_canonicalNativeEffects":true,"items":[{"kind":"blast","tileSize":2.0,"radius":2.0,"scale":0.5}]}}}
 	var public_mixed: Dictionary = Adapter.normalize(runtime.decorate_frame(marked_legacy))
@@ -119,7 +120,7 @@ func _prepared_effect_checks(catalog) -> void:
 	public.presentation.effects.events[-1].screenOffset[0] = 999
 	var unchanged: Dictionary = Adapter.normalize(runtime.decorate_frame(base,true,true))
 	unchanged.presentation.effects.erase("_canonicalNativeEffects")
-	check(unchanged == prior,"public nested mutations cannot modify prepared payload or later frame")
+	check(FrameRows.serialized(unchanged) == FrameRows.serialized(prior),"public nested mutations cannot modify prepared payload or later frame")
 	target.x += 0.5
 	target.y += 0.25
 	var moved: Dictionary = Adapter.normalize(runtime.decorate_frame(base,true,true))

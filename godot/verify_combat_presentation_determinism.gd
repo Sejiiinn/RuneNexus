@@ -7,6 +7,7 @@ extends SceneTree
 ##   -- --session --compare <abs path> compare against stored digests (after it)
 ## The decorated frame format may change by design; compare reports each
 ## component so combat/node equality can still be judged.
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const STAGES := [0, 4, 9, 14, 16, 26] # each chapter plus chapter one/three teleport maps
 const STEPS_PER_ROUND := 2400 # 40 s of game time
 var failures: Array[String] = []
@@ -111,7 +112,8 @@ func _digests() -> Dictionary:
 					poses.append(var_to_str([id, scene._units.enemies[id].root.transform]))
 			var key := "stage%02d/round%02d" % [stage + 1, round_index + 1]
 			result[key + "/combat"] = JSON.stringify(state, "", true, true).sha256_text().substr(0, 16)
-			result[key + "/frame"] = JSON.stringify(decorated, "", true, true).sha256_text().substr(0, 16)
+			# Rows are hashed in their serialized form so digests compare across row representations.
+			result[key + "/frame"] = JSON.stringify(FrameRows.serialized(decorated), "", true, true).sha256_text().substr(0, 16)
 			result[key + "/nodes"] = "%s:%d" % ["|".join(poses).sha256_text().substr(0, 16), poses.size()]
 		scene.set_process(true)
 		app.set_process(true)

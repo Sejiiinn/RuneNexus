@@ -118,7 +118,8 @@ class Projectile extends RefCounted:
 
 	func to_array() -> Array:
 		var d := [id, x, y, direction_x, direction_y, type]
-		if has_launch: d.append_array([start_x, start_y, owner_id if has_owner else null, shot, chained, finished_at])
+		# In-flight rows serialize the integer sentinel -1, as the runtime always has.
+		if has_launch: d.append_array([start_x, start_y, owner_id if has_owner else null, shot, chained, finished_at if finished_at >= 0.0 else -1])
 		if has_launch: d.append_array([end_x, end_y] if has_end else [null, null])
 		return d
 
@@ -152,6 +153,8 @@ class BuildPreview extends RefCounted:
 		if d.size() > 6: row.type = str(d[6])
 		return row
 
+## Shared read-only value for turrets without type-specific state.
+const NO_EXTENSION := {}
 const ROW_TYPES := {"enemies": Enemy, "turrets": Turret, "projectiles": Projectile, "impacts": Impact}
 
 ## Rows of one kind as named objects; already-named rows pass through.
