@@ -7,6 +7,7 @@
 - 사용자 플레이 저장을 기본 검수 대상으로 사용하지 않는다. Android 검수 앱 `com.example.rune_nexus.godotonly` 또는 임시 Godot 프로젝트를 사용해 정식 `com.example.rune_nexus` 저장 영역과 분리한다. 실제 저장 인계 검증에는 원본을 지우거나 덮어쓰지 않고 복사본과 명시된 절차를 사용한다.
 - 개발·검사·패키징이 같은 생성 디렉터리를 동시에 변경하지 않게 한다. `scripts/prepare_godot_project.py`는 `build/godot/project/assets`를 재생성하므로 그 프로젝트의 편집·실행·패키징과 순차 실행한다. 편집 프로젝트의 소스 링크·열린 원본은 [Godot 가이드](godot_mcp_guide.md)를 따른다.
 - `scripts/run_godot_native_regressions.py`는 임시 프로젝트·fixture를 만들고 종료 후 정리한다. Godot 실행 파일이 없으면 실패하며 skip을 통과로 처리하지 않는다.
+- `scripts/run_godot_project_checks.py`는 준비된 `build/godot/project`에서 사례마다 별도 HOME·TMPDIR을 쓴다. 프로젝트가 `godot/`와 다르면 실행하지 않으며, `--headless-only`로 건너뛴 렌더러 사례는 미실행으로 보고한다.
 
 ## 도구 복구와 대체 경로
 
@@ -24,7 +25,7 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --editor --p
 build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/project --resolution 440x900 -- --app
 ```
 
-`GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py`는 임시 프로젝트에서 전투·런·저장·UI 회귀를 실행한다. 콘텐츠 JSON은 `python3 scripts/verify_godot_content.py`로 확인한다. 헤드리스 통과는 실제 화면·터치나 기기 인증·저장 인계의 완료가 아니다.
+`GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py`는 임시 프로젝트에서 전투·런·저장·UI 회귀를 실행한다. 에셋·주 장면·렌더러가 필요한 나머지 `godot/verify_*.gd`는 프로젝트 준비 후 `python3 scripts/run_godot_project_checks.py`로 실행한다. 어느 실행기에도 속하지 않은 검사 스크립트가 있으면 이 실행기가 실패한다. 콘텐츠 JSON은 `python3 scripts/verify_godot_content.py`로 확인한다. 헤드리스 통과는 실제 화면·터치나 기기 인증·저장 인계의 완료가 아니다.
 
 ## Android 검수 앱과 정식 앱
 

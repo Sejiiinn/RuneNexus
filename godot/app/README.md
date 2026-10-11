@@ -64,6 +64,7 @@ if store.last_error != OK:
 ```sh
 python3 scripts/verify_godot_content.py
 GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py
+python3 scripts/prepare_godot_project.py && python3 scripts/run_godot_project_checks.py
 ```
 
 네이티브 회귀 실행기는 임시 Godot 프로젝트에 저장 codec fixture·파일 복구·체크포인트·전투와 UI 스크립트를 복사한다. Godot 실행 파일이 없으면 실패한다. 보관된 Dart 기반 기대 fixture는 기존 저장 계약과의 비교 입력이며, 수치나 스키마를 의도적으로 변경할 때 차이를 검토해 갱신한다. 실제 Android 저장 인계·계정·수명주기 검증은 [인앱 가이드](../../.agents/in_app_test_guide.md)를 따른다.
