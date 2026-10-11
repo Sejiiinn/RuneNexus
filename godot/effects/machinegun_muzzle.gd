@@ -94,6 +94,7 @@ func _ready() -> void:
 	light.light_energy = 0.0
 	light.omni_range = 0.9
 	light.shadow_enabled = false
+	light.visible = false
 	add_child(light)
 	reset()
 
@@ -111,6 +112,7 @@ func reset() -> void:
 		for index in range(sparks.multimesh.instance_count):
 			sparks.multimesh.set_instance_transform(index, Transform3D(Basis.from_scale(Vector3.ZERO), Vector3.ZERO))
 	light.light_energy = 0.0
+	light.visible = false
 
 
 func fire(muzzle: Node3D, time: float, sequence: int) -> void:
@@ -152,6 +154,8 @@ func update_effect(muzzle: Node3D, time: float, camera: Camera3D) -> void:
 			flash_materials[port].set_shader_parameter("u_progress", age / FLASH_SECONDS)
 			light.global_position = flash.global_position + flash.global_basis.z * 0.13
 	light.light_energy = 0.7 * pow(1.0 - age / FLASH_SECONDS, 2.0) if age >= 0.0 and age < FLASH_SECONDS else 0.0
+	# A zero-energy light adds nothing but still occupies per-object light lists.
+	light.visible = light.light_energy > 0.0
 	for slot in range(shots.size()):
 		var shot: Dictionary = shots[slot]
 		var elapsed := time - float(shot["start"])

@@ -48,6 +48,8 @@ var _prepared_effects: Dictionary = {}
 # membership are fixed; alive state and durability are still read live.
 var _target_candidates: Array = []
 var _target_candidates_ready := false
+# [min x, min y, max x, max y, max target radius] of the shared candidates.
+var _target_bounds: Array = []
 var visual_id: int = 1000000000
 var damage_number_index: int = 0
 var event_id: int = 0
@@ -659,6 +661,7 @@ func _finish_step(dt: float) -> void:
 	# Turret, delayed and projectile hits change health only, never positions or
 	# membership, so their searches share one candidate list.
 	_target_candidates = _target_candidate_list()
+	_target_bounds = _candidate_bounds(_target_candidates)
 	_target_candidates_ready = true
 	for t in turrets.values():
 		_tick_turret(t, dt)
@@ -679,6 +682,7 @@ func _finish_step(dt: float) -> void:
 	# Spawns change membership; later searches read the live dictionary.
 	_target_candidates_ready = false
 	_target_candidates = []
+	_target_bounds = []
 	if running:
 		for request in wave.advance(dt):
 			_spawn(request.enemy)
@@ -765,10 +769,32 @@ func _target_candidate_list() -> Array:
 func _target_candidate_view() -> Array:
 	return _target_candidates if _target_candidates_ready else _target_candidate_list()
 
+func _candidate_bounds(candidates: Array) -> Array:
+	if candidates.is_empty(): return []
+	var first: Vector2 = candidates[0][1]
+	var bounds := [first.x, first.y, first.x, first.y, 0.0]
+	for candidate: Array in candidates:
+		var at: Vector2 = candidate[1]
+		bounds[0] = minf(bounds[0], at.x); bounds[1] = minf(bounds[1], at.y)
+		bounds[2] = maxf(bounds[2], at.x); bounds[3] = maxf(bounds[3], at.y)
+		bounds[4] = maxf(bounds[4], float(candidate[2]))
+	return bounds
+
+# Conservative reject only: a search circle that misses every shared candidate
+# position cannot select anything, so idle turrets skip the per-enemy scan.
+func _bounds_reachable(from: Vector2, reach: float) -> bool:
+	if _target_bounds.is_empty(): return false
+	var dx := maxf(maxf(float(_target_bounds[0]) - from.x, 0.0), from.x - float(_target_bounds[2]))
+	var dy := maxf(maxf(float(_target_bounds[1]) - from.y, 0.0), from.y - float(_target_bounds[3]))
+	var limit := absf(reach) * 1.001 + 0.001
+	return not (dx * dx + dy * dy > limit * limit)
+
 func _target(from: Vector2, radius: float, priority: String, excluded: Array = [], body: bool = false) -> Dictionary:
 	var selected: Dictionary = {}
 	var score := -INF
 	var tie := -INF
+	if _target_candidates_ready and not _bounds_reachable(from, radius + (float(_target_bounds[4]) if body and not _target_bounds.is_empty() else 0.0)):
+		return selected
 	var check_excluded := not excluded.is_empty()
 	for candidate: Array in _target_candidate_view():
 		var e: Dictionary = candidate[0]
@@ -933,12 +959,14 @@ func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scal
 	var impacted: Array = [target]
 	var radius: float = a.splashRadius * (0.5 if chained else 1.0)
 	if radius > 0:
-		for e in enemies.values():
-			if e != target and _alive(e) and at.distance_squared_to(_pos(e)) <= radius * radius:
+		# Targets are live enemy entries; identity avoids deep Dictionary compares.
+		for candidate: Array in _target_candidate_view():
+			var e: Dictionary = candidate[0]
+			if not is_same(e, target) and _alive(e) and at.distance_squared_to(candidate[1]) <= radius * radius:
 				impacted.append(e)
 	for e in impacted:
 		if _alive(e):
-			var primary: bool = e == target
+			var primary: bool = is_same(e, target)
 			_hit(t, a, e, scale * (1.0 if primary else float(a.splashSecondaryDamageMultiplier)), ("chain" if chained else "direct") if primary else "splash", primary and not chained)
 
 func _traits(t: Dictionary, a: Dictionary, e: Dictionary) -> float:

@@ -44,7 +44,8 @@ func _verify() -> void:
 	_check(is_equal_approx(impact._volume_material.get_shader_parameter("u_progress"), 0.25), "instance duration must control progress, not the default duration")
 	_check(is_equal_approx(impact._spark_material.get_shader_parameter("u_age"), 0.275), "existing GPU progress-to-age mapping changed")
 	_check(is_equal_approx(impact._volume_material.get_shader_parameter("u_angle"), float(100 % 23) * 0.317), "ID-seeded appearance changed")
-	_check(scene.impact_lights[0].light_energy > 0, "existing shared impact light missing")
+	_check(scene.impact_lights[0].light_energy > 0 and scene.impact_lights[0].visible, "existing shared impact light missing")
+	_check(scene.impact_lights.slice(1).all(func(light): return not light.visible), "unused zero-energy impact lights must stay hidden")
 	var saved: Array = scene.last_frame["impacts"].duplicate(true)
 	for i in range(3):
 		scene._apply_frame(frame)
@@ -68,6 +69,7 @@ func _verify() -> void:
 	frame["presentation"]["effects"]["clock"] = 6.7
 	scene._apply_frame(frame)
 	_check(scene.impacts.is_empty() and scene.last_frame["impacts"].is_empty() and scene.impact_pool.has(impact), "expiry must recycle the 3D node and clear replay diagnostics")
+	_check(scene.impact_lights.all(func(light): return not light.visible), "expired impact lights must be hidden")
 	frame["seq"] = 4
 	frame["presentation"]["effects"]["events"] = [blast]
 	scene._apply_frame(frame)

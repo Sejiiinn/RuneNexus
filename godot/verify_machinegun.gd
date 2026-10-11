@@ -27,7 +27,7 @@ func _check_quiet(effect: Node3D, context: String) -> void:
 	for index in range(effect.sparks.multimesh.instance_count):
 		var pose: Transform3D = effect.sparks.multimesh.get_instance_transform(index)
 		_check(pose.basis.is_equal_approx(Basis.from_scale(Vector3.ZERO)), "%s: 불티 잔류" % context)
-	_check(is_zero_approx(effect.light.light_energy), "%s: 포구 조명 잔류" % context)
+	_check(is_zero_approx(effect.light.light_energy) and not effect.light.visible, "%s: 포구 조명 잔류" % context)
 
 
 func _check_camera(shot: Dictionary, camera: Camera3D) -> void:
@@ -130,10 +130,10 @@ func _verify() -> void:
 	var timed_shot: Dictionary = effect.shots[3]
 	frame["time"] = 2.054
 	scene._apply_frame(frame)
-	_check(effect.flashes[0].visible and effect.light.light_energy > 0.0, "55ms 이전에 포구 화염·조명이 종료됨")
+	_check(effect.flashes[0].visible and effect.light.light_energy > 0.0 and effect.light.visible, "55ms 이전에 포구 화염·조명이 종료됨")
 	frame["time"] = 2.055001
 	scene._apply_frame(frame)
-	_check(not effect.flashes[0].visible and is_zero_approx(effect.light.light_energy), "55ms 이후 포구 화염·조명이 남음")
+	_check(not effect.flashes[0].visible and is_zero_approx(effect.light.light_energy) and not effect.light.visible, "55ms 이후 포구 화염·조명이 남음")
 	_check(timed_shot["smoke"].visible, "포구 화염 종료와 함께 연기가 조기 종료됨")
 	frame["time"] = 2.149
 	scene._apply_frame(frame)

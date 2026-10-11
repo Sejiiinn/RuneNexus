@@ -49,6 +49,7 @@ func _ensure_field() -> bool:
 			var light := OmniLight3D.new()
 			light.light_color = Color(1.0, 0.42, 0.08)
 			light.light_energy = 0.0
+			light.visible = false
 			world.add_child(light)
 			impact_lights.append(light)
 	return true
@@ -135,6 +136,7 @@ func clear(keep_prepared: bool = false) -> void:
 	impact_pool.clear()
 	for light in impact_lights:
 		light.light_energy = 0.0
+		light.visible = false
 	_projectile_meshes.clear()
 
 
@@ -334,6 +336,9 @@ func _update_impacts(units: Array) -> void:
 				light.omni_range = float(data[3]) * 3.2
 				light.light_energy = 1.6 * pow(1.0 - float(data[4]) / 0.68, 2)
 				light_index += 1
+	# Unused pool lights add nothing but still occupy per-object light lists.
+	for light in impact_lights:
+		light.visible = light.light_energy > 0.0
 	for id in impacts.keys():
 		if not alive.has(id):
 			var effect: Node3D = impacts[id]
