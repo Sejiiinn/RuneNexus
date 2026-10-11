@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 ## 실제 장면의 카메라 전환·재입력·정지 전투 회귀 검사.
 var failures := 0
@@ -45,7 +46,7 @@ func _verify() -> void:
 	_check(camera.position.distance_to(Vector3(5, 27, 13)) < 0.0001, "최초 시점 오류")
 	_check_depth(scene, "최초 고정 시점")
 	_check(camera.far - camera.near < 50.0, "작은 전장의 불필요한 깊이 범위를 줄이지 못함")
-	var frame: Dictionary = scene.last_frame.duplicate(true)
+	var frame: Dictionary = FrameRows.serialized(scene.last_frame.duplicate(true))
 	var target: Array = frame["enemies"][1]
 	frame["impacts"] = [[100, target[1], target[2], 1.2, 0.52]]
 	scene.apply_frame(frame)

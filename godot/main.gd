@@ -1,5 +1,6 @@
 extends Node3D
 const StageResources = preload("res://presentation/stage_resources.gd")
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const StageManifest = preload("res://presentation/stage_manifest.gd")
 const EffectPreparation = preload("res://presentation/effect_preparation.gd")
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
@@ -285,8 +286,8 @@ func _process(delta: float) -> void:
 		for index in range(mini(3, frame.get("enemies", []).size())):
 			var progress := fposmod(standalone_time + index * 0.37, 1.4) / 1.1
 			if progress < 1.0:
-				var target: Array = frame["enemies"][index]
-				frame["impacts"].append([100 + index, target[1], target[2], 1.2, progress])
+				var target: FrameRows.Enemy = frame["enemies"][index]
+				frame["impacts"].append([100 + index, target.x, target.y, 1.2, progress])
 		apply_frame(frame)
 	if combat_runtime.native_session():
 		var host_active: bool = _session_has_focus and not _session_suspended
@@ -494,7 +495,7 @@ func apply_frame(frame: Dictionary) -> void:
 			_clear_scene()
 			_scene_epoch = epoch
 		if not bool(frame.get("reset", false)):
-			last_frame = frame.duplicate(true)
+			last_frame = FrameRows.decoded(frame.duplicate(true))
 		return
 	var owned_snapshot := false
 	var whole_tick := RuntimeProfile.begin()
@@ -515,6 +516,8 @@ func apply_frame(frame: Dictionary) -> void:
 			var center: Array = frame.get("screenCenter", [])
 			if viewport.size() == 2 and center.size() == 2:
 				frame.screenCenter = [center[0] + _session_input.pan.x * viewport[0], center[1] + _session_input.pan.y * viewport[1]]
+	# Every consumer below reads named rows, whichever producer built the frame.
+	frame = FrameRows.decoded(frame)
 	if not _frame_metrics.enabled:
 		_apply_frame_impl(frame, owned_snapshot)
 		return
@@ -580,13 +583,13 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 	# Preserve legacy snapshots (and prefer them on fallback) without retaining
 	# the previous frame's event-derived arrays on the next submission.
 	var merged_impacts := {}
-	for data: Array in _presentation_nodes["effects"].blast_impacts:
-		merged_impacts[int(data[0])] = data
-	for data: Array in frame.get("impacts", []):
-		merged_impacts[int(data[0])] = data
+	for impact: FrameRows.Impact in FrameRows.rows("impacts", _presentation_nodes["effects"].blast_impacts):
+		merged_impacts[impact.id] = impact
+	for impact: FrameRows.Impact in frame.get("impacts", []):
+		merged_impacts[impact.id] = impact
 	last_frame["impacts"] = merged_impacts.values()
 	if frame.get("projectileEvents") is Dictionary:
-		last_frame["projectiles"] = _projectile_events.sample(frame["projectileEvents"], float(frame.get("time", 0.0)))
+		last_frame["projectiles"] = FrameRows.rows("projectiles", _projectile_events.sample(frame["projectileEvents"], float(frame.get("time", 0.0))))
 	else:
 		_projectile_events.clear()
 	var camera_tick := RuntimeProfile.begin()
@@ -655,7 +658,7 @@ func _build_terrain(map: Dictionary) -> bool:
 
 func _sync_turrets(units: Array) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
-	_units._sync_turrets(units)
+	_units._sync_turrets(FrameRows.rows("turrets", units))
 	var selection = _presentation_nodes["selection"]
 	_units.sync_gem_orbits(selection._frame, selection.selection_revision, float(last_frame.get("time", 0.0)))
 	_environment.update_occupancy(units, TURRET_MODELS)
@@ -664,7 +667,7 @@ func _sync_turrets(units: Array) -> void:
 func _sync_enemies(units: Array) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
 	_units.sync_guardian_events(combat_runtime)
-	_units._sync_enemies(units)
+	_units._sync_enemies(FrameRows.rows("enemies", units))
 	_units.sync_sniper_aim()
 
 
@@ -674,17 +677,17 @@ func play_gem_equip_burst(id: int, gem: String) -> void:
 
 func _sync_build_preview(data) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
-	_units._sync_build_preview(data)
+	_units._sync_build_preview(FrameRows.build_preview(data))
 
 
 func _sync_projectiles(units: Array) -> void:
 	_projectile_renderer.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
-	_projectile_renderer._sync_projectiles(units, turrets)
+	_projectile_renderer._sync_projectiles(FrameRows.rows("projectiles", units), turrets)
 
 
 func _update_impacts(units: Array) -> void:
 	_projectile_renderer.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
-	_projectile_renderer._update_impacts(units)
+	_projectile_renderer._update_impacts(FrameRows.rows("impacts", units))
 
 
 func _unhandled_key_input(event: InputEvent) -> void:

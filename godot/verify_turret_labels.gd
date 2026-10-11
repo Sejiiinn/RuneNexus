@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 var failures := 0
 
@@ -26,7 +27,7 @@ func _verify() -> void:
 	var id: int = scene.turrets.keys()[0]
 	var badge: Sprite2D = labels.badges[id]
 	var initial: Vector2 = badge.position
-	var frame: Dictionary = scene.last_frame.duplicate(true)
+	var frame: Dictionary = FrameRows.serialized(scene.last_frame.duplicate(true))
 	frame["turrets"][0][7] = 10
 	frame["turrets"][0][3] += 1.7
 	scene.apply_frame(frame)

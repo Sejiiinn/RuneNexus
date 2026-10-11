@@ -19,6 +19,7 @@ const LightningCollar = preload("res://effects/lightning_collar.gdshader")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
 const GuardianPreview = preload("res://presentation/guardian_preview.gd")
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const TURRET_MODELS := {
 	"arrow": "res://assets/turrets/arrow.glb",
 	"cannon": "res://assets/turrets/cannon.glb",
@@ -257,10 +258,10 @@ func _sync_turrets(units: Array) -> void:
 	var membership_changed := false
 	var alive := {}
 	var frost_lights := 0
-	for data: Array in units:
-		var id := int(data[0])
+	for row: FrameRows.Turret in FrameRows.rows("turrets", units):
+		var id := row.id
 		# 구 검수 배열에만 cannon 기본값 사용. 명시된 다른 유형은 대체하지 않음.
-		var type := str(data[6]) if data.size() > 6 else "cannon"
+		var type := row.type
 		if not TURRET_MODELS.has(type):
 			failure.emit("스테이지 1에서 지원하지 않는 포탑: %s" % type)
 			continue
@@ -274,18 +275,17 @@ func _sync_turrets(units: Array) -> void:
 			membership_changed = true
 		var entry: Dictionary = turrets[id]
 		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
-		entry["level"] = int(data[7]) if data.size() > 7 else 1
-		entry["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
+		entry["level"] = row.level
+		entry["root"].position = Vector3(row.x - columns / 2.0, 0.0, row.y - rows / 2.0)
 		_placements.apply_entry(id,entry,columns,rows)
-		entry["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - float(data[3])
+		entry["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - row.aim_angle
 		if type == "frost":
-			var state: Dictionary = data[8] if data.size() > 8 and data[8] is Dictionary else {}
-			entry["frost_effect"].update_state(_time, int(data[4]), float(data[5]), state, bool(options["volume"]), frost_lights < 4)
+			entry["frost_effect"].update_state(_time, row.shot_sequence, row.fire_feedback, row.extension, bool(options["volume"]), frost_lights < 4)
 			frost_lights += 1
 		else:
 			if type == "sniper":
-				entry["aim_state"] = data[8] if data.size()>8 and data[8] is Dictionary else {}
-			_update_fire(entry, int(data[4]), float(data[5]))
+				entry["aim_state"] = row.extension
+			_update_fire(entry, row.shot_sequence, row.fire_feedback)
 	for id in turrets.keys():
 		if not alive.has(id):
 			_placements.remove(int(id))
@@ -416,9 +416,9 @@ func _sync_enemies(units: Array) -> void:
 	# 공통 GPU 입자 시계는 전투 프레임마다 한 번만 전달한다.
 	EnemyBurn.set_time(time)
 	var alive := {}
-	for data: Array in units:
-		var id := int(data[0])
-		var type := str(data[7]) if data.size() > 7 else "tank"
+	for row: FrameRows.Enemy in FrameRows.rows("enemies", units):
+		var id := row.id
+		var type := row.type
 		if not ENEMY_MODELS.has(type):
 			failure.emit("스테이지 1에서 지원하지 않는 적: %s" % type)
 			continue
@@ -440,21 +440,21 @@ func _sync_enemies(units: Array) -> void:
 		var root: Node3D = enemies[id]["root"]
 		if preview:
 			# The authored rig supplies grounded motion and body-only turning.
-			root.position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
+			root.position = Vector3(row.x - columns / 2.0, 0.0, row.y - rows / 2.0)
 			var visual_scale := GuardianPreview.visual_scale(type)
-			root.scale = Vector3.ONE * float(data[5]) * visual_scale
-			_guardian_preview.update_walker(enemies[id], data, time)
-			EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
-			EnemyBurn.apply(enemies[id], data.size() > 8 and bool(data[8]) and bool(options.get("burn_effects", true)), time)
+			root.scale = Vector3.ONE * row.scale * visual_scale
+			_guardian_preview.update_walker(enemies[id], row, time)
+			EnemyFrost.apply(enemies[id], row.slowed)
+			EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
 			continue
 		# 전투 판정의 기존 slowed 필드를 사용하며 부유·회전·크기는 원본 부모를 따른다.
-		EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
+		EnemyFrost.apply(enemies[id], row.slowed)
 		# Diagnostic A/B switch: visual only; incoming combat burn state stays intact.
-		EnemyBurn.apply(enemies[id], data.size() > 8 and bool(data[8]) and bool(options.get("burn_effects", true)), time)
+		EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
 		var hover := 0.025 if type in ["normal", "fast", "shielded"] else 0.008
-		root.position = Vector3(float(data[1]) - columns / 2.0, sin(float(data[4])) * hover, float(data[2]) - rows / 2.0)
-		root.rotation.y = PI / 2.0 - float(data[3])
-		root.scale = Vector3.ONE * float(data[5])
+		root.position = Vector3(row.x - columns / 2.0, sin(row.phase) * hover, row.y - rows / 2.0)
+		root.rotation.y = PI / 2.0 - row.facing
+		root.scale = Vector3.ONE * row.scale
 	for id in enemies.keys():
 		if not alive.has(id):
 			_guardian_preview.forget_walker(id)
@@ -463,11 +463,12 @@ func _sync_enemies(units: Array) -> void:
 
 
 func _sync_build_preview(data) -> void:
-	var type := str(data[6]) if data is Array and data.size() > 6 else "cannon"
-	if not _build_preview.is_empty() and (data == null or _build_preview["type"] != type):
+	var preview := FrameRows.build_preview(data)
+	var type := preview.type if preview != null else "cannon"
+	if not _build_preview.is_empty() and (preview == null or _build_preview["type"] != type):
 		_build_preview["root"].free()
 		_build_preview.clear()
-	if not (data is Array) or data.size() < 6:
+	if preview == null:
 		return
 	if not TURRET_MODELS.has(type):
 		failure.emit("지원하지 않는 건설 미리보기 포탑: %s" % type)
@@ -476,8 +477,8 @@ func _sync_build_preview(data) -> void:
 		_build_preview = _new_turret(type)
 		for mesh: GeometryInstance3D in _build_preview["root"].find_children("*", "GeometryInstance3D", true, false):
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_build_preview["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.10 + sin(_time * 3.0) * 0.02, float(data[2]) - rows / 2.0)
-	_build_preview["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - float(data[3])
+	_build_preview["root"].position = Vector3(preview.x - columns / 2.0, 0.10 + sin(_time * 3.0) * 0.02, preview.y - rows / 2.0)
+	_build_preview["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - preview.aim_angle
 	_build_preview["barrel"].position.z = _build_preview["barrel_rest_z"]
 	if _build_preview.has("fire_effect"):
 		_build_preview["fire_effect"].update_turret(_build_preview["flame_port"], _build_preview["muzzle"], _time)

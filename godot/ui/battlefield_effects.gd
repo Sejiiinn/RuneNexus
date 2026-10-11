@@ -30,6 +30,7 @@ var _event_clock := 0.0
 var _event_squared := 0.0
 var _additive := CanvasItemMaterial.new()
 const MAX_SURFACE_POOL := 64
+const FrameRows = preload("res://presentation/frame_rows.gd")
 var _surface_pool: Array = []
 var _input_order: Array = []
 var _sorted_indices: Array = []
@@ -182,24 +183,23 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 			event["deliverySample"] = false
 		event["age"] = age
 		if not targets_loaded and event.get("kind") in ["coreBeam", "chain", "rift"]:
-			for target: Array in frame.get("targets", []):
-				if target.size() >= 14:
-					targets[int(target[0])] = [target[12], target[13]]
+			for target: FrameRows.Enemy in FrameRows.rows("enemies", frame.get("targets", [])):
+				if target.has_logical:
+					targets[target.id] = [target.logical_x, target.logical_y]
 			targets_loaded = true
 		if event.get("kind") == "charge":
 			if not turrets_loaded:
-				for turret: Array in frame.get("turrets", []):
-					if turret.size() >= 4:
-						turret_positions[int(turret[0])] = turret
+				for turret: FrameRows.Turret in FrameRows.rows("turrets", frame.get("turrets", [])):
+					turret_positions[turret.id] = turret
 				turrets_loaded = true
 			var owner_id := int(event.get("ownerId", -1))
 			if not turret_positions.has(owner_id):
 				_events.erase(id)
 				continue
-			var turret: Array = turret_positions[owner_id]
+			var turret: FrameRows.Turret = turret_positions[owner_id]
 			var radius := float(event.get("attachmentRadius", 0))
-			event["x"] = float(turret[1]) + cos(float(turret[3])) * radius
-			event["y"] = float(turret[2]) + sin(float(turret[3])) * radius
+			event["x"] = turret.x + cos(turret.aim_angle) * radius
+			event["y"] = turret.y + sin(turret.aim_angle) * radius
 		elif event.get("kind") == "coreBeam":
 			var ids: Array = event.get("targetIds", [])
 			if not ids.is_empty() and targets.has(int(ids[0])):

@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 var failures := 0
 
@@ -46,13 +47,13 @@ func _verify() -> void:
 	_check(is_equal_approx(impact._volume_material.get_shader_parameter("u_angle"), float(100 % 23) * 0.317), "ID-seeded appearance changed")
 	_check(scene.impact_lights[0].light_energy > 0 and scene.impact_lights[0].visible, "existing shared impact light missing")
 	_check(scene.impact_lights.slice(1).all(func(light): return not light.visible), "unused zero-energy impact lights must stay hidden")
-	var saved: Array = scene.last_frame["impacts"].duplicate(true)
+	var saved: Array = FrameRows.serialized(scene.last_frame).impacts
 	for i in range(3):
 		scene.apply_frame(frame)
 		scene._update_camera_visuals()
 		scene.apply_options()
 		await process_frame
-	_check(scene.last_frame["impacts"] == saved, "duplicate frames, camera and options must not advance or reset progress")
+	_check(FrameRows.serialized(scene.last_frame).impacts == saved, "duplicate frames, camera and options must not advance or reset progress")
 	scene.options["volume"] = false
 	scene.apply_options()
 	_check(not impact.visible, "volume option must affect native event blasts")

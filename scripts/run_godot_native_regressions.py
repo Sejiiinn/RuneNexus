@@ -140,7 +140,7 @@ def prepare(directory: Path, executable: str) -> Path:
     (project / "environment").mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "godot/environment/chapter_three_tiles.gd", project / "environment/chapter_three_tiles.gd")
     (project / "presentation").mkdir(parents=True, exist_ok=True)
-    for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader", "stage_resources.gd"):
+    for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader", "stage_resources.gd", "frame_rows.gd"):
         shutil.copy2(ROOT / "godot/presentation" / name, project / "presentation" / name)
     for name in ("inputs", "expected"):
         path = f"godot_save_codec_{name}.json"

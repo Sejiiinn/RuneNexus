@@ -41,6 +41,7 @@ const DEATH_SECONDS := 1.4
 const QUARTER_TURN_SECONDS := 0.12
 # Approved v2 Walk and Death share the same root/floor coordinates.
 const DEATH_FLOOR := 0.0
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 var _world: Node3D
 var _walk_scene: PackedScene
@@ -243,12 +244,12 @@ static func visual_scale(kind: String) -> float:
 	return FAST_VISUAL_SCALE if kind == "fast" else NORMAL_VISUAL_SCALE
 
 
-func update_walker(entry: Dictionary, data: Array, time: float) -> void:
-	var logical := Vector2(float(data[12]), float(data[13])) if data.size() > 13 else Vector2(float(data[1]), float(data[2]))
-	var id := int(data[0])
+func update_walker(entry: Dictionary, row: FrameRows.Enemy, time: float) -> void:
+	var logical := Vector2(row.logical_x, row.logical_y) if row.has_logical else Vector2(row.x, row.y)
+	var id := row.id
 	var teleported := false
-	if data.size() > 14 and data[14] is Dictionary and data[14].has("teleportSerial"):
-		var serial := int(data[14]["teleportSerial"])
+	if row.teleport_serial >= 0:
+		var serial := row.teleport_serial
 		teleported = entry.has("teleport_serial") and serial != int(entry.teleport_serial)
 		if teleported:
 			# A path skip is not a stride. Preserve the current gait phase and snap
@@ -261,7 +262,7 @@ func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 		entry.erase("teleport_serial")
 		entry.erase("teleport_distance_offset")
 	walkers[id] = entry
-	update_facing(entry, PI / 2.0 - float(data[3]), time)
+	update_facing(entry, PI / 2.0 - row.facing, time)
 	if distances.has(id):
 		entry.distance = float(distances[id]) - float(entry.get("teleport_distance_offset", 0.0))
 	elif teleported:
@@ -276,7 +277,7 @@ func update_walker(entry: Dictionary, data: Array, time: float) -> void:
 	var seconds := RUN_SECONDS if entry.type == "fast" else (WALK_SECONDS if entry.type == "tank" else NORMAL_WALK_SECONDS)
 	if entry.type in BOSS_KINDS:
 		# Share the authored gait, retaining each stage variant's display scale.
-		stride = BOSS_STRIDE_TILES * float(data[5]) / 0.79 if data.size() > 5 else BOSS_STRIDE_TILES
+		stride = BOSS_STRIDE_TILES * row.scale / 0.79 if row.has_scale else BOSS_STRIDE_TILES
 		seconds = entry.player.get_animation(entry.clip).length
 	var phase := fposmod(float(entry.distance), stride) / stride
 	entry.player.seek(phase * seconds, true)

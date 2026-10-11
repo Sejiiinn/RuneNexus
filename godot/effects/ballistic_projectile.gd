@@ -5,6 +5,7 @@ const StageResources = preload("res://presentation/stage_resources.gd")
 const TRACER_SHADER = preload("res://effects/projectile_tracer.gdshader")
 const CannonFlight = preload("res://effects/cannon_flight.gd")
 const AFTERIMAGE_SECONDS := 0.14
+const FrameRows = preload("res://presentation/frame_rows.gd")
 static var _templates := {}
 
 var type := "arrow"
@@ -104,19 +105,19 @@ func reset() -> void:
 		_cannon_flight.reset()
 
 
-func update_flight(data: Array, time: float, map_offset: Vector3, muzzle_pose = null) -> void:
+func update_flight(row: FrameRows.Projectile, time: float, map_offset: Vector3, muzzle_pose = null) -> void:
 	var height := 0.56 if type == "cannon" else 0.45
-	var point := Vector3(float(data[1]), height, float(data[2])) + map_offset
-	var direction := Vector3(float(data[3]), 0.0, float(data[4])).normalized()
+	var point := Vector3(row.x, height, row.y) + map_offset
+	var direction := Vector3(row.direction_x, 0.0, row.direction_y).normalized()
 	if direction.length_squared() < 0.5:
 		direction = Vector3.BACK
-	var metadata := data.size() >= 12
-	var finished_at := float(data[11]) if metadata else -1.0
+	var metadata := row.has_launch
+	var finished_at := row.finished_at
 	var finished := finished_at >= 0.0
 	if not initialized:
 		if metadata:
-			launch_position = Vector3(float(data[6]), height, float(data[7])) + map_offset
-			if not bool(data[10]):
+			launch_position = Vector3(row.start_x, height, row.start_y) + map_offset
+			if not row.chained:
 				if muzzle_pose is Transform3D:
 					launch_position = muzzle_pose.origin
 				else:
@@ -125,11 +126,11 @@ func update_flight(data: Array, time: float, map_offset: Vector3, muzzle_pose = 
 		else:
 			launch_position = point - direction * (0.36 if type == "cannon" else 0.30)
 		initialized = true
-	if finished and data.size() >= 14 and data[12] != null and data[13] != null:
+	if finished and row.has_end:
 		# 충돌 원의 표면이 포신 안에 들어오는 근접 사격도 실제 피격 몸체까지 연결.
 		# 판정 위치는 프레임의 1·2번 필드에 그대로 보존.
-		point.x = float(data[12]) + map_offset.x
-		point.z = float(data[13]) + map_offset.z
+		point.x = row.end_x + map_offset.x
+		point.z = row.end_y + map_offset.z
 	var offset := point - launch_position
 	var travelled := offset.dot(direction)
 	if travelled > 0.01:

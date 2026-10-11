@@ -8,6 +8,7 @@ const CAMERA_DEPTH_MARGIN := 0.5
 # 수직에서 25° 기울여 전장 전체와 모델의 측면을 함께 보여 준다.
 const DRONE_TILT := deg_to_rad(25.0)
 const DRONE_DISTANCE := 30.0
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 var camera: Camera3D
 var camera_mode := ""
@@ -257,17 +258,17 @@ func update_envelope(terrain: Node3D, last_frame: Dictionary, map_size: Vector2i
 		_camera_map_bounds = _camera_map_bounds.merge(mesh_bounds(terrain).grow(0.05))
 	# 브리지의 실제 크기를 수용하고 효과가 끝나도 맵 수명 동안 범위를 유지한다.
 	# 발사·소멸마다 shadow map 범위가 왕복하는 것을 피한다.
-	for data: Array in last_frame.get("enemies", []):
-		_camera_enemy_scale = maxf(_camera_enemy_scale, absf(float(data[5])))
-	for data: Array in last_frame.get("impacts", []):
-		_camera_impact_radius = maxf(_camera_impact_radius, float(data[3]))
+	for row: FrameRows.Enemy in FrameRows.rows("enemies", last_frame.get("enemies", [])):
+		_camera_enemy_scale = maxf(_camera_enemy_scale, absf(row.scale))
+	for row: FrameRows.Impact in FrameRows.rows("impacts", last_frame.get("impacts", [])):
+		_camera_impact_radius = maxf(_camera_impact_radius, row.radius)
 	for key in ["turrets", "enemies", "projectiles", "impacts"]:
-		for data: Array in last_frame.get(key, []):
-			_camera_map_bounds = _camera_map_bounds.expand(Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0))
-			if key == "projectiles" and data.size() >= 12:
-				_camera_map_bounds = _camera_map_bounds.expand(Vector3(float(data[6]) - columns / 2.0, 0.0, float(data[7]) - rows / 2.0))
-				if data.size() >= 14 and data[12] != null and data[13] != null:
-					_camera_map_bounds = _camera_map_bounds.expand(Vector3(float(data[12]) - columns / 2.0, 0.0, float(data[13]) - rows / 2.0))
+		for row in FrameRows.rows(key, last_frame.get(key, [])):
+			_camera_map_bounds = _camera_map_bounds.expand(Vector3(row.x - columns / 2.0, 0.0, row.y - rows / 2.0))
+			if key == "projectiles" and row.has_launch:
+				_camera_map_bounds = _camera_map_bounds.expand(Vector3(row.start_x - columns / 2.0, 0.0, row.start_y - rows / 2.0))
+				if row.has_end:
+					_camera_map_bounds = _camera_map_bounds.expand(Vector3(row.end_x - columns / 2.0, 0.0, row.end_y - rows / 2.0))
 	# 포구 연기는 총구에서 최대 0.37 전진 + 반길이 0.35, 위로 0.17 + 반폭 0.22.
 	# 1타일 여유는 포구 화염·반동·건설 미리보기의 0.12 부유도 포함한다.
 	var actor := AABB(_camera_actor_bounds.position * _camera_enemy_scale, _camera_actor_bounds.size * _camera_enemy_scale).grow(1.0)

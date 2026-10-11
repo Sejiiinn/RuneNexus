@@ -14,6 +14,7 @@ const MAX_LIGHTS := 2
 ## 기관총 탄체·예광의 비행 높이와 같다.
 const HEIGHT := 0.45
 const INACTIVE := -100000.0
+const FrameRows = preload("res://presentation/frame_rows.gd")
 static var _spark_mesh: ArrayMesh
 static var _flare_mesh: ArrayMesh
 
@@ -128,9 +129,9 @@ func present(items: Array, enemy_rows: Array, map_size: Vector2, time: float, en
 			continue
 		if not offsets_loaded:
 			# 명중점은 논리 좌표다. 맞은 몸체의 차선 표시 오프셋만 더한다.
-			for row: Array in enemy_rows:
-				if row.size() >= 14:
-					offsets[int(row[0])] = Vector2(float(row[1]) - float(row[12]), float(row[2]) - float(row[13]))
+			for row: FrameRows.Enemy in FrameRows.rows("enemies", enemy_rows):
+				if row.has_logical:
+					offsets[row.id] = Vector2(row.x - row.logical_x, row.y - row.logical_y)
 			offsets_loaded = true
 		var point := Vector2(float(item.get("x", 0.0)), float(item.get("y", 0.0)))
 		point += offsets.get(int(item.get("targetId", -1)), Vector2.ZERO)

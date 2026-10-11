@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 ## 웹을 거치지 않는 동일 Godot 장면의 GPU 렌더·캡처 검사.
 func _initialize() -> void:
@@ -19,7 +20,7 @@ func _verify() -> void:
 		return
 	if "--turret-labels" in OS.get_cmdline_user_args():
 		scene.options["turret_levels"] = true
-		var labels_frame: Dictionary = scene.last_frame.duplicate(true)
+		var labels_frame: Dictionary = FrameRows.serialized(scene.last_frame.duplicate(true))
 		var types: Array = scene.TURRET_MODELS.keys()
 		var levels := [1, 2, 4, 6, 8, 10]
 		for index in range(labels_frame["turrets"].size()):
@@ -39,7 +40,7 @@ func _verify() -> void:
 		scene.apply_options()
 		if scene.camera_transition and scene.camera_transition.is_running():
 			await scene.camera_transition.finished
-		var frame: Dictionary = scene.last_frame.duplicate(true)
+		var frame: Dictionary = FrameRows.serialized(scene.last_frame.duplicate(true))
 		var target: Array = frame["enemies"][1]
 		frame["impacts"] = [[100, target[1], target[2], 1.2, sample["progress"]]]
 		scene.apply_frame(frame)
@@ -63,7 +64,7 @@ func _verify() -> void:
 
 func _verify_crystal_glass(scene: Node3D, output: String, compare_camera: bool = false) -> bool:
 	scene.set_process(false)
-	var frame: Dictionary = scene.last_frame.duplicate(true)
+	var frame: Dictionary = FrameRows.serialized(scene.last_frame.duplicate(true))
 	var view_basis: Basis = scene.camera.global_basis
 	var core: Node3D = scene._cores[0]["root"]
 	var crystal: MeshInstance3D = scene._cores[0]["crystal"]

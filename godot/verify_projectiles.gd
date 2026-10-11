@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 
 ## 화살 궤적과 둥근 철구의 실제 비행·명중·짧은 잔여 효과·재사용 검증.
 var failures := 0
@@ -48,7 +49,7 @@ func _verify_cannon_asset(cannon: Node3D) -> void:
 		for surface in range(pair[0].mesh.get_surface_count()):
 			_check(pair[0].get_active_material(surface) == pair[1].get_active_material(surface), "철구 인스턴스별 native 재질 복제")
 	_check(cannon._cannon_flight.volume.mesh is BoxMesh and cannon._cannon_flight.volume.visible, "철구 뒤 입체 연기·화염 볼륨 누락")
-	second.update_flight([999, 3.8, 4.5, 1.0, 0.0, "cannon", 3.5, 4.5, 702, 1, false, 1.0, 4.4, 4.5], 1.0, Vector3.ZERO)
+	second.update_flight(FrameRows.Projectile.from_array([999, 3.8, 4.5, 1.0, 0.0, "cannon", 3.5, 4.5, 702, 1, false, 1.0, 4.4, 4.5]), 1.0, Vector3.ZERO)
 	_check(second.visible and not second.body.visible and not second.nose.visible and second._cannon_flight.visible, "첫 화면 전에 명중한 철구가 탄체를 표시하거나 잔여 효과를 잃음")
 	_check(is_equal_approx(second.global_position.x, 4.4), "종료 프레임만 수신한 철구의 실제 명중점 오류")
 	second.free()

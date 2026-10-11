@@ -1,4 +1,5 @@
 extends SceneTree
+const FrameRows = preload("res://presentation/frame_rows.gd")
 ## Focused authored-rig contract: motion clock, distinct skins, status and cleanup.
 const Motion = preload("res://presentation/guardian_preview.gd")
 const Burn = preload("res://effects/enemy_burn.gd")
@@ -63,7 +64,7 @@ func check_single_evaluation(world: Node3D) -> void:
 	check(sampled.writes == 2, "Initial seek restores cache then applies one pose")
 	sampled.writes = 0
 	motion.distances[10] = Motion.STRIDE_TILES * 0.25
-	motion.update_walker(entry, [10, 0.0, 0.0, 0.0], 1.0)
+	motion.update_walker(entry, FrameRows.Enemy.from_array([10, 0.0, 0.0, 0.0]), 1.0)
 	check(sampled.writes == 1, "Living manual pose evaluates once")
 	sampled.writes = 0
 	entry.born = 1.0
@@ -215,30 +216,30 @@ func run() -> void:
 		var data := [id, 0.0, 0.0, 0.0, 0.0, 0.48, 0.0, entry.type, false, false, false, false, 0.0, 0.0]
 		runtime.enemies[str(id)] = {"id": id, "type": entry.type, "distanceTravelled": stride * 48.0 * 0.25, "facingAngle": 0.0}
 		motion.observe_native(runtime, 1.0, Vector2i(8, 8))
-		motion.update_walker(entry, data, 1.0)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.0)
 		check(is_equal_approx(entry.player.current_animation_position, seconds * 0.25), entry.type + " native distance drives phase")
 		check_legacy_pose(entry, entry.type + " quarter stride")
 		data[1] = 12.0 # Smoothed/display movement must not advance a paused logical rig.
-		motion.update_walker(entry, data, 1.0)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.0)
 		check(is_equal_approx(entry.player.current_animation_position, seconds * 0.25), entry.type + " paused phase ignores display displacement")
 		runtime.enemies[str(id)].distanceTravelled = stride * 48.0 * 0.5
 		motion.observe_native(runtime, 1.1, Vector2i(8, 8))
-		motion.update_walker(entry, data, 1.1)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.1)
 		check(is_equal_approx(entry.player.current_animation_position, seconds * 0.5), entry.type + " slow/4x clock uses traveled distance")
 		check_legacy_pose(entry, entry.type + " half stride")
 		var before: float = entry.root.rotation.y
 		data[3] = PI / 2.0
-		motion.update_walker(entry, data, 1.1)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.1)
 		check(is_equal_approx(entry.root.rotation.y, before), entry.type + " corner starts without snapping")
-		motion.update_walker(entry, data, 1.16)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.16)
 		check(entry.root.rotation.y < before and entry.root.rotation.y > 0.0, entry.type + " corner eases with combat clock")
 		var phase_before: float = entry.player.current_animation_position
 		data.append({"teleportSerial": 1})
-		motion.update_walker(entry, data, 1.16)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.16)
 		data[14].teleportSerial = 2
 		data[3] = PI
 		motion.distances[id] += stride * 3.25
-		motion.update_walker(entry, data, 1.16)
+		motion.update_walker(entry, FrameRows.Enemy.from_array(data), 1.16)
 		check(is_equal_approx(entry.player.current_animation_position, phase_before), entry.type + " teleport preserves gait phase")
 		check(is_equal_approx(entry.root.rotation.y, -PI / 2.0), entry.type + " teleport snaps exit facing")
 		check_legacy_pose(entry, entry.type + " teleport")

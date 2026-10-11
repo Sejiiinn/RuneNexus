@@ -6,6 +6,7 @@ const Impact = preload("res://effects/godot_impact.gd")
 const FieldCache = preload("res://effects/field_cache.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const PROJECTILE_COLORS := {
 	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("ff8528"),
 	"frost": Color("94e6ff"), "sniper": Color("ffeec4"), "lightning": Color("c7d8ff"),
@@ -217,9 +218,9 @@ func _new_projectile(type: String) -> Node3D:
 
 func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 	var alive := {}
-	for data: Array in units:
-		var id := int(data[0])
-		var type := str(data[5]) if data.size() > 5 else "cannon"
+	for row: FrameRows.Projectile in FrameRows.rows("projectiles", units):
+		var id := row.id
+		var type := row.type
 		if not PROJECTILE_COLORS.has(type):
 			failure.emit("지원하지 않는 탄환: %s" % type)
 			continue
@@ -234,19 +235,19 @@ func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 			projectiles[id] = {"root": model, "type": type}
 		var root: Node3D = projectiles[id]["root"]
 		if type == "magic":
-			_update_fire_projectile(projectiles[id], data, turrets)
+			_update_fire_projectile(projectiles[id], row, turrets)
 			continue
 		if root is BallisticProjectile:
 			var pose = null
-			if data.size() >= 12 and data[8] != null and not bool(data[10]):
-				var owner: Dictionary = turrets.get(int(data[8]), {})
-				if int(owner.get("last_shot", -1)) == int(data[9]):
+			if row.has_launch and row.has_owner and not row.chained:
+				var owner: Dictionary = turrets.get(row.owner_id, {})
+				if int(owner.get("last_shot", -1)) == row.shot:
 					pose = owner.get("shot_pose")
-			root.update_flight(data, _time, Vector3(-columns / 2.0, 0.0, -rows / 2.0), pose)
+			root.update_flight(row, _time, Vector3(-columns / 2.0, 0.0, -rows / 2.0), pose)
 			root.update_camera(camera)
 			continue
-		root.position = Vector3(float(data[1]) - columns / 2.0, 0.56 if type == "cannon" else 0.45, float(data[2]) - rows / 2.0)
-		root.rotation.y = PI / 2.0 - atan2(float(data[4]), float(data[3]))
+		root.position = Vector3(row.x - columns / 2.0, 0.56 if type == "cannon" else 0.45, row.y - rows / 2.0)
+		root.rotation.y = PI / 2.0 - atan2(row.direction_y, row.direction_x)
 	for id in projectiles.keys():
 		if not alive.has(id):
 			var projectile: Node3D = projectiles[id]["root"]
@@ -266,16 +267,16 @@ func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 			projectiles.erase(id)
 
 
-func _update_fire_projectile(entry: Dictionary, data: Array, turrets: Dictionary) -> void:
+func _update_fire_projectile(entry: Dictionary, row: FrameRows.Projectile, turrets: Dictionary) -> void:
 	var root: Node3D = entry["root"]
 	var time := _time
 	var map_offset := Vector3(-columns / 2.0, 0.0, -rows / 2.0)
-	var point := Vector3(float(data[1]), 0.45, float(data[2])) + map_offset
-	var direction := Vector3(float(data[3]), 0.0, float(data[4])).normalized()
+	var point := Vector3(row.x, 0.45, row.y) + map_offset
+	var direction := Vector3(row.direction_x, 0.0, row.direction_y).normalized()
 	if direction.length_squared() < 0.5:
 		direction = Vector3.BACK
-	var metadata := data.size() >= 12
-	var finished_at := float(data[11]) if metadata else -1.0
+	var metadata := row.has_launch
+	var finished_at := row.finished_at
 	var finished := finished_at >= 0.0
 	if time < float(entry.get("last_time", -INF)):
 		root.reset()
@@ -284,17 +285,17 @@ func _update_fire_projectile(entry: Dictionary, data: Array, turrets: Dictionary
 	if not entry.has("launch_position"):
 		var launch := point - direction * 0.30
 		if metadata:
-			launch = Vector3(float(data[6]), 0.45, float(data[7])) + map_offset
-			if not bool(data[10]):
-				var owner: Dictionary = turrets.get(int(data[8]), {}) if data[8] != null else {}
+			launch = Vector3(row.start_x, 0.45, row.start_y) + map_offset
+			if not row.chained:
+				var owner: Dictionary = turrets.get(row.owner_id, {}) if row.has_owner else {}
 				var pose = owner.get("shot_pose")
-				if int(owner.get("last_shot", -1)) == int(data[9]) and pose is Transform3D:
+				if int(owner.get("last_shot", -1)) == row.shot and pose is Transform3D:
 					launch = pose.origin
 				# magic의 origin에는 이미 Dart 화구 오프셋이 포함된다.
 		entry["launch_position"] = launch
-	if finished and data.size() >= 14 and data[12] != null and data[13] != null:
-		point.x = float(data[12]) + map_offset.x
-		point.z = float(data[13]) + map_offset.z
+	if finished and row.has_end:
+		point.x = row.end_x + map_offset.x
+		point.z = row.end_y + map_offset.z
 	var offset: Vector3 = point - entry["launch_position"]
 	var travelled := offset.dot(direction)
 	if travelled > 0.01:
@@ -313,8 +314,8 @@ func _update_impacts(units: Array) -> void:
 	for light in impact_lights:
 		light.light_energy = 0.0
 	var light_index := 0
-	for data: Array in units:
-		var id := int(data[0])
+	for row: FrameRows.Impact in FrameRows.rows("impacts", units):
+		var id := row.id
 		alive[id] = true
 		if not impacts.has(id):
 			var effect: Node3D
@@ -327,14 +328,14 @@ func _update_impacts(units: Array) -> void:
 			impacts[id] = effect
 		var effect: Node3D = impacts[id]
 		effect.visible = bool(options["volume"])
-		effect.position = Vector3(float(data[1]) - columns / 2.0, 0, float(data[2]) - rows / 2.0)
+		effect.position = Vector3(row.x - columns / 2.0, 0, row.y - rows / 2.0)
 		if effect.visible:
-			effect.update_impact(float(data[4]), float(data[3]), id, camera)
-			if float(data[4]) < 0.68 and light_index < impact_lights.size():
+			effect.update_impact(row.progress, row.radius, id, camera)
+			if row.progress < 0.68 and light_index < impact_lights.size():
 				var light := impact_lights[light_index]
-				light.position = effect.position + Vector3(0, 0.3 + float(data[3]) * 0.12, 0)
-				light.omni_range = float(data[3]) * 3.2
-				light.light_energy = 1.6 * pow(1.0 - float(data[4]) / 0.68, 2)
+				light.position = effect.position + Vector3(0, 0.3 + row.radius * 0.12, 0)
+				light.omni_range = row.radius * 3.2
+				light.light_energy = 1.6 * pow(1.0 - row.progress / 0.68, 2)
 				light_index += 1
 	# Unused pool lights add nothing but still occupy per-object light lists.
 	for light in impact_lights:

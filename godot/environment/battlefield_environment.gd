@@ -15,6 +15,7 @@ const BattlefieldCamera = preload("res://session/battlefield_camera.gd")
 const TeleportDevice = preload("res://environment/teleport_device.gd")
 const TeleportHostCut = preload("res://environment/teleport_host_cut.gd")
 const TeleportPairs = preload("res://combat/teleport_pairs.gd")
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const StageResources = preload("res://presentation/stage_resources.gd")
 const REFLECTION_TERRAIN_LAYER := 1 << 1
 const REFLECTION_CRYSTAL_LAYER := 1 << 2
@@ -862,12 +863,11 @@ static func prepare_vertex_colors(model: Node) -> void:
 func update_occupancy(units: Array, supported_types: Dictionary) -> void:
 	var occupied := Vector2i.ZERO
 	if _using_dressing:
-		for data: Array in units:
-			var type := str(data[6]) if data.size() > 6 else "cannon"
-			if not supported_types.has(type):
+		for row: FrameRows.Turret in FrameRows.rows("turrets", units):
+			if not supported_types.has(row.type):
 				continue
-			var x := floori(float(data[1]))
-			var z := floori(float(data[2]))
+			var x := floori(row.x)
+			var z := floori(row.y)
 			if x >= 0 and x < columns and z >= 0 and z < rows:
 				var slot := _build_tile_slots[z * columns + x]
 				if slot >= 0 and slot < 16:
