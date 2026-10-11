@@ -122,7 +122,7 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	initial.merge(bootstrap, true)
 	var control := {"clock":"godot","phase":"preparation","paused":false,"speed":1.0}
 	control.merge(session_state, true)
-	scene.combat_runtime.process_command({"epoch":epoch,"sequence":0,"session":control,"bootstrap":initial})
+	scene.combat_runtime.start(epoch, initial, control)
 	if not scene.combat_runtime.step_completed.is_connected(_on_combat_step_completed):
 		scene.combat_runtime.step_completed.connect(_on_combat_step_completed)
 
@@ -136,13 +136,11 @@ func command(commands: Array = [], patch: Dictionary = {}) -> bool:
 		if not collected.get("ok", false):
 			checkpoint.message = run_domain.error
 			return false
-	var packet := {"epoch":epoch,"sequence":scene.combat_runtime.sequence+1,"commands":before+commands,"session":patch}
+	var ack_event: int = scene.combat_runtime.event_id
 	if is_content_session():
-		packet.ackEvent = run_domain.event_ack
-		if not patch.has("phase") and not run_domain.state.is_empty(): packet.session.phase = run_domain.state.phase
-	else:
-		packet.ackEvent = scene.combat_runtime.event_id
-	scene.combat_runtime.process_command(packet, false)
+		ack_event = run_domain.event_ack
+		if not patch.has("phase") and not run_domain.state.is_empty(): patch.phase = run_domain.state.phase
+	scene.combat_runtime.apply_batch(epoch, before + commands, patch, ack_event)
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:

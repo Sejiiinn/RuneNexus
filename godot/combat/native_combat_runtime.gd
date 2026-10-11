@@ -172,6 +172,22 @@ func _changes_clock_controls(incoming: Dictionary) -> bool:
 		if incoming.has(key) and incoming[key] != session.get(key): return true
 	return false
 
+## Starts a new combat generation (stage entry, retry, restore) for the session
+## that owns this runtime. Returns "" when accepted, otherwise the reason.
+func start(new_epoch: int, bootstrap: Dictionary, session_state: Dictionary) -> String:
+	var result := process_command({"epoch": new_epoch, "sequence": 0, "session": session_state, "bootstrap": bootstrap})
+	return "" if result.get("accepted", false) else str(result.get("reason", "rejected"))
+
+## Applies one in-process batch for the current generation, in order:
+## acknowledged events (up to ack_event), the session patch, then commands.
+## Returns "" when applied, otherwise the rejection reason (e.g. staleEpoch).
+func apply_batch(batch_epoch: int, commands: Array, session_patch: Dictionary, ack_event: int) -> String:
+	var result := process_command({"epoch": batch_epoch, "sequence": sequence + 1, "commands": commands, "session": session_patch, "ackEvent": ack_event}, false)
+	return "" if result.get("accepted", false) else str(result.get("reason", "rejected"))
+
+## Message-protocol adapter (epoch, sequence, ackEvent, optional host steps)
+## retained for fixtures, previews and protocol regression checks. The session
+## uses start() and apply_batch().
 func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dictionary:
 	var same_native_epoch: bool = native_session() and int(packet.get("epoch", -1)) == epoch
 	var previous_clock_gate := _session_clock_gate()
