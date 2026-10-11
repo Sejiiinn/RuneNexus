@@ -51,6 +51,7 @@ CASES: dict[str, tuple[str, dict]] = {
                                       {"renderer": True, "args": ["{build}/chapter_three_frames.json"]}),
     "verify_chapter_three_combat_render.gd": ("CH3_NORMAL_COMBAT_RENDER failures=[]", {"timeout": 240, "env": {"RUNE_CH3_CAPTURE_DIR": "{tmp}"}}),
     "verify_chapter_three_routes_render.gd": ("CH3_ROUTES_RENDER failures=[]", {"env": {"RUNE_CH3_CAPTURE_DIR": "{tmp}"}}),
+    "verify_combat_presentation_determinism.gd": ("PRESENTATION_DETERMINISM cases=", {"args": ["--session"]}),
     "verify_combat_space_mask.gd": ("COMBAT_SPACE_MASK checks=", {}),
     "verify_compressed_field.gd": ("Compressed field verification: 0 failures",
                                    {"args": ["{root}/assets/images/stage1_3d/effects/cannon_field.bin"]}),
