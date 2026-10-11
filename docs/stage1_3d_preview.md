@@ -77,9 +77,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 ## 기기별 그래픽 설정
 
-로비 설정에서 MSAA(끄기/2배), 그림자 품질(끄기/낮음 512/중간 1024/높음 2048)을 라디오 버튼으로 선택한다. 기본값은 기존과 같은 MSAA 2배·그림자 2048이며, 3D 렌더 해상도는 변경하지 않는다. 앱 지원 디렉터리의 `graphics_settings_v1.json` 또는 웹 전용 localStorage에 저장하며 계정·진행 저장과 동기화하지 않는다. 저장 실패 시 기존 선택을 유지하고 오류를 표시한다.
-
-전장 초기 연결과 재연결·카메라 옵션 전달에 현재 설정을 포함한다. Godot은 MSAA와 방향광 그림자 아틀라스 크기를 런타임에 적용하며 같은 크기의 반복 재생성을 피한다. 해당 옵션은 Android 스테이지 1~15의 3D 전장에 적용된다. [설정 화면·검증 기록](../design/lobby/graphics_settings/README.md).
+로비 설정의 기기별 그래픽 옵션(MSAA·그림자·3D 렌더 해상도·프레임 제한)과 기본값은 [로비 설정 결정](design_decisions/lobby.md#화면별-결정)을 따른다. 계정·진행 저장과 동기화하지 않는 기기 설정이며, Godot이 3D 전장에 런타임으로 적용하고 같은 크기의 그림자 아틀라스 재생성을 피한다. [설정 화면·검증 기록](../design/lobby/graphics_settings/README.md).
 
 ## 범위와 제약
 

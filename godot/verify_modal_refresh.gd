@@ -50,6 +50,11 @@ func run() -> void:
 	check(ProjectSettings.get_setting("application/config/name","") in ["Native regression tests","Modal refresh implementation 20261001"],"Device settings use an isolated regression project")
 	if not failures.is_empty(): quit(1); return
 	ProjectSettings.set_setting("accessibility/disable_animations",false)
+	var legacy := ConfigFile.new()
+	legacy.set_value("graphics","msaa",2); legacy.set_value("graphics","shadow",2048)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(Device.PATH.get_base_dir()))
+	legacy.save(Device.PATH)
+	check(Device.read().fps==60 and Device.read().render_scale==100,"Settings saved before frame and resolution choices default to 60fps and 100%")
 	check(Device.write({"msaa":2,"shadow":2048}),"Fixture graphics settings initialize")
 	await dimensions(320,220)
 	var app := App.new()
@@ -77,6 +82,11 @@ func run() -> void:
 	var shadow := lobby.home.modal.find_child("shadow_512",true,false) as Button
 	shadow.button_pressed=true; shadow.pressed.emit(); await settle()
 	check(home_ids(lobby.home)==ids and Device.read().shadow==512 and app.scene.options.shadow_map_size==512,"Shadow choice updates within the same settings shell")
+	for choice_name in ["render_scale_75","fps_30"]:
+		var option := lobby.home.modal.find_child(choice_name,true,false) as Button
+		option.button_pressed=true; option.pressed.emit(); await settle()
+	var saved := Device.read()
+	check(home_ids(lobby.home)==ids and saved.render_scale==75 and saved.fps==30 and saved.shadow==512 and is_equal_approx(app.scene.options.render_scale,0.75) and app.scene.options.max_fps==30,"Render scale and frame limit choices persist and apply")
 	lobby.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN); await settle()
 	check(home_ids(lobby.home)==ids and lobby.home.modal_scroll.scroll_vertical==scroll_y,"Focus refresh preserves settings shell and scroll")
 	check(is_equal_approx(lobby.home.modal_frame.modulate.a,1),"Focus refresh does not restart the entrance")

@@ -491,6 +491,10 @@ func open_settings(refresh := false) -> void:
 	_choices(frame, "MSAA · 테두리 부드럽게", "끄면 물체의 가장자리가 거칠어질 수 있습니다.", "msaa", [0, 2], ["끄기", "2배"], 2)
 	frame.add_child(HSeparator.new())
 	_choices(frame, "그림자 품질", "낮추면 그림자가 흐릿해지고, 끄면 사라집니다.", "shadow", [0, 512, 1024, 2048], ["끄기", "낮음", "중간", "높음"], 2048)
+	frame.add_child(HSeparator.new())
+	_choices(frame, "3D 렌더 해상도", "낮추면 가벼워지지만 전장이 흐려집니다.", "render_scale", [50, 75, 100], ["50%", "75%", "100%"], 100)
+	frame.add_child(HSeparator.new())
+	_choices(frame, "프레임 제한", "30은 발열이 줄지만 움직임이 덜 부드럽습니다.", "fps", [30, 60], ["30", "60"], 60)
 	_modal_button(frame, "Account", "계정 및 저장", open_service.bind("계정 및 저장"))
 
 func _choices(frame: Control, title: String, description: String, key: String, values: Array, labels: Array, fallback: int) -> void:

@@ -84,7 +84,7 @@ var columns: int:
 	get: return _environment.columns
 var rows: int:
 	get: return _environment.rows
-var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "msaa_samples": 2, "shadow_map_size": 2048, "volume": true, "empty": false, "turret_levels": false}
+var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "msaa_samples": 2, "shadow_map_size": 2048, "max_fps": 0, "render_scale": 1.0, "volume": true, "empty": false, "turret_levels": false}
 var _applied_shadow_map_size := -1
 var _frame_metrics := FrameMetrics.new()
 var last_sequence := -1
@@ -352,6 +352,18 @@ func _apply_graphics_options() -> void:
 		RenderingServer.directional_shadow_atlas_set_size(int(shadow_size), bool(ProjectSettings.get_setting("rendering/lights_and_shadows/directional_shadow/16_bits", false)))
 		_applied_shadow_map_size = int(shadow_size)
 	sun.shadow_enabled = bool(options.get("shadows", true)) and shadow_size > 0
+	# 앱은 기기 설정(30·60)을 전달하고, 개발·검사 실행은 0(제한 없음)을 유지한다.
+	var fps = options.get("max_fps", 0)
+	if not (fps is int or fps is float) or (fps != 0 and fps != 30 and fps != 60):
+		fps = 0
+	if Engine.max_fps != int(fps):
+		Engine.max_fps = int(fps)
+	# 3D만 낮은 해상도로 그린 뒤 확대한다. Canvas UI·라벨은 원래 해상도를 유지한다.
+	var render_scale = options.get("render_scale", 1.0)
+	if not (render_scale is int or render_scale is float) or not (is_equal_approx(render_scale, 0.5) or is_equal_approx(render_scale, 0.75) or is_equal_approx(render_scale, 1.0)):
+		render_scale = 1.0
+	if not is_equal_approx(viewport.scaling_3d_scale, render_scale):
+		viewport.scaling_3d_scale = render_scale
 
 
 func _update_camera() -> void:

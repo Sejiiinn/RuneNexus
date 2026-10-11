@@ -573,6 +573,8 @@ func _settings() -> void:
 	body.add_child(AppTheme.label("그래픽", 20))
 	_radio("MSAA", "msaa", [0, 2], ["끄기", "2배"], 2)
 	_radio("그림자 품질", "shadow", [0, 512, 1024, 2048], ["끄기", "낮음", "중간", "높음"], 2048)
+	_radio("3D 렌더 해상도", "render_scale", [50, 75, 100], ["50%", "75%", "100%"], 100)
+	_radio("프레임 제한", "fps", [30, 60], ["30", "60"], 60)
 	body.add_child(AppTheme.button("지금 저장", func():
 		message = "" if app.persist_progression() else "저장 실패. 기존 저장을 유지합니다."
 		refresh()
