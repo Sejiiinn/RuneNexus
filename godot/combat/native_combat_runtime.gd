@@ -43,6 +43,11 @@ var visual_effects: Array = []
 # Canonical static payloads are immutable; raw journal units stay compatible
 # with public frames, 3D impacts and development sessions.
 var _prepared_effects: Dictionary = {}
+# Step-local target candidates: [enemy, position, target radius, progress, id].
+# Valid only from the end of movement until spawns, while positions and
+# membership are fixed; alive state and durability are still read live.
+var _target_candidates: Array = []
+var _target_candidates_ready := false
 var visual_id: int = 1000000000
 var damage_number_index: int = 0
 var event_id: int = 0
@@ -634,6 +639,7 @@ func _command(c: Dictionary) -> void:
 				_emit({"kind": "coreDamage", "enemyId": c.enemyId, "damage": result.get("actualDamage", 0.0)})
 
 func _step(dt: float) -> void:
+	_target_candidates_ready = false
 	clock += dt
 	if not visual_effects.is_empty():
 		visual_effects = visual_effects.filter(func(v):
@@ -650,6 +656,10 @@ func _step(dt: float) -> void:
 
 func _finish_step(dt: float) -> void:
 	if terminal: return
+	# Turret, delayed and projectile hits change health only, never positions or
+	# membership, so their searches share one candidate list.
+	_target_candidates = _target_candidate_list()
+	_target_candidates_ready = true
 	for t in turrets.values():
 		_tick_turret(t, dt)
 	var pending := delayed
@@ -666,6 +676,9 @@ func _finish_step(dt: float) -> void:
 	var broadphase := _projectile_broadphase(moving.size())
 	for p in moving:
 		_move_projectile(p, dt, broadphase)
+	# Spawns change membership; later searches read the live dictionary.
+	_target_candidates_ready = false
+	_target_candidates = []
 	if running:
 		for request in wave.advance(dt):
 			_spawn(request.enemy)
@@ -723,8 +736,10 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 	t.fireFeedback = 0.18
 	if centered:
 		_visual("impact", _vec(t.position), t, {"style":"frost", "radius":radius})
-		for e in enemies.values():
-			if _alive(e) and _vec(t.position).distance_to(_pos(e)) <= radius + _target_radius(e):
+		var center := _vec(t.position)
+		for candidate: Array in _target_candidate_view():
+			var e: Dictionary = candidate[0]
+			if _alive(e) and center.distance_to(candidate[1]) <= radius + float(candidate[2]):
 				_hit(t, attack, e, 1.0, "splash", false)
 	elif definition.instantHit:
 		_visual("impact", _pos(target), t, {"style":"sniperBlast", "radius":12.0 * board_scale})
@@ -740,17 +755,29 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 			var angle: float = t.aimAngle + (index - (int(s.projectileCount) - 1) / 2.0) * PI / 18.0
 			_projectile(t, attack, projectile_origin, Vector2.from_angle(angle), int(attack.chainCount), [], false, (s.range + 64.0 * board_scale) * PROJECTILE_TRAVEL_MULTIPLIER)
 
+func _target_candidate_list() -> Array:
+	var candidates: Array = []
+	for e in enemies.values():
+		if _alive(e):
+			candidates.append([e, _pos(e), _target_radius(e), _progress_score(e), str(e.id)])
+	return candidates
+
+func _target_candidate_view() -> Array:
+	return _target_candidates if _target_candidates_ready else _target_candidate_list()
+
 func _target(from: Vector2, radius: float, priority: String, excluded: Array = [], body: bool = false) -> Dictionary:
 	var selected: Dictionary = {}
 	var score := -INF
 	var tie := -INF
-	for e in enemies.values():
-		if not _alive(e) or str(e.id) in excluded:
+	var check_excluded := not excluded.is_empty()
+	for candidate: Array in _target_candidate_view():
+		var e: Dictionary = candidate[0]
+		if not _alive(e) or (check_excluded and candidate[4] in excluded):
 			continue
-		var distance := from.distance_squared_to(_pos(e))
-		if distance > pow(radius + (_target_radius(e) if body else 0.0), 2):
+		var distance := from.distance_squared_to(candidate[1])
+		if distance > pow(radius + (float(candidate[2]) if body else 0.0), 2):
 			continue
-		var progress := _progress_score(e)
+		var progress: float = candidate[3]
 		var current_score := progress
 		var current_tie := -distance
 		match priority:
@@ -1124,15 +1151,16 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 	var labels: Array = []
 	for e in enemies.values():
 		if not _alive(e): continue
+		# Dictionary.get evaluates its fallback first; avoid it for authored sizes.
 		var logical := (_pos(e) - origin) / tile_size
 		var p := logical + _visual_enemy_offset(e) / tile_size
 		var burning: bool = not e.burnInstances.is_empty()
 		var slowed: bool = not e.slowInstances.is_empty()
 		var poisoned: bool = float(e.poisonRemaining) > 0
 		var diamond: bool = int(e.get("diamondReward", 0)) > 0
-		rows.append([e.id, p.x,p.y,e.facingAngle,e.visualPhase,e.get("presentationScale",_radius(e)*2.0/tile_size),e.hitFlashTimer,e.get("type","normal"),burning,slowed,poisoned,diamond,logical.x,logical.y])
+		rows.append([e.id, p.x,p.y,e.facingAngle,e.visualPhase,(e.presentationScale if e.has("presentationScale") else _radius(e)*2.0/tile_size),e.hitFlashTimer,e.get("type","normal"),burning,slowed,poisoned,diamond,logical.x,logical.y])
 		if not e.get("teleportPairs", []).is_empty(): rows[-1].append({"teleportSerial":int(e.get("teleportSerial",0))})
-		labels.append({"id":e.id,"position":[p.x,p.y],"size":e.get("presentationSize",[_radius(e)*2,_radius(e)*2]),"hp":e.hp,"maxHp":e.maxHp,"armor":e.armor,"maxArmor":e.maxArmor,"shield":e.shield,"maxShield":e.maxShield,"effectTime":e.statusEffectTime,"enemyCount":enemies.size(),"burning":burning,"slowed":slowed,"poisoned":poisoned,"riftMarked":e.riftMarkRemaining>0,"diamondCarrier":diamond})
+		labels.append({"id":e.id,"position":[p.x,p.y],"size":e.presentationSize if e.has("presentationSize") else [_radius(e)*2,_radius(e)*2],"hp":e.hp,"maxHp":e.maxHp,"armor":e.armor,"maxArmor":e.maxArmor,"shield":e.shield,"maxShield":e.maxShield,"effectTime":e.statusEffectTime,"enemyCount":enemies.size(),"burning":burning,"slowed":slowed,"poisoned":poisoned,"riftMarked":e.riftMarkRemaining>0,"diamondCarrier":diamond})
 	frame.enemies = rows
 	frame.turrets = []
 	for t in turrets.values():
