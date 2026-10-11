@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## 검수 후보 고유 계약. 시각 수용·Android 성능을 대신하지 않는다.
-const Native = preload("res://verify_native_materials.gd")
+const Native = preload("res://verify_support_native_materials.gd")
 var failures := 0
 var checks := 0
 var report := {"materials": [], "shared_candidate": {}, "visual_acceptance": "not assessed by headless contracts"}

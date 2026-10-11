@@ -90,10 +90,14 @@ SCRIPTS = {
     "verify_lobby_numbers.gd": "LOBBY_NUMBERS checks=",
     "verify_app_selection.gd": "PASS app selection:",
     "verify_app_presentation.gd": "PASS independent presentation:",
+    "verify_combat_calculation.gd": None,
+    "verify_turret_stat_calculation.gd": None,
 }
+# Shared helpers preloaded by the cases above; never run on their own.
+HELPERS = ("verify_support_fixture_compare.gd",)
 FIXTURES = (
-    "chapter_three_map_signature_baseline.json",
-    "turret_stat_calculation.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
+    "chapter_three_map_signature_baseline.json", "combat_calculation.json",
+    "turret_stat_calculation.json", "turret_stat_critical_boundaries.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",
     "quest_progress_cases.json", "reward_snapshot_cases.json",
     "growth_cases.json", "growth_game_cases.json", "growth_progression_cases.json", "game_content_cases.json",
     "research_prerequisite_cases.json",
@@ -144,7 +148,7 @@ def prepare(directory: Path, executable: str) -> Path:
     (directory / "test/fixtures").mkdir(parents=True)
     for name in FIXTURES:
         shutil.copy2(ROOT / "test/fixtures" / name, directory / "test/fixtures" / name)
-    for name in SCRIPTS:
+    for name in (*SCRIPTS, *HELPERS):
         shutil.copy2(ROOT / "godot" / name, project / name)
     app_assets = project / "assets/app"
     for relative in json.loads((ROOT / "godot/ui/assets.json").read_text()):

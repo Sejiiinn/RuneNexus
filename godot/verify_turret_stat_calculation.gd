@@ -1,24 +1,19 @@
 extends SceneTree
+## Fixed pre-migration turret stat outputs (282) and critical-chance boundaries (36).
+## See test/fixtures/turret_stat_calculation.provenance.md for the capture contract.
 const Calculation = preload("res://combat/turret_stat_calculation.gd")
+const Compare = preload("res://verify_support_fixture_compare.gd")
 
 func _initialize() -> void:
-	var args := OS.get_cmdline_user_args()
-	if args.size() != 2:
-		push_error("Expected fixture and output JSON paths")
-		quit(1)
-		return
-	var fixtures = JSON.parse_string(FileAccess.get_file_as_string(args[0]))
-	if not fixtures is Array:
-		push_error("Invalid fixture JSON")
-		quit(1)
-		return
-	var results: Array = []
-	for fixture in fixtures:
-		results.append({"name": fixture["name"], "result": Calculation.resolve(fixture["input"])})
-	var output := FileAccess.open(args[1], FileAccess.WRITE)
-	if output == null:
-		quit(1)
-		return
-	output.store_string(JSON.stringify(results, "\t", false, true))
-	output.close()
-	quit(0)
+	var compare := Compare.new()
+	var cases := 0
+	for path in ["turret_stat_calculation.json", "turret_stat_critical_boundaries.json"]:
+		var fixtures: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../test/fixtures/" + path))
+		if not fixtures is Array or fixtures.is_empty():
+			compare.failures.append(path + " missing")
+			continue
+		cases += fixtures.size()
+		for fixture: Dictionary in fixtures:
+			compare.matches(Calculation.resolve(fixture.input), fixture.expected, fixture.name)
+	print(JSON.stringify({"cases": cases, "checks": compare.checks, "failures": compare.failures}))
+	quit(0 if compare.failures.is_empty() else 1)

@@ -11,7 +11,7 @@ func _verify() -> void:
 	var output := ProjectSettings.globalize_path("res://../captures")
 	DirAccess.make_dir_recursive_absolute(output)
 	if "--native-materials" in OS.get_cmdline_user_args():
-		var success: bool = await load("res://verify_native_materials.gd").run(scene, output.path_join("native-materials"))
+		var success: bool = await load("res://verify_support_native_materials.gd").run(scene, output.path_join("native-materials"))
 		scene.queue_free()
 		for index in range(8):
 			await process_frame
