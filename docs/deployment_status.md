@@ -8,11 +8,27 @@
 
 ## 현재 미배포 변경
 
-확인 기준: 2026-10-11 KST(UTC 2026-10-10). 승인된 변경은 아래 **Android 0.2.18 / 6047과 서버·DB**에 공개·운영 반영했다. 챕터3 후반·다섯 번째 링크·타일/냉각 포탑 경량화를 포함한 이번 요청 범위의 미배포 변경은 없다.
-
-- **서버 이미지 교체 필요 (2026-10-11 KST 커밋, 미배포)**: 연구 선행 조건을 `progression.json`의 `researchPrerequisites`에서 생성하도록 바꾸고, 서버의 링크 확장 II 즉시 완료·효과 ACK 판정을 Godot과 같게 맞췄다. 선행 연구(링크 확장 I)도 그 자체가 해금된 경우에만 인정한다(3-5 클리어·grandfather·미이관 저장의 레거시 해금). 정상 진행 계정은 이미 이 조건을 만족하며 Godot 클라이언트는 기존부터 같은 기준이다. DB 마이그레이션·저장 형식·호환 세대·APK 변경은 없고 다음 배포에서 API 이미지만 교체하면 된다. 서버 단위/공용 사례 검사는 통과했고 DB 통합 검사와 운영 반영은 미실행이다.
+확인 기준: 2026-10-12 KST. 요청한 최신 변경은 아래 **Android 0.2.19 / 6048과 서버 배포**로 공개·운영 반영했다. 기관총 도탄 불티, 3D 렌더 해상도·프레임 제한, 전투 표적 탐색·꺼진 조명 최적화와 연구 선행 조건 공용 생성·판정 일치를 포함한 이번 요청 범위의 미배포 변경은 없다. 사용자가 선택 업데이트 유지를 명시했으며 최소 지원 코드 6039를 유지했다.
 
 미완료 검증의 범위·완료 조건은 [구현·검증 체크리스트](implementation_checklist.md)에서 관리한다. 사용자의 큰 개발 계획은 [TODO](TODO.md)와 구분한다. 추가 배포나 최소 지원 버전 변경은 사용자 승인 범위에서 수행한다.
+
+## 2026-10-12 Android 0.2.19 / code 6048 — 공개 완료
+
+- APK 대상 `a8de9e5733aec268fdcac5105642dce800bb3ff6`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38147520470)와 [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6048). [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6048/rune-nexus.apk). 공개 시각은 2026-10-11 15:08:25 UTC(2026-10-12 00:08:25 KST). **선택 업데이트·최소 지원 코드 6039**로 검수한 build-only 산출물 5개를 초안에 올린 뒤 그대로 공개·최신 지정했다.
+- 기관총 명중의 입체 도탄 불티, 3D 렌더 해상도 50·75·100%와 프레임 제한 30·60, 전투 스텝의 표적 후보 공유·범위 사전 판정·표시 크기 계산 축소와 밝기0 조명 숨김을 포함한다. 연구 선행 조건을 서버·Godot 공용 원본에서 생성하며 서버 판정 변경은 아래와 같이 먼저 반영했다. 폐기된 웹 저장소도 팩에서 제거했다.
+- 최초 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38146890649)는 메뉴 복귀 검사에서 20초 제한을 넘겨 실패했다. 같은 고정 카탈로그를 사례마다 다시 파싱하는 검사 비용을 줄였고 제품 코드는 보존했다. 로컬 본체 약9.5→1.76초, 기존52검사·분기·20초 제한을 유지했다. 별도 검증자가 사례별 App/Host/run/checkpoint·저장 경로 분리와 카탈로그 불변을 확인하고 저장 보존 실패 주입의 exit1을 확인했다. 최종 CI의 Python110개·콘텐츠·Godot 회귀73개·계정/AppServices·서명 빌드·Android 패치 디코더·6045/6046/6047 Python/Kotlin 차등 복원이 통과했다.
+- 별도 검증자가 실제 APK의 버전·패키지·정확 build·운영 설정·서명·지원 ABI3종·네이티브6개 SHA·원본JSON·변경 compiled 스크립트·새 셰이더를 대조했다. 이전 에셋815개 중 imported 씬63개만 직렬화 바이트가 달라 실제 이전/최종 PCK를 Godot로 각각 로드해 노드·저장 속성·메시·재질·애니메이션 의미값이 모두 같음을 확인했다. 최종 compiled 연구/5슬롯 계약201검사, 실제 Metal Mobile 렌더러의 도탄30검사, 저장 복사본의 실제 Main/App/HUD 이어하기·전투·메뉴 복귀8검사가 통과했다. 부모도 최종 실제 설정·전투 대표 화면을 직접 검토했다.
+- API37 read-only 격리 AVD에서 기존6047→6048 서명 업데이트·설치 식별자·원본 저장 인계, 기본100%/60 및50%/30 설정 저장·강제종료/재시작 유지를 확인했다. 스테이지1-1·웨이브23/40·골드2199·HP4/20·파편34·포탑8을 보존했고, 날짜 변경에 따른 달력 필드·저장시각과 float끝자리 반올림만 달라졌다. SwiftShader 소프트웨어 GPU의 본게임 진입은 기본 MSAA/그림자 및 낮은 설정 단회 시도 모두 `gfxstream vkWaitForFences/vkGetFenceStatus`에서 대기해 **Android 본게임·새 효과는 미확인**이다. 데스크톱 통과로 대체하지 않았다. 실기기 GPU/FPS/발열·터치/수명주기 전체 및 실제 Google 계정 E2E 공백은 [체크리스트](implementation_checklist.md)에 유지한다.
+- APK **410,658,002 bytes**, SHA-256 `d6a79940ea3f4cc8b598c3821283f2f9bde253abafd7699ea1fcf20644ef7fcf`. 6047 대비 **+11,632 bytes(+0.00283%)**로 모두 PCK 증가다. PCK182,433,696 bytes·1179항목이며 새 도탄 스크립트/셰이더와 변경 스크립트·웹 저장소 제거가 주된 변화다. 실제 팩 감사는 CI와 정확히 같고 제작 원본 미포함·기존 챕터2 노멀맵 동일 압축 중복699,208 bytes를 유지한다. 6047→6048 패치는129,242,236 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치, 자산5개의 크기/GitHub SHA-256과 검수본 일치, 익명 APK HTTP200을 확인했다. 상세 CI·패키지·서버·독립 검수·대표 캡처는 Git 밖 `~/Library/Application Support/RuneNexus/operations/apk-6048-release-verification/`에 보관한다. 검수 AVD와 데스크톱 실행은 정상 종료했고 원본 AVD와 사용자 저장은 보존했다.
+
+## 2026-10-11 서버 — 6048 대상 운영 반영 완료
+
+- 정확한 `6a2e8f59b3575b0fc6d2d93b57d7a2c0133b6206`의 `git archive` 소스로 `rune-nexus-api:6a2e8f59`를 빌드해 운영 API에 반영했다. 실제 image는 `sha256:8b752506b3ee249f7dd6fa3a450fa74fba6a5ea724ce3dd6ea20919ae890f530`, revision label과 대상 SHA가 일치하며 healthy다.
+- 연구 선행 조건을 `progression.json`의 `researchPrerequisites`에서 공용 생성하고, 서버 링크 확장 II 즉시 완료·효과 ACK 판정을 Godot 해금 조건과 맞췄다. 링크 확장 I은 그 자체의 3-5 클리어·grandfather·미이관 저장의 레거시 해금 조건을 충족해야 선행 연구로 인정한다. DB 마이그레이션·저장 형식·호환 세대 변경은 없다.
+- 정확 소스의 Go test/vet, 별도 PostgreSQL18 임시 DB의 유지 통합 검사 3개(skip0), 격리 HTTP15건과 공용 선행 조건 8사례의 완료·ACK·거부 시 상태 무변경 64검사가 통과했다. 별도 검증자가 공용 사례의 기대값과 실제 HTTP·거부 전후 상태를 대조했다.
+- 기존 운영 환경값·영속 인증키·마운트·포트·네트워크를 보존하고 DB13·최소 저장 호환 세대4를 유지했다. 환경 배열 순서만 달라졌으며 키와 값은 완전히 같다. DB/Caddy/DuckDNS 컨테이너는 유지했고 운영 계정·저장 조작은 없다. 부모와 별도 검증자가 최종 image/revision·healthy, loopback·공개 HTTPS live/ready200 및 무인증 보호를 확인했다.
+- 상세 근거는 Git 밖 `~/Library/Application Support/RuneNexus/operations/apk-6048-release-verification/server/`와 `independent/`에 보관한다. 보호된 정확 소스·release/rollback compose를 보존하고 이번 격리 컨테이너·임시 볼륨·네트워크는 제거했다. 실제 Google 로그인·운영 계정의 연구/저장 E2E는 기존 미검증 항목으로 유지한다.
 
 ## 2026-10-11 Android 0.2.18 / code 6047 — 공개 완료
 
