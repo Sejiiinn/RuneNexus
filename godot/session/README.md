@@ -55,28 +55,20 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/proj
 
 `standalone_fixture.json`은 기존 Dart 지도와 기본 포탑 스탯에서 추출한 **과거 저장 회귀 자료**다. 현재 실행용 콘텐츠 원본이 아니며 실제 콘텐츠 경로는 이 파일의 고정 전투 설정을 사용하지 않는다.
 
-실제 콘텐츠 연결·챕터별 전투/보스·저장 복원 검사는 다음과 같다. headless 없이 실행하면 `build/godot/captures/content-*.png`에 실제 독립 앱 화면을 남긴다.
+세션 검사와 담당 범위:
+
+| 검사 | 범위 |
+| --- | --- |
+| `verify_content_session.gd` | 실제 콘텐츠 연결·챕터별 전투/보스·저장 복원 |
+| `verify_run_session.gd` | 실제 비용·상태 명령과 전투 연결. 도메인 기대값은 [명령 모듈 안내](../app/run_commands_README.md) |
+| `verify_native_session.gd`, `verify_standalone_session.gd` | 기존 고정 설정의 시계·입력·저장 회귀 |
+| `verify_content_restart.gd` | 실제 콘텐츠의 별도 프로세스 저장(write)·복원(read) |
+| `verify_session_restart.gd` | 기존 고정 fixture의 별도 프로세스 저장·복원 |
+
+`verify_native_session.gd`는 [네이티브 회귀 실행기](../../scripts/run_godot_native_regressions.py), 나머지는 자산 준비 후 [프로젝트 검사 실행기](../../scripts/run_godot_project_checks.py)로 실행한다. 두 실행기는 사례마다 임시 HOME·TMPDIR을 쓰고 write/read를 서로 다른 프로세스로 실행하므로 본게임 저장 경로를 건드리지 않는다.
 
 ```sh
-build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_content_session.gd
+python3 scripts/run_godot_project_checks.py verify_content_session.gd verify_run_session.gd verify_standalone_session.gd verify_content_restart.gd verify_session_restart.gd
 ```
 
-실제 비용·상태 명령과 전투 연결 검사는 `verify_run_session.gd`다. headless 없이 실행하면 `build/godot/captures/run-commands-combat.png`를 저장한다. 도메인 전체 Dart 비교는 [명령 모듈 안내](../app/run_commands_README.md)를 따른다.
-
-기존 고정 설정의 시계·입력·저장 회귀:
-
-```sh
-build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_native_session.gd
-build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_standalone_session.gd
-```
-
-두 번째 검사를 headless 없이 실행하면 같은 장면의 Metal 전투 화면을 `build/godot/captures/standalone-session.png`에 저장한다. 데스크톱 통과는 Android 본게임 HUD·실기기 성능·저장 동등성의 완료 근거가 아니다.
-
-실제 콘텐츠 프로세스 재시작 검사는 아래 스크립트를 `verify_content_restart.gd`로 지정한다. `verify_session_restart.gd`는 기존 고정 fixture 검사다. 자산 준비 후 서로 다른 프로세스로 실행한다. `<절대 임시 경로>`는 검증용 빈 디렉터리이며 본게임 저장 경로를 지정하지 않는다.
-
-```sh
-build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_session_restart.gd -- write <절대 임시 경로>
-build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_session_restart.gd -- read <같은 절대 임시 경로>
-```
-
-실행 후 검증 디렉터리를 삭제할 수 있다. read를 headless 없이 실행하면 `build/godot/captures/save-restart.png`에 개발 세션 복원 화면을 남긴다.
+화면 근거가 필요하면 해당 스크립트를 headless 없이 직접 실행한다. `verify_content_session.gd`·`verify_run_session.gd`·`verify_standalone_session.gd`·`verify_session_restart.gd`(read)는 `build/godot/captures/`에 화면을 남긴다. 재시작 검사를 직접 실행할 때는 `-- write <절대 임시 경로>` 뒤 같은 경로로 `-- read`를 실행하며, 본게임 저장 경로를 지정하지 않는다. 데스크톱 통과는 Android 본게임 HUD·실기기 성능·저장 동등성의 완료 근거가 아니다.

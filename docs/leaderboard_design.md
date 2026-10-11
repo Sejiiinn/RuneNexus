@@ -42,7 +42,7 @@
 
 ## 기존 구조와 연결
 
-`lib/game/rune_nexus_game.dart`의 `_settleRunResult`는 성공 시 전체 라운드, 실패 시 완료 라운드를 계산한다. `lib/game/systems/run_progression.dart`의 `finishRun`과 `bestRoundsByStage`가 로컬 최고 기록을 관리한다.
+[런 세션](../godot/session/run_session.gd)의 `finish(success)`는 성공 시 전체 라운드, 실패 시 완료 라운드를 계산한다. [퀘스트·진행 정산](../godot/app/quest_progress.gd)의 `finish`가 `bestRoundsByStage` 로컬 최고 기록을 관리한다. 순위 화면은 [로비 서비스](../godot/ui/lobby_services.gd)가 `GET v1/leaderboards/progression`으로 조회해 [순위 표시](../godot/ui/leaderboard_view.gd)에 전달한다.
 
 `server/internal/economy/run_rewards.go`의 `SettleRun`은 요청 범위, writer, 저장 revision, 저장 progression과 정산 결과를 대조하고, 요청 키와 계정별 run 보상 키로 중복 지급을 방지한다. `economy_reward_claims`에는 runId, 스테이지, 완료 라운드, 성공 여부와 서버 접수 시각이 남는다.
 

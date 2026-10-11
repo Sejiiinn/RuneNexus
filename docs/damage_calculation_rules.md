@@ -262,7 +262,7 @@
 ```
 
 위 비율은 특성·모듈의 주변/연쇄 피해 보정과 적별 저항·방어 계위 등 별도 보정 전 기준이다.
-공통 기본 계수는 `lib/domain/combat/attack_rules.dart`에서 정의한다.
+공통 기본 계수는 주변 피해 비율이 [포탑 스탯 계산](../godot/combat/turret_stat_calculation.gd)의 `splashSecondaryDamageMultiplier`, 연쇄 탐색 거리가 [전투 런타임](../godot/combat/native_combat_runtime.gd)에 있다.
 
 코어 공격 패시브도 이 순서를 따른다.
 
@@ -587,7 +587,8 @@ DPS 100 -> 빠르게 돌파, 보호막 파괴 뒤 재생 없음
 
 ## 구현 위치
 
-- 적 저항 데이터: `lib/data/definitions/game_enemy_data.dart`
-- 저항률 계산 규칙: `lib/domain/enemy/enemy_resistance_profile.dart`
-- 전투 피해 계산: `lib/game/rune_nexus_game.dart`
-- 포탑 스탯 계산: `lib/game/components/turret_component.dart`
+- 적 저항 데이터: [적 원본](../godot/content/source/enemies.json) (컴파일 결과 `godot/content/game_content.json`)
+- 저항률·피해 배율 계산 규칙: [피해 계산](../godot/combat/attack_calculation.gd)
+- 전투 피해 적용: [전투 런타임](../godot/combat/native_combat_runtime.gd)
+- 포탑 스탯 계산: [포탑 스탯 계산](../godot/combat/turret_stat_calculation.gd)
+- 고정 기대값 검사: 네이티브 회귀의 `verify_combat_calculation.gd`, `verify_turret_stat_calculation.gd`

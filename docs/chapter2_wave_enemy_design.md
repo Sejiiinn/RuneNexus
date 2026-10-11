@@ -265,16 +265,15 @@ MVP에서 제외:
 
 ## 예상 수정 파일
 
-- `lib/domain/enemy/enemy_type.dart`
-- `lib/data/definitions/game_enemy_data.dart`
-- `docs/prototypes/shielded_enemy_design_preview.html`
-- `lib/data/definitions/game_stage_waves.dart`
-- `lib/data/definitions/game_stage_data.dart`
-- `lib/domain/stage/stage_definition.dart`
-- `lib/ui/menu/main_menu_screen.dart`
-- `test/game_balance_test.dart`
-- `test/main_menu_stage_test.dart`
-- `test/main_menu_stage_detail_test.dart`
+2026-09-24 Flutter 제거 이후 Godot 기준 경로다. 원본·전개 규칙은 [콘텐츠 계약](../godot/content/README.md)을 따른다.
+
+- 적 정의·수치: `godot/content/source/enemies.json`
+- 스테이지·웨이브: `godot/content/source/stages/*.json`, 해금 순서 `godot/content/source/progression.json` (`scripts/content_compiler.py`로 실행 입력 생성)
+- 적 상태·보호막 처리: `godot/combat/native_enemy_state.gd`, `godot/combat/native_combat_runtime.gd`
+- 적 모델 표시: `godot/presentation/battlefield_units.gd`의 `ENEMY_MODELS`
+- 저장 적 타입 목록: `godot/app/save_codec.gd`의 `EnemyType`
+- 시안: `docs/prototypes/shielded_enemy_design_preview.html`
+- 검사: `scripts/verify_godot_content.py`, 네이티브 회귀 `verify_content_catalog.gd`·`verify_native_enemy_state.gd`·`verify_lobby_stages.gd`
 
 저장 데이터에는 적 타입 문자열이 포함되므로, 신규 적 타입 추가 후 기존 저장 복구 경로도 확인한다.
 
@@ -285,7 +284,7 @@ MVP에서 제외:
 - 챕터 2 첫 스테이지는 스테이지 5 클리어 이후 접근 가능하다.
 - 챕터 2 웨이브에는 보호막병이 등장하지만 한 웨이브의 보호막병 비중이 과도하지 않다.
 - 10의 배수 웨이브는 보스 1마리 원칙을 유지한다.
-- 위젯 테스트에서 챕터 2 스테이지 잠금/해금 표시가 깨지지 않는다.
+- 로비 스테이지 검사에서 챕터 2 스테이지 잠금/해금 표시가 깨지지 않는다.
 
 ## 다음 결정 지점
 

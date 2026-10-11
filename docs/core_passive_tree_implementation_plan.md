@@ -1,7 +1,7 @@
 # 코어 패시브 트리 현행 참조
 
 문서 상태: 확인된 현재 구조와 근거를 연결하는 참조 문서
-확인 기준: 2026-09-09 작업 트리의 코드와 테스트 소스 (이번 문서 정리에서 테스트 재실행 없음)
+확인 기준: 2026-09-09 작업 트리의 코드와 테스트 소스. 2026-10-12에 Flutter 제거 후 Godot 경로와 30스테이지 기준으로 근거 위치를 갱신했고, 연결한 네이티브 회귀 검사는 같은 날 통과했다.
 
 기존 경로를 유지하되 초기 구현 계획의 실행 지시를 대체한다.
 당시 인터뷰와 전체 계획은 [역사 기록](archive/core_passive_tree_plan_2026-07-20.md)에 보존한다.
@@ -18,9 +18,9 @@
 ## 스테이지 코어 포인트 보상
 
 - 모든 스테이지 최초 클리어 보상은 2P다. 챕터 마지막 스테이지도 동일하며 별도 추가 포인트는 없다.
-- 현재 15개 스테이지에서 최초 클리어로 획득하는 총량은 30P다. 반복 클리어는 지급하지 않는다.
+- 현재 30개 스테이지에서 최초 클리어로 획득하는 총량은 60P다. 반복 클리어는 지급하지 않는다.
 - 기존 저장에서 이미 지급한 포인트와 투자 내역은 유지하며, 보상 변경 차액을 재지급하거나 회수하지 않는다. 클리어했지만 보상 수령 기록이 없는 스테이지는 현행 보상을 한 번 지급한다.
-- 기준: `game_stage_data.dart`, `run_progression_core_test.dart` (2026-09-10 보상 변경).
+- 기준: 스테이지 원본 `godot/content/source/stages/*.json`의 `firstClearCorePointReward` (2026-09-10 보상 변경, 2026-09-30 30스테이지 확장).
 
 ## 코어 스킬 선택 진입
 
@@ -29,16 +29,15 @@
 - 중앙 코어의 금속 명패에는 장착 스킬명만 표시하고, 미장착일 때만 ‘스킬 선택’을 표시한다. 명패 중앙은 문구 길이에 맞춰 늘어나며 긴 문구는 줄바꿈한다. 중앙을 누르면 트리 위에 코어 스킬 선택 패널이 열린다.
 - 선택 패널은 기존 스킬 설명, 해금 조건, 장착·해제 동작을 유지한다. 닫아도 트리 확대·이동 상태와 미확정 포인트 투자를 보존한다.
 - 노드에는 A안 소형·중형·대형 프레임(48·68·96)과 크기에 맞는 아이콘 공간을 적용한다. 기본·점등·선택 상태와 연결선·연결부·중앙 받침은 PNG 스프라이트로 표시하며, 연결 경로와 점등 타이밍은 기존 런타임이 제어한다. 21개 노드의 배치·연결·투자 규칙과 스킬 해금·전투·저장 계약은 유지한다. [에셋 적용 기록](../design/core_tree_concepts/production/README.md)을 참고한다.
-- 근거: `main_menu_core_tree.dart`, `main_menu_core_tree_world.dart`, `main_menu_core.dart`, `main_menu_core_test.dart` (2026-09-10).
+- 근거: [로비 코어 화면](../godot/ui/lobby_core.gd), 네이티브 회귀 `verify_lobby_core.gd`. 2026-09-10 Flutter 화면에서 정한 구성을 Godot으로 이관했다.
 
 ## 코드와 검증 근거
 
 | 확인 대상 | 기준 파일 |
 | --- | --- |
-| 계통과 21개 노드 ID | [core_passive_tree.dart](../lib/domain/core/core_passive_tree.dart) |
-| revision, 노드 정의·연결·비용·효과 계산 함수 | [game_core_passive_tree_data.dart](../lib/data/definitions/game_core_passive_tree_data.dart) |
-| 게임에서 노드 랭크를 비용·젬 효과 계산에 전달 | [rune_nexus_game.dart](../lib/game/rune_nexus_game.dart) |
-| revision 4, 21개 노드, 시작 노드·그래프 정합성 테스트 | [core_passive_tree_test.dart](../test/core_passive_tree_test.dart) |
+| revision, 시작 노드, 21개 노드 정의·연결·비용·효과 | [성장 콘텐츠](../godot/content/growth_content.json)의 `core` |
+| 노드 랭크를 성장 효과·포탑 배율로 계산 | [성장 규칙](../godot/app/growth_rules.gd), [포탑 스탯 계산](../godot/combat/turret_stat_calculation.gd) |
+| 성장 규칙·노드 효과·로비 코어 화면 검사 | 네이티브 회귀 `verify_growth_rules.gd`, `verify_shared_turret_stats.gd`, `verify_lobby_core.gd` |
 
 이 확인 범위가 모든 노드 효과의 실행 검증이나 UI·저장·실기 QA 완료를 의미하지는 않는다.
 변경할 때는 해당 효과의 호출 경로와 관련 테스트를 확인한다. 데미지 계산 변경은
