@@ -17,7 +17,7 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	controller.scene = scene
-	scene._standalone_session = controller
+	scene.session_controller = controller
 	scene.add_child(controller)
 	controller.set_process(false)
 	var directory := OS.get_environment("TMPDIR").path_join("rune-controller-" + str(Time.get_ticks_usec()))
@@ -29,19 +29,19 @@ func run() -> void:
 	var index: int = map.tiles.find("build")
 	controller.board_tap(Vector2i(index % int(map.columns), index / int(map.columns)))
 	controller.build_selected()
-	check(scene._native_combat.turrets.size() == 1, "shared selected tile builds through domain")
+	check(scene.combat_runtime.turrets.size() == 1, "shared selected tile builds through domain")
 	controller.start_wave()
-	scene._native_combat.advance_session(0.1)
+	scene.combat_runtime.advance_session(0.1)
 	controller._process(0.1)
-	check(controller.run_domain.event_ack == scene._native_combat.event_id, "process collects and acknowledges without diagnostic label")
+	check(controller.run_domain.event_ack == scene.combat_runtime.event_id, "process collects and acknowledges without diagnostic label")
 	controller.toggle_pause()
-	var clock_before: float = scene._native_combat.clock
-	scene._native_combat.advance_session(1.0)
-	check(scene._native_combat.clock == clock_before, "shared pause preserves clock")
+	var clock_before: float = scene.combat_runtime.clock
+	scene.combat_runtime.advance_session(1.0)
+	check(scene.combat_runtime.clock == clock_before, "shared pause preserves clock")
 	check(controller.checkpoint.save_session(controller) == OK, "common session saves without fixture fields")
 	var epoch_before: int = controller.epoch
 	check(controller.checkpoint.load_session(controller) == OK and controller.epoch > epoch_before, "common checkpoint restores content session")
-	check(scene._native_combat.session.paused and scene._native_combat.turrets.size() == 1, "restore retains towers and waits for resume")
+	check(scene.combat_runtime.session.paused and scene.combat_runtime.turrets.size() == 1, "restore retains towers and waits for resume")
 	controller.checkpoint.store.clear()
 	scene.queue_free()
 	for i in range(3): await process_frame

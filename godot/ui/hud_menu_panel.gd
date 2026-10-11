@@ -24,7 +24,7 @@ func _has_stage_progress() -> bool:
 	var state: Dictionary = hud.app.run_domain.state
 	if int(state.get("roundIndex",0))>0 or int(state.get("completedRounds",0))>0 or not state.get("turrets",[]).is_empty() or state.get("phase") in ["wave","reward","restored"]: return true
 	if not state.get("runUpgradeLevels",{}).is_empty() or int(state.get("savedTurretCountForMenu",0))>0: return true
-	var runtime = hud.app.scene._native_combat
+	var runtime = hud.app.scene.combat_runtime
 	var enemies = runtime.get("enemies")
 	if enemies != null and not enemies.is_empty(): return true
 	var wave = runtime.get("wave")
@@ -87,7 +87,7 @@ func _action(parent: Node,value: String,callback: Callable,variant: String) -> B
 func _board_detail(tile: String,state: Dictionary) -> void:
 	if tile == "core":
 		hud._label(hud.body,"코어 방어",16)
-		var defense = hud.app.scene._native_combat.defense
+		var defense = hud.app.scene.combat_runtime.defense
 		hud.core_label = hud._label(hud.body,"체력 %s / %s" % [HudNumber.compact_integer(ceili(defense.hp)),HudNumber.compact_integer(ceili(defense.max_hp))],13)
 		var bar = ProgressBar.new(); bar.max_value = maxf(1,defense.max_hp); bar.value = defense.hp; bar.show_percentage = false; bar.custom_minimum_size.y = 10; hud.body.add_child(bar); hud.core_bar = bar
 		hud.core_metric = hud._label(hud.body,"",12)
@@ -161,7 +161,7 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 
 func _refresh_core() -> void:
 	if not is_instance_valid(hud.core_label): return
-	var runtime = hud.app.scene._native_combat
+	var runtime = hud.app.scene.combat_runtime
 	hud.core_label.text = "체력 %s / %s" % [HudNumber.compact_integer(ceili(runtime.defense.hp)),HudNumber.compact_integer(ceili(runtime.defense.max_hp))]
 	hud.core_label.tooltip_text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
 	hud.core_bar.max_value = maxf(1,runtime.defense.max_hp); hud.core_bar.value = runtime.defense.hp

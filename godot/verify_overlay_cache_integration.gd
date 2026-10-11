@@ -91,9 +91,9 @@ func _native_pan_projection_check() -> void:
 	root.add_child(scene)
 	await process_frame
 	scene.set_process(false)
-	scene._native_combat.process_command({"epoch":100,"sequence":0,"dt":0,"bootstrap":{"enemies":[],"turrets":[]},"session":{"clock":"godot","phase":"wave","paused":true}})
+	scene.combat_runtime.process_command({"epoch":100,"sequence":0,"dt":0,"bootstrap":{"enemies":[],"turrets":[]},"session":{"clock":"godot","phase":"wave","paused":true}})
 	scene.last_frame.erase("viewport")
-	check(scene._native_combat.native_session(), "pan regression uses the native session camera path")
+	check(scene.combat_runtime.native_session(), "pan regression uses the native session camera path")
 	var effects: Node2D = scene._presentation_nodes["effects"]
 	effects.show()
 	effects.set_canvas_enabled(true)

@@ -5,7 +5,7 @@ class QueryCatalog extends "res://content/content_catalog.gd":
 		stage_copies += 1
 		return super.stage(index)
 class SceneStub extends Node3D:
-	var _native_combat := {"session":{"paused":false}}
+	var combat_runtime := {"session":{"paused":false}}
 class AutoApp extends "res://app/app_lifecycle.gd":
 	var starts := 0
 	func start_wave() -> void: starts += 1
@@ -33,10 +33,10 @@ func _initialize() -> void:
 	app.next_round = 8
 	app._maybe_auto_start()
 	assert(app.starts == 2, "Skip-boss mode starts ordinary waves")
-	scene._native_combat.session.paused = true
+	scene.combat_runtime.session.paused = true
 	app._maybe_auto_start()
 	assert(app.starts == 2, "Pause suppresses automatic starts")
-	scene._native_combat.session.paused = false
+	scene.combat_runtime.session.paused = false
 	app.in_lobby = true
 	app._maybe_auto_start()
 	assert(app.starts == 2, "Lobby suppresses automatic starts")

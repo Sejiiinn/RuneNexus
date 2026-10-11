@@ -2,9 +2,7 @@ extends SceneTree
 ## Real app/session/combat/save paths; rendering is replaced by a minimal host.
 const App = preload("res://app/app_lifecycle.gd")
 const Checkpoint = preload("res://session/session_checkpoint.gd")
-class Host extends Node3D:
-	var _native_combat = preload("res://combat/native_combat_runtime.gd").new()
-	var _native_combat_base_frame: Dictionary = {}
+class Host extends "res://verify_support_fake_battlefield.gd":
 	var presentation_deferred := false
 	var presentation_frames := 0
 	var battle_visible := false
@@ -25,13 +23,13 @@ class Host extends Node3D:
 	func realize_battle_presentation() -> bool:
 		if realization_fails: return false
 		presentation_deferred = false
-		_apply_frame(_native_combat_base_frame)
+		apply_frame(combat_base_frame)
 		return true
 	func set_battle_visible(active: bool) -> void: battle_visible = active
-	func _apply_frame(frame: Dictionary) -> void:
+	func apply_frame(frame: Dictionary) -> void:
 		if frame.get("reset", false):
-			_native_combat.active = false
-			_native_combat_base_frame = {}
+			combat_runtime.active = false
+			combat_base_frame = {}
 		elif not presentation_deferred: presentation_frames += 1
 var failures: Array = []
 var checks := 0
@@ -76,9 +74,9 @@ func start_pending_wave(app, label: String) -> void:
 	app.run_domain.state.completedRounds = 1
 	app.run_domain.state.pendingEconomyDiamonds = 5
 	app.start_wave()
-	check(app.run_domain.state.phase == "wave" and app.scene._native_combat.wave.active,
+	check(app.run_domain.state.phase == "wave" and app.scene.combat_runtime.wave.active,
 		label + " active wave")
-	check(not app.scene._native_combat.wave.snapshot().spawnQueue.is_empty(), label + " pending spawn")
+	check(not app.scene.combat_runtime.wave.snapshot().spawnQueue.is_empty(), label + " pending spawn")
 
 func successful_abandon() -> void:
 	var app = create_app("success")
@@ -86,7 +84,7 @@ func successful_abandon() -> void:
 	var identity: String = app.run_domain.state.economyRunId
 	var quest_before: int = int(app.run_domain.state.progression.get("dailyQuestProgress", {}).get("clearWaves", 0))
 	check(app.abandon_run(), "pending-wave abandon returns to stage menu")
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	check(app.in_lobby and not app.save_failed and app.run_domain.state.phase == "failure",
 		"abandon leaves a savable terminal session")
 	check(not runtime.wave.active and runtime.wave.queue.is_empty() and not runtime.running,
@@ -117,29 +115,29 @@ func failed_abandon(outbox_failure: bool) -> void:
 	start_pending_wave(app, label)
 	var queue = app.checkpoint.rewards()
 	var before: Dictionary = app.run_domain.state.duplicate(true)
-	var schedule: Dictionary = app.scene._native_combat.wave.snapshot()
+	var schedule: Dictionary = app.scene.combat_runtime.wave.snapshot()
 	var epoch: int = app.epoch
 	var failing_store = queue if outbox_failure else app.checkpoint.store
 	failing_store._valid_slot = false
 	check(not app.abandon_run(), label + " failure blocks abandon")
 	check(app.save_failed and not app.in_lobby and app.epoch == epoch and app.run_domain.state == before,
 		label + " failure preserves live run and progression")
-	check(app.scene._native_combat.wave.snapshot() == schedule and app.scene._native_combat.session.paused,
+	check(app.scene.combat_runtime.wave.snapshot() == schedule and app.scene.combat_runtime.session.paused,
 		label + " failure preserves pending spawn schedule and pauses")
 	check(queue.state.get("pendingRewards", []).is_empty(), label + " failure does not expose reward")
-	check(not await app.start_stage(0) and app.epoch == epoch and app.scene._native_combat.wave.snapshot() == schedule,
+	check(not await app.start_stage(0) and app.epoch == epoch and app.scene.combat_runtime.wave.snapshot() == schedule,
 		label + " failure blocks replacement without clearing queue")
 	failing_store._valid_slot = true
 	free_app(app)
 	app = create_app(label)
 	queue = app.checkpoint.rewards()
 	check(app.run_domain.state.phase == "wave", label + " failed transition restart restores wave")
-	check(same_schedule(app.scene._native_combat.wave.snapshot(), schedule), label + " failed transition restart restores queue")
+	check(same_schedule(app.scene.combat_runtime.wave.snapshot(), schedule), label + " failed transition restart restores queue")
 	check(app.run_domain.state.progression == before.progression, label + " failed transition restart restores progression")
 	check(queue.state.pendingRewards.is_empty(), label + " failed transition restart has no premature reward")
 	check(await app.resume_run(), label + " failed transition restart resumes")
 	check(app.abandon_run() and not app.save_failed, label + " recovered abandon succeeds")
-	check(app.scene._native_combat.wave.queue.is_empty() and queue.state.pendingRewards.size() == 1,
+	check(app.scene.combat_runtime.wave.queue.is_empty() and queue.state.pendingRewards.size() == 1,
 		label + " recovery cancels and rewards exactly once")
 	check(await app.start_stage(0), label + " recovery permits reentry")
 	check(queue.state.pendingRewards.size() == 1, label + " recovery retains one reward")
@@ -149,23 +147,23 @@ func save_and_resume() -> void:
 	var app = create_app("resume")
 	start_pending_wave(app, "resume")
 	var identity: String = app.run_domain.state.economyRunId
-	var schedule: Dictionary = app.scene._native_combat.wave.snapshot()
+	var schedule: Dictionary = app.scene.combat_runtime.wave.snapshot()
 	check(app.open_stage_menu_destination(), "save and leave succeeds")
-	check(not app.run_domain.is_finished() and app.scene._native_combat.wave.snapshot() == schedule,
+	check(not app.run_domain.is_finished() and app.scene.combat_runtime.wave.snapshot() == schedule,
 		"save and leave preserves active spawn schedule")
 	check(app.checkpoint.rewards().state.pendingRewards.is_empty(), "resumable leave awards nothing")
-	check(await app.resume_run() and not app.in_lobby and app.scene._native_combat.session.paused,
+	check(await app.resume_run() and not app.in_lobby and app.scene.combat_runtime.session.paused,
 		"same-process continue opens existing battle paused")
-	check(app.run_domain.state.economyRunId == identity and app.scene._native_combat.wave.snapshot() == schedule,
+	check(app.run_domain.state.economyRunId == identity and app.scene.combat_runtime.wave.snapshot() == schedule,
 		"same-process continue retains run and pending spawns")
 	check(app.open_stage_menu_destination(), "saved wave returns to menu before restart")
 	free_app(app)
 	app = create_app("resume")
 	check(app.run_domain.state.economyRunId == identity and app.run_domain.state.phase == "wave" and app.in_lobby,
 		"saved wave restored with same run identity")
-	var restored: Dictionary = app.scene._native_combat.wave.snapshot()
+	var restored: Dictionary = app.scene.combat_runtime.wave.snapshot()
 	check(same_schedule(restored, schedule), "saved wave restores all pending spawns")
-	check(await app.resume_run() and not app.in_lobby and app.scene._native_combat.session.paused,
+	check(await app.resume_run() and not app.in_lobby and app.scene.combat_runtime.session.paused,
 		"continue opens existing battle paused")
 	check(app.checkpoint.rewards().state.pendingRewards.is_empty(), "continue does not finish or enqueue")
 	free_app(app)
@@ -198,7 +196,7 @@ func deferred_save_integrity() -> void:
 		"explicit start prepares and realizes the selected battle")
 	host.preparation_pending = true
 	var warming_identity: String = app.run_domain.state.economyRunId
-	var warming_sequence: int = host._native_combat.sequence
+	var warming_sequence: int = host.combat_runtime.sequence
 	check(not await app.start_stage(0) and not await app.retry_stage() and not await app.resume_run()
 		and not app.apply_run_command({"kind":"build","x":2,"y":1,"type":"arrow"}), "warmup blocks repeated entry and run commands")
 	app.start_wave()
@@ -206,12 +204,12 @@ func deferred_save_integrity() -> void:
 	app.toggle_speed()
 	app.set_speed(4)
 	app.board_tap(Vector2i(2, 1))
-	check(host._native_combat.sequence == warming_sequence and app.run_domain.state.economyRunId == warming_identity
+	check(host.combat_runtime.sequence == warming_sequence and app.run_domain.state.economyRunId == warming_identity
 		and app.selected == Vector2i(-1, -1), "warmup command gate preserves battle and selection")
 	check(app.pause_and_save(), "background save remains available during warmup")
 	host.preparation_pending = false
 	app.toggle_pause()
-	for frame in 90: host._native_combat.advance_session(1.0 / 60.0)
+	for frame in 90: host.combat_runtime.advance_session(1.0 / 60.0)
 	check(app.pause_and_save(), "deferred checkpoint seed")
 	var original: Dictionary = app.checkpoint.store.load_save().activeRun
 	var identity: String = original.economyRunId
@@ -224,13 +222,13 @@ func deferred_save_integrity() -> void:
 	host = app.scene
 	check(host.presentation_deferred and host.prepared_stages.is_empty() and host.presentation_frames == 0,
 		"saved cold lobby restores no battle presentation")
-	check(host._native_combat.active and host._native_combat.session.paused and not app.run_domain.is_finished(),
+	check(host.combat_runtime.active and host.combat_runtime.session.paused and not app.run_domain.is_finished(),
 		"saved cold lobby retains paused simulation and Continue metadata")
 	check(app.run_domain.state.economyRunId == identity and app.stage == 0 and app.next_round == 2,
 		"saved cold lobby retains run identity, stage and next round")
-	var elapsed: float = host._native_combat.elapsed
-	for frame in 30: host._native_combat.advance_session(1.0 / 60.0)
-	check(host._native_combat.elapsed == elapsed, "deferred checkpoint cannot advance while in lobby")
+	var elapsed: float = host.combat_runtime.elapsed
+	for frame in 30: host.combat_runtime.advance_session(1.0 / 60.0)
+	check(host.combat_runtime.elapsed == elapsed, "deferred checkpoint cannot advance while in lobby")
 	app._process(11.0)
 	var before: Dictionary = app.checkpoint.store.load_save().activeRun
 	check(before.economyRunId == identity and before.phase == original.phase and before.enemies.size() == original.enemies.size()
@@ -261,11 +259,11 @@ func deferred_save_integrity() -> void:
 	queue._valid_slot = true
 	check(app.persist_progression(), "failed deferred transition recovers original checkpoint")
 	host.realization_fails = true
-	check(not await app.resume_run() and app.in_lobby and host._native_combat.session.paused and app.run_domain.state.economyRunId == identity,
+	check(not await app.resume_run() and app.in_lobby and host.combat_runtime.session.paused and app.run_domain.state.economyRunId == identity,
 		"presentation failure preserves resumable paused checkpoint")
 	host.realization_fails = false
 	check(await app.resume_run() and not host.presentation_deferred and host.battle_visible, "retry realizes deferred battle")
-	check(app.run_domain.state.economyRunId == identity and host._native_combat.session.paused and host._native_combat.elapsed == elapsed,
+	check(app.run_domain.state.economyRunId == identity and host.combat_runtime.session.paused and host.combat_runtime.elapsed == elapsed,
 		"deferred resume keeps exact run identity and paused combat")
 	app.show_lobby()
 	free_app(app)
@@ -323,7 +321,7 @@ class FaultJournal extends "res://app/run_transition_journal.gd":
 
 func transition_record(app) -> Dictionary:
 	var previous: Dictionary = app.run_domain.state.duplicate(true)
-	var snapshot: Dictionary = app.scene._native_combat.snapshot()
+	var snapshot: Dictionary = app.scene.combat_runtime.snapshot()
 	var adapter = Checkpoint.ContentSave.new(app.catalog, app.run_domain.growth)
 	var before: Dictionary = adapter.capture(previous, snapshot, 1700000000000, app.checkpoint.preferences)
 	app.run_domain.finish(false)

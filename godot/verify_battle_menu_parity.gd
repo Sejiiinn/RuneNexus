@@ -27,15 +27,15 @@ func run() -> void:
 	await process_frame
 	assert(not hud.menu_panel._has_stage_progress())
 	app.run_domain.state.runUpgradeLevels = {"test":0}; assert(hud.menu_panel._has_stage_progress()); app.run_domain.state.runUpgradeLevels = {}
-	app.scene._native_combat.enemies = {1:{}}; assert(hud.menu_panel._has_stage_progress()); app.scene._native_combat.enemies = {}
-	app.scene._native_combat.wave = preload("res://combat/native_wave_state.gd").new()
-	app.scene._native_combat.wave.queue = [{}]; assert(hud.menu_panel._has_stage_progress()); app.scene._native_combat.wave.queue = []
+	app.scene.combat_runtime.enemies = {1:{}}; assert(hud.menu_panel._has_stage_progress()); app.scene.combat_runtime.enemies = {}
+	app.scene.combat_runtime.wave = preload("res://combat/native_wave_state.gd").new()
+	app.scene.combat_runtime.wave.queue = [{}]; assert(hud.menu_panel._has_stage_progress()); app.scene.combat_runtime.wave.queue = []
 	hud.menu_panel._stage_menu()
 	assert(hud.modal.color.is_equal_approx(Color("02070dd9")))
 	var end := button(hud.modal_body,"스테이지 종료"); assert(end.disabled); assert(end.size_flags_stretch_ratio == 5)
 	assert(button(hud.modal_body,"저장하고 나가기").size_flags_stretch_ratio == 6)
-	assert(app.scene._native_combat.session.paused)
-	hud.close_modal(); assert(not app.scene._native_combat.session.paused)
+	assert(app.scene.combat_runtime.session.paused)
+	hud.close_modal(); assert(not app.scene.combat_runtime.session.paused)
 	app.run_domain.state.completedRounds = 2
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	hud.menu_panel._stage_menu(); hud.menu_panel._end_stage_confirm()
@@ -49,11 +49,11 @@ func run() -> void:
 	assert(hud.modal_panel.theme_type_variation == "CombatModal")
 	assert(hud.modal_panel.get_theme_stylebox("panel") is StyleBoxTexture)
 	assert(button(hud.modal_body,"전투 종료").theme_type_variation == "CombatDanger")
-	button(hud.modal_body,"계속 진행").pressed.emit(); assert(not hud.modal_active()); assert(not app.scene._native_combat.session.paused)
+	button(hud.modal_body,"계속 진행").pressed.emit(); assert(not hud.modal_active()); assert(not app.scene.combat_runtime.session.paused)
 	hud.menu_panel._stage_menu(); app.allow_destination = false
-	button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(hud.modal_active()); assert(app.scene._native_combat.session.paused)
+	button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(hud.modal_active()); assert(app.scene.combat_runtime.session.paused)
 	app.allow_destination = true; button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(not hud.modal_active()); assert(app.destination_count == 1)
-	assert(app.scene._native_combat.session.paused,"Leaving battle must not accidentally resume")
+	assert(app.scene.combat_runtime.session.paused,"Leaving battle must not accidentally resume")
 	hud.menu_panel._end_stage_confirm(); button(hud.modal_body,"전투 종료").pressed.emit(); assert(app.abandon_count == 1); assert(not hud.modal_active())
 	app.run_domain.state.completedRounds = 0
 	hud.menu_panel._portal_details(app.catalog.wave_summary(0,0),0); await process_frame; await process_frame

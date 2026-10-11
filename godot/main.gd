@@ -40,10 +40,13 @@ var _session_host_revision := 0
 var _session_has_focus := true
 var _session_suspended := false
 var _session_input = preload("res://session/battlefield_input.gd").new(self)
-var _standalone_session: Node
+## The app (--app) or development (--session) session that drives this battlefield.
+var session_controller: Node
 var _app_mode := "--app" in OS.get_cmdline_user_args() or (not "--session" in OS.get_cmdline_user_args() and not "--fixture" in OS.get_cmdline_user_args() and not "--script" in OS.get_cmdline_args() and not "-s" in OS.get_cmdline_args())
-var _native_combat := _new_native_combat()
-var _native_combat_base_frame: Dictionary = {}
+## Combat simulation for the current stage; replaced when a stage starts.
+var combat_runtime := _new_native_combat()
+## Session-owned static presentation (map, selection, preview) decorated each frame.
+var combat_base_frame: Dictionary = {}
 var camera := Camera3D.new()
 var _battlefield_camera := BattlefieldCamera.new(camera)
 # Compatibility for scene consumers and existing camera verification scripts.
@@ -98,22 +101,12 @@ var _chapter_three_props_library: Node3D:
 	get: return _environment._chapter_three_props_library
 var _chapter_three_terrain_library: Node3D:
 	get: return _environment._chapter_three_terrain_library
-var _chapter_two_terrain_library: Node3D:
-	get: return _environment._chapter_two_terrain_library
 var _chapter_two_paving_library: Node3D:
 	get: return _environment._chapter_two_paving_library
 var _chapter_two_props_library: Node3D:
 	get: return _environment._chapter_two_props_library
-var _environment_geology_library: Node3D:
-	get: return _environment._environment_geology_library
-var _environment_props_library: Node3D:
-	get: return _environment._environment_props_library
 var _environment_manifest: Dictionary:
 	get: return _environment._environment_manifest
-var _environment_manifests: Array:
-	get: return _environment._environment_manifests
-var _environment_stage: int:
-	get: return _environment._environment_stage
 var _using_chapter_environment: bool:
 	get: return _environment._using_chapter_environment
 var _using_forge: bool:
@@ -134,10 +127,6 @@ var _foliage_material: ShaderMaterial:
 	get: return _environment._foliage_material
 var _build_tile_slots: PackedInt32Array:
 	get: return _environment._build_tile_slots
-var _occupied_build_tiles: Vector2i:
-	get: return _environment._occupied_build_tiles
-var _terrain_manifest: Dictionary:
-	get: return _environment._terrain_manifest
 var _current_map: Dictionary:
 	get: return _environment._current_map
 var _map_revision := -1
@@ -247,12 +236,12 @@ func _ready() -> void:
 	_update_camera()
 	if _app_mode or "--session" in OS.get_cmdline_user_args():
 		var entry := "res://app/app_lifecycle.gd" if _app_mode else "res://session/standalone.gd"
-		_standalone_session = load(entry).new()
-		add_child(_standalone_session)
+		session_controller = load(entry).new()
+		add_child(session_controller)
 		return
 	# Explicit fixture mode is retained for isolated visual and combat checks.
 	var fixture = JSON.parse_string(FileAccess.get_file_as_string("res://assets/preview_frame.json"))
-	if fixture is Dictionary: _apply_frame(fixture)
+	if fixture is Dictionary: apply_frame(fixture)
 
 
 func _exit_tree() -> void:
@@ -286,7 +275,7 @@ func _fail(message: String) -> void:
 
 func _process(delta: float) -> void:
 	if not _battle_visible or _stage_preparation_pending: return
-	RuntimeProfile.apply_render_partition(get_viewport(), _native_combat.session.get("phase", "") == "wave")
+	RuntimeProfile.apply_render_partition(get_viewport(), combat_runtime.session.get("phase", "") == "wave")
 	_frame_metrics.begin_frame()
 	if standalone_playing and not last_frame.is_empty():
 		standalone_time += delta
@@ -298,28 +287,28 @@ func _process(delta: float) -> void:
 			if progress < 1.0:
 				var target: Array = frame["enemies"][index]
 				frame["impacts"].append([100 + index, target[1], target[2], 1.2, progress])
-		_apply_frame(frame)
-	if _native_combat.native_session():
+		apply_frame(frame)
+	if combat_runtime.native_session():
 		var host_active: bool = _session_has_focus and not _session_suspended
 		var activation: int = _session_host_revision
 		var session_delta := _session_frame_delta(delta, host_active, activation)
 		var combat_tick := RuntimeProfile.begin()
-		var advanced := _native_combat.advance_session(session_delta, host_active)
+		var advanced := combat_runtime.advance_session(session_delta, host_active)
 		RuntimeProfile.finish("combat", combat_tick)
-		if advanced and not _native_combat_base_frame.is_empty():
-			_apply_frame(_native_combat_base_frame)
+		if advanced and not combat_base_frame.is_empty():
+			apply_frame(combat_base_frame)
 	if _frame_metrics.advance(delta):
 		_frame_metrics.report({"received_frames":received_frames,"sequence":last_sequence,
-			"authored_terrain":_using_authored,"combat_active":_native_combat.active,
-			"combat_sequence":_native_combat.sequence,"combat_elapsed":_native_combat.elapsed,
-			"phase":_native_combat.session.get("phase", ""),"paused":_native_combat.session.get("paused", false)})
+			"authored_terrain":_using_authored,"combat_active":combat_runtime.active,
+			"combat_sequence":combat_runtime.sequence,"combat_elapsed":combat_runtime.elapsed,
+			"phase":combat_runtime.session.get("phase", ""),"paused":combat_runtime.session.get("paused", false)})
 
 
 func _set_profile_enabled(enabled: bool) -> void:
 	_frame_metrics.set_enabled(enabled)
 
 
-func _apply_options() -> void:
+func apply_options() -> void:
 	_presentation_nodes["effects"].diagnostic_skip = str(options.get("diagnostic_skip_canvas", ""))
 	RunicFire.set_diagnostic_mode(str(options.get("runic_fire_mode", "all")))
 	world.visible = _battle_visible and not bool(options["empty"])
@@ -381,13 +370,13 @@ func _fit_camera_to_frame() -> void:
 	_battlefield_camera.configure_geometry(Vector2i(columns, rows), _current_map.get("tiles", []),
 		_using_chapter_environment, _using_forge, _environment_bounds, _environment_manifest.get("cameraPointsGodot", []))
 	_battlefield_camera.fit_frame(get_viewport().get_visible_rect().size, last_frame,
-		float(options.get("zoom", 1.0)), _formal_battlefield_rect(), _native_combat.native_session())
+		float(options.get("zoom", 1.0)), _formal_battlefield_rect(), combat_runtime.native_session())
 
 
 func _formal_battlefield_rect() -> Rect2:
-	if not _app_mode or not is_instance_valid(_standalone_session): return Rect2()
-	var hud = _standalone_session.hud
-	if not is_instance_valid(hud) or not hud.has_method("battlefield_rect"): return Rect2()
+	if not _app_mode or not is_instance_valid(session_controller): return Rect2()
+	var hud = session_controller.hud
+	if not is_instance_valid(hud): return Rect2()
 	return hud.battlefield_rect()
 
 
@@ -427,7 +416,7 @@ func _present_overlays() -> void:
 		if group == "selection": enabled = enabled and node.has_frame()
 		var canvas_enabled: bool = enabled and not RuntimeProfile.options.get("hide_canvas", false)
 		node.visible = canvas_enabled
-		if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
+		node.set_canvas_enabled(canvas_enabled)
 		if group == "effects":
 			_lightning_presentation.present(node.items, turrets, enemies, Vector2(columns, rows), enabled, bool(options.get("volume", true)))
 			_machinegun_ricochet.present(node.items, last_frame.get("enemies", []), Vector2(columns, rows), float(last_frame.get("time", 0.0)), enabled)
@@ -497,7 +486,7 @@ func cancel_turret_placement(id: int) -> void:
 	_units.cancel_placement(id)
 
 
-func _apply_frame(frame: Dictionary) -> void:
+func apply_frame(frame: Dictionary) -> void:
 	if _battle_deferred or (_app_mode and not _battle_visible and not _realizing_battle):
 		var epoch := int(frame.get("sceneEpoch", 0))
 		if epoch < _scene_epoch: return
@@ -509,17 +498,17 @@ func _apply_frame(frame: Dictionary) -> void:
 		return
 	var owned_snapshot := false
 	var whole_tick := RuntimeProfile.begin()
-	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
+	if combat_runtime.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
 		var decorate_tick := RuntimeProfile.begin()
 		# Both real native entry points use tile units with canonical Canvas art.
 		# The development session needs the same glyph/effect conversion as --app.
-		var native_presentation := _app_mode or is_instance_valid(_standalone_session)
-		frame = _native_combat.decorate_frame(frame, true, native_presentation)
+		var native_presentation := _app_mode or is_instance_valid(session_controller)
+		frame = combat_runtime.decorate_frame(frame, true, native_presentation)
 		owned_snapshot = true
 		RuntimeProfile.finish("decorate", decorate_tick)
 		if native_presentation:
 			frame = preload("res://ui/app_presentation.gd").normalize(frame)
-		if _native_combat.native_session():
+		if combat_runtime.native_session():
 			frame.zoom = _session_input.zoom
 			options.zoom = _session_input.zoom
 			var viewport: Array = frame.get("viewport", [])
@@ -576,10 +565,10 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 			if group == "effects":
 				group_frame["targets"] = frame.get("enemies", [])
 				group_frame["turrets"] = frame.get("turrets", [])
-				group_frame["playbackSpeed"] = float(_native_combat.session.get("speed", 1.0))
+				group_frame["playbackSpeed"] = float(combat_runtime.session.get("speed", 1.0))
 			var node: Node2D = _presentation_nodes[group]
 			var canvas_enabled: bool = world.visible and int(frame.get("presentationVersion", 0)) == 2 and options.get("presentation_groups", []).has(group) and node.supported_groups().has(group) and not RuntimeProfile.options.get("hide_canvas", false)
-			if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
+			node.set_canvas_enabled(canvas_enabled)
 			if group in ["labels", "effects", "selection"]:
 				node.apply_frame(group_frame, owned_snapshot)
 			else:
@@ -626,13 +615,13 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 func _clear_scene() -> void:
 	_lightning_presentation.clear()
 	_machinegun_ricochet.clear()
-	_native_combat.active = false
-	_native_combat = _new_native_combat()
+	combat_runtime.active = false
+	combat_runtime = _new_native_combat()
 	_session_frame_clock.reset()
 	_session_input.reset()
 	_battlefield_camera.reset()
 	_screen_feedback.hide()
-	_native_combat_base_frame.clear()
+	combat_base_frame.clear()
 	_projectile_events.clear()
 	world.position = Vector3.ZERO
 	_turret_level_labels.clear()
@@ -674,7 +663,7 @@ func _sync_turrets(units: Array) -> void:
 
 func _sync_enemies(units: Array) -> void:
 	_units.configure(float(last_frame.get("time", 0.0)), Vector2i(columns, rows), options)
-	_units.sync_guardian_events(_native_combat)
+	_units.sync_guardian_events(combat_runtime)
 	_units._sync_enemies(units)
 	_units.sync_sniper_aim()
 
@@ -707,14 +696,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_C: options["camera"] = "drone" if options["camera"] == "angled" else "angled"
 		KEY_S: options["shadows"] = not options["shadows"]
 		KEY_V: options["volume"] = not options["volume"]
-	_apply_options()
+	apply_options()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_instance_valid(_standalone_session) and _app_mode:
-		var app = _standalone_session
+	if is_instance_valid(session_controller) and _app_mode:
+		var app = session_controller
 		if app.in_lobby: return
-		if is_instance_valid(app.hud) and app.hud.has_method("blocks_board_input") and app.hud.blocks_board_input():
+		if is_instance_valid(app.hud) and app.hud.blocks_board_input():
 			_session_input.contacts.clear()
 			return
 	_session_input.handle(event)
@@ -723,12 +712,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _update_session_presentation() -> void:
 	var logical: Array = last_frame.get("viewport", [])
 	var size := Vector2(logical[0],logical[1]) if logical.size() == 2 else get_viewport().get_visible_rect().size
-	_screen_feedback.update_state(_native_combat, size)
-	if not _native_combat.native_session(): return
-	var collapsing: bool = _native_combat.session.get("phase") in ["coreDestruction", "failure"] and not _cores.is_empty()
+	_screen_feedback.update_state(combat_runtime, size)
+	if not combat_runtime.native_session(): return
+	var collapsing: bool = combat_runtime.session.get("phase") in ["coreDestruction", "failure"] and not _cores.is_empty()
 	var core: Vector3 = _cores[0].root.global_position if collapsing else Vector3.ZERO
 	var camera_adjusted := _battlefield_camera.apply_session_offsets(_session_input.pan, _session_input.zoom,
-		size, logical.is_empty(), collapsing, core, _native_combat.destruction_elapsed,
+		size, logical.is_empty(), collapsing, core, combat_runtime.destruction_elapsed,
 		get_viewport().get_visible_rect().size)
 	# Project effects after native drag/collapse offsets, using the final camera.
 	# The base camera update above runs before these session-specific offsets.
@@ -742,19 +731,19 @@ func _new_native_combat() -> NativeCombatRuntime:
 	return runtime
 
 func _on_session_clock_changing(source: WeakRef) -> void:
-	if source.get_ref() != _native_combat: return
+	if source.get_ref() != combat_runtime: return
 	_session_control_boundary_usec = -1
 	# Deterministic commands inside an already accepted simulation frame must
 	# not also charge physical CPU time. Manual test drivers own their own time.
-	if not is_processing() or _native_combat._advancing_session: return
+	if not is_processing() or combat_runtime._advancing_session: return
 	_session_control_boundary_usec = int(_session_now_usec.call())
 	var host_active := _battle_visible and not _stage_preparation_pending and _session_has_focus and not _session_suspended
 	var elapsed := _session_frame_delta(0.0, host_active, _session_host_revision, _session_control_boundary_usec)
-	_native_combat.accrue_session_time(elapsed, host_active)
+	combat_runtime.accrue_session_time(elapsed, host_active)
 
 func _on_session_clock_changed(source: WeakRef) -> void:
-	if source.get_ref() != _native_combat: return
-	if _session_control_boundary_usec < 0 or _native_combat._advancing_session: return
+	if source.get_ref() != combat_runtime: return
+	if _session_control_boundary_usec < 0 or combat_runtime._advancing_session: return
 	var host_active := _battle_visible and not _stage_preparation_pending and _session_has_focus and not _session_suspended
 	# Establish the new controls at the same exact boundary, so processing time
 	# after it belongs to the new rate rather than being lost or charged twice.
@@ -780,7 +769,7 @@ func _set_session_host_state(has_focus: bool, suspended: bool) -> void:
 	if has_focus == _session_has_focus and suspended == _session_suspended: return
 	# Close the old interval before the host gate or a child's pause command can
 	# hide it. These boundaries only accrue debt, never run combat/ACK callbacks.
-	var source: WeakRef = weakref(_native_combat)
+	var source: WeakRef = weakref(combat_runtime)
 	_on_session_clock_changing(source)
 	_session_has_focus = has_focus
 	_session_suspended = suspended
@@ -794,8 +783,8 @@ func _session_frame_delta(_engine_delta: float, host_active: bool, activation: i
 	# Engine _process delta is capped after stalls. Sample actual monotonic time
 	# instead, while rejecting suspended/paused/hidden intervals at their gates.
 	if now_usec < 0: now_usec = int(_session_now_usec.call())
-	return _session_frame_clock.sample(now_usec, host_active and _native_combat._session_time_enabled(),
-		activation, _native_combat.clock_control_revision)
+	return _session_frame_clock.sample(now_usec, host_active and combat_runtime._session_time_enabled(),
+		activation, combat_runtime.clock_control_revision)
 
 
 func _ensure_battle_base() -> void:
@@ -827,7 +816,7 @@ func set_battle_visible(active: bool) -> void:
 		for node: Node2D in _presentation_nodes.values():
 			node.hide()
 			node.set_process(false)
-			if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(false)
+			node.set_canvas_enabled(false)
 		_turret_level_labels.hide()
 		_screen_feedback.hide()
 	else:
@@ -867,7 +856,7 @@ func prepare_stage_resources(catalog, index: int, derived: Dictionary, restored_
 	if boot != null:
 		boot._effects_pending = true
 		boot._refresh()
-	if is_instance_valid(_standalone_session): _standalone_session._refresh_ui()
+	if is_instance_valid(session_controller): session_controller._refresh_ui()
 	set_battle_visible(_battle_requested_visible)
 	await stage_feedback_frame()
 	if not stage_preparation_current(generation): return false
@@ -922,10 +911,10 @@ func realize_battle_presentation() -> bool:
 	if _stage_preparation_pending: await stage_feedback_frame()
 	if not stage_preparation_current(generation): return false
 	_battle_deferred = false
-	var frame: Dictionary = _native_combat_base_frame if not _native_combat_base_frame.is_empty() else last_frame
+	var frame: Dictionary = combat_base_frame if not combat_base_frame.is_empty() else last_frame
 	if frame.is_empty(): return false
 	_realizing_battle = true
-	_apply_frame(frame)
+	apply_frame(frame)
 	_realizing_battle = false
 	if _stage_preparation_pending: await stage_feedback_frame()
 	if not stage_preparation_current(generation) or not _stage_preparation_error.is_empty(): return false

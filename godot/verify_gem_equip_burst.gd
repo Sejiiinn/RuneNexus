@@ -4,11 +4,10 @@ class App extends "res://app/app_lifecycle.gd":
 	var save_ok := true
 	func _ready() -> void: pass
 	func persist_progression() -> bool: return save_ok
-class Host extends Node3D:
-	var _native_combat = preload("res://combat/native_combat_runtime.gd").new()
-	var _native_combat_base_frame := {"presentation":{}}
+class Host extends "res://verify_support_fake_battlefield.gd":
+	func _init() -> void: combat_base_frame = {"presentation":{}}
 	var receipts: Array = []
-	func _apply_frame(_frame: Dictionary) -> void: pass
+	func apply_frame(_frame: Dictionary) -> void: pass
 	func play_gem_equip_burst(id: int, gem: String) -> void:
 		receipts.append([id, gem])
 var checks := 0
@@ -26,7 +25,7 @@ func run() -> void:
 	app.in_lobby = false
 	check(app.catalog.load_catalog(), "catalog")
 	check(app.run_domain.initialize(app.catalog, {}, 0, app.epoch), "domain")
-	host._native_combat.process_command({"epoch":app.epoch, "sequence":0, "session":{"clock":"godot", "phase":"preparation", "paused":true}, "bootstrap":app.catalog.bootstrap(0)})
+	host.combat_runtime.process_command({"epoch":app.epoch, "sequence":0, "session":{"clock":"godot", "phase":"preparation", "paused":true}, "bootstrap":app.catalog.bootstrap(0)})
 	app.run_domain.state.gold = 10000
 	var map: Dictionary = app.stage_map(0)
 	var tile: int = map.tiles.find("build")
@@ -63,7 +62,7 @@ func run() -> void:
 	check(not app.apply_run_command({"kind":"equipGem", "id":id, "type":"attackSpeed", "slot":0}), "failed persistence rejected")
 	check(host.receipts.size() == 4, "failed persistence does not emit success cue")
 	# Effect rendering, fade and lifetime are covered by the actual-renderer visual check.
-	check(host._native_combat.clock == 0.0, "feedback does not advance combat")
+	check(host.combat_runtime.clock == 0.0, "feedback does not advance combat")
 	app.free()
 	host.free()
 	print("GEM_EQUIP_BURST checks=%d failures=%d" % [checks, failures.size()])

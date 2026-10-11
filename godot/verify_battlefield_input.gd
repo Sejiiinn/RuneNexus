@@ -13,18 +13,16 @@ class App extends Node:
 	var hud
 	var selected := Vector2i(-1,-1)
 	func board_tap(tile: Vector2i) -> void: selected = tile
-class Board extends Node3D:
-	var _native_combat = Runtime.new()
-	var _native_combat_base_frame := {"sceneEpoch":1}
+class Board extends "res://verify_support_fake_battlefield.gd":
+	func _init() -> void: combat_base_frame = {"sceneEpoch":1}
 	var camera_refreshes := 0
-	var _standalone_session
 	var camera := Camera3D.new()
 	var world := Node3D.new()
 	var camera_mode := "angled"
 	var columns := 10
 	var rows := 10
 	var last_frame := {}
-	func _apply_frame(_frame: Dictionary) -> void: camera_refreshes += 1
+	func apply_frame(_frame: Dictionary) -> void: camera_refreshes += 1
 
 func _initialize() -> void: call_deferred("run")
 
@@ -47,11 +45,11 @@ func run() -> void:
 	board.camera.look_at(Vector3.ZERO)
 	board.camera.current = true
 	var app := App.new()
-	board.add_child(app); board._standalone_session = app
+	board.add_child(app); board.session_controller = app
 	var hud := Hud.new()
 	board.add_child(hud); app.hud = hud
-	board._native_combat.active = true
-	board._native_combat.session = {"clock":"godot","phase":"wave","paused":true}
+	board.combat_runtime.active = true
+	board.combat_runtime.session = {"clock":"godot","phase":"wave","paused":true}
 	var input = BoardInput.new(board)
 	await process_frame
 	assert(not input.blocked(), "Paused wave permits board interaction")
@@ -84,17 +82,17 @@ func run() -> void:
 	touch(input,point,false,0); touch(input,drag.position,false,1)
 	assert(is_equal_approx(input.zoom,2.0) and app.selected == Vector2i(-1,-1), "Paused pinch zoom does not select")
 	assert(board.camera_refreshes == 4, "Pinch refreshes camera without refreshing unchanged release events")
-	var elapsed: float = board._native_combat.elapsed
-	for i in range(60): assert(not board._native_combat.advance_session(1.0/60.0))
-	assert(board._native_combat.elapsed == elapsed and board._native_combat.session.paused, "Interaction never resumes combat")
+	var elapsed: float = board.combat_runtime.elapsed
+	for i in range(60): assert(not board.combat_runtime.advance_session(1.0/60.0))
+	assert(board.combat_runtime.elapsed == elapsed and board.combat_runtime.session.paused, "Interaction never resumes combat")
 	for flag in ["loading","backgrounded"]:
-		board._native_combat.session[flag] = true
+		board.combat_runtime.session[flag] = true
 		assert(input.blocked(), flag+" blocks input")
-		board._native_combat.session[flag] = false
+		board.combat_runtime.session[flag] = false
 	for phase in ["restored","coreDestruction","failure","success","ended"]:
-		board._native_combat.session.phase = phase
+		board.combat_runtime.session.phase = phase
 		assert(input.blocked(), phase+" blocks input")
-	board._native_combat.session.phase = "reward"
+	board.combat_runtime.session.phase = "reward"
 	assert(not input.blocked(), "Paused reward targeting remains available")
 	hud.rewards.replacement = true
 	assert(input.blocked(), "Reward replacement blocks input")
@@ -102,12 +100,12 @@ func run() -> void:
 	app.save_failed = true
 	assert(input.blocked(), "Failed save blocks input")
 	app.save_failed = false
-	board._native_combat.session.phase = "wave"
+	board.combat_runtime.session.phase = "wave"
 	mouse_button(input,point,true)
-	board._native_combat_base_frame.inputBlocked = true
+	board.combat_base_frame.inputBlocked = true
 	input.handle(motion)
 	assert(input.contacts.is_empty(), "Blocked input cancels an existing gesture")
-	board._native_combat_base_frame.inputBlocked = false
+	board.combat_base_frame.inputBlocked = false
 	mouse_button(input,point,false)
 	assert(app.selected == Vector2i(-1,-1), "Unblocking does not turn the cancelled gesture into a tap")
 	board.free()

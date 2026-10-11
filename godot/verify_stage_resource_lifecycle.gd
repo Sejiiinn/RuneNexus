@@ -100,7 +100,7 @@ func child(mode: String, directory: String) -> void:
 	var scene = load("res://main.tscn").instantiate()
 	scene._app_mode = true
 	root.add_child(scene)
-	var app = scene._standalone_session
+	var app = scene.session_controller
 	# setup() only queued service initialization. Free it synchronously before
 	# that callback so even a production-configured prepared project stays offline.
 	var services = app.services
@@ -143,7 +143,7 @@ func stage_cycles(scene, app, directory: String) -> void:
 		await wait_preparation(scene, "Continue stage %d" % stage_id)
 		check(scene.resource_snapshot().resources.loads == before.resources.loads and scene.resource_snapshot().environment.asset_load_counts == before.environment.asset_load_counts,
 			"same-stage Continue loads no assets or source libraries")
-		check(not root.disable_3d and app.run_domain.state.economyRunId == identity and not scene._native_combat.session.paused,
+		check(not root.disable_3d and app.run_domain.state.economyRunId == identity and not scene.combat_runtime.session.paused,
 			"Continue reveals the same preparation run without pausing simulation")
 		check(await app.retry_stage(), "restart selected stage %d" % stage_id)
 		await wait_preparation(scene, "restart stage %d" % stage_id)
@@ -158,8 +158,8 @@ func stage_cycles(scene, app, directory: String) -> void:
 	check(app.apply_run_command({"kind":"build", "type":"arrow", "x":cell % int(map.columns), "y":int(cell / int(map.columns))}), "seed a saved turret")
 	app.start_wave()
 	for frame in 300:
-		scene._native_combat.advance_session(1.0 / 60.0)
-		if not scene._native_combat.enemies.is_empty(): break
+		scene.combat_runtime.advance_session(1.0 / 60.0)
+		if not scene.combat_runtime.enemies.is_empty(): break
 	check(app.pause_and_save(), "persist live-wave coldboot fixture")
 	var expected: Dictionary = app.checkpoint.store.load_save()
 	check(not expected.activeRun.turrets.is_empty() and not expected.activeRun.enemies.is_empty() and not expected.activeRun.spawnQueue.is_empty(), "saved fixture includes turret, live enemy and queued spawns")
@@ -178,7 +178,7 @@ func failed_transition(scene, app) -> void:
 	queue._valid_slot = true
 	await process_frame
 	var after: Dictionary = scene.resource_snapshot()
-	check(app.run_domain.state.economyRunId == identity and scene._native_combat.session.paused, "failed chapter switch preserves paused outgoing run")
+	check(app.run_domain.state.economyRunId == identity and scene.combat_runtime.session.paused, "failed chapter switch preserves paused outgoing run")
 	check(after.resources.paths == before.resources.paths and after.manifest == before.manifest, "failed chapter switch restores outgoing resource ownership")
 	check(scene._terrain_library.get_instance_id() == terrain_id and scene._current_map == map
 		and after.environment.asset_load_counts == before.environment.asset_load_counts, "failed chapter switch preserves existing terrain and source instances")
@@ -188,7 +188,7 @@ func stored_roundtrip(scene, app, directory: String) -> void:
 	var expected: Variant = Json.parse(FileAccess.get_file_as_string(directory.path_join("expected.json")))
 	check(expected is Dictionary and expected.get("activeRun") is Dictionary, "saved coldboot fixture exists")
 	if not expected is Dictionary or not expected.get("activeRun") is Dictionary: return
-	check(scene._native_combat.active and scene._native_combat.session.paused and app.lobby._has_run(), "stored cold lobby exposes Continue with paused native metadata")
+	check(scene.combat_runtime.active and scene.combat_runtime.session.paused and app.lobby._has_run(), "stored cold lobby exposes Continue with paused native metadata")
 	check(app.run_domain.state.economyRunId == expected.activeRun.economyRunId, "stored cold lobby retains run identity")
 	check(app.persist_progression(), "cold lobby autosave succeeds before realization")
 	var saved: Dictionary = app.checkpoint.store.load_save()
@@ -197,7 +197,7 @@ func stored_roundtrip(scene, app, directory: String) -> void:
 	check(await app.resume_run(), "stored cold Continue")
 	await wait_preparation(scene, "stored cold Continue")
 	check(not scene._current_map.is_empty() and not scene.turrets.is_empty() and not scene.enemies.is_empty(), "stored Continue realizes map, turrets and enemies")
-	check(scene._native_combat.session.paused and app.pause_and_save(), "stored Continue stays paused and savable")
+	check(scene.combat_runtime.session.paused and app.pause_and_save(), "stored Continue stays paused and savable")
 	saved = app.checkpoint.store.load_save()
 	check(same_value(saved.activeRun, expected.activeRun), "stored Continue preserves native activeRun roundtrip")
 	var loads: int = scene.resource_snapshot().resources.loads

@@ -20,17 +20,17 @@ class App extends Node:
 	var turret_type := "arrow"
 	var selection_view := {"level_preview":false}
 	func refresh_selection() -> void: pass
-	func set_speed(value) -> void: scene._native_combat.session.speed = value
+	func set_speed(value) -> void: scene.combat_runtime.session.speed = value
 	func begin_modal_pause() -> bool:
-		var running: bool = not scene._native_combat.session.paused
-		scene._native_combat.session.paused = true
+		var running: bool = not scene.combat_runtime.session.paused
+		scene.combat_runtime.session.paused = true
 		return running
-	func end_modal_pause(value: bool) -> void: scene._native_combat.session.paused = not value
+	func end_modal_pause(value: bool) -> void: scene.combat_runtime.session.paused = not value
 	func abandon_run() -> bool: return true
 	var auto_start_mode := "pauseEachRound"
 	func set_auto_start_mode(value: String) -> void: auto_start_mode = value
 	var checkpoint := {"message":""}
-	var scene := {"_native_combat":{"defense":{"hp":100.0,"max_hp":100.0},"session":{"paused":false,"speed":1}},"options":{"camera":"angled"}}
+	var scene := {"combat_runtime":{"defense":{"hp":100.0,"max_hp":100.0},"session":{"paused":false,"speed":1}},"options":{"camera":"angled"}}
 	func stage_source(index: int) -> Dictionary:
 		stage_source_calls += 1
 		return catalog.stage(index)
@@ -50,8 +50,8 @@ class App extends Node:
 	func build_selected() -> void: apply_run_command({"kind":"build","x":selected.x,"y":selected.y,"type":turret_type})
 	func show_lobby() -> void: pass
 	func start_wave() -> void: run_domain.state.phase = "wave"
-	func toggle_pause() -> void: scene._native_combat.session.paused = not scene._native_combat.session.paused
-	func toggle_speed() -> void: scene._native_combat.session.speed = 4
+	func toggle_pause() -> void: scene.combat_runtime.session.paused = not scene.combat_runtime.session.paused
+	func toggle_speed() -> void: scene.combat_runtime.session.speed = 4
 	func toggle_camera() -> void: scene.options.camera = "drone"
 	func retry_stage() -> void: run_domain.state.phase = "preparation"
 
@@ -85,7 +85,7 @@ func run() -> void:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		for sample in [[1250,"1,250"],[9999,"9,999"],[10000,"10K"],[12500,"12.5K"],[999950,"1M"]]:
 			app.run_domain.state.gold = sample[0]; app.run_domain.state.gemShards = sample[0]
-			app.scene._native_combat.defense.hp = float(sample[0]); app.scene._native_combat.defense.max_hp = float(sample[0])
+			app.scene.combat_runtime.defense.hp = float(sample[0]); app.scene.combat_runtime.defense.max_hp = float(sample[0])
 			var before: Dictionary = app.run_domain.state.duplicate(true)
 			hud.refresh()
 			for frame in range(4): await process_frame
@@ -99,7 +99,7 @@ func run() -> void:
 			assert(hud.wave_label.get_global_rect().end.x <= hud.home.get_global_rect().position.x)
 			assert(hud.camera_button.get_global_rect().position.y >= hud.top.get_global_rect().end.y+5.9,"Camera follows first/resize layout before the next refresh poll")
 	hud.set_process(true)
-	app.scene._native_combat.defense.hp = 100.0; app.scene._native_combat.defense.max_hp = 100.0
+	app.scene.combat_runtime.defense.hp = 100.0; app.scene.combat_runtime.defense.max_hp = 100.0
 	app.run_domain.state.gold = 10000
 	app.run_domain.state.gemShards = 100
 	var map: Dictionary = app.catalog.stage_map(0)
@@ -153,7 +153,7 @@ func run() -> void:
 		assert(category.get_global_rect().encloses(hud.damage_label.get_global_rect()) and hud.damage_label.get_line_count() == 1)
 		assert(hud.body.find_child("TurretDamageSummary",true,false) == null)
 		assert(not (hud.body.find_child("TurretTargetPriority",true,false) as Button).visible,"Target action remains research gated")
-	app.scene._native_combat.turrets = {str(app.run_domain.state.turrets[0].id): {"directDamageDealt":123.0,"splashDamageDealt":7.0}}
+	app.scene.combat_runtime.turrets = {str(app.run_domain.state.turrets[0].id): {"directDamageDealt":123.0,"splashDamageDealt":7.0}}
 	hud.refresh()
 	assert(hud.damage_label.text.ends_with("130.0"))
 	assert(hud.status.autowrap_mode == TextServer.AUTOWRAP_OFF)
@@ -197,7 +197,7 @@ func run() -> void:
 	(hud.modal_body.find_child("TraitConfirm",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].primaryTrait == "overheatMagazine")
 	(hud.body.find_child("TurretSellAction",true,false) as Button).pressed.emit()
-	assert(hud.modal_active() and app.scene._native_combat.session.paused)
+	assert(hud.modal_active() and app.scene.combat_runtime.session.paused)
 	assert(hud.modal_panel.get_theme_stylebox("panel") is StyleBoxTexture)
 	var sale := find_button(hud.modal_body,"판매 · ")
 	assert(sale.text == "판매 · +%s 골드" % HudNumber.compact_price(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).sell))
@@ -205,7 +205,7 @@ func run() -> void:
 	assert(sale.get_theme_stylebox("disabled").texture.resource_path.ends_with("native/disabled.png"))
 	assert(sale.get_theme_stylebox("normal").texture_margin_left == 11)
 	hud.close_modal()
-	assert(not app.scene._native_combat.session.paused)
+	assert(not app.scene.combat_runtime.session.paused)
 	app.run_domain.state.progression["researchLevels"] = {"turretTargetPriority":1}
 	hud.refresh()
 	for width in [320,440]:
@@ -224,7 +224,7 @@ func run() -> void:
 		assert(is_equal_approx(hud.dock.size.y,335 if width == 320 else 361),"Preserve the previous selected-turret dock height")
 	hud.turret_panel._priority()
 	assert(hud.target_priority_popup.visible and not hud.modal_active())
-	assert(not app.scene._native_combat.session.paused,"The target list does not pause combat")
+	assert(not app.scene.combat_runtime.session.paused,"The target list does not pause combat")
 	assert(hud.blocks_board_input(),"An open target list must not let clicks reach the board")
 	assert(hud.target_priority_popup.item_count == hud.PRIORITIES.size())
 	for option in hud.PRIORITIES.size():
@@ -245,7 +245,7 @@ func run() -> void:
 	assert((hud.target_priority_popup.get_node("TargetPriorityRows/TargetChoice_strongest") as Button).get_theme_stylebox("normal").bg_color == Color("0a202c"))
 	hud.close_back()
 	assert(not hud.target_priority_popup.visible and hud.main_tab == "turrets")
-	assert(not app.scene._native_combat.session.paused)
+	assert(not app.scene.combat_runtime.session.paused)
 	hud.turret_panel._show_gems()
 	assert((hud.body.find_child("TurretTargetPriority",true,false) as Button).visible,"Target action remains available beside the gem tab")
 	var sockets := buttons(hud.body).filter(func(button): return str(button.name).begins_with("EquippedSlot"))
@@ -359,7 +359,7 @@ func run() -> void:
 	assert(hud.speed_buttons[1].size.x == 32)
 	assert(hud.speed_buttons[1].button_pressed)
 	hud.speed_buttons[2].pressed.emit()
-	assert(app.scene._native_combat.session.speed == 2)
+	assert(app.scene.combat_runtime.session.speed == 2)
 	assert(not hud.speed_buttons[1].button_pressed and hud.speed_buttons[2].button_pressed)
 	var selected_style = hud.main_buttons.turrets.get_theme_stylebox("normal")
 	var idle_style = hud.main_buttons.gems.get_theme_stylebox("normal")
@@ -372,7 +372,7 @@ func run() -> void:
 	assert(hud.start.text == "진행 중" and hud.start.disabled and hud.pause_button.visible)
 	assert(not hud.pause_indicator.visible)
 	hud.pause_button.pressed.emit()
-	assert(app.scene._native_combat.session.paused)
+	assert(app.scene.combat_runtime.session.paused)
 	assert(hud.start.text == "▶ 재개" and not hud.start.disabled and not hud.pause_button.visible)
 	assert(hud.pause_indicator.visible and hud.pause_indicator.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 	assert(not hud.blocks_board_input(), "Manual pause keeps the battlefield interactive")
@@ -389,7 +389,7 @@ func run() -> void:
 	assert(paused_install != null and not paused_install.disabled, "Paused wave exposes the existing install action")
 	paused_install.pressed.emit()
 	assert(app.run_domain.state.turrets.size() == paused_count+1 and app.run_domain.selected_id(paused_build) >= 0, "Install action builds during a paused wave")
-	assert(app.scene._native_combat.session.paused and app.run_domain.state.phase == "wave", "Installing preserves paused wave")
+	assert(app.scene.combat_runtime.session.paused and app.run_domain.state.phase == "wave", "Installing preserves paused wave")
 	app.run_domain.state = paused_state
 	app.board_tap(Vector2i(-1,-1))
 	hud.main_tab = "turrets"; hud.refresh()
@@ -402,7 +402,7 @@ func run() -> void:
 	hud.close_modal()
 	assert(hud.pause_indicator.visible)
 	hud.start.pressed.emit()
-	assert(not app.scene._native_combat.session.paused)
+	assert(not app.scene.combat_runtime.session.paused)
 	assert(not hud.pause_indicator.visible)
 	hud.camera_button.pressed.emit()
 	assert(app.scene.options.camera == "drone" and hud.camera_button.text == "드론 ↔")
@@ -513,7 +513,7 @@ func run() -> void:
 	assert(hud.gold_label.text == "10M" and hud.gold_label.tooltip_text == "10000000")
 	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage") == "1.2M")
 	assert(hud.turret_panel._stat_value({"damage":1234567.89},"damage",true) == "1234567.9")
-	app.scene._native_combat.turrets[str(app.run_domain.state.turrets[0].id)].directDamageDealt = 1234560.0
+	app.scene.combat_runtime.turrets[str(app.run_domain.state.turrets[0].id)].directDamageDealt = 1234560.0
 	hud.refresh()
 	assert(hud.damage_label.text == "1.2M" and hud.damage_label.tooltip_text == "누적 피해 1234567.0")
 	assert((hud.body.find_child("TurretUpgradePrice",true,false) as Label).text == "최대 레벨")

@@ -106,7 +106,7 @@ func _verify() -> void:
 	frame["impacts"] = []
 	frame["nexusHit"] = 0.0
 	frame["buildPreview"] = null
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene._cores.size() == 2, "내장 후보의 다중 코어 검사 배치 실패")
 	var crystal: MeshInstance3D = scene._cores[0]["crystal"]
 	var source := crystal.mesh.surface_get_material(0) as StandardMaterial3D
@@ -121,10 +121,10 @@ func _verify() -> void:
 	var rest := crystal.transform
 	frame["time"] = 1.1
 	frame["nexusHit"] = 0.75
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(not crystal.transform.is_equal_approx(rest), "내장 후보에서 결정 회전/부유/피격 입력 미반영")
 	var paused := crystal.transform
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(crystal.transform.is_equal_approx(paused), "내장 후보에서 같은 전투 시각의 결정 변형 누적")
 	for support: Node3D in supports:
 		_check(support.transform.is_equal_approx(supports[support]), "내장 후보 애니메이션이 받침을 움직임")

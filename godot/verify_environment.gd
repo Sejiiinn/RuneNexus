@@ -29,7 +29,7 @@ func _verify() -> void:
 	for key in ["turrets", "enemies", "projectiles", "impacts"]:
 		frame[key] = []
 	frame["buildPreview"] = null
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var dressing := scene.terrain.find_child("stage1_dressing", true, false) as Node3D
 	_check(scene._using_authored and dressing != null, "일치하는 스테이지 1 지형에 환경 장식이 연결되지 않음")
 	if dressing == null:
@@ -138,7 +138,7 @@ func _verify() -> void:
 	var original_dressing_id := dressing.get_instance_id()
 	for time in [0.0, 0.0, 0.04, 0.08, 10.0, 0.0]:
 		frame["time"] = time
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		await process_frame
 		if not is_instance_valid(foliage):
 			_check(false, "같은 맵의 프레임이 풀 노드를 해제함")
@@ -152,17 +152,17 @@ func _verify() -> void:
 	# 고사리도 다른 식생과 같은 본체 셰이더에서 가림·철거를 처리한다.
 	for slot in [1, 6, 21, 27]:
 		frame["turrets"] = [[950 + slot, build_points[slot].x, build_points[slot].y, 0.0, 0, 0, "cannon", 1]]
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		var expected := Vector2i(1 << slot, 0) if slot < 16 else Vector2i(0, 1 << (slot - 16))
 		_check(material.get_shader_parameter("occupied_build_tiles") == expected, "고사리의 공통 식생 건설 점유 불일치: %d" % slot)
 	frame["turrets"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "철거한 고사리 본체 가림 잔류")
 	frame["buildPreview"] = [901, build_points[0].x, build_points[0].y, 0.0, 0, 0, "cannon", 1]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "건설 미리보기가 중앙 풀을 제거함")
 	frame["buildPreview"] = null
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var empty_snapshot: Image
 	var inspected_regions: Array[Rect2i] = []
 	if DisplayServer.get_name() != "headless":
@@ -182,7 +182,7 @@ func _verify() -> void:
 		await RenderingServer.frame_post_draw
 		empty_snapshot = root.get_texture().get_image()
 	frame["turrets"] = [[902, build_points[0].x, build_points[0].y, 0.0, 0, 0, "cannon", 1]]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i(1, 0), "설치한 칸 외의 중앙 풀까지 제거하거나 첫 슬롯을 누락함")
 	if empty_snapshot:
 		# 포탑 본체를 숨겨 풀의 실제 GPU 변위만 검사.
@@ -204,40 +204,40 @@ func _verify() -> void:
 		# 병합 메시의 일부를 접을 때 발생하는 8비트 래스터 양자화 오차만 허용.
 		_check(control_max_delta <= 1, "GPU 가림이 다른 건설칸의 풀까지 변경함")
 		frame["turrets"] = []
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		await process_frame
 		await RenderingServer.frame_post_draw
 		var restored_snapshot := root.get_texture().get_image()
 		_check(empty_snapshot.get_data() == restored_snapshot.get_data(), "GPU에서 철거 후 원래의 풀·바위 장면이 복구되지 않음")
 		Engine.time_scale = 1.0
 		frame["turrets"] = [[902, build_points[0].x, build_points[0].y, 0.0, 0, 0, "cannon", 1]]
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 	frame["turrets"].append([903, build_points[16].x, build_points[16].y, 0.0, 0, 0, "cannon", 1])
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i(1, 1), "16번째 비트 경계의 별도 건설칸 점유 누락")
 	frame["turrets"][0][1] = build_points[15].x
 	frame["turrets"][0][2] = build_points[15].y
 	frame["turrets"][1][1] = build_points[31].x
 	frame["turrets"][1][2] = build_points[31].y
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i(32768, 32768), "포탑 위치 변경 뒤 이전 풀이 복구되지 않거나 마지막 슬롯이 누락됨")
 	for index in range(3):
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		_check(foliage.mesh == foliage_mesh and foliage.get_active_material(0) == material and material.get_shader_parameter("occupied_build_tiles") == Vector2i(32768, 32768), "같은 점유의 반복 프레임이 풀 자원·점유 상태를 변경함")
 	frame["turrets"].remove_at(0)
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i(0, 32768), "한 포탑 철거가 다른 칸의 가림을 해제하거나 철거한 칸을 복구하지 않음")
 	frame["turrets"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "마지막 포탑 철거 후 중앙 풀 가림 잔류")
 	frame["turrets"] = [[902, build_points[0].x, build_points[0].y, 0.0, 0, 0, "cannon", 1]]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var owned: WeakRef = weakref(dressing)
-	scene._apply_frame({"reset": true})
+	scene.apply_frame({"reset": true})
 	_check(owned.get_ref() == null and scene.terrain.get_child_count() == 0, "전장 초기화 후 환경 장식 노드 잔류")
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "전장 초기화 후 중앙 풀 가림 잔류")
 	for index in range(3):
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		dressing = scene.terrain.find_child("stage1_dressing", true, false)
 		_check(scene.terrain.find_children("stage1_dressing", "Node3D", true, false).size() == 1, "재진입 때 장식이 누락되거나 중복됨")
 		foliage = dressing.find_child("stage1_dressing_foliage", true, false)
@@ -248,12 +248,12 @@ func _verify() -> void:
 		# 크기가 같은 다른 맵도 원본 장식을 적용하지 않음.
 		mismatched["map"]["tiles"][0] = "path" if mismatched["map"]["tiles"][0] != "path" else "build"
 		owned = weakref(dressing)
-		scene._apply_frame(mismatched)
+		scene.apply_frame(mismatched)
 		_check(not scene._using_authored and scene.terrain.find_child("stage1_dressing", true, false) == null, "다른 타일 배열에 스테이지 1 장식이 적용됨")
 		_check(owned.get_ref() == null, "맵 전환 뒤 이전 장식 노드 잔류")
 		_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "다른 맵으로 이동한 뒤 스테이지 1 풀 가림 잔류")
 	frame["turrets"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "포탑 없는 전장에 재진입한 뒤 중앙 풀 가림 잔류")
 	var library: WeakRef = weakref(scene._dressing_library)
 	scene.free()

@@ -18,7 +18,7 @@ var boss_ids := {}
 var startup_smoke := false
 
 func progress(stage_id: int, label: String) -> void:
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	print("COMBAT_PROGRESS ", JSON.stringify({"stage":stage_id,"point":label,"clock":runtime.clock,"paused":runtime.session.get("paused"),"phase":runtime.session.get("phase"),"speed":runtime.session.get("speed"),"focus":scene._session_has_focus,"suspended":scene._session_suspended,"battleVisible":scene._battle_visible,"preparing":scene._stage_preparation_pending,"saveFailed":app.save_failed,"debt":runtime.simulation_debt,"enemies":runtime.enemies.size(),"events":counts}))
 
 func _initialize() -> void: run.call_deferred()
@@ -36,11 +36,11 @@ func capture(label: String) -> void:
 	print("COMBAT_CAPTURE ",label)
 
 func present() -> void:
-	scene._apply_frame(scene._native_combat_base_frame)
+	scene.apply_frame(scene.combat_base_frame)
 	app.hud.refresh()
 
 func observe_step() -> void:
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	for enemy: Dictionary in runtime.enemies.values():
 		if enemy.hp <= 0 or enemy.arrived: continue
 		routes_seen[str(enemy.get("routeId","default"))] = true
@@ -59,7 +59,7 @@ func observe_step() -> void:
 		if counts.has(event.kind): counts[event.kind] += 1
 
 func connect_observer() -> void:
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	# Observe completed real steps before the ordinary app settles and ACKs them.
 	if runtime.step_completed.is_connected(app._on_combat_step_completed): runtime.step_completed.disconnect(app._on_combat_step_completed)
 	runtime.step_completed.connect(observe_step)
@@ -68,7 +68,7 @@ func connect_observer() -> void:
 
 func active_identity() -> Array:
 	var result: Array = []
-	for enemy: Dictionary in scene._native_combat.enemies.values():
+	for enemy: Dictionary in scene.combat_runtime.enemies.values():
 		if enemy.hp <= 0 or enemy.arrived: continue
 		result.append([str(enemy.type),str(enemy.get("routeId","")),str(enemy.get("spawnPortalId","")),snappedf(float(enemy.distanceTravelled),0.0001)])
 	result.sort_custom(func(a,b): return JSON.stringify(a)<JSON.stringify(b))
@@ -85,16 +85,16 @@ func press_text(parent: Node,text: String) -> bool:
 
 func save_restore(stage_id: int) -> bool:
 	var before: Array = active_identity()
-	var original = scene._native_combat
+	var original = scene.combat_runtime
 	app.hud.home.pressed.emit()
 	if not press_text(app.hud.modal,"저장하고 나가기"): return false
 	check(app.in_lobby and not app.save_failed,"save-to-lobby UI "+str(stage_id))
 	await capture("stage-%d-saved-lobby" % stage_id)
 	# Exercise the disk adapter and a fresh runtime, not cached Continue alone.
 	check(app.checkpoint.load_session(app) == OK,"load real disk checkpoint "+str(stage_id))
-	check(scene._native_combat != original,"disk load creates fresh runtime "+str(stage_id))
+	check(scene.combat_runtime != original,"disk load creates fresh runtime "+str(stage_id))
 	check(active_identity() == before,"active route/portal identity and distance survive disk restore "+str(stage_id))
-	check(bool(scene._native_combat.session.paused),"restore paused "+str(stage_id))
+	check(bool(scene.combat_runtime.session.paused),"restore paused "+str(stage_id))
 	connect_observer()
 	app.lobby.page = "로비"
 	app._refresh_ui()
@@ -109,7 +109,7 @@ func save_restore(stage_id: int) -> bool:
 	await capture("stage-%d-restored-paused" % stage_id)
 	app.hud.start.pressed.emit()
 	app.hud.speed_buttons[4].pressed.emit()
-	check(not bool(scene._native_combat.session.paused),"UI resumes restored combat "+str(stage_id))
+	check(not bool(scene.combat_runtime.session.paused),"UI resumes restored combat "+str(stage_id))
 	return true
 
 func run() -> void:
@@ -120,7 +120,7 @@ func run() -> void:
 	scene = load("res://main.gd").new()
 	scene._app_mode = true
 	root.add_child(scene)
-	app = scene._standalone_session
+	app = scene.session_controller
 	var services = app.services
 	app.services = null
 	if services != null: services.free()
@@ -145,15 +145,15 @@ func run() -> void:
 		var bootstrap: Dictionary = app.catalog.bootstrap(index,{"tileSize":1.0,"defenseConfig":derived.defenseConfig,"coreConfig":fixture.domain.growth.core_config(seeded,index,round_number-1,app.catalog)})
 		bootstrap.turrets = []
 		for command in fixture.domain.service.runtime_commands(seeded): bootstrap.turrets.append(command.turret)
-		scene._native_combat.active = false
+		scene.combat_runtime.active = false
 		app.run_domain.state.clear()
 		app.progression_inputs = seeded.progression.duplicate(true)
 		check(await app.start_stage(index),"prepare real stage "+str(stage_id))
 		app.battle_inputs = {"tileSize":1.0}
 		app.enter_stage(index,bootstrap,{"phase":"preparation","paused":false},seeded)
-		check(is_equal_approx(scene._native_combat.tile_size,1.0),"native checkpoint coordinates "+str(stage_id))
-		check(scene._native_combat.turrets.size() == seeded.turrets.size(),"seed/runtime legal board count "+str(stage_id))
-		print("COMBAT_SETUP stage=",stage_id," seeded_turrets=",seeded.turrets.size()," runtime_turrets=",scene._native_combat.turrets.size()," tile_size=",scene._native_combat.tile_size)
+		check(is_equal_approx(scene.combat_runtime.tile_size,1.0),"native checkpoint coordinates "+str(stage_id))
+		check(scene.combat_runtime.turrets.size() == seeded.turrets.size(),"seed/runtime legal board count "+str(stage_id))
+		print("COMBAT_SETUP stage=",stage_id," seeded_turrets=",seeded.turrets.size()," runtime_turrets=",scene.combat_runtime.turrets.size()," tile_size=",scene.combat_runtime.tile_size)
 		app.next_round = round_number-1
 		app.spawn_rng.seed = Fixture.SEED+stage_id*100+round_number
 		app._refresh_ui()
@@ -164,10 +164,10 @@ func run() -> void:
 		connect_observer()
 		await capture("stage-%d-round-%d-legal-board" % [stage_id,round_number])
 		app.hud.start.pressed.emit()
-		check(scene._native_combat.wave.active,"Start UI begins authored wave "+str(stage_id))
+		check(scene.combat_runtime.wave.active,"Start UI begins authored wave "+str(stage_id))
 		check(not app.save_failed,"Start UI persists checkpoint "+str(stage_id)+": "+app.checkpoint.message)
-		check(not bool(scene._native_combat.session.paused),"Start UI leaves combat running "+str(stage_id))
-		print("COMBAT_STARTED stage=",stage_id," save_failed=",app.save_failed," paused=",scene._native_combat.session.paused)
+		check(not bool(scene.combat_runtime.session.paused),"Start UI leaves combat running "+str(stage_id))
+		print("COMBAT_STARTED stage=",stage_id," save_failed=",app.save_failed," paused=",scene.combat_runtime.session.paused)
 		if app.save_failed: break
 		var shots_saved := false
 		var boss_saved := false
@@ -183,10 +183,10 @@ func run() -> void:
 		var steps := 0
 		var last_log := Time.get_ticks_msec()
 		var last_motion := last_log
-		var last_clock: float = scene._native_combat.clock
+		var last_clock: float = scene.combat_runtime.clock
 		while steps < 12000:
 			await process_frame
-			var runtime = scene._native_combat
+			var runtime = scene.combat_runtime
 			if not failures.is_empty(): break
 			steps += 1
 			var now := Time.get_ticks_msec()
@@ -249,7 +249,7 @@ func run() -> void:
 						write_report()
 						break
 					last_motion = Time.get_ticks_msec()
-					runtime = scene._native_combat
+					runtime = scene.combat_runtime
 					damage_at_restore = total_damage(runtime)
 			if restored and total_damage(runtime) > damage_at_restore: after_restore_damage = true
 			var combat_observed: bool = witnessed.shots and witnessed.projectile and witnessed.damage and counts.kill > 0 and witnessed.boss and witnessed.bossTarget and witnessed.bossDamage
@@ -261,7 +261,7 @@ func run() -> void:
 			if runtime.wave.completed or runtime.defense.hp <= 0:
 				terminal = true
 				break
-		var runtime = scene._native_combat
+		var runtime = scene.combat_runtime
 		if not startup_smoke: check(observed,"all required real combat observations "+str(stage_id))
 		check(witnessed.shots and witnessed.projectile and witnessed.damage and (startup_smoke or counts.kill>0),"real firing hits and kills "+str(stage_id))
 		check(startup_smoke or (witnessed.boss and witnessed.bossTarget and witnessed.bossDamage),"real boss target and damage "+str(stage_id))

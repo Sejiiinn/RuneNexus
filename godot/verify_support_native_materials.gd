@@ -30,7 +30,7 @@ static func run(scene: Node3D, output: String) -> bool:
 	var frame: Dictionary = scene.last_frame.duplicate(true)
 	if frame.is_empty():
 		frame = JSON.parse_string(FileAccess.get_file_as_string("res://assets/preview_frame.json"))
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 	var crystal := scene._cores[0]["crystal"] as MeshInstance3D
 	var core: Node3D = scene._cores[0]["root"]
 	var source := crystal.mesh.surface_get_material(0) as StandardMaterial3D
@@ -71,10 +71,10 @@ static func run(scene: Node3D, output: String) -> bool:
 				sample_frame["turrets"] = [[900, grid.x + 0.12, grid.z + 0.65, 0.0, 0, 0.0, "cannon", 1]]
 				sample_frame["impacts"] = [[901, grid.x, grid.z + 0.45, 0.75, 0.13 if phase == 0.0 else 0.52]]
 			scene.options["camera"] = "drone" if scenario.ends_with("drone") else "angled"
-			scene._apply_options()
+			scene.apply_options()
 			if scene.camera_transition and scene.camera_transition.is_running():
 				await scene.camera_transition.finished
-			scene._apply_frame(sample_frame)
+			scene.apply_frame(sample_frame)
 			if scenario in ["game-close", "blender-direction"]:
 				var center := core.global_position + Vector3(0.0, 0.65, 0.0)
 				var direction := Vector3(5.0, 27.0, 13.0) if scenario == "game-close" else Vector3(1.7, 5.98, 4.8)

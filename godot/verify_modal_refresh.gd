@@ -9,7 +9,7 @@ const Device = preload("res://app/device_preferences.gd")
 class GraphicsScene extends RefCounted:
 	var options := {}
 	var applications := 0
-	func _apply_options() -> void: applications += 1
+	func apply_options() -> void: applications += 1
 class App extends LobbyFixture.FakeApp:
 	var scene := GraphicsScene.new()
 var failures: Array[String] = []
@@ -169,14 +169,14 @@ func run() -> void:
 	(hud.modal_body.find_child("TraitTier2",true,false) as Button).pressed.emit()
 	await settle()
 	check(battle_ids(hud)==trait_ids and is_equal_approx(hud.modal_panel.modulate.a,1),"Trait tier transition reuses the panel without a fade")
-	check(hud.modal_scroll.scroll_vertical==trait_scroll and battle.scene._native_combat.session.paused,"Trait tier transition preserves scroll and combat pause")
+	check(hud.modal_scroll.scroll_vertical==trait_scroll and battle.scene.combat_runtime.session.paused,"Trait tier transition preserves scroll and combat pause")
 	check(hud.trait_preview.is_empty() and (hud.modal_body.find_child("TraitConfirm",true,false) as Button).disabled,"Tier transition resets preview and enforces prerequisite")
 	(hud.modal_body.find_child("TraitTier1",true,false) as Button).pressed.emit(); await settle()
 	(hud.modal_body.find_child("TraitChoice_"+first,true,false) as Button).pressed.emit()
 	var shards: int=battle.run_domain.state.gemShards
 	(hud.modal_body.find_child("TraitConfirm",true,false) as Button).pressed.emit(); await settle()
 	check(battle.run_domain.state.turrets[0].primaryTrait==first and battle.run_domain.state.gemShards==shards-int(quote.primaryTrait),"Trait confirmation charges actual quote once")
-	check(not hud.modal_active() and not battle.scene._native_combat.session.paused,"Trait confirmation closes and resumes combat")
+	check(not hud.modal_active() and not battle.scene.combat_runtime.session.paused,"Trait confirmation closes and resumes combat")
 	await dimensions(440,900)
 	hud.turret_panel._open_current_traits(); await UiTweens.finished(self)
 	var stale_tab := (hud.modal_body.find_child("TraitTier1",true,false) as Button).pressed.get_connections()[0].callable as Callable
@@ -185,7 +185,7 @@ func run() -> void:
 	(hud.modal_body.find_child("TraitTier2",true,false) as Button).pressed.emit(); await settle()
 	await capture("trait-tier-refreshed-440")
 	hud.close_modal(); stale_tab.call(); await settle()
-	check(not hud.modal_active() and not battle.scene._native_combat.session.paused,"A closed traits tab callback cannot reopen the modal or pause combat")
+	check(not hud.modal_active() and not battle.scene.combat_runtime.session.paused,"A closed traits tab callback cannot reopen the modal or pause combat")
 	hud.free(); battle.free(); await settle()
 	print("MODAL_REFRESH checks=%d failures=%s" % [checks,JSON.stringify(failures)])
 	quit(0 if failures.is_empty() else 1)

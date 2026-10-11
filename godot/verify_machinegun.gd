@@ -61,7 +61,7 @@ func _verify() -> void:
 	frame["projectiles"] = []
 	frame["impacts"] = []
 	frame["buildPreview"] = null
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var entry: Dictionary = scene.turrets[701]
 	_check(entry.has("muzzle_effect"), "기관총 전투 모델의 3D 발사 효과 누락")
 	if not entry.has("muzzle_effect"):
@@ -87,16 +87,16 @@ func _verify() -> void:
 
 	frame["turrets"][0][4] = 1
 	frame["turrets"][0][5] = 1.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.flashes[1].visible and not effect.flashes[0].visible, "홀수 발사 순번의 오른쪽 총구 재생 실패")
 	_check(effect.flashes[1].global_position.is_equal_approx(muzzle.to_global(Vector3(0.062, 0, 0.018))), "오른쪽 화염이 실제 총구에서 벗어남")
 	_check(effect.shots[0]["smoke"].visible and effect.next_slot == 1, "첫 발의 연기 기록 실패")
 	frame["time"] = 1.01
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.next_slot == 1 and is_equal_approx(effect.fire_start, 1.0), "같은 발사 순번을 수신할 때 효과를 다시 시작함")
 	frame["time"] = 1.02
 	frame["turrets"][0][4] = 2
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.flashes[0].visible and not effect.flashes[1].visible, "짝수 발사 순번의 왼쪽 총구 재생 실패")
 	_check(effect.flashes[0].global_position.is_equal_approx(muzzle.to_global(Vector3(-0.062, 0, 0.018))), "왼쪽 화염이 실제 총구에서 벗어남")
 	_check(effect.next_slot == 2 and effect.shots[0]["smoke"].visible and effect.shots[1]["smoke"].visible, "두 발의 연기가 독립적으로 유지되지 않음")
@@ -110,7 +110,7 @@ func _verify() -> void:
 	var flash_position: Vector3 = effect.flashes[0].global_position
 	frame["turrets"][0][1] = 4.5
 	frame["turrets"][0][3] = PI / 2.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(first_smoke.global_transform.is_equal_approx(first_pose) and second_smoke.global_transform.is_equal_approx(second_pose), "이미 발사한 연기가 포탑 이동·조준 회전을 따라감")
 	_check(effect.sparks.multimesh.get_instance_transform(0).is_equal_approx(first_spark), "이미 발사한 불티가 포탑 이동·조준 회전을 따라감")
 	_check(effect.flashes[0].global_position.distance_to(flash_position) > 0.1, "활성 화염이 변경된 총구 위치를 따라가지 않음")
@@ -118,42 +118,42 @@ func _verify() -> void:
 	frame["time"] = 1.03
 	frame["turrets"][0][4] = 9
 	frame["turrets"][0][5] = 0.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.next_slot == 3 and effect.flashes[1].visible, "건너뛴 발사 순번을 재연하거나 피드백이 없는 새 발사를 누락함")
 
 	# 이전 연기를 만료시킨 뒤 새 한 발의 각 수명 경계 검사.
 	frame["time"] = 2.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check_quiet(effect, "발사 종료 후")
 	frame["turrets"][0][4] = 10
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var timed_shot: Dictionary = effect.shots[3]
 	frame["time"] = 2.054
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.flashes[0].visible and effect.light.light_energy > 0.0 and effect.light.visible, "55ms 이전에 포구 화염·조명이 종료됨")
 	frame["time"] = 2.055001
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(not effect.flashes[0].visible and is_zero_approx(effect.light.light_energy) and not effect.light.visible, "55ms 이후 포구 화염·조명이 남음")
 	_check(timed_shot["smoke"].visible, "포구 화염 종료와 함께 연기가 조기 종료됨")
 	frame["time"] = 2.149
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.sparks.multimesh.get_instance_transform(12).basis.get_scale().length() > 0.0, "150ms 이전에 불티가 종료됨")
 	frame["time"] = 2.150001
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	for index in range(12, 16):
 		_check(effect.sparks.multimesh.get_instance_transform(index).basis.is_equal_approx(Basis.from_scale(Vector3.ZERO)), "150ms 이후 불티가 남음")
 	frame["time"] = 2.319
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(timed_shot["smoke"].visible, "320ms 이전에 연기가 종료됨")
 	frame["time"] = 2.320001
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check_quiet(effect, "320ms 이후")
 
 	# 6개 용량을 두 번 넘기는 연속 발사에서도 동일한 노드만 재사용.
 	for index in range(13):
 		frame["time"] = 3.0 + index * 0.01
 		frame["turrets"][0][4] = 11 + index
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		_check(effect.shots.size() == 6 and effect.get_child_count() == child_count, "연속 발사 중 발사 효과 노드 수가 증가함")
 		_check(effect.sparks.multimesh.instance_count == 24, "연속 발사 중 불티 인스턴스 수가 증가함")
 		for slot in range(6):
@@ -163,12 +163,12 @@ func _verify() -> void:
 		_check(shot["smoke"].visible and float(shot["start"]) >= 3.069, "고정 연기 슬롯에 최근 여섯 발이 유지되지 않음")
 
 	frame["time"] = 1.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check_quiet(effect, "전투 시간 되돌림")
 	_check(effect.next_slot == 0, "전투 시간 되돌림 후 발사 기록이 초기화되지 않음")
 	frame["time"] = 1.01
 	frame["turrets"][0][4] = 24
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(effect.flashes[0].visible and effect.shots[0]["smoke"].visible and effect.next_slot == 1, "시간 초기화 후 새 발사 효과를 시작하지 못함")
 
 	# 전투 프레임 없이 카메라 Tween만 진행해 연기의 시선 갱신 확인.
@@ -177,7 +177,7 @@ func _verify() -> void:
 	var ray_before: Vector3 = camera_shot["material"].get_shader_parameter("u_ray_direction")
 	var received_before: int = scene.received_frames
 	scene.options["camera"] = "drone"
-	scene._apply_options()
+	scene.apply_options()
 	var transition: Tween = scene.camera_transition
 	transition.pause()
 	transition.custom_step(0.21)
@@ -195,7 +195,7 @@ func _verify() -> void:
 	for flash: Node3D in effect.flashes:
 		owned_nodes.append(weakref(flash))
 	frame["turrets"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.turrets.is_empty(), "제거한 기관총의 전투 모델 잔류")
 	for reference in owned_nodes:
 		_check(reference.get_ref() == null, "기관총 제거 후 월드 고정 연기·불티·조명·화염 노드 잔류")

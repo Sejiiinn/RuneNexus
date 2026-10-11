@@ -9,11 +9,11 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(OS.get_environment("TMPDIR").path_join("rune-run-save-"+str(OS.get_process_id())))
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	check(not app.run_domain.state.is_empty(), "native application domain initialized")
 	if app.run_domain.state.is_empty():
 		push_error(app.run_domain.error)
@@ -79,7 +79,7 @@ func run() -> void:
 	app.command()
 	check(app.run_domain.state.gold==gold_after, "repeated event polling never double-pays")
 	check(runtime.events.is_empty(), "events ACKed after application")
-	scene._apply_frame(scene._native_combat_base_frame)
+	scene.apply_frame(scene.combat_base_frame)
 	app._process(0)
 	if DisplayServer.get_name() != "headless":
 		for i in range(8): await process_frame

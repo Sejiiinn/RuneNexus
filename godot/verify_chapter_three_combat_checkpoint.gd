@@ -5,7 +5,7 @@ const Runtime = preload("res://combat/native_combat_runtime.gd")
 const LobbyFixture = preload("res://verify_lobby.gd")
 const Checkpoint = preload("res://session/session_checkpoint.gd")
 class Host extends RefCounted:
-	var _native_combat
+	var combat_runtime
 class App extends RefCounted:
 	var scene
 	var catalog
@@ -35,7 +35,7 @@ func _initialize() -> void:
 		app.catalog = catalog
 		app.run_domain = fixture.domain
 		app.scene = Host.new()
-		app.scene._native_combat = runtime
+		app.scene.combat_runtime = runtime
 		var checkpoint = Checkpoint.new("/tmp/ch3-combat-checkpoint-%d" % spec[0])
 		var result: Error = checkpoint.persist_state(app,state)
 		if result != OK:

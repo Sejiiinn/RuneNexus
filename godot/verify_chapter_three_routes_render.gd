@@ -87,7 +87,7 @@ func exercise_selected_portals(map: Dictionary,wave: Dictionary,stage_id: int) -
 		else: app.hud.close_modal()
 
 func present() -> void:
-	scene._apply_frame(scene._native_combat_base_frame)
+	scene.apply_frame(scene.combat_base_frame)
 	app.hud.refresh()
 
 func run() -> void:
@@ -99,7 +99,7 @@ func run() -> void:
 	scene = load("res://main.gd").new()
 	scene._app_mode = true
 	root.add_child(scene)
-	app = scene._standalone_session
+	app = scene.session_controller
 	var narrow := "--narrow-modals" in OS.get_cmdline_user_args()
 	var guides_only := "--guides-only" in OS.get_cmdline_user_args()
 	if narrow:
@@ -119,7 +119,7 @@ func run() -> void:
 		var index: int = app.catalog.stage_index(stage_id)
 		check(index >= 0, "catalog stage " + str(stage_id))
 		if index < 0: continue
-		scene._native_combat.active = false
+		scene.combat_runtime.active = false
 		app.run_domain.state.clear()
 		check(await app.start_stage(index), "enter stage " + str(stage_id))
 		if app.in_lobby: continue
@@ -190,7 +190,7 @@ func run() -> void:
 			report.append({"stage":stage_id,"narrowModal":true,"selectedPortals":expected_portals})
 			continue
 		app.start_wave()
-		var runtime = scene._native_combat
+		var runtime = scene.combat_runtime
 		# Test-only core budget lets the real schedule complete without towers.
 		runtime.defense.hp = 1000000.0
 		runtime.defense.max_hp = 1000000.0

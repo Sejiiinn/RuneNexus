@@ -37,7 +37,7 @@ func wave_count(index: int) -> int:
 
 func prepare_run_transition() -> bool:
 	if not is_content_session() or run_domain.state.is_empty(): return true
-	if not scene._native_combat.active:
+	if not scene.combat_runtime.active:
 		checkpoint.message = "Load the saved run before replacing it"
 		return false
 	if not command(): return false
@@ -98,11 +98,11 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	epoch += 1
 	selected = Vector2i(-1, -1)
 	checkpoint.message = ""
-	scene._apply_frame({"reset":true,"sceneEpoch":epoch})
+	scene.apply_frame({"reset":true,"sceneEpoch":epoch})
 	var map: Dictionary = stage_map(stage)
 	var frame := {"seq":0,"sceneEpoch":epoch,"mapRevision":stage,"map":map,"time":0.0,"turrets":[],"enemies":[],"projectiles":[],"impacts":[],"presentation":{"effects":{},"labels":{}}}
-	scene._apply_frame(frame)
-	scene._native_combat_base_frame = frame
+	scene.apply_frame(frame)
+	scene.combat_base_frame = frame
 	var path: Array = catalog.world_path(stage) if is_content_session() else stage_source(stage).path
 	var initial := {"path":path,"tileSize":1.0,"boardDistanceScale":1.0/48.0,"defense":{"config":{"maxHp":100.0}}}
 	if is_content_session():
@@ -122,31 +122,31 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	initial.merge(bootstrap, true)
 	var control := {"clock":"godot","phase":"preparation","paused":false,"speed":1.0}
 	control.merge(session_state, true)
-	scene._native_combat.process_command({"epoch":epoch,"sequence":0,"session":control,"bootstrap":initial})
-	if not scene._native_combat.step_completed.is_connected(_on_combat_step_completed):
-		scene._native_combat.step_completed.connect(_on_combat_step_completed)
+	scene.combat_runtime.process_command({"epoch":epoch,"sequence":0,"session":control,"bootstrap":initial})
+	if not scene.combat_runtime.step_completed.is_connected(_on_combat_step_completed):
+		scene.combat_runtime.step_completed.connect(_on_combat_step_completed)
 
 func command(commands: Array = [], patch: Dictionary = {}) -> bool:
 	var before: Array = []
 	if is_content_session() and not applying_events:
 		applying_events = true
-		var collected: Dictionary = run_domain.collect(scene._native_combat)
+		var collected: Dictionary = run_domain.collect(scene.combat_runtime)
 		before = collected.get("commands", [])
 		applying_events = false
 		if not collected.get("ok", false):
 			checkpoint.message = run_domain.error
 			return false
-	var packet := {"epoch":epoch,"sequence":scene._native_combat.sequence+1,"commands":before+commands,"session":patch}
+	var packet := {"epoch":epoch,"sequence":scene.combat_runtime.sequence+1,"commands":before+commands,"session":patch}
 	if is_content_session():
 		packet.ackEvent = run_domain.event_ack
 		if not patch.has("phase") and not run_domain.state.is_empty(): packet.session.phase = run_domain.state.phase
 	else:
-		packet.ackEvent = scene._native_combat.event_id
-	scene._native_combat.process_command(packet, false)
+		packet.ackEvent = scene.combat_runtime.event_id
+	scene.combat_runtime.process_command(packet, false)
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:
-	if not is_content_session() or not scene._native_combat.active: return false
+	if not is_content_session() or not scene.combat_runtime.active: return false
 	# Settle newly observed events before checking affordability/phase.
 	if not command(): return false
 	var build_id := int(run_domain.state.get("nextTurretId",-1)) if request.get("kind") == "build" else -1
@@ -156,12 +156,12 @@ func apply_run_command(request: Dictionary) -> bool:
 		return false
 	command(result.get("commands", []), {"phase":run_domain.state.phase})
 	checkpoint.message = ""
-	if build_id >= 0 and scene.has_method("confirm_turret_placement"):
+	if build_id >= 0:
 		var placed: Dictionary = run_domain.service.turret(run_domain.state,build_id)
 		if not placed.is_empty(): scene.confirm_turret_placement(build_id,str(placed.type),int(placed.x),int(placed.y))
-	if request.get("kind") == "sell" and scene.has_method("cancel_turret_placement"):
+	if request.get("kind") == "sell":
 		scene.cancel_turret_placement(int(request.get("id",-1)))
-	scene._native_combat_base_frame.buildPreview = null
+	scene.combat_base_frame.buildPreview = null
 	return true
 
 func selected_run_command(kind: String, values: Dictionary = {}) -> bool:
@@ -170,7 +170,7 @@ func selected_run_command(kind: String, values: Dictionary = {}) -> bool:
 	return apply_run_command(request)
 
 func apply_growth_command(request: Dictionary) -> bool:
-	if not is_content_session() or run_domain.state.is_empty() or not scene._native_combat.active: return false
+	if not is_content_session() or run_domain.state.is_empty() or not scene.combat_runtime.active: return false
 	if not command(): return false
 	var result: Dictionary = run_domain.growth.execute(run_domain.state.progression, request)
 	if not result.get("ok", false):
@@ -192,17 +192,17 @@ func apply_growth_command(request: Dictionary) -> bool:
 func board_tap(tile: Vector2i) -> void:
 	selected = tile
 	if tile.x < 0:
-		scene._native_combat_base_frame.buildPreview = null
+		scene.combat_base_frame.buildPreview = null
 		return
-	scene._native_combat_base_frame.buildPreview = [-1,tile.x + 0.5,tile.y + 0.5,run_domain.Commands.initial_aim_angle(turret_type),0,0,turret_type]
+	scene.combat_base_frame.buildPreview = [-1,tile.x + 0.5,tile.y + 0.5,run_domain.Commands.initial_aim_angle(turret_type),0,0,turret_type]
 
 func build_selected() -> void:
-	if selected.x < 0 or not scene._native_combat.active: return
+	if selected.x < 0 or not scene.combat_runtime.active: return
 	apply_run_command({"kind":"build","x":selected.x,"y":selected.y,"type":turret_type})
 
 func start_wave() -> void:
-	if not scene._native_combat.active or scene._native_combat.defense.failed: return
-	if scene._native_combat.wave.active: return
+	if not scene.combat_runtime.active or scene.combat_runtime.defense.failed: return
+	if scene.combat_runtime.wave.active: return
 	if not command(): return
 	if run_domain.state.get("phase") != "preparation": return
 	if next_round >= catalog.wave_count(stage):
@@ -226,16 +226,16 @@ func start_wave() -> void:
 	return
 
 func toggle_pause() -> void:
-	if not scene._native_combat.active: return
-	command([], {"paused":not bool(scene._native_combat.session.get("paused",false))})
+	if not scene.combat_runtime.active: return
+	command([], {"paused":not bool(scene.combat_runtime.session.get("paused",false))})
 
 func toggle_speed() -> void:
-	if not scene._native_combat.active: return
-	command([], {"speed":4.0 if float(scene._native_combat.session.get("speed",1)) == 1 else 1.0})
+	if not scene.combat_runtime.active: return
+	command([], {"speed":4.0 if float(scene.combat_runtime.session.get("speed",1)) == 1 else 1.0})
 
 func toggle_camera() -> void:
 	scene.options.camera = "drone" if scene.options.camera == "angled" else "angled"
-	scene._apply_options()
+	scene.apply_options()
 
 func save_session() -> void:
 	checkpoint.save_session(self)
@@ -244,22 +244,22 @@ func load_session() -> void:
 	checkpoint.load_session(self)
 
 func exit_stage() -> void:
-	if is_content_session() and scene._native_combat.active:
+	if is_content_session() and scene.combat_runtime.active:
 		if checkpoint.save_session(self) != OK: return
 	epoch += 1
-	scene._apply_frame({"reset":true,"sceneEpoch":epoch})
+	scene.apply_frame({"reset":true,"sceneEpoch":epoch})
 
 func _on_combat_step_completed() -> void:
 	# The runtime has finished all movement/attacks/wave/core work and deducted
 	# this step's debt. ACK/configuration changes therefore affect the next step,
 	# regardless of how many simulation steps fit in the current render frame.
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	if is_content_session() and runtime.active and not run_domain.state.is_empty():
 		if runtime.event_id > run_domain.event_ack or runtime.session.get("phase") != run_domain.state.phase:
 			if not command(): runtime.session.paused = true
 
 func _process(_delta: float) -> void:
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	if is_content_session() and runtime.active and not run_domain.state.is_empty() and Time.get_ticks_msec() >= next_research_check:
 		next_research_check = Time.get_ticks_msec() + 1000
 		if not run_domain.state.progression.get("activeResearches", []).is_empty():

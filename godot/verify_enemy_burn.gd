@@ -183,6 +183,6 @@ func check_boss_lifecycle(scene: Node3D) -> void:
 		check(not is_instance_valid(burn) and not is_instance_valid(frost), kind + " 제거 시 상태 노드 정리")
 		scene._sync_enemies([unit(81, kind, true, true)])
 		var reset_root: Node3D = scene.enemies[81]["root"]
-		scene._apply_frame({"sceneEpoch": scene._scene_epoch + 1, "reset": true})
+		scene.apply_frame({"sceneEpoch": scene._scene_epoch + 1, "reset": true})
 		check(scene.enemies.is_empty() and not is_instance_valid(reset_root), kind + " epoch reset 시 상태 노드 정리")
 		print("Boss burn lifecycle: ", kind, " first/overlap/expire/reapply/remove/epoch reset checked")

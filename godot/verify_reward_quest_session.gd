@@ -24,7 +24,7 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	app.run_domain.now_millis = func(): return NOW
@@ -63,7 +63,7 @@ func write_events(app, directory: String) -> void:
 		app.board_tap(Vector2i(index % int(source.map.columns), floori(float(index)/int(source.map.columns))))
 		app.build_selected()
 	app.start_wave()
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	var kills := 0
 	var waves := 0
 	# The session ACKs after every fixed step; poll explicitly so this test can
@@ -115,7 +115,7 @@ func write_terminal(app, directory: String) -> void:
 	app.run_domain.state.roundIndex = source.waves.size()-1
 	app.run_domain.state.completedRounds = source.waves.size()-1
 	app.run_domain.state.pendingEconomyDiamonds = 17
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	runtime._emit({"kind":"waveCompleted", "waveId":int(source.waves[-1].round)})
 	check(app.command(), "terminal native event accepted")
 	var p: Dictionary = app.run_domain.state.progression
@@ -168,7 +168,7 @@ func failed_transition(app, directory: String) -> void:
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	var epoch: int = app.epoch
 	check(not await app.retry_stage(), "disk failure blocks retry")
-	check(app.epoch == epoch and app.run_domain.state == before and app.scene._native_combat.active, "disk failure preserves active run")
+	check(app.epoch == epoch and app.run_domain.state == before and app.scene.combat_runtime.active, "disk failure preserves active run")
 	app.enter_next()
 	check(app.epoch == epoch and app.run_domain.state == before, "disk failure blocks Stage replacement")
 	app.checkpoint = Checkpoint.new(directory.path_join("blocked-outbox"))

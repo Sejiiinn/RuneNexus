@@ -14,11 +14,11 @@ func run() -> void:
 	scene.set_process(false)
 	select_fixture(scene)
 	var before: Dictionary = scene.last_frame.duplicate(true)
-	var rng_state: int = scene._native_combat.rng.state
+	var rng_state: int = scene.combat_runtime.rng.state
 	var field: Texture3D = scene.field.texture
 	check(await scene.prepare_effects(), "Effect preparation succeeds")
 	check(scene.effects_prepared and not scene._effects_preparing, "Readiness follows complete preparation")
-	check(scene.last_frame == before and scene._native_combat.rng.state == rng_state, "Presentation preparation preserves frame and combat RNG")
+	check(scene.last_frame == before and scene.combat_runtime.rng.state == rng_state, "Presentation preparation preserves frame and combat RNG")
 	check(scene.field.texture == field, "Large impact field is reused")
 	for kind in ["normal", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]:
 		var data := [10,4.0,5.0,0.0,0.0,1.0,0.0,kind,false,false]

@@ -25,7 +25,7 @@ func _verify() -> void:
 		for index in range(labels_frame["turrets"].size()):
 			labels_frame["turrets"][index][6] = types[index % types.size()]
 			labels_frame["turrets"][index][7] = levels[index % levels.size()]
-		scene._apply_frame(labels_frame)
+		scene.apply_frame(labels_frame)
 	var compare_camera := "--crystal-camera-comparison" in OS.get_cmdline_user_args()
 	if "--crystal-glass" in OS.get_cmdline_user_args() or compare_camera:
 		var success := await _verify_crystal_glass(scene, output, compare_camera)
@@ -36,13 +36,13 @@ func _verify() -> void:
 		return
 	for sample in [{"camera": "angled", "progress": 0.13}, {"camera": "drone", "progress": 0.52}]:
 		scene.options["camera"] = sample["camera"]
-		scene._apply_options()
+		scene.apply_options()
 		if scene.camera_transition and scene.camera_transition.is_running():
 			await scene.camera_transition.finished
 		var frame: Dictionary = scene.last_frame.duplicate(true)
 		var target: Array = frame["enemies"][1]
 		frame["impacts"] = [[100, target[1], target[2], 1.2, sample["progress"]]]
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		for index in range(8):
 			await process_frame
 		await RenderingServer.frame_post_draw
@@ -85,7 +85,7 @@ func _verify_crystal_glass(scene: Node3D, output: String, compare_camera: bool =
 		print("Camera comparison local mesh bounds=%s crystal scale=%s root scale=%s" % [crystal.get_aabb(), crystal.scale, core.scale])
 	for sample in samples:
 		frame["time"] = sample["time"]
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		var environment: Environment = scene.camera.get_world_3d().environment
 		environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY if sample["reflections"] else Environment.REFLECTION_SOURCE_DISABLED
 		# 지형 광택·굴절 배경은 유지하고 결정 전용 보조광의 정반사만 비교.

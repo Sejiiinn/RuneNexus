@@ -599,7 +599,7 @@ func _radio(title: String, key: String, values: Array, labels: Array, fallback: 
 				message = "설정을 저장하지 못했습니다."
 			else:
 				Device.apply(app.scene.options)
-				app.scene._apply_options()
+				app.scene.apply_options()
 				message = ""
 			refresh()
 		)

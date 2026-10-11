@@ -38,7 +38,7 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument in ["--camera=angled", "--camera=drone"]:
 			scene.options.camera = argument.trim_prefix("--camera=")
-	scene._apply_options()
+	scene.apply_options()
 	if not catalog.load_catalog() or not run_domain.growth.load_catalog():
 		checkpoint.message = "콘텐츠를 불러오지 못했습니다"
 	elif services == null:
@@ -59,7 +59,7 @@ func _ready() -> void:
 
 func _refresh_ui() -> void:
 	var gated: bool=services!=null and services.boot_host!=null and services.boot_host.blocks_app_ui()
-	if scene != null and scene.has_method("set_battle_visible"):
+	if scene != null:
 		scene.set_battle_visible(not in_lobby and not gated)
 	if lobby != null:
 		lobby.visible = in_lobby and not gated
@@ -74,7 +74,7 @@ func refresh_economy_ui() -> void:
 
 func refresh_selection() -> void:
 	selection_view.apply(self)
-	if not scene._native_combat_base_frame.is_empty(): scene._apply_frame(scene._native_combat_base_frame)
+	if not scene.combat_base_frame.is_empty(): scene.apply_frame(scene.combat_base_frame)
 
 func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> void:
 	super.enter_stage(index, bootstrap, session_state, restored_state)
@@ -89,7 +89,7 @@ func board_tap(tile: Vector2i) -> void:
 	var changed := selected != tile
 	selected = tile
 	if changed: selection_view.level_preview = false
-	if hud != null and hud.has_method("on_board_selection"): hud.on_board_selection()
+	if hud != null: hud.on_board_selection()
 	refresh_selection()
 	if hud != null: hud.refresh()
 
@@ -99,8 +99,7 @@ func retry_load() -> bool:
 	# Keep the validated, paused simulation live for save/growth/settlement and
 	# Continue UI. Only battle presentation waits for an explicit stage entry.
 	# Account slot replacement also returns through this path.
-	if scene.has_method("begin_deferred_battle_presentation"):
-		scene.begin_deferred_battle_presentation()
+	scene.begin_deferred_battle_presentation()
 	if not catalog.is_loaded() or run_domain.growth.data.is_empty():
 		if not catalog.load_catalog() or not run_domain.growth.load_catalog(): return false
 	# Resolve a durable transition before probing individual files: an interrupted
@@ -151,8 +150,8 @@ func retry_load() -> bool:
 	in_lobby = true
 	if run_domain.state.is_empty():
 		epoch += 1
-		scene._apply_frame({"reset":true,"sceneEpoch":epoch})
-	elif scene._native_combat.active: command([], {"paused":true})
+		scene.apply_frame({"reset":true,"sceneEpoch":epoch})
+	elif scene.combat_runtime.active: command([], {"paused":true})
 	_refresh_ui()
 	return true
 
@@ -171,7 +170,7 @@ func start_stage(index: int) -> bool:
 	if save_failed and not persist_progression(): return false
 	_stage_entry_pending = true
 	_stage_entry_cancelled = false
-	if scene._native_combat.active: command([], {"paused":true})
+	if scene.combat_runtime.active: command([], {"paused":true})
 	if not await _prepare_stage_resources(index):
 		return _finish_stage_entry(false, start_stage.bind(index))
 	if _stage_entry_cancelled: return _finish_stage_entry(false)
@@ -190,7 +189,7 @@ func start_stage(index: int) -> bool:
 func resume_run() -> bool:
 	if _battle_preparation_pending(): return false
 	if services != null and services.blocks_play(): return false
-	if startup_blocked or not scene._native_combat.active or run_domain.state.is_empty(): return false
+	if startup_blocked or not scene.combat_runtime.active or run_domain.state.is_empty(): return false
 	if save_failed and not persist_progression(): return false
 	# Keep simulation paused until the returning battlefield is fully ready.
 	if not command([], {"paused":true}): return false
@@ -214,7 +213,7 @@ func _stage_boot():
 
 func _finish_stage_entry(success: bool, retry: Callable = Callable()) -> bool:
 	success = success and not _stage_entry_cancelled
-	if not success and scene.has_method("cancel_stage_preparation"): scene.cancel_stage_preparation()
+	if not success: scene.cancel_stage_preparation()
 	_stage_entry_pending = false
 	in_lobby = not success
 	var boot = _stage_boot()
@@ -230,29 +229,27 @@ func _finish_stage_entry(success: bool, retry: Callable = Callable()) -> bool:
 func cancel_stage_entry() -> void:
 	if not _stage_entry_pending: return
 	_stage_entry_cancelled = true
-	if scene.has_method("request_stage_preparation_cancel"): scene.request_stage_preparation_cancel()
-	if scene._native_combat.active: pause_and_save()
+	scene.request_stage_preparation_cancel()
+	if scene.combat_runtime.active: pause_and_save()
 	# The current threaded request is collected before the overlay is dismissed.
 	# No subsequent stage can enter while the old coroutine still owns resources.
 
 func _prepare_stage_resources(index: int, restored_state: Dictionary = {}) -> bool:
-	# Minimal simulation hosts and manual --session retain their existing path.
-	if not scene.has_method("prepare_stage_resources"): return true
 	var progression: Dictionary = progression_inputs if run_domain.state.is_empty() else run_domain.state.progression
 	if await scene.prepare_stage_resources(catalog, index, run_domain.growth.derive(progression), restored_state): return true
 	checkpoint.message = "스테이지 리소스를 준비하지 못했습니다. 다시 시도해 주세요."
 	return false
 
 func _realize_battle_presentation() -> bool:
-	if not scene.has_method("realize_battle_presentation") or await scene.realize_battle_presentation(): return true
+	if await scene.realize_battle_presentation(): return true
 	checkpoint.message = "전투 화면을 준비하지 못했습니다. 다시 시도해 주세요."
 	return false
 
 func _battle_preparation_pending() -> bool:
-	return _stage_entry_pending or (scene != null and scene.has_method("battle_preparation_pending") and scene.battle_preparation_pending())
+	return _stage_entry_pending or (scene != null and scene.battle_preparation_pending())
 
 func open_stage_menu_destination() -> bool:
-	if scene._native_combat.active: command([], {"paused":true})
+	if scene.combat_runtime.active: command([], {"paused":true})
 	if not persist_progression():
 		_refresh_ui()
 		return false
@@ -265,7 +262,7 @@ func open_stage_menu_destination() -> bool:
 
 func show_lobby() -> void:
 	if _stage_entry_pending: cancel_stage_entry(); return
-	if scene._native_combat.active: command([], {"paused":true})
+	if scene.combat_runtime.active: command([], {"paused":true})
 	in_lobby = true
 	persist_progression()
 	_refresh_ui()
@@ -273,7 +270,7 @@ func show_lobby() -> void:
 func _record_save_failure() -> void:
 	save_failed = true
 	var failure: String = checkpoint.message
-	if scene._native_combat.active: command([], {"paused":true})
+	if scene.combat_runtime.active: command([], {"paused":true})
 	checkpoint.message = failure
 
 func persist_progression() -> bool:
@@ -282,7 +279,7 @@ func persist_progression() -> bool:
 	var save_tick := RuntimeProfile.begin()
 	saving = true
 	var result: Error
-	if scene._native_combat.active and not run_domain.state.is_empty():
+	if scene.combat_runtime.active and not run_domain.state.is_empty():
 		result = checkpoint.save_session(self)
 	else:
 		result = checkpoint.save_progression(self, progression_inputs)
@@ -300,7 +297,7 @@ func apply_growth_command(request: Dictionary) -> bool:
 	if services != null and services.blocks_play(): return false
 	if startup_blocked: return false
 	if save_failed and not persist_progression(): return false
-	var active: bool = scene._native_combat.active and not run_domain.state.is_empty()
+	var active: bool = scene.combat_runtime.active and not run_domain.state.is_empty()
 	if active and not command(): return false
 	var current: Dictionary = run_domain.state.progression if active else progression_inputs
 	var result: Dictionary = run_domain.growth.execute(current, request)
@@ -338,7 +335,7 @@ func apply_run_command(request: Dictionary) -> bool:
 	if not persist_progression(): return false
 	# Command receipts, rather than equipment snapshots, own this transient cue.
 	# Loading, removing gems and repeated selection frames cannot replay it.
-	if request.get("kind") in ["equipGem", "chooseRewardGemEquip"] and scene.has_method("play_gem_equip_burst"):
+	if request.get("kind") in ["equipGem", "chooseRewardGemEquip"]:
 		scene.play_gem_equip_burst(int(request.get("id", -1)), str(request.get("type", "")))
 	return true
 
@@ -366,7 +363,7 @@ func set_speed(value: float) -> void:
 
 func begin_modal_pause() -> bool:
 	if startup_blocked or in_lobby or save_failed: return false
-	var running := not bool(scene._native_combat.session.get("paused", false))
+	var running := not bool(scene.combat_runtime.session.get("paused", false))
 	_modal_resume_allowed = running
 	if running:
 		command([], {"paused":true})
@@ -416,7 +413,7 @@ func _on_combat_step_completed() -> void:
 
 func _maybe_auto_start() -> void:
 	if in_lobby or auto_start_mode == "pauseEachRound" or run_domain.state.is_empty(): return
-	if run_domain.state.phase != "preparation" or bool(scene._native_combat.session.get("paused", false)): return
+	if run_domain.state.phase != "preparation" or bool(scene.combat_runtime.session.get("paused", false)): return
 	if next_round <= 0 or next_round >= catalog.wave_count(stage): return
 	if auto_start_mode == "skipBossRounds" and catalog.wave_has_boss(stage, next_round): return
 	start_wave()
@@ -440,7 +437,7 @@ func load_session() -> void:
 func pause_and_save() -> bool:
 	_pause_generation += 1
 	_modal_resume_allowed = false
-	if scene._native_combat.active: command([], {"paused":true})
+	if scene.combat_runtime.active: command([], {"paused":true})
 	return persist_progression()
 
 func request_quit() -> bool:
@@ -463,8 +460,8 @@ func _notification(what: int) -> void:
 			_refresh_ui()
 			return
 		if not in_lobby:
-			if hud == null or not hud.has_method("close_back") or not hud.close_back(): show_lobby()
-		elif lobby != null and lobby.has_method("go_back"): lobby.go_back()
+			if hud == null or not hud.close_back(): show_lobby()
+		elif lobby != null: lobby.go_back()
 		else: request_quit()
 	elif what == NOTIFICATION_WM_CLOSE_REQUEST: request_quit()
 	elif what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:

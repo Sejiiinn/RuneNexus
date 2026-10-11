@@ -307,11 +307,11 @@ func _load_slot(owner: String) -> bool:
 	app.checkpoint.allow_progression_only = true
 	app.run_domain.state = {}
 	app.progression_inputs = {}
-	app.scene._native_combat.active = false
+	app.scene.combat_runtime.active = false
 	app.in_lobby = true
 	app.save_failed = false
 	app.epoch += 1
-	app.scene._apply_frame({"reset":true,"sceneEpoch":app.epoch})
+	app.scene.apply_frame({"reset":true,"sceneEpoch":app.epoch})
 	return app.retry_load()
 
 func logout() -> Dictionary:
@@ -494,7 +494,7 @@ func _economy_projection_of(p: Dictionary) -> Dictionary:
 
 func _snapshot_current(_value: Dictionary) -> bool:
 	if _snapshot_checkpoint == null or _snapshot_checkpoint.get_ref() != app.checkpoint or _snapshot_projection != _economy_projection(): return false
-	if app.scene._native_combat.active and not app.run_domain.state.is_empty():
+	if app.scene.combat_runtime.active and not app.run_domain.state.is_empty():
 		return _snapshot_projection == _economy_projection_of(app.run_domain.state.get("progression",{}))
 	return true
 
@@ -511,13 +511,13 @@ func _progression_for_update() -> Dictionary:
 	# Background economy requests do not pause combat. Settle pending events and
 	# use the live progression at receipt time, not the last saved input cache.
 	# Callers map and persist this owned value synchronously before publishing it.
-	if app.scene._native_combat.active and not app.run_domain.state.is_empty():
+	if app.scene.combat_runtime.active and not app.run_domain.state.is_empty():
 		if not app.command(): return {}
 		return app.run_domain.state.progression.duplicate(true)
 	return app.progression_inputs.duplicate(true)
 
 func _store_progression(value: Dictionary) -> bool:
-	if app.run_domain.state.is_empty() or not app.scene._native_combat.active:
+	if app.run_domain.state.is_empty() or not app.scene.combat_runtime.active:
 		if app.checkpoint.save_progression(app,value) != OK: return false
 		app.progression_inputs = value
 	else:

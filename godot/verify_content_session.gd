@@ -16,7 +16,7 @@ func run() -> void:
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
 	app.progression_inputs = {"clearedStageNumbers":range(1,16)} # Isolated unlocked content fixture.
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	var stage_total: int = Progression.ORDER.size()
@@ -33,7 +33,7 @@ func run() -> void:
 		app.run_domain.state.gold = 100000 # Test budget; every build still pays the actual cost.
 		var source: Dictionary = app.stage_source(stage)
 		check(scene._current_map == source.map, "content map %d" % (stage+1))
-		check(scene._native_combat.path.size() == source.path.size(), "content path %d" % (stage+1))
+		check(scene.combat_runtime.path.size() == source.path.size(), "content path %d" % (stage+1))
 		var build_indices: Array = []
 		for i in range(source.map.tiles.size()):
 			if source.map.tiles[i] == "build": build_indices.append(i)
@@ -42,9 +42,9 @@ func run() -> void:
 			app.board_tap(Vector2i(index % int(source.map.columns), floori(float(index)/int(source.map.columns))))
 			app.build_selected()
 			app.cycle_turret()
-		check(scene._native_combat.turrets.size() == mini(6, build_indices.size()), "six actual turret configurations")
+		check(scene.combat_runtime.turrets.size() == mini(6, build_indices.size()), "six actual turret configurations")
 		app.start_wave()
-		var runtime = scene._native_combat
+		var runtime = scene.combat_runtime
 		check(runtime.wave.id == int(source.waves[0].round), "actual first wave id")
 		check(runtime.wave.queue.size() == source.waves[0].spawnQueue.size(), "actual wave schedule count")
 		var pending_round: int = app.next_round
@@ -65,13 +65,13 @@ func run() -> void:
 		check(app.checkpoint.save_session(app) == OK, "content checkpoint save")
 		var saved_gold: int = app.run_domain.state.gold
 		check(app.checkpoint.load_session(app) == OK, "content checkpoint load")
-		runtime = scene._native_combat
+		runtime = scene.combat_runtime
 		check(app.stage == stage and app.run_domain.state.gold == saved_gold and runtime.session.paused, "content restore preserves stage/economy and pauses")
 		app.command()
 		var settled_gold: int = app.run_domain.state.gold
 		app.command()
 		check(app.run_domain.state.gold == settled_gold and runtime.events.is_empty(), "events applied once before ACK")
-		scene._apply_frame(scene._native_combat_base_frame)
+		scene.apply_frame(scene.combat_base_frame)
 		app._process(0)
 		await capture("content-stage-%d" % (stage+1))
 	# Select actual boss waves through the same development selector (one per chapter boss kind).
@@ -80,7 +80,7 @@ func run() -> void:
 		var source: Dictionary = app.stage_source(stage)
 		for i in range(source.waves.size()-1): app.cycle_wave()
 		app.start_wave()
-		var runtime = scene._native_combat
+		var runtime = scene.combat_runtime
 		check(runtime.wave.id == int(source.waves[-1].round), "boss wave selector")
 		var boss_delay := -1.0
 		for pending in runtime.wave.queue:
@@ -92,7 +92,7 @@ func run() -> void:
 			if runtime.defense.failed: break
 			runtime.advance_session(1.0/60.0)
 		check(runtime.enemies.values().any(func(e): return "boss" in str(e.type).to_lower()), "actual chapter boss spawned")
-		scene._apply_frame(scene._native_combat_base_frame)
+		scene.apply_frame(scene.combat_base_frame)
 		app._process(0)
 		await capture("content-boss-stage-%d" % (stage+1))
 	app.exit_stage()
@@ -100,7 +100,7 @@ func run() -> void:
 	DirAccess.remove_absolute(save_directory.path_join("saves/guest"))
 	DirAccess.remove_absolute(save_directory.path_join("saves"))
 	DirAccess.remove_absolute(save_directory)
-	check(not scene._native_combat.active, "content exit")
+	check(not scene.combat_runtime.active, "content exit")
 	scene.queue_free()
 	for i in range(3): await process_frame
 	print("CONTENT_SESSION failures=", failures)

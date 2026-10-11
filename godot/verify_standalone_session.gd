@@ -11,10 +11,10 @@ func run() -> void:
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
 	app.content_enabled = false # Explicit legacy save regression, never the default content path.
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	check(scene._session_frame_delta(300.0,true,1,1000000)==0.0,"first activation discards suspended delta")
 	check(scene._session_frame_delta(0.016,true,1,1016000)==0.016,"active frame uses monotonic elapsed time")
 	check(scene._session_frame_delta(600.0,true,2,9016000)==0.0,"resume generation discards delta even without inactive tick")
@@ -47,12 +47,12 @@ func run() -> void:
 		check(scene._session_input.board_position(point)==tile,"native camera ray stage %d" % (stage+1))
 		scene._session_input.tap(point)
 		app.build_selected()
-		check(scene._native_combat.turrets.size()==1,"native tile selection and construction")
+		check(scene.combat_runtime.turrets.size()==1,"native tile selection and construction")
 	# Real touch must be emitted once even with OS-emulated mouse delivery.
 	var input = scene._session_input
 	var point: Vector2 = scene.camera.unproject_position(scene.world.to_global(Vector3(-1.5,0,-4.5)))
-	var before_id: int = scene._native_combat.event_id
-	scene._native_combat_base_frame.rewardViewport = null
+	var before_id: int = scene.combat_runtime.event_id
+	scene.combat_base_frame.rewardViewport = null
 	for pressed in [true,false]:
 		var touch := InputEventScreenTouch.new()
 		touch.index = 0
@@ -65,8 +65,8 @@ func run() -> void:
 		mouse.position = point
 		mouse.pressed = pressed
 		input.handle(mouse)
-	check(scene._native_combat.event_id == before_id+1,"touch plus emulated mouse emits one tap; null reward viewport allowed")
-	before_id = scene._native_combat.event_id
+	check(scene.combat_runtime.event_id == before_id+1,"touch plus emulated mouse emits one tap; null reward viewport allowed")
+	before_id = scene.combat_runtime.event_id
 	for index in [0,1]:
 		var touch := InputEventScreenTouch.new()
 		touch.index = index
@@ -79,12 +79,12 @@ func run() -> void:
 		touch.position = point+Vector2(index*30,0)
 		touch.pressed = false
 		input.handle(touch)
-	check(scene._native_combat.event_id == before_id,"two-finger release cannot turn into board tap")
+	check(scene.combat_runtime.event_id == before_id,"two-finger release cannot turn into board tap")
 	app.start_wave()
-	runtime = scene._native_combat
+	runtime = scene.combat_runtime
 	for i in range(180):
 		runtime.advance_session(1.0/60.0)
-		scene._apply_frame(scene._native_combat_base_frame)
+		scene.apply_frame(scene.combat_base_frame)
 	check(runtime.clock > 2.9 and not runtime.enemies.is_empty(),"combat without Flutter dt")
 	check(runtime.turrets.values()[0].shotSequence>0,"standalone placed turret attacks")
 	var before: float = runtime.clock
@@ -106,13 +106,13 @@ func run() -> void:
 	await process_frame
 	app = load("res://session/standalone.gd").new()
 	app.content_enabled = false # Explicit legacy save regression, never the default content path.
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	app.epoch = old_epoch + 2
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(saved_directory)
 	check(app.checkpoint.load_session(app) == OK, "fresh application restores checkpoint")
-	runtime = scene._native_combat
+	runtime = scene.combat_runtime
 	check(runtime.enemies.size() == checkpoint.activeRun.enemies.size(), "restored active enemies")
 	check(runtime.wave.snapshot().spawnQueue == checkpoint.activeRun.spawnQueue, "remaining spawn delays not replayed")
 	check(runtime.turrets.size() == checkpoint.activeRun.turrets.size(), "restored tower layout")
@@ -130,16 +130,16 @@ func run() -> void:
 	DirAccess.remove_absolute(saved_directory.path_join("saves/guest"))
 	DirAccess.remove_absolute(saved_directory.path_join("saves"))
 	DirAccess.remove_absolute(saved_directory)
-	scene._apply_frame(scene._native_combat_base_frame)
+	scene.apply_frame(scene.combat_base_frame)
 	app._process(0)
 	if DisplayServer.get_name() != "headless":
 		for i in range(8): await process_frame
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../captures/standalone-session.png"))
 	app.exit_stage()
-	check(not scene._native_combat.active and scene._native_combat.events.is_empty(),"exit drops active clock and events")
+	check(not scene.combat_runtime.active and scene.combat_runtime.events.is_empty(),"exit drops active clock and events")
 	app.enter_stage(0)
-	check(scene._native_combat.clock == 0 and scene._native_combat.events.is_empty(),"reentry fresh state")
+	check(scene.combat_runtime.clock == 0 and scene.combat_runtime.events.is_empty(),"reentry fresh state")
 	scene.queue_free()
 	for i in range(3): await process_frame
 	if failures.is_empty(): print("PASS standalone stages 1/6/11/15, ray projection, selection/build, combat, pause/resume/4x, exit/reentry, v2 checkpoint/restart")
@@ -148,7 +148,7 @@ func run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _verify_control_boundaries(scene) -> void:
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	var real_clock: Callable = scene._session_now_usec
 	var time := {"usec":1000000}
 	scene._session_now_usec = func(): return time.usec
@@ -190,18 +190,18 @@ func _verify_control_boundaries(scene) -> void:
 	check(runtime.simulation_tick == 43 and scene._session_frame_clock.sampled_usec == sampled and is_equal_approx(runtime.wall_elapsed,wall+1.0/60.0),"game-timestamped callback skips physical sampling and rebase inside accepted frame")
 	# A retained old runtime cannot charge time into its scene replacement.
 	var replacement = scene._new_native_combat()
-	scene._native_combat = replacement
+	scene.combat_runtime = replacement
 	sampled = scene._session_frame_clock.sampled_usec
 	time.usec += 1000000
 	runtime.process_command({"epoch":runtime.epoch,"sequence":runtime.sequence+1,"session":{"speed":2.0}},false)
 	check(replacement.simulation_debt == 0.0 and replacement.wall_elapsed == 0.0 and scene._session_frame_clock.sampled_usec == sampled,"retired runtime control signals cannot accrue or rebase replacement clock")
-	scene._native_combat = runtime
+	scene.combat_runtime = runtime
 	scene.set_process(false)
 	scene._session_now_usec = real_clock
 	scene._session_frame_clock.reset()
 
 func _verify_host_boundaries(scene) -> void:
-	var original_runtime = scene._native_combat
+	var original_runtime = scene.combat_runtime
 	var real_clock: Callable = scene._session_now_usec
 	var time := {"usec":1000000}
 	scene._session_now_usec = func(): return time.usec
@@ -215,7 +215,7 @@ func _verify_host_boundaries(scene) -> void:
 			for child_pause in [false, true]:
 				for speed in [1.0, 4.0]:
 					var runtime = scene._new_native_combat()
-					scene._native_combat = runtime
+					scene.combat_runtime = runtime
 					scene._session_has_focus = true
 					scene._session_suspended = false
 					scene._session_frame_clock.reset()
@@ -244,7 +244,7 @@ func _verify_host_boundaries(scene) -> void:
 					runtime.advance_session(elapsed)
 					while runtime.simulation_debt + 0.0000000001 >= 1.0/60.0: runtime.advance_session(0.0)
 					check(is_equal_approx(elapsed,0.05) and is_equal_approx(runtime.clock,0.55*speed) and is_equal_approx(runtime.wall_elapsed,0.55),"both host notification orders exclude 900 seconds and preserve active prefix/suffix at 1x/4x")
-	scene._native_combat = original_runtime
+	scene.combat_runtime = original_runtime
 	scene._session_now_usec = real_clock
 	scene._session_frame_clock.reset()
 	scene.set_process(false)

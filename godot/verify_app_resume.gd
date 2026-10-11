@@ -29,15 +29,15 @@ func run() -> void:
 	app.ui_enabled = false
 	var folder := OS.get_environment("TMPDIR").path_join("rune-resume-" + str(Time.get_ticks_usec()))
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(folder)
-	scene._standalone_session = app; scene.add_child(app); app.set_process(false)
+	scene.session_controller = app; scene.add_child(app); app.set_process(false)
 	check(await app.start_stage(0), "Start isolated run")
 	app.start_wave()
-	for frame in 120: scene._native_combat.advance_session(1.0 / 60.0)
+	for frame in 120: scene.combat_runtime.advance_session(1.0 / 60.0)
 	app.selected = Vector2i(2, 1)
 	scene.options.camera = "drone"
 	var identity: String = app.run_domain.state.economyRunId
 	var epoch: int = app.epoch
-	var elapsed: float = scene._native_combat.elapsed
+	var elapsed: float = scene.combat_runtime.elapsed
 	var service := Services.new(); app.add_child(service); service.set_process(false)
 	service.app = app; service._startup_pending = false; app.services = service
 	var update := Update.new(); service.add_child(update)
@@ -48,13 +48,13 @@ func run() -> void:
 	var modal: Control = screen.modal
 	app._notification(MainLoop.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	app._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
-	check(scene._native_combat.session.paused, "Background pauses active battle")
+	check(scene.combat_runtime.session.paused, "Background pauses active battle")
 	check(app.checkpoint.store.load_save().activeRun != null, "Background checkpoints isolated run")
 	app._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
 	await settle()
 	check(update.checks == 0 and not update.blocked, "Ordinary resume does not reopen completed startup update check")
 	check(not app.in_lobby and app.epoch == epoch and app.run_domain.state.economyRunId == identity, "Ordinary resume retains battle route, epoch and run")
-	check(scene._native_combat.session.paused and scene._native_combat.elapsed == elapsed, "Resume does not advance paused combat")
+	check(scene.combat_runtime.session.paused and scene.combat_runtime.elapsed == elapsed, "Resume does not advance paused combat")
 	check(app.selected == Vector2i(2,1) and scene.options.camera == "drone" and screen.modal == modal, "Selection, camera and existing modal survive")
 	app.in_lobby = true
 	app._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)

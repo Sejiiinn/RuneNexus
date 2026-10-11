@@ -17,8 +17,8 @@ func reset() -> void:
 	dragged = false
 
 func blocked() -> bool:
-	var state: Dictionary = scene._native_combat.session
-	var app = scene._standalone_session
+	var state: Dictionary = scene.combat_runtime.session
+	var app = scene.session_controller
 	# Pause stops simulation, while camera/selection/build input stays available.
 	# Save failures and reward replacement still require a blocked board.
 	if is_instance_valid(app):
@@ -26,12 +26,12 @@ func blocked() -> bool:
 		if app.get("hud") != null:
 			var rewards = app.hud.get("rewards")
 			if rewards != null and rewards.targeting() and rewards.replacing(): return true
-	return bool(scene._native_combat_base_frame.get("inputBlocked", false)) or bool(state.get("loading", false)) or bool(state.get("backgrounded", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
+	return bool(scene.combat_base_frame.get("inputBlocked", false)) or bool(state.get("loading", false)) or bool(state.get("backgrounded", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
 
 func handle(event: InputEvent) -> void:
 	# Android touch can also synthesize a mouse event; consume the native touch once.
 	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION: return
-	if not scene._native_combat.native_session() or blocked():
+	if not scene.combat_runtime.native_session() or blocked():
 		contacts.clear()
 		return
 	var previous_pan := pan
@@ -70,12 +70,12 @@ func handle(event: InputEvent) -> void:
 		if dragged: pan += event.relative / scene.get_viewport().get_visible_rect().size
 	pan = pan.clamp(Vector2(-0.75, -0.75), Vector2(0.75, 0.75))
 	# Paused combat does not publish simulation frames; show camera input now.
-	if bool(scene._native_combat.session.get("paused", false)) and (pan != previous_pan or not is_equal_approx(zoom, previous_zoom)) and not scene._native_combat_base_frame.is_empty():
-		scene._apply_frame(scene._native_combat_base_frame)
+	if bool(scene.combat_runtime.session.get("paused", false)) and (pan != previous_pan or not is_equal_approx(zoom, previous_zoom)) and not scene.combat_base_frame.is_empty():
+		scene.apply_frame(scene.combat_base_frame)
 
 func set_zoom(value: float) -> void:
 	zoom = clampf(value, 1.0, 2.5)
-	scene._native_combat.submit_input({"kind":"cameraChanged", "camera":scene.camera_mode, "zoom":zoom})
+	scene.combat_runtime.submit_input({"kind":"cameraChanged", "camera":scene.camera_mode, "zoom":zoom})
 
 func board_position(point: Vector2) -> Vector2i:
 	var ray: Vector3 = scene.camera.project_ray_origin(point)
@@ -88,7 +88,7 @@ func board_position(point: Vector2) -> Vector2i:
 	return tile
 
 func tap(point: Vector2) -> void:
-	var raw_reward = scene._native_combat_base_frame.get("rewardViewport")
+	var raw_reward = scene.combat_base_frame.get("rewardViewport")
 	var reward: Array = raw_reward if raw_reward is Array else []
 	if reward.size() == 4:
 		var logical: Array = scene.last_frame.get("viewport", [])
@@ -96,5 +96,5 @@ func tap(point: Vector2) -> void:
 			var p := point * Vector2(logical[0], logical[1]) / scene.get_viewport().get_visible_rect().size
 			if not Rect2(reward[0],reward[1],reward[2],reward[3]).has_point(p): return
 	var tile := board_position(point)
-	scene._native_combat.submit_input({"kind":"boardTap", "column":tile.x, "row":tile.y})
-	if is_instance_valid(scene._standalone_session): scene._standalone_session.board_tap(tile)
+	scene.combat_runtime.submit_input({"kind":"boardTap", "column":tile.x, "row":tile.y})
+	if is_instance_valid(scene.session_controller): scene.session_controller.board_tap(tile)

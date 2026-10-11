@@ -9,11 +9,9 @@ var checks := 0
 var failures: Array[String] = []
 var catalog = Catalog.new()
 
-class TestScene extends Node3D:
-	var _native_combat = Runtime.new()
-	var _native_combat_base_frame: Dictionary = {}
-	func _apply_frame(frame: Dictionary) -> void:
-		if frame.get("reset", false): _native_combat = Runtime.new()
+class TestScene extends "res://verify_support_fake_battlefield.gd":
+	func apply_frame(frame: Dictionary) -> void:
+		if frame.get("reset", false): combat_runtime = Runtime.new()
 
 class TestApp extends "res://app/app_lifecycle.gd":
 	func persist_progression() -> bool: return true
@@ -55,7 +53,7 @@ func verify_delivery(speed: float, delta: float) -> void:
 	app.run_domain.now_millis = func(): return 1720000000000
 	app.enter_stage(0, {}, {"speed":speed})
 	app.start_wave()
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	runtime.wave.queue.clear()
 	runtime.wave.next_index = 0
 	for i in KINDS.size():

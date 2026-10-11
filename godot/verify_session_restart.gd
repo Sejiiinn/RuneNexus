@@ -16,7 +16,7 @@ func run() -> void:
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
 	app.content_enabled = false # Explicit legacy save regression, never the default content path.
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(arguments[1])
@@ -26,14 +26,14 @@ func run() -> void:
 		app.board_tap(Vector2i(index % int(map.columns), floori(float(index)/int(map.columns))))
 		app.build_selected()
 		app.start_wave()
-		for i in range(180): scene._native_combat.advance_session(1.0/60.0)
+		for i in range(180): scene.combat_runtime.advance_session(1.0/60.0)
 		check(app.checkpoint.save_session(app) == OK, "write v2 checkpoint before process exit")
 	else:
 		var saved = app.checkpoint.store.load_save()
 		check(saved != null, "previous process save exists")
 		if saved != null:
 			check(app.checkpoint.load_session(app) == OK, "new process loads v2 checkpoint")
-			var runtime = scene._native_combat
+			var runtime = scene.combat_runtime
 			check(runtime.session.paused and runtime.clock == 0, "restored process waits for resume")
 			check(runtime.enemies.size() == saved.activeRun.enemies.size(), "enemy count")
 			check(runtime.wave.snapshot().spawnQueue == saved.activeRun.spawnQueue, "remaining spawn schedule")
@@ -45,7 +45,7 @@ func run() -> void:
 			app.toggle_pause()
 			runtime.advance_session(0.1)
 			check(runtime.clock > 0, "restored process advances without Flutter")
-			scene._apply_frame(scene._native_combat_base_frame)
+			scene.apply_frame(scene.combat_base_frame)
 			app._process(0)
 			if DisplayServer.get_name() != "headless":
 				for i in range(8): await process_frame

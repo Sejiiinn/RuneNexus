@@ -66,13 +66,13 @@ func _check_dressing(scene: Node3D, frame: Dictionary, label: String) -> void:
 	for slot in range(build_points.size()):
 		var point := build_points[slot]
 		occupied_frame["turrets"] = [[901, point.x + scene.columns / 2.0, point.z + scene.rows / 2.0, 0, 0, 0, "cannon", 1]]
-		scene._apply_frame(occupied_frame)
+		scene.apply_frame(occupied_frame)
 		var expected := Vector2i(1 << slot, 0) if slot < 16 else Vector2i(0, 1 << (slot - 16))
 		_check(scene._foliage_material.get_shader_parameter("occupied_build_tiles") == expected, label + " 설치 타일의 중앙 식생 가림 오류")
 	occupied_frame["turrets"] = []
-	scene._apply_frame(occupied_frame)
+	scene.apply_frame(occupied_frame)
 	_check(scene._foliage_material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, label + " 철거 후 중앙 식생 가림 잔류")
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 
 func _teleport_jump(map: Dictionary, from: Vector2, to: Vector2) -> bool:
 	for pair: Dictionary in map.get("teleportPairs", []):
@@ -104,7 +104,7 @@ func _verify() -> void:
 		frame["sceneEpoch"] = epoch
 		frame["seq"] = 0
 		epoch += 1
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		var label := "Stage %d" % int(frame.get("stage", stage_index + 1))
 		var map: Dictionary = frame["map"]
 		var columns := int(map["columns"])
@@ -151,11 +151,11 @@ func _verify() -> void:
 			_check(at_tile == expected, label + " 타일 %d 배치 오류" % index)
 		var terrain_id: int = scene.terrain.get_child(0).get_instance_id()
 		frame["seq"] = 1
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		_check(scene.terrain.get_child(0).get_instance_id() == terrain_id, label + " 동일 맵 재생성")
 		for mode in ["angled", "drone"]:
 			scene.options["camera"] = mode
-			scene._apply_options()
+			scene.apply_options()
 			if scene.camera_transition:
 				scene.camera_transition.pause()
 				scene.camera_transition.custom_step(scene.CAMERA_TRANSITION_SECONDS)
@@ -178,7 +178,7 @@ func _verify() -> void:
 	var changed_tiles: Array = changed["map"]["tiles"]
 	changed_tiles[changed_tiles.find("build")] = "blocked"
 	changed["turrets"] = []
-	scene._apply_frame(changed)
+	scene.apply_frame(changed)
 	_check(not scene._using_dressing, "다른 타일 배열에 환경 장식이 잘못 연결됨")
 	_check(scene.terrain.find_child("stage1_dressing_foliage", true, false) == null, "불일치 맵에 이전 식생이 남음")
 	_check(scene._build_tile_slots.is_empty(), "불일치 맵에 이전 점유 슬롯이 남음")

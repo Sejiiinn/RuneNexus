@@ -39,8 +39,8 @@ class LoginPlatform extends Platform:
 class ResumeLifecycle extends "res://app/app_lifecycle.gd":
 	func _ready(): pass
 
-class ResumeScene extends Node3D:
-	var _native_combat={"active":false}
+class ResumeScene extends "res://verify_support_fake_battlefield.gd":
+	func _init() -> void: combat_runtime = {"active":false}
 
 class GateFixture extends Node:
 	signal changed
@@ -124,8 +124,8 @@ class FixtureServer extends RefCounted:
 		return reply(500,{},"UNEXPECTED_FIXTURE_ENDPOINT")
 
 class SceneStub extends RefCounted:
-	var _native_combat := {"active":false}
-	func _apply_frame(_frame): pass
+	var combat_runtime := {"active":false}
+	func apply_frame(_frame): pass
 class DomainStub extends RefCounted:
 	var state := {}
 	var growth = Growth.new()
@@ -204,12 +204,12 @@ func _run():
 	result=await service.perform("claim_reward",{"period":"daily","rewardType":"attendance"})
 	check(result.ok and app.progression_inputs.dailyAttendanceRewardClaimed,"Daily receipt updates persisted claim flag")
 	check(service._snapshot_current(server.economy_snapshot()),"Claim-only flags keep current economic projection")
-	app.scene._native_combat.active=true
+	app.scene.combat_runtime.active=true
 	app.run_domain.state={"progression":app.progression_inputs.duplicate(true)}
 	check(service._snapshot_current(server.economy_snapshot()),"Matching active run permits snapshot reuse")
 	app.run_domain.state.progression.freeDiamonds=9999
 	check(not service._snapshot_current(server.economy_snapshot()),"Active run divergence invalidates snapshot reuse")
-	app.scene._native_combat.active=false
+	app.scene.combat_runtime.active=false
 	app.run_domain.state={}
 	app.progression_inputs.freeDiamonds=9999
 	check(not service._snapshot_current(server.economy_snapshot()),"Local wallet divergence invalidates snapshot reuse")

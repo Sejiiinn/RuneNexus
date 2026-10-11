@@ -68,7 +68,7 @@ func cycle_turret() -> void:
 	if selected.x >= 0: board_tap(selected)
 
 func cycle_wave() -> void:
-	if not scene._native_combat.active or scene._native_combat.wave.active: return
+	if not scene.combat_runtime.active or scene.combat_runtime.wave.active: return
 	if run_domain.state.get("phase") != "preparation": return
 	var total: int = wave_count(stage)
 	var completed: int = run_domain.state.get("completedRounds", 0)
@@ -82,42 +82,42 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	super.enter_stage(index, bootstrap, session_state, restored_state)
 	# This development entry consumes the same native effect/selection contract
 	# as the app. Without its version, main suppresses all presentation groups.
-	scene._native_combat_base_frame["presentationVersion"] = 2
+	scene.combat_base_frame["presentationVersion"] = 2
 
 func build_selected() -> void:
-	if selected.x < 0 or not scene._native_combat.active: return
+	if selected.x < 0 or not scene.combat_runtime.active: return
 	if content_enabled:
 		super.build_selected()
 		return
 	var map: Dictionary = stage_map(stage)
 	if selected.x >= int(map.columns) or selected.y < 0 or selected.y >= int(map.rows): return
 	if map.tiles[selected.y * int(map.columns) + selected.x] != "build": return
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	var position := [runtime.origin.x + (selected.x + 0.5) * runtime.tile_size, runtime.origin.y + (selected.y + 0.5) * runtime.tile_size]
-	for turret in scene._native_combat.turrets.values():
+	for turret in scene.combat_runtime.turrets.values():
 		if turret.position == position: return
 	var stats: Dictionary = fixture.turret.duplicate(true)
 	stats.boardDistanceScale = 1.0 / 48.0
 	command([{"kind":"turret","turret":{"id":next_id,"position":position,"statInput":stats,"state":{"x":selected.x,"y":selected.y}}}])
 	next_id += 1
-	scene._native_combat_base_frame.buildPreview = null
+	scene.combat_base_frame.buildPreview = null
 
 func start_wave() -> void:
 	if content_enabled:
 		super.start_wave()
 		return
-	if not scene._native_combat.active or scene._native_combat.defense.failed: return
-	if scene._native_combat.wave.active: return
+	if not scene.combat_runtime.active or scene.combat_runtime.defense.failed: return
+	if scene.combat_runtime.wave.active: return
 	var path: Array = fixture.stages[stage].path
 	var queue: Array = []
 	for index in range(12):
 		queue.append({"delay":index*0.6,"enemyType":"normal","enemy":checkpoint.enemy_configuration(path,index+1)})
-	if scene._native_combat.wave.active: return
-	command([{"kind":"waveStart","wave":{"id":scene._native_combat.wave.id+1,"active":true,"spawnQueue":queue}}],{"phase":"wave","paused":false})
+	if scene.combat_runtime.wave.active: return
+	command([{"kind":"waveStart","wave":{"id":scene.combat_runtime.wave.id+1,"active":true,"spawnQueue":queue}}],{"phase":"wave","paused":false})
 
 func _process(delta: float) -> void:
 	super._process(delta)
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	if not status.is_visible_in_tree(): return
 	status.text = "Stage %d | %s | %.1fs | HP %.1f | selected %s" % [stage+1, runtime.session.get("phase","ended"),runtime.clock,runtime.defense.hp,selected] + " | " + checkpoint.message
 	if content_enabled:

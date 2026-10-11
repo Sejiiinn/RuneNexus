@@ -536,7 +536,7 @@ func _choices(frame: Control, title: String, description: String, key: String, v
 			settings[key] = values[i]
 			if Device.write(settings):
 				Device.apply(lobby.app.scene.options)
-				lobby.app.scene._apply_options()
+				lobby.app.scene.apply_options()
 			else:
 				var error_frame := _dialog("저장 실패", 172)
 				error_frame.add_child(_modal_label("설정을 저장하지 못했습니다. 다시 시도해 주세요."))

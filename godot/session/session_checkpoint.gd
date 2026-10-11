@@ -56,11 +56,11 @@ func enqueue_finished(app) -> Error:
 	return _save_content(app)
 
 func persist_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Error:
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	if not runtime.active or not is_equal_approx(runtime.tile_size, 1.0) or runtime.origin != Vector2.ZERO:
 		message = "Unsupported checkpoint coordinate configuration"
 		return ERR_UNAVAILABLE
-	var snapshot: Dictionary = app.scene._native_combat.snapshot()
+	var snapshot: Dictionary = app.scene.combat_runtime.snapshot()
 	var adapter = ContentSave.new(app.catalog, app.run_domain.growth)
 	var before: Dictionary = {}
 	if not previous.is_empty():
@@ -96,7 +96,7 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 	# Called only by the account-bound settlement worker after response validation.
 	if owner == "guest": return false
 	var mapper = RewardSnapshot.new()
-	if not app.scene._native_combat.active:
+	if not app.scene.combat_runtime.active:
 		var saved = store.load_save()
 		if saved == null: return false
 		var input: Dictionary = saved.progression.duplicate(true)
@@ -127,7 +127,7 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 
 func save_session(app) -> Error:
 	if app.is_content_session(): return _save_content(app)
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	if not runtime.active:
 		message = "No active stage"
 		return ERR_UNCONFIGURED
@@ -213,7 +213,7 @@ func load_session(app) -> Error:
 	return OK
 
 func _save_content(app) -> Error:
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	if not runtime.active or app.run_domain.state.is_empty():
 		message = "No active stage"
 		return ERR_UNCONFIGURED

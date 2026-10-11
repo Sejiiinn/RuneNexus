@@ -32,12 +32,12 @@ class ObservedMain extends "res://main.gd":
 			_pending_stage_manifest.paths.append("res://assets/does-not-exist-loading-regression.glb")
 		await super.stage_feedback_frame()
 		feedback_completions += 1
-	func _apply_frame(frame: Dictionary) -> void:
+	func apply_frame(frame: Dictionary) -> void:
 		if fail_frame_once and _realizing_battle:
 			fail_frame_once = false
 			_fail("Injected cached realization failure")
 			return
-		super._apply_frame(frame)
+		super.apply_frame(frame)
 	func prepare_effects() -> bool:
 		if fail_effects_once:
 			fail_effects_once = false
@@ -192,7 +192,7 @@ func run() -> void:
 	scene = ObservedMain.new()
 	scene._app_mode = true
 	root.add_child(scene)
-	app = scene._standalone_session
+	app = scene.session_controller
 	# Stop deferred live-service initialization before the first frame.
 	var original_services = app.services
 	app.services = null
@@ -279,7 +279,7 @@ func run() -> void:
 	var feedback_before: int = scene.feedback_entries
 	check(await app.resume_run(), "same-stage Continue succeeds")
 	check(scene.feedback_entries == feedback_before and int(Resources.snapshot().loads) == loads_before, "cached Continue introduces no feedback wait or resource reload")
-	check(app.run_domain.state.economyRunId == run_identity and not scene._native_combat.session.paused, "Continue keeps the same preparation run without pausing simulation")
+	check(app.run_domain.state.economyRunId == run_identity and not scene.combat_runtime.session.paused, "Continue keeps the same preparation run without pausing simulation")
 	check(FileAccess.get_file_as_string(app.checkpoint.store.primary_path) == saved_before, "Continue leaves checkpoint bytes unchanged")
 
 	attempt = "cached realization failure"

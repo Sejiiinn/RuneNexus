@@ -17,7 +17,7 @@ func _initialize() -> void:
 	app.catalog = CountingCatalog.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.initialize(app.catalog,{},0,100))
-	app.scene._native_combat_base_frame = {"presentation":{}}
+	app.scene.combat_base_frame = {"presentation":{}}
 	app.run_domain.state.gold = 10000
 	var adapter := Adapter.new()
 	var renderer := Renderer.new()
@@ -32,7 +32,7 @@ func _initialize() -> void:
 	app.catalog.stat_calls = 0
 	adapter.apply(app)
 	assert(app.catalog.stat_calls == 2,"Initial selection calculates each turret once")
-	var frame: Dictionary = app.scene._native_combat_base_frame
+	var frame: Dictionary = app.scene.combat_base_frame
 	renderer.apply_frame(frame.presentation.selection)
 	assert(not renderer._show_all_ranges)
 	var first_revision: int = frame.presentation.selection.revision
@@ -129,7 +129,7 @@ func _initialize() -> void:
 	var edited: Dictionary = app.catalog.domain_snapshot()
 	edited.turrets.arrow.configuration.statInput.definition.damage += 3.0
 	assert(app.catalog.load_fixture_content(edited),"Catalog reload validates owned fixture")
-	app.scene._native_combat_base_frame.presentation.selection = {}
+	app.scene.combat_base_frame.presentation.selection = {}
 	adapter.apply(app)
 	assert(adapter.configuration_cache.revision > old_revision,"Same catalog reload invalidates configuration cache")
 	configuration = adapter.configuration_cache.derived(app.run_domain.state,app.run_domain.service)

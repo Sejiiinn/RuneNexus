@@ -21,7 +21,7 @@ func create_app(scene, owner: String = "guest"):
 	var app = load("res://app/app_lifecycle.gd").new()
 	app.ui_enabled = false
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(directory, owner)
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	return app
@@ -62,17 +62,17 @@ func run() -> void:
 	check(app.run_domain.state.phase == "preparation", "auto mode waits for manual first wave")
 	var identity: String = app.run_domain.state.economyRunId
 	app.set_speed(2)
-	check(scene._native_combat.session.speed == 2, "explicit speed selection")
+	check(scene.combat_runtime.session.speed == 2, "explicit speed selection")
 	app.set_speed(3)
-	check(scene._native_combat.session.speed == 2, "unsupported speed ignored")
+	check(scene.combat_runtime.session.speed == 2, "unsupported speed ignored")
 	var modal_running: bool = app.begin_modal_pause()
-	check(modal_running and scene._native_combat.session.paused, "modal pauses running session")
+	check(modal_running and scene.combat_runtime.session.paused, "modal pauses running session")
 	app.end_modal_pause(modal_running)
-	check(not scene._native_combat.session.paused, "modal resumes only prior running session")
+	check(not scene.combat_runtime.session.paused, "modal resumes only prior running session")
 	modal_running = app.begin_modal_pause()
 	app.pause_and_save()
 	app.end_modal_pause(modal_running)
-	check(scene._native_combat.session.paused, "background invalidates modal resume")
+	check(scene.combat_runtime.session.paused, "background invalidates modal resume")
 	var target_hud := TargetHud.new()
 	app.hud = target_hud
 	check(not scene._session_input.blocked(), "reward target can be selected while simulation paused")
@@ -85,7 +85,7 @@ func run() -> void:
 	app.hud = null; target_hud.free()
 	app.toggle_pause()
 	app.start_wave()
-	for i in range(300): scene._native_combat.advance_session(1.0/60.0)
+	for i in range(300): scene.combat_runtime.advance_session(1.0/60.0)
 	app._process(11.0)
 	saved = app.checkpoint.store.load_save()
 	check(saved.activeRun.phase == "wave" and not saved.activeRun.enemies.is_empty(), "periodic wave checkpoint captures elapsed combat")
@@ -97,7 +97,7 @@ func run() -> void:
 	app.lobby = null
 	menu_lobby.free()
 	app.show_lobby()
-	check(app.in_lobby and scene._native_combat.session.paused, "lobby pauses active run")
+	check(app.in_lobby and scene.combat_runtime.session.paused, "lobby pauses active run")
 	check(not scene.world.visible and scene.get_viewport().disable_3d and not scene._current_map.is_empty() and not scene._battle_deferred,
 		"returning lobby disables battle rendering while retaining current terrain")
 	check(app.run_domain.state.economyRunId == identity and not app.run_domain.is_finished(), "lobby never abandons run")
@@ -107,21 +107,21 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	app = create_app(scene)
-	check(not app.startup_blocked and app.in_lobby and scene._native_combat.session.paused, "startup restores paused to lobby")
+	check(not app.startup_blocked and app.in_lobby and scene.combat_runtime.session.paused, "startup restores paused to lobby")
 	check(scene._battle_deferred and scene._current_map.is_empty() and scene.turrets.is_empty() and scene.enemies.is_empty()
 		and not scene.world.visible and scene.get_viewport().disable_3d, "saved startup keeps map and unit presentation deferred")
 	check(app.run_domain.state.economyRunId == identity and app.auto_start_mode == "skipBossRounds", "startup preserves identity and preferences")
 	check(await app.resume_run(), "resume run")
 	check(not scene._battle_deferred and not scene._current_map.is_empty() and not scene.enemies.is_empty()
 		and scene.world.visible and not scene.get_viewport().disable_3d, "Continue realizes saved battlefield and enemy models")
-	check(not app.in_lobby and scene._native_combat.session.paused, "resume opens battle paused")
-	var resumed_elapsed: float = scene._native_combat.elapsed
-	for i in range(60): scene._native_combat.advance_session(1.0/60.0)
-	check(scene._native_combat.elapsed == resumed_elapsed, "resumed battle waits without advancing")
+	check(not app.in_lobby and scene.combat_runtime.session.paused, "resume opens battle paused")
+	var resumed_elapsed: float = scene.combat_runtime.elapsed
+	for i in range(60): scene.combat_runtime.advance_session(1.0/60.0)
+	check(scene.combat_runtime.elapsed == resumed_elapsed, "resumed battle waits without advancing")
 	app.toggle_pause()
-	for i in range(60): scene._native_combat.advance_session(1.0/60.0)
-	check(not scene._native_combat.session.paused and scene._native_combat.elapsed > resumed_elapsed, "explicit resume advances battle")
-	check(app.pause_and_save() and scene._native_combat.session.paused, "background saves paused")
+	for i in range(60): scene.combat_runtime.advance_session(1.0/60.0)
+	check(not scene.combat_runtime.session.paused and scene.combat_runtime.elapsed > resumed_elapsed, "explicit resume advances battle")
+	check(app.pause_and_save() and scene.combat_runtime.session.paused, "background saves paused")
 	check(await app.start_stage(0), "replacement saves terminal first")
 	check(app.checkpoint.rewards().state.pendingRewards.size() == 1, "abandon retained in outbox once")
 	check(app.persist_progression(), "duplicate save")
@@ -132,12 +132,12 @@ func run() -> void:
 	check(app.progression_inputs == before and app.run_domain.state.progression == before, "growth failed write rolls back")
 	check(not app.pause_and_save(), "failed background save surfaced")
 	var save_error: String = app.checkpoint.message
-	check(app.save_failed and not await app.resume_run() and scene._native_combat.session.paused, "failed save cannot resume combat")
+	check(app.save_failed and not await app.resume_run() and scene.combat_runtime.session.paused, "failed save cannot resume combat")
 	app._process(0.1)
 	check(app.checkpoint.message == save_error, "failed save diagnostic preserved")
 	app.checkpoint.store._valid_slot = true
 	app._process(11.0)
-	check(not app.save_failed and scene._native_combat.session.paused, "periodic recovery saves but remains paused")
+	check(not app.save_failed and scene.combat_runtime.session.paused, "periodic recovery saves but remains paused")
 	var path: String = app.checkpoint.store.primary_path
 	var backup: String = app.checkpoint.store.backup_path
 	app.free()

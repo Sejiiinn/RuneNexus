@@ -118,7 +118,7 @@ func _vertical_rule(parent: Node) -> void:
 func _highest_damage(state: Dictionary, exact := false) -> String:
 	var damage := 0.0
 	var tower_name := ""
-	var runtime_turrets = hud.app.scene._native_combat.get("turrets")
+	var runtime_turrets = hud.app.scene.combat_runtime.get("turrets")
 	for turret in state.get("turrets",[]):
 		var dealt := float(turret.get("damageDealt",0))
 		if runtime_turrets is Dictionary and runtime_turrets.has(str(turret.id)):

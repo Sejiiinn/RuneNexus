@@ -256,7 +256,7 @@ func refresh(polled := false) -> void:
 		return
 	var hud_tick := RuntimeProfile.begin()
 	var state: Dictionary = app.run_domain.state
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	var phase := str(state.get("phase","preparation"))
 	var viewport := get_viewport_rect().size
 	var insets := safe_insets()

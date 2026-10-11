@@ -6,15 +6,13 @@ const Services = preload("res://services/app_services.gd")
 const Economy = preload("res://services/economy_service.gd")
 const ACCOUNT := "00000000-0000-4000-8000-000000000099"
 const NOW := 1700000000000
-class Host extends Node3D:
-	var _native_combat = preload("res://combat/native_combat_runtime.gd").new()
-	var _native_combat_base_frame: Dictionary = {}
+class Host extends "res://verify_support_fake_battlefield.gd":
 	func begin_deferred_battle_presentation() -> void: pass
 	func set_battle_visible(_active: bool) -> void: pass
-	func _apply_frame(frame: Dictionary) -> void:
+	func apply_frame(frame: Dictionary) -> void:
 		if frame.get("reset", false):
-			_native_combat.active = false
-			_native_combat_base_frame = {}
+			combat_runtime.active = false
+			combat_base_frame = {}
 class SaveFixture extends Checkpoint:
 	var reject_writes := false
 	var attempts := 0
@@ -95,7 +93,7 @@ func hold_receipt(service) -> Dictionary:
 	check(service.account.waiting and service._background_busy and not service.blocks_play(), "held background receipt permits play")
 	return next.inFlight.duplicate(true)
 func kill(app, collect := true):
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	runtime.enemies["999999"] = {"id":999999,"type":"normal","isDebug":false,"diamondReward":7}
 	runtime._emit({"kind":"kill","enemyId":999999})
 	runtime.wall_elapsed += 2.5
@@ -123,7 +121,7 @@ func live_receipt(collect: bool, paused: bool):
 	check(p.dailyQuestProgress.get("killEnemies", 0) == 1 and p.weeklyQuestProgress.get("killEnemies", 0) == 1 and p.totalPlayTimeMillis == 2500, label + " latest gameplay progression retained")
 	check(p.runes == 73 and p.freeDiamonds == 90 and p.paidDiamonds == 8 and p.turretModules.tickets == 6, label + " receipt changes no local or account currency")
 	check(p.dailyAttendanceRewardClaimed and saved.progression.dailyAttendanceRewardClaimed and saved.progression.dailyQuestProgress.get("killEnemies", 0) == 1 and saved.progression.runes == 73, label + " claim and latest progression durable")
-	check(saved.activeRun.economyRunId == run_id and saved.activeRun.pendingEconomyDiamonds == 7 and app.scene._native_combat.session.paused == paused, label + " preserves active run and pause state")
+	check(saved.activeRun.economyRunId == run_id and saved.activeRun.pendingEconomyDiamonds == 7 and app.scene.combat_runtime.session.paused == paused, label + " preserves active run and pause state")
 	var before := p.duplicate(true)
 	var writes: int = app.checkpoint.attempts
 	check(service._apply_receipt(receipt(service.account.day)) and app.checkpoint.attempts == writes and app.run_domain.state.progression == before, label + " duplicate receipt is a no-op")
@@ -139,7 +137,7 @@ func live_receipt(collect: bool, paused: bool):
 	free_app(app)
 	app = create_app(label)
 	service = attach(app)
-	check(app.scene._native_combat.active and app.scene._native_combat.session.paused and app.run_domain.state.economyRunId == run_id, label + " saved run restores paused")
+	check(app.scene.combat_runtime.active and app.scene.combat_runtime.session.paused and app.run_domain.state.economyRunId == run_id, label + " saved run restores paused")
 	check(service._apply_receipt(receipt(service.account.day)) and app.checkpoint.store.load_save().activeRun.economyRunId == run_id and app.run_domain.state.progression.runes == 73, label + " restored receipt preserves activeRun")
 	free_app(app)
 func save_failure():
@@ -166,7 +164,7 @@ func collection_failure():
 	var service = attach(app)
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	var saved: Dictionary = app.checkpoint.store.load_save().duplicate(true)
-	app.scene._native_combat.epoch += 1
+	app.scene.combat_runtime.epoch += 1
 	check(not service._apply_receipt(receipt(service.account.day)), "failed event collection rejects receipt")
 	check(app.run_domain.state == before and app.checkpoint.store.load_save() == saved, "failed event collection preserves claim and activeRun")
 	free_app(app)

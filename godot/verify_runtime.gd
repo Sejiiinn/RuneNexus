@@ -23,7 +23,7 @@ func _check_landmarks(scene: Node3D, frame: Dictionary) -> void:
 	var shared_frame := frame.duplicate(true)
 	shared_frame["map"] = {"columns": 3, "rows": 2, "tiles": ["spawn", "build", "core", "core", "path", "spawn"]}
 	shared_frame["time"] = 0.0
-	scene._apply_frame(shared_frame)
+	scene.apply_frame(shared_frame)
 	_check(scene._portals.size() == 2 and scene._cores.size() == 2, "여러 타일의 공용 포탈·코어 누락")
 	var first_portal: Node3D = scene._portals[0]
 	var first_vortex := first_portal.find_child("portal_vortex", true, false) as MeshInstance3D
@@ -79,13 +79,13 @@ func _check_landmarks(scene: Node3D, frame: Dictionary) -> void:
 	shared_frame["time"] = 2.0
 	shared_frame["portalAlert"] = 1.0
 	shared_frame["nexusHit"] = 1.0
-	scene._apply_frame(shared_frame)
+	scene.apply_frame(shared_frame)
 	_check(first_portal.transform.is_equal_approx(rest_portal) and core_root.transform.is_equal_approx(rest_root), "포탈 석재·코어 받침 전체가 전투 반응으로 변형됨")
 	_check(not crystal.transform.is_equal_approx(rest_crystal), "코어 결정 부유·회전 누락")
 	for support: Node3D in supports:
 		_check(support.transform.is_equal_approx(supports[support]), "결정 애니메이션이 코어 지지 구조를 움직임")
 	var paused_crystal := crystal.transform
-	scene._apply_frame(shared_frame)
+	scene.apply_frame(shared_frame)
 	_check(crystal.transform.is_equal_approx(paused_crystal), "같은 전투 시각의 결정 변형 누적")
 	_check(vortex_material != null and is_equal_approx(float(vortex_material.get_shader_parameter("battle_time")), 2.0), "소용돌이가 정지·배속을 결정하는 전투 시각을 따르지 않음")
 	_check(scene._portals[0] == first_portal and scene._cores[0]["root"] == core_root, "같은 맵 프레임에 공용 랜드마크 재생성")
@@ -153,7 +153,7 @@ func _verify() -> void:
 		frame["projectiles"].append([index + 20, index + 1.5, 4.5, 1.0, 0.5, turret_types[index]])
 	frame["buildPreview"] = [100, 2.5, 6.5, 0.3, 10, 1, "sniper", 1]
 	frame["impacts"] = [[100, 4.5, 5.5, 1.2, 0.52]]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.turrets.size() == 6 and scene.enemies.size() == 6 and scene.projectiles.size() == 6, "실제 6종 전투 모델 누락")
 	for index in range(6):
 		var turret: Node3D = scene.turrets[index]["root"]
@@ -180,24 +180,24 @@ func _verify() -> void:
 	var original_projectile: Node3D = scene.projectiles[20]["root"]
 	frame["turrets"][1][4] = 1
 	frame["turrets"][1][5] = 1.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(cannon["flashes"][1].visible and cannon["smokes"][1].visible, "발사 순번에 따른 포구·연기 재생 실패")
 	frame["time"] = 1.018
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(is_equal_approx(cannon["barrel"].position.z, float(cannon["barrel_rest_z"]) - 0.12), "포신 최대 반동 위치 실패")
 	_check(scene.turrets[1]["root"] == original_cannon and scene.enemies[10]["root"] == original_enemy and scene.projectiles[20]["root"] == original_projectile, "연속 프레임에서 기존 모델을 재생성함")
 	frame["time"] = 1.7
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(not cannon["flashes"][1].visible and not cannon["smokes"][1].visible, "종료한 발사 이펙트 잔류")
 	_check(is_equal_approx(cannon["barrel"].position.z, float(cannon["barrel_rest_z"])), "발사 후 포신 복귀 실패")
 	var first_x := _vector(scene.presentation()["projection"]["xAxis"])
 	frame["zoom"] = 1.725
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var zoomed_x := _vector(scene.presentation()["projection"]["xAxis"])
 	_check(is_equal_approx(zoomed_x.length() / first_x.length(), 1.5), "실제 전투 확대 비율 실패")
 	_check_projection(scene, frame)
 	scene.options["camera"] = "drone"
-	scene._apply_options()
+	scene.apply_options()
 	var transition: Tween = scene.camera_transition
 	transition.pause()
 	transition.custom_step(0.21)
@@ -211,7 +211,7 @@ func _verify() -> void:
 	await process_frame
 	frame["viewport"] = [450.0, 800.0]
 	frame["screenCenter"] = [225.0, 310.0]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check_projection(scene, frame)
 	var replacement: Dictionary = frame.duplicate(true)
 	replacement["map"] = {"columns": 3, "rows": 2, "tiles": ["spawn", "path", "core", "build", "blocked", "build"]}
@@ -221,19 +221,19 @@ func _verify() -> void:
 	replacement["projectiles"] = []
 	replacement["impacts"] = []
 	replacement["buildPreview"] = null
-	scene._apply_frame(replacement)
+	scene.apply_frame(replacement)
 	_check(not scene._using_authored and scene.terrain.get_child_count() == 7, "다른 맵의 원본 타일 기반 재구성 실패")
 	_check(scene.turrets.is_empty() and scene.enemies.is_empty() and scene.projectiles.is_empty() and scene._build_preview.is_empty(), "삭제된 전투 모델 잔류")
 	_check(scene.impacts.is_empty() and scene.impact_pool.size() == 1, "종료한 착탄 효과 재사용 풀 이동 실패")
 	_check_projection(scene, replacement)
 	_check_landmarks(scene, replacement)
 	var shared_texture: Texture3D = scene.field["texture"]
-	scene._apply_frame({"reset": true})
+	scene.apply_frame({"reset": true})
 	_check(scene.terrain.get_child_count() == 0 and scene.impacts.is_empty() and scene.impact_pool.is_empty(), "세션 초기화 후 전장·착탄 잔류")
 	_check(scene.last_frame.is_empty() and scene.last_sequence == -1 and scene.presentation().is_empty(), "초기화 후 이전 투영·프레임 잔류")
 	_check(scene.field["texture"] == shared_texture, "세션 초기화가 공유 볼륨 자산을 해제함")
 	_check(not replacement.is_empty(), "세션 초기화가 전달받은 프레임 원본을 변경함")
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene._using_authored and scene.turrets.size() == 6 and scene.enemies.size() == 6, "새 전투 세션의 기존 자산 재사용 실패")
 	print("Runtime verification: %d failures; all 6 turret/enemy/projectile types, authored/fallback terrain, shared landmarks, weapon feedback, HUD/input projection, reset" % failures)
 	scene.queue_free()

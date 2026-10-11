@@ -12,11 +12,9 @@ class CountingCatalog extends "res://content/content_catalog.gd":
 		full_wave_calls += 1
 		return super.wave_definition(stage_index, round_index)
 
-class SceneStub extends Node3D:
-	var _native_combat = preload("res://combat/native_combat_runtime.gd").new()
-	var _native_combat_base_frame: Dictionary = {}
+class SceneStub extends "res://verify_support_fake_battlefield.gd":
 	var frames: Array = []
-	func _apply_frame(frame: Dictionary) -> void:
+	func apply_frame(frame: Dictionary) -> void:
 		frames.append(frame.duplicate(true))
 
 class FixtureController extends "res://session/session_controller.gd":
@@ -63,7 +61,7 @@ func _content_entry() -> void:
 		controller.checkpoint.message = "previous stage"
 		var previous_epoch: int = controller.epoch
 		controller.enter_stage(index)
-		var runtime = scene._native_combat
+		var runtime = scene.combat_runtime
 		var map: Dictionary = catalog.stage_map(index)
 		_check(controller.checkpoint.message.is_empty() and runtime.active, "content entry activates real backend %d" % index)
 		_check(controller.stage == index and controller.epoch == previous_epoch + 1 and runtime.epoch == controller.epoch, "entry stage/epoch match %d" % index)
@@ -72,7 +70,7 @@ func _content_entry() -> void:
 		var frame: Dictionary = scene.frames[1]
 		_check(frame.map == map and frame.map.theme == frame.map.tileTheme and frame.mapRevision == index, "presentation retains stage map/theme/revision %d" % index)
 		_check(frame.seq == 0 and frame.sceneEpoch == controller.epoch and frame.time == 0.0 and frame.turrets.is_empty() and frame.enemies.is_empty() and frame.projectiles.is_empty() and frame.impacts.is_empty(), "entry frame starts empty %d" % index)
-		_check(frame.presentation == {"effects": {}, "labels": {}} and scene._native_combat_base_frame == frame, "entry frame base/presentation contract %d" % index)
+		_check(frame.presentation == {"effects": {}, "labels": {}} and scene.combat_base_frame == frame, "entry frame base/presentation contract %d" % index)
 		var expected_path := []
 		for point in map.path:
 			expected_path.append({"x": 2.5 + (float(point[0]) + 0.5) * 1.75, "y": -3.0 + (float(point[1]) + 0.5) * 1.75})
@@ -104,9 +102,9 @@ func _fixture_entry() -> void:
 	map.tiles[0] = "caller"
 	_check(controller.stage_map(1).theme == "fixtureSecond" and controller.fixtures[1].map.tiles[0] == "spawn", "fixture stage_map uses requested index and owns map")
 	controller.enter_stage(1, {"defense": {"config": {"maxHp": 175.0}}}, {"paused": true, "speed": 4.0})
-	var runtime = scene._native_combat
+	var runtime = scene.combat_runtime
 	_check(runtime.active and runtime.epoch == controller.epoch and controller.stage == 1, "legacy fixture stage enters real backend")
-	_check(scene.frames.size() == 2 and scene.frames[1].map == controller.fixtures[1].map and scene._native_combat_base_frame == scene.frames[1], "fixture entry preserves source map frame")
+	_check(scene.frames.size() == 2 and scene.frames[1].map == controller.fixtures[1].map and scene.combat_base_frame == scene.frames[1], "fixture entry preserves source map frame")
 	_check(runtime.path == _native_path(controller.fixtures[1].path) and runtime.tile_size == 1.0 and runtime.board_scale == 1.0 / 48.0, "fixture path/default units preserved")
 	_check(runtime.defense.hp == 175.0 and runtime.session == {"clock": "godot", "phase": "preparation", "paused": true, "speed": 4.0}, "fixture bootstrap/session overrides preserved")
 	_check(controller.run_domain.state.is_empty() and not runtime.wave_configured, "fixture entry remains independent from content run/waves")

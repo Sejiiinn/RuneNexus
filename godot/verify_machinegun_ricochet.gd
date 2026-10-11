@@ -113,7 +113,7 @@ func _verify_native_battle() -> void:
 	await process_frame
 	var app = load("res://session/standalone.gd").new()
 	app.content_enabled = false
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	await process_frame
 	app.fixture.turret.definition.attackRate = 6.0
@@ -138,7 +138,7 @@ func _verify_native_battle() -> void:
 	if not found.is_empty():
 		var direction: Array = found.get("direction", [])
 		_check(found.get("turretType") == "arrow" and direction.size() == 2 and Vector2(direction[0], direction[1]).is_normalized(), "기관총 명중에 탄 방향이 없음: %s" % found)
-		_check(scene._native_combat.enemies.has(str(found.get("targetId"))), "명중 대상 ID 불일치: %s" % found)
+		_check(scene.combat_runtime.enemies.has(str(found.get("targetId"))), "명중 대상 ID 불일치: %s" % found)
 		_check(not effects._canvas_effect(found), "본게임에서 기관총 2D 섬광이 계속 표시됨")
 		_check(scene._machinegun_ricochet.active.has(int(found.id)), "본게임 명중이 3D 도탄으로 표시되지 않음")
 	scene.queue_free()

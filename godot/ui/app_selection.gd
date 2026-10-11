@@ -10,7 +10,7 @@ var configuration_cache = preload("res://ui/hud_configuration_cache.gd").new()
 
 func apply(app) -> void:
 	_build_state(app)
-	var frame: Dictionary = app.scene._native_combat_base_frame
+	var frame: Dictionary = app.scene.combat_base_frame
 	var selection: Dictionary = frame.get("presentation", {}).get("selection", {})
 	if selection.is_empty() or selection.has("revision") or not selection.get("preserveLegacyOrnaments", false): return
 	selection.preserveLegacyOrnaments = true
@@ -21,7 +21,7 @@ func apply(app) -> void:
 	frame.presentation.selection = {"revision": _revision, "state": _last_state}
 
 func _build_state(app) -> void:
-	var frame: Dictionary = app.scene._native_combat_base_frame
+	var frame: Dictionary = app.scene.combat_base_frame
 	if frame.is_empty(): return
 	frame.presentationVersion = 2
 	frame.buildPreview = null

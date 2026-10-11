@@ -77,7 +77,7 @@ func _check_stage(scene: Node3D, frame: Dictionary) -> Array:
 	_check(scene._portals.size() == tiles.count("spawn") and scene._cores.size() == tiles.count("core"), "포탈·코어 원본 누락")
 	for mode in ["angled", "drone"]:
 		scene.options["camera"] = mode
-		scene._apply_options()
+		scene.apply_options()
 		if scene.camera_transition:
 			scene.camera_transition.pause()
 			scene.camera_transition.custom_step(scene.CAMERA_TRANSITION_SECONDS)
@@ -115,12 +115,12 @@ func _verify() -> void:
 		var frame: Dictionary = frames[stage].duplicate(true)
 		frame["sceneEpoch"] = epoch
 		frame["seq"] = 0
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		for reference: WeakRef in previous:
 			_check(reference.get_ref() == null, "이전 맵 타일 batch 해제 실패")
 		previous = _check_stage(scene, frame)
 		frame["seq"] = 1
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		for reference: WeakRef in previous:
 			_check(reference.get_ref() != null, "동일 맵 갱신에 batch 재생성")
 		epoch += 1

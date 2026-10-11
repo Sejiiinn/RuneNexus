@@ -34,7 +34,7 @@ class App extends RefCounted:
  var checkpoint
  var startup_blocked:=true
  var lobby=null
- var scene={"_native_combat":{"active":false}}
+ var scene={"combat_runtime":{"active":false}}
  var in_lobby:=true
  var loads:=0
  var progression_inputs={}

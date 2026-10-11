@@ -8,11 +8,9 @@ const Catalog = preload("res://content/content_catalog.gd")
 const RunSession = preload("res://session/run_session.gd")
 const SaveAdapter = preload("res://app/run_save_adapter.gd")
 const SaveCodec = preload("res://app/save_codec.gd")
-class ClockScene extends Node3D:
-	var _native_combat = Runtime.new()
-	var _native_combat_base_frame: Dictionary = {}
-	func _apply_frame(frame: Dictionary) -> void:
-		if frame.get("reset", false): _native_combat = Runtime.new()
+class ClockScene extends "res://verify_support_fake_battlefield.gd":
+	func apply_frame(frame: Dictionary) -> void:
+		if frame.get("reset", false): combat_runtime = Runtime.new()
 
 class ClockApp extends "res://app/app_lifecycle.gd":
 	var checkpoint_writes := 0
@@ -314,7 +312,7 @@ func make_controller(speed: float):
 func controller_replay(pattern: Array, speed: float) -> Dictionary:
 	var app = make_controller(speed)
 	app.start_wave()
-	var r = app.scene._native_combat
+	var r = app.scene.combat_runtime
 	check(r.step_completed.get_connections().size() == 1, "controller connects once to active runtime")
 	# Resolve a real kill and final-enemy wave completion in the same fixed step.
 	# All event collection, rewards, ACK and next-wave start use production code.
@@ -353,13 +351,13 @@ func controller_checks() -> void:
 	for speed in [1.0, 2.0, 4.0]:
 		var app = make_controller(speed)
 		app.start_wave()
-		var r = app.scene._native_combat
+		var r = app.scene.combat_runtime
 		var delay: float = r.wave.queue[0].delay
 		if initial_delay < 0: initial_delay = delay
 		close(delay, initial_delay, "first-wave delay is game time at " + str(speed) + "x")
 		var old_runtime = r
 		app.enter_stage(0)
-		check(app.scene._native_combat != old_runtime and app.scene._native_combat.step_completed.get_connections().size() == 1, "replacement stage gets exactly one new callback")
-		check(app.scene._native_combat.simulation_tick == 0 and app.scene._native_combat.simulation_debt == 0, "controller stage replacement resets scheduler")
+		check(app.scene.combat_runtime != old_runtime and app.scene.combat_runtime.step_completed.get_connections().size() == 1, "replacement stage gets exactly one new callback")
+		check(app.scene.combat_runtime.simulation_tick == 0 and app.scene.combat_runtime.simulation_debt == 0, "controller stage replacement resets scheduler")
 		app.scene.free()
 		app.free()

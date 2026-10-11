@@ -11,9 +11,9 @@ class Host extends Fixture.Host:
 		accepted.append([id,type,x,y])
 		placement.queue_build(id,type,x,y)
 	func cancel_turret_placement(id: int) -> void: placement.remove(id)
-	func _apply_frame(frame: Dictionary) -> void:
+	func apply_frame(frame: Dictionary) -> void:
 		if frame.get("reset",false): placement.clear()
-		super._apply_frame(frame)
+		super.apply_frame(frame)
 var failures: Array[String] = []
 var checks := 0
 func _initialize() -> void: call_deferred("run")
@@ -45,7 +45,7 @@ func run() -> void:
 		check(app.apply_run_command({"kind":"build","x":tile.x,"y":tile.y,"type":kinds[index]}),kinds[index]+" build accepted")
 		var id: int = app.run_domain.state.turrets.back().id
 		var angle := 0.0 if kinds[index] == "frost" else 3.0*PI/4.0
-		check(is_equal_approx(app.run_domain.state.turrets.back().aimAngle,angle) and is_equal_approx(host._native_combat.turrets[str(id)].aimAngle,angle),kinds[index]+" accepted build initializes domain/native facing")
+		check(is_equal_approx(app.run_domain.state.turrets.back().aimAngle,angle) and is_equal_approx(host.combat_runtime.turrets[str(id)].aimAngle,angle),kinds[index]+" accepted build initializes domain/native facing")
 		check(host.accepted.size() == before_count+1 and app.run_domain.state.gold < before_gold,kinds[index]+" exactly one successful build cue and charge")
 		var model := Node3D.new()
 		model.position = Vector3(tile.x+0.5-int(map.columns)/2.0,0,tile.y+0.5-int(map.rows)/2.0)
@@ -70,7 +70,7 @@ func run() -> void:
 	app.start_wave()
 	app.set_speed(4)
 	app.toggle_pause()
-	var native_time: float = host._native_combat.clock
+	var native_time: float = host.combat_runtime.clock
 	Engine.time_scale = 0.05
 	paused = true
 	var deadline := Time.get_ticks_usec()+250000
@@ -80,7 +80,7 @@ func run() -> void:
 	while Time.get_ticks_usec() < deadline: await process_frame
 	host.placement.update(entries,map.columns,map.rows)
 	check(host.placement.shake_pixels() == Vector2.ZERO,"impact returns to exact zero without drift")
-	check(host.placement.placements.is_empty() and host._native_combat.clock == native_time and host._native_combat.session.speed == 4,"impact/dust finish in real time without advancing paused 4x battle")
+	check(host.placement.placements.is_empty() and host.combat_runtime.clock == native_time and host.combat_runtime.session.speed == 4,"impact/dust finish in real time without advancing paused 4x battle")
 	paused = false
 	Engine.time_scale = 1
 	for model in models.values(): check(model.position.y == 0.0 and model.scale == Vector3(1.1,1.2,1.3),"exact final zero and original shape")
@@ -94,9 +94,9 @@ func run() -> void:
 	entries[id].type = "replacement"
 	host.placement.apply_entry(id,entries[id],map.columns,map.rows)
 	check(not host.placement.placements.has(id),"type replacement cancels instead of replaying")
-	var reused_runtime = host._native_combat
+	var reused_runtime = host.combat_runtime
 	check(await app.start_stage(0) and host.placement.placements.is_empty() and host.accepted.size() == cues,"new session clears placement state without restoration cue")
-	check(host._native_combat == reused_runtime and reused_runtime.step_completed.get_connections().size() == 1,"reused runtime keeps exactly one session boundary subscriber after reentry")
+	check(host.combat_runtime == reused_runtime and reused_runtime.step_completed.get_connections().size() == 1,"reused runtime keeps exactly one session boundary subscriber after reentry")
 	for model in models.values(): model.free()
 	host.free()
 	app.free()

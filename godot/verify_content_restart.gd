@@ -22,7 +22,7 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
-	scene._standalone_session = app
+	scene.session_controller = app
 	scene.add_child(app)
 	app.set_process(false)
 	app.run_domain.now_millis = func(): return 1700000000000
@@ -61,7 +61,7 @@ func write_phase(app, phase: String) -> void:
 	check(app.selected_run_command("link"), phase+" link")
 	check(app.selected_run_command("equipGem", {"type":"range","slot":1}), phase+" noncontiguous gem")
 	check(app.apply_run_command({"kind":"runUpgrade","type":app.run_domain.growth.data.runUpgrades.keys()[0]}), phase+" upgrade")
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	if phase in ["wave", "reward", "failure"]:
 		app.start_wave()
 		for i in range(210):
@@ -101,7 +101,7 @@ func read_phase(app, phase: String) -> void:
 		check(false, phase+" prior process expectation missing")
 		return
 	check(app.checkpoint.load_session(app) == OK, phase+" load "+app.checkpoint.message)
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	var run: Dictionary = expected.save.activeRun
 	check(app.run_domain.state.phase == run.phase and runtime.session.phase == run.phase, phase+" restored phase")
 	check(runtime.session.paused and runtime.clock == 0, phase+" restored paused")
@@ -123,7 +123,7 @@ func read_phase(app, phase: String) -> void:
 		check(equivalent(again.activeRun, run), phase+" exact active run roundtrip")
 		check(again.progression == expected.save.progression and again.turretModules == expected.save.turretModules, phase+" growth roundtrip")
 		check(app.checkpoint.load_session(app) == OK, phase+" repeated load")
-	runtime = app.scene._native_combat
+	runtime = app.scene.combat_runtime
 	if phase in ["naturalReward", "success"]:
 		check(app.next_round == run.completedRounds, phase+" next round does not replay completed wave")
 	if phase == "naturalReward":
@@ -147,7 +147,7 @@ func read_phase(app, phase: String) -> void:
 		var progression: Dictionary = app.run_domain.state.progression.duplicate(true)
 		check(await app.retry_stage(), "durably queued run can retry")
 		check(app.checkpoint.rewards().state.pendingRewards.size() == 1, "retry preserves pending diamond reward")
-		runtime = app.scene._native_combat
+		runtime = app.scene.combat_runtime
 		check(runtime.defense.hp > 0 and not runtime.defense.failed and runtime.turrets.is_empty() and runtime.events.is_empty() and not runtime.wave.active, "retry starts clean combat")
 		for key in ["lastRunRuneReward", "lastRunCorePointReward", "lastRunTurretModuleTicketReward"]: progression[key] = 0
 		check(app.run_domain.state.progression == progression, "retry retains growth")
@@ -169,9 +169,9 @@ func rejected_loads(app, directory: String) -> void:
 		file.close()
 		var before: Dictionary = app.run_domain.state.duplicate(true)
 		var epoch: int = app.epoch
-		var snapshot: Dictionary = app.scene._native_combat.snapshot()
+		var snapshot: Dictionary = app.scene.combat_runtime.snapshot()
 		check(app.checkpoint.load_session(app) != OK, kind+" rejected")
-		check(app.epoch == epoch and app.run_domain.state == before and app.scene._native_combat.snapshot() == snapshot, kind+" rejection leaves scene/domain unchanged")
+		check(app.epoch == epoch and app.run_domain.state == before and app.scene.combat_runtime.snapshot() == snapshot, kind+" rejection leaves scene/domain unchanged")
 
 func pending_settlement(app, directory: String) -> void:
 	app.checkpoint = Checkpoint.new(directory.path_join("pending-events"))
@@ -181,7 +181,7 @@ func pending_settlement(app, directory: String) -> void:
 	app.board_tap(Vector2i(index % int(source.map.columns), floori(float(index)/int(source.map.columns))))
 	app.build_selected()
 	app.start_wave()
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	# The session ACKs after every fixed step. Detach it to reproduce a kill that
 	# was produced but not yet settled when the process saved (e.g. failed command).
 	runtime.step_completed.disconnect(app._on_combat_step_completed)
@@ -215,7 +215,7 @@ func equivalent(a: Variant, b: Variant) -> bool:
 
 func exit_boundaries(app, directory: String) -> void:
 	app.enter_stage(0)
-	var runtime = app.scene._native_combat
+	var runtime = app.scene.combat_runtime
 	var before: Dictionary = app.run_domain.state.duplicate(true)
 	var original_epoch: int = runtime.epoch
 	runtime.epoch -= 1
@@ -230,8 +230,8 @@ func exit_boundaries(app, directory: String) -> void:
 	file.close()
 	app.checkpoint = Checkpoint.new(blocker)
 	app.exit_stage()
-	check(app.scene._native_combat.active and app.run_domain.state == before, "failed exit save preserves active run")
+	check(app.scene.combat_runtime.active and app.run_domain.state == before, "failed exit save preserves active run")
 	app.checkpoint = Checkpoint.new(directory.path_join("exit"))
 	app.exit_stage()
 	var saved = app.checkpoint.store.load_save()
-	check(not app.scene._native_combat.active and saved != null and saved.activeRun.gold == before.gold, "exit checkpoints before reset")
+	check(not app.scene.combat_runtime.active and saved != null and saved.activeRun.gold == before.gold, "exit checkpoints before reset")

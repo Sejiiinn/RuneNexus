@@ -95,7 +95,7 @@ func _check_flutter_camera(scene: Node3D, frame: Dictionary, stage: int) -> void
 			input["screenCenter"] = [flutter_center.x + pan.x, flutter_center.y + pan.y]
 			input["seq"] = sequence
 			sequence += 1
-			scene._apply_frame(input)
+			scene.apply_frame(input)
 			var projected := _projected_active_bounds(scene, map)
 			var actual := projected.get_center()
 			_check(actual.distance_to(viewport / 2.0 + pan) < .05, "Stage%d 활성 전장 중심 이탈: %s" % [stage, actual])
@@ -112,7 +112,7 @@ func _teleport_jump(map: Dictionary, from: Vector2, to: Vector2) -> bool:
 	return false
 
 func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene._current_map == frame["map"], "대장간 프레임 적용 실패")
 	if scene._current_map != frame["map"]:
 		return
@@ -209,7 +209,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 	var props_id: int = scene.terrain.get_node("chapter_three_props").get_instance_id()
 	var first_id: int = scene.terrain.get_child(0).get_instance_id()
 	frame["seq"] = 1
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.terrain.get_child(0).get_instance_id() == first_id, "동일 맵 재생성")
 	_check(scene.terrain.get_node("chapter_three_props").get_instance_id() == props_id, "동일 맵 소품 재생성")
 	var path: Array = frame["verificationPath"]
@@ -257,7 +257,7 @@ func _verify() -> void:
 		var other: Dictionary = SaveJson.parse(FileAccess.get_file_as_string(args[0].get_base_dir().path_join(chapter)))[0]
 		other["sceneEpoch"] = epoch
 		epoch += 1
-		scene._apply_frame(other)
+		scene.apply_frame(other)
 		_check(scene.terrain.find_child("chapter_three_props", true, false) == null, "다른 장에 용광로 소품 잔류")
 		_check(scene._current_map == other["map"], "다른 장 전환 실패")
 		var chapter_light := 1.20 if scene._environment._using_chapter_environment else 1.50

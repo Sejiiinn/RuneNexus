@@ -200,11 +200,11 @@ func _check_stage(scene: Node3D, frame: Dictionary, label: String) -> void:
 		_check_props(scene, tiles, label)
 	var first_id: int = scene.terrain.get_child(0).get_instance_id()
 	frame["seq"] = 1
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.terrain.get_child(0).get_instance_id() == first_id, label + " 동일 맵을 매 프레임 재생성함")
 	for mode in ["angled", "drone"]:
 		scene.options["camera"] = mode
-		scene._apply_options()
+		scene.apply_options()
 		if scene.camera_transition:
 			scene.camera_transition.pause()
 			scene.camera_transition.custom_step(scene.CAMERA_TRANSITION_SECONDS)
@@ -246,19 +246,19 @@ func _verify() -> void:
 		frame["seq"] = 0
 		epoch += 1
 		_check(frame["map"].get("theme") == "chapterTwoRift", "2장 균열 테마 직렬화 누락")
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		_check_stage(scene, frame, "Stage %d" % stage_number)
 		print("Stage %d rift verified: %dx%d" % [stage_number, scene.columns, scene.rows])
 	var restored: Dictionary = chapter_one[0].duplicate(true)
 	restored["sceneEpoch"] = epoch
 	restored["seq"] = 0
-	scene._apply_frame(restored)
+	scene.apply_frame(restored)
 	_check(scene._using_authored and scene._using_dressing, "2장 방문 후 1장 전용 지형·식생 복원 실패")
 	_check(scene.terrain.find_child("chapter_two_environment", true, false) == null, "1장 복귀 후 균열 장식 잔류")
 	# 테마가 없는 기존 frame은 같은 1장 지형으로 처리한다.
 	restored["map"].erase("theme")
 	restored["sceneEpoch"] = epoch + 1
-	scene._apply_frame(restored)
+	scene.apply_frame(restored)
 	_check(scene._using_authored and scene._using_dressing, "기존 theme 없는 1장 입력 호환성 파괴")
 	scene.queue_free()
 	await process_frame

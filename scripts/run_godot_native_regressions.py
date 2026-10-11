@@ -94,7 +94,7 @@ SCRIPTS = {
     "verify_turret_stat_calculation.gd": None,
 }
 # Shared helpers preloaded by the cases above; never run on their own.
-HELPERS = ("verify_support_fixture_compare.gd", "verify_support_animation.gd")
+HELPERS = ("verify_support_fixture_compare.gd", "verify_support_animation.gd", "verify_support_fake_battlefield.gd")
 FIXTURES = (
     "chapter_three_map_signature_baseline.json", "combat_calculation.json",
     "turret_stat_calculation.json", "turret_stat_critical_boundaries.json", "native_wave_core_timing.json", "fixed_combat_clock_60hz.json",

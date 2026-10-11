@@ -60,18 +60,18 @@ func _verify_events(scene: Node3D, frame: Dictionary) -> void:
 	frame["projectiles"] = []
 	frame["projectileEvents"] = packet
 	frame["time"] = 10.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var flight: Node3D = scene.projectiles[2001]["root"]
 	packet["clock"] = 11.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(is_equal_approx(flight.position.x + scene.columns / 2.0, 7.0), "이벤트 탄환의 전투시계 이동 불일치")
 	var frozen := flight.position
 	frame["time"] = 10.1
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(flight.position == frozen, "시각 시계만 진행했는데 탄환 이동")
 	packet["clock"] = 14.0
 	packet["events"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(is_equal_approx(flight.position.x + scene.columns / 2.0, 8.0), "최대거리 초과 이동")
 	var finished := launch.duplicate()
 	finished[1] = 7.3
@@ -79,38 +79,38 @@ func _verify_events(scene: Node3D, frame: Dictionary) -> void:
 	finished[12] = 7.4
 	finished[13] = 4.5
 	packet["events"] = [{"event": 2, "data": finished, "clock": 14.0, "speed": 0.0}]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(not flight.body.visible and is_equal_approx(flight.position.x + scene.columns / 2.0, 7.4), "종료 이벤트가 Flame 피격 좌표/탄체 종료를 보존하지 않음")
 	frame["time"] = 10.25
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.projectiles.is_empty(), "종료 이벤트 재전송으로 탄환 부활")
 	packet["generation"] = 2
 	packet["events"] = [{"event": 3, "data": launch, "clock": 14.0, "speed": 2.0}]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.projectiles.size() == 1, "세대 재시드 실패")
 	frame["projectileEvents"] = {"generation": 1, "clock": 0.0, "events": []}
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.projectiles.size() == 1, "지연된 이전 세대가 현재 비행을 지움")
 	frame["projectileEvents"] = packet
 	packet["events"] = [{"event": 4, "remove": 2001}]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.projectiles.is_empty(), "강제 제거 이벤트 잔류")
 	frame.erase("projectileEvents")
 	for type in ["sniper", "frost"]:
 		frame["projectiles"] = [[3001, 5.0, 4.5, 1.0, 0.0, type], [3002, 6.0, 4.5, 1.0, 0.0, type]]
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		var first: Node3D = scene.projectiles[3001]["root"]
 		var second: Node3D = scene.projectiles[3002]["root"]
 		_check(first.get_child(0).mesh == second.get_child(0).mesh, "일반 탄환의 공유 메시가 복제됨")
 		var instance_id := second.get_instance_id()
 		frame["projectiles"] = []
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		_check(not first.visible and not second.visible, "풀 반환 탄환 잔류")
 		frame["projectiles"] = [[3003, 7.0, 4.5, 0.0, 1.0, type]]
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 		_check(scene.projectiles[3003]["root"].get_instance_id() == instance_id and second.visible, "일반 탄환 풀 재사용 실패")
 		frame["projectiles"] = []
-		scene._apply_frame(frame)
+		scene.apply_frame(frame)
 
 
 func _verify() -> void:
@@ -127,7 +127,7 @@ func _verify() -> void:
 		[801, 5.4, 4.5, 1.0, 0.0, "arrow", 3.5, 4.5, 701, 1, false, -1.0, null, null],
 		[802, 5.9, 6.5, 1.0, 0.0, "cannon", 3.5, 6.5, 702, 1, false, -1.0, null, null],
 	]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var arrow: Node3D = scene.projectiles[801]["root"]
 	var cannon: Node3D = scene.projectiles[802]["root"]
 	_verify_cannon_asset(cannon)
@@ -144,7 +144,7 @@ func _verify() -> void:
 	frame["projectiles"][1][11] = 1.0
 	frame["projectiles"][1][12] = 6.1
 	frame["projectiles"][1][13] = 6.5
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var completed: Node3D = scene.projectiles[803]["root"]
 	_check(completed.visible and completed.tracer.visible and completed.trail_length > 0.2, "첫 화면 전에 명중한 탄환의 예광 궤적 누락")
 	_check(not completed.body.visible and not completed.nose.visible, "명중한 탄체가 적을 통과해 계속 이동하는 것처럼 남음")
@@ -155,18 +155,18 @@ func _verify() -> void:
 	var initial_launch: Vector3 = completed.launch_position
 	frame["time"] = 1.07
 	frame["turrets"][0][3] = PI / 2.0
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(completed.launch_position.is_equal_approx(initial_launch), "이미 날아간 탄환의 경로가 새 조준을 따라감")
 	_check(completed.opacity > 0.2 and completed.opacity < 0.5, "종료 궤적이 140ms 동안 서서히 소멸하지 않음")
 	_check(cannon.launch_position.is_equal_approx(cannon_launch), "명중 철구의 발사 원점이 변경됨")
 	_check(not cannon.body.visible and cannon.opacity > 0.2 and cannon.opacity < 0.5, "철구의 짧은 잔여 효과가 140ms 동안 소멸하지 않음")
 	frame["time"] = 1.140001
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(not completed.visible and is_zero_approx(completed.opacity), "수명이 끝난 탄환 궤적 잔류")
 	_check(not cannon.visible and is_zero_approx(cannon.opacity), "140ms 이후 철구 잔여 효과가 남음")
 	var recycled_id := completed.get_instance_id()
 	frame["projectiles"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene.projectiles.is_empty() and scene._ballistic_pool["arrow"].size() == 2 and scene._ballistic_pool["cannon"].size() == 1, "종료 탄환 모델 재사용 풀 누락")
 
 	_check(not cannon.initialized and not cannon.visible and not cannon._cannon_flight.visible and is_zero_approx(cannon.trail_length) and is_zero_approx(cannon.opacity), "풀에 반환한 철구의 비행·잔여 효과 상태가 초기화되지 않음")
@@ -179,16 +179,16 @@ func _verify() -> void:
 		print("MultiMesh readback unavailable in dummy renderer; hidden/reset parent state verified")
 	var recycled_cannon_id: int = cannon.get_instance_id()
 	frame["projectiles"] = [[805, 5.1, 6.5, 1.0, 0.0, "cannon", 3.5, 6.5, 702, 2, false, -1.0, null, null]]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var reused_cannon: Node3D = scene.projectiles[805]["root"]
 	_check(reused_cannon.get_instance_id() == recycled_cannon_id and reused_cannon.body.visible and reused_cannon.nose.visible and is_equal_approx(reused_cannon.opacity, 1.0), "재사용 철구가 이전 명중의 숨김·fade 상태를 이어받음")
 	frame["projectiles"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 
 	# 타이머 순환과 연쇄 발사는 포탑 총구와 분리된 원점 사용.
 	frame["time"] = 0.02
 	frame["projectiles"] = [[804, 6.0, 4.5, 1.0, 0.0, "arrow", 5.0, 4.5, 701, 1, true, 1199.99, null, null]]
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	var chain: Node3D = scene.projectiles[804]["root"]
 	_check(chain.get_instance_id() == recycled_id, "탄환 모델을 재사용하지 않음")
 	_check(chain.visible and chain.opacity > 0.5, "1200초 타이머 순환 시 새 궤적이 즉시 사라짐")
@@ -196,9 +196,9 @@ func _verify() -> void:
 	frame["projectiles"] = []
 	for index in range(150):
 		frame["projectiles"].append([900 + index, 5.4, 4.5, 1.0, 0.0, "arrow"])
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	frame["projectiles"] = []
-	scene._apply_frame(frame)
+	scene.apply_frame(frame)
 	_check(scene._ballistic_pool["arrow"].size() == 64, "발사 수에 따라 숨긴 탄환 모델이 무한히 쌓임")
 	_verify_events(scene, frame)
 	var pooled: WeakRef = weakref(scene._ballistic_pool["arrow"][0])
