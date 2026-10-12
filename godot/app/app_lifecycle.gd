@@ -55,9 +55,9 @@ func _ready() -> void:
 		hud.app = self
 		layer.add_child(hud)
 		RuntimeProfile.tag_canvas(hud, "hud")
-	_refresh_ui()
+	refresh_ui()
 
-func _refresh_ui() -> void:
+func refresh_ui() -> void:
 	var gated: bool=services!=null and services.boot_host!=null and services.boot_host.blocks_app_ui()
 	if scene != null:
 		scene.set_battle_visible(not in_lobby and not gated)
@@ -67,6 +67,14 @@ func _refresh_ui() -> void:
 	if hud != null:
 		hud.visible = not in_lobby and not gated
 		hud.refresh()
+
+func board_input_policy() -> BoardInput:
+	if in_lobby: return BoardInput.IGNORE
+	if is_instance_valid(hud) and hud.blocks_board_input(): return BoardInput.CANCEL_CONTACTS
+	return BoardInput.ACCEPT
+
+func battlefield_rect() -> Rect2:
+	return hud.battlefield_rect() if is_instance_valid(hud) else Rect2()
 
 func refresh_economy_ui() -> void:
 	if lobby != null and in_lobby: lobby.refresh_economy()
@@ -106,7 +114,7 @@ func retry_load() -> bool:
 	# first checkpoint may only have a partial .tmp, with valid undo in the journal.
 	if not checkpoint.store._begin():
 		checkpoint.message = checkpoint.store.last_error_message
-		_refresh_ui()
+		refresh_ui()
 		return false
 	# The store may restore a valid backup. If neither file is readable, preserve
 	# both for explicit repair and never mistake damaged data for a new player.
@@ -123,12 +131,12 @@ func retry_load() -> bool:
 		if parsed.ok and SaveCodec.is_canonical_v2(parsed.get("value")): readable = true
 	if existing and not readable:
 		checkpoint.message = "저장 파일을 읽을 수 없습니다. 파일을 복구한 뒤 다시 불러오세요."
-		_refresh_ui()
+		refresh_ui()
 		return false
 	checkpoint.reward_queue = null
 	var queue = checkpoint.rewards()
 	if not queue.loaded:
-		_refresh_ui()
+		refresh_ui()
 		return false
 	var result: Error = checkpoint.load_session(self)
 	if result == ERR_FILE_NOT_FOUND:
@@ -143,7 +151,7 @@ func retry_load() -> bool:
 			progression_inputs = mapped
 		checkpoint.message = "새 게임을 시작할 수 있습니다"
 	elif result != OK:
-		_refresh_ui()
+		refresh_ui()
 		return false
 	auto_start_mode = str(checkpoint.preferences.get("autoStartMode", "pauseEachRound"))
 	startup_blocked = false
@@ -152,7 +160,7 @@ func retry_load() -> bool:
 		epoch += 1
 		scene.apply_frame({"reset":true,"sceneEpoch":epoch})
 	elif scene.combat_runtime.active: command([], {"paused":true})
-	_refresh_ui()
+	refresh_ui()
 	return true
 
 func start_stage(index: int) -> bool:
@@ -218,12 +226,11 @@ func _finish_stage_entry(success: bool, retry: Callable = Callable()) -> bool:
 	in_lobby = not success
 	var boot = _stage_boot()
 	if boot != null:
-		boot._effects_pending = false
 		if not success and not _stage_entry_cancelled:
 			boot.fail_stage_preparation(checkpoint.message, retry)
-		else: boot._refresh()
+		else: boot.set_battle_preparing(false)
 	if _stage_entry_cancelled and not save_failed: checkpoint.message = "스테이지 준비를 취소했습니다"
-	_refresh_ui()
+	refresh_ui()
 	return success
 
 func cancel_stage_entry() -> void:
@@ -251,13 +258,13 @@ func _battle_preparation_pending() -> bool:
 func open_stage_menu_destination() -> bool:
 	if scene.combat_runtime.active: command([], {"paused":true})
 	if not persist_progression():
-		_refresh_ui()
+		refresh_ui()
 		return false
 	in_lobby = true
 	if lobby != null:
 		lobby.page = "스테이지"
 		lobby.stages.reset_navigation()
-	_refresh_ui()
+	refresh_ui()
 	return true
 
 func show_lobby() -> void:
@@ -265,7 +272,7 @@ func show_lobby() -> void:
 	if scene.combat_runtime.active: command([], {"paused":true})
 	in_lobby = true
 	persist_progression()
-	_refresh_ui()
+	refresh_ui()
 
 func _record_save_failure() -> void:
 	save_failed = true
@@ -323,7 +330,7 @@ func apply_growth_command(request: Dictionary) -> bool:
 		return false
 	progression_inputs = result.state.duplicate(true)
 	refresh_selection()
-	_refresh_ui()
+	refresh_ui()
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:
@@ -399,7 +406,7 @@ func set_auto_start_mode(value: String) -> void:
 	if not persist_progression():
 		auto_start_mode = previous
 		checkpoint.preferences.autoStartMode = previous
-	_refresh_ui()
+	refresh_ui()
 
 func _on_combat_step_completed() -> void:
 	var previous_phase: String = str(run_domain.state.get("phase", ""))
@@ -445,7 +452,7 @@ func request_quit() -> bool:
 	if startup_blocked or pause_and_save():
 		get_tree().quit()
 		return true
-	_refresh_ui()
+	refresh_ui()
 	return false
 
 func _notification(what: int) -> void:
@@ -457,7 +464,7 @@ func _notification(what: int) -> void:
 		var boot = _stage_boot()
 		if boot != null and boot.dismiss_stage_failure():
 			in_lobby = true
-			_refresh_ui()
+			refresh_ui()
 			return
 		if not in_lobby:
 			if hud == null or not hud.close_back(): show_lobby()

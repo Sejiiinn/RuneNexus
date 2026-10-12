@@ -98,14 +98,14 @@ func _update_changed() -> void:
 		if updates.blocked and not app.startup_blocked: app.pause_and_save()
 		# Boot owns a full-screen overlay. Keep the underlying battle/lobby
 		# route so a successful check or optional skip returns to that screen.
-		app._refresh_ui()
+		app.refresh_ui()
 		if not updates.blocked and _startup_pending and not _initializing: _initialize.call_deferred()
 		changed.emit()
 		return
 	if updates.blocked and app.lobby != null:
 		if not app.startup_blocked: app.pause_and_save()
 		app.in_lobby = true
-		app._refresh_ui()
+		app.refresh_ui()
 		if app.lobby._services != null and app.lobby._services.page == "업데이트" and app.lobby._services._active_view(app.lobby._services.view_epoch):
 			app.lobby._services._render()
 		else: app.lobby.open_service("업데이트")
@@ -199,6 +199,17 @@ func consume_login_resume() -> bool:
 func note_login_pause() -> void:
 	if _login_in_progress: _login_resume_pending = true
 
+## True until the first local load and account restore finish.
+func startup_pending() -> bool:
+	return _startup_pending
+
+## The first local save load failed; boot offers an explicit retry.
+func startup_load_failed() -> bool:
+	return _startup_pending and not _initializing and issue == "LOCAL_SAVE_LOAD_FAILED"
+
+func retry_startup() -> void:
+	await _initialize()
+
 func _initialize() -> void:
 	if _initializing or not _startup_pending: return
 	_initializing = true
@@ -228,7 +239,7 @@ func _initialize() -> void:
 	_initializing = false
 	busy = false
 	issue = "" if result.get("ok",false) else str(result.get("code", ""))
-	app._refresh_ui()
+	app.refresh_ui()
 	changed.emit()
 	if needs_profile() and app.lobby != null: app.lobby.open_service("계정 및 저장")
 
@@ -257,7 +268,7 @@ func login() -> Dictionary:
 	_login_in_progress = false
 	issue = "" if result.get("ok",false) else str(result.get("code","LOGIN_FAILED"))
 	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
-	app._refresh_ui()
+	app.refresh_ui()
 	changed.emit()
 	return result
 
@@ -383,7 +394,7 @@ func perform(action: String, values: Dictionary = {}) -> Dictionary:
 	_economy_ui_pending = false
 	if action in ["mail_claim", "mail_claim_all"] and not result.get("ok", false): refresh_mailbox_summary(true)
 	if action == "claim_reward": _refresh_economy_ui()
-	else: app._refresh_ui()
+	else: app.refresh_ui()
 	changed.emit()
 	return result
 
@@ -505,7 +516,7 @@ func _flush_economy_ui() -> void:
 
 func _refresh_economy_ui() -> void:
 	if app.has_method("refresh_economy_ui"): app.refresh_economy_ui()
-	else: app._refresh_ui()
+	else: app.refresh_ui()
 
 func _progression_for_update() -> Dictionary:
 	# Background economy requests do not pause combat. Settle pending events and

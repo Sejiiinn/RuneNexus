@@ -23,6 +23,20 @@ var checkpoint = preload("res://session/session_checkpoint.gd").new()
 func is_content_session() -> bool:
 	return true
 
+## How the battlefield treats board touches. A controller with screens over the
+## board (lobby, HUD modals) overrides this; the development session accepts all.
+enum BoardInput { ACCEPT, IGNORE, CANCEL_CONTACTS }
+func board_input_policy() -> BoardInput:
+	return BoardInput.ACCEPT
+
+## Viewport rect the camera fits the board into; empty uses the whole viewport.
+func battlefield_rect() -> Rect2:
+	return Rect2()
+
+## Re-applies screen visibility after app gates change. Development has none.
+func refresh_ui() -> void:
+	pass
+
 func stage_count() -> int:
 	return catalog.stage_count()
 

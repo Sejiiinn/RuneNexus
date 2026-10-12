@@ -190,7 +190,7 @@ func run() -> void:
 	directory = directory.path_join("rune-stage-feedback-" + str(Time.get_ticks_usec()))
 	check(directory.is_absolute_path() and DirAccess.make_dir_recursive_absolute(directory) == OK, "isolated checkpoint directory")
 	scene = ObservedMain.new()
-	scene._app_mode = true
+	scene.app_mode = true
 	root.add_child(scene)
 	app = scene.session_controller
 	# Stop deferred live-service initialization before the first frame.
@@ -214,7 +214,7 @@ func run() -> void:
 	services.set_process(false)
 	app.services = services
 	boot.attach_services(services)
-	app._refresh_ui()
+	app.refresh_ui()
 	process_frame.connect(observe_frame)
 	RenderingServer.frame_post_draw.connect(observe_draw)
 	for frame in 3: await process_frame

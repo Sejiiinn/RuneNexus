@@ -3,6 +3,7 @@ extends Node
 const Startup = preload("res://ui/startup_screen.gd")
 const Updates = preload("res://services/update_service.gd")
 const Json = preload("res://app/save_json.gd")
+const LaunchMode = preload("res://app/launch_mode.gd")
 var updates
 var services
 var screen: Control
@@ -20,7 +21,7 @@ var _effects_pending := true
 var _stage_retry := Callable()
 
 func _ready() -> void:
-	if "--fixture" in OS.get_cmdline_user_args() or "--session" in OS.get_cmdline_user_args():
+	if LaunchMode.fixture() or LaunchMode.development_session():
 		get_tree().change_scene_to_file.call_deferred(game_scene_path)
 		return
 	add_to_group("rune_app_boot")
@@ -47,7 +48,7 @@ func attach_services(coordinator) -> void:
 	_refresh()
 
 func blocks_app_ui() -> bool:
-	return updates==null or updates.blocked or services==null or services._startup_pending or _effects_pending or not _failure.is_empty()
+	return updates==null or updates.blocked or services==null or services.startup_pending() or _effects_pending or not _failure.is_empty()
 
 func _update_changed() -> void:
 	_refresh()
@@ -119,19 +120,26 @@ func _instantiate(packed: PackedScene) -> void:
 		await updates.changed
 		if not is_inside_tree() or generation != _load_generation: return
 	game=packed.instantiate()
+	# Boot is the formal app entry; the battlefield does not infer it from flags.
+	if "app_mode" in game: game.app_mode=true
 	if game is Node3D: game.visible=false
 	add_child(game)
 	_refresh()
 	# Battle preparation belongs to explicit stage entry, never lobby startup.
 	_effects_pending = false
 	_refresh()
-	if services != null: services.app._refresh_ui()
+	if services != null: services.app.refresh_ui()
 
 func _notification(what: int) -> void:
 	# Before main exists, boot owns installer/settings returns. Afterwards the
 	# application lifecycle owns them, including its Google-login return guard.
 	if what==NOTIFICATION_APPLICATION_RESUMED and _first_frame_ready and services==null and updates!=null and not updates.busy:
 		updates.check()
+
+## Shows (or hides) the startup overlay while the battlefield prepares a stage.
+func set_battle_preparing(active: bool) -> void:
+	_effects_pending = active
+	_refresh()
 
 func fail_stage_preparation(reason: String, retry: Callable) -> void:
 	_stage_retry = retry
@@ -164,7 +172,7 @@ func _refresh() -> void:
 func presentation() -> Dictionary:
 	if not _failure.is_empty(): return {"status":"게임 준비","busy":false,"details":true,"error":_failure,"action":"다시 시도"}
 	if updates==null or not updates.blocked:
-		var load_error=services!=null and services._startup_pending and not services._initializing and services.issue=="LOCAL_SAVE_LOAD_FAILED"
+		var load_error=services!=null and services.startup_load_failed()
 		if load_error: return {"status":"게임 준비","busy":false,"details":true,"error":"저장을 불러오지 못했습니다. 기존 저장은 보존됩니다.","action":"다시 시도"}
 		return {"status":"게임 준비 중","busy":true,"details":false,"progress":_load_progress if _loading else -1.0}
 	var release: Dictionary=updates.release
@@ -202,7 +210,7 @@ func _action() -> void:
 		if is_instance_valid(game): game.queue_free();game=null
 		services=null;_advance()
 	elif updates.blocked: await updates.update()
-	elif services!=null and services._startup_pending: await services._initialize()
+	elif services!=null and services.startup_pending(): await services.retry_startup()
 	_refresh()
 
 func _continue() -> void:

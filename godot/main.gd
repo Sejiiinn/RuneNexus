@@ -4,6 +4,7 @@ const FrameRows = preload("res://presentation/frame_rows.gd")
 const StageManifest = preload("res://presentation/stage_manifest.gd")
 const EffectPreparation = preload("res://presentation/effect_preparation.gd")
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
+const LaunchMode = preload("res://app/launch_mode.gd")
 const FrameMetrics = preload("res://app/frame_metrics.gd")
 
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
@@ -27,6 +28,7 @@ const ChapterThreeProps = BattlefieldEnvironment.ChapterThreeProps
 const ChapterThreeTiles = BattlefieldEnvironment.ChapterThreeTiles
 const ForgeReflectionSky = BattlefieldEnvironment.ForgeReflectionSky
 const ReflectionSky = BattlefieldEnvironment.ReflectionSky
+const SessionController = preload("res://session/session_controller.gd")
 const BattlefieldCamera = preload("res://session/battlefield_camera.gd")
 const CAMERA_TRANSITION_SECONDS = BattlefieldCamera.CAMERA_TRANSITION_SECONDS
 const CAMERA_DEPTH_MARGIN = BattlefieldCamera.CAMERA_DEPTH_MARGIN
@@ -43,7 +45,9 @@ var _session_suspended := false
 var _session_input = preload("res://session/battlefield_input.gd").new(self)
 ## The app (--app) or development (--session) session that drives this battlefield.
 var session_controller: Node
-var _app_mode := "--app" in OS.get_cmdline_user_args() or (not "--session" in OS.get_cmdline_user_args() and not "--fixture" in OS.get_cmdline_user_args() and not "--script" in OS.get_cmdline_args() and not "-s" in OS.get_cmdline_args())
+## Formal app battlefield (lobby, saves, account). Boot sets it before adding the
+## scene; without boot it follows the launch flags. Read in _ready.
+var app_mode := LaunchMode.default_app_mode()
 ## Combat simulation for the current stage; replaced when a stage starts.
 var combat_runtime := _new_native_combat()
 ## Session-owned static presentation (map, selection, preview) decorated each frame.
@@ -224,7 +228,7 @@ func _ready() -> void:
 	_environment.failed.connect(_fail)
 	_environment.camera_reset_requested.connect(func(): camera_mode = "")
 	if not _environment.initialize(): return
-	if not _app_mode:
+	if not app_mode:
 		_presentation_nodes["effects"].prepare_assets()
 		_ensure_battle_base()
 		if not _projectile_renderer.initialize(): return
@@ -234,8 +238,8 @@ func _ready() -> void:
 	# Tween은 _process 뒤에 진행되므로 실제 렌더 직전의 카메라로 투영을 보고.
 	RenderingServer.frame_pre_draw.connect(_report_presentation)
 	_update_camera()
-	if _app_mode or "--session" in OS.get_cmdline_user_args():
-		var entry := "res://app/app_lifecycle.gd" if _app_mode else "res://session/standalone.gd"
+	if app_mode or LaunchMode.development_session():
+		var entry := "res://app/app_lifecycle.gd" if app_mode else "res://session/standalone.gd"
 		session_controller = load(entry).new()
 		add_child(session_controller)
 		return
@@ -374,10 +378,8 @@ func _fit_camera_to_frame() -> void:
 
 
 func _formal_battlefield_rect() -> Rect2:
-	if not _app_mode or not is_instance_valid(session_controller): return Rect2()
-	var hud = session_controller.hud
-	if not is_instance_valid(hud): return Rect2()
-	return hud.battlefield_rect()
+	if not is_instance_valid(session_controller): return Rect2()
+	return session_controller.battlefield_rect()
 
 
 func _update_camera_visuals() -> void:
@@ -486,7 +488,7 @@ func cancel_turret_placement(id: int) -> void:
 
 
 func apply_frame(frame: Dictionary) -> void:
-	if _battle_deferred or (_app_mode and not _battle_visible and not _realizing_battle):
+	if _battle_deferred or (app_mode and not _battle_visible and not _realizing_battle):
 		var epoch := int(frame.get("sceneEpoch", 0))
 		if epoch < _scene_epoch: return
 		if bool(frame.get("reset", false)) or epoch > _scene_epoch:
@@ -501,7 +503,7 @@ func apply_frame(frame: Dictionary) -> void:
 		var decorate_tick := RuntimeProfile.begin()
 		# Both real native entry points use tile units with canonical Canvas art.
 		# The development session needs the same glyph/effect conversion as --app.
-		var native_presentation := _app_mode or is_instance_valid(session_controller)
+		var native_presentation := app_mode or is_instance_valid(session_controller)
 		# Native frames already carry canonical 48-pixel Canvas units.
 		frame = combat_runtime.decorate_frame(frame, true, native_presentation)
 		owned_snapshot = true
@@ -683,7 +685,7 @@ func _update_impacts(units: Array) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if _app_mode: return
+	if app_mode: return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	match event.keycode:
@@ -695,12 +697,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_instance_valid(session_controller) and _app_mode:
-		var app = session_controller
-		if app.in_lobby: return
-		if is_instance_valid(app.hud) and app.hud.blocks_board_input():
-			_session_input.contacts.clear()
-			return
+	if is_instance_valid(session_controller):
+		match session_controller.board_input_policy():
+			SessionController.BoardInput.IGNORE: return
+			SessionController.BoardInput.CANCEL_CONTACTS:
+				_session_input.contacts.clear()
+				return
 	_session_input.handle(event)
 
 
@@ -848,10 +850,8 @@ func prepare_stage_resources(catalog, index: int, derived: Dictionary, restored_
 	var generation := _stage_preparation_generation
 	_stage_preparation_pending = true
 	var boot = get_tree().get_first_node_in_group("rune_app_boot")
-	if boot != null:
-		boot._effects_pending = true
-		boot._refresh()
-	if is_instance_valid(session_controller): session_controller._refresh_ui()
+	if boot != null: boot.set_battle_preparing(true)
+	if is_instance_valid(session_controller): session_controller.refresh_ui()
 	set_battle_visible(_battle_requested_visible)
 	await stage_feedback_frame()
 	if not stage_preparation_current(generation): return false
@@ -913,7 +913,7 @@ func realize_battle_presentation() -> bool:
 	_realizing_battle = false
 	if _stage_preparation_pending: await stage_feedback_frame()
 	if not stage_preparation_current(generation) or not _stage_preparation_error.is_empty(): return false
-	if _app_mode and not effects_prepared:
+	if app_mode and not effects_prepared:
 		if not await prepare_effects(): return false
 	if not stage_preparation_current(generation) or not _stage_preparation_error.is_empty(): return false
 	_stage_preparation_pending = false
@@ -932,7 +932,7 @@ func battle_preparation_pending() -> bool:
 
 
 func _camera_model_libraries() -> Array:
-	if _app_mode and _stage_manifest.is_empty(): return []
+	if app_mode and _stage_manifest.is_empty(): return []
 	if _camera_models.is_empty():
 		for pair in [[TURRET_MODELS, _stage_manifest.get("tower_types", TURRET_MODELS.keys())],
 			[ENEMY_MODELS, _stage_manifest.get("enemy_types", ENEMY_MODELS.keys())]]:

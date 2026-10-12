@@ -98,7 +98,7 @@ func child(mode: String, directory: String) -> void:
 	battle_paths.append_array(["res://assets/ui/turret_levels.png", "res://assets/ui/death_silhouettes.png"])
 	check(battle_paths.size() > 20, "prepared battle asset catalog is available")
 	var scene = load("res://main.tscn").instantiate()
-	scene._app_mode = true
+	scene.app_mode = true
 	root.add_child(scene)
 	var app = scene.session_controller
 	# setup() only queued service initialization. Free it synchronously before

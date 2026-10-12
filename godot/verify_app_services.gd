@@ -144,7 +144,7 @@ class AppStub extends RefCounted:
 	var services
 	var persist_count := 0
 	var retry_count := 0
-	func _refresh_ui():
+	func refresh_ui():
 		if is_instance_valid(lobby): lobby.refresh()
 	func retry_load() -> bool:
 		retry_count+=1

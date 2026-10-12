@@ -97,7 +97,7 @@ func run() -> void:
 	root.size = Vector2i(440, 900)
 	root.content_scale_size = Vector2i(440, 760)
 	scene = load("res://main.gd").new()
-	scene._app_mode = true
+	scene.app_mode = true
 	root.add_child(scene)
 	app = scene.session_controller
 	var narrow := "--narrow-modals" in OS.get_cmdline_user_args()

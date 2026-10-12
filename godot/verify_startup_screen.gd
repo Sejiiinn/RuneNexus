@@ -38,7 +38,7 @@ class App extends RefCounted:
  var in_lobby:=true
  var loads:=0
  var progression_inputs={}
- func _refresh_ui():pass
+ func refresh_ui():pass
  func retry_load():
   loads+=1
   checkpoint.store.load_save()
@@ -192,7 +192,7 @@ func _boot_checks():
   check(coordinator.updates==boot.updates and boot.updates.calls==2,"AppServices reuses boot updater without duplicate check")
   check(application.loads==1 and native.reads==1,"Save and secure restoration start once after gate pass")
   check(not boot.screen.visible and not boot.blocks_app_ui(),"Lobby starts after services without rehearsing battle effects")
-  boot._effects_pending=true;boot._refresh()
+  boot.set_battle_preparing(true)
   check(boot.screen.visible and boot.blocks_app_ui(),"Explicit battle preparation can reuse startup overlay")
   boot.fail_preparation("fixture stage failure")
   check(boot.blocks_app_ui() and not boot._failure.is_empty() and boot.screen.primary_button!=null,"Stage preparation failure keeps gate and retry")

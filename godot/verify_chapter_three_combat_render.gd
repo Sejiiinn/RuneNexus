@@ -97,7 +97,7 @@ func save_restore(stage_id: int) -> bool:
 	check(bool(scene.combat_runtime.session.paused),"restore paused "+str(stage_id))
 	connect_observer()
 	app.lobby.page = "로비"
-	app._refresh_ui()
+	app.refresh_ui()
 	await process_frame
 	var button := app.lobby.find_child("ContinueRun",true,false) as Button
 	check(button != null,"actual Continue UI exists "+str(stage_id))
@@ -118,7 +118,7 @@ func run() -> void:
 	DirAccess.make_dir_recursive_absolute(directory)
 	root.size = Vector2i(440,900)
 	scene = load("res://main.gd").new()
-	scene._app_mode = true
+	scene.app_mode = true
 	root.add_child(scene)
 	app = scene.session_controller
 	var services = app.services
@@ -156,7 +156,7 @@ func run() -> void:
 		print("COMBAT_SETUP stage=",stage_id," seeded_turrets=",seeded.turrets.size()," runtime_turrets=",scene.combat_runtime.turrets.size()," tile_size=",scene.combat_runtime.tile_size)
 		app.next_round = round_number-1
 		app.spawn_rng.seed = Fixture.SEED+stage_id*100+round_number
-		app._refresh_ui()
+		app.refresh_ui()
 		present()
 		counts = {"kill":0,"arrival":0,"teleport":0,"waveCompleted":0,"coreDefeated":0}
 		witnessed = {"shots":false,"projectile":false,"damage":false,"boss":false,"bossTarget":false,"bossDamage":false}
