@@ -1283,7 +1283,6 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 				var center := (_vec(path[-1])-origin)/tile_size
 				var progress := 1.0 if core.guardian_beam_active_remaining>0 else clampf(1.0-core.cooldown/maxf(0.000001,core.interval()),0,1)
 				frame.presentation.labels.core = {"position":[center.x,center.y],"progress":progress,"accent":0xffcfa7ff if core.skill == "riftMark" else 0xff8ee6ff,"active":core.guardian_beam_active_remaining>0}
-	frame.erase("projectileEvents")
 	frame.projectiles = []
 	frame.impacts = []
 	var impact_rows := {}

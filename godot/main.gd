@@ -72,7 +72,6 @@ var enemies: Dictionary:
 	get: return _units.enemies
 var projectiles: Dictionary:
 	get: return _projectile_renderer.projectiles
-var _projectile_events = preload("res://effects/projectile_events.gd").new()
 var impacts: Dictionary:
 	get: return _projectile_renderer.impacts
 var impact_pool: Array[Node3D]:
@@ -466,7 +465,6 @@ func presentation() -> Dictionary:
 		"nativeLinkedEffectEvents": _applied_groups.has("effects"),
 		"nativeChainEffectEvents": _applied_groups.has("effects"),
 		"nativeChargeEffectEvents": _applied_groups.has("effects"),
-		"nativeProjectileEvents": true,
 		"nativeSelectionAnimation": _applied_groups.has("selection"),
 		"selectionRevision": _presentation_nodes["selection"].selection_revision,
 		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
@@ -587,10 +585,6 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 	for impact: FrameRows.Impact in frame.get("impacts", []):
 		merged_impacts[impact.id] = impact
 	last_frame["impacts"] = merged_impacts.values()
-	if frame.get("projectileEvents") is Dictionary:
-		last_frame["projectiles"] = FrameRows.rows("projectiles", _projectile_events.sample(frame["projectileEvents"], float(frame.get("time", 0.0))))
-	else:
-		_projectile_events.clear()
 	var camera_tick := RuntimeProfile.begin()
 	_update_camera()
 	RuntimeProfile.finish("camera", camera_tick)
@@ -624,7 +618,6 @@ func _clear_scene() -> void:
 	_battlefield_camera.reset()
 	_screen_feedback.hide()
 	combat_base_frame.clear()
-	_projectile_events.clear()
 	world.position = Vector3.ZERO
 	_turret_level_labels.clear()
 	for node: Node2D in _presentation_nodes.values():
