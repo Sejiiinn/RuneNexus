@@ -76,13 +76,14 @@ func cycle_wave() -> void:
 	next_round = completed + (next_round - completed + 1) % (total - completed)
 
 
-func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> void:
-	if index < 0 or index >= stage_count(): return
+func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> bool:
+	if index < 0 or index >= stage_count(): return false
 	next_id = 1
-	super.enter_stage(index, bootstrap, session_state, restored_state)
+	if not super.enter_stage(index, bootstrap, session_state, restored_state): return false
 	# This development entry consumes the same native effect/selection contract
 	# as the app. Without its version, main suppresses all presentation groups.
 	scene.combat_base_frame["presentationVersion"] = 2
+	return true
 
 func build_selected() -> void:
 	if selected.x < 0 or not scene.combat_runtime.active: return

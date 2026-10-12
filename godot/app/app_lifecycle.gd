@@ -87,9 +87,10 @@ func refresh_selection() -> void:
 	selection_view.apply(self)
 	if not scene.combat_base_frame.is_empty(): scene.apply_frame(scene.combat_base_frame)
 
-func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> void:
-	super.enter_stage(index, bootstrap, session_state, restored_state)
+func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> bool:
+	var entered := super.enter_stage(index, bootstrap, session_state, restored_state)
 	refresh_selection()
+	return entered
 
 func board_tap(tile: Vector2i) -> void:
 	if _battle_preparation_pending(): return
@@ -189,7 +190,8 @@ func start_stage(index: int) -> bool:
 	if not prepare_run_transition():
 		_record_save_failure()
 		return _finish_stage_entry(false, start_stage.bind(index))
-	enter_stage(index)
+	if not enter_stage(index):
+		return _finish_stage_entry(false, start_stage.bind(index))
 	if not persist_progression():
 		command([], {"paused":true})
 		return _finish_stage_entry(false, resume_run)

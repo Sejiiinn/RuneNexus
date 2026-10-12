@@ -101,11 +101,12 @@ func retry_stage() -> bool:
 	if not _can_replace_run(): return false
 	if is_content_session() and not run_domain.state.is_empty():
 		progression_inputs = run_domain.state.progression.duplicate(true)
-	enter_stage(stage)
-	return true
+	return enter_stage(stage)
 
-func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> void:
-	if index < 0 or index >= stage_count(): return
+## Starts a combat generation for the stage. False when content cannot be
+## prepared or the runtime rejects the bootstrap; checkpoint.message says why.
+func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> bool:
+	if index < 0 or index >= stage_count(): return false
 	stage = index
 	next_round = 0
 	next_enemy_id = 100000
@@ -122,7 +123,7 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	if is_content_session():
 		if not run_domain.initialize(catalog, progression_inputs, stage, epoch):
 			checkpoint.message = run_domain.error
-			return
+			return false
 		if not restored_state.is_empty():
 			run_domain.restore(restored_state)
 			progression_inputs = run_domain.state.progression.duplicate(true)
@@ -132,13 +133,23 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 		initial = catalog.bootstrap(stage, inputs)
 		if initial.is_empty():
 			checkpoint.message = catalog.error
-			return
+			return false
 	initial.merge(bootstrap, true)
 	var control := {"clock":"godot","phase":"preparation","paused":false,"speed":1.0}
 	control.merge(session_state, true)
-	scene.combat_runtime.start(epoch, initial, control)
+	var rejected: String = scene.combat_runtime.start(epoch, initial, control)
+	if not rejected.is_empty():
+		_report_rejection("전투를 시작하지 못했습니다", rejected)
+		return false
 	if not scene.combat_runtime.step_completed.is_connected(_on_combat_step_completed):
 		scene.combat_runtime.step_completed.connect(_on_combat_step_completed)
+	return true
+
+## Runtime rejections are protocol or content faults, never player input; the
+## run domain validates commands first. They are logged and shown, not ignored.
+func _report_rejection(context: String, reason: String) -> void:
+	checkpoint.message = "%s (%s)" % [context, reason]
+	push_error("Combat runtime rejected: %s (%s)" % [context, reason])
 
 func command(commands: Array = [], patch: Dictionary = {}) -> bool:
 	var before: Array = []
@@ -154,7 +165,10 @@ func command(commands: Array = [], patch: Dictionary = {}) -> bool:
 	if is_content_session():
 		ack_event = run_domain.event_ack
 		if not patch.has("phase") and not run_domain.state.is_empty(): patch.phase = run_domain.state.phase
-	scene.combat_runtime.apply_batch(epoch, before + commands, patch, ack_event)
+	var rejected: String = scene.combat_runtime.apply_batch(epoch, before + commands, patch, ack_event)
+	if not rejected.is_empty():
+		_report_rejection("전투 명령을 적용하지 못했습니다", rejected)
+		return false
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:
@@ -162,11 +176,15 @@ func apply_run_command(request: Dictionary) -> bool:
 	# Settle newly observed events before checking affordability/phase.
 	if not command(): return false
 	var build_id := int(run_domain.state.get("nextTurretId",-1)) if request.get("kind") == "build" else -1
+	var previous: Dictionary = run_domain.state.duplicate(true)
 	var result: Dictionary = run_domain.apply(request)
 	if not result.get("ok", false):
 		checkpoint.message = run_domain.error
 		return false
-	command(result.get("commands", []), {"phase":run_domain.state.phase})
+	# A rejected batch leaves combat unchanged; keep the run (gold, turrets) with it.
+	if not command(result.get("commands", []), {"phase":run_domain.state.phase}):
+		run_domain.state = previous
+		return false
 	checkpoint.message = ""
 	if build_id >= 0:
 		var placed: Dictionary = run_domain.service.turret(run_domain.state,build_id)

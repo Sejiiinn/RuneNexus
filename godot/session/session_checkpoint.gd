@@ -204,7 +204,7 @@ func load_session(app) -> Error:
 		queue.append({"delay": pending.delay, "enemyType": "normal", "enemy": enemy_configuration(source.path, id)})
 		id += 1
 	# Validation completed before replacing the current scene.
-	app.enter_stage(index, {
+	var entered: bool = app.enter_stage(index, {
 		"path": source.path, "tileSize": 1.0, "boardDistanceScale": 1.0 / 48.0,
 		"turrets": towers, "enemies": enemies,
 		"wave": {"id": int(run.roundIndex) if run.phase == "preparation" else int(run.roundIndex) + 1, "active": run.phase == "wave", "spawnQueue": queue},
@@ -215,6 +215,7 @@ func load_session(app) -> Error:
 			"failed": run.phase == "failure",
 		}},
 	}, {"phase": run.phase, "paused": true})
+	if not entered: return ERR_INVALID_DATA
 	app.next_id = next_turret_id
 	message = "Loaded v2; Pause resumes"
 	return OK
@@ -295,7 +296,8 @@ func _load_content(app) -> Error:
 			return store.last_error
 	if enqueue_saved(saved) != OK: return reward_queue.last_error
 	# All content/configuration validation precedes scene replacement and event ACK.
-	app.enter_stage(restored.stage, restored.bootstrap, restored.session, restored.state)
+	if not app.enter_stage(restored.stage, restored.bootstrap, restored.session, restored.state):
+		return ERR_INVALID_DATA
 	app.next_enemy_id = restored.nextEnemyId
 	app.next_round = restored.nextRound
 	preferences = saved.preferences.duplicate(true)
