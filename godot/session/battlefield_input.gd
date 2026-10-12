@@ -1,5 +1,6 @@
 extends RefCounted
 ## Screen input and board projection stay beside the native camera.
+const SessionController = preload("res://session/session_controller.gd")
 var scene: Node3D
 var contacts: Dictionary = {}
 var start := Vector2.ZERO
@@ -20,12 +21,8 @@ func blocked() -> bool:
 	var state: Dictionary = scene.combat_runtime.session
 	var app = scene.session_controller
 	# Pause stops simulation, while camera/selection/build input stays available.
-	# Save failures and reward replacement still require a blocked board.
-	if is_instance_valid(app):
-		if app.get("save_failed") == true: return true
-		if app.get("hud") != null:
-			var rewards = app.hud.get("rewards")
-			if rewards != null and rewards.targeting() and rewards.replacing(): return true
+	# App-level blocks (save failure, reward replacement) are the session's policy.
+	if is_instance_valid(app) and app.board_input_policy() != SessionController.BoardInput.ACCEPT: return true
 	return bool(scene.combat_base_frame.get("inputBlocked", false)) or bool(state.get("loading", false)) or bool(state.get("backgrounded", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
 
 func handle(event: InputEvent) -> void:

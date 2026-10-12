@@ -5,6 +5,7 @@ class RewardMode extends RefCounted:
 	func replacing() -> bool: return replacement
 class TargetHud extends Control:
 	var rewards = RewardMode.new()
+	func blocks_board_input() -> bool: return false
 class MenuStages extends RefCounted:
 	var resets := 0
 	func reset_navigation() -> void: resets += 1

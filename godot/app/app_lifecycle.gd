@@ -73,7 +73,13 @@ func refresh_ui() -> void:
 
 func board_input_policy() -> BoardInput:
 	if in_lobby: return BoardInput.IGNORE
-	if is_instance_valid(hud) and hud.blocks_board_input(): return BoardInput.CANCEL_CONTACTS
+	# A plain pause keeps camera, selection and building available; a failed
+	# save and reward replacement targeting do not.
+	if save_failed: return BoardInput.CANCEL_CONTACTS
+	if is_instance_valid(hud):
+		if hud.blocks_board_input(): return BoardInput.CANCEL_CONTACTS
+		var rewards = hud.get("rewards")
+		if rewards != null and rewards.targeting() and rewards.replacing(): return BoardInput.CANCEL_CONTACTS
 	return BoardInput.ACCEPT
 
 func battlefield_rect() -> Rect2:

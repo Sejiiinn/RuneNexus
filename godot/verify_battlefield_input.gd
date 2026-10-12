@@ -8,10 +8,10 @@ class Rewards extends RefCounted:
 	func replacing() -> bool: return replacement
 class Hud extends Control:
 	var rewards = Rewards.new()
-class App extends Node:
-	var save_failed := false
-	var hud
-	var selected := Vector2i(-1,-1)
+	func blocks_board_input() -> bool: return false
+## The real app input policy without its lobby, services and save startup.
+class App extends "res://app/app_lifecycle.gd":
+	func _ready() -> void: in_lobby = false
 	func board_tap(tile: Vector2i) -> void: selected = tile
 class Board extends "res://verify_support_fake_battlefield.gd":
 	func _init() -> void: combat_base_frame = {"sceneEpoch":1}
