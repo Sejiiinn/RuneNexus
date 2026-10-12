@@ -4,6 +4,7 @@ const SaveJson = preload("res://app/save_json.gd")
 const SaveCodec = preload("res://app/save_codec.gd")
 const DevicePreferences = preload("res://app/device_preferences.gd")
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
+const GemReroll = preload("res://app/gem_reroll.gd")
 var startup_blocked := true
 var in_lobby := true
 var autosave_interval := 10.0
@@ -20,6 +21,8 @@ var services
 var _stage_entry_pending := false
 var _stage_entry_cancelled := false
 var _pause_generation := 0
+var _gem_reroll_requesting := false
+var _gem_reroll_note := ""
 
 func _ready() -> void:
 	scene = get_parent()
@@ -164,6 +167,7 @@ func retry_load() -> bool:
 	return true
 
 func start_stage(index: int) -> bool:
+	if _gem_reroll_requesting or _pending_gem_reroll(): return false
 	if _battle_preparation_pending(): return false
 	if services != null and services.blocks_play():
 		var update_required: bool = services.updates != null and services.updates.blocked
@@ -268,6 +272,7 @@ func open_stage_menu_destination() -> bool:
 	return true
 
 func show_lobby() -> void:
+	if _gem_reroll_requesting or _pending_gem_reroll(): return
 	if _stage_entry_pending: cancel_stage_entry(); return
 	if scene.combat_runtime.active: command([], {"paused":true})
 	in_lobby = true
@@ -334,6 +339,8 @@ func apply_growth_command(request: Dictionary) -> bool:
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:
+	if request.get("kind") == "rerollRewardFree": return false # Only durable reroll entrypoint may publish it.
+	if request.get("kind") in ["chooseRewardGem", "chooseRewardGemEquip", "chooseRewardShards"] and gem_reroll_state().locked: return false
 	if services != null and services.blocks_play(): return false
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return false
 	if save_failed and not persist_progression(): return false
@@ -385,6 +392,7 @@ func end_modal_pause(was_running: bool) -> void:
 	if command([], {"paused":false}): persist_progression()
 
 func abandon_run() -> bool:
+	if _gem_reroll_requesting or _pending_gem_reroll(): return false
 	if startup_blocked or in_lobby: return false
 	if not prepare_run_transition():
 		_record_save_failure()
@@ -521,3 +529,81 @@ func _process(delta: float) -> void:
 		# Retry failed writes at the same bounded interval, preserving the error.
 		autosave_elapsed = 0.0
 		persist_progression()
+
+# Rerolls never mutate the live offer before its checkpoint is durable. Account
+# commands reuse the exact outbox and atomically apply wallet + offer snapshots.
+func _pending_gem_reroll() -> bool:
+	if services == null or services.economy == null: return false
+	var box = services.economy.outbox
+	if box == null or box.owner != checkpoint.owner: return false
+	var pending: Variant = box.state.get("inFlight")
+	return pending is Dictionary and pending.get("kind") == "reroll_gems"
+
+func gem_reroll_state() -> Dictionary:
+	var state: Dictionary = run_domain.state
+	var used := clampi(int(state.get("gemRerollsUsed", 0)), 0, GemReroll.MAX_USES)
+	var view := {"status":"available", "remaining":GemReroll.MAX_USES-used, "free":used == 0, "available":false, "locked":false, "note":_gem_reroll_note}
+	if not GemReroll.eligible(state): return view
+	if _gem_reroll_requesting or (services != null and services.economy != null and services.economy.busy):
+		view.merge({"status":"processing", "locked":true, "note":"리롤 처리 중…"}, true)
+		return view
+	if _pending_gem_reroll():
+		view.merge({"status":"recovering", "available":true, "locked":true, "note":"처리 결과를 확인해야 합니다. 다시 눌러 확인하세요."}, true)
+		return view
+	if save_failed:
+		view.merge({"status":"save_failed", "available":true, "locked":true, "note":"저장에 실패했습니다. 다시 눌러 저장을 재시도하세요."}, true)
+		return view
+	if used >= GemReroll.MAX_USES:
+		view.merge({"status":"exhausted", "note":"이번 도전의 리롤을 모두 사용했습니다."}, true)
+		return view
+	if checkpoint.owner == "guest":
+		view.available = used == 0
+		if used > 0: view.merge({"status":"offline", "note":"리셋권 사용은 계정 연결이 필요합니다."}, true)
+		return view
+	if services == null or not services.connected() or not services.online_ready:
+		view.merge({"status":"offline", "note":"리롤은 온라인 연결이 필요합니다."}, true)
+		return view
+	if int(services.economy.snapshot.get("gemRerollVersion", 0)) != 1:
+		view.merge({"status":"unsupported", "note":"서버에서 리롤을 준비 중입니다."}, true)
+		return view
+	if used > 0 and int(state.get("progression", {}).get("gemResetTickets", 0)) <= 0:
+		view.merge({"status":"empty", "note":"젬 리셋권이 없습니다."}, true)
+		return view
+	view.available = true
+	return view
+
+func reroll_reward_gems() -> Dictionary:
+	var view := gem_reroll_state()
+	if not view.available or _gem_reroll_requesting or startup_blocked or in_lobby: return {"ok":false, "code":"REROLL_UNAVAILABLE"}
+	var recovering := _pending_gem_reroll()
+	if save_failed and not persist_progression(): return {"ok":false, "code":"LOCAL_SAVE_FAILED"}
+	var state: Dictionary = run_domain.state
+	if not GemReroll.eligible(state): return {"ok":false, "code":"STALE_REWARD"}
+	var values := {"runId":state.get("economyRunId", ""), "completedRounds":state.get("completedRounds", 0), "expectedRerollCount":int(state.get("gemRerollsUsed", 0))}
+	_gem_reroll_requesting = true
+	_gem_reroll_note = ""
+	refresh_ui()
+	var result: Dictionary
+	if checkpoint.owner == "guest":
+		values.kind = "rerollRewardFree"
+		result = run_domain.service.apply(state, values)
+		if result.get("ok", false):
+			if checkpoint.persist_state(self, result.state) == OK:
+				run_domain.state = result.state
+				run_domain.state_revision += 1
+			else:
+				_record_save_failure()
+				result = {"ok":false, "code":"LOCAL_SAVE_FAILED"}
+	else:
+		if recovering and not services.online_ready: result = await services.retry()
+		else: result = await services.perform("refresh" if recovering else "reroll_gems", values)
+	_gem_reroll_requesting = false
+	if not result.get("ok", false):
+		var code := str(result.get("code", "REQUEST_FAILED"))
+		if code in ["INSUFFICIENT_GEM_RESET_TICKETS", "INSUFFICIENT_GEM_TICKETS"]: _gem_reroll_note = "젬 리셋권이 없습니다."
+		elif code == "GEM_REROLL_LIMIT_REACHED": _gem_reroll_note = "이번 도전의 리롤을 모두 사용했습니다."
+		elif code == "GEM_REROLL_STATE_CONFLICT": _gem_reroll_note = "리롤 상태가 갱신되었습니다. 후보를 확인해 주세요."
+		elif code in ["GEM_REROLL_UNAVAILABLE", "NOT_FOUND"]: _gem_reroll_note = "서버에서 리롤을 준비 중입니다."
+		elif not _pending_gem_reroll(): _gem_reroll_note = "리롤을 완료하지 못했습니다. 다시 시도해 주세요."
+	refresh_ui()
+	return result

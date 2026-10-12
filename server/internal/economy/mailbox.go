@@ -15,6 +15,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -24,15 +25,16 @@ var ErrMailUnavailable = errors.New("mail is unavailable")
 var ErrInvalidMailRequest = errors.New("invalid mail request")
 
 type Mail struct {
-	ID            string     `json:"id"`
-	Title         string     `json:"title"`
-	Body          string     `json:"body"`
-	FreeDiamonds  int64      `json:"freeDiamonds"`
-	ModuleTickets int64      `json:"moduleTickets"`
-	StartsAt      time.Time  `json:"startsAt"`
-	ExpiresAt     time.Time  `json:"expiresAt"`
-	ReadAt        *time.Time `json:"readAt"`
-	ClaimedAt     *time.Time `json:"claimedAt"`
+	GemResetTickets int64      `json:"gemResetTickets"`
+	ID              string     `json:"id"`
+	Title           string     `json:"title"`
+	Body            string     `json:"body"`
+	FreeDiamonds    int64      `json:"freeDiamonds"`
+	ModuleTickets   int64      `json:"moduleTickets"`
+	StartsAt        time.Time  `json:"startsAt"`
+	ExpiresAt       time.Time  `json:"expiresAt"`
+	ReadAt          *time.Time `json:"readAt"`
+	ClaimedAt       *time.Time `json:"claimedAt"`
 }
 type MailboxPage struct {
 	Mails      []Mail    `json:"mails"`
@@ -55,6 +57,7 @@ type MailBatchResult struct {
 	Results []MailBatchItem `json:"results"`
 }
 type CreateMailRequest struct {
+	GemResetTickets   int64     `json:"gemResetTickets,omitempty"`
 	DispatchKey       string    `json:"dispatchKey"`
 	Title             string    `json:"title"`
 	Body              string    `json:"body"`
@@ -96,7 +99,7 @@ func (service *Service) ListMail(ctx context.Context, accountID, cursor string) 
 		before = &position.At
 		beforeID = &position.ID
 	}
-	rows, err := service.database.Query(ctx, `SELECT m.id::text,m.title,m.body,m.free_diamonds,m.module_tickets,m.starts_at,m.expires_at,r.read_at,c.claimed_at
+	rows, err := service.database.Query(ctx, `SELECT m.id::text,m.title,m.body,m.free_diamonds,m.module_tickets,m.gem_reset_tickets,m.starts_at,m.expires_at,r.read_at,c.claimed_at
  FROM mails m LEFT JOIN mail_reads r ON r.mail_id=m.id AND r.account_id=$1
  LEFT JOIN economy_reward_claims c ON c.account_id=$1 AND c.reward_key='mail:'||m.id::text
  WHERE `+mailEligibility+` AND ($3::timestamptz IS NULL OR (m.starts_at,m.id)<($3,$4::uuid))
@@ -107,7 +110,7 @@ func (service *Service) ListMail(ctx context.Context, accountID, cursor string) 
 	defer rows.Close()
 	for rows.Next() {
 		var mail Mail
-		if err := rows.Scan(&mail.ID, &mail.Title, &mail.Body, &mail.FreeDiamonds, &mail.ModuleTickets, &mail.StartsAt, &mail.ExpiresAt, &mail.ReadAt, &mail.ClaimedAt); err != nil {
+		if err := rows.Scan(&mail.ID, &mail.Title, &mail.Body, &mail.FreeDiamonds, &mail.ModuleTickets, &mail.GemResetTickets, &mail.StartsAt, &mail.ExpiresAt, &mail.ReadAt, &mail.ClaimedAt); err != nil {
 			return result, err
 		}
 		result.Mails = append(result.Mails, mail)
@@ -194,16 +197,19 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return CommandResult{}, err
 	}
-	var diamonds, tickets int64
+	var diamonds, tickets, gemTickets int64
 	// 공유 잠금은 수령끼리 병렬 진행을 허용하고 운영 중지와만 직렬화.
-	err = tx.QueryRow(ctx, `SELECT m.free_diamonds,m.module_tickets FROM mails m WHERE `+mailEligibility+` AND m.id=$3 FOR SHARE OF m`, accountID, service.now().UTC(), request.MailID).Scan(&diamonds, &tickets)
+	err = tx.QueryRow(ctx, `SELECT m.free_diamonds,m.module_tickets,m.gem_reset_tickets FROM mails m WHERE `+mailEligibility+` AND m.id=$3 FOR SHARE OF m`, accountID, service.now().UTC(), request.MailID).Scan(&diamonds, &tickets, &gemTickets)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return CommandResult{}, ErrMailUnavailable
 	}
 	if err != nil {
 		return CommandResult{}, err
 	}
-	if wallet.FreeDiamonds > math.MaxInt64-diamonds || wallet.ModuleTickets > math.MaxInt64-tickets {
+	if gemTickets > 0 && gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.GemRerollClientCompatibilityVersion {
+		return CommandResult{}, gamesave.ErrClientUpdateRequired
+	}
+	if wallet.FreeDiamonds > math.MaxInt64-diamonds || wallet.ModuleTickets > math.MaxInt64-tickets || wallet.GemResetTickets > math.MaxInt64-gemTickets {
 		return CommandResult{}, ErrInvalidCommand
 	}
 	system, err := q.GetEconomySystemState(ctx)
@@ -218,6 +224,11 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if err = q.CreateEconomyRewardClaim(ctx, dbgen.CreateEconomyRewardClaimParams{AccountID: account, RewardKey: rewardKey, CommandID: command.ID, Evidence: evidence}); err != nil {
 		return CommandResult{}, err
 	}
+	if gemTickets > 0 {
+		if err = q.SetGemResetTickets(ctx, dbgen.SetGemResetTicketsParams{AccountID: account, GemResetTickets: wallet.GemResetTickets + gemTickets}); err != nil {
+			return CommandResult{}, err
+		}
+	}
 	updated, err := q.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{AccountID: account, Revision: wallet.Revision + 1, FreeDiamonds: wallet.FreeDiamonds + diamonds, PaidDiamonds: wallet.PaidDiamonds, ModuleTickets: wallet.ModuleTickets + tickets, ModuleDrawCount: wallet.ModuleDrawCount, ModuleTicketPurchaseCount: wallet.ModuleTicketPurchaseCount, ModuleItemSequence: wallet.ModuleItemSequence, ResearchSlotTwoUnlocked: wallet.ResearchSlotTwoUnlocked, Revision_2: wallet.Revision})
 	if err != nil {
 		return CommandResult{}, err
@@ -229,6 +240,9 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if err = createLedger(ctx, q, command.ID, &order, "module_ticket", tickets, updated.ModuleTickets, "mail_reward"); err != nil {
 		return CommandResult{}, err
 	}
+	if err = createLedger(ctx, q, command.ID, &order, "gem_reset_ticket", gemTickets, updated.GemResetTickets, "mail_reward"); err != nil {
+		return CommandResult{}, err
+	}
 	if _, err = tx.Exec(ctx, `INSERT INTO mail_reads(account_id,mail_id) VALUES($1,$2) ON CONFLICT DO NOTHING`, account, request.MailID); err != nil {
 		return CommandResult{}, err
 	}
@@ -236,7 +250,7 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if err != nil {
 		return CommandResult{}, err
 	}
-	result := CommandResult{Snapshot: snapshot, RewardKey: rewardKey, GrantedDiamonds: diamonds, GrantedModuleTickets: tickets}
+	result := CommandResult{Snapshot: snapshot, RewardKey: rewardKey, GrantedDiamonds: diamonds, GrantedModuleTickets: tickets, GrantedGemResetTickets: gemTickets}
 	if err = storeCommandResult(ctx, q, command.ID, result); err != nil {
 		return CommandResult{}, err
 	}
@@ -298,6 +312,7 @@ func (service *Service) ClaimAllMail(ctx context.Context, accountID, key string,
 		result.Results = append(result.Results, MailBatchItem{MailID: id, Claimed: true})
 		result.GrantedDiamonds += claim.GrantedDiamonds
 		result.GrantedModuleTickets += claim.GrantedModuleTickets
+		result.GrantedGemResetTickets += claim.GrantedGemResetTickets
 	}
 	snapshot, err := service.Get(ctx, accountID)
 	result.Snapshot = snapshot
@@ -313,7 +328,7 @@ func ValidateMail(request *CreateMailRequest) error {
 	if request.EligibilityCutoff.IsZero() {
 		request.EligibilityCutoff = request.StartsAt
 	}
-	if strings.TrimSpace(request.Title) == "" || utf8.RuneCountInString(request.Title) > 120 || strings.TrimSpace(request.Body) == "" || utf8.RuneCountInString(request.Body) > 4000 || strings.TrimSpace(request.CreatedBy) == "" || utf8.RuneCountInString(request.CreatedBy) > 120 || request.StartsAt.IsZero() || !request.ExpiresAt.After(request.StartsAt) || request.FreeDiamonds < 0 || request.FreeDiamonds > 1000000 || request.ModuleTickets < 0 || request.ModuleTickets > 100000 || (request.FreeDiamonds == 0 && request.ModuleTickets == 0) {
+	if strings.TrimSpace(request.Title) == "" || utf8.RuneCountInString(request.Title) > 120 || strings.TrimSpace(request.Body) == "" || utf8.RuneCountInString(request.Body) > 4000 || strings.TrimSpace(request.CreatedBy) == "" || utf8.RuneCountInString(request.CreatedBy) > 120 || request.StartsAt.IsZero() || !request.ExpiresAt.After(request.StartsAt) || request.FreeDiamonds < 0 || request.FreeDiamonds > 1000000 || request.ModuleTickets < 0 || request.ModuleTickets > 100000 || request.GemResetTickets < 0 || request.GemResetTickets > 100000 || (request.FreeDiamonds == 0 && request.ModuleTickets == 0 && request.GemResetTickets == 0) {
 		return ErrInvalidMailRequest
 	}
 	if (request.Audience != "all" && request.Audience != "targeted") || (request.Audience == "all" && len(request.TargetAccountIDs) > 0) || (request.Audience == "targeted" && len(request.TargetAccountIDs) == 0) {
@@ -354,7 +369,7 @@ func (service *Service) CreateMail(ctx context.Context, request CreateMailReques
 		return "", err
 	}
 	requestHash := sha256.Sum256(payload)
-	err = tx.QueryRow(ctx, `INSERT INTO mails(title,body,free_diamonds,module_tickets,audience,eligibility_cutoff,starts_at,expires_at,created_by,dispatch_key,request_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT(dispatch_key) DO NOTHING RETURNING id::text`, request.Title, request.Body, request.FreeDiamonds, request.ModuleTickets, request.Audience, request.EligibilityCutoff, request.StartsAt, request.ExpiresAt, request.CreatedBy, request.DispatchKey, requestHash[:]).Scan(&id)
+	err = tx.QueryRow(ctx, `INSERT INTO mails(title,body,free_diamonds,module_tickets,audience,eligibility_cutoff,starts_at,expires_at,created_by,dispatch_key,request_hash,gem_reset_tickets) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT(dispatch_key) DO NOTHING RETURNING id::text`, request.Title, request.Body, request.FreeDiamonds, request.ModuleTickets, request.Audience, request.EligibilityCutoff, request.StartsAt, request.ExpiresAt, request.CreatedBy, request.DispatchKey, requestHash[:], request.GemResetTickets).Scan(&id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		var storedHash []byte
 		if err = tx.QueryRow(ctx, `SELECT id::text,request_hash FROM mails WHERE dispatch_key=$1`, request.DispatchKey).Scan(&id, &storedHash); err != nil {

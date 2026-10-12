@@ -12,6 +12,7 @@
 - 개별 `level` 명령은 대상 포탑의 전투 설정만 재계산·전달한다. 공통 성장 효과는 전체 전장의 종류·젬 구성을 기준으로 계산하며, HUD 전체 전투력과 코어 발동 피해는 갱신된 대상과 나머지 포탑을 모두 합산한다. 다른 명령과 `refresh(state)`의 전체 포탑 갱신은 유지한다.
 - 젬 장착은 `growth_content.json`의 `turretRules.compatibleGems`를 일반·보상·슬롯 추가 장착에 공통 적용한다. 경량화기 증폭(`lightWeapon`)은 `light` 공격 태그 포탑에만 허용하며 현재는 기관총(`arrow`)이다. 이전 저장의 비경량 포탑에 장착된 경량화기 젬은 `content_run_save.gd` 복원 시 해당 슬롯에서 제거하고 보유 젬으로 반환한다. 원본 저장을 직접 수정하지 않으며 정상 재저장 후 중복 반환하지 않는다.
 - `award_kill(state,enemy)`는 실제 적 정의의 골드·보스 보너스와 소수 골드 지갑을 적용한다. 다이아는 서버 잔액에 지급하지 않고 `pendingEconomyDiamonds`에 누적한다.
+- `rerollRewardFree`는 게스트 무료 리롤의 순수 후보·횟수 변경이다. 앱의 `reroll_reward_gems()`가 저장 성공 후 채택하며 일반 UI 명령으로 직접 호출하지 않는다. 계정 리롤은 서버 snapshot을 통해 지갑·후보·횟수를 함께 적용한다. [경제 계약](../../docs/server_authoritative_economy_design.md#젬-보상-리롤-호환-세대-7)을 따른다.
 - `complete_wave(state,waveId)`는 골드·조각·5웨이브 젬 선택 및 마지막 성공 단계를 처리한다. 선택지가 뜬 동안 phase=reward로 전투를 멈춘다. 다음 웨이브 설정은 현재 콘텐츠 로더를 사용한다.
 - `growth_rules.execute(progression,command)`는 로컬 성장 명령을 처리한다. 저장·네트워크 I/O를 수행하지 않는다. 연구 시간은 명시적인 `nowMillis`, 성장 효과는 현재 코어 배분·장착·런 업그레이드·전장 종류 수로 계산한다.
 

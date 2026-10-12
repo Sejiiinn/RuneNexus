@@ -223,6 +223,9 @@ func (service *Service) Claim(
 		return ClaimResult{}, fmt.Errorf("get weekly reward source save: %w", err)
 	}
 
+	if playerEconomy.GemRerollEnabled && gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.GemRerollClientCompatibilityVersion {
+		return ClaimResult{}, gamesave.ErrClientUpdateRequired
+	}
 	if err := gamesave.ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
 		return ClaimResult{}, err
 	}

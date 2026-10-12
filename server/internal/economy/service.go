@@ -78,7 +78,12 @@ func (service *Service) snapshot(
 		return Snapshot{}, fmt.Errorf("list reward claims: %w", err)
 	}
 
+	reroll, err := currentGemReroll(ctx, queries, economy.AccountID)
+	if err != nil {
+		return Snapshot{}, err
+	}
 	result := Snapshot{
+		GemRerollVersion: 1, GemReroll: reroll,
 		AuthorityEpoch:   formatUUID(system.AuthorityEpoch),
 		AuthorityState:   economy.AuthorityState,
 		AuthorityVersion: economy.AuthorityVersion,
@@ -86,9 +91,10 @@ func (service *Service) snapshot(
 		CatalogVersion:   CatalogVersion,
 		ServerTime:       service.now().UTC(),
 		Wallet: Wallet{
-			FreeDiamonds:  economy.FreeDiamonds,
-			PaidDiamonds:  economy.PaidDiamonds,
-			ModuleTickets: economy.ModuleTickets,
+			FreeDiamonds:    economy.FreeDiamonds,
+			PaidDiamonds:    economy.PaidDiamonds,
+			ModuleTickets:   economy.ModuleTickets,
+			GemResetTickets: economy.GemResetTickets,
 		},
 		PendingProgressionEffects: make([]ProgressionEffect, 0, len(effects)),
 		ClaimedRewardKeys:         claimKeys,

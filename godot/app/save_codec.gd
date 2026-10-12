@@ -719,6 +719,7 @@ static func decode(v: Variant) -> Variant:
 
 static func _progression(v: Dictionary) -> Dictionary:
 	var out := _fields("SavedProgression", v)
+	if v.has("gemResetTickets"): out.gemResetTickets = maxi(0, _int(v.get("gemResetTickets")))
 	if v.has("progressionVersion"):
 		out.progressionVersion = maxi(0, _int(v.get("progressionVersion")))
 		out.unlockedStageIds = _list(v.get("unlockedStageIds"),"int",true)
@@ -771,6 +772,7 @@ static func _run(v: Variant, skill: Variant) -> Variant:
 	out.gemInventory = _enum_map("GemType", v.get("gemInventory"))
 	out.rewardOptions = _list(v.get("rewardOptions"), "GemType")
 	out.pendingEconomyDiamonds = clampi(_int(v.get("pendingEconomyDiamonds")), 0, 1000000)
+	if v.has("gemRerollsUsed"): out.gemRerollsUsed = clampi(_int(v.get("gemRerollsUsed")), 0, 3)
 	return out
 
 static func _has_progress(v: Dictionary) -> bool:

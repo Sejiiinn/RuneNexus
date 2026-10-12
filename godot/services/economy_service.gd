@@ -2,7 +2,7 @@ extends Node
 ## One durable account command at a time. Previously sent request bytes are immutable.
 const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
-const COMPATIBILITY := 6
+const COMPATIBILITY := 7
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed
@@ -77,8 +77,11 @@ func execute(action: String, values: Dictionary = {}) -> Dictionary:
 
 func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 	if outbox.state.inFlight != null:
+		var recovering_reroll: bool = outbox.state.inFlight.kind == "reroll_gems"
 		var recovered: Dictionary = await _send(outbox.state.inFlight.duplicate(true), token, true)
 		if not recovered.get("ok", false): return recovered
+		# A retry tap recovers its original outcome; it is never another purchase.
+		if action == "reroll_gems" and recovering_reroll: return recovered
 	var loaded: Dictionary = await _load(token)
 	if not loaded.get("ok", false): return loaded
 	var effects: Dictionary = await _effects(token)
@@ -110,6 +113,11 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 	var kind := action
 	var path := ""
 	match action:
+		"reroll_gems":
+			if int(snapshot.get("gemRerollVersion", 0)) != 1: return _failure("GEM_REROLL_UNAVAILABLE")
+			path = "v1/economy/gems/reroll"
+			body.merge(_save_fields(sync))
+			body.merge({"runId":values.get("runId", ""), "completedRounds":values.get("completedRounds", 0), "expectedRerollCount":values.get("expectedRerollCount", -1)})
 		"draw_modules":
 			path = "v1/economy/turret-modules/draw"
 			body.merge(_save_fields(sync))
@@ -207,7 +215,7 @@ func _prepare(kind: String, path: String, body: Dictionary, token: int) -> Dicti
 	return await _send(command, token)
 
 func _allowed(command: Dictionary) -> bool:
-	var exact := {"bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
+	var exact := {"reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
 	if exact.has(command.kind): return command.path == exact[command.kind]
 	var patterns := {"complete_research":"^v1/economy/researches/[A-Za-z][A-Za-z0-9]*/complete$","ack_progression_effect":"^v1/economy/progression-effects/[0-9a-fA-F-]{36}/ack$","mail_claim":"^v1/mailbox/[0-9a-fA-F-]{36}/claim$"}
 	return patterns.has(command.kind) and RegEx.create_from_string(patterns[command.kind]).search(command.path) != null
@@ -244,6 +252,15 @@ func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
 			if not _retire(command, command.kind == "run_settlement" and not legacy and not rebind, code if not legacy and not rebind else ""): return _failure("OUTBOX_WRITE_FAILED")
 			if recovering and (legacy or rebind or code == "MAIL_UNAVAILABLE"): return {"ok":true}
 		return result
+	if command.kind == "reroll_gems":
+		var request: Dictionary = Json.parse(command.encodedBody)
+		var receipt: Variant = data.get("gemReroll")
+		var economy: Variant = data.get("economy")
+		if not economy is Dictionary: return _failure("INVALID_GEM_REROLL_RECEIPT")
+		if not preload("res://app/gem_reroll.gd").valid_receipt(receipt) or economy.get("gemRerollVersion") != 1 or economy.get("gemReroll") != receipt:
+			return _failure("INVALID_GEM_REROLL_RECEIPT")
+		if receipt.runId != request.get("runId") or receipt.rewardWave != request.get("completedRounds") or receipt.totalUsed != int(request.get("expectedRerollCount", -1))+1:
+			return _failure("INVALID_GEM_REROLL_RECEIPT")
 	if reward:
 		var body: Dictionary = Json.parse(command.encodedBody)
 		if not data.get("weekKey") is int or data.weekKey < 0: return _failure("INVALID_REWARD_RECEIPT")

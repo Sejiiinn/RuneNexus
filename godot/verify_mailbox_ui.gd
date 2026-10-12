@@ -120,9 +120,9 @@ func touch_swipe_up() -> void:
 	Input.parse_input_event(release)
 	await process_frame
 
-func mail(id: String, title: String, body: String, diamonds: int, tickets: int) -> Dictionary:
+func mail(id: String, title: String, body: String, diamonds: int, tickets: int, gem_tickets: int = 0) -> Dictionary:
 	return {"id": id, "title": title, "body": body, "freeDiamonds": diamonds,
-		"moduleTickets": tickets, "expiresAt": "2026-10-05T00:00:00Z", "readAt": null, "claimedAt": null}
+		"moduleTickets": tickets, "gemResetTickets": gem_tickets, "expiresAt": "2026-10-05T00:00:00Z", "readAt": null, "claimedAt": null}
 
 func run() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations", true)
@@ -133,7 +133,7 @@ func run() -> void:
 	service.tree = self
 	service.mails = [
 		mail("mail-1", "업데이트 기념 선물", "모험가 여러분께 감사드립니다.\n무료 다이아와 모듈권을 받아 주세요.", 100, 3),
-		mail("mail-2", "모험 지원 보상", "모험을 계속해 주세요.", 50, 0),
+		mail("mail-2", "모험 지원 보상", "모험을 계속해 주세요.", 0, 0, 7),
 		mail("mail-3", "새로운 지역 탐험을 축하드립니다", "새 지역의 보상을 확인해 주세요.", 100000000, 99999),
 	]
 	app.services = service
@@ -154,6 +154,12 @@ func run() -> void:
 	check(find_node("MailBody0") == null and find_node("MailBody1") == null, "Bodies start collapsed")
 	check(find_node("ClaimMail0") != null and find_node("ClaimAllMail") != null, "Individual and bulk claim remain available")
 	check(labels(lobby.modal).contains("무료 다이아 100") and labels(lobby.modal).contains("모듈권 3"), "Reward amounts remain visible when collapsed")
+	var gem_mail: Node = find_node("MailCard1")
+	check(labels(gem_mail).contains("젬 리셋권 7") and not labels(gem_mail).contains("보상 없음"), "Ticket-only mail displays gem reset quantity instead of no reward")
+	var gem_ticket_icons := 0
+	for icon in gem_mail.find_children("*", "TextureRect", true, false):
+		if icon.texture != null and icon.texture.resource_path.ends_with("ui/hud/icons/gem_reset_ticket.png"): gem_ticket_icons += 1
+	check(gem_ticket_icons == 1, "Ticket-only mail reuses the approved gem reset ticket icon")
 	await capture("mailbox-auto-440-collapsed")
 	service.hold_read = true
 	find_node("MailTitle0").pressed.emit()
@@ -223,6 +229,11 @@ func run() -> void:
 	service.busy = false
 	lobby.modal_scroll.scroll_vertical = 0
 	await settle()
+	gem_mail = find_node("MailCard1")
+	check(labels(gem_mail).contains("젬 리셋권 7") and not labels(gem_mail).contains("보상 없음"), "Ticket-only reward survives narrow layout and refresh")
+	for label in gem_mail.find_children("*", "Label", true, false):
+		if label.text == "젬 리셋권 7":
+			check(label.get_global_rect().end.x <= gem_mail.get_global_rect().end.x, "Gem ticket quantity fits the narrow reward row")
 	await capture("mailbox-auto-320-before-scroll")
 	service.hold_page = true
 	for i in range(25): await wheel_down()

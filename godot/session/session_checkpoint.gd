@@ -3,6 +3,7 @@ const StageProgression = preload("res://content/stage_progression.gd")
 ## Local v2 checkpoints for the independent content session and legacy fixture.
 ## Account settlement and existing-installation data handoff remain separate.
 const Codec = preload("res://app/save_codec.gd")
+const GemReroll = preload("res://app/gem_reroll.gd")
 const Adapter = preload("res://app/run_save_adapter.gd")
 const ContentSave = preload("res://app/content_run_save.gd")
 const Store = preload("res://app/local_save_store.gd")
@@ -106,6 +107,10 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 		saved.turretModules = mapped.turretModules
 		mapped.erase("turretModules")
 		saved.progression = mapped
+		if saved.get("activeRun") is Dictionary:
+			var projected := GemReroll.project(saved.activeRun, snapshot.get("gemReroll"))
+			if projected.is_empty(): return false
+			saved.activeRun = projected
 		if store.save_save(saved) != OK: return false
 		app.progression_inputs = input.duplicate(true)
 		app.progression_inputs.merge(mapped,true)
@@ -118,6 +123,8 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 		message = mapper.error
 		return false
 	candidate.progression = mapped
+	candidate = GemReroll.project(candidate, snapshot.get("gemReroll"))
+	if candidate.is_empty(): return false
 	if persist_state(app, candidate) != OK: return false
 	app.run_domain.state = candidate
 	app.progression_inputs = mapped.duplicate(true)

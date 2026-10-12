@@ -22,7 +22,7 @@ func main() {
 }
 func run() error {
 	action := flag.String("action", "validate", "validate, create, disable")
-	file := flag.String("file", "", "우편 JSON 파일 (dispatchKey UUID, title, body, freeDiamonds, moduleTickets, audience, targetAccountIds, startsAt, expiresAt, createdBy, 선택 eligibilityCutoff)")
+	file := flag.String("file", "", "우편 JSON 파일 (dispatchKey UUID, title, body, freeDiamonds, moduleTickets, gemResetTickets, audience, targetAccountIds, startsAt, expiresAt, createdBy, 선택 eligibilityCutoff)")
 	id := flag.String("id", "", "중지할 우편 ID")
 	operator := flag.String("operator", "", "중지 작업자")
 	flag.Parse()

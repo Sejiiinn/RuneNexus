@@ -51,6 +51,7 @@ type Querier interface {
 	GetEconomyProgressionEffectForUpdate(ctx context.Context, arg GetEconomyProgressionEffectForUpdateParams) (EconomyProgressionEffect, error)
 	GetEconomyRewardClaim(ctx context.Context, arg GetEconomyRewardClaimParams) (GetEconomyRewardClaimRow, error)
 	GetEconomySystemState(ctx context.Context) (EconomySystemState, error)
+	GetGemReroll(ctx context.Context, arg GetGemRerollParams) (EconomyGemReroll, error)
 	GetLegacyRunSettlementReceipt(ctx context.Context, arg GetLegacyRunSettlementReceiptParams) ([]byte, error)
 	GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash []byte) (LegacySaveTransfer, error)
 	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
@@ -80,11 +81,13 @@ type Querier interface {
 	RotateEconomyAuthorityEpoch(ctx context.Context) (EconomySystemState, error)
 	RotateSessionAccessToken(ctx context.Context, arg RotateSessionAccessTokenParams) (Session, error)
 	SetAccountNickname(ctx context.Context, arg SetAccountNicknameParams) (Account, error)
+	SetGemResetTickets(ctx context.Context, arg SetGemResetTicketsParams) error
 	TouchAuthIdentity(ctx context.Context, id pgtype.UUID) (AuthIdentity, error)
 	TouchSession(ctx context.Context, id pgtype.UUID) error
 	UpdateAccountStatus(ctx context.Context, arg UpdateAccountStatusParams) (Account, error)
 	UpdateEconomyCommandResponse(ctx context.Context, arg UpdateEconomyCommandResponseParams) (EconomyCommand, error)
 	UpdatePlayerEconomy(ctx context.Context, arg UpdatePlayerEconomyParams) (PlayerEconomy, error)
+	UpsertGemReroll(ctx context.Context, arg UpsertGemRerollParams) error
 	UpsertProgressionLeaderboardRecord(ctx context.Context, arg UpsertProgressionLeaderboardRecordParams) error
 	UpsertSaveActiveRun(ctx context.Context, arg UpsertSaveActiveRunParams) error
 	UpsertSavePreferences(ctx context.Context, arg UpsertSavePreferencesParams) error

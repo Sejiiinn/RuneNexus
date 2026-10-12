@@ -17,6 +17,9 @@ from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_gem_reroll.gd": "GEM_REROLL checks=",
+    "verify_gem_reroll_ui.gd": "GEM_REROLL_UI checks=",
+    "verify_gem_reroll_flip.gd": "GEM_REROLL_FLIP checks=",
     "verify_fifth_link.gd": None,
     "verify_chapter_three_panels.gd": None,
     "verify_dispatch_portals.gd": None,
@@ -177,8 +180,9 @@ def prepare(directory: Path, executable: str) -> Path:
 def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
     # Transition cases restart processes; fixed-clock replay covers 120 seeded
-    # scenarios across render cadences/speeds. Existing case limits are unchanged.
-    timeout = 120 if name == "verify_chapter_three_normal_combat.gd" else 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd"} else 20
+    # scenarios across render cadences/speeds. The flip regression covers repeated
+    # native UI setup/layout/lifecycle at two sizes. Existing case limits are unchanged.
+    timeout = 120 if name == "verify_chapter_three_normal_combat.gd" else 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd", "verify_gem_reroll_flip.gd"} else 20
     # user:// resolves under HOME; a per-case HOME keeps saves/settings from
     # leaking between runs and cases, and is removed with the temporary project.
     home = temporary / "home" / name.removesuffix(".gd")
