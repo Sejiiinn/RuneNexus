@@ -4,6 +4,7 @@ extends SceneTree
 const Catalog = preload("res://content/content_catalog.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Domain = preload("res://session/run_session.gd")
+const Offers = preload("res://app/gem_reroll.gd")
 var checks := 0
 var failures: Array = []
 var completed_waves := 0
@@ -85,7 +86,22 @@ func _stage(catalog, stage_id: int) -> void:
 		check(runtime.events.is_empty(),"native completion never repeats " + label)
 		check(domain.collect(runtime).ok and domain.state == after_completion,"repeated collection cannot repeat reward " + label)
 		if domain.state.phase == "reward":
-			check(domain.apply({"kind":"chooseRewardShards"}).ok,"real reward selection returns to preparation " + label)
+			var before_selection: Dictionary = domain.state.duplicate(true)
+			check(not domain.apply({"kind":"chooseRewardShards"}).ok and domain.state == before_selection,"local reward selection cannot bypass server " + label)
+			# This pure lifecycle fixture has no account transport. Resume from a
+			# CURRENT server chosen snapshot through the shipped projection; HTTP,
+			# durable command recovery and grants have their own contract tests.
+			var selected := Offers.project(domain.state, {
+				"runId":domain.state.economyRunId,"offerId":"lifecycle-%s" % label,
+				"rewardWave":round_index+1,"revision":2,"totalUsed":0,
+				"gemOptions":["attackSpeed","range","physicalDamage"],
+				"status":"chosen","choice":"shards","grantedGem":"","grantedShards":10,
+				"gemInventory":domain.state.gemInventory.duplicate(true),
+				"gemShards":int(domain.state.gemShards)+10})
+			check(not selected.is_empty(),"current server selection projects " + label)
+			if selected.is_empty(): return
+			domain.restore(selected)
+			check(domain.state.phase == "preparation" and domain.state.gemShards == int(before_selection.gemShards)+10,"server reward selection returns to preparation " + label)
 	check(domain.state.phase == "success" and domain.state.completedRounds == 40 and domain.is_finished(),"final result settled " + str(stage_id))
 	check(stage_id in domain.state.progression.clearedStageNumbers,"final clear retained " + str(stage_id))
 	check(domain.state.progression.lastRunRuneReward > 0,"final rune reward " + str(stage_id))

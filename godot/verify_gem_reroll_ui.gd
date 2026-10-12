@@ -31,6 +31,12 @@ func reward_bounds(hud) -> Dictionary:
 		result[name] = hud.overlay_body.find_child(name,true,false).get_global_rect()
 	return result
 
+func same_bounds(actual: Dictionary, expected: Dictionary) -> bool:
+	if actual.size() != expected.size(): return false
+	for key in expected:
+		if not actual.has(key) or not (actual[key] as Rect2).is_equal_approx(expected[key]): return false
+	return true
+
 func verify_stable_reward_layout(app, hud) -> void:
 	var state: Dictionary = app.run_domain.state
 	var original: Array = state.rewardOptions.duplicate()
@@ -176,8 +182,8 @@ func run() -> void:
 	app.reroll_view.merge({"status":"available","available":true,"locked":false,"free":false,"remaining":2,"note":""},true)
 	hud.refresh(); await frames()
 	check(not hud.rewards.gem_flip.active and not hud.rewards._hold_reroll_offer and hud.overlay_body.find_child("GemRewardCards",true,false).get_child_count() == 3, "initial server receipt appears without a flip even with migrated budget")
-	if reward_bounds(hud) != waiting_bounds: print("INITIAL_BOUNDS before=", waiting_bounds, " after=", reward_bounds(hud))
-	check(reward_bounds(hud) == waiting_bounds, "initial arrival preserves existing row and modal layout")
+	if not same_bounds(reward_bounds(hud), waiting_bounds): print("INITIAL_BOUNDS before=", waiting_bounds, " after=", reward_bounds(hud))
+	check(same_bounds(reward_bounds(hud), waiting_bounds), "initial arrival preserves existing row and modal layout")
 	print("GEM_REROLL_UI checks=",checks," failures=",failures)
 	hud.queue_free(); app.queue_free(); await frames(2)
 	quit(0 if failures.is_empty() else 1)
