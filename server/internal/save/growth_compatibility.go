@@ -15,6 +15,7 @@ const (
 	ProgressionClientCompatibilityVersion   = 4
 	RoutedContentClientCompatibilityVersion = 5
 	FifthLinkClientCompatibilityVersion     = 6
+	GemRerollClientCompatibilityVersion     = 7
 	CurrentProgressionVersion               = progression.Version
 	CurrentStageCount                       = progression.StageCount
 )
@@ -114,6 +115,12 @@ func containsValue[T comparable](values []T, expected T) bool {
 // Old codecs do not preserve route IDs. Gate only saves which use the new content,
 // keeping generation four clients compatible with their existing 25-stage saves.
 func ValidateContentClient(progression, activeRun []byte, clientVersion int) error {
+	var reroll struct {
+		Used int `json:"gemRerollsUsed"`
+	}
+	if json.Unmarshal(activeRun, &reroll) == nil && reroll.Used > 0 && clientVersion < GemRerollClientCompatibilityVersion {
+		return ErrClientUpdateRequired
+	}
 	if err := ValidateGrowthClient(progression, clientVersion); err != nil {
 		return err
 	}

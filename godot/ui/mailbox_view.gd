@@ -152,9 +152,11 @@ static func build(lobby, body: VBoxContainer, data: Dictionary, expanded_id: Str
 		content.add_child(rewards)
 		var diamonds := int(mail.get("freeDiamonds", 0))
 		var tickets := int(mail.get("moduleTickets", 0))
+		var gem_tickets := int(mail.get("gemResetTickets", 0))
 		if diamonds > 0: _reward(rewards, "res://assets/ui/diamond_currency.png", "무료 다이아 %d" % diamonds)
 		if tickets > 0: _reward(rewards, "stage_rewards/reward_module_ticket.png", "모듈권 %d" % tickets)
-		if diamonds <= 0 and tickets <= 0: content.add_child(_label("보상 없음", 12))
+		if gem_tickets > 0: _reward(rewards, "ui/hud/icons/gem_reset_ticket.png", "젬 리셋권 %d" % gem_tickets)
+		if diamonds <= 0 and tickets <= 0 and gem_tickets <= 0: content.add_child(_label("보상 없음", 12))
 		content.add_child(_label(_expires(mail.get("expiresAt", "")), 11))
 		if expanded:
 			_line(content)

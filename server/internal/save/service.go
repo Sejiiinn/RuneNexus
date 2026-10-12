@@ -18,7 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = FifthLinkClientCompatibilityVersion
+	CurrentClientCompatibilityVersion       = GemRerollClientCompatibilityVersion
 )
 
 var (
@@ -207,7 +207,8 @@ func (service *Service) ClaimWriter(
 	}
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
 	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
-		request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion {
+		(request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion ||
+			(playerEconomy.GemRerollEnabled && request.ClientCompatibilityVersion < GemRerollClientCompatibilityVersion)) {
 		return ClaimWriterResult{}, ErrClientUpdateRequired
 	}
 	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
@@ -317,7 +318,8 @@ func (service *Service) Update(
 	}
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
 	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
-		request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion {
+		(request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion ||
+			(playerEconomy.GemRerollEnabled && request.ClientCompatibilityVersion < GemRerollClientCompatibilityVersion)) {
 		return UpdateResult{}, ErrClientUpdateRequired
 	}
 	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {

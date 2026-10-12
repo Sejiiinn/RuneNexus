@@ -7,27 +7,31 @@ import (
 )
 
 var (
-	ErrInvalidIdempotencyKey = errors.New("economy idempotency key is invalid")
-	ErrIdempotencyKeyReused  = errors.New("economy idempotency key was reused")
-	ErrNotBootstrapped       = errors.New("economy is not bootstrapped")
-	ErrAlreadyBootstrapped   = errors.New("economy is already bootstrapped")
-	ErrRevisionConflict      = errors.New("economy revision conflict")
-	ErrCatalogChanged        = errors.New("economy catalog changed")
-	ErrWriterRequired        = errors.New("economy requires the active save writer")
-	ErrWriterReplaced        = errors.New("economy save writer was replaced")
-	ErrSaveRevisionConflict  = errors.New("economy source save revision conflict")
-	ErrInsufficientDiamonds  = errors.New("insufficient diamonds")
-	ErrInsufficientTickets   = errors.New("insufficient module tickets")
-	ErrModuleNotOwned        = errors.New("module is not owned")
-	ErrModuleNotAllowed      = errors.New("module cannot be disassembled")
-	ErrInvalidCommand        = errors.New("economy command is invalid")
-	ErrProgressionEffect     = errors.New("progression effect cannot be acknowledged")
+	ErrInvalidIdempotencyKey       = errors.New("economy idempotency key is invalid")
+	ErrIdempotencyKeyReused        = errors.New("economy idempotency key was reused")
+	ErrNotBootstrapped             = errors.New("economy is not bootstrapped")
+	ErrAlreadyBootstrapped         = errors.New("economy is already bootstrapped")
+	ErrRevisionConflict            = errors.New("economy revision conflict")
+	ErrCatalogChanged              = errors.New("economy catalog changed")
+	ErrWriterRequired              = errors.New("economy requires the active save writer")
+	ErrWriterReplaced              = errors.New("economy save writer was replaced")
+	ErrSaveRevisionConflict        = errors.New("economy source save revision conflict")
+	ErrInsufficientDiamonds        = errors.New("insufficient diamonds")
+	ErrInsufficientTickets         = errors.New("insufficient module tickets")
+	ErrModuleNotOwned              = errors.New("module is not owned")
+	ErrModuleNotAllowed            = errors.New("module cannot be disassembled")
+	ErrInvalidCommand              = errors.New("economy command is invalid")
+	ErrGemRerollLimit              = errors.New("run gem reroll limit reached")
+	ErrGemRerollConflict           = errors.New("run gem reroll state must be restored")
+	ErrInsufficientGemResetTickets = errors.New("insufficient gem reset tickets")
+	ErrProgressionEffect           = errors.New("progression effect cannot be acknowledged")
 )
 
 type Wallet struct {
-	FreeDiamonds  int64 `json:"freeDiamonds"`
-	PaidDiamonds  int64 `json:"paidDiamonds"`
-	ModuleTickets int64 `json:"moduleTickets"`
+	FreeDiamonds    int64 `json:"freeDiamonds"`
+	PaidDiamonds    int64 `json:"paidDiamonds"`
+	ModuleTickets   int64 `json:"moduleTickets"`
+	GemResetTickets int64 `json:"gemResetTickets"`
 }
 
 type Module struct {
@@ -47,14 +51,35 @@ type ProgressionEffect struct {
 	Payload    map[string]any `json:"payload"`
 }
 
+type GemRerollState struct {
+	RunID      string   `json:"runId"`
+	RewardWave int      `json:"rewardWave"`
+	TotalUsed  int      `json:"totalUsed"`
+	GemOptions []string `json:"gemOptions"`
+}
+
+type GemRerollRequest struct {
+	IdempotencyKey         string
+	RawBody                []byte
+	ExpectedRevision       int64
+	ExpectedCatalogVersion int32
+	SourceSaveRevision     int64
+	WriterGeneration       int64
+	RunID                  string
+	CompletedRounds        int
+	ExpectedRerollCount    int
+}
+
 type Snapshot struct {
-	AuthorityEpoch   string    `json:"authorityEpoch"`
-	AuthorityState   string    `json:"authorityState"`
-	AuthorityVersion int32     `json:"authorityVersion"`
-	EconomyRevision  int64     `json:"economyRevision"`
-	CatalogVersion   int32     `json:"catalogVersion"`
-	ServerTime       time.Time `json:"serverTime"`
-	Wallet           Wallet    `json:"wallet"`
+	GemRerollVersion int             `json:"gemRerollVersion,omitempty"`
+	GemReroll        *GemRerollState `json:"gemReroll"`
+	AuthorityEpoch   string          `json:"authorityEpoch"`
+	AuthorityState   string          `json:"authorityState"`
+	AuthorityVersion int32           `json:"authorityVersion"`
+	EconomyRevision  int64           `json:"economyRevision"`
+	CatalogVersion   int32           `json:"catalogVersion"`
+	ServerTime       time.Time       `json:"serverTime"`
+	Wallet           Wallet          `json:"wallet"`
 	TurretModules    struct {
 		DrawCount           int64    `json:"drawCount"`
 		TicketPurchaseCount int64    `json:"ticketPurchaseCount"`
@@ -88,12 +113,14 @@ type RejectedModule struct {
 }
 
 type CommandResult struct {
-	Snapshot             Snapshot           `json:"economy"`
-	DrawnModules         []Module           `json:"drawnModules,omitempty"`
-	ProgressionEffect    *ProgressionEffect `json:"progressionEffect,omitempty"`
-	RewardKey            string             `json:"rewardKey,omitempty"`
-	GrantedDiamonds      int64              `json:"grantedDiamonds,omitempty"`
-	GrantedModuleTickets int64              `json:"grantedModuleTickets,omitempty"`
+	GemReroll              *GemRerollState    `json:"gemReroll,omitempty"`
+	GrantedGemResetTickets int64              `json:"grantedGemResetTickets,omitempty"`
+	Snapshot               Snapshot           `json:"economy"`
+	DrawnModules           []Module           `json:"drawnModules,omitempty"`
+	ProgressionEffect      *ProgressionEffect `json:"progressionEffect,omitempty"`
+	RewardKey              string             `json:"rewardKey,omitempty"`
+	GrantedDiamonds        int64              `json:"grantedDiamonds,omitempty"`
+	GrantedModuleTickets   int64              `json:"grantedModuleTickets,omitempty"`
 }
 
 type DrawRequest struct {

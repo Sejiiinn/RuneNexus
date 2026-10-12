@@ -490,9 +490,14 @@ func _economy_projection() -> Dictionary:
 
 func _economy_projection_of(p: Dictionary) -> Dictionary:
 	return {"freeDiamonds":p.get("freeDiamonds",0),"paidDiamonds":p.get("paidDiamonds",0),
-		"turretModules":p.get("turretModules",{}),"researchSlotTwoUnlocked":p.get("researchSlotTwoUnlocked",false)}
+		"gemResetTickets":p.get("gemResetTickets",0),"turretModules":p.get("turretModules",{}),"researchSlotTwoUnlocked":p.get("researchSlotTwoUnlocked",false)}
 
 func _snapshot_current(_value: Dictionary) -> bool:
+	var receipt: Variant = _value.get("gemReroll")
+	if receipt is Dictionary and app.run_domain.state.get("economyRunId") == receipt.runId:
+		var live: Dictionary = app.run_domain.state
+		if int(live.get("gemRerollsUsed", 0)) < int(receipt.totalUsed): return false
+		if preload("res://app/gem_reroll.gd").eligible(live) and int(live.completedRounds) == int(receipt.rewardWave) and live.rewardOptions != receipt.gemOptions: return false
 	if _snapshot_checkpoint == null or _snapshot_checkpoint.get_ref() != app.checkpoint or _snapshot_projection != _economy_projection(): return false
 	if app.scene._native_combat.active and not app.run_domain.state.is_empty():
 		return _snapshot_projection == _economy_projection_of(app.run_domain.state.get("progression",{}))

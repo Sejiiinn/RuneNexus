@@ -52,7 +52,8 @@ const ORDERS = {
 		"claimedEventIds",
 		"progressionVersion",
 		"unlockedStageIds",
-		"grandfatherUnlocks"
+		"grandfatherUnlocks",
+		"gemResetTickets"
 	],
 	"SavedActiveResearch": [
 		"type",
@@ -165,7 +166,8 @@ const ORDERS = {
 		"finalDefenseUsedThisRound",
 		"turrets",
 		"enemies",
-		"spawnQueue"
+		"spawnQueue",
+		"gemRerollsUsed"
 	],
 	"SavedTurretModuleInventory": [
 		"tickets",

@@ -2,7 +2,7 @@ extends Node
 ## Inject authenticated context from account/save ownership. No login, bootstrap,
 ## credentials on disk, or guest-to-account adoption. All callbacks may be async.
 const SaveJson = preload("res://app/save_json.gd")
-const COMPATIBILITY_VERSION := 6
+const COMPATIBILITY_VERSION := 7
 var outbox
 var busy := false
 var binding_generation := 0
@@ -119,6 +119,13 @@ static func valid_snapshot(value: Variant) -> bool:
 	if not value.get("wallet") is Dictionary or not value.get("turretModules") is Dictionary or not value.get("entitlements") is Dictionary: return false
 	for key in ["freeDiamonds", "paidDiamonds", "moduleTickets"]:
 		if not value.wallet.get(key) is int or value.wallet[key] < 0: return false
+	if value.wallet.has("gemResetTickets") and (not value.wallet.gemResetTickets is int or value.wallet.gemResetTickets < 0): return false
+	if value.has("gemRerollVersion") and (not value.gemRerollVersion is int or value.gemRerollVersion != 1): return false
+	if value.get("gemRerollVersion") == 1 and not value.wallet.has("gemResetTickets"): return false
+	if value.get("gemReroll") != null:
+		if value.get("gemRerollVersion") != 1 or not preload("res://app/gem_reroll.gd").valid_receipt(value.gemReroll): return false
+		for gem in value.gemReroll.gemOptions:
+			if gem not in preload("res://app/save_codec.gd").ENUMS.GemType: return false
 	for key in ["drawCount", "ticketPurchaseCount"]:
 		if not value.turretModules.get(key) is int or value.turretModules[key] < 0: return false
 	if not value.turretModules.get("items") is Array or not value.get("pendingProgressionEffects") is Array or not value.entitlements.get("researchSlotTwoUnlocked") is bool or not value.get("serverTime") is String: return false

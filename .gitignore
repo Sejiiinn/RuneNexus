@@ -833,3 +833,15 @@ __pycache__/
 # 기관총 명중 비교의 일회성 캡처 스크립트·원본 PNG와 영상으로 대체한 GIF.
 /design/turret_vfx_concepts/machinegun_hit/runtime/
 /design/turret_vfx_concepts/machinegun_hit/compare/gif/
+
+# Gem reroll one-off validation captures; approved art and source remain tracked.
+/design/gem_reroll/native-free-320.png
+/design/gem_reroll/native-ticket-440.png
+/design/gem_reroll/native-mailbox-ticket-440.png
+/design/gem_reroll/flip-before-440.png
+/design/gem_reroll/flip-440-old.png
+/design/gem_reroll/flip-440-closing.png
+/design/gem_reroll/flip-440-edge.png
+/design/gem_reroll/flip-440-opening.png
+/design/gem_reroll/flip-440-final.png
+/design/gem_reroll/gem-reroll-flip-440.gif

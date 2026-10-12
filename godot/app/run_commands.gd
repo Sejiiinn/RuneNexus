@@ -2,6 +2,7 @@ extends RefCounted
 ## Pure run transactions. Callers commit state and submit commands together.
 ## Never reads/writes player saves or authoritative account currencies.
 const GemSlots = preload("res://app/gem_slot_rules.gd")
+const GemReroll = preload("res://app/gem_reroll.gd")
 var catalog
 var growth
 
@@ -23,7 +24,7 @@ func derived(state: Dictionary) -> Dictionary:
 	return growth.derive(state.get("progression", {}), {"distinctTurretTypeCount":types.size(), "distinctEquippedGemTypeCount":gems.size(), "runUpgradeLevels":state.get("runUpgradeLevels", {})})
 
 func initial_state(progression: Dictionary = {}, stage: int = 0) -> Dictionary:
-	var state := {"phase":"preparation", "stage":stage, "progression":progression.duplicate(true), "turrets":[], "gemInventory":{}, "runUpgradeLevels":{}, "nextTurretId":1000, "gold":0, "gemShards":0, "killGoldFractionWallet":0.0,"roundIndex":0,"completedRounds":0,"pendingEconomyDiamonds":0, "rewardOptions":[]}
+	var state := {"phase":"preparation", "stage":stage, "progression":progression.duplicate(true), "turrets":[], "gemInventory":{}, "runUpgradeLevels":{}, "nextTurretId":1000, "gold":0, "gemShards":0, "killGoldFractionWallet":0.0,"roundIndex":0,"completedRounds":0,"pendingEconomyDiamonds":0, "rewardOptions":[], "gemRerollsUsed":0}
 	var d := derived(state)
 	state.gold = int(d.get("initialGold", 160))
 	state.gemShards = int(d.get("startingGemShards", 0))
@@ -102,6 +103,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 	var kind := str(command.get("kind",""))
 	if kind in ["chooseRewardGem","chooseRewardShards","chooseRewardGemEquip"]: return _choose_reward(state,command)
 	if kind == "purchaseGemChoice": return _purchase_gem_choice(state)
+	if kind == "rerollRewardFree": return _reroll_reward_free(state, command)
 	if state.get("phase", "") not in ["preparation","wave"]: return _reject(state,"phase")
 	var next := state.duplicate(true)
 	var t := turret(next,int(command.get("id",-1)))
@@ -243,6 +245,19 @@ func complete_wave(state: Dictionary, wave_id: int) -> Dictionary:
 		next.phase = "reward"
 		next.rewardOptions = _reward_options(next)
 	else: next.phase = "preparation"
+	return _success(next)
+
+func _reroll_reward_free(state: Dictionary, command: Dictionary) -> Dictionary:
+	if not state.get("economyRunId") is String or state.economyRunId.is_empty(): return _reject(state, "runId")
+	if not GemReroll.eligible(state): return _reject(state, "reward")
+	if int(state.get("gemRerollsUsed", 0)) != 0: return _reject(state, "rerollUsed")
+	if command.get("runId") != state.get("economyRunId") or command.get("completedRounds") != state.get("completedRounds") or command.get("expectedRerollCount") != 0: return _reject(state, "staleReward")
+	var available: Array = derived(state).get("availableGemTypes", growth.data.get("gems", []))
+	var options := GemReroll.options(str(state.economyRunId), int(state.completedRounds), 1, available, state.rewardOptions)
+	if options.size() != 3: return _reject(state, "gems")
+	var next := state.duplicate(true)
+	next.gemRerollsUsed = 1
+	next.rewardOptions = options
 	return _success(next)
 
 func _purchase_gem_choice(state: Dictionary) -> Dictionary:

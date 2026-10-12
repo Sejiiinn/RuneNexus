@@ -23,6 +23,20 @@
 제외는 후속 최적화이며, 실제 Google 계정·다중 기기 공개 E2E와 운영 백업 검증은 아직
 남아 있다. 실제 Google Play 결제 검증은 상품 도입 시 별도 단계로 진행한다.
 
+## 젬 보상 리롤 (호환 세대 7)
+
+무료 웨이브 젬 보상창에 도전 전체 무료 1회와 젬 리셋권 1장당 추가 1회(최대 2회)를 적용한다. 웨이브 변경·앱 재시작으로 충전되지 않으며 새 도전에서만 초기화한다. 20파편 구매 선택창은 제외한다. 바로 직전 후보 3종을 제외하고 3종을 다시 고르며, 그 이전 후보는 다시 나올 수 있다. 전투 난수를 소비하지 않고 `runId / rewardWave / 누적 차수 / gem ID`의 버전 고정 SHA-256 순위로 결정한다.
+
+- 계정은 무료를 포함해 `POST /v1/economy/gems/reroll`에서 확정한다. 본문은 `runId`, `completedRounds`, `expectedRerollCount`와 기존 경제 revision·catalog·source save revision·writer generation·compatibility 필드다.
+- `player_economies.gem_reset_tickets`는 초기 0인 서버 재화다. bootstrap·일반 save로 발행하지 않는다. 기존 우편 지급 계약에서 `gemResetTickets`를 지원하지만 실제 지급, 상점, 광고, 다이아 대체 결제는 추가하지 않는다.
+- 계정·도전별 `economy_gem_rerolls`에 누적 횟수와 마지막 보상 웨이브·확정 후보를 저장한다. 차감·기록·원장·영수증은 하나의 DB 트랜잭션이다. 현재 `activeRun`을 되돌려도 이 기록은 유지된다. 새 요청은 저장된 후보·횟수와 원본 기록을 검증하고 이전 웨이브 요청을 거절한다.
+- snapshot의 `gemRerollVersion=1`이 기능 지원 신호다. `gemReroll`은 현재 저장 런에 해당하는 `{runId,rewardWave,totalUsed,gemOptions}` 또는 null이고, 응답 본문의 같은 이름 영수증과 일치한다. 지갑의 `gemResetTickets`, 런의 `gemRerollsUsed`, 같은 보상창의 후보를 클라이언트 체크포인트 한 번으로 저장한 뒤에만 Outbox를 완료한다. 이후 웨이브에는 누적 횟수만 반영하고 지난 보상창을 다시 열지 않는다.
+- 타임아웃·응답 유실·로컬 저장 실패에는 같은 본문과 idempotency key로 복구한다. 결과가 미확정이면 후보 선택·파편 전환·런 교체를 잠근다. 재시도 탭은 기존 명령 복구만 수행하고 새 리롤을 추가하지 않는다. 계정 전환의 오래된 응답은 반영하지 않는다.
+- 리롤 사용 또는 리셋권 보유가 있는 계정에는 호환 세대 7을 요구해 구 앱의 필드 유실을 막는다. 이미 확정된 구 영수증의 exact 복구는 유지한다. 서버 기능이 아직 없으면 계정 리롤만 이용 불가로 표시하고 기존 보상 선택은 유지한다.
+- 게스트 무료 1회는 로컬 도메인 명령과 선저장으로 처리한다. 리셋권은 연결된 계정에서만 소비한다. 연결 시 같은 도전에 이미 사용한 무료 횟수가 있으면 서버 초기 예산을 줄이는 방향으로만 인계한다.
+
+검증 진입점: `verify_gem_reroll.gd`, `verify_gem_reroll_ui.gd`, 서버 리롤 단위·DB 통합 테스트. 공개·실계정·Android 검증과 배포 순서는 [배포 인계](deployment_status.md)에 기록한다.
+
 ## 1. 결론
 
 Rune Nexus는 전투와 일반 진행을 계속 로컬에서 처리하되, 다음 값만 하나의

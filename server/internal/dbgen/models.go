@@ -52,6 +52,16 @@ type EconomyCommand struct {
 	CreatedAt           pgtype.Timestamptz `db:"created_at"`
 }
 
+type EconomyGemReroll struct {
+	AccountID  pgtype.UUID        `db:"account_id"`
+	RunID      pgtype.UUID        `db:"run_id"`
+	RewardWave int32              `db:"reward_wave"`
+	TotalUsed  int32              `db:"total_used"`
+	GemOptions []string           `db:"gem_options"`
+	CommandID  pgtype.UUID        `db:"command_id"`
+	UpdatedAt  pgtype.Timestamptz `db:"updated_at"`
+}
+
 type EconomyLedgerEntry struct {
 	CommandID    pgtype.UUID `db:"command_id"`
 	EntryOrder   int16       `db:"entry_order"`
@@ -150,6 +160,7 @@ type Mail struct {
 	CreatedAt         pgtype.Timestamptz `db:"created_at"`
 	DisabledAt        pgtype.Timestamptz `db:"disabled_at"`
 	DisabledBy        pgtype.Text        `db:"disabled_by"`
+	GemResetTickets   int64              `db:"gem_reset_tickets"`
 }
 
 type MailClaimBatch struct {
@@ -186,6 +197,8 @@ type PlayerEconomy struct {
 	BootstrappedAt            pgtype.Timestamptz `db:"bootstrapped_at"`
 	CreatedAt                 pgtype.Timestamptz `db:"created_at"`
 	UpdatedAt                 pgtype.Timestamptz `db:"updated_at"`
+	GemResetTickets           int64              `db:"gem_reset_tickets"`
+	GemRerollEnabled          bool               `db:"gem_reroll_enabled"`
 }
 
 type PlayerModule struct {

@@ -145,6 +145,7 @@ func NewHandler(
 			mux.Handle("GET /v1/economy", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.get)))
 			mux.Handle("GET /v1/economy/catalog", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.catalog)))
 			mux.Handle("POST /v1/economy/bootstrap", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.bootstrap)))
+			mux.Handle("POST /v1/economy/gems/reroll", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.rerollGems)))
 			mux.Handle("POST /v1/economy/turret-modules/draw", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.draw)))
 			mux.Handle("POST /v1/economy/turret-modules/disassemble", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.disassemble)))
 			mux.Handle("POST /v1/economy/researches/{type}/complete", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.completeResearch)))

@@ -17,6 +17,7 @@ func apply_authoritative(progression: Dictionary, snapshot: Dictionary) -> Dicti
 	if _catalog.is_empty(): return _invalid("Invalid module catalog")
 	if not snapshot.get("wallet") is Dictionary or not snapshot.get("turretModules") is Dictionary or not snapshot.get("entitlements") is Dictionary: return _invalid("Missing economy snapshot objects")
 	var wallet: Dictionary = snapshot.wallet
+	if wallet.has("gemResetTickets") and not _integer(wallet.gemResetTickets): return _invalid("Invalid wallet gemResetTickets")
 	var inventory: Dictionary = snapshot.turretModules
 	for field in ["freeDiamonds", "paidDiamonds", "moduleTickets"]:
 		if not _integer(wallet.get(field)): return _invalid("Invalid wallet " + field)
@@ -59,6 +60,7 @@ func apply_authoritative(progression: Dictionary, snapshot: Dictionary) -> Dicti
 	var p := progression.duplicate(true)
 	p.freeDiamonds = int(wallet.freeDiamonds)
 	p.paidDiamonds = int(wallet.paidDiamonds)
+	if wallet.has("gemResetTickets"): p.gemResetTickets = int(wallet.gemResetTickets)
 	p.turretModules = {"tickets": int(wallet.moduleTickets), "drawCount": int(inventory.drawCount), "ticketPurchaseCount": int(inventory.ticketPurchaseCount), "itemSequence": sequence, "items": result}
 	p.researchSlotTwoUnlocked = snapshot.entitlements.researchSlotTwoUnlocked
 	return p

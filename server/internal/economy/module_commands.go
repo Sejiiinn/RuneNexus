@@ -311,6 +311,9 @@ func lockAuthoritativeEconomy(ctx context.Context, queries *dbgen.Queries, accou
 	if err != nil {
 		return dbgen.PlayerEconomy{}, fmt.Errorf("lock player economy: %w", err)
 	}
+	if economy.GemRerollEnabled && gamesave.ClientCompatibilityFromBody(raw) < gamesave.GemRerollClientCompatibilityVersion {
+		return dbgen.PlayerEconomy{}, gamesave.ErrClientUpdateRequired
+	}
 	snapshot, snapshotErr := queries.GetSaveSnapshot(ctx, accountID)
 	if snapshotErr != nil && !errors.Is(snapshotErr, pgx.ErrNoRows) {
 		return dbgen.PlayerEconomy{}, fmt.Errorf("read economy growth compatibility: %w", snapshotErr)
