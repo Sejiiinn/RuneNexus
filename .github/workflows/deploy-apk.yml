@@ -136,10 +136,7 @@ jobs:
               environment.write(f"GODOT_EXECUTABLE={executable}\n")
           PYGODOT
 
-      - name: Build signed APK
-        env:
-          # 입력이 같은 Gradle 작업의 빌드 결과 재사용
-          GRADLE_OPTS: -Dorg.gradle.caching=true
+      - name: Verify contracts and prepare Godot pack
         run: |
           python3 -m unittest discover -s scripts -p 'test_*.py'
           python3 scripts/verify_godot_content.py
@@ -147,6 +144,25 @@ jobs:
           GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_account_services.py
           GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_app_services.py
           python3 scripts/build_godot_pack.py
+
+      - name: Verify prepared Godot session and lifecycle
+        run: |
+          GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/run_godot_project_checks.py \
+            --preset session --preset lifecycle --headless-only --require-complete \
+            --output build/godot-project-checks.json
+
+      - name: Save Godot project check results
+        if: ${{ always() && hashFiles('build/godot-project-checks.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-project-checks-${{ inputs.version_code }}
+          path: build/godot-project-checks.json
+
+      - name: Build signed APK
+        env:
+          # 입력이 같은 Gradle 작업의 빌드 결과 재사용
+          GRADLE_OPTS: -Dorg.gradle.caching=true
+        run: |
           android-godot-only/gradlew -p android-godot-only :app:assembleProductionRelease --console=plain
           mkdir -p build/apk-release
           cp build/godot-only/app/outputs/apk/production/release/app-production-release.apk build/apk-release/rune-nexus.apk

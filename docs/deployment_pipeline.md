@@ -1,6 +1,6 @@
 # 배포 파이프라인과 개선 제안
 
-역할: Android APK 배포 조사 절차와 읽기 전용 요약 도구. 2026-09-24에 Godot Android 워크플로 경로를 대조했다. `release_report.py` 명시 입력 검증 근거는 2026-09-14 기록이며, 실제 공개·기기 검증 완료를 뜻하지 않는다.
+역할: Android APK 배포 조사 절차와 읽기 전용 요약 도구. 2026-09-24에 Godot Android 워크플로 경로를 대조했다. 2026-10-13에는 `release_report.py`의 공개 기준·후보/공개 결속·단일 CI 대기를 격리 fixture로 검사했으며, 실제 공개·기기 검증 완료를 뜻하지 않는다.
 적용 범위: Godot Android APK. API·DB 변경 시에는 [API 운영 절차](self_hosted_api_deployment.md)를 추가로 따른다. 과거 웹·Flutter 통합 자동화 제안은 아래 역사 절에 구분한다.
 배포 완료 상태·버전·실행 링크는 [배포 인계](deployment_status.md)에만 기록한다. 이 문서는 기존 문서를 대체하지 않는다.
 
@@ -38,7 +38,7 @@ APK 팩은 `android:<github.sha>`를 `app_config.json`에 포함한다. Godot 4.
 
 ## 구현된 읽기 전용 요약 도구
 
-`scripts/release_report.py`는 배포·빌드·공개 상태 변경 없이 명시한 입력을 조사한다. 상세 근거는 `--output` JSON에 기록하고 stdout은 짧게 유지한다. 실패는 종료 코드 1이다.
+`scripts/release_report.py`는 배포·빌드·공개 상태 변경 없이 입력을 조사한다. 상세 근거는 `--output` JSON에 기록하고 stdout은 짧게 유지한다. 확인한 항목의 PASS는 종료 코드 0, 불일치·잘못된 입력은 1, 관측 부족·통신 실패의 UNKNOWN은 2다. 서명·실제 기기·계정 검증 등 검사하지 않은 범위는 JSON의 `unverified` 또는 `limitations`에 남는다. 결과·watch 로그는 기본 ignore 대상인 `build/` 또는 요청한 로컬 출력 경로에 보관한다.
 
 ```bash
 # 명시한 두 커밋 사이의 변경 경로와 영향 후보, 현재 작업 트리 dirty 상태
@@ -50,21 +50,61 @@ python3 scripts/release_report.py plan \
 python3 scripts/release_report.py verify \
   --manifest <update.json경로또는URL> --apk <APK경로또는URL> \
   --output build/release-verification.json
+
+# 실제 latest 공개 APK의 tag를 commit까지 해석하고, 명시 대상과 로컬/원격 분기를 정리
+python3 scripts/release_report.py snapshot \
+  --target <대상SHA> --github-repo Sejiiinn/RuneNexus \
+  --output build/release-snapshot.json
+
+# 이번 CI run 하나만 대기. 다른 호출이 같은 run을 소유하면 추가 조회 없이 busy로 종료
+python3 scripts/release_report.py wait \
+  --github-repo Sejiiinn/RuneNexus --run-id <runID> --expected-sha <40자리대상SHA> \
+  --timeout 1800 --log build/release-watch.log --output build/release-ci.json
 ```
 
 manifest에 패치가 있으면 각각 `--patch <fromVersionCode>=<경로또는URL>`를 추가한다. 명시하지 않은 패치가 있으면 실패하며, manifest 내부 URL을 자동으로 다운로드하지 않는다. `--audit-godot-pack`를 추가하면 기존 `audit_godot_pack.py`로 해당 APK의 PCK 항목·완전 중복을 같은 JSON에 기록한다. HTTP(S) 다운로드는 서버의 리다이렉트를 따른다.
 
 `--baseline-apk <이전APK경로또는URL>`를 추가하면 이전·현재 APK 총 바이트와 증감률, ZIP 항목별 압축 전·후 크기 변화 상위 10개를 JSON으로 기록하고 stdout에 총 증감을 한 줄 표시한다. 상위 항목은 압축 후 크기 증감의 절댓값 순이다. 이전 APK가 ZIP이 아니면 실패한다. 빌드 조건·서명 일치와 이전 APK의 공개 출처는 확인하지 않으며, 크기가 같은 항목도 내용이 같다고 판정하지 않는다. ZIP·서명 메타데이터 때문에 총 파일 증감과 항목 증감 합계는 다를 수 있다.
 
-`plan`은 커밋 사이 diff와 현재 미커밋 상태를 분리한다. 경로별 영향 후보는 API·DB 호환성 판정이 아니며, 공개·기기 설치 버전이나 CI 검증 근거를 찾지 않는다. `verify`의 PASS는 공급한 metadata와 공급한 바이트의 일치만 뜻한다. GitHub 최신 공개본 여부·대상 커밋·서명·패키지명·차등 복원·CI·설치·화면 품질은 검사하지 않는다. 용량 증가의 적절성이나 지원 ABI도 자동 판정하지 않는다. 따라서 아래의 전체 배포 전후 자동화가 완료된 것은 아니다.
+`plan`은 커밋 사이 diff와 현재 미커밋 상태를 분리한다. 경로별 영향 후보는 API·DB 호환성 판정이 아니다. `snapshot`은 `target_commitish=main` 같은 움직이는 이름 대신 공개 tag를 commit까지 해석해 APK 기준으로 사용하며, baseline 이후 **전체 포함 커밋·변경 경로**와 명시 대상에서 제외한 로컬/원격 커밋·이유를 기록한다. 공개 기준이 대상의 조상이 아니거나 `--expected-baseline <40자리SHA>`와 다르면 완료로 처리하지 않는다.
 
-검증: `python3 -m unittest discover -s scripts -p 'test_release_report.py'`는 격리된 Git 저장소·로컬 자산과 모의 HTTP 응답으로 실패 처리·범위 분리·명시 입력·PCK 연동을 검사한다.
+원격 분기는 `--remote-ref`(기본 `origin/main`)의 **로컬 캐시**를 사용하며 fetch/pull/update를 실행하지 않는다. 캡처 시각·`FETCH_HEAD` 파일 시각을 함께 기록하지만, 후자는 해당 원격 ref의 갱신 시각이나 현재 GitHub HEAD를 보증하지 않는다. `--local-ref` 기본값은 `HEAD`다. 서버 기준은 APK와 분리한다. 승인된 관측 결과가 있으면 `--server-baseline <40자리SHA> --server-evidence '<관측 근거 설명>'`을 제공하며 입력 근거임을 표시한다. 없으면 서버 baseline과 전체 snapshot은 UNKNOWN이고, 확인한 APK·분기 결과는 JSON에 유지한다. 도구가 운영 서버·DB에 접근하지 않는다.
+
+후보 검수와 공개 결과는 같은 `verify` 명령으로 연결한다.
+
+```bash
+# 이미 내려받은 build-only 후보에 기대 대상/run을 결속. --plan-report로 전체 변경 요약 보존
+python3 scripts/release_report.py verify \
+  --manifest <후보update.json> --apk <후보APK> \
+  --expected-sha <40자리대상SHA> --expected-run-id <runID> \
+  --github-repo Sejiiinn/RuneNexus --inspect-apk-build \
+  --plan-report build/release-snapshot.json --output build/release-candidate.json
+
+# 공개 후 검수한 후보와 동일한 자산·manifest인지 명시 공개 URL로 검사
+python3 scripts/release_report.py verify \
+  --manifest https://github.com/Sejiiinn/RuneNexus/releases/download/apk-<code>/update.json \
+  --apk https://github.com/Sejiiinn/RuneNexus/releases/download/apk-<code>/rune-nexus.apk \
+  --latest-manifest https://github.com/Sejiiinn/RuneNexus/releases/latest/download/update.json \
+  --candidate-report build/release-candidate.json --release-tag apk-<code> \
+  --expected-sha <40자리대상SHA> --expected-run-id <runID> \
+  --github-repo Sejiiinn/RuneNexus --inspect-apk-build --output build/release-public.json
+```
+
+후보와 공개본 모두 manifest에 있는 각 패치를 `--patch <fromVersionCode>=<명시경로또는URL>`로 제공한다. 공개 검사에서는 자산 전체 집합·크기·SHA-256, 후보/버전/latest manifest 바이트, 공개 tag 대상·manifest 버전 code, CI run ID·head SHA·성공을 대조한다. 명시 공개 URL과 manifest가 광고하는 `apkUrl`·각 patch `url`은 release의 `browser_download_url`과 같아야 하며, 광고 URL의 누락·불일치는 FAIL이다. URL 대조 때문에 추가 다운로드하지 않는다. 로컬 바이트만 제공하면 API digest 비교까지 수행하지만 실제 공개 다운로드는 UNKNOWN이다. GitHub digest가 없거나 latest를 확인할 수 없어도 UNKNOWN이며, 최신 release가 이동했거나 다른 후보·대상·run이면 FAIL이다. 공개 전용 입력은 `--candidate-report`·`--release-tag`·`--latest-manifest`와 기대 SHA/run을 함께 제공해야 하며 불완전한 조합을 무시하지 않는다. `--inspect-apk-build`는 기존 PCK parser로 `app_config.json`의 `clientBuild=android:<대상SHA>`를 읽어 대조한다. 공급한 로컬 후보의 다운로드 출처는 호출자가 보증해야 하며 run metadata만으로 후보 파일의 출처를 증명하지 않는다.
+
+읽기 API 대신 저장한 관측을 사용하려면 `snapshot --release-info <JSON>`, 후보 `verify --run-info <JSON>`, 공개 `verify --release-info <JSON>`을 지정한다. 관측은 `observed_at`, `github_repo`와 원래 GitHub `release`/`run` API 객체, commit까지 해석한 `tag_sha`, snapshot·공개 검사에 필요한 `latest_tag`를 담는다. 파일 입력은 live 조회가 아니며 근거 경로를 표시한다. `--github-repo`도 지정했다면 관측의 repo가 일치해야 한다. 사용하는 raw run의 `repository.full_name`·`html_url`, release의 `html_url`·자산 `browser_download_url`도 같은 repo와 run/tag 경로에 결속한다. 필요한 raw 정보가 없으면 UNKNOWN, 명시된 repo/경로/latest 충돌은 FAIL이다. `--run-info`와 `--release-info`를 동시에 제공하지 않는다. manifest 내부 URL을 따라 추가 다운로드하거나 재공개·자동 재실행하지 않는다.
+
+`wait`는 시작과 종료 때만 `gh run view`로 확인하고 대기 중에는 `gh run watch --exit-status` 하나를 사용한다. 완료 run은 watch를 시작하지 않는다. repo/run별 OS 파일 lock을 여러 worktree에서 공유하며 중복 호출은 소유 PID·로그 경로를 반환한다. 시간 초과·Ctrl-C·SIGTERM 때 로컬 watch 프로세스 그룹을 정리하고 lock을 해제하며 원격 CI는 취소하지 않는다. 최종 status·conclusion·실패 step·artifact ID와 로그 경로를 기록한다. watch 중 같은 run을 주기적으로 별도 조회하지 않는다.
+
+이 도구의 PASS는 기록한 기계적 항목만 뜻한다. API/DB 호환성·배포 순서·용량 증가 적절성·지원 ABI·바이너리 패키지 identity·서명·차등 복원·설치·화면 품질은 별도 근거가 필요하다. 공개 manifest의 `minimumSupportedVersionCode`와 패키지명은 metadata로 기록하며 Android 바이너리 검증으로 승격하지 않는다. 전체 배포의 성공과 실제 배포 사실은 [배포 인계](deployment_status.md)에서 따로 관리한다.
+
+검증: `python3 -m unittest discover -s scripts -p 'test_release*.py'`는 격리된 Git 저장소·로컬 자산·모의 HTTP/gh 응답으로 잘못된 baseline·분기·관측 부족·자산/URL/대상/run 불일치·PCK build·단일 watch·중복·실패/timeout/취소를 검사한다.
 
 ## 역사: 웹·Flutter 통합 자동화 제안
 
 아래는 2026-09-14 당시 웹과 Flutter APK가 별도 workflow였을 때의 제안이다. 웹 경로와 Flutter SDK는 현재 배포 대상이 아니며, 표의 통합 workflow·Flutter 공통 검사를 현행 작업 지시로 사용하지 않는다. 현재 후속 배포 범위는 [배포 현황](deployment_status.md)에서 관리한다.
 
-당시 우선순위는 **공개 상태와 검사 근거 수집 확장 → 통합 workflow**였다. 위 요약 도구는 명시 입력 검사까지 구현했으며, 아래 표의 공개 상태 자동 조사·배포 실행 통합·예약 실행은 구현하지 않았다.
+당시 우선순위는 **공개 상태와 검사 근거 수집 확장 → 통합 workflow**였다. 아래 표는 당시 제안이며 현재 읽기 도구의 구현 범위는 위 절을 따른다. 배포 실행 통합·예약 실행은 구현하지 않았다.
 
 | 단계 | 제안 | 줄어드는 반복 |
 | --- | --- | --- |

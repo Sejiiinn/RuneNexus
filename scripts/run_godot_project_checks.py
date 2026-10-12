@@ -10,6 +10,7 @@ play saves and other work are untouched.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import re
@@ -92,7 +93,10 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_runtime.gd": ("Runtime verification: 0 failures", {}),
     "verify_scene.gd": ("GPU verified drone", {"renderer": True}),
     "verify_selection_lifecycle.gd": ("Selection lifecycle verification failures: 0", {}),
-    "verify_session_controller.gd": ("PASS shared session controller:", {}),
+    "verify_session_controller.gd": ("PASS shared session controller:", {"expected_errors": (
+        "ERROR: Combat runtime rejected: 전투 명령을 적용하지 못했습니다 (testRejected)",
+        "ERROR: Combat runtime rejected: 전투를 시작하지 못했습니다 (testRejected)",
+    )}),
     "verify_session_restart.gd": ("failures=[]", {"steps": [["write", "{tmp}/save"], ["read", "{tmp}/save"]]}),
     "verify_shared_textures.gd": ("Shared textures verification: 0 failures", {"args": ["{build}/shared_texture_manifest.json"]}),
     "verify_skinned_enemy_presentation.gd": ("SKINNED_ENEMY_PRESENTATION PASS failures=0", {}),
@@ -105,7 +109,17 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_target_geometry_preparation.gd": ("failures=[]", {}),
     "verify_turret_labels.gd": ("Turret labels verification: 0 failures", {}),
 }
-FAILURE = re.compile(r"SCRIPT ERROR:|Parse Error|Assertion failed|: SKIP\b")
+# Small, explicit selections for the prepared-project contracts. Renderer cases
+# remain opt-in by name; CI headless checks do not stand in for visual review.
+PRESETS = {
+    "session": (
+        "verify_session_controller.gd", "verify_run_session.gd",
+        "verify_session_restart.gd", "verify_content_restart.gd",
+        "verify_combat_presentation_determinism.gd",
+    ),
+    "lifecycle": ("verify_app_lifecycle.gd", "verify_app_resume.gd"),
+}
+FAILURE = re.compile(r"(?:^|\n)\s*(?:SCRIPT ERROR:|ERROR:|Parse Error|Assertion failed)|: SKIP\b", re.I)
 
 
 def godot_executable() -> str:
@@ -121,11 +135,20 @@ def godot_executable() -> str:
 
 
 def stale_project_files() -> list[str]:
-    """Sources prepare_godot_project.py copies must match, or results describe old code."""
+    """Compare copied runtime inputs, including settings and binary resources.
+
+    prepare_godot_project.py excludes editor/authoring data and regenerates the
+    assets directory and app_config.json. Documentation is not an execution
+    input. Everything else is copied verbatim; an extension allowlist would
+    silently omit new resource types (and previously omitted .res/.cfg).
+    """
     stale = []
     for path in SOURCE.rglob("*"):
         relative = path.relative_to(SOURCE)
-        if not path.is_file() or relative.parts[:2] == ("content", "source") or path.suffix not in {".gd", ".tscn", ".gdshader", ".json", ".tres"}:
+        if (not path.is_file() or ".godot" in relative.parts
+                or relative.parts[:2] == ("content", "source")
+                or relative.parts[0] == "assets" or relative == Path("app_config.json")
+                or path.suffix == ".md"):
             continue
         copy = PROJECT / relative
         if not copy.is_file() or copy.read_bytes() != path.read_bytes():
@@ -150,54 +173,113 @@ def run_case(executable: str, name: str, marker: str, options: dict, work: Path)
         except subprocess.TimeoutExpired as error:
             # Assert-based scripts stop without quitting; a timeout is a failure.
             return f"timed out after {error.timeout}s\n{error.stdout or ''}{error.stderr or ''}"
+        except OSError as error:
+            return f"could not run Godot: {error}"
         output = f"{process.stdout}\n{process.stderr}"
         (home / f"output-{'-'.join(step) or 'run'}.log".replace("/", "_")).write_text(output)
-        if process.returncode or FAILURE.search(output) or marker not in output:
+        checked_output = output
+        # Negative contract fixtures deliberately report these exact failures.
+        # Each declared line must occur once; unrelated or repeated errors fail.
+        for expected in options.get("expected_errors", ()):
+            checked_output, count = re.subn(r"(?m)^" + re.escape(expected) + r"\r?$", "", checked_output)
+            if count != 1:
+                return f"expected exactly one fixture error {expected!r}, found {count}\n{output[-4000:]}"
+        if process.returncode or FAILURE.search(checked_output) or marker not in output:
             return f"exit {process.returncode}, marker {'found' if marker in output else 'missing'}\n{output[-4000:]}"
     return None
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("scripts", nargs="*", help="Run only named cases (default: all)")
-    parser.add_argument("--headless-only", action="store_true",
-                        help="Do not run renderer cases; they are reported as not run, never as passed")
-    args = parser.parse_args()
-    unknown = set(args.scripts) - CASES.keys()
-    if unknown:
-        parser.error("Unknown project checks: " + ", ".join(sorted(unknown)))
+def validate_project() -> None:
     covered = set(CASES) | {path.name for path in SOURCE.glob("verify_support_*.gd")}
     for runner in (NATIVE_RUNNER, *SERVICE_RUNNERS):
         covered |= set(re.findall(r"verify_[a-z0-9_]+\.gd", runner.read_text()))
     unassigned = sorted(path.name for path in SOURCE.glob("verify_*.gd") if path.name not in covered)
     if unassigned:
-        sys.exit("verify scripts without a runner: " + ", ".join(unassigned))
+        raise RuntimeError("verify scripts without a runner: " + ", ".join(unassigned))
     if not PROJECT.joinpath("project.godot").is_file():
-        sys.exit(f"{PROJECT} is missing; run scripts/prepare_godot_project.py first")
+        raise RuntimeError(f"{PROJECT} is missing; run scripts/prepare_godot_project.py first")
     stale = stale_project_files()
     if stale:
-        sys.exit(f"{PROJECT} differs from godot/ ({len(stale)} files, e.g. {stale[0]}); run scripts/prepare_godot_project.py")
-    executable = godot_executable()
-    selected = args.scripts or list(CASES)
-    not_run = [name for name in selected if args.headless_only and CASES[name][1].get("renderer")]
-    failures = []
-    with tempfile.TemporaryDirectory(prefix="godot-project-checks-") as directory:
-        for name in selected:
-            if name in not_run:
-                continue
-            started = time.monotonic()
-            failure = run_case(executable, name, *CASES[name], Path(directory))
-            print(f"{'FAIL' if failure else 'PASS'} {name} ({time.monotonic() - started:.1f}s)", flush=True)
-            if failure:
-                failures.append(name)
-                print(failure, file=sys.stderr)
-    for name in not_run:
-        print(f"NOT RUN {name} (renderer required)")
-    passed = len(selected) - len(not_run) - len(failures)
-    print(f"{passed} passed, {len(failures)} failed, {len(not_run)} not run")
-    if failures:
-        sys.exit("failed: " + ", ".join(failures))
+        raise RuntimeError(f"{PROJECT} differs from godot/ ({len(stale)} files, e.g. {stale[0]}); run scripts/prepare_godot_project.py")
+
+
+def source_revision() -> dict:
+    """A dirty checkout is not described as the pristine commit being tested."""
+    try:
+        head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        dirty = subprocess.check_output(
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=ROOT, text=True)
+        return {"head": head, "tracked_dirty": bool(dirty)}
+    except (OSError, subprocess.CalledProcessError):
+        return {"head": None, "tracked_dirty": None}
+
+
+def execute(selected: list[str], headless_only: bool, require_complete: bool) -> tuple[dict, int]:
+    report = {
+        "operation": "godot_project_checks", "project": str(PROJECT),
+        "source": source_revision(), "engine": None,
+        "headless_only": headless_only, "require_complete": require_complete,
+        "scope": "selected automated contracts; visual and device review are separate",
+        "cases": [{"name": name, "status": "NOT_RUN", "reason": "not started"} for name in selected],
+        "errors": [],
+    }
+    try:
+        validate_project()
+        executable = godot_executable()
+        version = subprocess.check_output([executable, "--version"], text=True, timeout=20).strip()
+        report["engine"] = {"path": str(executable), "version": version}
+        with tempfile.TemporaryDirectory(prefix="godot-project-checks-") as directory:
+            for result in report["cases"]:
+                name = result["name"]
+                if headless_only and CASES[name][1].get("renderer"):
+                    result["reason"] = "renderer required"
+                    print(f"NOT RUN {name} (renderer required)", flush=True)
+                    continue
+                started = time.monotonic()
+                failure = run_case(executable, name, *CASES[name], Path(directory))
+                result.update(status="FAIL" if failure else "PASS", seconds=round(time.monotonic() - started, 3))
+                result.pop("reason")
+                print(f"{result['status']} {name} ({result['seconds']:.1f}s)", flush=True)
+                if failure:
+                    result["detail"] = failure
+                    print(failure, file=sys.stderr)
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        report["errors"].append(str(error))
+        print(str(error), file=sys.stderr)
+    counts = {status: sum(case["status"] == status for case in report["cases"])
+              for status in ("PASS", "FAIL", "NOT_RUN")}
+    report["counts"] = counts
+    report["status"] = "FAIL" if report["errors"] or counts["FAIL"] else "INCOMPLETE" if counts["NOT_RUN"] else "PASS"
+    # Keep the old optional --headless-only exit behavior; CI opts into strict
+    # completion. In either mode the report can never call NOT_RUN a pass.
+    code = 1 if report["status"] == "FAIL" else 2 if require_complete and counts["NOT_RUN"] else 0
+    report["exit_code"] = code
+    print(f"{counts['PASS']} passed, {counts['FAIL']} failed, {counts['NOT_RUN']} not run")
+    return report, code
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("scripts", nargs="*", help="Run only named cases (default: all, or the selected presets)")
+    parser.add_argument("--preset", action="append", choices=PRESETS, default=[],
+                        help="Add an explicit contract group; may be repeated or combined with case names")
+    parser.add_argument("--headless-only", action="store_true",
+                        help="Do not run renderer cases; they are reported as not run, never as passed")
+    parser.add_argument("--require-complete", action="store_true",
+                        help="Exit 2 when any selected case is NOT_RUN (for CI)")
+    parser.add_argument("--output", type=Path, help="Write the selected case results and failure details as JSON")
+    args = parser.parse_args(argv)
+    unknown = set(args.scripts) - CASES.keys()
+    if unknown:
+        parser.error("Unknown project checks: " + ", ".join(sorted(unknown)))
+    selected = list(dict.fromkeys([name for preset in args.preset for name in PRESETS[preset]] + args.scripts)) or list(CASES)
+    report, code = execute(selected, args.headless_only, args.require_complete)
+    report["presets"] = args.preset
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return code
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

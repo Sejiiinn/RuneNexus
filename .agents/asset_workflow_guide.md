@@ -1,6 +1,6 @@
 # 에셋 작업 절차
 
-역할: [AGENTS.md](../AGENTS.md#ui시각-에셋)의 도구 선택·표현 계약을 유지하는 실행 절차. 외형·완료 기준은 [DESIGNS.md](../DESIGNS.md)를 따른다.
+역할: [AGENTS.md](../AGENTS.md#ui시각-에셋)의 도구 선택·표현 계약을 유지하는 실행 절차. 착수·대표 부분 검증·반복 실패의 방법 재판단은 [시안 보존 기준](../DESIGNS.md#승인-시안-보존과-채택), 최종 판정은 [완료 기준](../DESIGNS.md#검증과-완료-기준--완벽한-복제보다-요청-충족)을 따른다.
 
 ## 기존 작업과 연결 보존
 
@@ -8,7 +8,17 @@
 - MCP 등록·시작·상태 확인·재연결은 GIMP 앱을 자동 실행하지 않는다. GIMP를 실제로 사용하는 작업에서만 명시적으로 실행하고, 필요하면 열린 창의 `Tools > MCP > Start MCP Server`로 연결한다. 종료 여부는 프로세스 조회로 확인하며 앱 열기 기능을 확인 수단으로 사용하지 않는다.
 - 연결 실패 원인을 확인하고 기존 연결 복구를 먼저 시도한다. 실행 중인 인스턴스가 없거나 사용할 수 없다는 근거가 있을 때만 새로 실행하며, 기존 문서와 미저장 작업을 보존한다.
 - 같은 실패를 상태 변화 없이 반복하지 않는다. [도구 복구와 대체 경로](in_app_test_guide.md#도구-복구와-대체-경로)를 따르며, 사용자 지정 도구나 합의한 표현 방식을 임의로 바꾸지 않는다.
-- Blender의 기존 Python/bpy 제작·수정·내보내기 경로를 재사용한다. 독립 background 실행이 필요하면 열린 원본과 미저장 작업을 보존한다.
+- 제작 전에 해당 에셋의 채택 기록에서 편집 원본·실제 게임 적용본·사용할 스크립트와 입력을 확인한다. 기존과 같은 제작 요청은 당시 채택 경로를 확인한 뒤 이어가며, 예전 생성기나 일반적인 제작 순서로 대체하지 않는다. Blender Python/bpy와 ComfyUI 등 지정 흐름을 재사용하고, 독립 background 실행은 열린 원본·미저장 작업을 보존한다.
+
+등록된 경로는 `python3 scripts/asset_workflow_report.py`로 조회한다. 특정 에셋의 기존 원본·채택본·게임 출력·producer/review 기록 대응은 다음처럼 읽기 전용으로 대조한다.
+
+```sh
+python3 scripts/asset_workflow_report.py frost-rebaked-10k --verify-records --json-out /tmp/frost-records.json
+```
+
+[catalog](../design/stage1_3d/blender_workspace/catalog.json)의 해당 ID만 읽는다. 기존 `source_sha256`·`approved_source_sha256`과 선택적 `accepted_source`, `runtime_outputs`, `record_inputs`의 SHA를 현재 파일과 대조한다. `expected_hashes_from_records=true`인 ID는 catalog에 기대 SHA를 복제하지 않고 해당 target의 첫 유효한 `record_links.bindings` SHA 필드를 원본으로 읽는다(JSON의 `expected_record`에 출처 표시). 이 모드에서 `runtime_outputs` 생략 시 기존 `outputs`를 대조 대상으로 쓰며, `records` 생략 시 `record_links`의 경로를 쓴다. 다른 연결 기록도 각각 대조하므로 기록 간 SHA 불일치를 숨기지 않는다. `sha256_field`·`path_field`는 기존 JSON의 정확한 키/배열 인덱스 목록이며, 경로는 기본적으로 저장소 기준이다(`path_base=record`이면 기록 파일의 폴더 기준). `runtime_references`는 지정한 코드의 로딩 경로 문자열 존재만 확인한다. 기존 `sources` 목록은 제작 라이브러리이므로 최신 게임 채택 목록으로 간주하지 않는다.
+
+대조 결과와 종료 코드는 `matched`/0, `mismatch`/1, `unknown`/2다. 파일·기록·필드·기대 SHA 부재와 SSD 미마운트는 사유와 함께 `unknown`, 변경 SHA·기록 경로·recipe/로딩 경로 불일치는 `mismatch`다. 두 상태가 함께 있으면 `mismatch`가 우선한다. 옵션을 생략한 기존 요약은 파일 존재 여부에 따른 0/1과 `record_freshness=not_verified`를 유지한다. JSON의 `validation=not_run`은 항상 유지하며, 기록 대조를 과거 검수 PASS·receipt 서명 검증·현재 시각 검증·준비 프로젝트/패키지 검증으로 해석하지 않는다. Markdown 검수 등 명시적 SHA 필드 연결이 없으면 대응은 미확인이다. 제작·Git 원본 추출·도구 실행·SSD 쓰기는 수행하지 않는다.
 
 ## 작업 완료와 프로세스 종료
 
@@ -25,5 +35,5 @@
 ## 산출물 점검
 
 - 제작 원본·중간 산출물과 게임용 최종 파일의 위치는 AGENTS.md를 따른다. 게임용 결과는 기존 로딩 경로에 연결한다.
-- 크기·프레임·투명 배경·형식은 실제 사용처에 맞춘다. 움직이는 에셋은 순서·여백·루프·게임 크기를 확인한다.
+- 크기·프레임·투명 배경·형식은 실제 사용처에 맞춘다. 움직이는 에셋은 순서·여백·루프·게임 크기를 확인한다. 형상·재질·분할 변경 시에는 관련 삼각형·표면 수·텍스처·파일 크기의 전후 변화도 확인하고 예상 밖 증가를 보고한다. 이 수치를 실제 FPS 개선으로 해석하지 않는다.
 - 표면 텍스처·렌더 후처리는 원본의 입체 표현을 대체하지 않는다. 회전·조명 변화·애니메이션과 실제 게임 크기에서 합의한 특징을 확인한다.

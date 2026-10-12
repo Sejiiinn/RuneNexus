@@ -5,9 +5,10 @@
 ## 테스트 저장과 생성 디렉터리 격리
 
 - 사용자 플레이 저장을 기본 검수 대상으로 사용하지 않는다. Android 검수 앱 `com.example.rune_nexus.godotonly` 또는 임시 Godot 프로젝트를 사용해 정식 `com.example.rune_nexus` 저장 영역과 분리한다. 실제 저장 인계 검증에는 원본을 지우거나 덮어쓰지 않고 복사본과 명시된 절차를 사용한다.
-- 개발·검사·패키징이 같은 생성 디렉터리를 동시에 변경하지 않게 한다. `scripts/prepare_godot_project.py`는 `build/godot/project/assets`를 재생성하므로 그 프로젝트의 편집·실행·패키징과 순차 실행한다. 편집 프로젝트의 소스 링크·열린 원본은 [Godot 가이드](godot_mcp_guide.md)를 따른다.
+- 개발·검사·패키징이 같은 생성 디렉터리를 동시에 변경하지 않게 한다. `scripts/prepare_godot_project.py`는 `build/godot/project/assets`를 재생성하므로 그 프로젝트의 편집·실행·패키징과 순차 실행한다. 검사 병렬화는 해당 사례의 절대 `/tmp`·프로젝트 내부 fixture·캡처 등 쓰기 경로와 자식 프로세스까지 확인한 경우에만 검토하며 HOME·worktree 분리만으로 안전하다고 보지 않는다. 편집 프로젝트의 소스 링크·열린 원본은 [Godot 가이드](godot_mcp_guide.md)를 따른다.
 - `scripts/run_godot_native_regressions.py`는 임시 프로젝트·fixture를 만들고 종료 후 정리한다. Godot 실행 파일이 없으면 실패하며 skip을 통과로 처리하지 않는다.
-- `scripts/run_godot_project_checks.py`는 준비된 `build/godot/project`에서 사례마다 별도 HOME·TMPDIR을 쓴다. 프로젝트가 `godot/`와 다르면 실행하지 않으며, `--headless-only`로 건너뛴 렌더러 사례는 미실행으로 보고한다.
+- `scripts/run_godot_project_checks.py`는 준비된 `build/godot/project`에서 사례마다 별도 HOME·TMPDIR을 쓴다. 복사된 실행 입력(설정·스크립트·셰이더·바이너리 리소스 등)이 `godot/` 원본과 다르면 실행하지 않는다. 편집기 캐시·authoring 원본·문서와 재생성 대상인 assets/app_config는 이 바이트 대조에서 제외한다. `--headless-only`로 건너뛴 렌더러 사례는 `NOT RUN`이다. 종료 코드가 0이어도 필요한 완료 조건이 미실행이면 미확인으로 남긴다.
+- 같은 실행기의 `--preset session`은 명령·전투 세션·저장 재시작·표현 결정론, `--preset lifecycle`은 앱 수명주기·복귀 검사만 선택한다. 검사 이름과 함께 지정할 수 있으며 중복 사례는 한 번 실행한다. `--require-complete`는 선택한 사례가 미실행이면 종료 코드 2, 실패면 1을 반환한다. `--output build/ignored/project-checks.json`은 소스 커밋·수정 여부, 엔진 버전, 사례별 결과와 실패 내용을 보관한다. 배포 CI는 팩 준비 뒤 두 preset을 실행하고 결과를 artifact로 남긴다. 렌더러 사례·실제 화면·기기 검증을 이 결과로 대체하지 않는다.
 
 ## 도구 복구와 대체 경로
 
