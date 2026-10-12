@@ -349,7 +349,8 @@ def check_run(run, expected_sha, run_id):
 def apk_build(path):
     """Read only the build field through the existing PCK parser; never extract paths."""
     audit = audit_path(path)
-    entries = [entry for entry in audit["entries"] if entry["path"] == "res://app_config.json"]
+    entries = [entry for entry in audit["entries"]
+               if entry["path"] in ("app_config.json", "res://app_config.json")]
     if len(entries) != 1 or entries[0]["bytes"] > 64 * 1024:
         raise ValueError("Missing or oversized app_config.json in APK PCK")
     entry = entries[0]

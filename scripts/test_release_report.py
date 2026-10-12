@@ -500,29 +500,42 @@ class ReleaseReportTest(unittest.TestCase):
         self.assertNotIn("main", [call.args[1] for call in api.call_args_list])
 
     def test_embedded_client_build_is_read_from_real_fixture_pack(self):
-        def write_build(sha):
-            payload = json.dumps({"clientBuild": "android:" + sha}).encode()
-            name = b"res://app_config.json"
-            name += b"\0" * (-len(name) % 4)
+        def write_build(sha, paths, padding=""):
+            payload = json.dumps({"clientBuild": "android:" + sha, "padding": padding}).encode()
             base = 112
             header = struct.pack("<6I2Q", 0x43504447, 4, 4, 7, 2, 2, base, base + len(payload))
-            entry = struct.pack("<I", len(name)) + name + struct.pack("<2Q16sI", 0, len(payload), hashlib.md5(payload).digest(), 0)
-            pck = header.ljust(base, b"\0") + payload + struct.pack("<I", 1) + entry
+            entries = b""
+            for path in paths:
+                name = path.encode()
+                name += b"\0" * (-len(name) % 4)
+                entries += struct.pack("<I", len(name)) + name + struct.pack("<2Q16sI", 0, len(payload), hashlib.md5(payload).digest(), 0)
+            pck = header.ljust(base, b"\0") + payload + struct.pack("<I", len(paths)) + entries
             with zipfile.ZipFile(self.apk, "w") as archive:
                 archive.writestr("assets/game.pck", pck)
             self.data.update(self.metadata(self.apk))
             self.save()
         info = self.save_observation(self.release_fixture())
-        write_build("a" * 40)
-        report = verify(str(self.manifest), str(self.apk), {}, expected_sha="a" * 40,
-                        expected_run_id="123", run_info=info, inspect_build=True)
-        self.assertTrue(report["ok"])
-        self.assertEqual(report["apk_client_build"], "android:" + "a" * 40)
-        write_build("b" * 40)
-        report = verify(str(self.manifest), str(self.apk), {}, expected_sha="a" * 40,
-                        expected_run_id="123", run_info=info, inspect_build=True)
-        self.assertEqual(report["status"], "fail")
-        self.assertIn("APK embedded clientBuild SHA mismatch", report["errors"])
+        for path in ("app_config.json", "res://app_config.json"):
+            with self.subTest(path=path):
+                write_build("a" * 40, [path])
+                report = verify(str(self.manifest), str(self.apk), {}, expected_sha="a" * 40,
+                                expected_run_id="123", run_info=info, inspect_build=True)
+                self.assertTrue(report["ok"])
+                self.assertEqual(report["apk_client_build"], "android:" + "a" * 40)
+                write_build("b" * 40, [path])
+                report = verify(str(self.manifest), str(self.apk), {}, expected_sha="a" * 40,
+                                expected_run_id="123", run_info=info, inspect_build=True)
+                self.assertEqual(report["status"], "fail")
+                self.assertIn("APK embedded clientBuild SHA mismatch", report["errors"])
+        for paths, padding in ((["app_config.json", "res://app_config.json"], ""),
+                               (["nested/app_config.json"], ""),
+                               (["app_config.json"], "x" * (64 * 1024))):
+            with self.subTest(paths=paths, oversized=bool(padding)):
+                write_build("a" * 40, paths, padding)
+                report = verify(str(self.manifest), str(self.apk), {}, expected_sha="a" * 40,
+                                expected_run_id="123", run_info=info, inspect_build=True)
+                self.assertEqual(report["status"], "unknown")
+                self.assertFalse(report["ok"])
 
     def test_http_failure_cli_is_unknown_nonzero(self):
         output = self.root / "unknown.json"
