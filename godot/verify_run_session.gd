@@ -61,6 +61,15 @@ func run() -> void:
 	var damage_before: float = runtime.turrets[str(id)].stats.damage
 	check(app.apply_growth_command({"kind":"permanentUpgrade","type":"fireTraining"}), "ordinary growth purchase connected")
 	check(runtime.turrets[str(id)].stats.damage > damage_before and app.run_domain.state.progression.runes < 10000, "ordinary growth spends runes and updates actual turret")
+	# Growth from any source (server receipt, authoritative snapshot) commits the
+	# same way and reaches the running stage's defense, not only turret stats.
+	var nexus: Dictionary = app.run_domain.growth.data.permanentUpgrades.nexusHp
+	var field: String = nexus.get("field", "nexusHpUpgradeLevel")
+	var grown: Dictionary = app.run_domain.state.progression.duplicate(true)
+	grown[field] = int(grown.get(field, 0)) + 1
+	var grown_hp: float = app.run_domain.growth.derive(grown).maxNexusHp
+	check(grown_hp > runtime.defense.max_hp and app.commit_progression(grown) and is_equal_approx(runtime.defense.max_hp, grown_hp)
+		and app.progression_inputs == grown, "committed growth updates the running stage's nexus HP")
 	app.start_wave()
 	check(runtime.core.configured and runtime.core.skill == "guardianBeam", "selected default core connected")
 	check(app.apply_run_command({"kind":"purchaseGemChoice"}), "buy gem choice during wave")

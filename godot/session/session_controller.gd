@@ -211,12 +211,43 @@ func apply_growth_command(request: Dictionary) -> bool:
 	# Refresh all placed turrets through the same domain/configuration path.
 	var refresh: Dictionary = run_domain.service.refresh(run_domain.state)
 	run_domain.state = refresh.state
+	command(progression_commands(refresh))
+	checkpoint.message = ""
+	return true
+
+## Growth applies to the running stage at once, whatever its source (purchase,
+## research completion, server receipt or authoritative snapshot): refreshed
+## turret stats plus defense and core configuration. Call after run_domain.state
+## holds the refreshed state.
+func progression_commands(refresh: Dictionary) -> Array:
+	var updates: Array = refresh.get("commands", []).duplicate()
 	var effects: Dictionary = run_domain.growth.derive(run_domain.state.progression)
-	var updates: Array = refresh.get("commands", [])
 	updates.append({"kind":"defenseConfig","config":effects.defenseConfig})
 	updates.append({"kind":"coreConfig","config":run_domain.growth.core_config(run_domain.state, stage, int(run_domain.state.roundIndex), catalog)})
-	command(updates)
-	checkpoint.message = ""
+	return updates
+
+## Saves a new progression, then applies it to the live run (see
+## progression_commands). False, with live state unchanged, when the save fails;
+## the caller decides whether that blocks the app. A combat rejection after the
+## save is reported by command().
+func commit_progression(value: Dictionary) -> bool:
+	if run_domain.state.is_empty() or not scene.combat_runtime.active:
+		if checkpoint.save_progression(self, value) != OK: return false
+		progression_inputs = value.duplicate(true)
+		return true
+	var candidate: Dictionary = run_domain.state.duplicate(true)
+	candidate.progression = value
+	return commit_run_state(candidate)
+
+## commit_progression for a whole candidate run state (progression plus other
+## authoritative run fields) during an active run.
+func commit_run_state(candidate: Dictionary) -> bool:
+	var refresh: Dictionary = run_domain.service.refresh(candidate)
+	# Durable save precedes live mutation; failed purchases never spend balances.
+	if checkpoint.persist_state(self, refresh.state) != OK: return false
+	run_domain.state = refresh.state
+	progression_inputs = candidate.progression.duplicate(true)
+	command(progression_commands(refresh))
 	return true
 
 func board_tap(tile: Vector2i) -> void:

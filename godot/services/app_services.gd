@@ -533,18 +533,7 @@ func _progression_for_update() -> Dictionary:
 	return app.progression_inputs.duplicate(true)
 
 func _store_progression(value: Dictionary) -> bool:
-	if app.run_domain.state.is_empty() or not app.scene.combat_runtime.active:
-		if app.checkpoint.save_progression(app,value) != OK: return false
-		app.progression_inputs = value
-	else:
-		var candidate: Dictionary = app.run_domain.state.duplicate(true)
-		candidate.progression = value
-		var refreshed: Dictionary = app.run_domain.service.refresh(candidate)
-		if app.checkpoint.persist_state(app,refreshed.state) != OK: return false
-		app.run_domain.state = refreshed.state
-		app.progression_inputs = value
-		if not app.command(refreshed.get("commands",[])): return false
-	return true
+	return app.commit_progression(value)
 
 func _apply_receipt(receipt: Dictionary) -> bool:
 	var p := _progression_for_update()

@@ -125,12 +125,7 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 	candidate.progression = mapped
 	candidate = GemReroll.project(candidate, snapshot.get("gemReroll"))
 	if candidate.is_empty(): return false
-	if persist_state(app, candidate) != OK: return false
-	app.run_domain.state = candidate
-	app.progression_inputs = mapped.duplicate(true)
-	var refresh: Dictionary = app.run_domain.service.refresh(candidate)
-	app.run_domain.state = refresh.state
-	return app.command(refresh.get("commands",[]))
+	return app.commit_run_state(candidate)
 
 func save_session(app) -> Error:
 	if app.is_content_session(): return _save_content(app)

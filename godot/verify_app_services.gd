@@ -159,6 +159,11 @@ class AppStub extends RefCounted:
 		persist_count+=1
 		return not startup_blocked and checkpoint.save_progression(self,progression_inputs)==OK
 	func pause_and_save() -> bool: return persist_progression()
+	## The real commit's no-run branch; these checks never commit during a run.
+	func commit_progression(value: Dictionary) -> bool:
+		if checkpoint.save_progression(self,value) != OK: return false
+		progression_inputs=value.duplicate(true)
+		return true
 
 func _initialize():
 	folder=OS.get_environment("RUNE_APP_TEST_ROOT")

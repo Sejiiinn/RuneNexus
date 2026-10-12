@@ -318,24 +318,9 @@ func apply_growth_command(request: Dictionary) -> bool:
 	if not result.get("ok", false):
 		checkpoint.message = str(result.get("error", "성장 명령을 적용할 수 없습니다"))
 		return false
-	if active:
-		var candidate: Dictionary = run_domain.state.duplicate(true)
-		candidate.progression = result.state
-		var refresh: Dictionary = run_domain.service.refresh(candidate)
-		# Durable save precedes live mutation; failed purchases never spend balances.
-		if checkpoint.persist_state(self, refresh.state) != OK:
-			_record_save_failure()
-			return false
-		run_domain.state = refresh.state
-		var effects: Dictionary = run_domain.growth.derive(result.state)
-		var updates: Array = refresh.get("commands", [])
-		updates.append({"kind":"defenseConfig","config":effects.defenseConfig})
-		updates.append({"kind":"coreConfig","config":run_domain.growth.core_config(run_domain.state, stage, int(run_domain.state.roundIndex), catalog)})
-		command(updates)
-	elif checkpoint.save_progression(self, result.state) != OK:
+	if not commit_progression(result.state):
 		_record_save_failure()
 		return false
-	progression_inputs = result.state.duplicate(true)
 	refresh_selection()
 	refresh_ui()
 	return true
