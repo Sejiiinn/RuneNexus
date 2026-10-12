@@ -3,6 +3,7 @@ extends Node3D
 const BattlefieldEnvironment = preload("res://environment/battlefield_environment.gd")
 const BattlefieldUnits = preload("res://presentation/battlefield_units.gd")
 const NativeRuntime = preload("res://combat/native_combat_runtime.gd")
+const FrameRows = preload("res://presentation/frame_rows.gd")
 const Teleports = preload("res://combat/teleport_pairs.gd")
 const SpaceBackground = preload("res://environment/combat_space_background.gd")
 
@@ -181,13 +182,13 @@ func _present() -> void:
 			report.teleports.append(event.duplicate(true))
 			print("EXPANSION_TELEPORT ", JSON.stringify(event))
 	if not frame.enemies.is_empty():
-		var row: Array = frame.enemies[0]
-		var cell := [floori(float(row[12])), floori(float(row[13]))]
+		var row: FrameRows.Enemy = frame.enemies[0]
+		var cell := [floori(row.logical_x), floori(row.logical_y)]
 		if map.tiles[cell[1] * map.columns + cell[0]] == "blocked": report.blocked_cell_violations.append(cell)
 		var rendered: Vector3 = units.enemies[1].root.position
-		var expected := Vector3(float(row[1]) - map.columns / 2.0, 0.0, float(row[2]) - map.rows / 2.0)
+		var expected := Vector3(row.x - map.columns / 2.0, 0.0, row.y - map.rows / 2.0)
 		if not rendered.is_equal_approx(expected): report.render_root_mismatches.append([rendered.x, rendered.z])
-		if capture_mode: trace.append({"time": frame.time, "x": row[12], "y": row[13], "serial": row[14].teleportSerial,
+		if capture_mode: trace.append({"time": frame.time, "x": row.logical_x, "y": row.logical_y, "serial": row.teleport_serial,
 			"render_x": rendered.x, "render_z": rendered.z})
 	status.text = "보행 %d칸 · 순간이동 %d/%d회 · 건설 %d칸\nSpace 정지/재생 · 1/4 배속 · 7/0 맵 전환 · R 다시 보기" % [map.walkingEdges, report.teleports.size(), map.teleportPairs.size(), map.buildCells.size()]
 

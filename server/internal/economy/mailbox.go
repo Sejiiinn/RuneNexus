@@ -174,18 +174,29 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if err != nil {
 		return CommandResult{}, err
 	}
+	queries := dbgen.New(service.database)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, account, identity); found || err != nil {
+		return result, err
+	}
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
 		return CommandResult{}, err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	q := dbgen.New(tx)
-	wallet, err := lockAuthoritativeEconomy(ctx, q, account, request.RawBody)
-	if err != nil {
+	// A concurrent claim can commit while this request waits for the wallet.
+	// Recheck its exact receipt before applying current compatibility gates.
+	if _, err := q.GetPlayerEconomyForUpdate(ctx, account); errors.Is(err, pgx.ErrNoRows) {
+		return CommandResult{}, ErrNotBootstrapped
+	} else if err != nil {
 		return CommandResult{}, err
 	}
 	if result, found, err := storedCommandResult[CommandResult](ctx, q, account, identity); found || err != nil {
 		return result, err
+	}
+	wallet, err := lockAuthoritativeEconomy(ctx, q, account, request.RawBody)
+	if err != nil {
+		return CommandResult{}, err
 	}
 	rewardKey := "mail:" + request.MailID
 	claimed, err := q.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{AccountID: account, RewardKey: rewardKey})

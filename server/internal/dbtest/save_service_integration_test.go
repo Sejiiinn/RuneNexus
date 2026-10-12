@@ -423,6 +423,11 @@ func TestLegacyTransferBacksUpAndReplacesExistingAccountSave(t *testing.T) {
 	if _, err := fixture.pool.Exec(ctx, `DELETE FROM account_run_authorities WHERE account_id=$1`, accountID); err != nil {
 		t.Fatal(err)
 	}
+	// Generation-nine writer adoption also creates an empty revision-zero header.
+	// Never-upgraded accounts have neither that header nor the authority marker.
+	if _, err := fixture.pool.Exec(ctx, `DELETE FROM save_headers WHERE account_id=$1 AND revision=0`, accountID); err != nil {
+		t.Fatal(err)
+	}
 	service := legacytransfer.NewService(fixture.pool, 15*time.Minute)
 	data := gamesave.Data{
 		Version:       gamesave.CurrentSchemaVersion,

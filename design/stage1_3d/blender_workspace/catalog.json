@@ -394,7 +394,84 @@
       ],
       "limitation": "원본은 사용자 외장 SSD 보관 정책을 따른다. 사망 추가 수정은 보류하며 승인 Death를 보존한다. Android·배포 검증은 별도다.",
       "approved_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-rig-v2/blender/stonegolem-rig-walk-death-v2.blend",
-      "approved_source_sha256": "8004975f8c635afa3638793e2eca1f73b371a28c5b8193bf050b06704cd8de73"
+      "approved_source_sha256": "8004975f8c635afa3638793e2eca1f73b371a28c5b8193bf050b06704cd8de73",
+      "accepted_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-rig-v2/blender/stonegolem-rig-walk-death-v2.blend",
+      "record_inputs": [
+        {
+          "id": "approved-export",
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-rig-v2/exports/stonegolem-rig-walk-death-v2.glb"
+        },
+        {
+          "id": "walk-export",
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-ingame-v1/exports/stonegolem-ingame-walk-v1.glb"
+        }
+      ],
+      "record_links": [
+        {
+          "path": "design/enemy_concepts/2026-10-08/normal-ingame-v2/runtime-contract.json",
+          "kind": "export_contract",
+          "bindings": [
+            {
+              "target": "assets/images/stage1_3d/enemies/normal.glb",
+              "sha256_field": ["exports", 0, "sha256"],
+              "path_field": ["exports", 0, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/normal_death.glb",
+              "sha256_field": ["exports", 1, "sha256"],
+              "path_field": ["exports", 1, "path"]
+            },
+            {
+              "target": "approved-export",
+              "sha256_field": ["source_sha256"],
+              "path_field": ["source"]
+            },
+            {
+              "target": "walk-export",
+              "sha256_field": ["walk_source_sha256"],
+              "path_field": ["walk_source"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/normal-multiview-20261007-v3/animation-ingame-v1/checks/retarget-build.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "accepted",
+              "sha256_field": ["source_sha256"],
+              "path_field": ["source"]
+            },
+            {
+              "target": "source",
+              "sha256_field": ["blend_sha256"],
+              "path_field": ["blend"]
+            },
+            {
+              "target": "walk-export",
+              "sha256_field": ["glb_sha256"],
+              "path_field": ["glb"]
+            }
+          ]
+        },
+        {
+          "path": "design/enemy_concepts/2026-10-08/normal-ingame-v2/README.md",
+          "kind": "acceptance_and_review"
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/presentation/guardian_preview.gd",
+          "output": "assets/images/stage1_3d/enemies/normal.glb",
+          "token": "res://assets/enemies/normal.glb"
+        },
+        {
+          "path": "godot/presentation/guardian_preview.gd",
+          "output": "assets/images/stage1_3d/enemies/normal_death.glb",
+          "token": "res://assets/enemies/normal_death.glb"
+        }
+      ],
+      "expected_hashes_from_records": true
     },
     "tank-natural-rubble-v4": {
       "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/tank-shoulder-03-multiview-20261008-512/rigging/death-rubble-v4-optimized/blender/tank-shoulder03-death-rubble-optimized-v4.blend",
@@ -428,7 +505,553 @@
       "records": [
         "design/enemy_concepts/2026-10-09/tank-game-integration/runtime-contract.json"
       ],
-      "limitation": "원본은 사용자 외장 SSD에 유지한다. 실제 데스크톱 게임 적용 상태는 안내 문서가 기준이며 Android 실기기·배포·FPS 검증은 별도다."
+      "limitation": "원본은 사용자 외장 SSD에 유지한다. 실제 데스크톱 게임 적용 상태는 안내 문서가 기준이며 Android 실기기·배포·FPS 검증은 별도다.",
+      "accepted_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/tank-shoulder-03-multiview-20261008-512/rigging/death-rubble-v4-optimized/blender/tank-shoulder03-death-rubble-optimized-v4.blend",
+      "record_links": [
+        {
+          "path": "design/enemy_concepts/2026-10-09/tank-game-integration/runtime-contract.json",
+          "kind": "export_contract",
+          "bindings": [
+            {
+              "target": "assets/images/stage1_3d/enemies/tank.glb",
+              "sha256_field": ["exports", 0, "sha256"],
+              "path_field": ["exports", 0, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/tank_death.glb",
+              "sha256_field": ["exports", 1, "sha256"],
+              "path_field": ["exports", 1, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/tank_status_burn.res",
+              "sha256_field": ["status_assets", 0, "sha256"],
+              "path_field": ["status_assets", 0, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/tank_status_frost_shards.res",
+              "sha256_field": ["status_assets", 1, "sha256"],
+              "path_field": ["status_assets", 1, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/tank_status_frost_grains.res",
+              "sha256_field": ["status_assets", 2, "sha256"],
+              "path_field": ["status_assets", 2, "path"]
+            },
+            {
+              "target": "source",
+              "sha256_field": ["source_sha256"],
+              "path_field": ["source"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/tank-shoulder-03-multiview-20261008-512/rigging/death-rubble-v4-optimized/checks/optimization.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["blend_sha256"],
+              "path_field": ["blend"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/tank-shoulder-03-multiview-20261008-512/rigging/death-rubble-v4-optimized/checks/independent-final-review.json",
+          "kind": "review",
+          "bindings": [
+            {
+              "target": "accepted",
+              "sha256_field": ["blend_sha256"]
+            }
+          ]
+        },
+        {
+          "path": "design/enemy_concepts/2026-10-09/tank-game-integration/README.md",
+          "kind": "acceptance_and_review"
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/presentation/guardian_preview.gd",
+          "output": "assets/images/stage1_3d/enemies/tank.glb",
+          "token": "res://assets/enemies/tank.glb"
+        },
+        {
+          "path": "godot/presentation/guardian_preview.gd",
+          "output": "assets/images/stage1_3d/enemies/tank_death.glb",
+          "token": "res://assets/enemies/tank_death.glb"
+        }
+      ],
+      "expected_hashes_from_records": true
+    },
+    "frost-rebaked-10k": {
+      "source": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/checks/source/frost-original-47912.glb",
+      "source_revision": "d83e73f32ee59112505b7e00c9222c4b774b0ef8",
+      "source_revision_path": "assets/images/stage1_3d/turrets/frost.glb",
+      "accepted_source": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/frost-rebaked-10k.blend",
+      "guide": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/README.md",
+      "steps": [
+        {
+          "script": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/scripts/prepare_geometry.py",
+          "entrypoint": "module body",
+          "context": "Git 고정 입력을 사용한 meshoptimizer 부품별 감량. 원본이 없으면 자동 추출하지 않고 미확인으로 보고한다."
+        },
+        {
+          "script": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/scripts/unwrap_xatlas.py",
+          "entrypoint": "module body",
+          "context": "기존 승인 xatlas UV 생성 경로."
+        },
+        {
+          "script": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/scripts/bake_frost.py",
+          "entrypoint": "module body",
+          "context": "기존 Blender PBR 전사·패킹·내보내기 경로. 보고 명령은 실행하지 않는다."
+        }
+      ],
+      "outputs": [
+        "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/frost-rebaked-10k.glb",
+        "assets/images/stage1_3d/turrets/frost.glb"
+      ],
+      "checks": [
+        "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/scripts/validate_maps.py",
+        "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/scripts/integration/verify_ingame.gd"
+      ],
+      "record_links": [
+        {
+          "path": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/manifest.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["input", "sha256"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["output", "frost-rebaked-10k.blend", "sha256"]
+            },
+            {
+              "target": "assets/images/stage1_3d/turrets/frost.glb",
+              "sha256_field": ["output", "frost-rebaked-10k.glb", "sha256"]
+            },
+            {
+              "target": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/frost-rebaked-10k.glb",
+              "sha256_field": ["output", "frost-rebaked-10k.glb", "sha256"]
+            }
+          ]
+        },
+        {
+          "path": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/bake-manifest.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["source_sha256"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["blend_sha256"]
+            },
+            {
+              "target": "assets/images/stage1_3d/turrets/frost.glb",
+              "sha256_field": ["output_sha256"]
+            }
+          ]
+        },
+        {
+          "path": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/review/runtime-summary.json",
+          "kind": "review",
+          "bindings": [
+            {
+              "target": "assets/images/stage1_3d/turrets/frost.glb",
+              "sha256_field": ["candidate_sha256"]
+            },
+            {
+              "target": "source",
+              "sha256_field": ["source_sha256"]
+            }
+          ]
+        },
+        {
+          "path": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/review.md",
+          "kind": "review"
+        },
+        {
+          "path": "design/frost_tower_concepts/2026-09-23/meshoptimizer-rebake-10k/integration-review.md",
+          "kind": "review"
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/presentation/battlefield_units.gd",
+          "output": "assets/images/stage1_3d/turrets/frost.glb",
+          "token": "res://assets/turrets/frost.glb"
+        }
+      ],
+      "limitation": "기록의 SHA 대응만 조회한다. 원본 Git 이력 추출·제작·시각/Android/FPS 검증은 실행하지 않는다. Markdown 검수의 현재 입력 대응은 자동 판정하지 않는다.",
+      "expected_hashes_from_records": true
+    },
+    "boss-ultratex-95k": {
+      "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/blender/boss-ultratex-95k-rigged-walk-death.blend",
+      "accepted_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/mesh-lightweight-75k-1024/blender/refined-ultratex-1024-protected-95k.blend",
+      "guide": "design/enemy_concepts/2026-10-05/boss-integration/README.md",
+      "steps": [
+        {
+          "script": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/scripts/merge.py",
+          "entrypoint": "module body",
+          "context": "SSD 제작 기록과 기존 rig/애니메이션을 병합하는 해당 작업의 경로. 재실행 전 원본과 receipt를 확인한다."
+        },
+        {
+          "script": "scripts/bake_skinned_enemy_status.gd",
+          "entrypoint": "run() -- boss",
+          "context": "새 스킨 공용 화상·성에 부착점 베이크 경로."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/enemies/boss.glb",
+        "assets/images/stage1_3d/effects/boss_core_mask.png",
+        "assets/images/stage1_3d/enemies/boss_status_burn.res",
+        "assets/images/stage1_3d/enemies/boss_status_frost_shards.res",
+        "assets/images/stage1_3d/enemies/boss_status_frost_grains.res"
+      ],
+      "checks": [
+        "godot/verify_boss_presentation.gd",
+        "godot/verify_boss_death.gd"
+      ],
+      "record_links": [
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/receipts/source-install.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/blender/boss-ultratex-95k-rigged-walk-death.blend", "sha256"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/mesh-lightweight-75k-1024/blender/refined-ultratex-1024-protected-95k.blend", "sha256"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/boss.glb",
+              "sha256_field": ["assets/images/stage1_3d/enemies/boss.glb", "sha256"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/receipts/completion.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "assets/images/stage1_3d/enemies/boss.glb",
+              "sha256_field": ["source_sha256"],
+              "path_field": ["source_glb"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["native_input_preserved_sha256"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/independent-review/final-independent-review.json",
+          "kind": "review",
+          "bindings": [
+            {
+              "target": "accepted",
+              "sha256_field": ["source_sha256"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/boss.glb",
+              "sha256_field": ["game_glb_sha256"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/runtime/receipts/status-install.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "assets/images/stage1_3d/enemies/boss_status_burn.res",
+              "sha256_field": [0, "sha256"],
+              "path_field": [0, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/boss_status_frost_shards.res",
+              "sha256_field": [1, "sha256"],
+              "path_field": [1, "path"]
+            },
+            {
+              "target": "assets/images/stage1_3d/enemies/boss_status_frost_grains.res",
+              "sha256_field": [2, "sha256"],
+              "path_field": [2, "path"]
+            }
+          ]
+        },
+        {
+          "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/stone-golem-20261004-1024/generation/texturing/20261007-074914-ultratex-boss-clay-experiment/game-integration-95k/receipts/core-mask.json",
+          "kind": "producer",
+          "bindings": [
+            {
+              "target": "assets/images/stage1_3d/effects/boss_core_mask.png",
+              "sha256_field": ["output_sha256"]
+            }
+          ]
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/presentation/guardian_preview.gd",
+          "output": "assets/images/stage1_3d/enemies/boss.glb",
+          "token": "res://assets/enemies/boss.glb"
+        },
+        {
+          "path": "godot/effects/guardian_status.gd",
+          "output": "assets/images/stage1_3d/enemies/boss_status_burn.res",
+          "token": "res://assets/enemies/boss_status_burn.res"
+        },
+        {
+          "path": "godot/effects/guardian_status.gd",
+          "output": "assets/images/stage1_3d/enemies/boss_status_frost_shards.res",
+          "token": "res://assets/enemies/boss_status_frost_shards.res"
+        },
+        {
+          "path": "godot/effects/guardian_status.gd",
+          "output": "assets/images/stage1_3d/enemies/boss_status_frost_grains.res",
+          "token": "res://assets/enemies/boss_status_frost_grains.res"
+        },
+        {
+          "path": "godot/effects/boss_death.gd",
+          "output": "assets/images/stage1_3d/effects/boss_core_mask.png",
+          "token": "res://assets/effects/boss_core_mask.png"
+        }
+      ],
+      "limitation": "SSD 원본·기존 receipt를 읽기만 한다. 파일·기록 SHA 대응은 제작・서명・시각・Android・패키지 검증 PASS가 아니다.",
+      "expected_hashes_from_records": true
+    },
+    "chapter2-base-tiles-optimized": {
+      "source": "design/chapter2_3d/tiles/chapter2-tiles.blend",
+      "accepted_source": "design/chapter2_3d/optimized-game-distance/chapter2-base-tiles-optimized.blend",
+      "guide": "design/chapter2_3d/optimized-game-distance/README.md",
+      "steps": [
+        {
+          "script": "design/chapter2_3d/optimized-game-distance/scripts/prepare_baseline.py",
+          "entrypoint": "module body",
+          "context": "보존 제작 원본에서 export-only 비교 입력을 준비한다."
+        },
+        {
+          "script": "design/chapter2_3d/optimized-game-distance/scripts/optimize_tiles.py",
+          "entrypoint": "--asset chapter2_tiles.glb --error .0015",
+          "context": "원본 속성·경계를 보존하는 meshoptimizer 경로. 상세 입력·출력은 guide를 따른다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/environment/chapter2_tiles.glb"
+      ],
+      "checks": [
+        "design/chapter2_3d/optimized-game-distance/scripts/verify_render.py"
+      ],
+      "record_links": [
+        {
+          "path": "design/chapter2_3d/optimized-game-distance/manifest.json",
+          "kind": "producer_and_review",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["assets", 0, "source_sha256"],
+              "path_field": ["assets", 0, "original_editable_source"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["assets", 0, "packed_editable_sha256"],
+              "path_field": ["assets", 0, "packed_editable"]
+            },
+            {
+              "target": "assets/images/stage1_3d/environment/chapter2_tiles.glb",
+              "sha256_field": ["assets", 0, "output_sha256"],
+              "path_field": ["assets", 0, "game_output"]
+            }
+          ]
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/environment/battlefield_environment.gd",
+          "output": "assets/images/stage1_3d/environment/chapter2_tiles.glb",
+          "token": "res://assets/environment/chapter2_tiles.glb"
+        }
+      ],
+      "limitation": "해당 라이브러리만 SHA 대조한다. 기존 manifest 검수 주장과 현재 파일 대응은 시각 검수 재사용 판정·실행 PASS가 아니다.",
+      "expected_hashes_from_records": true
+    },
+    "chapter2-shared-tiles-optimized": {
+      "source": "design/chapter2_3d/optimization/chapter2-tiles-optimized.blend",
+      "accepted_source": "design/chapter2_3d/optimized-game-distance/chapter2-shared-tiles-optimized.blend",
+      "guide": "design/chapter2_3d/optimized-game-distance/README.md",
+      "steps": [
+        {
+          "script": "design/chapter2_3d/optimized-game-distance/scripts/prepare_baseline.py",
+          "entrypoint": "module body",
+          "context": "보존 제작 원본에서 export-only 비교 입력을 준비한다."
+        },
+        {
+          "script": "design/chapter2_3d/optimized-game-distance/scripts/optimize_tiles.py",
+          "entrypoint": "--asset chapter2_tiles_optimized.glb --error .0015",
+          "context": "원본 속성·경계를 보존하는 meshoptimizer 경로. 상세 입력·출력은 guide를 따른다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/environment/chapter2_tiles_optimized.glb"
+      ],
+      "checks": [
+        "design/chapter2_3d/optimized-game-distance/scripts/verify_render.py"
+      ],
+      "record_links": [
+        {
+          "path": "design/chapter2_3d/optimized-game-distance/manifest.json",
+          "kind": "producer_and_review",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["assets", 1, "source_sha256"],
+              "path_field": ["assets", 1, "original_editable_source"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["assets", 1, "packed_editable_sha256"],
+              "path_field": ["assets", 1, "packed_editable"]
+            },
+            {
+              "target": "assets/images/stage1_3d/environment/chapter2_tiles_optimized.glb",
+              "sha256_field": ["assets", 1, "output_sha256"],
+              "path_field": ["assets", 1, "game_output"]
+            }
+          ]
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/environment/battlefield_environment.gd",
+          "output": "assets/images/stage1_3d/environment/chapter2_tiles_optimized.glb",
+          "token": "res://assets/environment/chapter2_tiles_optimized.glb"
+        }
+      ],
+      "limitation": "해당 라이브러리만 SHA 대조한다. 기존 manifest 검수 주장과 현재 파일 대응은 시각 검수 재사용 판정·실행 PASS가 아니다.",
+      "expected_hashes_from_records": true
+    },
+    "chapter2-expansion-tiles-optimized": {
+      "source": "design/stage_expansion_runtime/chapter2-expansion-tile-variants.blend",
+      "accepted_source": "design/chapter2_3d/optimized-game-distance/chapter2-expansion-tiles-optimized.blend",
+      "guide": "design/chapter2_3d/optimized-game-distance/README.md",
+      "steps": [
+        {
+          "script": "design/chapter2_3d/optimized-game-distance/scripts/prepare_baseline.py",
+          "entrypoint": "module body",
+          "context": "보존 제작 원본에서 export-only 비교 입력을 준비한다."
+        },
+        {
+          "script": "design/chapter2_3d/optimized-game-distance/scripts/optimize_tiles.py",
+          "entrypoint": "--asset chapter2_tiles_expansion.glb --error .0015",
+          "context": "원본 속성·경계를 보존하는 meshoptimizer 경로. 상세 입력·출력은 guide를 따른다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/environment/chapter2_tiles_expansion.glb"
+      ],
+      "checks": [
+        "design/chapter2_3d/optimized-game-distance/scripts/verify_render.py"
+      ],
+      "record_links": [
+        {
+          "path": "design/chapter2_3d/optimized-game-distance/manifest.json",
+          "kind": "producer_and_review",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["assets", 2, "source_sha256"],
+              "path_field": ["assets", 2, "original_editable_source"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["assets", 2, "packed_editable_sha256"],
+              "path_field": ["assets", 2, "packed_editable"]
+            },
+            {
+              "target": "assets/images/stage1_3d/environment/chapter2_tiles_expansion.glb",
+              "sha256_field": ["assets", 2, "output_sha256"],
+              "path_field": ["assets", 2, "game_output"]
+            }
+          ]
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/environment/battlefield_environment.gd",
+          "output": "assets/images/stage1_3d/environment/chapter2_tiles_expansion.glb",
+          "token": "res://assets/environment/chapter2_tiles_expansion.glb"
+        }
+      ],
+      "limitation": "해당 라이브러리만 SHA 대조한다. 기존 manifest 검수 주장과 현재 파일 대응은 시각 검수 재사용 판정·실행 PASS가 아니다.",
+      "expected_hashes_from_records": true
+    },
+    "chapter3-tiles-optimized-v2": {
+      "source": "design/chapter3_3d/export/chapter3-native-export.blend",
+      "accepted_source": "design/chapter3_3d/optimized-game-distance-v2/chapter3-tiles-optimized.blend",
+      "guide": "design/chapter3_3d/optimized-game-distance-v2/README.md",
+      "steps": [
+        {
+          "script": "design/chapter3_3d/optimized-game-distance-v2/scripts/prepare_baseline.py",
+          "entrypoint": "module body",
+          "context": "고해상도 원본에서 export-only 비교 입력 준비."
+        },
+        {
+          "script": "design/chapter3_3d/optimized-game-distance-v2/scripts/optimize_tiles.py",
+          "entrypoint": "--error .002 --root-errors '{\"build_tile\":0.001}' --protect design/chapter3_3d/optimized-game-distance-v2/protected-regions.json",
+          "context": "고해상도 원본 비교 GLB를 --source로, 별도 후보 경로를 --output으로 지정한다. 정확한 전체 명령은 README를 따른다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/environment/chapter3_tiles.glb"
+      ],
+      "checks": [
+        "design/chapter3_3d/optimized-game-distance-v2/scripts/verify_render.py"
+      ],
+      "record_links": [
+        {
+          "path": "design/chapter3_3d/optimized-game-distance-v2/manifest.json",
+          "kind": "producer_and_review",
+          "bindings": [
+            {
+              "target": "source",
+              "sha256_field": ["source_files", "design/chapter3_3d/export/chapter3-native-export.blend"]
+            },
+            {
+              "target": "accepted",
+              "sha256_field": ["packed_blend_sha256"],
+              "path_field": ["packed_blend"]
+            },
+            {
+              "target": "assets/images/stage1_3d/environment/chapter3_tiles.glb",
+              "sha256_field": ["final_glb_sha256"],
+              "path_field": ["final_glb"]
+            },
+            {
+              "target": "assets/images/stage1_3d/environment/chapter3_tiles.glb",
+              "sha256_field": ["runtime_review", "candidate_sha256"]
+            },
+            {
+              "target": "assets/images/stage1_3d/environment/chapter3_tiles.glb",
+              "sha256_field": ["independent_review", "candidate_sha256"]
+            }
+          ]
+        }
+      ],
+      "runtime_references": [
+        {
+          "path": "godot/environment/battlefield_environment.gd",
+          "output": "assets/images/stage1_3d/environment/chapter3_tiles.glb",
+          "token": "res://assets/environment/chapter3_tiles.glb"
+        }
+      ],
+      "limitation": "최종 추가 감량본의 파일·기록 대응만 대조한다. 첫 감량본·미채택 후보와 구분하며 시각·FPS·Android 검증을 실행하지 않는다.",
+      "expected_hashes_from_records": true
     }
   }
 }
