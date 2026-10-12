@@ -271,15 +271,43 @@ func _complete_research(state: Dictionary, now: int) -> bool:
 
 ## Stage and round are zero-based catalog indices, as in run_commands.
 ## Updating this configuration preserves the native skill's active timers.
+## Core skill a run starting now would use: the selection, or Guardian Beam
+## when Rift Mark is not unlocked. null when no skill is equipped.
+func run_core_combat_skill(p: Dictionary) -> Variant:
+	var skill: Variant = p.get("coreCombatSkill", "guardianBeam")
+	if skill == "riftMark" and not StageProgression.has_unlock(p,"core","riftMark"): return "guardianBeam"
+	return skill
+
+## A run's loadout is fixed when its stage starts: core skill, core passive
+## ranks and equipped turret modules. Growth (upgrades, research) is not part of
+## it and applies to the running stage at once. Fields already present (a
+## restored save) are kept; saves from before the loadout was recorded fix it
+## at their first restore.
+func fix_run_loadout(state: Dictionary) -> void:
+	var p: Dictionary = state.get("progression", {})
+	if not state.has("runCoreCombatSkill"): state.runCoreCombatSkill = run_core_combat_skill(p)
+	if not state.has("runCorePassiveNodeRanks"): state.runCorePassiveNodeRanks = p.get("corePassiveNodeRanks", {}).duplicate(true)
+	if not state.has("runTurretModules"):
+		state.runTurretModules = p.get("turretModules", {}).get("items", []).filter(func(item): return item.get("equipped", false)).map(func(item): return item.duplicate(true))
+
+## Progression for a run's combat effects: live growth with the run's fixed
+## loadout (see fix_run_loadout). Read-only; shares unchanged nested values.
+func run_effect_progression(state: Dictionary) -> Dictionary:
+	var p: Dictionary = state.get("progression", {})
+	if not state.has("runCorePassiveNodeRanks") and not state.has("runTurretModules"): return p
+	var out := p.duplicate()
+	if state.has("runCorePassiveNodeRanks"): out.corePassiveNodeRanks = state.runCorePassiveNodeRanks
+	if state.has("runTurretModules"): out.turretModules = {"items": state.runTurretModules}
+	return out
+
 func core_config(state: Dictionary, stage: int, round_index: int, catalog) -> Dictionary:
 	if not data.get("coreConfig") is Dictionary or catalog == null or stage < 0 or stage >= catalog.stage_count():
 		error = "Missing core configuration or stage"
 		return {}
-	var p: Dictionary = state.get("progression", state)
+	var p: Dictionary = run_effect_progression(state) if state.has("progression") else state
 	var effects := core_effects(p)
 	var config: Dictionary = data.coreConfig.duplicate(true)
-	var skill: Variant = state.get("runCoreCombatSkill", p.get("coreCombatSkill", "guardianBeam"))
-	if not state.has("runCoreCombatSkill") and skill == "riftMark" and not StageProgression.has_unlock(p,"core","riftMark"): skill = "guardianBeam"
+	var skill: Variant = state.get("runCoreCombatSkill") if state.has("runCoreCombatSkill") else run_core_combat_skill(p)
 	if skill != null and not skill in ["guardianBeam", "riftMark"]: skill = "guardianBeam"
 	config.runSkill = skill
 	config.cooldownRecoveryMultiplier = 1.0 + effects.cooldownRecoveryRate

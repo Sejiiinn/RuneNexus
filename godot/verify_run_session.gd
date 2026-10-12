@@ -70,6 +70,23 @@ func run() -> void:
 	var grown_hp: float = app.run_domain.growth.derive(grown).maxNexusHp
 	check(grown_hp > runtime.defense.max_hp and app.commit_progression(grown) and is_equal_approx(runtime.defense.max_hp, grown_hp)
 		and app.progression_inputs == grown, "committed growth updates the running stage's nexus HP")
+	# The loadout (core skill, core passive ranks, equipped modules) is fixed at
+	# stage start: changing it during a run is saved for the next stage only.
+	var start_ranks: Dictionary = app.run_domain.state.runCorePassiveNodeRanks.duplicate(true)
+	var start_modules: Array = app.run_domain.state.runTurretModules.duplicate(true)
+	var loadout: Dictionary = app.run_domain.state.progression.duplicate(true)
+	var family: String = app.run_domain.growth.data.module.families.arrow.core
+	loadout.turretModules = {"items":[{"id":"fixed-run-module","turretType":"arrow","part":"core","family":family,"grade":"normal","equipped":true,"acquiredOrder":1,"options":[{"type":"damageIncrease","value":7}]}]}
+	loadout.corePassiveNodeRanks = {"controlSelfRepair":1}
+	loadout.coreCombatSkill = null
+	var damage_fixed: float = runtime.turrets[str(id)].stats.damage
+	var hp_fixed: float = runtime.defense.max_hp
+	var skill_fixed: Variant = runtime.core.skill
+	check(app.run_domain.growth.derive(loadout).maxNexusHp > hp_fixed and app.commit_progression(loadout)
+		and runtime.turrets[str(id)].stats.damage == damage_fixed and is_equal_approx(runtime.defense.max_hp, hp_fixed)
+		and runtime.core.skill == skill_fixed, "loadout change keeps the running stage's core and modules")
+	check(app.progression_inputs.corePassiveNodeRanks == loadout.corePassiveNodeRanks and app.run_domain.state.runCorePassiveNodeRanks == start_ranks
+		and app.run_domain.state.runTurretModules == start_modules, "loadout change is kept for the next stage")
 	app.start_wave()
 	check(runtime.core.configured and runtime.core.skill == "guardianBeam", "selected default core connected")
 	check(app.apply_run_command({"kind":"purchaseGemChoice"}), "buy gem choice during wave")
@@ -99,6 +116,15 @@ func run() -> void:
 	check(runtime.turrets.is_empty() and app.run_domain.state.gold==gold_after+refund, "sell removes turret and returns actual invested refund")
 	check(app.checkpoint.save_session(app)==OK, "actual run checkpoint saved")
 	check(app.checkpoint.load_session(app)==OK, "actual run checkpoint restored")
+	check(app.run_domain.state.runCorePassiveNodeRanks == start_ranks and app.run_domain.state.runTurretModules == start_modules
+		and scene.combat_runtime.core.skill == skill_fixed, "restored run keeps the stage-start loadout")
+	var older: Variant = app.checkpoint.store.load_save()
+	older.activeRun.erase("runCorePassiveNodeRanks")
+	older.activeRun.erase("runTurretModules")
+	check(app.checkpoint.store.save_save(older) == OK and app.checkpoint.load_session(app) == OK
+		and app.run_domain.state.runCorePassiveNodeRanks == loadout.corePassiveNodeRanks and app.run_domain.state.runTurretModules.size() == 1,
+		"a save without a recorded loadout fixes the current one at restore")
+	check(app.enter_stage(0) and scene.combat_runtime.core.skill == null and app.run_domain.state.runTurretModules.size() == 1, "next stage starts with the changed loadout")
 	app.exit_stage()
 	app.checkpoint.store.clear()
 	scene.queue_free()

@@ -167,7 +167,9 @@ const ORDERS = {
 		"turrets",
 		"enemies",
 		"spawnQueue",
-		"gemRerollsUsed"
+		"gemRerollsUsed",
+		"runCorePassiveNodeRanks",
+		"runTurretModules"
 	],
 	"SavedTurretModuleInventory": [
 		"tickets",
@@ -191,7 +193,7 @@ const ORDERS = {
 		"value"
 	]
 }
-const CHILDREN = {"preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "slowInstances": "SavedSlowInstance"}
+const CHILDREN = {"preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "slowInstances": "SavedSlowInstance"}
 
 static func hash_payload(payload: Dictionary) -> String:
 	return encode(payload, "GameSaveData").sha256_text()

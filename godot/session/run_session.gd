@@ -32,6 +32,7 @@ func initialize(catalog, progression: Dictionary, stage_index: int, scene_epoch:
 	service = Commands.new(catalog, growth)
 	state = service.initial_state(quests.refresh(progression, int(now_millis.call())), stage_index)
 	state.economyRunId = new_run_id()
+	growth.fix_run_loadout(state)
 	for key in ["lastRunRuneReward", "lastRunCorePointReward", "lastRunTurretModuleTicketReward"]: state.progression[key] = 0
 	epoch = scene_epoch
 	event_ack = 0
@@ -43,6 +44,7 @@ func initialize(catalog, progression: Dictionary, stage_index: int, scene_epoch:
 func restore(restored: Dictionary) -> void:
 	state = restored.duplicate(true)
 	if state.get("economyRunId") == null: state.economyRunId = new_run_id()
+	growth.fix_run_loadout(state)
 	# Older v2 terminal saves already include progression results. Do not grant again.
 	if state.phase in ["success", "failure", "coreDestruction"] and not is_finished():
 		_mark_finished()

@@ -21,7 +21,7 @@ func derived(state: Dictionary) -> Dictionary:
 		types[t.type] = true
 		for gem in t.get("equippedGemSlots", []):
 			if gem != null: gems[gem] = true
-	return growth.derive(state.get("progression", {}), {"distinctTurretTypeCount":types.size(), "distinctEquippedGemTypeCount":gems.size(), "runUpgradeLevels":state.get("runUpgradeLevels", {})})
+	return growth.derive(growth.run_effect_progression(state), {"distinctTurretTypeCount":types.size(), "distinctEquippedGemTypeCount":gems.size(), "runUpgradeLevels":state.get("runUpgradeLevels", {})})
 
 func initial_state(progression: Dictionary = {}, stage: int = 0) -> Dictionary:
 	var state := {"phase":"preparation", "stage":stage, "progression":progression.duplicate(true), "turrets":[], "gemInventory":{}, "runUpgradeLevels":{}, "nextTurretId":1000, "gold":0, "gemShards":0, "killGoldFractionWallet":0.0,"roundIndex":0,"completedRounds":0,"pendingEconomyDiamonds":0, "rewardOptions":[], "gemRerollsUsed":0}

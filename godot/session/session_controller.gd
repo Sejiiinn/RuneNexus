@@ -128,7 +128,7 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 			run_domain.restore(restored_state)
 			progression_inputs = run_domain.state.progression.duplicate(true)
 		var inputs := battle_inputs.duplicate(true)
-		inputs.defenseConfig = run_domain.growth.derive(run_domain.state.progression).defenseConfig
+		inputs.defenseConfig = run_domain.growth.derive(run_domain.growth.run_effect_progression(run_domain.state)).defenseConfig
 		inputs.coreConfig = run_domain.growth.core_config(run_domain.state, stage, 0, catalog)
 		initial = catalog.bootstrap(stage, inputs)
 		if initial.is_empty():
@@ -215,13 +215,14 @@ func apply_growth_command(request: Dictionary) -> bool:
 	checkpoint.message = ""
 	return true
 
-## Growth applies to the running stage at once, whatever its source (purchase,
-## research completion, server receipt or authoritative snapshot): refreshed
-## turret stats plus defense and core configuration. Call after run_domain.state
-## holds the refreshed state.
+## Growth (upgrades, research) applies to the running stage at once, whatever
+## its source (purchase, research completion, server receipt or authoritative
+## snapshot): refreshed turret stats plus defense and core configuration. The
+## loadout (core, modules) stays as fixed at stage start. Call after
+## run_domain.state holds the refreshed state.
 func progression_commands(refresh: Dictionary) -> Array:
 	var updates: Array = refresh.get("commands", []).duplicate()
-	var effects: Dictionary = run_domain.growth.derive(run_domain.state.progression)
+	var effects: Dictionary = run_domain.growth.derive(run_domain.growth.run_effect_progression(run_domain.state))
 	updates.append({"kind":"defenseConfig","config":effects.defenseConfig})
 	updates.append({"kind":"coreConfig","config":run_domain.growth.core_config(run_domain.state, stage, int(run_domain.state.roundIndex), catalog)})
 	return updates

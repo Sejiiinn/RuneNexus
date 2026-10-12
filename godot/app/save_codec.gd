@@ -738,12 +738,16 @@ static func _progression(v: Dictionary) -> Dictionary:
 	out.researchSlotTwoUnlocked = v.researchSlotTwoUnlocked if v.get("researchSlotTwoUnlocked") is bool else out.activeResearches.size() > 1
 	out.coreCombatSkill = _skill(v, "coreCombatSkill", "guardianBeam")
 	out.corePassiveTreeRevision = _int(v.get("corePassiveTreeRevision"), 4)
-	out.corePassiveNodeRanks = {}
-	for key in _map(v.get("corePassiveNodeRanks")):
-		if CORE_MAX_RANK.has(key) and _int(v.corePassiveNodeRanks[key]) > 0: out.corePassiveNodeRanks[key] = mini(_int(v.corePassiveNodeRanks[key]), CORE_MAX_RANK[key])
+	out.corePassiveNodeRanks = _core_ranks(v.get("corePassiveNodeRanks"))
 	if out.growthVersion >= 1:
 		out.erase("criticalChanceUpgradeLevel")
 		out.erase("emergencySaleUpgradeLevel")
+	return out
+
+static func _core_ranks(v: Variant) -> Dictionary:
+	var out := {}
+	for key in _map(v):
+		if CORE_MAX_RANK.has(key) and _int(v[key]) > 0: out[key] = mini(_int(v[key]), CORE_MAX_RANK[key])
 	return out
 
 static func _inventory(v: Dictionary, legacy: bool) -> Dictionary:
@@ -773,6 +777,9 @@ static func _run(v: Variant, skill: Variant) -> Variant:
 	out.rewardOptions = _list(v.get("rewardOptions"), "GemType")
 	out.pendingEconomyDiamonds = clampi(_int(v.get("pendingEconomyDiamonds")), 0, 1000000)
 	if v.has("gemRerollsUsed"): out.gemRerollsUsed = clampi(_int(v.get("gemRerollsUsed")), 0, 3)
+	# Loadout fixed at stage start; absent in saves written before it was recorded.
+	if v.has("runCorePassiveNodeRanks"): out.runCorePassiveNodeRanks = _core_ranks(v.runCorePassiveNodeRanks)
+	if v.has("runTurretModules"): out.runTurretModules = _objects(v.runTurretModules, "SavedTurretModule")
 	return out
 
 static func _has_progress(v: Dictionary) -> bool:
