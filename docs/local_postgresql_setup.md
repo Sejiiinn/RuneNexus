@@ -94,6 +94,11 @@ make -C server tern-version
 docker compose config --quiet
 ```
 
+DB 통합 검사는 Compose `db`(운영 API와 같은 컨테이너·볼륨)를 사용하지 않습니다.
+`make -C server integration-test`가 포트를 공개하지 않는 일회용 tmpfs PostgreSQL을
+별도 네트워크에 띄우고 현재 마이그레이션을 적용한 뒤 검사하며, 성공·실패와 관계없이
+삭제합니다. 일부만 실행하려면 `ARGS='-run Mailbox'`처럼 `go test` 인자를 넘깁니다.
+
 현재 고정 버전은 Go 1.26.5, sqlc 1.31.1, tern 2.4.1입니다. `go.mod`에는 PostgreSQL
 드라이버 `pgx/v5` 5.10.0과 Google ID token 검증 모듈
 `google.golang.org/api` 0.290.0이 고정되어 있습니다.

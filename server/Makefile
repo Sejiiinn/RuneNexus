@@ -1,6 +1,7 @@
 GO_VERSION := 1.26.5
 SQLC_VERSION := 1.31.1
 TERN_VERSION := 2.4.1
+POSTGRES_IMAGE := postgres:18
 
 .PHONY: format test vet integration-test sqlc-generate sqlc-vet sqlc-version tern-version
 
@@ -13,17 +14,11 @@ test:
 vet:
 	docker run --rm -v "$(CURDIR):/workspace" -v "$(abspath ../godot/content/source):/godot/content/source:ro" -v "$(abspath ../test/fixtures):/test/fixtures:ro" -w /workspace golang:$(GO_VERSION)-alpine go vet ./...
 
+# Disposable tmpfs database; the compose db service is the deployed server's.
+# Match POSTGRES_IMAGE to compose.yaml. Example: make integration-test ARGS='-run Mailbox'
 integration-test:
-	docker compose -f ../compose.yaml up -d db
-	docker compose -f ../compose.yaml run --rm migrate migrate
-	docker run --rm \
-		--network rune-nexus_default \
-		-v "$(CURDIR):/workspace" \
-		-v "$(abspath ../.secrets/postgres_password):/run/secrets/postgres_password:ro" \
-		-w /workspace \
-		-e RUNE_NEXUS_TEST_DATABASE_URL="postgres://rune_nexus_app@db:5432/rune_nexus?sslmode=disable" \
-		-e RUNE_NEXUS_TEST_DATABASE_PASSWORD_FILE=/run/secrets/postgres_password \
-		golang:$(GO_VERSION)-alpine go test -tags=integration ./internal/dbtest
+	GO_VERSION=$(GO_VERSION) TERN_VERSION=$(TERN_VERSION) POSTGRES_IMAGE=$(POSTGRES_IMAGE) \
+		sh docker/integration-test.sh $(ARGS)
 
 sqlc-generate:
 	docker run --rm -v "$(CURDIR):/src" -w /src sqlc/sqlc:$(SQLC_VERSION) generate
