@@ -78,7 +78,7 @@ func _research_checks(lobby: Control, app: FakeApp) -> void:
 	app.services.calls.clear()
 	app.progression_inputs.activeResearches[0].startedAtMillis = int(Time.get_unix_time_from_system() * 1000)
 	app.progression_inputs.activeResearches[0].durationMillis = 300000
-	lobby._service("연구 즉시 완료", {"id": "researchEfficiency"})
+	lobby.open_service("연구 즉시 완료", {"id": "researchEfficiency"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "즉시 완료")
 	assert(confirm != null and _labels(lobby.modal_body).any(func(label): return label.name == "DiamondAmount" and label.text == "5"))
@@ -95,27 +95,27 @@ func _research_checks(lobby: Control, app: FakeApp) -> void:
 	await process_frame
 	app.services.calls.clear()
 	app.progression_inputs.freeDiamonds = 0
-	lobby._service("연구 즉시 완료", {"id": "researchEfficiency"})
+	lobby.open_service("연구 즉시 완료", {"id": "researchEfficiency"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "즉시 완료")
 	assert(confirm != null and confirm.disabled, "Insufficient diamonds block research confirmation")
 	assert(app.services.calls.is_empty())
 	app.progression_inputs.freeDiamonds = 10
 	app.progression_inputs.activeResearches.clear()
-	lobby._service("연구 즉시 완료", {"id": "researchEfficiency"})
+	lobby.open_service("연구 즉시 완료", {"id": "researchEfficiency"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "즉시 완료")
 	assert(confirm == null or confirm.disabled, "Finished or absent research cannot be completed twice")
 	assert(app.services.calls.is_empty())
 	app.progression_inputs.researchLevels.researchEfficiency = 1
-	lobby._service("연구 즉시 완료", {"id": "researchEfficiency"})
+	lobby.open_service("연구 즉시 완료", {"id": "researchEfficiency"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "즉시 완료")
 	assert(confirm == null or confirm.disabled, "Completed research cannot be charged")
 	assert(app.services.calls.is_empty())
 	app.progression_inputs.researchLevels.clear()
 	app.progression_inputs.activeResearches = [{"type": "researchEfficiency", "targetLevel": 1, "startedAtMillis": int(Time.get_unix_time_from_system() * 1000), "durationMillis": 300000}]
-	lobby._service("연구 즉시 완료", {"id": "researchEfficiency"})
+	lobby.open_service("연구 즉시 완료", {"id": "researchEfficiency"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "즉시 완료")
 	assert(confirm != null and not confirm.disabled)
@@ -151,19 +151,19 @@ func _slot_checks(lobby: Control, app: FakeApp) -> void:
 	await process_frame
 	app.services.calls.clear()
 	app.progression_inputs.freeDiamonds = cost - 1
-	lobby._service("연구 슬롯 구매")
+	lobby.open_service("연구 슬롯 구매")
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "해금")
 	assert(confirm != null and confirm.disabled, "Insufficient diamonds block slot purchase")
 	app.progression_inputs.freeDiamonds = cost
 	app.progression_inputs.researchSlotTwoUnlocked = true
-	lobby._service("연구 슬롯 구매")
+	lobby.open_service("연구 슬롯 구매")
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "해금")
 	assert(confirm == null or confirm.disabled, "Unlocked slot cannot be purchased twice")
 	assert(app.services.calls.is_empty())
 	app.progression_inputs.researchSlotTwoUnlocked = false
-	lobby._service("연구 슬롯 구매")
+	lobby.open_service("연구 슬롯 구매")
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "해금")
 	assert(confirm != null and not confirm.disabled)
@@ -179,7 +179,7 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 		_module("unique-c", "unique", false)
 	]
 	app.progression_inputs.turretModules.items = items
-	lobby._service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped", "unique-c", "normal-a", "missing"]})
+	lobby.open_service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped", "unique-c", "normal-a", "missing"]})
 	await _settle(lobby)
 	assert(app.services.calls.is_empty(), "Opening disassembly preview must not mutate inventory")
 	var preview := _text(lobby.modal_body)
@@ -216,12 +216,12 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	app.services.release_request.emit()
 	await process_frame
 	app.services.calls.clear()
-	lobby._service("모듈 분해", {"id": "missing"})
+	lobby.open_service("모듈 분해", {"id": "missing"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "분해")
 	assert(confirm == null or confirm.disabled, "Missing module ID cannot be submitted")
 	assert(app.services.calls.is_empty())
-	lobby._service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped"]})
+	lobby.open_service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped"]})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "분해")
 	assert(confirm == null or confirm.disabled, "Equipped-only selection cannot be submitted")
@@ -232,7 +232,7 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 		ids.append(id)
 		many.append(_module(id, "magic", false))
 	app.progression_inputs.turretModules.items = many
-	lobby._service("모듈 일괄 분해", {"ids": ids})
+	lobby.open_service("모듈 일괄 분해", {"ids": ids})
 	await _settle(lobby)
 	assert(_text(lobby.modal_body).contains("30개"), "Large preview keeps its actual target count")
 	assert(app.services.calls.is_empty())
@@ -258,7 +258,7 @@ func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
 		_module("locked", "rare", true), _module("last", "magic", false),
 		_module("17", "unique", false)]
 	app.progression_inputs.turretModules.items = items
-	lobby._service("모듈 일괄 분해", {"ids": ["last", "duplicate", "locked", "missing", 17, "17", "duplicate"]})
+	lobby.open_service("모듈 일괄 분해", {"ids": ["last", "duplicate", "locked", "missing", 17, "17", "duplicate"]})
 	await _settle(lobby)
 	var before := var_to_bytes(items)
 	var plan: Dictionary = lobby._services._module_plan()
@@ -273,7 +273,7 @@ func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
 	assert(lobby._services._module_plan().items == [first], "Single-ID selection takes precedence over bulk IDs")
 	lobby._services.context = {"ids":[]}
 	assert(lobby._services._module_plan() == {"items":[],"signature":[],"excluded":0,"counts":{"normal":0,"magic":0,"rare":0,"unique":0},"diamonds":0}, "Empty selection produces an empty quote")
-	lobby._service("모듈 일괄 분해", {"ids":["last","duplicate"]})
+	lobby.open_service("모듈 일괄 분해", {"ids":["last","duplicate"]})
 	await _settle(lobby)
 	var confirm := _button(lobby.modal_body, "분해")
 	# Replacing the inventory object (not only editing it in place) must cause a
@@ -341,7 +341,7 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	app.services.calls.clear()
 	app.progression_inputs.freeDiamonds = 1000
 	app.progression_inputs.turretModules.tickets = 4
-	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
+	lobby.open_service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
 	assert(_text(lobby.modal_body).contains("대포 포탑 모듈 5개"))
 	var compact_height: float = lobby.modal_frame.size.y
@@ -399,12 +399,12 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	app.services.calls.clear()
 	app.progression_inputs.turretModules.tickets = 4
 	app.progression_inputs.freeDiamonds = 39
-	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
+	lobby.open_service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
 	assert(_button(lobby.modal_body,"뽑기").disabled,"Insufficient balance disables draw confirmation")
 	assert(app.services.calls.is_empty())
 	app.progression_inputs.freeDiamonds = 40
-	lobby._service("모듈 뽑기",{"count":5,"turretType":"cannon"})
+	lobby.open_service("모듈 뽑기",{"count":5,"turretType":"cannon"})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body,"뽑기")
 	app.progression_inputs.freeDiamonds = 39

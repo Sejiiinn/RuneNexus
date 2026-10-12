@@ -5,6 +5,7 @@ const Frame = preload("res://ui/lobby_frame.gd")
 const CYAN := Color("86e8ff")
 const TEXT := Color("e8f8ff")
 const MUTED := Color("bad8e6")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 
 class TouchScrollObserver extends Node:
 	var scroll_ref: WeakRef
@@ -86,7 +87,7 @@ static func header(lobby, refresh: Callable, pending: bool) -> void:
 	var title := _label("우편함", 20, TEXT, 900)
 	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(title)
-	var reload: Button = lobby._plain_button("↻", refresh)
+	var reload: Button = UiWidgets.plain_button("↻", refresh)
 	reload.name = "RefreshMailbox"
 	reload.tooltip_text = "새로고침"
 	reload.custom_minimum_size = Vector2(34, 36)
@@ -95,7 +96,7 @@ static func header(lobby, refresh: Callable, pending: bool) -> void:
 	reload.disabled = pending
 	reload.add_theme_stylebox_override("disabled", StyleBoxEmpty.new())
 	row.add_child(reload)
-	var close: Button = lobby._plain_button("×", lobby.close_modal)
+	var close: Button = UiWidgets.plain_button("×", lobby.close_modal)
 	close.name = "CloseModal"
 	close.tooltip_text = "닫기"
 	close.custom_minimum_size = Vector2(34, 36)
@@ -130,7 +131,7 @@ static func build(lobby, body: VBoxContainer, data: Dictionary, expanded_id: Str
 		var heading := HBoxContainer.new()
 		heading.add_theme_constant_override("separation", 0)
 		content.add_child(heading)
-		var title: Button = lobby._plain_button(str(mail.get("title", "우편")), toggle.bind(id))
+		var title: Button = UiWidgets.plain_button(str(mail.get("title", "우편")), toggle.bind(id))
 		title.name = "MailTitle%d" % index
 		title.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -139,7 +140,7 @@ static func build(lobby, body: VBoxContainer, data: Dictionary, expanded_id: Str
 		title.add_theme_font_size_override("font_size", 15)
 		title.add_theme_color_override("font_color", TEXT)
 		heading.add_child(title)
-		var arrow: Button = lobby._plain_button("⌃" if expanded else "⌄", toggle.bind(id))
+		var arrow: Button = UiWidgets.plain_button("⌃" if expanded else "⌄", toggle.bind(id))
 		arrow.name = "MailToggle%d" % index
 		arrow.tooltip_text = "본문 접기" if expanded else "본문 펼치기"
 		arrow.custom_minimum_size = Vector2(26, 32)

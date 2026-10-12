@@ -18,8 +18,8 @@ class Host extends Control:
 	var body: VBoxContainer
 	var p := {"progressionVersion":1,"growthVersion":1,"clearedStageNumbers":[],"researchLevels":{},"runes":42}
 	var modal: VBoxContainer
-	func _p() -> Dictionary: return p
-	func _has_run() -> bool: return not app.run_domain.state.is_empty()
+	func progression() -> Dictionary: return p
+	func has_active_run() -> bool: return not app.run_domain.state.is_empty()
 	func close_modal() -> void:
 		if is_instance_valid(modal): remove_child(modal); modal.queue_free(); modal = null
 	func open_modal(_title: String) -> VBoxContainer:
@@ -28,7 +28,7 @@ class Host extends Control:
 		modal.size.x = size.x - 52
 		add_child(modal)
 		return modal
-	func _failure() -> void: assert(false, "Unexpected resume failure")
+	func show_failure() -> void: assert(false, "Unexpected resume failure")
 
 var checks := 0
 var failures: Array[String] = []

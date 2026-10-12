@@ -1,7 +1,6 @@
 extends SceneTree
 ## Real socket UI and fonts with controlled quotes isolate amount-width regressions.
 const ThemeSource = preload("res://ui/app_theme.gd")
-const Components = preload("res://ui/combat_component_theme.gd")
 class Cache extends RefCounted:
 	func derived(_s,_v): return {"maxTurretLinkSlots":6}
 class Host extends Control:
@@ -12,20 +11,6 @@ class Host extends Control:
 	var selected_slot := -1
 	var selected_gem := ""
 	func refresh(): pass
-	func _button(parent: Node, text: String, callback: Callable) -> Button:
-		var button := AppTheme.button(text,callback)
-		Components.apply(button)
-		button.custom_minimum_size.y = 32
-		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		parent.add_child(button)
-		return button
-	func _label(parent: Node, text: String, font_size: int) -> Label:
-		var label := AppTheme.label(text,font_size)
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		parent.add_child(label)
-		return label
 class Gems extends "res://ui/hud_gem_panel.gd":
 	var test_price := 9999
 	var mixed := false

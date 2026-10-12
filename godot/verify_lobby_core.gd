@@ -8,9 +8,9 @@ class Host extends Control:
 	var core_draft := {}
 	var modal: VBoxContainer
 	var fail_save := false
-	func _p() -> Dictionary: return state
-	func _title(id: String) -> String: return id
-	func _core_effect_text(_d: Dictionary,rank: int) -> String: return "다음 등급 효과 %d" % rank
+	func progression() -> Dictionary: return state
+	func display_title(id: String) -> String: return id
+	func core_effect_text(_d: Dictionary,rank: int) -> String: return "다음 등급 효과 %d" % rank
 	func close_modal() -> bool:
 		if is_instance_valid(modal):
 			remove_child(modal)
@@ -22,7 +22,7 @@ class Host extends Control:
 		modal = VBoxContainer.new()
 		add_child(modal)
 		return modal
-	func _change(command: Dictionary) -> void:
+	func apply_growth_change(command: Dictionary) -> void:
 		if fail_save: return
 		var result: Dictionary = app.run_domain.growth.execute(state,command)
 		if result.ok: state = result.state

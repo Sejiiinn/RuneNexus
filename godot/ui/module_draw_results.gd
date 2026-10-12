@@ -59,7 +59,7 @@ static func _line(parent: Control) -> void:
 	parent.add_child(line)
 
 static func _inner_width(lobby) -> float:
-	var inset: Vector4 = lobby._insets()
+	var inset: Vector4 = lobby.safe_insets()
 	return minf(480, lobby.size.x - inset.x - inset.z - 32) - 32
 
 static func _row(rows: VBoxContainer, item: Dictionary, index: int, icon_extent: int) -> void:

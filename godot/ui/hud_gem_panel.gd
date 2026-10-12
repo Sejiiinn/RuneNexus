@@ -3,6 +3,7 @@ extends RefCounted
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const Frame = preload("res://ui/lobby_frame.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 var hud: Control
 
 func _init(owner: Control) -> void:
@@ -33,7 +34,7 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 		var cell := VBoxContainer.new()
 		cell.add_theme_constant_override("separation",0)
 		sockets.add_child(cell)
-		var socket: Button = hud._button(cell,"",func():
+		var socket: Button = UiWidgets.button(cell,"",func():
 			hud.selected_slot = -1 if locked and hud.selected_slot == i else i
 			hud.selected_gem = ""
 			hud.refresh())
@@ -57,7 +58,7 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			badge.add_theme_stylebox_override("panel",badge_style)
 		else: badge.add_theme_stylebox_override("panel",StyleBoxEmpty.new())
 		cell.add_child(badge)
-		var tag: Label = hud._label(badge,"",10)
+		var tag: Label = UiWidgets.label(badge,"",10)
 		tag.name = "GemSlotPrice%d" % i
 		tag.custom_minimum_size.y = 16
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -116,19 +117,19 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			var value = turret.equippedGemSlots[hud.selected_slot]
 			if value != null: chosen = str(value); equipped = true
 		if chosen.is_empty():
-			hud._label(row,"장착할 소켓과 젬을 선택하세요.",11)
+			UiWidgets.label(row,"장착할 소켓과 젬을 선택하세요.",11)
 		else:
-			hud._icon(row,"gems/"+chosen+".png",34)
+			UiWidgets.icon(row,"gems/"+chosen+".png",34)
 			var detail := VBoxContainer.new()
 			detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			detail.add_theme_constant_override("separation",0)
 			row.add_child(detail)
-			hud._label(detail,_gem_name(chosen)+" · "+_gem_effect(chosen,turret),12)
+			UiWidgets.label(detail,gem_name(chosen)+" · "+gem_effect(chosen,turret),12)
 			var reason := "" if equipped else _gem_block_reason(chosen,turret)
 			if reason.is_empty(): _gem_rule(detail,chosen,0)
-			else: hud._label(detail,reason,10).modulate = Color("ffa68a")
-			var action: Button = hud._button(row,"해제" if equipped else "장착",func():
-				hud._selected_command("removeGem" if equipped else "equipGem",{"type":chosen,"slot":hud.selected_slot})
+			else: UiWidgets.label(detail,reason,10).modulate = Color("ffa68a")
+			var action: Button = UiWidgets.button(row,"해제" if equipped else "장착",func():
+				hud.run_selected_command("removeGem" if equipped else "equipGem",{"type":chosen,"slot":hud.selected_slot})
 				hud.selected_gem = ""
 				hud.refresh())
 			action.disabled = not reason.is_empty()
@@ -200,7 +201,7 @@ func _unlock_popover(band: Control, socket: Button, state: Dictionary, turret: D
 	content.add_theme_constant_override("separation",0)
 	popup.add_child(content)
 	var display_price := _slot_price(state,turret_id,slot)
-	var tag: Label = hud._label(content,HudNumber.compact_price(display_price)+" G" if display_price > 0 else "—",10)
+	var tag: Label = UiWidgets.label(content,HudNumber.compact_price(display_price)+" G" if display_price > 0 else "—",10)
 	popup.tooltip_text = "%d G" % display_price if display_price > 0 else ""
 	tag.name = "GemSlotUnlockPrice"
 	tag.custom_minimum_size.y = 16
@@ -208,11 +209,11 @@ func _unlock_popover(band: Control, socket: Button, state: Dictionary, turret: D
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag.modulate = Color("f0d28a")
 	# Requirements sit below the unified plate, never widening it across other prices.
-	var condition: Label = hud._label(band,reason,10)
+	var condition: Label = UiWidgets.label(band,reason,10)
 	condition.name = "GemSlotCondition"
 	condition.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	condition.visible = not reason.is_empty()
-	var confirm: Button = hud._button(content,"해금",func():
+	var confirm: Button = UiWidgets.button(content,"해금",func():
 		if popup.get_meta("submitted",false): return
 		popup.set_meta("submitted",true)
 		var current: Dictionary = hud.app.run_domain.state
@@ -235,7 +236,7 @@ func _unlock_popover(band: Control, socket: Button, state: Dictionary, turret: D
 	# Native button text/input overlays it without introducing a second surface.
 	for state_name in ["normal","hover","pressed","disabled","focus"]:
 		confirm.add_theme_stylebox_override(state_name,StyleBoxEmpty.new())
-	hud._track_purchase_button(confirm,"gold",price,not reason.is_empty() or state.phase not in ["preparation","wave"])
+	hud.track_purchase_button(confirm,"gold",price,not reason.is_empty() or state.phase not in ["preparation","wave"])
 	confirm.tooltip_text = reason if not reason.is_empty() else "필요 골드 · %d G" % price
 	var references := [weakref(popup),weakref(badge),weakref(band),weakref(condition)]
 	var align := func():
@@ -274,9 +275,9 @@ func _inventory_strip(parent: Node,state: Dictionary,turret: Dictionary = {}) ->
 	var gaps: Array[Control] = []
 	for type in state.gemInventory:
 		if int(state.gemInventory[type]) <= 0: continue
-		var b = hud._button(inventory,"",func():
+		var b = UiWidgets.button(inventory,"",func():
 			if not turret.is_empty() and hud.selected_slot >= int(turret.slotLimit): hud.selected_slot = -1
-			if hud.selected_gem == type and not turret.is_empty() and _gem_block_reason(type,turret).is_empty(): hud._selected_command("equipGem",{"type":type,"slot":hud.selected_slot}); hud.selected_gem = ""
+			if hud.selected_gem == type and not turret.is_empty() and _gem_block_reason(type,turret).is_empty(): hud.run_selected_command("equipGem",{"type":type,"slot":hud.selected_slot}); hud.selected_gem = ""
 			else: hud.selected_gem = type
 			hud.refresh())
 		b.name = "GemInventory_"+str(type)
@@ -300,12 +301,12 @@ func _inventory_strip(parent: Node,state: Dictionary,turret: Dictionary = {}) ->
 		icon.name = "GemInventoryIcon"
 		icon.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 		icon.offset_left = -17; icon.offset_right = 17; icon.offset_top = 3; icon.offset_bottom = 37
-		var count: Label = hud._label(b,"×%d" % state.gemInventory[type],10)
+		var count: Label = UiWidgets.label(b,"×%d" % state.gemInventory[type],10)
 		count.autowrap_mode = TextServer.AUTOWRAP_OFF
 		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		count.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 		count.offset_left = 3; count.offset_right = -4; count.offset_top = -15; count.offset_bottom = -1
-		b.tooltip_text = "%s ×%d" % [_gem_name(type),state.gemInventory[type]]
+		b.tooltip_text = "%s ×%d" % [gem_name(type),state.gemInventory[type]]
 
 		if not turret.is_empty():
 			b.disabled = state.phase not in ["preparation","wave"]
@@ -355,12 +356,12 @@ func _inventory_strip(parent: Node,state: Dictionary,turret: Dictionary = {}) ->
 	fit.call_deferred()
 
 func _inventory(state: Dictionary) -> void:
-	var heading = HBoxContainer.new(); hud.body.add_child(heading); hud._label(heading,"젬 보관함",14); _purchase(heading,state)
+	var heading = HBoxContainer.new(); hud.body.add_child(heading); UiWidgets.label(heading,"젬 보관함",14); _purchase(heading,state)
 	var owned = []
 	for type in hud.app.run_domain.growth.data.gems:
 		if int(state.gemInventory.get(type,0))>0: owned.append(type)
 	if owned.is_empty():
-		hud._label(hud.body,"보유한 젬이 없습니다. 5라운드 보상 또는 파편 구매로 젬을 획득하세요.",11)
+		UiWidgets.label(hud.body,"보유한 젬이 없습니다. 5라운드 보상 또는 파편 구매로 젬을 획득하세요.",11)
 		return
 	var grid := GridContainer.new()
 	grid.name = "GemInventoryGrid"
@@ -383,17 +384,17 @@ func _inventory(state: Dictionary) -> void:
 		var art := HBoxContainer.new()
 		card.add_child(art)
 		var balance := Control.new(); balance.custom_minimum_size.x = 22; art.add_child(balance)
-		var icon: TextureRect = hud._icon(art,"gems/"+type+".png",34)
+		var icon: TextureRect = UiWidgets.icon(art,"gems/"+type+".png",34)
 		icon.name = "GemIcon"
 		icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var count: Label = hud._label(art,"×%d" % state.gemInventory[type],12)
+		var count: Label = UiWidgets.label(art,"×%d" % state.gemInventory[type],12)
 		count.name = "GemQuantity"
 		count.custom_minimum_size.x = 22
 		count.autowrap_mode = TextServer.AUTOWRAP_OFF
 		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		var title: Label = hud._label(card,_gem_name(type),13)
+		var title: Label = UiWidgets.label(card,gem_name(type),13)
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var effect: Label = hud._label(card,_gem_inventory_effect(type),12)
+		var effect: Label = UiWidgets.label(card,_gem_inventory_effect(type),12)
 		effect.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_gem_rule(card,type,0)
 
@@ -411,20 +412,20 @@ func _empty_inventory_slot(parent: Node, minimum: Vector2, index: int) -> void:
 
 func _purchase(parent: Node,state: Dictionary) -> void:
 	var cost: int = hud.app.run_domain.growth.data.constants.gemChoicePurchaseCost
-	var b = hud._button(parent,"젬 구매 · %s 조각" % HudNumber.compact_price(cost),func(): hud._command({"kind":"purchaseGemChoice"}))
-	hud._track_purchase_button(b,"gemShards",cost,state.phase not in ["preparation","wave"])
+	var b = UiWidgets.button(parent,"젬 구매 · %s 조각" % HudNumber.compact_price(cost),func(): hud.run_command({"kind":"purchaseGemChoice"}))
+	hud.track_purchase_button(b,"gemShards",cost,state.phase not in ["preparation","wave"])
 	b.tooltip_text = "젬 구매 · %d 조각" % cost
 
-func _gem_name(type: String) -> String:
+func gem_name(type: String) -> String:
 	return str(hud.labels.gems.get(type,{}).get("name",type))
 
-func _gem_description(type: String) -> String:
+func gem_description(type: String) -> String:
 	var gem: Dictionary = hud.labels.gems.get(type,{})
 	return str(gem.get("description",""))
 
 func _gem_rule(parent: Node,type: String,minimum_width: float = 200) -> void:
 	if hud.rewards.RULES.has(type):
-		var note = hud._label(parent,"("+str(hud.rewards.RULES[type])+")",10)
+		var note = UiWidgets.label(parent,"("+str(hud.rewards.RULES[type])+")",10)
 		note.modulate = Color("939aa4"); note.custom_minimum_size.x = minimum_width
 
 func _gem_block_reason(type: String,turret: Dictionary) -> String:
@@ -434,7 +435,7 @@ func _gem_block_reason(type: String,turret: Dictionary) -> String:
 		return {"multipleProjectiles":"투사체 공격 포탑에만 장착 가능","chain":"투사체 공격 또는 기본 연쇄 포탑에만 장착 가능","lightWeapon":"경량화기 포탑에만 장착 가능","heavyWeapon":"중화기 포탑에만 장착 가능","aimSpeed":"조준 속도 적용 포탑에만 장착 가능"}.get(type,"이 포탑에는 장착할 수 없습니다")
 	return ""
 
-func _gem_effect(type: String,turret: Dictionary) -> String:
+func gem_effect(type: String,turret: Dictionary) -> String:
 	var definition: Dictionary = hud.app.catalog.turret_definition(turret.type)
 	var tags: Array = definition.get("attackTags",[])
 	if type == "physicalDamage" and definition.damageFamily != "physical": return "현재 적용되는 물리 피해 없음"
@@ -442,7 +443,7 @@ func _gem_effect(type: String,turret: Dictionary) -> String:
 	if type == "lightWeapon" and "light" not in tags: return "현재 적용되는 경량화기 피해 없음"
 	if type == "damageOverTime" and "damageOverTime" not in tags: return "현재 적용되는 지속피해 없음"
 	if type == "aimSpeed" and (not definition.instantHit or float(definition.aimDuration)<=0): return "현재 적용되는 조준 속도 없음"
-	return {"attackSpeed":"공격 속도 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 피해 40% 증폭","elementalDamage":"원소 피해 40% 증폭","lightWeapon":"경량화기 피해 20% 증폭, 초당 발사 20% 증폭 (경량화기 전용)","heavyWeapon":"피해 30% 증폭, 효과 범위 20% 증가 (중화기 전용)","explosion":"범위 피해 부여, 효과 범위 25% 증가","chain":"연쇄 횟수 +2","multipleProjectiles":"투사체 +2 · 피해 50% 감폭","criticalChance":"치명 확률 +30%p","aimSpeed":"조준 속도 75% 증폭","damageAmplifier":"타격 피해 25% 증폭","armorPiercing":"방어구 감쇄 무시"}.get(type,_gem_description(type))
+	return {"attackSpeed":"공격 속도 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 피해 40% 증폭","elementalDamage":"원소 피해 40% 증폭","lightWeapon":"경량화기 피해 20% 증폭, 초당 발사 20% 증폭 (경량화기 전용)","heavyWeapon":"피해 30% 증폭, 효과 범위 20% 증가 (중화기 전용)","explosion":"범위 피해 부여, 효과 범위 25% 증가","chain":"연쇄 횟수 +2","multipleProjectiles":"투사체 +2 · 피해 50% 감폭","criticalChance":"치명 확률 +30%p","aimSpeed":"조준 속도 75% 증폭","damageAmplifier":"타격 피해 25% 증폭","armorPiercing":"방어구 감쇄 무시"}.get(type,gem_description(type))
 
 func _gem_inventory_effect(type: String) -> String:
-	return {"attackSpeed":"공속 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 40% 증폭","elementalDamage":"원소 40% 증폭","lightWeapon":"경량화기 강화","multipleProjectiles":"투사체 +2\n피해 50% 감폭"}.get(type,_gem_description(type))
+	return {"attackSpeed":"공속 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 40% 증폭","elementalDamage":"원소 40% 증폭","lightWeapon":"경량화기 강화","multipleProjectiles":"투사체 +2\n피해 50% 감폭"}.get(type,gem_description(type))

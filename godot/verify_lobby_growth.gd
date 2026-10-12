@@ -9,9 +9,9 @@ class Host extends Control:
 	var modal: VBoxContainer
 	var service := ""
 	var commands: Array = []
-	func _p() -> Dictionary: return state
+	func progression() -> Dictionary: return state
 	func diamonds() -> int: return int(state.get("freeDiamonds",0)) + int(state.get("paidDiamonds",0))
-	func _title(id: String) -> String: return {"turretLevelUpOptimization":"포탑 강화 비용 최적화", "researchCostEfficiency":"연구 비용 효율"}.get(id, id)
+	func display_title(id: String) -> String: return {"turretLevelUpOptimization":"포탑 강화 비용 최적화", "researchCostEfficiency":"연구 비용 효율"}.get(id, id)
 	func refresh() -> void: pass
 	func open_modal(_title: String) -> VBoxContainer:
 		close_modal()
@@ -28,12 +28,12 @@ class Host extends Control:
 		if not is_instance_valid(expected_modal) or expected_modal != modal: return null
 		for child in modal.get_children(): modal.remove_child(child); child.queue_free()
 		return modal
-	func _change(command: Dictionary) -> void:
+	func apply_growth_change(command: Dictionary) -> void:
 		commands.append(command)
 		var result: Dictionary = app.run_domain.growth.execute(state, command)
 		assert(result.ok)
 		state = result.state
-	func _service(label: String, _context: Dictionary = {}) -> void: service = label
+	func open_service(label: String, _context: Dictionary = {}) -> void: service = label
 	func clear() -> void:
 		for child in body.get_children(): body.remove_child(child); child.queue_free()
 func _initialize() -> void:

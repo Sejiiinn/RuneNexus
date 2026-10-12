@@ -108,7 +108,7 @@ func _update_changed() -> void:
 		app._refresh_ui()
 		if app.lobby._services != null and app.lobby._services.page == "업데이트" and app.lobby._services._active_view(app.lobby._services.view_epoch):
 			app.lobby._services._render()
-		else: app.lobby._service("업데이트")
+		else: app.lobby.open_service("업데이트")
 	elif not updates.blocked:
 		# Home refresh deliberately preserves open modals. Retire this gate's
 		# stale busy view when the check succeeds, without closing another dialog.
@@ -230,7 +230,7 @@ func _initialize() -> void:
 	issue = "" if result.get("ok",false) else str(result.get("code", ""))
 	app._refresh_ui()
 	changed.emit()
-	if needs_profile() and app.lobby != null: app.lobby._service("계정 및 저장")
+	if needs_profile() and app.lobby != null: app.lobby.open_service("계정 및 저장")
 
 func login() -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}

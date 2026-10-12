@@ -32,7 +32,7 @@ func build(state: Dictionary) -> void:
 	var p: Dictionary = state.get("progression",{})
 	var header := VBoxContainer.new(); header.name = "ResultHeader"
 	header.add_theme_constant_override("separation",6); body.add_child(header)
-	var crystal: TextureRect = rewards._icon(header,"results/result_success_v2.png" if success else "results/result_failure_v2.png",150)
+	var crystal: TextureRect = rewards.reward_icon(header,"results/result_success_v2.png" if success else "results/result_failure_v2.png",150)
 	crystal.name = "ResultCrystal"
 	crystal.custom_minimum_size.y = 158
 	var title := text(header,"Nexus 방어 성공" if success else "Nexus 붕괴",28,CYAN if success else Color("f8b5b3"),true)
@@ -53,7 +53,7 @@ func build(state: Dictionary) -> void:
 		var column := VBoxContainer.new(); column.name = str(spec[0])
 		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		column.add_theme_constant_override("separation",1); row.add_child(column)
-		var icon: TextureRect = rewards._icon(column,spec[2],36); icon.name = "RewardIcon"
+		var icon: TextureRect = rewards.reward_icon(column,spec[2],36); icon.name = "RewardIcon"
 		var amount := text(column,"+"+HudNumber.compact_integer(int(p.get(spec[0],0))),24,PALE,true)
 		amount.name = "RewardAmount"
 		amount.tooltip_text = "+%d" % int(p.get(spec[0],0))
@@ -142,7 +142,7 @@ func _unlocks(body: Node, stage: int) -> void:
 			var symbol := text(row,char(str(item[1]).trim_prefix("material:").hex_to_int()),24,CYAN,true)
 			symbol.custom_minimum_size = Vector2(28,28); symbol.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			symbol.add_theme_font_override("font",load("res://assets/ui/MaterialIcons-Regular.otf"))
-		else: rewards._icon(row,item[1],28)
+		else: rewards.reward_icon(row,item[1],28)
 		text(row,"%s · %s" % [item[2],item[0]],13,PALE)
 
 func _settlement(body: Node) -> void:

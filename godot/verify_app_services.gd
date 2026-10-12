@@ -302,7 +302,7 @@ func _update_modal_checks() -> void:
 	update.accepted=true
 	await lobby._services._update_action()
 	check(not is_instance_valid(lobby.modal),"Manual retry success cannot recreate the completed gate after await")
-	lobby._service("업데이트")
+	lobby.open_service("업데이트")
 	lobby._services._update_action()
 	lobby.open_modal("다른 화면의 대화상자")
 	var replacement=lobby.modal
@@ -353,7 +353,7 @@ func _login_resume_checks() -> void:
 		var lobby=load("res://ui/lobby.gd").new();lobby.app=login_app;root.add_child(lobby);login_app.lobby=lobby
 		var lifecycle=ResumeLifecycle.new();root.add_child(lifecycle);lifecycle.set_process(false)
 		var scene_stub=ResumeScene.new();root.add_child(scene_stub);lifecycle.scene=scene_stub;lifecycle.services=coordinator
-		lobby._service("계정 및 저장")
+		lobby.open_service("계정 및 저장")
 		lobby._services._login()
 		check(coordinator.busy,"Google picker holds login operation: "+outcome)
 		if outcome!="no_pause": lifecycle._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
@@ -377,7 +377,7 @@ func _login_resume_checks() -> void:
 			var error_text=lobby._services._error(coordinator.issue)
 			check(not coordinator.connected() and not coordinator.issue.is_empty(),"Failed login retains reason: "+outcome)
 			check(is_instance_valid(lobby.modal) and error_text in _labels(lobby.modal),"Failed login result remains visible: "+outcome)
-			lobby.close_modal();lobby._service("계정 및 저장")
+			lobby.close_modal();lobby.open_service("계정 및 저장")
 			check(error_text in _labels(lobby.modal),"Reopened guest account retains last login failure: "+outcome)
 		elif outcome=="required":
 			check(not coordinator.connected() and update.blocked and update.server_required and coordinator.blocks_play(),"Login server 426 retains mandatory update gate")

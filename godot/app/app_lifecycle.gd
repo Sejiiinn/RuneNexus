@@ -160,7 +160,7 @@ func start_stage(index: int) -> bool:
 	if services != null and services.blocks_play():
 		var update_required: bool = services.updates != null and services.updates.blocked
 		checkpoint.message = "업데이트 확인을 완료해 주세요" if update_required else "계정 연결과 닉네임 설정을 완료해 주세요"
-		if lobby != null: lobby._service("업데이트" if update_required else "계정 및 저장")
+		if lobby != null: lobby.open_service("업데이트" if update_required else "계정 및 저장")
 		return false
 	if startup_blocked or index < 0 or index >= stage_count(): return false
 	var progression: Dictionary = progression_inputs if run_domain.state.is_empty() else run_domain.state.progression

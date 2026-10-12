@@ -195,13 +195,13 @@ func upgrades_tabs(parent: Node) -> void:
 func upgrades() -> void:
 	var grid := _grid(lobby.body)
 	for id in COMBAT if category == "전투" else ECONOMY:
-		if not Progression.has_unlock(lobby._p(), "upgrade", id): continue
+		if not Progression.has_unlock(lobby.progression(), "upgrade", id): continue
 		var d: Dictionary = _growth().data.permanentUpgrades[id]
 		if not d.get("enabled", true): continue
-		var level := int(lobby._p().get(d.field, 0))
+		var level := int(lobby.progression().get(d.field, 0))
 		var maximum := int(d.maxLevel)
 		var cost := int(d.costs[mini(level, maximum)])
-		var enabled := level < maximum and int(lobby._p().get("runes", 0)) >= cost
+		var enabled := level < maximum and int(lobby.progression().get("runes", 0)) >= cost
 		var box := _surface(grid, "ui/components/card_frame.png", 12)
 		box.custom_minimum_size.y = 158
 		_heading(box, id, level, maximum, -1, true)
@@ -212,7 +212,7 @@ func upgrades() -> void:
 		var spacer := Control.new()
 		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		box.add_child(spacer)
-		var b := _button(box, "최대 레벨" if level >= maximum else "", lobby._change.bind({"kind":"upgradePermanent", "id":id}), not enabled)
+		var b := _button(box, "최대 레벨" if level >= maximum else "", lobby.apply_growth_change.bind({"kind":"upgradePermanent", "id":id}), not enabled)
 		for state in ["normal", "disabled", "hover", "pressed"]: b.add_theme_stylebox_override(state, _style("ui/components/upgrade_levelup_frame_v2.png", 7))
 		if level < maximum:
 			b.tooltip_text = "레벨업 · 룬 %d" % cost
@@ -297,7 +297,7 @@ func _duration(ms: int) -> String:
 	return "%d시간" % (minutes / 60) if minutes % 60 == 0 else "%d분" % minutes
 
 func _active(id: String) -> Dictionary:
-	for item in lobby._p().get("activeResearches", []):
+	for item in lobby.progression().get("activeResearches", []):
 		if item.type == id: return item
 	return {}
 
@@ -310,14 +310,14 @@ func _time(ms: int) -> String:
 
 func research_status(id: String) -> String:
 	var d: Dictionary = _growth().data.research[id]
-	var q: Dictionary = _growth().research_quote(lobby._p(), id)
+	var q: Dictionary = _growth().research_quote(lobby.progression(), id)
 	if not _active(id).is_empty(): return "연구 중"
 	if int(q.level) >= int(d.maxLevel): return "연구 완료"
-	if not Progression.has_unlock(lobby._p(), "research", id): return "스테이지 %s 클리어 필요" % Progression.stage_label(Progression.requirement("research", id))
-	var missing: Array = _growth().missing_research_prerequisites(lobby._p(), id)
+	if not Progression.has_unlock(lobby.progression(), "research", id): return "스테이지 %s 클리어 필요" % Progression.stage_label(Progression.requirement("research", id))
+	var missing: Array = _growth().missing_research_prerequisites(lobby.progression(), id)
 	if not missing.is_empty(): return "%s 연구 완료 필요" % TITLES.get(missing[0], missing[0])
-	if lobby._p().get("activeResearches", []).size() >= (2 if lobby._p().get("researchSlotTwoUnlocked", false) else 1): return "빈 연구 슬롯 필요"
-	if int(lobby._p().get("runes", 0)) < int(q.cost): return "룬 부족"
+	if lobby.progression().get("activeResearches", []).size() >= (2 if lobby.progression().get("researchSlotTwoUnlocked", false) else 1): return "빈 연구 슬롯 필요"
+	if int(lobby.progression().get("runes", 0)) < int(q.cost): return "룬 부족"
 	return "연구 가능"
 
 func _slot_button(parent: Node, text: String, callback: Callable, primary := false) -> Button:
@@ -458,8 +458,8 @@ func _research_slot(parent: Node, item: Dictionary) -> void:
 
 func research() -> void:
 	var slots := _section(lobby.body, "연구 슬롯", 0xf499, Color("b9d6e4"))
-	var active: Array = lobby._p().get("activeResearches", [])
-	var count := 2 if lobby._p().get("researchSlotTwoUnlocked", false) else 1
+	var active: Array = lobby.progression().get("activeResearches", [])
+	var count := 2 if lobby.progression().get("researchSlotTwoUnlocked", false) else 1
 	for i in range(count):
 		if i < active.size():
 			_research_slot(slots,active[i])
@@ -470,7 +470,7 @@ func research() -> void:
 			empty.add_child(row)
 			row.add_child(_glyph(0xe050, 18, Color("607587")))
 			row.add_child(_inline("빈 연구 슬롯", 13))
-	var slot_available := Progression.has_unlock(lobby._p(), "feature", "researchSlotTwo")
+	var slot_available := Progression.has_unlock(lobby.progression(), "feature", "researchSlotTwo")
 	if count == 1:
 		var cost := int(_growth().data.constants.researchSlotTwoUnlockCost)
 		_button(slots, "두 번째 슬롯 · 다이아 %d" % cost if slot_available else "두 번째 슬롯 · 스테이지 2-10 클리어 필요", _slot_confirm, not slot_available)
@@ -487,7 +487,7 @@ func research() -> void:
 		var grid := _grid(section)
 		for id in groups[group]:
 			var d: Dictionary = _growth().data.research[id]
-			var q: Dictionary = _growth().research_quote(lobby._p(), id)
+			var q: Dictionary = _growth().research_quote(lobby.progression(), id)
 			var status := research_status(id)
 			var ready := status == "연구 가능"
 			var box := _surface(grid)
@@ -537,7 +537,7 @@ func research() -> void:
 
 func _submit(kind: String, id: String) -> void:
 	lobby.close_modal()
-	lobby._change({"kind":kind, "id":id, "nowMillis":int(Time.get_unix_time_from_system() * 1000)})
+	lobby.apply_growth_change({"kind":kind, "id":id, "nowMillis":int(Time.get_unix_time_from_system() * 1000)})
 
 func _details(id: String) -> void:
 	selected_research = id
@@ -591,7 +591,7 @@ func _research_detail_quote(box: VBoxContainer, quote: Dictionary) -> void:
 	cost.add_child(_image("ui/hud/icons/rune.png",28))
 	var wallet = VBoxContainer.new(); wallet.size_flags_horizontal = Control.SIZE_EXPAND_FILL; wallet.add_theme_constant_override("separation",2); cost.add_child(wallet)
 	wallet.add_child(T.label("필요 룬 %d" % int(quote.cost),14))
-	wallet.add_child(T.label("보유 %s" % str(int(lobby._p().get("runes",0))),12))
+	wallet.add_child(T.label("보유 %s" % str(int(lobby.progression().get("runes",0))),12))
 	var separator = VSeparator.new(); row.add_child(separator)
 	var time = HBoxContainer.new(); time.size_flags_horizontal = Control.SIZE_EXPAND_FILL; time.add_theme_constant_override("separation",8); row.add_child(time)
 	time.add_child(_glyph(0xe556,26,Color("a1d8eb")))
@@ -602,7 +602,7 @@ func _research_detail_quote(box: VBoxContainer, quote: Dictionary) -> void:
 
 func _build_details(box: VBoxContainer, id: String) -> void:
 	var d: Dictionary = _growth().data.research[id]
-	var q: Dictionary = _growth().research_quote(lobby._p(), id)
+	var q: Dictionary = _growth().research_quote(lobby.progression(), id)
 	_research_detail_heading(box,id,int(q.level),int(d.maxLevel))
 	var description := str(RESEARCH_DESCRIPTIONS.get(id,""))
 	if not description.is_empty(): box.add_child(T.label(description,13))
@@ -630,7 +630,7 @@ func _build_details(box: VBoxContainer, id: String) -> void:
 		var status := research_status(id)
 		if int(q.level) < int(d.maxLevel):
 			_research_detail_quote(box,q)
-			if int(lobby._p().get("researchElapsedMillis", {}).get(id, 0)) > 0: box.add_child(T.label("이전에 진행한 연구 시간이 보존되어 있습니다.", 12))
+			if int(lobby.progression().get("researchElapsedMillis", {}).get(id, 0)) > 0: box.add_child(T.label("이전에 진행한 연구 시간이 보존되어 있습니다.", 12))
 		var action = T.button("연구 시작" if status == "연구 가능" else status,_submit.bind("startResearch",id),"primary")
 		action.name = "ResearchDetailAction"; action.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; action.custom_minimum_size.y = 44; action.add_theme_font_size_override("font_size",16); action.disabled = status != "연구 가능"; box.add_child(action)
 
@@ -639,7 +639,7 @@ func _cancel_confirm(id: String, from_details := false) -> void:
 	if active.is_empty() or _remaining(active) == 0:
 		_details(id)
 		return
-	var quote: Dictionary = _growth().research_quote(lobby._p(), id)
+	var quote: Dictionary = _growth().research_quote(lobby.progression(), id)
 	var box: VBoxContainer = lobby.open_modal("연구를 중단할까요?")
 	lobby.modal.set_meta("max_width",360)
 	box.add_theme_constant_override("separation",12)
@@ -681,8 +681,8 @@ func _cancel_confirm(id: String, from_details := false) -> void:
 		actions.add_child(button)
 
 func _confirm_cancel(id: String, target_level := -1) -> void:
-	var before_runes := int(lobby._p().get("runes",0))
-	var before_level := int(lobby._p().get("researchLevels",{}).get(id,0))
+	var before_runes := int(lobby.progression().get("runes",0))
+	var before_level := int(lobby.progression().get("researchLevels",{}).get(id,0))
 	# The lobby's timer can collect this research while its confirmation stays open.
 	if target_level > 0 and before_level >= target_level:
 		lobby.close_modal(true)
@@ -693,18 +693,18 @@ func _confirm_cancel(id: String, target_level := -1) -> void:
 	lobby.close_modal(true)
 	if not success:
 		lobby.message = "연구를 중단하지 못했습니다. 연구 상태와 저장 상태를 확인하세요."
-	elif int(lobby._p().get("researchLevels",{}).get(id,0)) > before_level:
+	elif int(lobby.progression().get("researchLevels",{}).get(id,0)) > before_level:
 		# A research may finish while its confirmation is open; the domain completes it.
 		lobby.message = "%s 연구가 완료되었습니다." % str(TITLES.get(id,id))
 	else:
-		var refunded := int(lobby._p().get("runes",0))-before_runes
+		var refunded := int(lobby.progression().get("runes",0))-before_runes
 		lobby.message = "연구 중단 · 룬 +%d 반환 · 진행 시간 보존" % refunded
 	lobby.refresh()
 
 func _instant_confirm(id: String) -> void:
 	var active := _active(id)
 	if active.is_empty(): return
-	lobby._service("연구 즉시 완료",{"id":id})
+	lobby.open_service("연구 즉시 완료",{"id":id})
 
 func _slot_confirm() -> void:
-	lobby._service("연구 슬롯 구매",{})
+	lobby.open_service("연구 슬롯 구매",{})

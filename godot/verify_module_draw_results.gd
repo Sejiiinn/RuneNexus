@@ -68,7 +68,7 @@ func results(lobby, app, count: int) -> void:
 	var items := []
 	for i in count: items.append(module_item(i))
 	app.services.response = {"ok":true,"body":{"economy":{},"drawnModules":items}}
-	lobby._service("모듈 뽑기", {"count":count,"turretType":"cannon"})
+	lobby.open_service("모듈 뽑기", {"count":count,"turretType":"cannon"})
 	await settle()
 	var modal_id: int = lobby.modal.get_instance_id()
 	var confirm: Button = lobby.modal_body.find_children("*", "Button", true, false)[0]
@@ -145,7 +145,7 @@ func run() -> void:
 	await layout(lobby)
 	check(lobby.modal_frame.size.y < 400, "A one-result modal keeps a natural height")
 	lobby.close_modal()
-	lobby._service("모듈 뽑기", {"count":1,"turretType":"cannon"})
+	lobby.open_service("모듈 뽑기", {"count":1,"turretType":"cannon"})
 	await settle()
 	lobby.modal_body.find_child("DrawModulesConfirm",true,false).pressed.emit()
 	lobby.close_modal()

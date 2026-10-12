@@ -145,7 +145,7 @@ func _build_canvas(w: float, h: float) -> void:
 	for child in canvas.get_children():
 		canvas.remove_child(child)
 		child.queue_free()
-	var active: bool = lobby._has_run()
+	var active: bool = lobby.has_active_run()
 	var blocked: bool = lobby.app.get("startup_blocked") == true
 	var settings_width := maxf(84, 52 + _font(700).get_string_size("설정",HORIZONTAL_ALIGNMENT_LEFT,-1,_font_size(12)).x)
 	var settings_height := maxf(40, _font_size(12) * 1.25 + 12)
@@ -168,7 +168,7 @@ func _build_canvas(w: float, h: float) -> void:
 	_label(canvas, detail, Rect2(62, top + 26 + title_h, w - 124, detail_h), 12, 700, SECONDARY, true)
 	if active:
 		_stage_button(canvas, "ContinueRun", "이어서 진행", Rect2(62, top + panel_h - 18 - action_h, w - 124, action_h), false, func():
-			if not await lobby.app.resume_run(): lobby._failure()
+			if not await lobby.app.resume_run(): lobby.show_failure()
 		).disabled = blocked
 	# Bottom content is anchored within the same fitted canvas, never a ScrollContainer.
 	var bottom_lines := 1
@@ -217,7 +217,7 @@ func _build_canvas(w: float, h: float) -> void:
 		var status := "업데이트 확인을 완료하면 저장을 불러옵니다." if waiting_for_update else "저장을 불러오지 못했습니다. 기존 저장은 보존됩니다."
 		_label(canvas, status, Rect2(44, top + panel_h + 6, w - 88, 32), 12, 700, SECONDARY, true).name = "StartupStatus"
 		if waiting_for_update:
-			_stage_button(canvas, "RetryUpdate", "업데이트 확인", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby._service("업데이트"))
+			_stage_button(canvas, "RetryUpdate", "업데이트 확인", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.open_service("업데이트"))
 		else:
 			_stage_button(canvas, "RetryLoad", "다시 불러오기", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.app.retry_load())
 	elif not lobby.message.is_empty():
@@ -251,7 +251,7 @@ func _mail_claimable() -> bool:
 	return services is Object and services.has_method("has_unclaimed_mail") and services.has_unclaimed_mail()
 
 func _claimable() -> bool:
-	var p: Dictionary = lobby._p()
+	var p: Dictionary = lobby.progression()
 	for period in ["daily", "weekly"]:
 		if p.get("dailyQuestClockRollbackDetected", false): continue
 		if period == "daily" and not p.get("dailyAttendanceRewardClaimed", false): return true

@@ -5,6 +5,7 @@ const LobbyFixture = preload("res://verify_lobby.gd")
 const BattleFixture = preload("res://verify_battle_hud.gd")
 const Lobby = preload("res://ui/lobby.gd")
 const HUD = preload("res://ui/battle_hud.gd")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 var captures := OS.get_environment("UI_LAYOUT_CAPTURE_DIR")
 
 func _initialize() -> void: call_deferred("run")
@@ -169,7 +170,7 @@ func run() -> void:
 	await check_first_visible_frames(hud,360)
 	await dimensions(440,900)
 	var box: VBoxContainer = hud.open_modal("본문 갱신",360)
-	var text: Label = hud._label(box,"여러 줄로 표시되는 긴 안내입니다. ".repeat(80),13)
+	var text: Label = UiWidgets.label(box,"여러 줄로 표시되는 긴 안내입니다. ".repeat(80),13)
 	await settle()
 	var tall: float = hud.modal_panel.size.y
 	text.text = "짧은 안내입니다."

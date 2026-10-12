@@ -11,6 +11,7 @@ const Growth = preload("res://ui/lobby_growth.gd")
 const Core = preload("res://ui/lobby_core.gd")
 const Collection = preload("res://ui/lobby_collection.gd")
 const Stages = preload("res://ui/lobby_stages.gd")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 const NAMES := {"startingGold":"초기 자금", "nexusHp":"코어 내구도", "supply":"보급", "fireTraining":"화력 훈련", "physicalDamageTraining":"물리 피해 훈련", "elementalDamageTraining":"원소 피해 훈련", "criticalDamage":"치명타 피해", "killGold":"처치 골드", "bossBounty":"보스 현상금", "linkCostOptimization":"링크 비용 최적화", "turretLevelUpOptimization":"포탑 강화 비용 최적화", "researchEfficiency":"연구 효율", "researchCostEfficiency":"연구 비용 효율", "turretTargetPriority":"포탑 목표 우선순위", "linkExpansionOne":"링크 확장 I", "linkExpansionTwo":"링크 확장 II", "gemAttunement":"젬 조율", "criticalChance":"치명타 확률", "emergencySale":"긴급 매각", "linkMaintenance":"링크 정비", "crystalRecovery":"결정 회수", "runeResonance":"룬 공명", "runUpgradeCostOptimization":"전투 강화 비용 최적화", "towerDamageLimitExpansion":"화력 한계 확장", "killGoldLimitExpansion":"처치 보상 한계 확장", "waveGoldLimitExpansion":"보급 한계 확장", "guardianBeam":"수호 광선", "riftMark":"균열 낙인", "arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"번개"}
 var app
 var page := "로비"
@@ -46,11 +47,11 @@ func _ready() -> void:
 	resized.connect(_safe_layout)
 	refresh()
 
-func _p() -> Dictionary: return app.progression_inputs
-func diamonds() -> int: return int(_p().get("freeDiamonds",0)) + int(_p().get("paidDiamonds",0))
-func _title(id: String) -> String: return str(Growth.TITLES.get(id, NAMES.get(id, core_names.get(id,id))))
+func progression() -> Dictionary: return app.progression_inputs
+func diamonds() -> int: return int(progression().get("freeDiamonds",0)) + int(progression().get("paidDiamonds",0))
+func display_title(id: String) -> String: return str(Growth.TITLES.get(id, NAMES.get(id, core_names.get(id,id))))
 
-func _insets() -> Vector4:
+func safe_insets() -> Vector4:
 	if not OS.has_feature("mobile"): return Vector4.ZERO
 	var screen := Vector2(DisplayServer.screen_get_size())
 	var ratio := size / screen
@@ -61,7 +62,7 @@ func _insets() -> Vector4:
 
 func _safe_layout() -> void:
 	if is_instance_valid(safe):
-		var inset := _insets()
+		var inset := safe_insets()
 		for i in range(4): safe.add_theme_constant_override(["margin_left", "margin_top", "margin_right", "margin_bottom"][i], int(inset[i]))
 	_layout_modal.call_deferred()
 	_layout_warning_toast.call_deferred()
@@ -74,7 +75,7 @@ func show_draw_quote_warning() -> void:
 	_layout_warning_toast()
 
 func _layout_warning_toast() -> void:
-	if is_instance_valid(warning_toast): warning_toast.place(size, _insets())
+	if is_instance_valid(warning_toast): warning_toast.place(size, safe_insets())
 
 func dismiss_draw_quote_warning() -> void:
 	if is_instance_valid(warning_toast): warning_toast.dismiss()
@@ -92,12 +93,6 @@ func _text(value: String, font_size := 12) -> Label:
 	var label := AppTheme.label(value, font_size)
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	return label
-
-func _plain_button(value: String, callback: Callable) -> Button:
-	var b := AppTheme.button(value, callback)
-	b.custom_minimum_size.y = 36
-	for state in ["normal", "hover", "pressed", "focus"]: b.add_theme_stylebox_override(state, StyleBoxEmpty.new())
-	return b
 
 func _margin(parent: Node, pad: int) -> MarginContainer:
 	var margin := MarginContainer.new()
@@ -215,7 +210,7 @@ func refresh_economy() -> void:
 		if is_instance_valid(modal) and modal.get_meta("quest_dialog",false): collection.quests(modal_body)
 
 func _quest_ready() -> bool:
-	var p := _p()
+	var p := progression()
 	if p.get("dailyQuestClockRollbackDetected",false): return false
 	if not p.get("dailyAttendanceRewardClaimed",false): return true
 	var targets: Dictionary = preload("res://app/quest_progress.gd").DAILY
@@ -257,7 +252,7 @@ func _header(parent: Node) -> void:
 	heading.alignment = BoxContainer.ALIGNMENT_BEGIN
 	identity.add_child(heading)
 	if page == "스테이지":
-		var event := _plain_button("", open_quests)
+		var event := UiWidgets.plain_button("", open_quests)
 		event.name = "StageQuests"
 		event.custom_minimum_size = Vector2(38,38)
 		event.icon = AppTheme.texture("quests/entry_reward_ready.jpg" if _quest_ready() else "quests/entry_default.jpg")
@@ -281,7 +276,7 @@ func _header(parent: Node) -> void:
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		heading.add_child(title)
-	var back := _plain_button("‹ 로비", open_page.bind("로비"))
+	var back := UiWidgets.plain_button("‹ 로비", open_page.bind("로비"))
 	back.name = "MenuBack"
 	back.tooltip_text = "로비로 돌아가기"
 	back.custom_minimum_size = Vector2(40,26)
@@ -300,9 +295,9 @@ func _header(parent: Node) -> void:
 	wallet.custom_minimum_size.x = 56
 	wallet.add_theme_constant_override("separation", 4)
 	resources.add_child(wallet)
-	_currency(wallet,"res://assets/ui/diamond_currency.png",int(_p().get("freeDiamonds",0))+int(_p().get("paidDiamonds",0)))
-	if page == "포탑": _currency(wallet,"stage_rewards/reward_module_ticket.png",int(_p().get("turretModules",{}).get("tickets",0)))
-	else: _currency(wallet,"ui/hud/icons/rune.png",int(_p().get("runes",0)))
+	_currency(wallet,"res://assets/ui/diamond_currency.png",int(progression().get("freeDiamonds",0))+int(progression().get("paidDiamonds",0)))
+	if page == "포탑": _currency(wallet,"stage_rewards/reward_module_ticket.png",int(progression().get("turretModules",{}).get("tickets",0)))
+	else: _currency(wallet,"ui/hud/icons/rune.png",int(progression().get("runes",0)))
 
 func _navigation_style(selected: bool) -> StyleBoxTexture:
 	var style := StyleBoxTexture.new()
@@ -334,7 +329,7 @@ func _footer(parent: Node) -> void:
 	for i in range(5):
 		var tab: String = tabs[i]
 		var selected := page == tab
-		var b := _plain_button("", open_page.bind(tab))
+		var b := UiWidgets.plain_button("", open_page.bind(tab))
 		b.name = "Tab" + paths[i].capitalize()
 		b.tooltip_text = tab
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -370,7 +365,7 @@ func open_page(value: String) -> void:
 	if value == "스테이지" and page != value: stages.reset_navigation()
 	page = value
 	message = ""
-	if page == "코어": core_draft = _p().get("corePassiveNodeRanks", {}).duplicate()
+	if page == "코어": core_draft = progression().get("corePassiveNodeRanks", {}).duplicate()
 	refresh()
 
 func open_quests() -> void:
@@ -438,7 +433,7 @@ func open_modal(title: String) -> VBoxContainer:
 	var label := _text(title, 20)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(label)
-	var close := _plain_button("×", close_modal)
+	var close := UiWidgets.plain_button("×", close_modal)
 	close.name = "CloseModal"
 	close.custom_minimum_size = Vector2(32,32)
 	header.add_child(close)
@@ -484,7 +479,7 @@ func refresh_modal_body(expected_modal: Control) -> VBoxContainer:
 
 func _layout_modal() -> void:
 	if not is_instance_valid(modal_frame): return
-	var inset := _insets()
+	var inset := safe_insets()
 	var available := size - Vector2(inset.x+inset.z, inset.y+inset.w)
 	var width := minf(float(modal.get_meta("max_width", 420)), available.x - 32)
 	if modal.has_meta("width_fraction"): width = minf(width, available.x * float(modal.get_meta("width_fraction")))
@@ -523,10 +518,10 @@ func close_modal(replacing: bool = false) -> bool:
 	modal_frame = null
 	return true
 
-func _has_run() -> bool:
+func has_active_run() -> bool:
 	return not app.run_domain.state.is_empty() and not app.run_domain.is_finished()
 
-func _failure() -> void:
+func show_failure() -> void:
 	message = "처리하지 못했습니다. " + str(app.checkpoint.message)
 	refresh()
 
@@ -537,29 +532,26 @@ func open_service(label_text: String, context: Dictionary = {}) -> void:
 		_services.lobby = self
 	_services.open(label_text,context)
 
-func _service(label_text: String, context: Dictionary = {}) -> void:
-	open_service(label_text,context)
-
-func _change(command: Dictionary) -> void:
+func apply_growth_change(command: Dictionary) -> void:
 	if app.apply_growth_command(command): message = ""
 	else: message = "변경하지 못했습니다. 비용·해금 조건 또는 저장 상태를 확인하세요."
 	refresh()
 
-func _start(index: int) -> void:
-	if index < 0 or not Progression.stage_unlocked(_p(), index + 1) or app.get("startup_blocked") == true: return
-	if _has_run():
+func request_stage_start(index: int) -> void:
+	if index < 0 or not Progression.stage_unlocked(progression(), index + 1) or app.get("startup_blocked") == true: return
+	if has_active_run():
 		var content := open_modal("새 전투 시작")
 		content.add_child(AppTheme.label("진행 중인 전투를 종료하고 스테이지 %s에 도전할까요?" % Progression.stage_label(index + 1), 13))
 		var confirm := AppTheme.button("새 전투 시작", func():
 			close_modal()
-			if not await app.start_stage(index): _failure()
+			if not await app.start_stage(index): show_failure()
 		)
 		confirm.name = "ConfirmNewRun"
 		content.add_child(confirm)
 		content.add_child(AppTheme.button("취소", close_modal))
 	else:
 		close_modal()
-		if not await app.start_stage(index): _failure()
+		if not await app.start_stage(index): show_failure()
 
 func _node_details(id: String) -> void: core.node_details(id)
 func _skills() -> void: core.skills()
@@ -579,7 +571,7 @@ func _settings() -> void:
 		message = "" if app.persist_progression() else "저장 실패. 기존 저장을 유지합니다."
 		refresh()
 	))
-	body.add_child(AppTheme.button("계정 및 저장", _service.bind("계정 로그인 · 온라인 저장")))
+	body.add_child(AppTheme.button("계정 및 저장", open_service.bind("계정 로그인 · 온라인 저장")))
 	body.add_child(AppTheme.label("진행 상황은 이 기기에 자동 저장됩니다. Google 계정을 연결하면 서버와 동기화해 다른 기기에서도 이어갈 수 있습니다."))
 
 func _radio(title: String, key: String, values: Array, labels: Array, fallback: Variant) -> void:
@@ -605,7 +597,7 @@ func _radio(title: String, key: String, values: Array, labels: Array, fallback: 
 		)
 		flow.add_child(b)
 
-func _core_effect_text(definition: Dictionary, rank: int) -> String:
+func core_effect_text(definition: Dictionary, rank: int) -> String:
 	var names := {"cooldownRecoveryRate":"재사용 대기시간 회복 속도", "turretAttackRateAmplification":"스킬 후 포탑 공격 속도", "turretDamageAmplification":"스킬 후 포탑 피해", "coreSkillPowerMultiplier":"코어 스킬 위력", "thirdCoreSkillPowerMultiplier":"세 번째 코어 스킬 위력", "nexusMaxHpMultiplier":"코어 최대 체력", "roundRecoveryRate":"라운드 체력 회복", "damageRestorationRate":"손상 복원", "impactDispersionRate":"충격 분산", "threatWeakeningRate":"위협 약화", "emergencyRecoveryRate":"비상 회복", "hasFinalDefense":"최종 방위선", "hasCombinedFront":"통합 전선", "buildCostMultiplier":"건설 비용", "combinedFrontMultiplier":"통합 전선 비용", "roundClearGoldMultiplier":"라운드 보상", "traitShardCostMultiplier":"특성 파편 비용", "diversityDiscountPerType":"포탑 종류별 할인", "gemSpectrumPerType":"젬 종류별 효과", "linkCostMultiplier":"링크 비용"}
 	var text := "다음 등급 효과"
 	var effect: Dictionary = definition.effects[rank]

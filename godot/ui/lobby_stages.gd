@@ -34,26 +34,26 @@ func _stage_number() -> int:
 	return int(_state().get("stage", 0)) + 1
 
 func unlocked(stage: int) -> bool:
-	return Progression.stage_unlocked(lobby._p(), stage) and stage <= lobby.app.catalog.stage_count()
+	return Progression.stage_unlocked(lobby.progression(), stage) and stage <= lobby.app.catalog.stage_count()
 
 func active(stage: int) -> bool:
-	return lobby._has_run() and stage == _stage_number()
+	return lobby.has_active_run() and stage == _stage_number()
 
 func rune_reward(stage: int) -> int:
 	# Pure preview of the existing settlement calculation; returned state is discarded.
-	var preview: Dictionary = Quests.new().finish(lobby._p(), {"stageNumber":stage, "completedRounds":lobby.app.catalog.wave_count(stage - 1), "success":true, "grantEconomyRewardsLocally":false})
+	var preview: Dictionary = Quests.new().finish(lobby.progression(), {"stageNumber":stage, "completedRounds":lobby.app.catalog.wave_count(stage - 1), "success":true, "grantEconomyRewardsLocally":false})
 	return int(preview.lastRunRuneReward)
 
 func record(stage: int) -> String:
-	var best := int(lobby._p().get("bestRoundsByStage", {}).get(str(stage), 0))
+	var best := int(lobby.progression().get("bestRoundsByStage", {}).get(str(stage), 0))
 	if best > 0: return "최고 %d라운드" % best
-	return "클리어" if stage in lobby._p().get("clearedStageNumbers", []) else "기록 없음"
+	return "클리어" if stage in lobby.progression().get("clearedStageNumbers", []) else "기록 없음"
 
 func status(stage: int) -> String:
 	if not unlocked(stage): return "잠김"
 	if active(stage):
 		return "전투 중" if _state().get("phase") == "wave" else ("보상 선택 대기" if _state().get("phase") == "reward" else "진행 중")
-	if stage in lobby._p().get("clearedStageNumbers", []): return "클리어"
+	if stage in lobby.progression().get("clearedStageNumbers", []): return "클리어"
 	return record(stage)
 
 func reset_navigation() -> void:
@@ -62,12 +62,12 @@ func reset_navigation() -> void:
 
 func render() -> void:
 	if chapter == 0:
-		var current := _stage_number() if lobby._has_run() else 1
-		if not lobby._has_run():
+		var current := _stage_number() if lobby.has_active_run() else 1
+		if not lobby.has_active_run():
 			for id in Progression.ordered_ids():
 				if unlocked(id): current = id
 		chapter = Progression.chapter_for(current)
-	if lobby._has_run() and _stage_number() != active_stage_seen:
+	if lobby.has_active_run() and _stage_number() != active_stage_seen:
 		active_stage_seen = _stage_number()
 		chapter = Progression.chapter_for(active_stage_seen)
 	canvas = Control.new()
@@ -154,7 +154,7 @@ func _layout() -> void:
 	_text(CHAPTERS[chapter - 1], Rect2(62,164,360,52), 42)
 	var stages: Array = Progression.ids_for_chapter(chapter)
 	_text("스테이지 %d-1–%d-%d" % [chapter, chapter, stages.size()], Rect2(62,211,380,35), 24, Color("b9d6e4"), false, 700)
-	var active_here: bool = lobby._has_run() and _stage_number() in stages
+	var active_here: bool = lobby.has_active_run() and _stage_number() in stages
 	if active_here: _active_card(_stage_number())
 	else: _asset("chapter_bridge", Rect2(338,280,114,36))
 	list_origin = 658 if active_here else 289
@@ -239,13 +239,13 @@ func _reward_icons(stage: int) -> Array:
 
 func _continue() -> void:
 	lobby.close_modal()
-	if not await lobby.app.resume_run(): lobby._failure()
+	if not await lobby.app.resume_run(): lobby.show_failure()
 
 func start(stage: int) -> void:
 	if not unlocked(stage): return
 	lobby.close_modal()
 	if active(stage): _continue()
-	else: lobby._start(stage - 1)
+	else: lobby.request_stage_start(stage - 1)
 
 func _surface(parent: Node, image: String) -> VBoxContainer:
 	var panel := PanelContainer.new()
@@ -308,15 +308,15 @@ func _glyph(code: String, rect: Rect2, pixels: int, color: Color) -> void:
 	_place(icon,rect)
 
 func reward_highlighted(stage: int) -> bool:
-	if stage == 3 and lobby._p().has("availableTurretTypes"):
-		return "sniper" in lobby._p().availableTurretTypes
+	if stage == 3 and lobby.progression().has("availableTurretTypes"):
+		return "sniper" in lobby.progression().availableTurretTypes
 	var found := false
 	for kind in Progression.REQUIREMENTS:
 		for key in Progression.REQUIREMENTS[kind]:
 			if Progression.requirement(kind,key) != stage: continue
 			found = true
-			if not Progression.has_unlock(lobby._p(),kind,key): return false
-	return found or stage in lobby._p().get("clearedStageNumbers", [])
+			if not Progression.has_unlock(lobby.progression(),kind,key): return false
+	return found or stage in lobby.progression().get("clearedStageNumbers", [])
 
 func _detail_label(value: String, pixels := 12, color := WHITE, weight := 700) -> Label:
 	var label := T.label(value,pixels)

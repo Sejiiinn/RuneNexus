@@ -19,10 +19,10 @@ class Host extends Control:
 	var modal: VBoxContainer
 	var started := -1
 	var opened_modals := 0
-	func _p() -> Dictionary: return p
-	func _has_run() -> bool: return not app.run_domain.state.is_empty()
-	func _start(index: int) -> void: started = index
-	func _failure() -> void: assert(false)
+	func progression() -> Dictionary: return p
+	func has_active_run() -> bool: return not app.run_domain.state.is_empty()
+	func request_stage_start(index: int) -> void: started = index
+	func show_failure() -> void: assert(false)
 	func close_modal() -> void:
 		if is_instance_valid(modal): remove_child(modal); modal.queue_free(); modal = null
 	func open_modal(_title: String) -> VBoxContainer:

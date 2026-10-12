@@ -3,20 +3,20 @@ const Collection = preload("res://ui/lobby_collection.gd")
 const Growth = preload("res://app/growth_rules.gd")
 const Quest = preload("res://app/quest_progress.gd")
 class Host extends Control:
-	var progression: Dictionary = {"turretModules":{"items":[], "tickets":2}, "clearedStageNumbers":[]}
+	var progression_state: Dictionary = {"turretModules":{"items":[], "tickets":2}, "clearedStageNumbers":[]}
 	var body: VBoxContainer
 	var helper
 	var commands: Array = []
 	var growth
-	func _p() -> Dictionary: return progression
-	func _title(value: String) -> String: return {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"번개"}.get(value, value)
-	func _change(command: Dictionary) -> void:
+	func progression() -> Dictionary: return progression_state
+	func display_title(value: String) -> String: return {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"번개"}.get(value, value)
+	func apply_growth_change(command: Dictionary) -> void:
 		commands.append(command)
 		var request: Dictionary = command.duplicate()
 		request.type = request.kind
-		var result: Dictionary = growth.execute(progression, request)
+		var result: Dictionary = growth.execute(progression_state, request)
 		assert(result.ok)
-		progression = result.state
+		progression_state = result.state
 		helper.modules()
 
 func _initialize() -> void: call_deferred("_run")
@@ -102,7 +102,7 @@ func _run() -> void:
 	var second: Dictionary = item.duplicate(true)
 	second.id = "test_b"
 	second.equipped = true
-	host.progression.turretModules.items = [item, second, {"id":"test_c", "turretType":"cannon", "part":"barrel", "grade":"normal", "equipped":false, "options":[]}]
+	host.progression_state.turretModules.items = [item, second, {"id":"test_c", "turretType":"cannon", "part":"barrel", "grade":"normal", "equipped":false, "options":[]}]
 	helper.modules()
 	assert(helper.filtered_items().size() == 2)
 	helper.select_part("barrel")
@@ -118,13 +118,13 @@ func _run() -> void:
 	assert("과열 연산 코어" in _texts(host.body))
 	assert("피해 +12%" in _texts(host.body))
 	_find(host.body, "장착").pressed.emit()
-	assert(host.progression.turretModules.items[0].equipped)
-	assert(not host.progression.turretModules.items[1].equipped)
+	assert(host.progression_state.turretModules.items[0].equipped)
+	assert(not host.progression_state.turretModules.items[1].equipped)
 	_find(host.body, "장착 해제").pressed.emit()
-	assert(not host.progression.turretModules.items[0].equipped)
-	var original: Dictionary = host.progression.duplicate(true)
+	assert(not host.progression_state.turretModules.items[0].equipped)
+	var original: Dictionary = host.progression_state.duplicate(true)
 	helper._module_service("모듈 뽑기")
-	assert(host.progression == original)
+	assert(host.progression_state == original)
 	assert("계정 서버 연결" in _texts(host.body))
 	for width in [320, 440]:
 		host.size = Vector2(width, 1100)
@@ -133,7 +133,7 @@ func _run() -> void:
 		await process_frame
 		await process_frame
 		assert(host.body.get_combined_minimum_size().x <= width - 24)
-		_assert_module_actions(host.body, host.progression.turretModules.items[0])
+		_assert_module_actions(host.body, host.progression_state.turretModules.items[0])
 		var grid: GridContainer = host.body.find_child("ModuleInventoryGrid",true,false)
 		assert(grid != null)
 		assert(grid.columns == (5 if grid.size.x<324 else 6))
@@ -141,22 +141,22 @@ func _run() -> void:
 		assert(grid.columns == (5 if width==320 else 6),"Responsive 5/6 columns")
 		for cell in grid.get_children(): assert(absf(cell.size.x-cell.size.y)<1.1,"Inventory cells stay square")
 	# The module page reserves the same details/action band for 0/1/3 options.
-	var saved_items: Array = host.progression.turretModules.items.duplicate(true)
+	var saved_items: Array = host.progression_state.turretModules.items.duplicate(true)
 	var three_options: Dictionary = item.duplicate(true)
 	three_options.id = "three_options"
 	three_options.options = [{"type":"highLevelUpgradeCostDiscount", "value":25}, {"type":"lightningChainRangeIncrease", "value":12}, {"type":"criticalDamageBonus", "value":40}]
-	host.progression.turretModules.items.append(three_options)
+	host.progression_state.turretModules.items.append(three_options)
 	for part in ["core", "barrel", "frame"]:
 		var equipped: Dictionary = item.duplicate(true)
 		equipped.id = "equipped_" + part
 		equipped.part = part
 		equipped.equipped = true
 		equipped.grade = {"core":"normal", "barrel":"magic", "frame":"unique"}[part]
-		host.progression.turretModules.items.append(equipped)
+		host.progression_state.turretModules.items.append(equipped)
 	for i in range(100):
 		var extra: Dictionary = item.duplicate(true)
 		extra.id = "inventory_%d" % i
-		host.progression.turretModules.items.append(extra)
+		host.progression_state.turretModules.items.append(extra)
 	for width in [320, 440]:
 		host.body.size = Vector2(width - 24, 620)
 		helper.select_part("")
@@ -200,27 +200,27 @@ func _run() -> void:
 				choice.turretType = "lightning"
 				choice.grade = grade
 				choice.equipped = equipped
-				host.progression.clearedStageNumbers = [3, 6]
-				host.progression.turretModules.items.append(choice)
+				host.progression_state.clearedStageNumbers = [3, 6]
+				host.progression_state.turretModules.items.append(choice)
 				helper.select_turret("lightning")
 				helper.select_item(choice)
 				for i in range(6): await process_frame
 				_assert_module_actions(host.body, choice)
-				host.progression.turretModules.items.pop_back()
+				host.progression_state.turretModules.items.pop_back()
 		helper.select_turret("arrow")
-	host.progression.turretModules.items = saved_items
+	host.progression_state.turretModules.items = saved_items
 	helper.modules()
 	for i in range(3): await process_frame
 	assert(host.body.find_child("ModuleSlot_core", true, false).find_child("EquippedModuleIcon", true, false) == null, "Empty slot has no equipped icon")
 	var quests := Quest.new()
-	host.progression = quests.refresh(host.progression, 1800450000000)
-	host.progression = quests.record(host.progression, "clearWaves", 30, 1800450000000)
+	host.progression_state = quests.refresh(host.progression_state, 1800450000000)
+	host.progression_state = quests.record(host.progression_state, "clearWaves", 30, 1800450000000)
 	helper.quests(host.body)
 	assert("웨이브 30회 클리어" in _texts(host.body))
 	assert("30 / 30" in _texts(host.body))
-	original = host.progression.duplicate(true)
+	original = host.progression_state.duplicate(true)
 	_find(host.body, "수령").pressed.emit()
-	assert(host.progression == original)
+	assert(host.progression_state == original)
 	assert("계정 서버 연결" in _texts(host.body))
 	helper.set_period("weekly", host.body)
 	assert("웨이브 150회 클리어" in _texts(host.body))
@@ -233,10 +233,10 @@ func _run() -> void:
 		assert(host.body.get_combined_minimum_size().x <= width - 64)
 		for row in host.body.get_children():
 			if row is PanelContainer: assert(row.size.y < 110, "Quest row must not stack scalar captions vertically")
-	host.progression.claimedWeeklyQuestRewards = ["clearWaves"]
+	host.progression_state.claimedWeeklyQuestRewards = ["clearWaves"]
 	helper.quests(host.body)
 	assert(_find(host.body, "수령 완료").disabled)
-	host.progression.dailyQuestClockRollbackDetected = true
+	host.progression_state.dailyQuestClockRollbackDetected = true
 	helper.set_period("daily", host.body)
 	assert(_find(host.body, "수령") == null)
 	print("PASS lobby_collection: module filter/equip/unequip, service immutability, daily/weekly progress/claimed/clock guard, 320/440 widths, fixed module bounds, upper-right metallic actions/all grade refunds/compact bulk, inventory-only hidden-bar scroll position, equipped part/grade icons")

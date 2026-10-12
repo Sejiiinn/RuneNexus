@@ -188,7 +188,7 @@ func stored_roundtrip(scene, app, directory: String) -> void:
 	var expected: Variant = Json.parse(FileAccess.get_file_as_string(directory.path_join("expected.json")))
 	check(expected is Dictionary and expected.get("activeRun") is Dictionary, "saved coldboot fixture exists")
 	if not expected is Dictionary or not expected.get("activeRun") is Dictionary: return
-	check(scene.combat_runtime.active and scene.combat_runtime.session.paused and app.lobby._has_run(), "stored cold lobby exposes Continue with paused native metadata")
+	check(scene.combat_runtime.active and scene.combat_runtime.session.paused and app.lobby.has_active_run(), "stored cold lobby exposes Continue with paused native metadata")
 	check(app.run_domain.state.economyRunId == expected.activeRun.economyRunId, "stored cold lobby retains run identity")
 	check(app.persist_progression(), "cold lobby autosave succeeds before realization")
 	var saved: Dictionary = app.checkpoint.store.load_save()

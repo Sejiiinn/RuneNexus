@@ -7,6 +7,7 @@ const GOLD := Color("ffd477")
 const CYAN := Color("a9efff")
 const TEXT := Color("e8f8ff")
 const MUTED := Color("a7bdca")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 
 static func _size(lobby, logical: int) -> int:
 	return lobby.home._font_size(logical) if is_instance_valid(lobby.home) else logical
@@ -56,7 +57,7 @@ static func _popup(lobby, title: String, message: String) -> void:
 	detail.add_theme_font_size_override("normal_font_size", _size(lobby, 11))
 	detail.add_theme_color_override("default_color", TEXT)
 	column.add_child(detail)
-	var close: Button = lobby._plain_button("닫기", popup.hide)
+	var close: Button = UiWidgets.plain_button("닫기", popup.hide)
 	close.custom_minimum_size.y = 38
 	close.add_theme_font_size_override("font_size", _size(lobby, 12))
 	column.add_child(close)
@@ -79,7 +80,7 @@ static func _header(lobby) -> void:
 	title.custom_minimum_size.x = 0
 	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header.add_child(title)
-	var close: Button = lobby._plain_button("×", lobby.close_modal)
+	var close: Button = UiWidgets.plain_button("×", lobby.close_modal)
 	close.name = "CloseModal"
 	close.custom_minimum_size = Vector2(38, 38)
 	close.add_theme_font_size_override("font_size", 27)
@@ -182,7 +183,7 @@ static func build(lobby, body: VBoxContainer, data: Dictionary, pending: bool, n
 	top.name = "LeaderboardTop"
 	body.add_child(top)
 	top.add_child(_label(lobby, "전체 순위 · TOP 100", 14, MUTED))
-	var reload: Button = lobby._plain_button("↻", refresh)
+	var reload: Button = UiWidgets.plain_button("↻", refresh)
 	reload.name = "RefreshLeaderboard"
 	reload.custom_minimum_size = Vector2(36, 36)
 	reload.add_theme_font_size_override("font_size", 26)
@@ -194,7 +195,7 @@ static func build(lobby, body: VBoxContainer, data: Dictionary, pending: bool, n
 	var as_of := _timestamp(data.get("asOf", ""))
 	var help := "동일 기록은 먼저 달성한 순 · 서버 확정 시각 기준"
 	if compact:
-		var guide: Button = lobby._plain_button("순위 안내", func(): _popup(lobby, "순위 안내", (as_of + " 기준\n" if not as_of.is_empty() else "") + help))
+		var guide: Button = UiWidgets.plain_button("순위 안내", func(): _popup(lobby, "순위 안내", (as_of + " 기준\n" if not as_of.is_empty() else "") + help))
 		guide.name = "LeaderboardGuide"
 		guide.custom_minimum_size.y = 38
 		guide.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN

@@ -56,7 +56,7 @@ func run() -> void:
 	for width in [440,320]:
 		root.size = Vector2i(width,900); root.content_scale_size = root.size; await settle()
 		if width == 440: button(lobby.body,"계정 및 저장").pressed.emit()
-		else: lobby._service("계정 및 저장")
+		else: lobby.open_service("계정 및 저장")
 		await settle()
 		assert(texts(lobby.modal_frame).contains("계정 및 저장") and not texts(lobby.modal_frame).contains("계정 로그인 · 온라인 저장"),"Settings alias preserves approved modal title")
 		var ui = lobby._services
@@ -91,7 +91,7 @@ func run() -> void:
 		assert(lobby.modal.get_instance_id()==modal_id,"Pending/error renders retain modal lifetime")
 		service.calls.clear()
 	service.profile = {"nickname":"긴닉네임여덟글자","tag":"0012"}
-	lobby._service("계정 및 저장"); await settle()
+	lobby.open_service("계정 및 저장"); await settle()
 	assert(button(lobby.modal_body,"닉네임 확정")==null and texts(lobby.modal_body).contains("긴닉네임여덟글자#0012"))
 	service.busy = true; lobby._services._render(); await settle()
 	assert(button(lobby.modal_body,"동기화 다시 시도").disabled and button(lobby.modal_body,"로그아웃").disabled)
@@ -101,12 +101,12 @@ func run() -> void:
 	button(lobby.modal_body,"동기화 다시 시도").pressed.emit(); await settle()
 	assert(service.calls.back()=={"action":"retry"})
 	lobby.close_modal(); service.released.emit(); await settle(); assert(lobby.modal==null,"Late completion cannot reopen dismissed account modal")
-	service.online = false; service.issue = ""; lobby._service("계정 및 저장"); await settle()
+	service.online = false; service.issue = ""; lobby.open_service("계정 및 저장"); await settle()
 	assert(texts(lobby.modal_body).contains("계정 저장 · 오프라인") and button(lobby.modal_body,"Google 계정 연결")!=null)
 	assert(button(lobby.modal_body,"동기화 다시 시도")!=null and button(lobby.modal_body,"로그아웃")!=null)
 	await capture("account-offline-320")
 	button(lobby.modal_body,"로그아웃").pressed.emit(); await settle(); assert(service.calls.back()=={"action":"logout"}); service.released.emit(); await settle()
-	service.account.account_id_hint = ""; service.enabled = false; lobby._service("계정 및 저장"); await settle()
+	service.account.account_id_hint = ""; service.enabled = false; lobby.open_service("계정 및 저장"); await settle()
 	assert(texts(lobby.modal_body).contains("게스트") and button(lobby.modal_body,"Google 계정 연결").disabled)
 	assert(button(lobby.modal_body,"로그아웃")==null and texts(lobby.modal_body).contains("이 실행 환경에서는"))
 	await capture("account-guest-unconfigured-320")

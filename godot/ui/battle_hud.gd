@@ -7,6 +7,7 @@ const Components = preload("res://ui/combat_component_theme.gd")
 const HudChrome = preload("res://ui/hud_chrome.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const TargetPriorityPopup = preload("res://ui/target_priority_popup.gd")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}
 const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다."}
 const UPGRADES := {"towerDamage":"포탑 화력", "killGold":"처치 보너스", "waveGold":"정비 보급"}
@@ -115,8 +116,8 @@ func _ready() -> void:
 	wallet.size_flags_vertical = Control.SIZE_SHRINK_CENTER; wallet.add_theme_constant_override("separation",5); top_row.add_child(wallet)
 	for item in [["gold",""],["shard",""],["power","전투력 "]]:
 		var row := HBoxContainer.new(); row.add_theme_constant_override("separation",5); wallet.add_child(row)
-		var icon := _icon(row,"ui/hud/icons/"+item[0]+".png",15); icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var value := _label(row,item[1],11 if item[0] == "power" else 14)
+		var icon := UiWidgets.icon(row,"ui/hud/icons/"+item[0]+".png",15); icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var value := UiWidgets.label(row,item[1],11 if item[0] == "power" else 14)
 		value.autowrap_mode = TextServer.AUTOWRAP_OFF; value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		value.add_theme_color_override("font_color",Color("e8f8ff"))
 		if item[0] == "gold": gold_label = value
@@ -127,10 +128,10 @@ func _ready() -> void:
 	status_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL; status_box.add_theme_constant_override("separation",3)
 	top_row.add_child(status_box)
 	var health_row := HBoxContainer.new(); health_row.add_theme_constant_override("separation",4); status_box.add_child(health_row)
-	status = _label(health_row,"",12); status.autowrap_mode = TextServer.AUTOWRAP_OFF
+	status = UiWidgets.label(health_row,"",12); status.autowrap_mode = TextServer.AUTOWRAP_OFF
 	status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; status.add_theme_color_override("font_color",Color("e8f8ff"))
-	wave_label = _label(health_row,"",11); wave_label.size_flags_horizontal = Control.SIZE_SHRINK_END; wave_label.autowrap_mode = TextServer.AUTOWRAP_OFF; wave_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	home = _button(health_row,"",menu_panel._stage_menu); home.tooltip_text = "스테이지 메뉴"
+	wave_label = UiWidgets.label(health_row,"",11); wave_label.size_flags_horizontal = Control.SIZE_SHRINK_END; wave_label.autowrap_mode = TextServer.AUTOWRAP_OFF; wave_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	home = UiWidgets.button(health_row,"",menu_panel._stage_menu); home.tooltip_text = "스테이지 메뉴"
 	home.custom_minimum_size = Vector2(32,32); home.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for state in ["normal","hover","pressed","disabled","focus"]:
 		home.add_theme_stylebox_override(state,StyleBoxEmpty.new())
@@ -150,20 +151,20 @@ func _ready() -> void:
 	hp.add_theme_stylebox_override("fill",BattleTheme.box(Color("6ef6a5"),Color.TRANSPARENT,0)); status_box.add_child(hp)
 	var intel_row := HBoxContainer.new(); intel_row.add_theme_constant_override("separation",5); status_box.add_child(intel_row)
 	var enemies := VBoxContainer.new(); enemies.add_theme_constant_override("separation",0); intel_row.add_child(enemies)
-	enemy_caption = _label(enemies,"다음 적",10); enemy_caption.autowrap_mode = TextServer.AUTOWRAP_OFF; enemy_caption.add_theme_color_override("font_color",Color("91adba"))
+	enemy_caption = UiWidgets.label(enemies,"다음 적",10); enemy_caption.autowrap_mode = TextServer.AUTOWRAP_OFF; enemy_caption.add_theme_color_override("font_color",Color("91adba"))
 	enemy_intel = HBoxContainer.new(); enemy_intel.add_theme_constant_override("separation",1); enemies.add_child(enemy_intel)
 	var reward_box := VBoxContainer.new(); reward_box.add_theme_constant_override("separation",0); reward_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL; intel_row.add_child(reward_box)
-	reward_caption = _label(reward_box,"예상 보상",10); reward_caption.autowrap_mode = TextServer.AUTOWRAP_OFF; reward_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; reward_caption.add_theme_color_override("font_color",Color("91adba"))
-	reward_label = _label(reward_box,"",11); reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; reward_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	reward_caption = UiWidgets.label(reward_box,"예상 보상",10); reward_caption.autowrap_mode = TextServer.AUTOWRAP_OFF; reward_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; reward_caption.add_theme_color_override("font_color",Color("91adba"))
+	reward_label = UiWidgets.label(reward_box,"",11); reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; reward_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	reward_label.add_theme_color_override("font_color",Color("d9d3b8"))
 	reward_label.custom_minimum_size.y = 24; reward_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	camera_button = _button(self,"고정 ↔",func(): app.toggle_camera(); refresh())
+	camera_button = UiWidgets.button(self,"고정 ↔",func(): app.toggle_camera(); refresh())
 	camera_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	camera_button.custom_minimum_size = Vector2(68,32); camera_button.size = Vector2(68,32)
-	_style_hud_button(camera_button,"quiet",false,Vector2(5,2))
+	UiWidgets.style_hud_button(camera_button,"quiet",false,Vector2(5,2))
 	top.resized.connect(_position_camera_button)
-	message = _label(top,"",11)
-	retry_save = _button(top,"저장 다시 시도",func(): app.persist_progression(); refresh())
+	message = UiWidgets.label(top,"",11)
+	retry_save = UiWidgets.button(top,"저장 다시 시도",func(): app.persist_progression(); refresh())
 	dock = PanelContainer.new()
 	dock.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	dock.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -180,16 +181,16 @@ func _ready() -> void:
 	var speeds := HBoxContainer.new(); speeds.add_theme_constant_override("separation",0); speed_group.add_child(speeds)
 	for value in [1,2,4]:
 		if value != 1: speeds.add_child(HudChrome.divider())
-		var b := _button(speeds,"%dx" % value,func(): app.set_speed(value); refresh())
+		var b := UiWidgets.button(speeds,"%dx" % value,func(): app.set_speed(value); refresh())
 		b.custom_minimum_size = Vector2(32,36); b.add_theme_font_size_override("font_size",11)
 		b.toggle_mode = true; speed_buttons[value] = b
 	var space := Control.new(); space.size_flags_horizontal = Control.SIZE_EXPAND_FILL; actions.add_child(space)
-	pause_button = _button(actions,"Ⅱ",func(): app.toggle_pause(); refresh())
+	pause_button = UiWidgets.button(actions,"Ⅱ",func(): app.toggle_pause(); refresh())
 	pause_button.name = "PauseBattle"; pause_button.tooltip_text = "일시정지"; pause_button.custom_minimum_size = Vector2(32,36)
-	_style_hud_button(pause_button,"quiet",false,Vector2(3,0))
-	auto_start = _button(actions,"수동 ▾",_open_auto_start)
+	UiWidgets.style_hud_button(pause_button,"quiet",false,Vector2(3,0))
+	auto_start = UiWidgets.button(actions,"수동 ▾",_open_auto_start)
 	auto_start.custom_minimum_size = Vector2(68,36)
-	_style_hud_button(auto_start,"quiet",false,Vector2(5,0))
+	UiWidgets.style_hud_button(auto_start,"quiet",false,Vector2(5,0))
 	auto_start_popup = PopupMenu.new(); auto_start_popup.name = "AutoStartModes"; add_child(auto_start_popup)
 	auto_start_popup.theme = theme; auto_start_popup.theme_type_variation = "HudPopup"
 	auto_start_popup.add_theme_font_size_override("font_size",13)
@@ -202,9 +203,9 @@ func _ready() -> void:
 	target_priority_popup.theme = theme
 	target_priority_popup.configure(PRIORITIES)
 	target_priority_popup.id_pressed.connect(turret_panel._select_priority)
-	start = _button(actions,"▶ 시작",_primary_action)
+	start = UiWidgets.button(actions,"▶ 시작",_primary_action)
 	start.custom_minimum_size = Vector2(76,36)
-	_style_hud_button(start,"primary",false,Vector2(10,0))
+	UiWidgets.style_hud_button(start,"primary",false,Vector2(10,0))
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
@@ -218,7 +219,7 @@ func _ready() -> void:
 	var tabs := HBoxContainer.new(); tabs.add_theme_constant_override("separation",0); tabs_panel.add_child(tabs)
 	for spec in [["turrets","포탑"],["upgrades","업그레이드"],["gems","젬"]]:
 		if spec[0] != "turrets": tabs.add_child(HudChrome.divider())
-		var b := _button(tabs,spec[1],func(): _select_main(spec[0]))
+		var b := UiWidgets.button(tabs,spec[1],func(): _select_main(spec[0]))
 		b.custom_minimum_size.y = 34
 		b.toggle_mode = true; b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; main_buttons[spec[0]] = b
 		b.icon = AppTheme.texture("ui/hud/icons/"+spec[0]+".png"); b.expand_icon = true; b.add_theme_constant_override("icon_max_width",18)
@@ -240,7 +241,7 @@ func on_board_selection() -> void:
 		selected_slot = -1; selected_gem = ""; tab = "stats"
 		app.selection_view.level_preview = false
 	last_selected = app.selected
-	main_tab = "turrets" if _selected_tile() != "" else "closed"
+	main_tab = "turrets" if selected_tile_type() != "" else "closed"
 	body_key = ""
 
 func _select_main(value: String) -> void:
@@ -261,7 +262,7 @@ func refresh(polled := false) -> void:
 	var viewport := get_viewport_rect().size
 	var insets := safe_insets()
 	var details := main_tab != "closed" and phase in ["preparation","wave"]
-	var layout_key := [viewport,insets,phase,details,main_tab,_selected_tile()]
+	var layout_key := [viewport,insets,phase,details,main_tab,selected_tile_type()]
 	if layout_key != _layout_key:
 		_layout_key = layout_key
 		top.offset_top = 8+insets.y; top.offset_left = 8+insets.x; top.offset_right = -8-insets.z
@@ -279,9 +280,9 @@ func refresh(polled := false) -> void:
 	if dk != dps_key:
 		dps_key = dk; total_dps = 0
 		for turret in state.get("turrets",[]):
-			var stats := _stats(state,turret)
+			var stats := turret_stats(state,turret)
 			var projectile := str(turret.type) in ["arrow","cannon"]
-			total_dps += _dps(stats,str(turret.type)) + float(stats.damage)*float(stats.attackRate)*(int(stats.projectileCount)-1 if projectile else 0)
+			total_dps += dps(stats,str(turret.type)) + float(stats.damage)*float(stats.attackRate)*(int(stats.projectileCount)-1 if projectile else 0)
 	# Compact numeric presentation only; all balances, quotes and arithmetic stay exact.
 	gold_label.text = HudNumber.compact(int(state.gold),0); gold_label.tooltip_text = str(state.gold)
 	shard_label.text = HudNumber.compact(int(state.gemShards),0); shard_label.tooltip_text = str(state.gemShards)
@@ -298,13 +299,13 @@ func refresh(polled := false) -> void:
 		var button: Button = speed_buttons[value]
 		if button.button_pressed != selected or not button.has_meta("hud_role"):
 			button.button_pressed = selected
-			_style_hud_button(button,"segment",selected,Vector2.ZERO)
+			UiWidgets.style_hud_button(button,"segment",selected,Vector2.ZERO)
 	for value in main_buttons:
 		var button: Button = main_buttons[value]
 		var selected: bool = main_tab == value
 		if button.button_pressed != selected or not button.has_meta("hud_role"):
 			button.button_pressed = selected
-			_style_hud_button(button,"secondary",selected,Vector2(6,4),true)
+			UiWidgets.style_hud_button(button,"secondary",selected,Vector2(6,4),true)
 		button.disabled = phase not in ["preparation","wave"]
 	var paused: bool = bool(runtime.session.get("paused",false))
 	var resumable := phase == "wave" and paused
@@ -347,7 +348,7 @@ func refresh(polled := false) -> void:
 		var old_picker := body.get_node_or_null("TurretPicker") as ScrollContainer
 		var picker_offset := old_picker.scroll_horizontal if old_picker != null else 0
 		body_purchase_buttons.clear()
-		_clear(body); damage_label = null; core_label = null; core_bar = null; core_metric = null
+		UiWidgets.clear(body); damage_label = null; core_label = null; core_bar = null; core_metric = null
 		if main_tab == "upgrades": build_panel._upgrades(state)
 		elif main_tab == "gems": gem_panel._inventory(state)
 		elif main_tab == "turrets":
@@ -397,16 +398,6 @@ func _primary_action() -> void:
 	else: app.start_wave()
 	refresh()
 
-func _style_hud_button(button: Button, role: String, selected: bool, padding: Vector2, tab_button := false) -> void:
-	button.set_meta("hud_role",role)
-	if role == "primary": button.theme_type_variation = "HudPrimary"
-	for state in ["normal","hover","pressed","disabled","focus"]:
-		if role == "primary": button.remove_theme_stylebox_override(state)
-		else: button.add_theme_stylebox_override(state,HudChrome.quiet(state,selected,Color("65c9df"),padding))
-	var foreground := Color("b7c8d8") if tab_button and not selected else Color("e8f8ff")
-	for color_role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","icon_normal_color","icon_hover_color","icon_pressed_color"]:
-		button.add_theme_color_override(color_role,foreground)
-
 func _queue_dock_layout() -> void:
 	if _dock_layout_pending: return
 	_dock_layout_pending = true
@@ -415,7 +406,7 @@ func _queue_dock_layout() -> void:
 func _fit_dock_to_content() -> void:
 	_dock_layout_pending = false
 	if not is_instance_valid(body): return
-	var picker_only := main_tab == "turrets" and _selected_tile() == ""
+	var picker_only := main_tab == "turrets" and selected_tile_type() == ""
 	var integrated_dock := picker_only or main_tab == "upgrades"
 	var turret_stats := main_tab == "turrets" and body.find_child("TurretStatsGrid",true,false) != null
 	detail_panel.theme_type_variation = "HudDock" if integrated_dock else ""
@@ -439,13 +430,13 @@ func _fit_dock_to_content() -> void:
 func _stat_input(state: Dictionary, turret: Dictionary) -> Dictionary:
 	return configuration_cache.stat_input(configuration_cache.derived(state,app.run_domain.service),turret)
 
-func _stats(state: Dictionary,turret: Dictionary) -> Dictionary:
+func turret_stats(state: Dictionary,turret: Dictionary) -> Dictionary:
 	return configuration_cache.stats(app.catalog,turret,_stat_input(state,turret),48.0)
 
-func _dps(stats: Dictionary,type: String) -> float:
+func dps(stats: Dictionary,type: String) -> float:
 	return float(stats.damage)*float(stats.attackRate)+(float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) if type == "magic" else 0.0)
 
-func _track_purchase_button(button: Button,currency: String,cost: int,blocked: bool) -> void:
+func track_purchase_button(button: Button,currency: String,cost: int,blocked: bool) -> void:
 	for entry in body_purchase_buttons:
 		if entry.button == button:
 			entry.currency = currency; entry.cost = cost; entry.blocked = blocked
@@ -472,7 +463,7 @@ func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_
 		modal.gui_input.connect(func(event):
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT: close_modal()
 			elif event is InputEventScreenTouch and event.pressed: close_modal())
-	else: _clear(modal)
+	else: UiWidgets.clear(modal)
 	modal_bottom_sheet = bottom_sheet
 	_modal_max_width = max_width
 	modal_panel = PanelContainer.new(); modal_panel.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -487,10 +478,10 @@ func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_
 	var s := ScrollContainer.new(); s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; s.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; s.custom_minimum_size.y = 40; modal_panel.add_child(s); modal_scroll = s
 	modal_body = VBoxContainer.new(); modal_body.add_theme_constant_override("separation",10); modal_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL; s.add_child(modal_body)
 	var header := HBoxContainer.new(); modal_body.add_child(header)
-	_label(header,title,18).add_theme_font_override("font",AppTheme.font(900))
+	UiWidgets.label(header,title,18).add_theme_font_override("font",AppTheme.font(900))
 	if show_close:
-		var close := _button(header,"×",close_modal); close.tooltip_text = "취소"; close.custom_minimum_size = Vector2(30,30)
-		_style_hud_button(close,"quiet",false,Vector2(3,0))
+		var close := UiWidgets.button(header,"×",close_modal); close.tooltip_text = "취소"; close.custom_minimum_size = Vector2(30,30)
+		UiWidgets.style_hud_button(close,"quiet",false,Vector2(3,0))
 	var separator := HSeparator.new(); separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var line := StyleBoxLine.new(); line.color = Color("51879b88"); line.thickness = 1
 	separator.add_theme_stylebox_override("separator",line); modal_body.add_child(separator)
@@ -565,59 +556,26 @@ func close_back() -> bool:
 	if main_tab != "closed": _select_main(main_tab); return true
 	menu_panel._stage_menu(); return true
 
-func _material_icon(parent: Node,codepoint: int,extent: int) -> Label:
-	var icon := Label.new(); icon.text = char(codepoint); icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.add_theme_font_override("font",load("res://assets/ui/MaterialIcons-Regular.otf")); icon.add_theme_font_size_override("font_size",extent)
-	parent.add_child(icon)
-	return icon
-
 func battlefield_rect() -> Rect2:
 	# Stable reference bounds: opening detail/reward targeting never reframes camera.
 	var viewport := get_viewport_rect().size
 	var insets := safe_insets()
 	return Rect2(Vector2(8+insets.x,110+insets.y),Vector2(maxf(1,viewport.x-16-insets.x-insets.z),maxf(1,viewport.y-302-insets.y-insets.w)))
 
-func _stat_pill(parent: Node,title: String,value: String,color := Color("e8f8ff")) -> void:
-	var panel := PanelContainer.new(); panel.add_theme_stylebox_override("panel",BattleTheme.box(Color(color,0.12),Color(color,0.55),7)); parent.add_child(panel)
-	var caption := _label(panel,(title+" "+value).strip_edges(),11); caption.modulate = color
-	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
-	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-func _command(request: Dictionary) -> void:
+func run_command(request: Dictionary) -> void:
 	app.apply_run_command(request)
 	refresh()
 
-func _selected_command(kind: String, values: Dictionary = {}) -> void:
+func run_selected_command(kind: String, values: Dictionary = {}) -> void:
 	app.selected_run_command(kind,values)
 	refresh()
-
-func _button(parent: Node, text: String, callback: Callable) -> Button:
-	var button := AppTheme.button(text,callback)
-	Components.apply(button)
-	button.custom_minimum_size.y = 32
-	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	parent.add_child(button)
-	return button
-
-func _label(parent: Node, text: String, font_size: int) -> Label:
-	var label := AppTheme.label(text,font_size)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(label)
-	return label
-
-func _clear(parent: Node) -> void:
-	for child in parent.get_children():
-		parent.remove_child(child)
-		child.queue_free()
 
 func _error(error: String) -> String:
 	if error.begins_with("Saved "): return ""
 	if error.begins_with("Loaded "): return "저장한 전투를 불러왔습니다."
 	return str({"gold":"골드가 부족합니다.","gemShards":"젬 조각이 부족합니다.","tile":"건설 가능한 칸을 선택하세요.","occupied":"이미 포탑이 있는 칸입니다.","locked":"연구로 해금해야 합니다.","phase":"현재 단계에서는 사용할 수 없습니다.","gem":"이 포탑에 장착할 수 없는 젬입니다.","research":"연구가 필요합니다.","trait":"특성 선택 조건을 확인하세요.","inventory":"보유 젬이 없습니다.","requirement":"강화 조건을 확인하세요.","turret":"포탑을 선택하세요."}.get(error,error))
 
-func _selected_tile() -> String:
+func selected_tile_type() -> String:
 	var map: Dictionary = _stage_map()
 	var tile: Vector2i = app.selected
 	if tile.x < 0 or tile.y < 0 or tile.x >= int(map.columns) or tile.y >= int(map.rows): return ""
@@ -655,7 +613,7 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 	var index := int(state.get("completedRounds",0))
 	var key := [index,state.phase,configuration_cache.revision]
 	if intel_key is Array and key == intel_key: return
-	intel_key = key; _clear(enemy_intel)
+	intel_key = key; UiWidgets.clear(enemy_intel)
 	if index >= wave_count: reward_label.text = "완료"; return
 	var wave: Dictionary = app.catalog.wave_summary(app.stage,index)
 	var derived: Dictionary = configuration_cache.derived(state,app.run_domain.service)
@@ -667,33 +625,30 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 	reward_label.tooltip_text = "+%d G · 파편 %d" % [gold,shards]
 	var types: Array = wave.enemyCounts.keys()
 	for type in types.slice(0,3):
-		var button := _button(enemy_intel,"",func():
+		var button := UiWidgets.button(enemy_intel,"",func():
 			app.selected = Vector2i(-1,-1)
 			var map: Dictionary = _stage_map()
 			var tile: int = map.tiles.find("spawn")
 			app.board_tap(Vector2i(tile % int(map.columns),tile / int(map.columns))))
 		button.custom_minimum_size = Vector2(20,24)
-		_style_hud_button(button,"quiet",false,Vector2.ZERO)
+		UiWidgets.style_hud_button(button,"quiet",false,Vector2.ZERO)
 		button.icon = AppTheme.texture("ui/hud/enemies/"+str(type)+".png"); button.expand_icon = true; button.add_theme_constant_override("icon_max_width",18)
 	if types.size()>3:
-		var remaining := _label(enemy_intel,"+%d" % (types.size()-3),10)
+		var remaining := UiWidgets.label(enemy_intel,"+%d" % (types.size()-3),10)
 		remaining.autowrap_mode = TextServer.AUTOWRAP_OFF
 		remaining.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-
-func _icon(parent: Node,path: String,extent: float) -> TextureRect:
-	var icon := TextureRect.new(); icon.texture = AppTheme.texture(path); icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size = Vector2.ONE*extent; parent.add_child(icon); return icon
 
 func _rune_icon(parent: Node,extent: float) -> void:
 	var socket := PanelContainer.new(); socket.custom_minimum_size = Vector2.ONE*extent; socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var style := BattleTheme.box(Color("221d1233"),Color("e7c66a88"),extent/2); style.set_content_margin_all(extent*0.19); socket.add_theme_stylebox_override("panel",style); parent.add_child(socket)
-	_icon(socket,"ui/hud/icons/rune.png",extent*0.62)
+	UiWidgets.icon(socket,"ui/hud/icons/rune.png",extent*0.62)
 
 ## Gem text is also consumed by the reward presenter.
-func _gem_name(type: String) -> String:
-	return gem_panel._gem_name(type)
+func gem_name(type: String) -> String:
+	return gem_panel.gem_name(type)
 
-func _gem_description(type: String) -> String:
-	return gem_panel._gem_description(type)
+func gem_description(type: String) -> String:
+	return gem_panel.gem_description(type)
 
-func _gem_effect(type: String,turret: Dictionary) -> String:
-	return gem_panel._gem_effect(type,turret)
+func gem_effect(type: String,turret: Dictionary) -> String:
+	return gem_panel.gem_effect(type,turret)

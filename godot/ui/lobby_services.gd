@@ -279,7 +279,7 @@ func _command(body: VBoxContainer) -> void:
 	var values := context.duplicate(true)
 	if page == "모듈 뽑기":
 		var count := int(values.get("count",1))
-		var tickets := int(lobby._p().get("turretModules",{}).get("tickets",0))
+		var tickets := int(lobby.progression().get("turretModules",{}).get("tickets",0))
 		var quote := EconomyService.draw_quote(count,tickets)
 		var diamonds := int(quote.diamonds)
 		values.buyMissingTicketsWithDiamonds = diamonds > 0
@@ -351,7 +351,7 @@ func _confirm_actions(body: VBoxContainer, label: String, callback: Callable, en
 	confirm.disabled = confirm.disabled or not enabled
 
 func _research_state(id: String) -> Dictionary:
-	for active in lobby._p().get("activeResearches",[]):
+	for active in lobby.progression().get("activeResearches",[]):
 		if str(active.get("type","")) == id: return active
 	return {}
 
@@ -378,7 +378,7 @@ func _research_confirmation(body: VBoxContainer) -> void:
 	_confirm_actions(body,"즉시 완료 · %d" % cost,_perform.bind("complete_research",{"id":id,"quoted_cost":cost,"target_level":int(active.get("targetLevel",0))}),lobby.diamonds()>=cost,"CompleteResearchConfirm")
 
 func _slot_confirmation(body: VBoxContainer) -> void:
-	if lobby._p().get("researchSlotTwoUnlocked",false):
+	if lobby.progression().get("researchSlotTwoUnlocked",false):
 		body.add_child(T.label("두 번째 연구 슬롯이 이미 열려 있습니다.",13))
 		_confirm_actions(body,"슬롯 해금",Callable(),false,"UnlockResearchSlotConfirm")
 		return
@@ -398,7 +398,7 @@ func _module_plan() -> Dictionary:
 	# Rebuild from live inventory for every quote and confirmation. Keep the first
 	# occurrence of an ID, matching the former per-request linear search.
 	var by_id := {}
-	for item in lobby._p().get("turretModules",{}).get("items",[]):
+	for item in lobby.progression().get("turretModules",{}).get("items",[]):
 		var id := str(item.get("id",""))
 		if not by_id.has(id): by_id[id] = item
 	var seen := {}
@@ -473,7 +473,7 @@ func _perform(action: String, values: Dictionary) -> void:
 	if pending or _services() == null or _services().busy: return
 	var request := values.duplicate(true)
 	if action == "draw_modules":
-		var quote := EconomyService.draw_quote(int(values.get("count",1)),int(lobby._p().get("turretModules",{}).get("tickets",0)))
+		var quote := EconomyService.draw_quote(int(values.get("count",1)),int(lobby.progression().get("turretModules",{}).get("tickets",0)))
 		if values.get("approvedDrawQuote") != quote:
 			notice = ""
 			lobby.show_draw_quote_warning()
@@ -500,7 +500,7 @@ func _perform(action: String, values: Dictionary) -> void:
 		request = {"id":values.id}
 	elif action == "unlock_research_slot_two":
 		var cost := int(lobby.app.run_domain.growth.data.constants.researchSlotTwoUnlockCost)
-		if lobby._p().get("researchSlotTwoUnlocked",false) or cost != int(values.get("quoted_cost",-1)) or lobby.diamonds() < cost:
+		if lobby.progression().get("researchSlotTwoUnlocked",false) or cost != int(values.get("quoted_cost",-1)) or lobby.diamonds() < cost:
 			notice = "슬롯 상태나 비용이 변경되었습니다. 다시 확인해 주세요."
 			_render()
 			return

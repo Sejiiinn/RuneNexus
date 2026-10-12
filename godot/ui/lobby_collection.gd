@@ -106,7 +106,7 @@ func _module_action(value: String, action: Callable, role: String, extent: Vecto
 	return b
 
 func _items() -> Array:
-	return lobby._p().get("turretModules", {}).get("items", [])
+	return lobby.progression().get("turretModules", {}).get("items", [])
 
 func filtered_items() -> Array:
 	return _items().filter(func(item): return item.get("turretType") == turret and (part_filter.is_empty() or item.get("part") == part_filter))
@@ -136,7 +136,7 @@ func _module_name(item: Dictionary) -> String:
 
 func _module_service(action: String, context: Dictionary = {}) -> void:
 	if lobby.has_method("_service"):
-		lobby._service(action,context)
+		lobby.open_service(action,context)
 		return
 	module_notice = action + "는 계정 서버 연결 후 이용할 수 있습니다."
 	modules()
@@ -165,7 +165,7 @@ func _equipment(parent: Node) -> Control:
 	var area := Control.new()
 	area.name = "ModuleEquipment"
 	center.add_child(area)
-	var heading := _label(lobby._title(turret), 14)
+	var heading := _label(lobby.display_title(turret), 14)
 	_put(heading, area, Rect2(10, 9, 120, 22))
 	var preview := Control.new()
 	area.add_child(preview)
@@ -182,7 +182,7 @@ func _equipment(parent: Node) -> Control:
 	symbol.name = "ModuleTurretPreview"
 	preview_content.add_child(symbol)
 	preview.move_child(preview_content,0)
-	var caption := _label(lobby._title(turret), 10)
+	var caption := _label(lobby.display_title(turret), 10)
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	preview.add_child(caption)
 	caption.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
@@ -278,8 +278,8 @@ func modules() -> void:
 	shell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	parent.add_theme_constant_override("separation", 4)
 	var draw := _frame(parent, "ui/components/panel_frame.png", 10)
-	var draw_count := int(lobby._p().get("turretModules", {}).get("drawCount", 0))
-	var tickets := int(lobby._p().get("turretModules", {}).get("tickets", 0))
+	var draw_count := int(lobby.progression().get("turretModules", {}).get("drawCount", 0))
+	var tickets := int(lobby.progression().get("turretModules", {}).get("tickets", 0))
 	var build_level := 1
 	for threshold in [100, 250, 500, 800]:
 		if draw_count >= threshold: build_level += 1
@@ -299,7 +299,7 @@ func modules() -> void:
 	selector.add_theme_constant_override("separation", 6)
 	parent.add_child(selector)
 	var types := ["arrow", "cannon", "magic", "frost"]
-	var cleared: Array = lobby._p().get("clearedStageNumbers", [])
+	var cleared: Array = lobby.progression().get("clearedStageNumbers", [])
 	if 3 in cleared: types.append("sniper")
 	if 6 in cleared: types.append("lightning")
 	if not turret in types: turret = "arrow"
@@ -326,7 +326,7 @@ func modules() -> void:
 		var icon := _image("ui/hud/turrets_3d/%s.png" % type, Vector2(27,27))
 		icon.name = "TurretIcon_"+type
 		icon_center.add_child(icon)
-		var label := _label(lobby._title(type), 10)
+		var label := _label(lobby.display_title(type), 10)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		token.add_child(label)
 		label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
@@ -368,7 +368,7 @@ func modules() -> void:
 		controls.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
 		var equipped: bool = selected.get("equipped", false)
-		var equip := _module_action("장착 해제" if equipped else "장착", lobby._change.bind({"kind":"unequipTurretModule" if equipped else "equipTurretModule", "id":selected.id}), "primary", Vector2(68, 36))
+		var equip := _module_action("장착 해제" if equipped else "장착", lobby.apply_growth_change.bind({"kind":"unequipTurretModule" if equipped else "equipTurretModule", "id":selected.id}), "primary", Vector2(68, 36))
 		equip.name = "ModuleEquipAction"
 		controls.add_child(equip)
 		var disassemble := _module_action("분해 ·\n다이아 %d" % {"normal":2,"magic":5,"rare":20,"unique":50}.get(selected.get("grade", "normal"), 2), _module_service.bind("모듈 분해",{"id":selected.id}), "danger", Vector2(80, 36))
@@ -388,7 +388,7 @@ func modules() -> void:
 	for i in range(option_count):
 		var text := ""
 		if selected.is_empty():
-			if i == 0: text = "%s · %s · 보유 모듈 %d개" % [lobby._title(turret), PARTS.get(part_filter, "전체"), filtered_items().size()]
+			if i == 0: text = "%s · %s · 보유 모듈 %d개" % [lobby.display_title(turret), PARTS.get(part_filter, "전체"), filtered_items().size()]
 			if i == 1: text = "장착 효과: 비어 있음"
 		elif i < selected.get("options", []).size():
 			var option: Dictionary = selected.options[i]
@@ -399,7 +399,7 @@ func modules() -> void:
 		effect.custom_minimum_size.y = 18
 		detail.add_child(effect)
 	detail_box.custom_minimum_size.y += (option_count - 3) * 20
-	parent.add_child(_label(lobby._title(turret) + " 모듈 인벤토리", 14))
+	parent.add_child(_label(lobby.display_title(turret) + " 모듈 인벤토리", 14))
 	var filters := HBoxContainer.new()
 	parent.add_child(filters)
 	filters.add_child(_asset_button("전체", select_part.bind(""), "ui/components/button_frame.png", part_filter.is_empty()))
@@ -519,7 +519,7 @@ func _claim(parent: VBoxContainer, target: Dictionary = {}) -> void:
 		quests(parent)
 		return
 	if lobby.app.get("services") == null or not lobby.app.services.connected():
-		lobby._service("계정 및 저장")
+		lobby.open_service("계정 및 저장")
 		return
 	var service = lobby.app.services
 	_claim_pending = true
@@ -571,7 +571,7 @@ func quests(parent: VBoxContainer) -> void:
 	var notice := _label(quest_notice)
 	notice.visible = not quest_notice.is_empty()
 	parent.add_child(notice)
-	var p: Dictionary = lobby._p()
+	var p: Dictionary = lobby.progression()
 	var weekly := period == "weekly"
 	var targets: Dictionary = Q.WEEKLY if weekly else Q.DAILY
 	var progress: Dictionary = p.get(period + "QuestProgress", {})
@@ -593,7 +593,7 @@ func quests(parent: VBoxContainer) -> void:
 	_refresh_quests(view)
 
 func _refresh_quests(view: Dictionary) -> void:
-	var p: Dictionary = lobby._p()
+	var p: Dictionary = lobby.progression()
 	var weekly := period == "weekly"
 	var targets: Dictionary = Q.WEEKLY if weekly else Q.DAILY
 	var progress: Dictionary = p.get(period + "QuestProgress",{})

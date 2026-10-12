@@ -3,6 +3,7 @@ extends RefCounted
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const GemPalette = preload("res://ui/battle_rewards.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const UiWidgets = preload("res://ui/ui_widgets.gd")
 const PREVIOUS_STATS_HEIGHT := 80.0
 const PREVIOUS_DAMAGE_ROW_HEIGHT := 34.0
 const CATEGORY_NAMES := {"physical": "물리", "elemental": "원소", "light": "경량화기", "heavy": "중화기", "damageOverTime": "지속피해", "cooling": "냉각"}
@@ -41,9 +42,9 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_row.add_child(category_spacer)
 	var total := HBoxContainer.new(); total.name = "TurretTotalDamage"; total.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	total.add_theme_constant_override("separation",6); category_row.add_child(total)
-	var caption: Label = hud._label(total,"누적 피해",11); caption.modulate = Color("a6bcc8")
+	var caption: Label = UiWidgets.label(total,"누적 피해",11); caption.modulate = Color("a6bcc8")
 	caption.size_flags_horizontal = Control.SIZE_SHRINK_END; caption.autowrap_mode = TextServer.AUTOWRAP_OFF
-	hud.damage_label = hud._label(total,"0.0",12); hud.damage_label.name = "TurretTotalDamageValue"
+	hud.damage_label = UiWidgets.label(total,"0.0",12); hud.damage_label.name = "TurretTotalDamageValue"
 	hud.damage_label.size_flags_horizontal = Control.SIZE_SHRINK_END
 	hud.damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; hud.damage_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var stat_scroll = ScrollContainer.new(); stat_scroll.name = "TurretStatsScroll"; stat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; stat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; hud.body.add_child(stat_scroll)
@@ -53,7 +54,7 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	_update_turret(state,turret)
 
 func _update_actions(panel: Control,turret: Dictionary,q: Dictionary) -> void:
-	hud._track_purchase_button(panel.level_action,"gold",int(q.level),int(q.level)<=0)
+	hud.track_purchase_button(panel.level_action,"gold",int(q.level),int(q.level)<=0)
 	panel.level_action.tooltip_text = ("강화 확정" if hud.app.selection_view.level_preview else "다음 레벨 능력치 미리보기")+(" · %d G" % q.level if int(q.level)>0 else "")
 	panel.trait_action.tooltip_text = "특성 확인 및 선택"
 	panel.sell_action.tooltip_text = "판매 · +%d G · 금액 확인" % q.sell
@@ -63,11 +64,11 @@ func _update_turret(state: Dictionary,turret: Dictionary) -> void:
 	var panel: Control = hud.body.get_node("TurretActionPanel")
 	panel.update_values(_action_spec(turret,q)); _update_actions(panel,turret,q)
 	# Display-only fields belong to this presenter, not the shared raw stat cache.
-	var stats = hud._stats(state,turret).duplicate()
+	var stats = hud.turret_stats(state,turret).duplicate()
 	var next = {}; var future = turret.duplicate(true); future.level += 1
-	if hud.app.selection_view.level_preview: next = hud._stats(state,future).duplicate()
-	stats.dps = hud._dps(stats,turret.type)
-	if not next.is_empty(): next.dps = hud._dps(next,turret.type)
+	if hud.app.selection_view.level_preview: next = hud.turret_stats(state,future).duplicate()
+	stats.dps = hud.dps(stats,turret.type)
+	if not next.is_empty(): next.dps = hud.dps(next,turret.type)
 	var specs = [["피해","damage"],["초당 피해","dps"],["공격 속도","attackRate"],["사거리","range"]]
 	if turret.type == "frost" and float(stats.slowDuration) > 0:
 		specs.append(["감속","slowMultiplier"]); specs.append(["감속 지속","slowDuration"])
@@ -103,12 +104,12 @@ func _stat_cell(grid: GridContainer,spec: Array) -> VBoxContainer:
 	var cell := VBoxContainer.new(); cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cell.name = "Stat_"+str(spec[1]); cell.add_theme_constant_override("separation",0); grid.add_child(cell)
 	var row := HBoxContainer.new(); row.custom_minimum_size.y = 36; row.add_theme_constant_override("separation",4); cell.add_child(row)
-	var title: Label = hud._label(row,spec[0],12); title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var title: Label = UiWidgets.label(row,spec[0],12); title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.modulate = Color("a6bcc8")
 	var values := VBoxContainer.new(); values.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	values.size_flags_vertical = Control.SIZE_SHRINK_CENTER; values.add_theme_constant_override("separation",0); row.add_child(values)
-	var current: Label = hud._label(values,"",12)
-	var future_value: Label = hud._label(values,"",12)
+	var current: Label = UiWidgets.label(values,"",12)
+	var future_value: Label = UiWidgets.label(values,"",12)
 	for label in [current,future_value]:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	future_value.modulate = Color("8ee6ff"); future_value.hide()
@@ -156,7 +157,7 @@ func _category_tag(parent: Node,key: String) -> void:
 	style.set_border_width_all(1); style.set_corner_radius_all(3); style.content_margin_left = 7; style.content_margin_right = 7
 	style.content_margin_top = 3; style.content_margin_bottom = 3; chip.add_theme_stylebox_override("panel",style)
 	parent.add_child(chip)
-	var label: Label = hud._label(chip,CATEGORY_NAMES[key],11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var label: Label = UiWidgets.label(chip,CATEGORY_NAMES[key],11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.add_theme_color_override("font_color",color)
 
 func _stat_value(stats: Dictionary,key: String,exact := false) -> String:
@@ -177,7 +178,7 @@ func _preview_level() -> void:
 	var q: Dictionary = hud.app.run_domain.service.quotes(hud.app.run_domain.state,int(turret.id))
 	if int(q.level) <= 0 or int(hud.app.run_domain.state.gold) < int(q.level): return
 	if hud.app.selection_view.level_preview:
-		hud._selected_command("level")
+		hud.run_selected_command("level")
 		turret = _current_turret()
 		if turret.is_empty() or int(hud.app.run_domain.service.quotes(hud.app.run_domain.state,int(turret.id)).level) <= 0:
 			hud.app.selection_view.level_preview = false
@@ -192,13 +193,13 @@ func _show_gems() -> void:
 
 func _sell_confirm(turret: Dictionary,q: Dictionary) -> void:
 	var box = hud.open_modal("포탑 판매")
-	var detail: Label = hud._label(box,"%s Lv.%d 포탑을 판매할까요?\n%s 골드를 돌려받고 장착 젬은 보관함으로 돌아갑니다." % [hud.TOWERS.get(turret.type,turret.type),turret.level,HudNumber.compact_price(q.sell)],13)
+	var detail: Label = UiWidgets.label(box,"%s Lv.%d 포탑을 판매할까요?\n%s 골드를 돌려받고 장착 젬은 보관함으로 돌아갑니다." % [hud.TOWERS.get(turret.type,turret.type),turret.level,HudNumber.compact_price(q.sell)],13)
 	detail.tooltip_text = "판매 환급 · %d 골드" % q.sell
 	box.tooltip_text = detail.tooltip_text
-	var confirm: Button = hud._button(box,"판매 · +%s 골드" % HudNumber.compact_price(q.sell),func(): _confirm_sale(int(turret.id),int(q.sell)))
+	var confirm: Button = UiWidgets.button(box,"판매 · +%s 골드" % HudNumber.compact_price(q.sell),func(): _confirm_sale(int(turret.id),int(q.sell)))
 	confirm.tooltip_text = "판매 환급 · %d 골드" % q.sell
 	hud.Components.apply(confirm,"danger")
-	hud._button(box,"취소",hud.close_modal)
+	UiWidgets.button(box,"취소",hud.close_modal)
 
 func _confirm_sale(id: int,quoted_refund: int) -> void:
 	var state: Dictionary = hud.app.run_domain.state
@@ -208,7 +209,7 @@ func _confirm_sale(id: int,quoted_refund: int) -> void:
 	if int(quote.sell) != quoted_refund:
 		_sell_confirm(turret,quote)
 		return
-	hud._command({"kind":"sell","id":id})
+	hud.run_command({"kind":"sell","id":id})
 	if _current_turret().is_empty():
 		hud.app.selection_view.level_preview = false
 		hud.app.refresh_selection()
@@ -230,12 +231,12 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	box.add_theme_constant_override("separation",10)
 	var wallet := HBoxContainer.new(); wallet.name = "TraitWallet"; wallet.custom_minimum_size.y = 28
 	wallet.add_theme_constant_override("separation",7); box.add_child(wallet)
-	hud._icon(wallet,"ui/hud/icons/shard.png",22)
-	var wallet_title: Label = hud._label(wallet,"보유 파편",12)
+	UiWidgets.icon(wallet,"ui/hud/icons/shard.png",22)
+	var wallet_title: Label = UiWidgets.label(wallet,"보유 파편",12)
 	wallet_title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	wallet_title.custom_minimum_size.x = 55; wallet_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	wallet_title.modulate = Color("b7d5e3")
-	var wallet_amount: Label = hud._label(wallet,HudNumber.compact(int(hud.app.run_domain.state.gemShards),0),15)
+	var wallet_amount: Label = UiWidgets.label(wallet,HudNumber.compact(int(hud.app.run_domain.state.gemShards),0),15)
 	wallet.tooltip_text = "%d 파편" % int(hud.app.run_domain.state.gemShards)
 	wallet_amount.name = "TraitWalletAmount"; wallet_amount.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	wallet_amount.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -247,11 +248,11 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	for value in [1,2]:
 		var caption := "1차 · 무기 개조" if value == 1 else "2차 · 전투 교리"
 		if value == 2 and turret.get("primaryTrait") == null: caption += "\n1차 선택 후"
-		var button: Button = hud._button(tabs,caption,_switch_trait_tier.bind(int(turret.id), value, panel_ref))
+		var button: Button = UiWidgets.button(tabs,caption,_switch_trait_tier.bind(int(turret.id), value, panel_ref))
 		button.name = "TraitTier%d" % value; button.custom_minimum_size.y = 43
 		button.toggle_mode = true; button.button_pressed = value == tier; button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.button_group = tier_group
-		hud._style_hud_button(button,"secondary",value == tier,Vector2(6,5),true)
+		UiWidgets.style_hud_button(button,"secondary",value == tier,Vector2(6,5),true)
 		if value == 2 and turret.get("primaryTrait") == null: button.modulate = Color("b5c4d2")
 	var kind := "primaryTrait" if tier == 1 else "secondaryTrait"
 	var chosen: Variant = turret.get(kind)
@@ -263,16 +264,16 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	elif int(turret.level) < required: blocked = "%d차 특성은 Lv.%d부터 선택할 수 있습니다." % [tier,required]
 	elif int(hud.app.run_domain.state.gemShards) < cost: blocked = "젬 파편이 %d개 부족합니다." % (cost-int(hud.app.run_domain.state.gemShards))
 	var options: Array = q.get(kind+"s",[])
-	if options.is_empty(): hud._label(box,"선택 가능한 특성이 없습니다.",12)
+	if options.is_empty(): UiWidgets.label(box,"선택 가능한 특성이 없습니다.",12)
 	for value in options:
 		_trait_row(box,str(value),str(hud.labels.traitNames.get(value,value)),str(hud.labels.traitDescriptions.get(value,"")),hud.trait_preview == value or chosen == value,not blocked.is_empty(),func():
 			if not blocked.is_empty(): return
 			hud.trait_preview = str(value)
 			_update_trait_selection())
 	if not blocked.is_empty():
-		var reason: Label = hud._label(box,blocked,11); reason.name = "TraitBlockedReason"
+		var reason: Label = UiWidgets.label(box,blocked,11); reason.name = "TraitBlockedReason"
 		reason.modulate = Color("ffa68a")
-	var confirm: Button = hud._button(box,"",func(): _confirm_trait(turret,kind))
+	var confirm: Button = UiWidgets.button(box,"",func(): _confirm_trait(turret,kind))
 	confirm.name = "TraitConfirm"; confirm.custom_minimum_size.y = 52
 	confirm.disabled = not blocked.is_empty() or hud.trait_preview not in options
 	hud.Components.apply(confirm,"primary")
@@ -280,7 +281,7 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	confirm.add_child(confirm_center); confirm_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var confirm_row := HBoxContainer.new(); confirm_row.name = "TraitConfirmContent"; confirm_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	confirm_row.add_theme_constant_override("separation",8); confirm_center.add_child(confirm_row)
-	var confirm_title: Label = hud._label(confirm_row,"선택 확정",16)
+	var confirm_title: Label = UiWidgets.label(confirm_row,"선택 확정",16)
 	confirm_title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	confirm_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	confirm_title.add_theme_font_override("font",hud.AppTheme.font(900))
@@ -290,13 +291,13 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	confirm_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	confirm_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	confirm_row.add_child(confirm_icon)
-	var confirm_cost: Label = hud._label(confirm_row,HudNumber.compact_price(cost),16)
+	var confirm_cost: Label = UiWidgets.label(confirm_row,HudNumber.compact_price(cost),16)
 	confirm.tooltip_text = "선택 확정 · %d 파편" % cost
 	confirm_cost.name = "TraitConfirmCost"; confirm_cost.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	confirm_cost.autowrap_mode = TextServer.AUTOWRAP_OFF
 	confirm_cost.add_theme_font_override("font",hud.AppTheme.font(900))
 	if confirm.disabled: confirm_row.modulate = Color("8d9da9")
-	var notice: Label = hud._label(box,"선택한 특성은 이번 런 동안 변경할 수 없습니다.",11)
+	var notice: Label = UiWidgets.label(box,"선택한 특성은 이번 런 동안 변경할 수 없습니다.",11)
 	notice.name = "TraitPermanentNotice"; notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	notice.modulate = Color("abc9d8")
 	var bottom_pad := Control.new(); bottom_pad.name = "TraitBottomPad"
@@ -320,7 +321,7 @@ func _fit_trait_row(button: Button,content: MarginContainer,minimum_height: floa
 
 func _trait_row(parent: Node,id: String,title: String,description: String,selected: bool,locked: bool,on_select: Callable) -> void:
 	var compact := hud.get_viewport_rect().size.x < 360
-	var button: Button = hud._button(parent,"",on_select)
+	var button: Button = UiWidgets.button(parent,"",on_select)
 	button.name = "TraitChoice_"+id; button.custom_minimum_size.y = 126 if compact else 110
 	button.disabled = locked; button.toggle_mode = true; button.button_pressed = selected
 	var content := MarginContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -344,10 +345,10 @@ func _trait_row(parent: Node,id: String,title: String,description: String,select
 	var words := VBoxContainer.new(); words.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL; words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	words.add_theme_constant_override("separation",3); row.add_child(words)
-	var heading: Label = hud._label(words,title,13 if compact else 14)
+	var heading: Label = UiWidgets.label(words,title,13 if compact else 14)
 	heading.name = "TraitName"; heading.add_theme_font_override("font",hud.AppTheme.font(800))
 	heading.add_theme_color_override("font_color",Color("f4dfaa") if selected else Color("e8f8ff"))
-	var detail: Label = hud._label(words,description.replace(", ","\n"),12)
+	var detail: Label = UiWidgets.label(words,description.replace(", ","\n"),12)
 	detail.name = "TraitDescription"; detail.modulate = Color("b6d0df")
 	var radio := PanelContainer.new(); radio.name = "TraitRadio"; radio.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	radio.custom_minimum_size = Vector2(22,22); radio.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -403,11 +404,11 @@ func _confirm_trait(turret: Dictionary,kind: String) -> void:
 	if selected not in quote.get(kind+"s",[]) or int(state.gemShards) < int(quote[kind]): return
 	var confirm: Button = hud.modal_body.find_child("TraitConfirm",true,false)
 	if confirm != null: confirm.disabled = true
-	hud._command({"kind":kind,"id":int(turret.id),"type":selected})
+	hud.run_command({"kind":kind,"id":int(turret.id),"type":selected})
 	hud.close_modal()
 
 func _option_button(parent: Node,title: String,description: String,callback: Callable,selected = false) -> Button:
-	var button = hud._button(parent,title+"\n"+description,callback)
+	var button = UiWidgets.button(parent,title+"\n"+description,callback)
 	hud.Components.apply(button,"selected" if selected else "secondary")
 	for role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_disabled_color"]:
 		button.add_theme_color_override(role,Color.TRANSPARENT)
@@ -416,9 +417,9 @@ func _option_button(parent: Node,title: String,description: String,callback: Cal
 	content.add_theme_constant_override("separation",5); button.add_child(content)
 	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	content.offset_left = 16; content.offset_right = -16; content.offset_top = 12; content.offset_bottom = -12
-	var heading = hud._label(content,title,14); heading.add_theme_font_override("font",hud.AppTheme.font(800))
+	var heading = UiWidgets.label(content,title,14); heading.add_theme_font_override("font",hud.AppTheme.font(800))
 	heading.modulate = Color("ffe19a") if selected else Color.WHITE
-	var detail = hud._label(content,description.replace(", ","\n"),12); detail.add_theme_font_override("font",hud.AppTheme.font(500)); detail.modulate = Color("b2c5d0")
+	var detail = UiWidgets.label(content,description.replace(", ","\n"),12); detail.add_theme_font_override("font",hud.AppTheme.font(500)); detail.modulate = Color("b2c5d0")
 	var fit = func(): button.custom_minimum_size.y = maxf(72,content.get_combined_minimum_size().y+24)
 	content.minimum_size_changed.connect(fit); button.resized.connect(fit); fit.call_deferred()
 	button.draw.connect(func(): content.modulate.a = 0.48 if button.disabled else 1.0)
@@ -450,4 +451,4 @@ func _select_priority(index: int) -> void:
 	var priorities: Array = hud.PRIORITIES.keys()
 	if index < 0 or index >= priorities.size(): return
 	hud.target_priority_popup.hide()
-	hud._selected_command("targetPriority",{"type":priorities[index]})
+	hud.run_selected_command("targetPriority",{"type":priorities[index]})

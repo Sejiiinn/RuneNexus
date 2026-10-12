@@ -83,7 +83,7 @@ func run() -> void:
 	gold = fixture.run_domain.state.gold
 	named_button("UnlockGemSlot").pressed.emit()
 	assert(int(turret().slotLimit) == 2 and int(fixture.run_domain.state.gold) == gold)
-	while int(turret().level) < 5: panel._selected_command("level")
+	while int(turret().level) < 5: panel.run_selected_command("level")
 	click_slot(2)
 	price = fixture.run_domain.service.quotes(fixture.run_domain.state,int(turret().id)).link
 	assert(not named_button("UnlockGemSlot").disabled and price > 0)

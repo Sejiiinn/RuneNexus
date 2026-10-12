@@ -47,8 +47,8 @@ func setup(owner) -> void:
 		material_font = load("res://assets/ui/MaterialIcons-Regular.otf")
 
 func data() -> Dictionary: return lobby.app.run_domain.growth.data.core
-func actual() -> Dictionary: return lobby._p().get("corePassiveNodeRanks", {})
-func total() -> int: return int(lobby._p().get("totalCorePoints", 0))
+func actual() -> Dictionary: return lobby.progression().get("corePassiveNodeRanks", {})
+func total() -> int: return int(lobby.progression().get("totalCorePoints", 0))
 func valid(ranks: Dictionary) -> bool: return lobby.app.run_domain.growth._valid_core(ranks, total())
 func spent(ranks: Dictionary) -> int:
 	var count := 0
@@ -312,7 +312,7 @@ func apply() -> void:
 	allocation_elapsed = 0
 	allocation_duration = 0 if allocation_steps.is_empty() else float(allocation_steps.back().wave)*200+700
 	allocating = true
-	lobby._change({"kind":"setCorePassiveRanks","ranks":allocation_target.duplicate()})
+	lobby.apply_growth_change({"kind":"setCorePassiveRanks","ranks":allocation_target.duplicate()})
 	if actual() != allocation_target:
 		_finish_allocation()
 		return
@@ -388,7 +388,7 @@ func confirm_reset() -> void:
 	action(box,"취소",lobby.close_modal)
 	action(box,"전체 초기화",func():
 		lobby.close_modal()
-		lobby._change({"kind":"resetCorePassiveTree"})
+		lobby.apply_growth_change({"kind":"resetCorePassiveTree"})
 		if actual().is_empty(): lobby.core_draft = {}
 		update_state())
 
@@ -398,7 +398,7 @@ func node_details(id: String) -> void:
 	view.queue_redraw()
 	var d: Dictionary = data().nodes[id]
 	var rank := int(lobby.core_draft.get(id,0))
-	var box := _open_inline(lobby._title(id))
+	var box := _open_inline(lobby.display_title(id))
 	inline_panel.custom_minimum_size.y = 182
 	var current := int(actual().get(id,0))
 	box.add_child(AppTheme.label(("%d / %d" % [rank,int(d.maxRank)]) if current == rank else ("계획 %d → %d / %d" % [current,rank,int(d.maxRank)]),11))
@@ -409,7 +409,7 @@ func node_details(id: String) -> void:
 		var hint := AppTheme.label("연결된 노드에 3등급 이상 투자하면 다음 노드가 열립니다.",10)
 		hint.add_theme_color_override("font_color",Color("ffc66a"))
 		box.add_child(hint)
-	var effect := AppTheme.label(lobby._core_effect_text(d,maxi(1,rank)).replace("다음 등급 효과","효과"),13)
+	var effect := AppTheme.label(lobby.core_effect_text(d,maxi(1,rank)).replace("다음 등급 효과","효과"),13)
 	if rank == 0: effect.modulate.a = 0.64
 	box.add_child(effect)
 	box.add_child(AppTheme.label("필요 포인트  " + (str(int(d.rankCosts[rank])) if rank < int(d.maxRank) else "최대 등급"),11))
@@ -439,9 +439,9 @@ func skills() -> void:
 	selecting_skill = true
 	selected = ""
 	var box := _open_inline("코어 스킬 선택")
-	var current := str(lobby._p().get("coreCombatSkill",""))
+	var current := str(lobby.progression().get("coreCombatSkill",""))
 	for id in ["guardianBeam","riftMark"]:
-		var unlocked: bool = Progression.has_unlock(lobby._p(), "core", id)
+		var unlocked: bool = Progression.has_unlock(lobby.progression(), "core", id)
 		var row := HBoxContainer.new()
 		box.add_child(row)
 		var image := TextureRect.new()
@@ -453,11 +453,11 @@ func skills() -> void:
 		var text := VBoxContainer.new()
 		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(text)
-		text.add_child(AppTheme.label(lobby._title(id) + (" · 장착 중" if current == id else ""),15))
+		text.add_child(AppTheme.label(lobby.display_title(id) + (" · 장착 중" if current == id else ""),15))
 		var description := "5초마다 자동 발동\n가장 앞선 적에게 광선을 발사하며 포탑 화력에 비례해 피해가 증가합니다." if id == "guardianBeam" else ("10초마다 자동 발동\n내구도가 높은 적 4명의 받는 모든 피해를 기본 25% 증폭합니다. 코어 스킬 위력에 비례하며 보스는 절반입니다." if unlocked else "챕터 2 해금\n스테이지 1-10을 클리어하면 균열 낙인을 장착할 수 있습니다.")
 		text.add_child(AppTheme.label(description,12))
 		action(box,"해제" if current == id else ("장착" if unlocked else "잠김 · 챕터 2 해금"),func():
-			lobby._change({"kind":"unequipCoreCombatSkill" if current == id else "equipCoreCombatSkill","id":id})
+			lobby.apply_growth_change({"kind":"unequipCoreCombatSkill" if current == id else "equipCoreCombatSkill","id":id})
 			skills()).disabled = not unlocked
 
 func _image(canvas: Control, asset: String, rectangle: Rect2, color := Color.WHITE) -> void:
@@ -494,10 +494,10 @@ func draw_tree(canvas: Control) -> void:
 			_connection(canvas,point(id),point(neighbor),int(lobby.core_draft.get(id,0))>0 and int(lobby.core_draft.get(neighbor,0))>0,rendered_rank(id)>0 and rendered_rank(neighbor)>0)
 	_draw_allocation_lines(canvas)
 	_image(canvas,ROOT+"center_socket_v1.png",Rect2(CENTER-Vector2.ONE*64,Vector2.ONE*128))
-	var skill := str(lobby._p().get("coreCombatSkill",""))
+	var skill := str(lobby.progression().get("coreCombatSkill",""))
 	var asset := "core_abilities/%s.png" % ("guardian_beam" if skill == "guardianBeam" else "rift_mark") if skill in ["guardianBeam","riftMark"] else ROOT+"nexus_core.png"
 	_image(canvas,asset,Rect2(CENTER-Vector2.ONE*27,Vector2.ONE*54))
-	var title: String = lobby._title(skill) if skill in ["guardianBeam","riftMark"] else "스킬 선택"
+	var title: String = lobby.display_title(skill) if skill in ["guardianBeam","riftMark"] else "스킬 선택"
 	var width := maxf(96,canvas.get_theme_default_font().get_string_size(title,HORIZONTAL_ALIGNMENT_LEFT,-1,15).x+32)
 	# Flutter ExactAssetImage(scale:2): source pixels and destination border
 	# extents are distinct. Native 32px end caps must occupy 16 world units.
