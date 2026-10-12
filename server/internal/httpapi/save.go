@@ -209,6 +209,10 @@ func (handler saveHandler) claimWriter(response http.ResponseWriter, request *ht
 		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 계정 진행을 사용할 수 있습니다.")
 		return
 	}
+	if errors.Is(err, gamesave.ErrGemOfferConflict) {
+		writeAPIError(response, request, http.StatusConflict, "GEM_OFFER_STATE_CONFLICT", "서버 도전과 젬 상태를 복구한 뒤 다시 시도해 주세요.")
+		return
+	}
 	if err != nil {
 		handler.writeInternalError(response, request, err)
 		return
@@ -308,6 +312,10 @@ func (handler saveHandler) update(response http.ResponseWriter, request *http.Re
 		)
 		return
 	}
+	if errors.Is(err, gamesave.ErrGemOfferConflict) {
+		writeAPIError(response, request, http.StatusConflict, "GEM_OFFER_STATE_CONFLICT", "서버 젬 보상을 복구한 뒤 다시 시도해 주세요.")
+		return
+	}
 	if errors.Is(err, gamesave.ErrWriterRequired) {
 		writeAPIError(response, request, http.StatusPreconditionRequired, "SAVE_WRITER_REQUIRED", "계정 저장 writer를 먼저 획득해야 합니다.")
 		return
@@ -381,10 +389,12 @@ func decodeSaveWriterClaimRequest(
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusBadRequest, "INVALID_REQUEST", "writer 요청에는 하나의 JSON 값만 포함할 수 있습니다.", errors.New("writer body must contain one JSON value"))
 	}
-	if err := validateSaveClientCompatibility(
-		wire.ClientCompatibilityVersion,
-		minimumClientCompatibilityVersion,
-	); err != nil {
+	receiptOnly := false
+	if wire.ClientCompatibilityVersion != nil && *wire.ClientCompatibilityVersion >= 1 && *wire.ClientCompatibilityVersion < minimumClientCompatibilityVersion {
+		// Old immutable writer receipts remain recoverable even after rollout raises
+		// the configured floor. The service rejects fresh work after exact lookup.
+		receiptOnly = true
+	} else if err := validateSaveClientCompatibility(wire.ClientCompatibilityVersion, minimumClientCompatibilityVersion); err != nil {
 		return gamesave.ClaimWriterRequest{}, err
 	}
 	if wire.SaveSchemaVersion == nil || *wire.SaveSchemaVersion != gamesave.CurrentSchemaVersion {
@@ -395,6 +405,7 @@ func decodeSaveWriterClaimRequest(
 		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusBadRequest, "INVALID_REQUEST", "writer 클라이언트 정보가 올바르지 않습니다.", errors.New("invalid writer client metadata"))
 	}
 	return gamesave.ClaimWriterRequest{
+		ReceiptOnly:                receiptOnly,
 		ClientInstanceID:           wire.ClientInstanceID,
 		RawBody:                    rawBody,
 		ClientCompatibilityVersion: *wire.ClientCompatibilityVersion,

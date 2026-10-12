@@ -1,6 +1,13 @@
 extends SceneTree
 ## Full prepared project; real lifecycle and isolated checkpoint, no network.
+# Explicit offline test entry. Production in-tree authority/auth is verified by
+# the server lifecycle and account-service suites, not bypassed by ui_enabled.
+class ResumeFixture extends "res://app/app_lifecycle.gd":
+	func _detached_debug_lifecycle() -> bool: return true
 const Services = preload("res://services/app_services.gd")
+class UpdateOnlyServices extends Services:
+	func authentication_required() -> bool: return false
+	func blocks_play() -> bool: return updates != null and updates.blocked
 class Update extends "res://services/update_service.gd":
 	var checks := 0
 	var accepted := true
@@ -25,7 +32,7 @@ func settle() -> void:
 func run() -> void:
 	var scene = load("res://main.tscn").instantiate()
 	root.add_child(scene); scene.set_process(false)
-	var app = load("res://app/app_lifecycle.gd").new()
+	var app = ResumeFixture.new()
 	app.ui_enabled = false
 	var folder := OS.get_environment("TMPDIR").path_join("rune-resume-" + str(Time.get_ticks_usec()))
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(folder)
@@ -38,7 +45,7 @@ func run() -> void:
 	var identity: String = app.run_domain.state.economyRunId
 	var epoch: int = app.epoch
 	var elapsed: float = scene.combat_runtime.elapsed
-	var service := Services.new(); app.add_child(service); service.set_process(false)
+	var service := UpdateOnlyServices.new(); app.add_child(service); service.set_process(false)
 	service.app = app; service._startup_pending = false; app.services = service
 	var update := Update.new(); service.add_child(update)
 	update.setup(RefCounted.new(), "https://fixture.invalid/update.json"); update.blocked = false

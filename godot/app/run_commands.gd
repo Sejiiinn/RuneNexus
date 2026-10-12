@@ -2,7 +2,6 @@ extends RefCounted
 ## Pure run transactions. Callers commit state and submit commands together.
 ## Never reads/writes player saves or authoritative account currencies.
 const GemSlots = preload("res://app/gem_slot_rules.gd")
-const GemReroll = preload("res://app/gem_reroll.gd")
 var catalog
 var growth
 
@@ -103,7 +102,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 	var kind := str(command.get("kind",""))
 	if kind in ["chooseRewardGem","chooseRewardShards","chooseRewardGemEquip"]: return _choose_reward(state,command)
 	if kind == "purchaseGemChoice": return _purchase_gem_choice(state)
-	if kind == "rerollRewardFree": return _reroll_reward_free(state, command)
+	if kind == "rerollRewardFree": return _reject(state, "serverOfferRequired")
 	if state.get("phase", "") not in ["preparation","wave"]: return _reject(state,"phase")
 	var next := state.duplicate(true)
 	var t := turret(next,int(command.get("id",-1)))
@@ -216,11 +215,6 @@ func award_kill_owned(state: Dictionary, enemy: Dictionary, d: Dictionary) -> Di
 	next.pendingEconomyDiamonds = int(next.get("pendingEconomyDiamonds",0)) + maxi(0,int(enemy.get("diamondReward",0)))
 	return _success(next)
 
-func _reward_options(state: Dictionary) -> Array:
-	var options: Array = derived(state).get("availableGemTypes",growth.data.get("gems",[])).duplicate()
-	options.shuffle()
-	return options.slice(0,mini(3,options.size()))
-
 func complete_wave(state: Dictionary, wave_id: int) -> Dictionary:
 	var count: int = catalog.wave_count(int(state.stage))
 	var index := int(state.get("roundIndex",0))
@@ -243,71 +237,26 @@ func complete_wave(state: Dictionary, wave_id: int) -> Dictionary:
 	if completed >= count: next.phase = "success"
 	elif completed in growth.data.get("rewardRounds",[]):
 		next.phase = "reward"
-		next.rewardOptions = _reward_options(next)
+		# Wait for the durable server offer. No client wave candidate generation.
 	else: next.phase = "preparation"
 	return _success(next)
 
-func _reroll_reward_free(state: Dictionary, command: Dictionary) -> Dictionary:
-	if not state.get("economyRunId") is String or state.economyRunId.is_empty(): return _reject(state, "runId")
-	if not GemReroll.eligible(state): return _reject(state, "reward")
-	if int(state.get("gemRerollsUsed", 0)) != 0: return _reject(state, "rerollUsed")
-	if command.get("runId") != state.get("economyRunId") or command.get("completedRounds") != state.get("completedRounds") or command.get("expectedRerollCount") != 0: return _reject(state, "staleReward")
-	var available: Array = derived(state).get("availableGemTypes", growth.data.get("gems", []))
-	var options := GemReroll.options(str(state.economyRunId), int(state.completedRounds), 1, available, state.rewardOptions)
-	if options.size() != 3: return _reject(state, "gems")
-	var next := state.duplicate(true)
-	next.gemRerollsUsed = 1
-	next.rewardOptions = options
-	return _success(next)
-
 func _purchase_gem_choice(state: Dictionary) -> Dictionary:
-	if state.get("phase") not in ["wave","preparation"]: return _reject(state,"phase")
-	var cost := int(growth.data.constants.gemChoicePurchaseCost)
-	if int(state.gemShards) < cost: return _reject(state,"gemShards")
-	var options := _reward_options(state)
-	if options.is_empty(): return _reject(state,"gems")
-	var next := state.duplicate(true)
-	next.gemShards -= cost
-	next.rewardReturnPhase = state.phase
-	next.phase = "reward"
-	next.isPurchasedGemReward = true
-	next.rewardOptions = options
-	return _success(next)
+	return _reject(state, "serverOfferRequired")
 
-func _choose_reward(state: Dictionary, command: Dictionary) -> Dictionary:
-	if state.get("phase") != "reward": return _reject(state,"phase")
-	var next := state.duplicate(true)
-	if command.kind == "chooseRewardShards":
-		if state.get("isPurchasedGemReward",false): return _reject(state,"purchasedReward")
-		next.gemShards += int(growth.data.constants.gemShardRewardFallbackAmount)
-	else:
-		var gem := str(command.get("type",""))
-		if gem not in state.rewardOptions: return _reject(state,"reward")
-		if command.kind == "chooseRewardGemEquip":
-			var target := turret(next,int(command.get("id",-1)))
-			if target.is_empty(): return _reject(state,"turret")
-			var slot := int(command.get("slot",-1))
-			var buy_slot := bool(command.get("buySlot",false))
-			if buy_slot:
-				if slot != int(target.slotLimit): return _reject(state,"slot")
-			elif slot < 0 or slot >= int(target.slotLimit): return _reject(state,"slot")
-			if not GemSlots.can_equip(target, gem, _rule(target.type).get("compatibleGems",[])): return _reject(state,"gem")
-			if buy_slot:
-				var cost := int(quotes(state,int(target.id)).get("link",0))
-				if cost <= 0: return _reject(state,"requirement")
-				if int(state.gold) < cost: return _reject(state,"gold")
-				next.gold -= cost
-				target.investedGold += cost
-				target.slotLimit += 1
-				target.equippedGemSlots.append(null)
-			GemSlots.replace_owned(target, slot, gem, next.gemInventory)
-		else:
-			next.gemInventory[gem] = int(next.gemInventory.get(gem,0))+1
-	next.phase = state.get("rewardReturnPhase") if state.get("rewardReturnPhase") != null else "preparation"
-	next.rewardOptions = []
-	next.rewardReturnPhase = null
-	next.isPurchasedGemReward = false
-	return _success(next,runtime_commands(next) if command.kind == "chooseRewardGemEquip" else [])
+func _choose_reward(state: Dictionary, _command: Dictionary) -> Dictionary:
+	return _reject(state, "serverOfferRequired")
+
+## Pure intent validation; candidate ownership is granted only by the server.
+func validate_reward_equip(state: Dictionary, command: Dictionary) -> bool:
+	if state.get("phase") != "reward" or command.get("type") not in state.get("rewardOptions", []): return false
+	var target := turret(state, int(command.get("id", -1)))
+	if target.is_empty() or not GemSlots.can_equip(target, str(command.type), _rule(target.type).get("compatibleGems", [])): return false
+	var slot := int(command.get("slot", -1))
+	if command.get("buySlot", false):
+		var cost := int(quotes(state, int(target.id)).get("link", 0))
+		return slot == int(target.slotLimit) and cost > 0 and int(state.gold) >= cost
+	return slot >= 0 and slot < int(target.slotLimit)
 
 func refresh(state: Dictionary) -> Dictionary:
 	return _success(state.duplicate(true),runtime_commands(state))

@@ -68,7 +68,7 @@ func write_phase(app, phase: String) -> void:
 			runtime.advance_session(1.0/60.0)
 			app.command()
 		check(not runtime.enemies.is_empty() and not runtime.wave.queue.is_empty(), phase+" active enemies and queue")
-	if phase == "reward": check(app.apply_run_command({"kind":"purchaseGemChoice"}), "purchase choice before restart")
+	if phase == "reward": check(_purchase_fixture(app), "authoritative purchase choice before restart")
 	if phase == "failure":
 		# Terminal-state fixture keeps real content enemy definitions and progress.
 		runtime.defense.hp = 0
@@ -105,7 +105,7 @@ func read_phase(app, phase: String) -> void:
 	var run: Dictionary = expected.save.activeRun
 	check(app.run_domain.state.phase == run.phase and runtime.session.phase == run.phase, phase+" restored phase")
 	check(runtime.session.paused and runtime.clock == 0, phase+" restored paused")
-	check(app.run_domain.state.gold == run.gold and app.run_domain.state.pendingEconomyDiamonds == 17, phase+" economy")
+	check(app.run_domain.state.gold == run.gold and app.run_domain.state.pendingEconomyDiamonds == run.pendingEconomyDiamonds, phase+" economy")
 	check(app.run_domain.state.runUpgradeLevels == run.runUpgradeLevels and app.run_domain.state.gemInventory == run.gemInventory, phase+" inventory and upgrades")
 	check(app.run_domain.state.progression.turretModules == expected.save.turretModules, phase+" modules")
 	check(runtime.turrets.size() == 1, phase+" turret count")
@@ -128,15 +128,18 @@ func read_phase(app, phase: String) -> void:
 		check(app.next_round == run.completedRounds, phase+" next round does not replay completed wave")
 	if phase == "naturalReward":
 		check(not app.run_domain.state.isPurchasedGemReward, "natural reward retained")
-		check(app.apply_run_command({"kind":"chooseRewardShards"}), "natural reward resolves")
+		check(not app.apply_run_command({"kind":"chooseRewardShards"}), "natural reward cannot be granted by local command")
+		check(_choice_fixture(app, "shards"), "natural reward resolves")
 		check(app.run_domain.state.phase == "preparation", "natural reward returns to preparation")
 	if phase == "reward":
 		check(app.run_domain.state.rewardOptions == run.rewardOptions and app.run_domain.state.rewardReturnPhase == "wave", "reward context")
 		var option: String = run.rewardOptions[0]
 		var previous: int = app.run_domain.state.gemInventory.get(option, 0)
-		check(app.apply_run_command({"kind":"chooseRewardGem","type":option}), "restored choice accepted")
+		check(not app.apply_run_command({"kind":"chooseRewardGem","type":option}) and app.run_domain.state.gemInventory.get(option,0) == previous, "pending choice cannot be granted by local command")
+		check(_choice_fixture(app, option), "restored confirmed choice accepted")
 		check(app.run_domain.state.gemInventory.get(option,0) == previous+1, "choice paid once")
-		check(not app.apply_run_command({"kind":"chooseRewardGem","type":option}), "choice cannot pay twice")
+		check(not app.apply_run_command({"kind":"chooseRewardGem","type":option}), "choice remains unavailable through client command")
+		check(_choice_fixture(app, option) and app.run_domain.state.gemInventory.get(option,0) == previous+1, "same confirmed choice projection cannot pay twice")
 	if phase in ["wave", "reward"]:
 		app.toggle_pause()
 		for i in range(480):
@@ -235,3 +238,28 @@ func exit_boundaries(app, directory: String) -> void:
 	app.exit_stage()
 	var saved = app.checkpoint.store.load_save()
 	check(not app.scene.combat_runtime.active and saved != null and saved.activeRun.gold == before.gold, "exit checkpoints before reset")
+
+# This persistence fixture supplies a confirmed server offer, never client RNG.
+func _purchase_fixture(app) -> bool:
+	var state: Dictionary = app.run_domain.state
+	var offer := {"runId":state.economyRunId,"offerId":"00000000-0000-4000-8000-000000000097","rewardWave":state.completedRounds,"revision":1,"economyRevision":1,"kind":"purchase","purchaseSequence":1,"returnPhase":state.phase,"totalUsed":0,"gemOptions":["attackSpeed","range","physicalDamage"],"status":"pending","choice":"","grantedGem":"","grantedShards":0,"gemInventory":state.gemInventory.duplicate(true),"gemShards":state.gemShards-20}
+	var projected := preload("res://app/gem_reroll.gd").project(state, offer)
+	if projected.is_empty(): return false
+	app.run_domain.state = projected
+	return app.command([], {"phase":"reward"})
+
+# Persistence-only server fixture: the canonical receipt is fixed across replay.
+# Production commands/HTTP identity are covered in the authority protocol suite.
+var _confirmed_choice: Dictionary = {}
+func _choice_fixture(app, choice: String) -> bool:
+	var state: Dictionary = app.run_domain.state
+	if _confirmed_choice.get("runId") != state.economyRunId:
+		var purchase: bool = state.get("isPurchasedGemReward", false)
+		_confirmed_choice = {"runId":state.economyRunId,"offerId":state.get("gemOfferId","restart-wave-offer"),"rewardWave":state.completedRounds,"revision":int(state.get("gemOfferRevision",0))+1,"economyRevision":int(state.get("gemEconomyRevision",0))+1,"totalUsed":int(state.get("gemRerollsUsed",0)),"gemOptions":state.rewardOptions.duplicate() if purchase else ["attackSpeed","range","physicalDamage"],"status":"chosen","choice":choice,"grantedGem":"" if choice == "shards" else choice,"grantedShards":10 if choice == "shards" else 0,"gemInventory":state.gemInventory.duplicate(true),"gemShards":state.gemShards+(10 if choice == "shards" else 0)}
+		if str(_confirmed_choice.offerId).is_empty(): _confirmed_choice.offerId = "restart-wave-offer"
+		if purchase: _confirmed_choice.merge({"kind":"purchase","purchaseSequence":1,"returnPhase":state.rewardReturnPhase})
+		if choice != "shards": _confirmed_choice.gemInventory[choice] = int(_confirmed_choice.gemInventory.get(choice,0))+1
+	var next := preload("res://app/gem_reroll.gd").project(state, _confirmed_choice)
+	if next.is_empty(): return false
+	app.run_domain.state = next
+	return app.command([], {"phase":next.phase})

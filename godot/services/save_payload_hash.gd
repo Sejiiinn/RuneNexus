@@ -169,7 +169,12 @@ const ORDERS = {
 		"spawnQueue",
 		"gemRerollsUsed",
 		"runCorePassiveNodeRanks",
-		"runTurretModules"
+		"runTurretModules",
+		"gemOfferId",
+		"gemOfferRevision",
+		"gemOfferStatus",
+		"gemOfferEquipRevision",
+		"gemEconomyRevision"
 	],
 	"SavedTurretModuleInventory": [
 		"tickets",

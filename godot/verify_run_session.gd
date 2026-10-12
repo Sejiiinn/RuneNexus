@@ -89,12 +89,12 @@ func run() -> void:
 		and app.run_domain.state.runTurretModules == start_modules, "loadout change is kept for the next stage")
 	app.start_wave()
 	check(runtime.core.configured and runtime.core.skill == "guardianBeam", "selected default core connected")
-	check(app.apply_run_command({"kind":"purchaseGemChoice"}), "buy gem choice during wave")
+	check(_purchase_fixture(app), "confirmed server purchase during wave")
 	var clock_before: float = runtime.clock
 	runtime.advance_session(0.5)
 	check(runtime.session.phase == "reward" and runtime.clock == clock_before, "reward selection pauses actual combat")
 	var option: String = app.run_domain.state.rewardOptions[0]
-	check(app.apply_run_command({"kind":"chooseRewardGem","type":option}), "reward selection accepted")
+	check(_choice_fixture(app, option), "confirmed server choice projected")
 	check(runtime.session.phase == "wave", "purchased choice resumes interrupted wave")
 	for i in range(480):
 		runtime.advance_session(1.0/60.0)
@@ -131,3 +131,24 @@ func run() -> void:
 	for i in range(3): await process_frame
 	print("RUN_SESSION failures=",failures)
 	quit(0 if failures.is_empty() else 1)
+
+var _server_offer: Dictionary = {}
+func _purchase_fixture(app) -> bool:
+	var state: Dictionary = app.run_domain.state
+	_server_offer = {"runId":state.economyRunId,"offerId":"00000000-0000-4000-8000-000000000098","rewardWave":state.completedRounds,"revision":1,"economyRevision":1,"kind":"purchase","purchaseSequence":1,"returnPhase":state.phase,"totalUsed":0,"gemOptions":["attackSpeed","range","physicalDamage"],"status":"pending","choice":"","grantedGem":"","grantedShards":0,"gemInventory":state.gemInventory.duplicate(true),"gemShards":state.gemShards-20}
+	var next := preload("res://app/gem_reroll.gd").project(state, _server_offer)
+	if next.is_empty(): return false
+	app.run_domain.state = next
+	return app.command([], {"phase":"reward"})
+
+func _choice_fixture(app, choice: String) -> bool:
+	_server_offer.revision = 2
+	_server_offer.economyRevision = 2
+	_server_offer.status = "chosen"
+	_server_offer.choice = choice
+	_server_offer.grantedGem = choice
+	_server_offer.gemInventory[choice] = int(_server_offer.gemInventory.get(choice, 0))+1
+	var next := preload("res://app/gem_reroll.gd").project(app.run_domain.state, _server_offer)
+	if next.is_empty(): return false
+	app.run_domain.state = next
+	return app.command([], {"phase":next.phase})

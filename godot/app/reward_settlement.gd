@@ -2,7 +2,7 @@ extends Node
 ## Inject authenticated context from account/save ownership. No login, bootstrap,
 ## credentials on disk, or guest-to-account adoption. All callbacks may be async.
 const SaveJson = preload("res://app/save_json.gd")
-const COMPATIBILITY_VERSION := 7
+const COMPATIBILITY_VERSION := 9
 var outbox
 var busy := false
 var binding_generation := 0
@@ -126,6 +126,10 @@ static func valid_snapshot(value: Variant) -> bool:
 		if value.get("gemRerollVersion") != 1 or not preload("res://app/gem_reroll.gd").valid_receipt(value.gemReroll): return false
 		for gem in value.gemReroll.gemOptions:
 			if gem not in preload("res://app/save_codec.gd").ENUMS.GemType: return false
+	if value.has("gemOfferVersion") and value.gemOfferVersion != 1: return false
+	if value.get("gemOfferVersion") == 1 and not value.wallet.has("gemResetTickets"): return false
+	if value.get("gemOffer") != null and (value.get("gemOfferVersion") != 1 or not preload("res://app/gem_reroll.gd").valid_offer(value.gemOffer)): return false
+	if value.get("run") != null and not preload("res://app/gem_command_result.gd").valid_run(value.run): return false
 	for key in ["drawCount", "ticketPurchaseCount"]:
 		if not value.turretModules.get(key) is int or value.turretModules[key] < 0: return false
 	if not value.turretModules.get("items") is Array or not value.get("pendingProgressionEffects") is Array or not value.entitlements.get("researchSlotTwoUnlocked") is bool or not value.get("serverTime") is String: return false

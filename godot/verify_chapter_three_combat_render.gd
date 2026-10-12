@@ -1,4 +1,8 @@
 extends SceneTree
+# Explicit offline renderer fixture. Removing services alone never authorizes
+# a production in-tree App to create a server-owned run.
+class OfflineApp extends "res://app/app_lifecycle.gd":
+	func _detached_debug_lifecycle() -> bool: return true
 ## Actual main/HUD with the legal, explicitly seeded normal-combat profile.
 ## Required observed interactions only; full-wave outcomes are a separate 60 Hz test.
 ## Five representative boss waves, not economy/balance or Android certification.
@@ -120,7 +124,13 @@ func run() -> void:
 	scene = load("res://main.gd").new()
 	scene.app_mode = true
 	root.add_child(scene)
-	app = scene.session_controller
+	var original_app = scene.session_controller
+	if original_app.services != null: original_app.services.free()
+	original_app.services = null
+	original_app.free()
+	app = OfflineApp.new()
+	scene.session_controller = app
+	scene.add_child(app)
 	var services = app.services
 	app.services = null
 	if services != null: services.free()

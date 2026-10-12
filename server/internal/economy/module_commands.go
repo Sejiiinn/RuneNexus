@@ -295,6 +295,12 @@ func lockAuthoritativeEconomy(ctx context.Context, queries *dbgen.Queries, accou
 	if err != nil {
 		return dbgen.PlayerEconomy{}, fmt.Errorf("lock player economy: %w", err)
 	}
+	if economy.RunAuthorityEnabled && gamesave.ClientCompatibilityFromBody(raw) < gamesave.RunAuthorityClientCompatibilityVersion {
+		return dbgen.PlayerEconomy{}, gamesave.ErrClientUpdateRequired
+	}
+	if economy.GemOfferEnabled && gamesave.ClientCompatibilityFromBody(raw) < gamesave.GemOfferClientCompatibilityVersion {
+		return dbgen.PlayerEconomy{}, gamesave.ErrClientUpdateRequired
+	}
 	if economy.GemRerollEnabled && gamesave.ClientCompatibilityFromBody(raw) < gamesave.GemRerollClientCompatibilityVersion {
 		return dbgen.PlayerEconomy{}, gamesave.ErrClientUpdateRequired
 	}

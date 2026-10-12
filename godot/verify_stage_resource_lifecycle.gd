@@ -4,6 +4,10 @@ extends SceneTree
 ## ResourceLoader cache. Every child uses isolated user data and checkpoint paths.
 const Checkpoint = preload("res://session/session_checkpoint.gd")
 const Json = preload("res://app/save_json.gd")
+# Explicit offline asset-lifecycle fixture; production authority is never
+# inferred from removing services or disabling UI.
+class OfflineApp extends "res://app/app_lifecycle.gd":
+	func _detached_debug_lifecycle() -> bool: return true
 var failures: Array[String] = []
 var checks := 0
 var battle_paths: Array[String] = []
@@ -100,7 +104,13 @@ func child(mode: String, directory: String) -> void:
 	var scene = load("res://main.tscn").instantiate()
 	scene.app_mode = true
 	root.add_child(scene)
-	var app = scene.session_controller
+	var original_app = scene.session_controller
+	if original_app.services != null: original_app.services.free()
+	original_app.services = null
+	original_app.free()
+	var app := OfflineApp.new()
+	scene.session_controller = app
+	scene.add_child(app)
 	# setup() only queued service initialization. Free it synchronously before
 	# that callback so even a production-configured prepared project stays offline.
 	var services = app.services

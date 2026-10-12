@@ -1,7 +1,7 @@
 # Rune Nexus 서버 권위 경제 상세 설계
 
 문서 상태: 채택 설계 · 서버 권위 경제 MVP 구현
-마지막 갱신: 2026-08-30
+기존 경제 MVP 설계: 2026-08-30. 웨이브 젬·필수 인증 계약 점검: 2026-10-12.
 
 `player_economies`, 별도 economy revision·authority epoch, 모듈 소유권, 원장과 exact
 명령 영수증을 구현했다. 기존 account 저장은 최초 연결 시 한 번만 bootstrap하며 구매
@@ -23,19 +23,44 @@
 제외는 후속 최적화이며, 실제 Google 계정·다중 기기 공개 E2E와 운영 백업 검증은 아직
 남아 있다. 실제 Google Play 결제 검증은 상품 도입 시 별도 단계로 진행한다.
 
-## 젬 보상 리롤 (호환 세대 7)
+## 젬 보상과 도전 수명주기 (호환 세대 9)
 
-무료 웨이브 젬 보상창에 도전 전체 무료 1회와 젬 리셋권 1장당 추가 1회(최대 2회)를 적용한다. 웨이브 변경·앱 재시작으로 충전되지 않으며 새 도전에서만 초기화한다. 20파편 구매 선택창은 제외한다. 바로 직전 후보 3종을 제외하고 3종을 다시 고르며, 그 이전 후보는 다시 나올 수 있다. 전투 난수를 소비하지 않고 `runId / rewardWave / 누적 차수 / gem ID`의 버전 고정 SHA-256 순위로 결정한다.
+무료 웨이브 보상과 기존 20파편 구매 선택의 후보 생성·선택 확정은 인증된 계정의 서버 명령으로 처리한다. 도전 전체 무료 재선택 1회와 젬 리셋권 1장당 추가 1회(최대 2회)를 유지한다. 구매 선택에는 재선택·10파편 대체 선택을 추가하지 않는다. 웨이브 재선택은 바로 직전 후보 3종만 제외하며 그 이전 후보는 다시 나올 수 있다. 후보 풀은 기존 해금 기준(기본 12종, 추가 2종)이다. 상점·광고·다이아 결제나 실제 계정 리셋권 지급은 추가하지 않는다.
 
-- 계정은 무료를 포함해 `POST /v1/economy/gems/reroll`에서 확정한다. 본문은 `runId`, `completedRounds`, `expectedRerollCount`와 기존 경제 revision·catalog·source save revision·writer generation·compatibility 필드다.
-- `player_economies.gem_reset_tickets`는 초기 0인 서버 재화다. bootstrap·일반 save로 발행하지 않는다. 기존 우편 지급 계약에서 `gemResetTickets`를 지원하지만 실제 지급, 상점, 광고, 다이아 대체 결제는 추가하지 않는다.
-- 계정·도전별 `economy_gem_rerolls`에 누적 횟수와 마지막 보상 웨이브·확정 후보를 저장한다. 차감·기록·원장·영수증은 하나의 DB 트랜잭션이다. 현재 `activeRun`을 되돌려도 이 기록은 유지된다. 새 요청은 저장된 후보·횟수와 원본 기록을 검증하고 이전 웨이브 요청을 거절한다.
-- snapshot의 `gemRerollVersion=1`이 기능 지원 신호다. `gemReroll`은 현재 저장 런에 해당하는 `{runId,rewardWave,totalUsed,gemOptions}` 또는 null이고, 응답 본문의 같은 이름 영수증과 일치한다. 지갑의 `gemResetTickets`, 런의 `gemRerollsUsed`, 같은 보상창의 후보를 클라이언트 체크포인트 한 번으로 저장한 뒤에만 Outbox를 완료한다. 이후 웨이브에는 누적 횟수만 반영하고 지난 보상창을 다시 열지 않는다.
-- 타임아웃·응답 유실·로컬 저장 실패에는 같은 본문과 idempotency key로 복구한다. 결과가 미확정이면 후보 선택·파편 전환·런 교체를 잠근다. 재시도 탭은 기존 명령 복구만 수행하고 새 리롤을 추가하지 않는다. 계정 전환의 오래된 응답은 반영하지 않는다.
-- 리롤 사용 또는 리셋권 보유가 있는 계정에는 호환 세대 7을 요구해 구 앱의 필드 유실을 막는다. 이미 확정된 구 영수증의 exact 복구는 유지한다. 서버 기능이 아직 없으면 계정 리롤만 이용 불가로 표시하고 기존 보상 선택은 유지한다.
-- 게스트 무료 1회는 로컬 도메인 명령과 선저장으로 처리한다. 리셋권은 연결된 계정에서만 소비한다. 연결 시 같은 도전에 이미 사용한 무료 횟수가 있으면 서버 초기 예산을 줄이는 방향으로만 인계한다.
+### 권위·저장 경계
 
-검증 진입점: `verify_gem_reroll.gd`, `verify_gem_reroll_ui.gd`, 서버 리롤 단위·DB 통합 테스트. 공개·실계정·Android 검증과 배포 순서는 [배포 인계](deployment_status.md)에 기록한다.
+- 새 후보는 서버 암호학적 난수로 균등 비복원 추출하고 응답 전에 영속한다. 계정·도전·웨이브별 wave offer는 최대 7행이다. 같은 의미의 최초 발급을 새 key로 재요청하면 읽기만 수행하며 후보·영수증·save/economy revision을 추가하지 않는다. 단, 아직 이전하지 않은 canonical 저장의 최초 요청은 아래 한 번의 adoption을 commit한 뒤 복구 결과를 노출하며, 새 writer claim을 먼저 했다는 클라이언트 순서에 의존하지 않는다. 리롤·선택은 현재 offer ID/revision과 writer/source/economy revision을 검사한다.
+- `economy_runs`는 서버 발급 UUID, 계정당 하나의 열린 도전, 스테이지, 정확한 타입별 젬 소유 합계, 리롤 예산, 마지막 구매 offer/구매 차수를 보존한다. 새 도전은 ID 없는 완전한 초기 체크포인트를 동기화한 뒤 start로 결속한다. 이미 진행된 checkpoint·보상·사용 예산을 새 UUID에 결속하지 않는다. 일반 save의 null/다른 UUID는 열린 도전을 종료하지 못한다. 명시적 close 또는 정산으로 닫으며, 닫힌 UUID는 tombstone으로 남아 재활성화하지 않는다.
+- 가방과 저장 codec이 보존하는 장착 슬롯의 타입별 합계는 서버 소유 합계와 정확히 같아야 한다. `equippedGemSlots`가 있으면 `equippedGems` 미러를 중복 계산하지 않으며, 구형 슬롯 배열이 없는 저장만 기존 fallback을 읽는다. 장착·해제·교체·포탑 판매는 소유 젬의 위치를 바꾸므로 허용한다. 미래 소비/합성 기능은 소유 합계를 변경하는 명령을 추가해야 하며 일반 저장으로 젬을 없애거나 만들어서는 안 된다. 슬롯 codec 의존성은 별도 소유권 adapter에 모은다.
+- 20파편 구매는 현재 단계·wave/준비 복귀 위치·파편 잔액을 확인하고 차감, 후보, 차수, 저장, 영수증을 같은 트랜잭션에서 확정한다. 현재 구매 offer는 도전 aggregate에 하나만 보존하고, 이전 완료 결과는 작고 불변인 명령 영수증으로 복구한다. wave 선택도 젬/10파편 지급·재고·offer 완료·save revision을 원자적으로 확정한다.
+- 전투 수행·웨이브 완료·스테이지 클리어·파편 획득은 여전히 클라이언트 보고를 신뢰한다. 조작된 획득 파편으로 서버 구매 명령을 통과할 가능성까지 차단한 것은 아니다. 서버 UUID와 정확한 젬 보존은 전투 증명이나 게임 전체 부정행위 방지를 의미하지 않는다. 금화·포탑 배치·스탯을 서버 전투로 다시 구현하지 않는다.
+
+### 인증·복구
+
+정식 앱에는 게스트 플레이가 없다. 업데이트 확인과 별도로 실제 인증·계정 저장·경제 복구가 끝나기 전에는 시작·이어하기·전투와 보상 선택을 잠근다. 통신 실패가 기존 인증 정보·계정 저장을 지우거나 로컬 fallback 플레이를 열지 않는다.
+
+계정별 durable Outbox는 요청 key/본문을 재시도 내내 보존한다. 새 젬/start/close 명령의 `gemReceipt.version=1`은 권위 epoch·경제 revision·리셋권 잔액과 작은 명령 결과만 보존한다. 전체 `activeRun`, 모듈, 평생 reward claim keys를 매 영수증에 복제하지 않는다. exact 결과를 확인한 뒤 `GET /v1/economy`와 `GET /v1/save`의 현재 상태를 대조해 저장/경제 기준을 수용하고 나서 Outbox를 완료한다. 과거 영수증을 현재 전체 save로 사용하지 않으며, 정상인 후속 웨이브·새 도전·후속 구매·로컬 장착을 되돌리지 않는다. `gemEconomyRevision`은 같은 웨이브의 서로 다른 구매 offer 간 순서를 구분한다. 중간 쓰기 실패·주 저장 손상·백업 복구도 같은 경로를 따른다. 선택과 함께 요청한 로컬 자동 장착은 원래 선택 직후 canonical revision에서만 처리한다. 다른 기기의 후속 저장이나 사라진/변경된 장착 대상 때문에 의도가 낡았으면 현재 소유분과 배치를 보존한 채 장착 의도만 완료 처리한다. 새로 지급된 젬을 재지급하거나 새 대상으로 돌리지 않으며, 실제 로컬 저장 실패는 완료로 숨기지 않고 Outbox를 재시도 상태로 남긴다. 장착까지 로컬 완료한 뒤 업로드 전에 주 저장이 손상된 경우에도 마지막 장착 의도는 현재 canonical GET을 거친 live 복구에서만 재검토한다. 캐시 로드는 장착하거나 취소하지 않고, 완료된 명령 POST를 다시 보내지 않는다.
+
+젬/구매/start/close와 economy/save GET 복구 읽기는 인증된 account를 기준으로 공유 token bucket(프로세스당 분당 60회, 최대 20,000계정)을 적용한다. 세션 교체로 제한을 우회하지 못하고 429의 `Retry-After` 후 durable 요청을 재시도한다. 다중 API replica의 전역 요청 제한은 별도 ingress/shared limiter가 필요하다. 의미상 읽기 전용인 offer 복구도 동시 상태를 맞추기 위한 FOR UPDATE 잠금을 사용한다. 새 영수증·상태 revision·지급을 만들지 않는다는 뜻이며 DB 잠금/물리 쓰기/WAL 비용이 0이라는 주장은 아니다.
+
+### 선배포·이전·보존
+
+migration 014–016과 API, 세대 9 앱을 함께 검증해 준비한다. 실제 적용 시에는 구 API 인스턴스의 쓰기를 먼저 막고 transactional migration을 적용한 뒤 모든 API를 새 버전으로 바꾼다. 구 바이너리가 migration 뒤에 canonical 저장을 갱신하는 혼합 쓰기 구간을 허용하지 않는다. 앱 공개·필수 업데이트 안내는 이 쓰기 전환과 조율한다. 저장 schemaVersion은 2를 유지한다. 최초 전환은 migration 016 시점에 고정한 canonical save revision의 activeRun 젬 보유/장착과 기존 서버 예산만 한 번 import하고 provenance를 남긴다. `account_run_authorities`의 pin이 없는 새 계정은 기존 UUID/보유분을 import하지 않는다. 모든 새 writer/save 요청은 세대 9 미만이면 exact 영수증 조회 뒤 거절한다. 이 기준은 운영 환경값에만 의존하지 않고 서비스에서 적용한다. 세대 9는 먼저 이전한 뒤 새 저장을 검사한다. GET과 기존 exact 영수증 읽기는 유지한다. 새로 전송된 save나 임의 UUID를 import source로 삼지 않는다. 활성 도전이 없던 계정도 전환 표식을 남겨 후속 import를 금지한다. 이미 정산된 도전은 닫힌 상태로 이전한다. migration 시점의 canonical run에 ID가 누락/null/빈 문자열이면 그 트랜잭션 안에서 서버 UUID를 한 번 부여하고 해당 save revision만 증가시킨 뒤 pin한다. 기존 canonical 리롤 사용량이 영속 예산보다 작으면 사용량만 최댓값으로 올리고 해당 header revision을 증가시킨 뒤 pin한다. clientSavedAt, 기존 후보와 그 밖의 게임 진행 값은 보존하며, 첫 bootstrap 업로드 전에 canonical과 소유권 예산이 일치한다. 이전 paid 선택 중인 canonical 저장은 이미 지불한 비용과 기존 후보를 legacy provenance로 한 번 보존한다. 뒤늦은 로컬/게스트 이전 경로가 이 기준을 덮어쓰거나 새 젬을 legacy로 등록하지 못한다. 서버에 동기화되지 않았던 구세대의 추가 젬/도전은 자동으로 권위화하지 않으며, 충돌 백업을 보존해 사용자가 복구 경위를 확인할 수 있게 한다. 세대 7/8에서 확정된 exact 영수증의 full recovery 자료는 변경·삭제하지 않으며 신규 명령에는 세대 9를 요구한다.
+
+닫힌 도전 ID, wave 완료 기록, 리롤 예산과 exact 명령 영수증은 계정 생존 동안 보존한다. 기간 기반 삭제나 재사용은 하지 않는다. 계정 삭제의 기존 cascading 정책 외에 이번 변경으로 데이터를 지우지 않는다. 향후 보관 축소에는 replay/부활 방지를 보존하는 별도 정책과 migration이 필요하다.
+
+### API·snapshot 계약
+
+- `POST /v1/economy/runs/start`: source save/economy revision·catalog·writer generation·compatibility와 `stageNumber`. 초기 canonical checkpoint에 서버 UUID를 결속한다.
+- `POST /v1/economy/runs/close`: 같은 공통 필드와 `runId`. tombstone 생성과 canonical run 제거를 원자 처리한다. 현재 열린 도전은 snapshot의 `run`으로 재개한다.
+- `POST /v1/economy/gems/offer`: 공통 필드와 `runId`, `completedRounds`.
+- `POST /v1/economy/gems/purchase`: 같은 공통 필드. 고정 20파편을 차감하며 클라이언트 후보/금액은 받지 않는다.
+- `POST /v1/economy/gems/reroll`: 현재 `offerId`, `expectedOfferRevision`, `expectedRerollCount`를 더한다.
+- `POST /v1/economy/gems/choose`: 현재 `offerId`, `expectedOfferRevision`, `choice`(후보 ID 또는 wave의 `shards`). 지급량은 서버가 정한다.
+- `gemOffer`는 `offerId/runId/kind/rewardWave/revision/economyRevision/totalUsed/gemOptions/status/choice/grantedGem/grantedShards/gemInventory/gemShards`를 가진다. 구매에는 `purchaseSequence/returnPhase`가 추가된다. `pending/chosen` 상태와 header/payload 일치를 DB 제약과 서비스가 확인한다.
+- 새 명령 응답은 `gemReceipt`, `gemOffer` 또는 `run`, `saveRevision`, `serverSavedAt`이며 full save/economy는 포함하지 않는다. 과거 exact 응답의 계약은 별도로 유지한다.
+
+검증은 서버 경제·save·HTTP·runstate 테스트, 실제 DB용 통합 검사, Godot gem/account/lifecycle/backup 회귀로 나눈다. 실행한 단계와 미검증 항목, 배포 승인 범위는 [배포 인계](deployment_status.md#현재-미배포-변경)에 기록한다.
 
 ## 1. 결론
 
@@ -56,9 +81,7 @@ Rune Nexus는 전투와 일반 진행을 계속 로컬에서 처리하되, 다�
 로컬 쓰기로 남으면 로컬 값을 복제하거나 수정해 서버 가챠 결과를 반복해서 얻을 수
 있다.
 
-반대로 전투 입력, 적 이동, 포탑 공격, 룬·코어 포인트·젬, 연구 진행 시간, 스테이지
-기록과 활성 런은 서버 권위로 올리지 않는다. 오프라인 플레이와 느린 네트워크에서의
-플레이 연속성을 유지하고, 서버는 중요 경제 행동이 발생할 때만 호출한다.
+전투 입력, 적 이동, 포탑 공격, 룬·코어 포인트, 연구 진행 시간, 스테이지 기록과 일반 활성 런은 기존 로컬 계산을 유지한다. 다만 위 젬 offer·선택·소유 합계·도전 ID와 아래 경제 원본은 서버가 확정하며, 정식 앱의 플레이에는 인증 및 복구 완료가 필요하다. 로컬 전투 계산을 허용한다는 사실을 게스트·미인증 플레이 허용으로 해석하지 않는다.
 
 ```text
 로컬 권위 게임 상태                         서버 권위 경제 상태
@@ -123,22 +146,22 @@ Rune Nexus는 전투와 일반 진행을 계속 로컬에서 처리하되, 다�
 
 | 데이터 | 설명 |
 | --- | --- |
-| 전투와 활성 런 | 서버 응답 없이 계속 진행 |
-| 룬, 코어 포인트, 젬과 일반 업그레이드 | 현재의 클라이언트 신뢰 범위 유지 |
+| 전투와 활성 런 | 인증된 세션의 로컬 전투 계산. 도전 ID·젬 offer·선택·소유 합계는 서버 원본에 종속 |
+| 룬, 코어 포인트, 파편 획득과 업그레이드 | 기존 클라이언트 신뢰 범위 유지. 젬 장착 위치는 서버 소유 합계 안에서만 변경 |
 | 스테이지 클리어·최고 라운드 | 클라우드 백업 대상이지만 서버 권위 판정 대상은 아님 |
 | 퀘스트 진행량 | 로컬에서 누적하고 claim 때 서버에 행동 증거로 보고 |
 | 연구 상태 | 시작·시간 완료와 레벨은 로컬. 즉시 완료 effect는 서버 영수증에서 멱등 적용 |
 | 모듈 장착 ID | 일반 진행 스냅샷에 저장하고 서버 소유 목록과 대조 |
 | 설정·플레이타임 | 기존 온라인 저장으로 동기화 |
 
-모듈 장착은 오프라인 전투를 위해 로컬에서 즉시 바꿀 수 있다. 서버 경제 상태를
+모듈 장착은 인증·복구 gate를 통과한 로컬 전투에서 즉시 바꿀 수 있다. 서버 경제 상태를
 새로 받았을 때 더 이상 소유하지 않은 ID는 자동 해제한다. 서버는 분해 요청에서
 클라이언트의 `equipped` 값을 보안 조건으로 신뢰하지 않는다.
 
 ### 3.3 로컬 캐시
 
-클라이언트는 마지막으로 받은 경제 snapshot을 로컬 통파일에 캐시한다. 네트워크가
-없을 때도 캐시된 소유 모듈의 효과로 전투할 수 있지만 다음 행동은 막는다.
+클라이언트는 마지막으로 받은 경제 snapshot을 로컬 통파일에 캐시한다. 캐시는 정식 앱의
+인증·복구 gate를 대신하지 않는다. 연결 실패 시 다음 서버 확정 행동도 막는다.
 
 - 다이아 또는 모듈권 소비
 - 모듈 뽑기와 분해
@@ -948,7 +971,7 @@ PostgreSQL 안에서 처리한다.
 
 ### Flutter 테스트
 
-- 오프라인 경제 버튼 비활성화와 일반 플레이 유지
+- 인증·복구 실패 시 플레이/경제 버튼 차단과 세션·저장 보존
 - 응답 유실, 앱 재시작 뒤 exact in-flight 복구
 - 서버 응답 영속 전/후 강제 종료 복구
 - 같은 authority epoch의 낮은 revision 응답 무시와 새 epoch 재기준화

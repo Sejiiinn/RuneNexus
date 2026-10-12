@@ -1,4 +1,8 @@
 extends SceneTree
+# Explicit offline renderer fixture. Removing services alone never authorizes
+# a production in-tree App to create a server-owned run.
+class OfflineApp extends "res://app/app_lifecycle.gd":
+	func _detached_debug_lifecycle() -> bool: return true
 ## Actual main battlefield + BattleHud, isolated saves, no network.
 ## Run with an imported project and RUNE_CH3_CAPTURE_DIR=/absolute/directory.
 ## Compatibility renders are desktop evidence, not Android certification.
@@ -99,7 +103,13 @@ func run() -> void:
 	scene = load("res://main.gd").new()
 	scene.app_mode = true
 	root.add_child(scene)
-	app = scene.session_controller
+	var original_app = scene.session_controller
+	if original_app.services != null: original_app.services.free()
+	original_app.services = null
+	original_app.free()
+	app = OfflineApp.new()
+	scene.session_controller = app
+	scene.add_child(app)
 	var narrow := "--narrow-modals" in OS.get_cmdline_user_args()
 	var guides_only := "--guides-only" in OS.get_cmdline_user_args()
 	if narrow:

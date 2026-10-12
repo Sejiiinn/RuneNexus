@@ -17,6 +17,7 @@ class Services extends RefCounted:
 	func connected() -> bool: return online
 	func configured() -> bool: return enabled
 	func needs_profile() -> bool: return online and profile.get("nickname") == null
+	func authentication_required() -> bool: return not online or needs_profile()
 	func request(method: String, path: String, values: Dictionary) -> Dictionary:
 		calls.append({"method":method,"path":path,"values":values.duplicate(true)})
 		await released
@@ -102,13 +103,14 @@ func run() -> void:
 	assert(service.calls.back()=={"action":"retry"})
 	lobby.close_modal(); service.released.emit(); await settle(); assert(lobby.modal==null,"Late completion cannot reopen dismissed account modal")
 	service.online = false; service.issue = ""; lobby.open_service("계정 및 저장"); await settle()
-	assert(texts(lobby.modal_body).contains("계정 저장 · 오프라인") and button(lobby.modal_body,"Google 계정 연결")!=null)
+	assert(texts(lobby.modal_body).contains("인증 연결을 확인해 주세요") and button(lobby.modal_body,"Google 계정 연결")!=null)
 	assert(button(lobby.modal_body,"동기화 다시 시도")!=null and button(lobby.modal_body,"로그아웃")!=null)
+	lobby.close_modal(); assert(lobby.modal!=null,"Unverified auth gate cannot be dismissed")
 	await capture("account-offline-320")
 	button(lobby.modal_body,"로그아웃").pressed.emit(); await settle(); assert(service.calls.back()=={"action":"logout"}); service.released.emit(); await settle()
 	service.account.account_id_hint = ""; service.enabled = false; lobby.open_service("계정 및 저장"); await settle()
-	assert(texts(lobby.modal_body).contains("게스트") and button(lobby.modal_body,"Google 계정 연결").disabled)
+	assert(texts(lobby.modal_body).contains("로그인이 필요합니다") and button(lobby.modal_body,"Google 계정 연결").disabled)
 	assert(button(lobby.modal_body,"로그아웃")==null and texts(lobby.modal_body).contains("이 실행 환경에서는"))
-	await capture("account-guest-unconfigured-320")
-	print("PASS account modal: layout 440/320, nickname constraints, mandatory gate, pending/error, established, offline/guest, late request lifetime")
+	await capture("account-auth-unavailable-320")
+	print("PASS account modal: layout 440/320, nickname constraints, mandatory gate, pending/error, established, retry/unavailable, late request lifetime")
 	lobby.free(); quit()

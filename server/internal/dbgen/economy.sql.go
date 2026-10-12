@@ -67,7 +67,7 @@ SET revision = $2,
     bootstrapped_at = now(),
     updated_at = now()
 WHERE account_id = $1 AND authority_state = 'legacy_local'
-RETURNING account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled
+RETURNING account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled, gem_offer_enabled, run_authority_enabled
 `
 
 type CompleteEconomyBootstrapParams struct {
@@ -115,6 +115,8 @@ func (q *Queries) CompleteEconomyBootstrap(ctx context.Context, arg CompleteEcon
 		&i.UpdatedAt,
 		&i.GemResetTickets,
 		&i.GemRerollEnabled,
+		&i.GemOfferEnabled,
+		&i.RunAuthorityEnabled,
 	)
 	return i, err
 }
@@ -568,7 +570,7 @@ func (q *Queries) GetLegacyRunSettlementReceipt(ctx context.Context, arg GetLega
 }
 
 const getPlayerEconomy = `-- name: GetPlayerEconomy :one
-SELECT account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled FROM player_economies WHERE account_id = $1
+SELECT account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled, gem_offer_enabled, run_authority_enabled FROM player_economies WHERE account_id = $1
 `
 
 func (q *Queries) GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error) {
@@ -592,12 +594,14 @@ func (q *Queries) GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (
 		&i.UpdatedAt,
 		&i.GemResetTickets,
 		&i.GemRerollEnabled,
+		&i.GemOfferEnabled,
+		&i.RunAuthorityEnabled,
 	)
 	return i, err
 }
 
 const getPlayerEconomyForUpdate = `-- name: GetPlayerEconomyForUpdate :one
-SELECT account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled FROM player_economies WHERE account_id = $1 FOR UPDATE
+SELECT account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled, gem_offer_enabled, run_authority_enabled FROM player_economies WHERE account_id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetPlayerEconomyForUpdate(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error) {
@@ -621,6 +625,8 @@ func (q *Queries) GetPlayerEconomyForUpdate(ctx context.Context, accountID pgtyp
 		&i.UpdatedAt,
 		&i.GemResetTickets,
 		&i.GemRerollEnabled,
+		&i.GemOfferEnabled,
+		&i.RunAuthorityEnabled,
 	)
 	return i, err
 }
@@ -795,7 +801,7 @@ SET revision = $2,
 WHERE account_id = $1
   AND revision = $10
   AND authority_state = 'server_authoritative'
-RETURNING account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled
+RETURNING account_id, revision, free_diamonds, paid_diamonds, module_tickets, module_draw_count, module_ticket_purchase_count, module_item_sequence, research_slot_two_unlocked, authority_state, authority_version, bootstrap_save_revision, bootstrapped_at, created_at, updated_at, gem_reset_tickets, gem_reroll_enabled, gem_offer_enabled, run_authority_enabled
 `
 
 type UpdatePlayerEconomyParams struct {
@@ -843,6 +849,8 @@ func (q *Queries) UpdatePlayerEconomy(ctx context.Context, arg UpdatePlayerEcono
 		&i.UpdatedAt,
 		&i.GemResetTickets,
 		&i.GemRerollEnabled,
+		&i.GemOfferEnabled,
+		&i.RunAuthorityEnabled,
 	)
 	return i, err
 }

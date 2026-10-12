@@ -27,6 +27,7 @@ class ServiceFixture extends Services:
 class AccountFixture extends Node:
 	signal release
 	var credentials := {"accountId":ACCOUNT}
+	func authenticated() -> bool: return true
 	var waiting := false
 	var stop_after_receipt := true
 	var day := 0
@@ -70,6 +71,8 @@ func attach(app):
 	service.account.day = app.progression_inputs.dailyQuestDayKey
 	service.profile = {"nickname":"fixture"}
 	service.online_ready = true
+	service.play_ready = true
+	service._startup_pending = false
 	service.economy = Economy.new()
 	service.economy.configure(service.account, app.checkpoint.rewards(), {
 		"sync":service.sync,"snapshot":service._apply_snapshot,"snapshot_current":service._snapshot_current,

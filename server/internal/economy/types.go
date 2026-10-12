@@ -1,6 +1,7 @@
 package economy
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -16,11 +17,13 @@ var (
 	ErrWriterRequired              = errors.New("economy requires the active save writer")
 	ErrWriterReplaced              = errors.New("economy save writer was replaced")
 	ErrSaveRevisionConflict        = errors.New("economy source save revision conflict")
+	ErrInsufficientGemShards       = errors.New("insufficient gem shards")
 	ErrInsufficientDiamonds        = errors.New("insufficient diamonds")
 	ErrInsufficientTickets         = errors.New("insufficient module tickets")
 	ErrModuleNotOwned              = errors.New("module is not owned")
 	ErrModuleNotAllowed            = errors.New("module cannot be disassembled")
 	ErrInvalidCommand              = errors.New("economy command is invalid")
+	ErrGemOfferConflict            = errors.New("wave gem offer state must be restored")
 	ErrGemRerollLimit              = errors.New("run gem reroll limit reached")
 	ErrGemRerollConflict           = errors.New("run gem reroll state must be restored")
 	ErrInsufficientGemResetTickets = errors.New("insufficient gem reset tickets")
@@ -58,7 +61,49 @@ type GemRerollState struct {
 	GemOptions []string `json:"gemOptions"`
 }
 
+// GemOfferState is a durable server-issued choice. Allocations may change in
+// client saves; exact per-type ownership is conserved by the run aggregate.
+type GemOfferState struct {
+	LegacyImported   bool             `json:"legacyImported,omitempty"`
+	EconomyRevision  int64            `json:"economyRevision,omitempty"`
+	Kind             string           `json:"kind,omitempty"`
+	ReturnPhase      string           `json:"returnPhase,omitempty"`
+	PurchaseSequence int64            `json:"purchaseSequence,omitempty"`
+	OfferID          string           `json:"offerId"`
+	RunID            string           `json:"runId"`
+	RewardWave       int              `json:"rewardWave"`
+	Revision         int64            `json:"revision"`
+	TotalUsed        int              `json:"totalUsed"`
+	GemOptions       []string         `json:"gemOptions"`
+	Status           string           `json:"status"`
+	Choice           string           `json:"choice"`
+	GrantedGem       string           `json:"grantedGem"`
+	GrantedShards    int64            `json:"grantedShards"`
+	GemInventory     map[string]int64 `json:"gemInventory"`
+	GemShards        int64            `json:"gemShards"`
+}
+
+type GemOfferRequest struct {
+	IdempotencyKey         string
+	RawBody                []byte
+	ExpectedRevision       int64
+	ExpectedCatalogVersion int32
+	SourceSaveRevision     int64
+	WriterGeneration       int64
+	RunID                  string
+	CompletedRounds        int
+}
+
+type GemChooseRequest struct {
+	GemOfferRequest
+	OfferID               string
+	ExpectedOfferRevision int64
+	Choice                string
+}
+
 type GemRerollRequest struct {
+	OfferID                string
+	ExpectedOfferRevision  int64
 	IdempotencyKey         string
 	RawBody                []byte
 	ExpectedRevision       int64
@@ -71,6 +116,9 @@ type GemRerollRequest struct {
 }
 
 type Snapshot struct {
+	Run              *RunState       `json:"run,omitempty"`
+	GemOfferVersion  int             `json:"gemOfferVersion,omitempty"`
+	GemOffer         *GemOfferState  `json:"gemOffer,omitempty"`
 	GemRerollVersion int             `json:"gemRerollVersion,omitempty"`
 	GemReroll        *GemRerollState `json:"gemReroll"`
 	AuthorityEpoch   string          `json:"authorityEpoch"`
@@ -112,10 +160,25 @@ type RejectedModule struct {
 	Reason       string `json:"reason"`
 }
 
+// GemCommandReceipt is the immutable bounded command outcome header. Full current
+// save/economy state is recovered separately; legacy receipts remain unchanged.
+type GemCommandReceipt struct {
+	Version         int    `json:"version"`
+	EconomyRevision int64  `json:"economyRevision"`
+	AuthorityEpoch  string `json:"authorityEpoch"`
+	GemResetTickets int64  `json:"gemResetTickets"`
+}
+
 type CommandResult struct {
+	Run                    *RunState          `json:"run,omitempty"`
+	GemReceipt             *GemCommandReceipt `json:"gemReceipt,omitempty"`
+	GemOffer               *GemOfferState     `json:"gemOffer,omitempty"`
+	SaveRevision           int64              `json:"saveRevision,omitempty"`
+	ServerSavedAt          time.Time          `json:"serverSavedAt,omitzero"`
+	ActiveRun              json.RawMessage    `json:"activeRun,omitempty"`
 	GemReroll              *GemRerollState    `json:"gemReroll,omitempty"`
 	GrantedGemResetTickets int64              `json:"grantedGemResetTickets,omitempty"`
-	Snapshot               Snapshot           `json:"economy"`
+	Snapshot               Snapshot           `json:"economy,omitzero"`
 	DrawnModules           []Module           `json:"drawnModules,omitempty"`
 	ProgressionEffect      *ProgressionEffect `json:"progressionEffect,omitempty"`
 	RewardKey              string             `json:"rewardKey,omitempty"`

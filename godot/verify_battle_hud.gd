@@ -1,5 +1,11 @@
 extends SceneTree
 const HudNumber = preload("res://ui/hud_number.gd")
+# UI-only proof stub: each accepted choice advances its canonical save once.
+# Real GET/save reconciliation is covered by the gem authority/recovery suites.
+class FixtureOnline extends RefCounted:
+	var state := {"baseRevision":0}
+class FixtureServices extends RefCounted:
+	var online := FixtureOnline.new()
 class QueryCatalog extends "res://content/content_catalog.gd":
 	var stage_queries := 0
 	var wave_queries := 0
@@ -11,6 +17,7 @@ class QueryCatalog extends "res://content/content_catalog.gd":
 		return super.wave_definition(si,wi)
 ## UI smoke with the actual catalog/command owner, no editor or persistent save.
 class App extends Node:
+	var services := FixtureServices.new()
 	var catalog = QueryCatalog.new()
 	var run_domain = preload("res://session/run_session.gd").new()
 	var hud
@@ -40,6 +47,48 @@ class App extends Node:
 		var result: Dictionary = run_domain.apply(command)
 		checkpoint.message = "" if result.ok else run_domain.error
 		return result.ok
+	# Deterministic authority fixtures for UI tests. Production run commands still
+	# reject all local candidate generation, purchases and reward grants.
+	var purchase_sequence := 0
+	func purchase_reward_gems() -> Dictionary:
+		var state: Dictionary = run_domain.state
+		if state.phase not in ["preparation", "wave"] or int(state.gemShards) < 20: return {"ok":false}
+		purchase_sequence += 1
+		var receipt := {"kind":"purchase","offerId":"ui-purchase-%d" % purchase_sequence,"runId":state.economyRunId,
+			"rewardWave":int(state.completedRounds),"purchaseSequence":purchase_sequence,"returnPhase":state.phase,
+			"revision":1,"economyRevision":int(state.get("gemEconomyRevision",0))+1,"totalUsed":int(state.get("gemRerollsUsed",0)),
+			"gemOptions":["attackSpeed","range","physicalDamage"],"status":"pending","choice":"","grantedGem":"","grantedShards":0,
+			"gemInventory":state.gemInventory.duplicate(true),"gemShards":int(state.gemShards)-20}
+		var projected := preload("res://app/gem_reroll.gd").project(state,receipt)
+		if projected.is_empty(): return {"ok":false}
+		run_domain.state = projected
+		return {"ok":true}
+	func choose_reward(command: Dictionary) -> Dictionary:
+		var state: Dictionary = run_domain.state
+		var offers = preload("res://app/gem_reroll.gd")
+		if not offers.current_offer(state): return {"ok":false}
+		var purchased: bool = state.get("isPurchasedGemReward",false)
+		var choice: String = "shards" if command.kind == "chooseRewardShards" else str(command.get("type", ""))
+		if (purchased and choice == "shards") or (choice != "shards" and choice not in state.rewardOptions): return {"ok":false}
+		if command.kind == "chooseRewardGemEquip" and not run_domain.service.validate_reward_equip(state,command): return {"ok":false}
+		var inventory: Dictionary = state.gemInventory.duplicate(true)
+		if choice != "shards": inventory[choice] = int(inventory.get(choice,0))+1
+		var receipt := {"kind":"purchase" if purchased else "wave","offerId":state.gemOfferId,"runId":state.economyRunId,
+			"rewardWave":int(state.completedRounds),"purchaseSequence":maxi(1,purchase_sequence),"returnPhase":state.get("rewardReturnPhase","preparation"),
+			"revision":int(state.gemOfferRevision)+1,"economyRevision":int(state.get("gemEconomyRevision",0))+1,"totalUsed":int(state.get("gemRerollsUsed",0)),
+			"gemOptions":state.rewardOptions.duplicate(),"status":"chosen","choice":choice,"grantedGem":"" if choice == "shards" else choice,
+			"grantedShards":10 if choice == "shards" else 0,"gemInventory":inventory,"gemShards":int(state.gemShards)+(10 if choice == "shards" else 0)}
+		var projected: Dictionary = offers.project(state,receipt)
+		if command.kind == "chooseRewardGemEquip":
+			var target: Dictionary = run_domain.service.turret(state,int(command.id))
+			var source_revision: int = services.online.state.baseRevision
+			services.online.state.baseRevision += 1
+			var intent := {"kind":"choose_gem","encodedBody":JSON.stringify({"runId":state.economyRunId,"offerId":state.gemOfferId,"choice":choice,"sourceSaveRevision":source_revision}),
+				"equipIntent":{"x":target.x,"y":target.y,"turretType":target.type,"slot":command.slot,"buySlot":command.get("buySlot",false)}}
+			projected = preload("res://session/session_checkpoint.gd").new()._project_gem_offer(self,state,{"gemOffer":receipt},intent)
+		if projected.is_empty(): return {"ok":false}
+		run_domain.state = projected
+		return {"ok":true}
 	func selected_run_command(kind: String, values: Dictionary = {}) -> bool:
 		var command := {"kind":kind,"id":run_domain.selected_id(selected)}
 		command.merge(values)
@@ -290,9 +339,11 @@ func run() -> void:
 	app.run_domain.state.gold = saved_gold
 	hud.main_tab = "gems"; hud.refresh()
 	assert_wallet_refresh(app,hud,find_button(hud.body,"젬 구매 · "),"gemShards",int(app.run_domain.growth.data.constants.gemChoicePurchaseCost))
-	hud.run_command({"kind":"purchaseGemChoice"})
+	assert((await app.purchase_reward_gems()).ok)
+	hud.refresh()
 	assert(hud.overlay.visible)
-	hud.run_command({"kind":"chooseRewardGem","type":app.run_domain.state.rewardOptions[0]})
+	assert((await app.choose_reward({"kind":"chooseRewardGem","type":app.run_domain.state.rewardOptions[0]})).ok)
+	hud.refresh()
 	assert(not hud.overlay.visible)
 	app.run_domain.state.phase = "success"
 	hud.refresh()

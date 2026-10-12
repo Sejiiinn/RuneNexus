@@ -10,7 +10,7 @@ const SaveJson = preload("res://app/save_json.gd")
 const PayloadHash = preload("res://services/save_payload_hash.gd")
 signal changed
 signal _idle
-const COMPATIBILITY := 7
+const COMPATIBILITY := 9
 var session: Object
 var state: Dictionary = {}
 var requires_reload := false
@@ -25,6 +25,8 @@ var _quiesced := false
 var _reconcile := true
 var _initialized := false
 var _disabled := false
+var _gem_recovery := false
+var _gem_expected_revision := 0
 
 func configure(account_session: Object, directory: String, build_name: String, hooks: Dictionary = {}) -> void:
 	session = account_session
@@ -42,7 +44,7 @@ func _process(_delta: float) -> void:
 	if state.get("syncState") == "retryWaiting" and _retry_time() <= Time.get_unix_time_from_system(): sync()
 
 func context() -> Dictionary:
-	return {"accountId": account_id, "sourceSaveRevision": int(state.get("baseRevision", 0)), "writerGeneration": state.get("writerGeneration"), "requiresGameReload": requires_reload}
+	return {"accountId": account_id, "sourceSaveRevision": int(state.get("baseRevision", 0)), "writerGeneration": state.get("writerGeneration"), "requiresGameReload": requires_reload, "sourcePayloadHash": state.get("basePayloadHash")}
 
 func bootstrap(guest_payload: Dictionary = {}, interactive: bool = true) -> Dictionary:
 	await _lock()
@@ -91,6 +93,13 @@ func _bootstrap_locked(guest_payload: Dictionary, interactive: bool) -> Dictiona
 	if state.syncState == "rebasing" and state.rebase == null: return _block("SAVE_REBASE_JOURNAL_MISSING")
 	var local: Variant = _load_local()
 	if _local_error(): return _block("LOCAL_SAVE_READ_FAILED")
+	if local is Dictionary and local.get("activeRun") is Dictionary:
+		var run: Dictionary = local.activeRun
+		var offers = preload("res://app/gem_reroll.gd")
+		if not store.has_recovery_marker() and offers.eligible(run) and not offers.current_offer(run) and not run.get("rewardOptions", []).is_empty():
+			local = local.duplicate(true)
+			local.activeRun.rewardOptions = []
+			if _save_local(local) != OK: return _block("LOCAL_SAVE_FAILED")
 	if local == null and state.dirty and state.inFlight == null: return _block("LOCAL_SAVE_NOT_FOUND")
 	if local != null:
 		var represented: Variant = state.inFlight.payloadHash if state.inFlight != null else state.basePayloadHash
@@ -102,6 +111,24 @@ func _bootstrap_locked(guest_payload: Dictionary, interactive: bool) -> Dictiona
 	if state.inFlight == null and state.syncState != "suspended": state.writerGeneration = null
 	if not _commit(): return Http.failure("OUTBOX_WRITE_FAILED")
 	_initialized = true
+	var gem_box = preload("res://app/reward_outbox.gd").new(root_path, account_id)
+	if gem_box.load_state() != OK: return _block("ECONOMY_OUTBOX_READ_FAILED")
+	var gem_pending: Variant = gem_box.state.get("inFlight")
+	_gem_recovery = (gem_pending is Dictionary and gem_pending.get("kind") in ["offer_gems", "purchase_gems", "reroll_gems", "choose_gem", "start_run", "close_run"]) or store.recovered_from_backup
+	if gem_pending is Dictionary:
+		var pending_body: Variant = SaveJson.parse(gem_pending.get("encodedBody", ""))
+		if pending_body is Dictionary: _gem_expected_revision = int(pending_body.get("sourceSaveRevision", 0)) + 1
+	var cached_offer: Variant = gem_box.state.get("lastServerSnapshot", {}).get("gemOffer")
+	if cached_offer is Dictionary:
+		var cached_run: Variant = local.get("activeRun") if local is Dictionary else null
+		var matching_run: bool = cached_run is Dictionary and cached_run.get("economyRunId") == cached_offer.runId
+		if cached_run == null or (matching_run and (cached_run.get("gemOfferId") != cached_offer.offerId or int(cached_run.get("gemOfferRevision", 0)) < cached_offer.revision)):
+			_gem_recovery = true
+		if state.get("gemAckPending", false) and not matching_run: _gem_recovery = true
+	# An ACK can precede projection/outbox cache persistence. Always inspect the
+	# canonical payload in this window; an unchanged ETag cannot prove the local
+	# grant was applied, even when a fallback economy outbox lost its intent.
+	if state.get("gemAckPending", false): _gem_recovery = true
 	if state.syncState == "suspended":
 		var reclaimed := await _claim_writer()
 		if not reclaimed.ok: return reclaimed
@@ -148,6 +175,7 @@ func _sync(payload: Dictionary, from_checkpoint: bool) -> Dictionary:
 			var payload_hash := _hash(payload)
 			var represented: Variant = state.inFlight.payloadHash if state.inFlight != null else state.basePayloadHash
 			var next_dirty: bool = payload_hash != represented
+			if not next_dirty and state.inFlight == null and state.get("gemAckPending", false): state.gemAckPending = false
 			# A matching journal is insufficient: the local checkpoint may have
 			# changed independently. Check its complete payload before skipping.
 			if _local_error(): result = _block("LOCAL_SAVE_READ_FAILED")
@@ -201,6 +229,75 @@ func foreground() -> Dictionary:
 	_unlock()
 	return result
 
+func accept_gem_save(receipt: Dictionary) -> bool:
+	await _lock()
+	var accepted := false
+	if _bound() and not state.is_empty() and state.get("inFlight") == null and state.get("rebase") == null:
+		# Never install an immutable receipt's historical activeRun. Read the
+		# current canonical checkpoint even for legacy generation-7/8 replays.
+		var remote := await _load_remote()
+		if remote.get("ok", false) and remote.get("snapshot") is Dictionary:
+			var current: Dictionary = remote.snapshot
+			var revision := int(receipt.get("saveRevision", 0))
+			if current.revision >= maxi(revision, int(state.baseRevision)):
+				var local: Variant = _load_local()
+				var lifecycle: bool = receipt.get("command", {}).get("kind") in ["start_run", "close_run"]
+				var known_revision: bool = current.revision == state.baseRevision or current.revision == revision
+				var command: Dictionary = receipt.get("command", {})
+				var source_hash: String = str(command.get("sourcePayloadHash", ""))
+				var source: Variant = SaveJson.parse(command.get("encodedBody", ""))
+				var synced_source: bool = local is Dictionary and not source_hash.is_empty() and _hash(local) == source_hash and source is Dictionary and current.revision == int(source.get("sourceSaveRevision", -2)) + 1 and current.revision == revision
+				if not lifecycle and known_revision and not _local_error() and (synced_source or _represents_current_run(local, current.data)):
+					accepted = _adopt_current_save(current, local, state.get("gemAckPending", false) or revision > int(state.baseRevision))
+					if accepted and synced_source: accepted = store.acknowledge_recovery() == OK
+				else:
+					var restored: Dictionary = await _begin_rebase(current)
+					accepted = restored.get("ok", false)
+	_unlock()
+	return accepted
+
+# Retain a healthy later local checkpoint only when its server-owned offer has
+# already been applied. Equipment and subsequent wave progress are local state;
+# replacing them with an old receipt/save would duplicate or erase allocations.
+func _represents_current_run(local: Variant, canonical: Dictionary) -> bool:
+	if store.recovered_from_backup or store.has_recovery_marker(): return false
+	if not local is Dictionary: return false
+	var live: Variant = local.get("activeRun")
+	var remote: Variant = canonical.get("activeRun")
+	if not live is Dictionary or not remote is Dictionary: return false
+	if not live.get("economyRunId") is String or live.economyRunId.is_empty() or live.economyRunId != remote.get("economyRunId"): return false
+	if int(live.get("completedRounds", 0)) < int(remote.get("completedRounds", 0)): return false
+	var remote_offer := str(remote.get("gemOfferId", ""))
+	if int(live.get("gemEconomyRevision", 0)) < int(remote.get("gemEconomyRevision", 0)): return false
+	if _owned_gems(live) != _owned_gems(remote): return false
+	if remote_offer.is_empty(): return true
+	if live.get("gemOfferId") != remote_offer: return false
+	if int(live.get("gemOfferRevision", 0)) < int(remote.get("gemOfferRevision", 0)): return false
+	if remote.get("gemOfferStatus") == "chosen" and live.get("gemOfferStatus") != "chosen": return false
+	return true
+
+func _owned_gems(run: Dictionary) -> Dictionary:
+	var total := {}
+	for gem in run.get("gemInventory", {}):
+		var count := int(run.gemInventory[gem])
+		if count > 0: total[gem] = count
+	for turret in run.get("turrets", []):
+		for gem in turret.get("equippedGemSlots", []):
+			if gem != null: total[gem] = int(total.get(gem, 0)) + 1
+	return total
+
+func _adopt_current_save(remote: Dictionary, local: Dictionary, pending_ack := false) -> bool:
+	state.baseRevision = remote.revision
+	state.basePayloadHash = _hash(remote.data)
+	state.lastSyncedAt = remote.serverSavedAt
+	state.localGeneration += 1
+	state.dirty = pending_ack or _hash(local) != state.basePayloadHash
+	state.gemAckPending = state.dirty
+	_reconcile = false
+	_gem_recovery = false
+	_gem_expected_revision = 0
+	return _commit()
+
 func acknowledge_reload() -> void:
 	requires_reload = false
 	_resume()
@@ -211,6 +308,9 @@ func dispose() -> void:
 	set_process(false)
 
 func _sync_locked(local_snapshot: Dictionary = {}) -> Dictionary:
+	if store.recovered_from_backup or store.has_recovery_marker():
+		_gem_recovery = true
+		_reconcile = true
 	# Reuse only before any network await or rebase. Once authority/revision
 	# reconciliation can yield, reread the file to include concurrent progress.
 	var reuse_local: bool = not local_snapshot.is_empty() and state.get("rebase") == null and state.get("inFlight") == null and state.get("writerClaim") == null and state.get("writerGeneration") != null and not _reconcile and not requires_reload
@@ -234,6 +334,15 @@ func _sync_locked(local_snapshot: Dictionary = {}) -> Dictionary:
 		if not reconciled.ok: return reconciled
 	if requires_reload: return _success()
 	if state.dirty:
+		# The economy owner must resolve its exact outcome before a periodic,
+		# foreground or retry upload can overwrite an unprojected server grant.
+		var commands = preload("res://app/reward_outbox.gd").new(root_path, account_id)
+		if commands.load_state() != OK: return _block("ECONOMY_OUTBOX_READ_FAILED")
+		var pending: Variant = commands.state.get("inFlight")
+		if pending is Dictionary and pending.get("kind") in ["offer_gems", "purchase_gems", "reroll_gems", "choose_gem", "start_run", "close_run"]:
+			var waiting := _success()
+			waiting.waitingForEconomy = true
+			return waiting
 		var local: Variant = local_snapshot.data if reuse_local else _load_local()
 		if local == null or _local_error(): return _block("LOCAL_SAVE_NOT_FOUND")
 		var local_hash: String = local_snapshot.hash if reuse_local else _hash(local)
@@ -258,7 +367,15 @@ func _claim_writer() -> Dictionary:
 	var claim: Dictionary = state.writerClaim
 	var result: Dictionary = await session.request("POST", "/v1/save/writer", claim.encodedRequestBody, {"Idempotency-Key": claim.idempotencyKey})
 	if not _bound(): return Http.failure("ACCOUNT_SESSION_MISMATCH")
-	if not result.ok: return await _handle_error(result)
+	if not result.ok:
+		var request: Variant = SaveJson.parse(claim.encodedRequestBody)
+		if int(result.get("status", 0)) == 426 and request is Dictionary and int(request.get("clientCompatibilityVersion", 1)) < COMPATIBILITY:
+			# Exact old receipts are attempted first. A definitively rejected old
+			# claim may be replaced with a new key/current protocol after upgrade.
+			state.writerClaim = null
+			if not _commit(): return Http.failure("OUTBOX_WRITE_FAILED")
+			return await _claim_writer()
+		return await _handle_error(result)
 	var body: Dictionary = result.body
 	if not _integer(body.get("writerGeneration"), 1) or not _date(body.get("claimedAt")): return _block("INVALID_SAVE_RESPONSE")
 	state.writerGeneration = body.writerGeneration
@@ -307,6 +424,7 @@ func _send_entry() -> Dictionary:
 	if not _integer(body.get("revision"), 0) or body.revision != entry.expectedRevision + 1 or not _date(body.get("serverSavedAt")): return _block("INVALID_SAVE_RESPONSE")
 	state.baseRevision = body.revision
 	state.basePayloadHash = entry.payloadHash
+	state.gemAckPending = false
 	state.lastSyncedAt = body.serverSavedAt
 	state.inFlight = null
 	state.syncState = "idle"
@@ -327,14 +445,19 @@ func _load_remote(conditional: bool = false) -> Dictionary:
 	return {"ok": true, "snapshot": {"revision": body.revision, "serverSavedAt": body.serverSavedAt, "data": Codec.decode(body.data)}}
 
 func _reconcile_remote() -> Dictionary:
-	var remote := await _load_remote(state.basePayloadHash != null)
+	var remote := await _load_remote(state.basePayloadHash != null and not _gem_recovery)
 	if not remote.ok: return await _handle_error(remote)
 	var snapshot: Variant = remote.get("snapshot")
 	if not remote.get("notModified", false):
 		if snapshot == null and state.baseRevision > 0: return _block("REMOTE_SAVE_MISSING")
 		if snapshot != null:
 			if snapshot.revision < state.baseRevision: return _block("REMOTE_REVISION_REGRESSION")
-			if snapshot.revision > state.baseRevision: return await _begin_rebase(snapshot)
+			if snapshot.revision > state.baseRevision or _gem_recovery:
+				var current_local: Variant = _load_local()
+				if _local_error(): return _block("LOCAL_SAVE_READ_FAILED")
+				if _gem_recovery and (snapshot.revision == state.baseRevision or snapshot.revision == _gem_expected_revision) and _represents_current_run(current_local, snapshot.data):
+					return _success() if _adopt_current_save(snapshot, current_local) else Http.failure("OUTBOX_WRITE_FAILED")
+				return await _begin_rebase(snapshot)
 			if state.basePayloadHash != null and state.basePayloadHash != _hash(snapshot.data): return _block("REMOTE_PAYLOAD_HASH_MISMATCH")
 		state.basePayloadHash = _hash(snapshot.data) if snapshot != null else null
 	var local: Variant = _load_local()
@@ -405,7 +528,12 @@ func _finish_rebase(journal: Dictionary) -> Dictionary:
 	state.syncState = "suspended" if state.issueCode in ["SAVE_WRITER_REPLACED", "SAVE_WRITER_REQUIRED"] else "idle"
 	if state.syncState == "idle": state.issueCode = null
 	_reconcile = false
-	return _success() if _commit() else Http.failure("OUTBOX_WRITE_FAILED")
+	_gem_recovery = false
+	_gem_expected_revision = 0
+	state.gemAckPending = false
+	if not _commit(): return Http.failure("OUTBOX_WRITE_FAILED")
+	if store.acknowledge_recovery() != OK: return Http.failure("LOCAL_RECOVERY_MARKER_FAILED")
+	return _success()
 
 func _handle_error(result: Dictionary) -> Dictionary:
 	if int(result.get("status", 0)) == 426:
@@ -471,6 +599,7 @@ func _initial() -> Dictionary:
 
 func _valid_state(value: Dictionary) -> bool:
 	if value.get("version") != 1 or value.get("accountIdBinding") != account_id: return false
+	if value.has("gemAckPending") and not value.gemAckPending is bool: return false
 	if not _integer(value.get("baseRevision"), 0) or not _integer(value.get("localGeneration"), 0) or not _integer(value.get("retryCount"), 0) or not value.get("dirty") is bool: return false
 	if not value.get("syncState") in ["idle", "sending", "retryWaiting", "rebasing", "suspended", "conflict", "blocked"]: return false
 	if value.get("basePayloadHash") != null and not _valid_hash(value.basePayloadHash): return false

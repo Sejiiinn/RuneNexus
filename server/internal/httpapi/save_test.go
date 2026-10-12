@@ -714,3 +714,41 @@ func requireAPIError(
 		t.Fatalf("body = %#v", body)
 	}
 }
+
+func TestClaimWriterMigrationConflictIsRecoverable(t *testing.T) {
+	handler := saveHandler{saves: saveServiceStub{claimWriter: func(context.Context, string, string, gamesave.ClaimWriterRequest) (gamesave.ClaimWriterResult, error) {
+		return gamesave.ClaimWriterResult{}, gamesave.ErrGemOfferConflict
+	}}, maxSaveBodyBytes: 1 << 20}
+	response := httptest.NewRecorder()
+	request := economyRequest(http.MethodPost, "/v1/save/writer", strings.Replace(validWriterBody, `"clientCompatibilityVersion":2`, `"clientCompatibilityVersion":9`, 1))
+	handler.claimWriter(response, request)
+	requireAPIError(t, response, 409, "GEM_OFFER_STATE_CONFLICT")
+}
+
+func TestClaimWriterOldExactReceiptReachesServiceAtMinimumNine(t *testing.T) {
+	for _, found := range []bool{true, false} {
+		called := false
+		handler := saveHandler{maxSaveBodyBytes: 4096, minimumClientCompatibilityVersion: 9, saves: saveServiceStub{claimWriter: func(_ context.Context, _ string, _ string, r gamesave.ClaimWriterRequest) (gamesave.ClaimWriterResult, error) {
+			called = true
+			if !r.ReceiptOnly || r.ClientCompatibilityVersion != 8 {
+				t.Fatalf("old writer lookup not receipt-only: %+v", r)
+			}
+			if !found {
+				return gamesave.ClaimWriterResult{}, gamesave.ErrClientUpdateRequired
+			}
+			return gamesave.ClaimWriterResult{WriterGeneration: 3, ClaimedAt: time.Unix(1, 0)}, nil
+		}}}
+		raw := strings.Replace(validWriterBody, `"clientCompatibilityVersion":2`, `"clientCompatibilityVersion":8`, 1)
+		w := httptest.NewRecorder()
+		handler.claimWriter(w, economyRequest("POST", "/v1/save/writer", raw))
+		if !called {
+			t.Fatal("old receipt lookup blocked by HTTP floor")
+		}
+		if found && w.Code != 200 {
+			t.Fatalf("old receipt response %d %s", w.Code, w.Body.String())
+		}
+		if !found {
+			requireAPIError(t, w, 426, "CLIENT_UPDATE_REQUIRED")
+		}
+	}
+}

@@ -17,6 +17,9 @@ from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_gem_authority_protocol.gd": "GEM_AUTHORITY_PROTOCOL checks=",
+    "verify_server_run_lifecycle.gd": "SERVER_RUN_LIFECYCLE checks=",
+    "verify_gem_save_recovery.gd": "GEM_SAVE_RECOVERY checks=",
     "verify_gem_reroll.gd": "GEM_REROLL checks=",
     "verify_gem_reroll_ui.gd": "GEM_REROLL_UI checks=",
     "verify_gem_reroll_flip.gd": "GEM_REROLL_FLIP checks=",
@@ -130,6 +133,18 @@ def copy_files(source: Path, target: Path, suffixes: set[str]) -> None:
             shutil.copy2(path, target / path.name)
 
 
+def isolated_environment(home: Path, temporary: Path) -> dict[str, str]:
+    # Linux honors XDG paths before HOME. Override inherited app paths too so
+    # every check (and import) stays in its own disposable save/cache directory.
+    environment = dict(os.environ, HOME=str(home), TMPDIR=str(temporary))
+    for key, suffix in (("XDG_DATA_HOME", "data"), ("XDG_CACHE_HOME", "cache"),
+                        ("XDG_CONFIG_HOME", "config")):
+        path = home / suffix
+        path.mkdir(parents=True, exist_ok=True)
+        environment[key] = str(path)
+    return environment
+
+
 def prepare(directory: Path, executable: str) -> Path:
     check_generated(ROOT)
     compile_progression(ROOT, check=True)
@@ -171,6 +186,7 @@ def prepare(directory: Path, executable: str) -> Path:
         '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
     imported = subprocess.run([executable, "--headless", "--editor", "--import",
                                "--path", str(project), "--quit"],
+                              env=isolated_environment(directory / "import-home", directory),
                               text=True, capture_output=True, timeout=120)
     if imported.returncode:
         raise RuntimeError(f"Godot import failed:\n{imported.stdout}\n{imported.stderr}")
@@ -181,8 +197,9 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
     # Transition cases restart processes; fixed-clock replay covers 120 seeded
     # scenarios across render cadences/speeds. The flip regression covers repeated
-    # native UI setup/layout/lifecycle at two sizes. Existing case limits are unchanged.
-    timeout = 120 if name == "verify_chapter_three_normal_combat.gd" else 60 if name in {"verify_run_transition.gd", "verify_fixed_combat_clock.gd", "verify_gem_reroll_flip.gd"} else 20
+    # native UI setup/layout/lifecycle at two sizes. Server gem recovery adds
+    # repeated app restarts, corrupt-backup restores, and delayed HTTP checks.
+    timeout = 120 if name in {"verify_chapter_three_normal_combat.gd", "verify_run_transition.gd"} else 60 if name in {"verify_result_settlement.gd", "verify_fixed_combat_clock.gd", "verify_gem_reroll_flip.gd", "verify_gem_reroll.gd"} else 20
     # user:// resolves under HOME; a per-case HOME keeps saves/settings from
     # leaking between runs and cases, and is removed with the temporary project.
     home = temporary / "home" / name.removesuffix(".gd")
@@ -190,7 +207,7 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],
-                                 env={**os.environ, "HOME": str(home), "TMPDIR": str(temporary)},
+                                 env=isolated_environment(home, temporary),
                                  text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise RuntimeError(f"{name} timed out after {timeout}s: {error.stdout} {error.stderr}") from error

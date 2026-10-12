@@ -16,6 +16,7 @@ type Querier interface {
 	ApplyEconomyProgressionEffect(ctx context.Context, arg ApplyEconomyProgressionEffectParams) (EconomyProgressionEffect, error)
 	ClearExpiredRefreshReceipts(ctx context.Context) error
 	ClearRefreshReceiptsForSession(ctx context.Context, sessionID pgtype.UUID) error
+	CloseEconomyRun(ctx context.Context, arg CloseEconomyRunParams) (int64, error)
 	CompleteEconomyBootstrap(ctx context.Context, arg CompleteEconomyBootstrapParams) (PlayerEconomy, error)
 	ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (RefreshToken, error)
 	CreateAccount(ctx context.Context) (Account, error)
@@ -25,6 +26,8 @@ type Querier interface {
 	CreateEconomyLedgerEntry(ctx context.Context, arg CreateEconomyLedgerEntryParams) error
 	CreateEconomyProgressionEffect(ctx context.Context, arg CreateEconomyProgressionEffectParams) (EconomyProgressionEffect, error)
 	CreateEconomyRewardClaim(ctx context.Context, arg CreateEconomyRewardClaimParams) error
+	CreateEconomyRun(ctx context.Context, arg CreateEconomyRunParams) (EconomyRun, error)
+	CreateGemOffer(ctx context.Context, arg CreateGemOfferParams) error
 	CreateLegacySaveTransfer(ctx context.Context, arg CreateLegacySaveTransferParams) (LegacySaveTransfer, error)
 	CreateLegacySaveTransferReceipt(ctx context.Context, arg CreateLegacySaveTransferReceiptParams) (LegacySaveTransferReceipt, error)
 	CreatePlayerModule(ctx context.Context, arg CreatePlayerModuleParams) (PlayerModule, error)
@@ -38,20 +41,30 @@ type Querier interface {
 	DeleteLegacySaveTransfer(ctx context.Context, id pgtype.UUID) error
 	DeleteSaveActiveRun(ctx context.Context, accountID pgtype.UUID) error
 	DisassemblePlayerModule(ctx context.Context, arg DisassemblePlayerModuleParams) (PlayerModule, error)
+	EnableGemOffers(ctx context.Context, accountID pgtype.UUID) error
+	EnableRunAuthority(ctx context.Context, accountID pgtype.UUID) error
+	EnsureAccountRunAuthority(ctx context.Context, accountID pgtype.UUID) error
 	EnsurePlayerEconomy(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveHeader(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveWriterState(ctx context.Context, accountID pgtype.UUID) error
 	GetAccount(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetAccountByIdentity(ctx context.Context, arg GetAccountByIdentityParams) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
+	GetAccountRunAuthority(ctx context.Context, accountID pgtype.UUID) (AccountRunAuthority, error)
+	GetActiveEconomyRun(ctx context.Context, accountID pgtype.UUID) (EconomyRun, error)
+	GetActiveEconomyRunForUpdate(ctx context.Context, accountID pgtype.UUID) (EconomyRun, error)
 	GetActivePlayerModuleForUpdate(ctx context.Context, arg GetActivePlayerModuleForUpdateParams) (PlayerModule, error)
 	GetActiveSessionByAccessTokenHash(ctx context.Context, accessTokenHash []byte) (GetActiveSessionByAccessTokenHashRow, error)
 	GetAuthIdentityForUpdate(ctx context.Context, arg GetAuthIdentityForUpdateParams) (AuthIdentity, error)
 	GetEconomyCommand(ctx context.Context, arg GetEconomyCommandParams) (EconomyCommand, error)
 	GetEconomyProgressionEffectForUpdate(ctx context.Context, arg GetEconomyProgressionEffectForUpdateParams) (EconomyProgressionEffect, error)
 	GetEconomyRewardClaim(ctx context.Context, arg GetEconomyRewardClaimParams) (GetEconomyRewardClaimRow, error)
+	GetEconomyRun(ctx context.Context, arg GetEconomyRunParams) (EconomyRun, error)
+	GetEconomyRunForUpdate(ctx context.Context, arg GetEconomyRunForUpdateParams) (EconomyRun, error)
 	GetEconomySystemState(ctx context.Context) (EconomySystemState, error)
+	GetGemOffer(ctx context.Context, arg GetGemOfferParams) (EconomyGemOffer, error)
 	GetGemReroll(ctx context.Context, arg GetGemRerollParams) (EconomyGemReroll, error)
+	GetLatestGemOffer(ctx context.Context, arg GetLatestGemOfferParams) (EconomyGemOffer, error)
 	GetLegacyRunSettlementReceipt(ctx context.Context, arg GetLegacyRunSettlementReceiptParams) ([]byte, error)
 	GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash []byte) (LegacySaveTransfer, error)
 	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
@@ -72,9 +85,13 @@ type Querier interface {
 	ListActivePlayerModules(ctx context.Context, accountID pgtype.UUID) ([]PlayerModule, error)
 	ListEconomyRewardClaimKeys(ctx context.Context, accountID pgtype.UUID) ([]string, error)
 	ListPendingEconomyProgressionEffects(ctx context.Context, accountID pgtype.UUID) ([]EconomyProgressionEffect, error)
+	// Every chosen wave contributes exactly one gem, or zero for the shard alternative.
+	// Retain grants from every earlier wave, even when the latest offer is pending.
+	ListRunGemGrants(ctx context.Context, arg ListRunGemGrantsParams) ([]ListRunGemGrantsRow, error)
 	LockAccountNickname(ctx context.Context, nickname string) error
 	LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error
 	LockRefreshSession(ctx context.Context, tokenHash []byte) (pgtype.UUID, error)
+	MarkAccountRunAdopted(ctx context.Context, accountID pgtype.UUID) error
 	RevokeRefreshTokensForSession(ctx context.Context, sessionID pgtype.UUID) (int64, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) (int64, error)
 	RevokeSessionsForAccount(ctx context.Context, accountID pgtype.UUID) (int64, error)
@@ -86,6 +103,8 @@ type Querier interface {
 	TouchSession(ctx context.Context, id pgtype.UUID) error
 	UpdateAccountStatus(ctx context.Context, arg UpdateAccountStatusParams) (Account, error)
 	UpdateEconomyCommandResponse(ctx context.Context, arg UpdateEconomyCommandResponseParams) (EconomyCommand, error)
+	UpdateEconomyRun(ctx context.Context, arg UpdateEconomyRunParams) (int64, error)
+	UpdateGemOffer(ctx context.Context, arg UpdateGemOfferParams) (int64, error)
 	UpdatePlayerEconomy(ctx context.Context, arg UpdatePlayerEconomyParams) (PlayerEconomy, error)
 	UpsertGemReroll(ctx context.Context, arg UpsertGemRerollParams) error
 	UpsertProgressionLeaderboardRecord(ctx context.Context, arg UpsertProgressionLeaderboardRecordParams) error

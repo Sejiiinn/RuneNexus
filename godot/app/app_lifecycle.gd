@@ -20,9 +20,12 @@ var selection_view = preload("res://ui/app_selection.gd").new()
 var services
 var _stage_entry_pending := false
 var _stage_entry_cancelled := false
+var _run_close_pending := false
 var _pause_generation := 0
 var _gem_reroll_requesting := false
 var _gem_reroll_note := ""
+var _gem_offer_retry_at := 0
+var _gem_purchase_resume: Dictionary = {}
 
 func _ready() -> void:
 	scene = get_parent()
@@ -72,6 +75,7 @@ func refresh_ui() -> void:
 		hud.refresh()
 
 func board_input_policy() -> BoardInput:
+	if services != null and services.blocks_play(): return BoardInput.CANCEL_CONTACTS
 	if in_lobby: return BoardInput.IGNORE
 	# A plain pause keeps camera, selection and building available; a failed
 	# save and reward replacement targeting do not.
@@ -93,8 +97,8 @@ func refresh_selection() -> void:
 	selection_view.apply(self)
 	if not scene.combat_base_frame.is_empty(): scene.apply_frame(scene.combat_base_frame)
 
-func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> bool:
-	var entered := super.enter_stage(index, bootstrap, session_state, restored_state)
+func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}, server_run_id: Variant = null) -> bool:
+	var entered := super.enter_stage(index, bootstrap, session_state, restored_state, server_run_id)
 	refresh_selection()
 	return entered
 
@@ -176,8 +180,8 @@ func retry_load() -> bool:
 func start_stage(index: int) -> bool:
 	if _gem_reroll_requesting or _pending_gem_reroll(): return false
 	if _battle_preparation_pending(): return false
-	if services != null and services.blocks_play():
-		var update_required: bool = services.updates != null and services.updates.blocked
+	if not _detached_debug_lifecycle() and (services == null or services.blocks_play()):
+		var update_required: bool = services != null and services.updates != null and services.updates.blocked
 		checkpoint.message = "업데이트 확인을 완료해 주세요" if update_required else "계정 연결과 닉네임 설정을 완료해 주세요"
 		if lobby != null: lobby.open_service("업데이트" if update_required else "계정 및 저장")
 		return false
@@ -187,17 +191,54 @@ func start_stage(index: int) -> bool:
 		checkpoint.message = "아직 잠긴 스테이지입니다"
 		return false
 	if save_failed and not persist_progression(): return false
+	var pause_generation := _pause_generation
 	_stage_entry_pending = true
 	_stage_entry_cancelled = false
 	if scene.combat_runtime.active: command([], {"paused":true})
+	# Finish the acknowledged reward checkpoint before replacing its run. This
+	# keeps crash recovery distinguishable from a rollback to an unrelated run.
+	if services != null and services.online != null and services.online.state.get("gemAckPending", false):
+		var flushed: Dictionary = await services.sync()
+		if not flushed.get("ok", false):
+			checkpoint.message = "서버 보상 저장을 완료한 뒤 다시 시작해 주세요."
+			return _finish_stage_entry(false, start_stage.bind(index))
+		if _stage_entry_cancelled: return _finish_stage_entry(false)
 	if not await _prepare_stage_resources(index):
 		return _finish_stage_entry(false, start_stage.bind(index))
 	if _stage_entry_cancelled: return _finish_stage_entry(false)
-	if not prepare_run_transition():
-		_record_save_failure()
-		return _finish_stage_entry(false, start_stage.bind(index))
-	if not enter_stage(index):
-		return _finish_stage_entry(false, start_stage.bind(index))
+	if _detached_debug_lifecycle():
+		if not prepare_run_transition():
+			_record_save_failure()
+			return _finish_stage_entry(false, start_stage.bind(index))
+		if not enter_stage(index):
+			return _finish_stage_entry(false, start_stage.bind(index))
+	else:
+		# Recover the exact pending lifecycle command before replacing its local
+		# provisional/checkpoint state. A retried start must not create two runs.
+		var recovering := _pending_run_command()
+		if not recovering.is_empty():
+			var recovered: Dictionary = await services.perform("refresh")
+			if not recovered.get("ok", false):
+				checkpoint.message = "서버 도전 상태를 확인하지 못했습니다. 다시 시도해 주세요."
+				return _finish_stage_entry(false, start_stage.bind(index))
+			if _stage_entry_cancelled: return _finish_stage_entry(false)
+			if recovering == "start_run" and stage == index and _server_run_matches():
+				return await _complete_server_stage_entry(index, pause_generation)
+		if not await _close_server_run():
+			return _finish_stage_entry(false, start_stage.bind(index))
+		if _stage_entry_cancelled: return _finish_stage_entry(false)
+		# The server binds its UUID to this complete, pristine checkpoint. The
+		# provisional run is paused and cannot accept input or advance combat.
+		if not enter_stage(index, {}, {"paused":true}, {}, ""):
+			return _finish_stage_entry(false, start_stage.bind(index))
+		if run_domain.state.is_empty() or not persist_progression():
+			return _finish_stage_entry(false, start_stage.bind(index))
+		var started: Dictionary = await services.perform("start_run", {"stageNumber":catalog.stage_id(index)})
+		if not started.get("ok", false) or stage != index or not _server_run_matches():
+			checkpoint.message = "서버에서 도전을 시작하지 못했습니다. 다시 시도해 주세요."
+			return _finish_stage_entry(false, start_stage.bind(index))
+		if _stage_entry_cancelled: return _finish_stage_entry(false)
+		return await _complete_server_stage_entry(index, pause_generation)
 	if not persist_progression():
 		command([], {"paused":true})
 		return _finish_stage_entry(false, resume_run)
@@ -206,9 +247,62 @@ func start_stage(index: int) -> bool:
 		return _finish_stage_entry(false, resume_run)
 	return _finish_stage_entry(true)
 
+# Detached verification/development controllers do not enter the formal app.
+# An in-tree app always requires an authenticated server lifecycle.
+func _detached_debug_lifecycle() -> bool:
+	return services == null and not is_inside_tree()
+
+func _pending_run_command() -> String:
+	var box = checkpoint.rewards()
+	if box == null or not box.loaded: return ""
+	var pending: Variant = box.state.get("inFlight")
+	if pending is Dictionary and pending.get("kind") in ["start_run", "close_run"]: return str(pending.kind)
+	return ""
+
+func _server_run_matches() -> bool:
+	if services == null or services.economy == null or run_domain.state.is_empty(): return false
+	var lifecycle: Variant = services.economy.snapshot.get("run")
+	return lifecycle is Dictionary and lifecycle.get("status") == "active" \
+		and not str(run_domain.state.get("economyRunId", "")).is_empty() \
+		and lifecycle.get("runId") == run_domain.state.get("economyRunId") \
+		and int(lifecycle.get("stageNumber", 0)) == catalog.stage_id(stage)
+
+func _close_server_run() -> bool:
+	if run_domain.state.is_empty(): return true
+	var identity: Variant = run_domain.state.get("economyRunId")
+	if identity == null or str(identity).is_empty(): return true # Unaccepted pristine provisional run.
+	# Preserve completed-round rewards before closing. The command worker drains
+	# this durable settlement first, then clears the server's active checkpoint.
+	if not prepare_run_transition():
+		_record_save_failure()
+		return false
+	var closed: Dictionary = await services.perform("close_run", {"runId":identity})
+	if not closed.get("ok", false) or not run_domain.state.is_empty():
+		checkpoint.message = "서버 도전 종료와 보상 정산을 완료하지 못했습니다. 다시 시도해 주세요."
+		return false
+	_gem_purchase_resume.clear()
+	return true
+
+func _complete_server_stage_entry(index: int, pause_generation: int) -> bool:
+	if stage != index or not _server_run_matches():
+		checkpoint.message = "서버 도전 상태가 변경되었습니다. 다시 불러와 주세요."
+		return _finish_stage_entry(false, resume_run)
+	# Applying the canonical checkpoint rebuilds the paused simulation and may
+	# unload the preflight resources. Rebind presentation to that exact run.
+	if not await _prepare_stage_resources(index, run_domain.state): return _finish_stage_entry(false, resume_run)
+	if _stage_entry_cancelled: return _finish_stage_entry(false)
+	if not await _realize_battle_presentation(): return _finish_stage_entry(false, resume_run)
+	if _stage_entry_cancelled: return _finish_stage_entry(false)
+	if not _server_run_matches():
+		checkpoint.message = "서버 도전 상태가 변경되었습니다. 다시 불러와 주세요."
+		return _finish_stage_entry(false, resume_run)
+	if run_domain.state.get("phase") == "preparation" and pause_generation == _pause_generation:
+		if not command([], {"paused":false}): return _finish_stage_entry(false, resume_run)
+	return _finish_stage_entry(true)
+
 func resume_run() -> bool:
 	if _battle_preparation_pending(): return false
-	if services != null and services.blocks_play(): return false
+	if not _detached_debug_lifecycle() and (services == null or services.blocks_play()): return false
 	if startup_blocked or not scene.combat_runtime.active or run_domain.state.is_empty(): return false
 	if save_failed and not persist_progression(): return false
 	# Keep simulation paused until the returning battlefield is fully ready.
@@ -216,6 +310,15 @@ func resume_run() -> bool:
 	var pause_generation := _pause_generation
 	_stage_entry_pending = true
 	_stage_entry_cancelled = false
+	if not _detached_debug_lifecycle():
+		var recovered: Dictionary = await services.perform("refresh")
+		if not recovered.get("ok", false) or run_domain.state.is_empty():
+			checkpoint.message = "서버 도전 상태를 확인하지 못했습니다. 다시 시도해 주세요."
+			return _finish_stage_entry(false, resume_run)
+		if not run_domain.is_finished() and not _server_run_matches():
+			checkpoint.message = "서버에서 시작한 도전만 이어할 수 있습니다."
+			return _finish_stage_entry(false, start_stage.bind(stage))
+		if _stage_entry_cancelled: return _finish_stage_entry(false)
 	if not await _prepare_stage_resources(stage, run_domain.state): return _finish_stage_entry(false, resume_run)
 	if _stage_entry_cancelled: return _finish_stage_entry(false)
 	if not await _realize_battle_presentation(): return _finish_stage_entry(false, resume_run)
@@ -265,9 +368,10 @@ func _realize_battle_presentation() -> bool:
 	return false
 
 func _battle_preparation_pending() -> bool:
-	return _stage_entry_pending or (scene != null and scene.battle_preparation_pending())
+	return _stage_entry_pending or _run_close_pending or (scene != null and scene.battle_preparation_pending())
 
 func open_stage_menu_destination() -> bool:
+	if _gem_reroll_requesting or _pending_gem_reroll() or _battle_preparation_pending(): return false
 	if scene.combat_runtime.active: command([], {"paused":true})
 	if not persist_progression():
 		refresh_ui()
@@ -280,7 +384,7 @@ func open_stage_menu_destination() -> bool:
 	return true
 
 func show_lobby() -> void:
-	if _gem_reroll_requesting or _pending_gem_reroll(): return
+	if _gem_reroll_requesting or _pending_gem_reroll() or _run_close_pending: return
 	if _stage_entry_pending: cancel_stage_entry(); return
 	if scene.combat_runtime.active: command([], {"paused":true})
 	in_lobby = true
@@ -314,6 +418,7 @@ func persist_progression() -> bool:
 	return result == OK
 
 func apply_growth_command(request: Dictionary) -> bool:
+	if _gem_reroll_requesting or _pending_gem_reroll() or _battle_preparation_pending(): return false
 	if services != null and services.blocks_play(): return false
 	if startup_blocked: return false
 	if save_failed and not persist_progression(): return false
@@ -332,8 +437,8 @@ func apply_growth_command(request: Dictionary) -> bool:
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:
-	if request.get("kind") == "rerollRewardFree": return false # Only durable reroll entrypoint may publish it.
-	if request.get("kind") in ["chooseRewardGem", "chooseRewardGemEquip", "chooseRewardShards"] and gem_reroll_state().locked: return false
+	if _gem_reroll_requesting or _pending_gem_reroll(): return false
+	if request.get("kind") in ["purchaseGemChoice", "rerollRewardFree", "chooseRewardGem", "chooseRewardGemEquip", "chooseRewardShards"]: return false # Server commands exclusively own candidates and grants.
 	if services != null and services.blocks_play(): return false
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return false
 	if save_failed and not persist_progression(): return false
@@ -347,23 +452,29 @@ func apply_run_command(request: Dictionary) -> bool:
 	return true
 
 func start_wave() -> void:
+	if _gem_reroll_requesting or _pending_gem_reroll(): return
+	if services != null and services.blocks_play(): return
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return
 	if save_failed and not persist_progression(): return
 	super.start_wave()
 	persist_progression()
 
 func toggle_pause() -> void:
+	if _gem_reroll_requesting or _pending_gem_reroll(): return
+	if services != null and services.blocks_play(): return
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return
 	if save_failed and not persist_progression(): return
 	super.toggle_pause()
 	persist_progression()
 
 func toggle_speed() -> void:
+	if services != null and services.blocks_play(): return
 	if startup_blocked or _battle_preparation_pending() or (save_failed and not persist_progression()): return
 	super.toggle_speed()
 	persist_progression()
 
 func set_speed(value: float) -> void:
+	if services != null and services.blocks_play(): return
 	if value not in [1.0, 2.0, 4.0] or startup_blocked or in_lobby or _battle_preparation_pending(): return
 	if save_failed and not persist_progression(): return
 	if command([], {"speed":value}): persist_progression()
@@ -378,6 +489,7 @@ func begin_modal_pause() -> bool:
 	return running
 
 func end_modal_pause(was_running: bool) -> void:
+	if services != null and services.blocks_play(): return
 	var resume := was_running and _modal_resume_allowed
 	_modal_resume_allowed = false
 	if not resume or in_lobby or startup_blocked or save_failed or _battle_preparation_pending(): return
@@ -385,8 +497,19 @@ func end_modal_pause(was_running: bool) -> void:
 	if command([], {"paused":false}): persist_progression()
 
 func abandon_run() -> bool:
-	if _gem_reroll_requesting or _pending_gem_reroll(): return false
+	if _gem_reroll_requesting or _pending_gem_reroll() or _battle_preparation_pending(): return false
 	if startup_blocked or in_lobby: return false
+	if not _detached_debug_lifecycle():
+		if services == null or services.blocks_play(): return false
+		_run_close_pending = true
+		if scene.combat_runtime.active: command([], {"paused":true})
+		refresh_ui()
+		var closed := await _close_server_run()
+		_run_close_pending = false
+		if not closed:
+			refresh_ui()
+			return false
+		return open_stage_menu_destination()
 	if not prepare_run_transition():
 		_record_save_failure()
 		return false
@@ -420,6 +543,7 @@ func _on_combat_step_completed() -> void:
 	_maybe_auto_start()
 
 func _maybe_auto_start() -> void:
+	if services != null and services.blocks_play(): return
 	if in_lobby or auto_start_mode == "pauseEachRound" or run_domain.state.is_empty(): return
 	if run_domain.state.phase != "preparation" or bool(scene.combat_runtime.session.get("paused", false)): return
 	if next_round <= 0 or next_round >= catalog.wave_count(stage): return
@@ -442,10 +566,13 @@ func save_session() -> void:
 func load_session() -> void:
 	if startup_blocked: retry_load()
 
-func pause_and_save() -> bool:
+func pause_runtime() -> void:
 	_pause_generation += 1
 	_modal_resume_allowed = false
 	if scene.combat_runtime.active: command([], {"paused":true})
+
+func pause_and_save() -> bool:
+	pause_runtime()
 	return persist_progression()
 
 func request_quit() -> bool:
@@ -491,7 +618,8 @@ func _resume_services() -> void:
 	if services.account != null and not services.busy: await services.retry()
 
 func _process(delta: float) -> void:
-	if _stage_entry_pending: return
+	if services != null and services.blocks_play(): return
+	if _stage_entry_pending or _run_close_pending: return
 	if services != null and services.updates != null and services.updates.blocked: return
 	if startup_blocked: return
 	if save_failed:
@@ -509,6 +637,7 @@ func _process(delta: float) -> void:
 		return
 	if str(run_domain.state.get("phase", "")) != previous_phase: persist_progression()
 	if services != null: services.request_run_settlement()
+	_maybe_request_gem_offer()
 	_maybe_auto_start()
 	if run_domain.state.is_empty() and Time.get_ticks_msec() >= next_research_check:
 		next_research_check = Time.get_ticks_msec() + 1000
@@ -523,22 +652,25 @@ func _process(delta: float) -> void:
 		autosave_elapsed = 0.0
 		persist_progression()
 
-# Rerolls never mutate the live offer before its checkpoint is durable. Account
-# commands reuse the exact outbox and atomically apply wallet + offer snapshots.
+# Every offer/purchase/choice/reroll is an immutable account command. In-flight state
+# is read from the checkpoint even before the economy service has been configured.
 func _pending_gem_reroll() -> bool:
-	if services == null or services.economy == null: return false
-	var box = services.economy.outbox
-	if box == null or box.owner != checkpoint.owner: return false
+	var box = checkpoint.rewards()
+	if box == null or not box.loaded: return true
 	var pending: Variant = box.state.get("inFlight")
-	return pending is Dictionary and pending.get("kind") == "reroll_gems"
+	return pending is Dictionary and pending.get("kind") in ["offer_gems", "purchase_gems", "reroll_gems", "choose_gem"]
 
 func gem_reroll_state() -> Dictionary:
 	var state: Dictionary = run_domain.state
 	var used := clampi(int(state.get("gemRerollsUsed", 0)), 0, GemReroll.MAX_USES)
 	var view := {"status":"available", "remaining":GemReroll.MAX_USES-used, "free":used == 0, "available":false, "locked":false, "note":_gem_reroll_note}
-	if not GemReroll.eligible(state): return view
+	var purchased := bool(state.get("isPurchasedGemReward", false))
+	if state.get("phase") != "reward" or (not purchased and not GemReroll.eligible(state)): return view
 	if _gem_reroll_requesting or (services != null and services.economy != null and services.economy.busy):
-		view.merge({"status":"processing", "locked":true, "note":"리롤 처리 중…"}, true)
+		view.merge({"status":"processing", "locked":true, "note":"서버 보상 확인 중…"}, true)
+		return view
+	if checkpoint.owner == "guest" or services == null or not services.connected() or not services.online_ready or services.blocks_play():
+		view.merge({"status":"offline", "locked":true, "note":"인증과 서버 연결을 완료해 주세요."}, true)
 		return view
 	if _pending_gem_reroll():
 		view.merge({"status":"recovering", "available":true, "locked":true, "note":"처리 결과를 확인해야 합니다. 다시 눌러 확인하세요."}, true)
@@ -546,18 +678,17 @@ func gem_reroll_state() -> Dictionary:
 	if save_failed:
 		view.merge({"status":"save_failed", "available":true, "locked":true, "note":"저장에 실패했습니다. 다시 눌러 저장을 재시도하세요."}, true)
 		return view
+	if services.economy == null or int(services.economy.snapshot.get("gemOfferVersion", 0)) != 1:
+		view.merge({"status":"unsupported", "locked":true, "note":"서버 젬 보상을 사용할 수 없습니다."}, true)
+		return view
+	if not GemReroll.current_offer(state):
+		view.merge({"status":"awaiting_offer", "available":true, "locked":true, "note":"서버 젬 후보를 확인하고 있습니다. 다시 눌러 재시도하세요."}, true)
+		return view
+	if purchased:
+		view.status = "purchased"
+		return view
 	if used >= GemReroll.MAX_USES:
 		view.merge({"status":"exhausted", "note":"이번 도전의 리롤을 모두 사용했습니다."}, true)
-		return view
-	if checkpoint.owner == "guest":
-		view.available = used == 0
-		if used > 0: view.merge({"status":"offline", "note":"리셋권 사용은 계정 연결이 필요합니다."}, true)
-		return view
-	if services == null or not services.connected() or not services.online_ready:
-		view.merge({"status":"offline", "note":"리롤은 온라인 연결이 필요합니다."}, true)
-		return view
-	if int(services.economy.snapshot.get("gemRerollVersion", 0)) != 1:
-		view.merge({"status":"unsupported", "note":"서버에서 리롤을 준비 중입니다."}, true)
 		return view
 	if used > 0 and int(state.get("progression", {}).get("gemResetTickets", 0)) <= 0:
 		view.merge({"status":"empty", "note":"젬 리셋권이 없습니다."}, true)
@@ -565,38 +696,96 @@ func gem_reroll_state() -> Dictionary:
 	view.available = true
 	return view
 
+func _gem_values() -> Dictionary:
+	var state: Dictionary = run_domain.state
+	return {"runId":state.get("economyRunId", ""), "completedRounds":state.get("completedRounds", 0),
+		"offerId":state.get("gemOfferId", ""), "expectedOfferRevision":int(state.get("gemOfferRevision", 0)),
+		"expectedRerollCount":int(state.get("gemRerollsUsed", 0))}
+
+func _maybe_request_gem_offer() -> void:
+	if in_lobby: return
+	if run_domain.state.get("isPurchasedGemReward", false) or not GemReroll.eligible(run_domain.state) or GemReroll.current_offer(run_domain.state): return
+	if _gem_reroll_requesting or Time.get_ticks_msec() < _gem_offer_retry_at: return
+	if services == null or services.blocks_play() or services.economy == null or services.economy.busy: return
+	_gem_offer_retry_at = Time.get_ticks_msec() + 5000
+	reroll_reward_gems.call_deferred()
+
 func reroll_reward_gems() -> Dictionary:
+	if run_domain.state.get("isPurchasedGemReward", false): return {"ok":false,"code":"REROLL_UNAVAILABLE"}
 	var view := gem_reroll_state()
 	if not view.available or _gem_reroll_requesting or startup_blocked or in_lobby: return {"ok":false, "code":"REROLL_UNAVAILABLE"}
-	var recovering := _pending_gem_reroll()
 	if save_failed and not persist_progression(): return {"ok":false, "code":"LOCAL_SAVE_FAILED"}
-	var state: Dictionary = run_domain.state
-	if not GemReroll.eligible(state): return {"ok":false, "code":"STALE_REWARD"}
-	var values := {"runId":state.get("economyRunId", ""), "completedRounds":state.get("completedRounds", 0), "expectedRerollCount":int(state.get("gemRerollsUsed", 0))}
+	if not GemReroll.eligible(run_domain.state): return {"ok":false, "code":"STALE_REWARD"}
+	var initial := not GemReroll.current_offer(run_domain.state)
+	var action := "refresh" if _pending_gem_reroll() else ("offer_gems" if initial else "reroll_gems")
+	var result: Dictionary = await _perform_gem_command(action, _gem_values())
+	result.initialOffer = initial
+	return result
+
+func purchase_reward_gems() -> Dictionary:
+	if _gem_reroll_requesting or startup_blocked or in_lobby or _battle_preparation_pending(): return {"ok":false,"code":"GEM_PURCHASE_UNAVAILABLE"}
+	if _pending_gem_reroll(): return await recover_reward_command()
+	if services == null or services.blocks_play() or not _server_run_matches(): return {"ok":false,"code":"ACCOUNT_REQUIRED"}
+	if save_failed and not persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	if not command() or run_domain.state.get("phase") not in ["preparation", "wave"]: return {"ok":false,"code":"STALE_REWARD"}
+	if int(run_domain.state.get("gemShards", 0)) < int(run_domain.growth.data.constants.gemChoicePurchaseCost): return {"ok":false,"code":"INSUFFICIENT_GEM_SHARDS"}
+	return await _perform_gem_command("purchase_gems", _gem_values())
+
+func recover_reward_command() -> Dictionary:
+	if startup_blocked or in_lobby: return {"ok":false,"code":"GEM_OFFER_PENDING"}
+	if save_failed and not persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	return await _perform_gem_command("refresh", {})
+
+func choose_reward(command: Dictionary) -> Dictionary:
+	if startup_blocked or in_lobby: return {"ok":false,"code":"GEM_OFFER_PENDING"}
+	if gem_reroll_state().locked or not GemReroll.current_offer(run_domain.state): return {"ok":false,"code":"GEM_OFFER_PENDING"}
+	if command.get("kind") not in ["chooseRewardGem", "chooseRewardGemEquip", "chooseRewardShards"]: return {"ok":false,"code":"INVALID_CHOICE"}
+	if command.kind == "chooseRewardShards" and run_domain.state.get("isPurchasedGemReward", false): return {"ok":false,"code":"INVALID_CHOICE"}
+	var values := _gem_values()
+	values.choice = "shards" if command.kind == "chooseRewardShards" else str(command.get("type", ""))
+	if values.choice != "shards" and values.choice not in run_domain.state.rewardOptions: return {"ok":false,"code":"INVALID_CHOICE"}
+	if command.kind == "chooseRewardGemEquip":
+		if not run_domain.service.validate_reward_equip(run_domain.state, command): return {"ok":false,"code":"INVALID_EQUIP"}
+		var target: Dictionary = run_domain.service.turret(run_domain.state, int(command.get("id", -1)))
+		values.equipIntent = {"x":target.x,"y":target.y,"turretType":target.type,"slot":command.get("slot", -1),"buySlot":command.get("buySlot", false)}
+	return await _perform_gem_command("choose_gem", values)
+
+func _perform_gem_command(action: String, values: Dictionary) -> Dictionary:
+	if _gem_reroll_requesting or _battle_preparation_pending(): return {"ok":false,"code":"BUSY"}
+	if services == null or services.blocks_play() or checkpoint.owner == "guest": return {"ok":false,"code":"ACCOUNT_REQUIRED"}
 	_gem_reroll_requesting = true
 	_gem_reroll_note = ""
+	if action == "purchase_gems":
+		_gem_purchase_resume = {"runId":run_domain.state.get("economyRunId", ""), "running":not bool(scene.combat_runtime.session.get("paused", false)), "pauseGeneration":_pause_generation}
+		if not command([], {"paused":true}):
+			_gem_reroll_requesting = false
+			return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	refresh_ui()
-	var result: Dictionary
-	if checkpoint.owner == "guest":
-		values.kind = "rerollRewardFree"
-		result = run_domain.service.apply(state, values)
-		if result.get("ok", false):
-			if checkpoint.persist_state(self, result.state) == OK:
-				run_domain.state = result.state
-				run_domain.state_revision += 1
-			else:
-				_record_save_failure()
-				result = {"ok":false, "code":"LOCAL_SAVE_FAILED"}
-	else:
-		if recovering and not services.online_ready: result = await services.retry()
-		else: result = await services.perform("refresh" if recovering else "reroll_gems", values)
+	var result: Dictionary = await services.perform(action, values)
 	_gem_reroll_requesting = false
+	_gem_offer_retry_at = Time.get_ticks_msec() + 5000
 	if not result.get("ok", false):
 		var code := str(result.get("code", "REQUEST_FAILED"))
 		if code in ["INSUFFICIENT_GEM_RESET_TICKETS", "INSUFFICIENT_GEM_TICKETS"]: _gem_reroll_note = "젬 리셋권이 없습니다."
+		elif code == "INSUFFICIENT_GEM_SHARDS": _gem_reroll_note = "젬 조각이 부족합니다."
 		elif code == "GEM_REROLL_LIMIT_REACHED": _gem_reroll_note = "이번 도전의 리롤을 모두 사용했습니다."
-		elif code == "GEM_REROLL_STATE_CONFLICT": _gem_reroll_note = "리롤 상태가 갱신되었습니다. 후보를 확인해 주세요."
-		elif code in ["GEM_REROLL_UNAVAILABLE", "NOT_FOUND"]: _gem_reroll_note = "서버에서 리롤을 준비 중입니다."
-		elif not _pending_gem_reroll(): _gem_reroll_note = "리롤을 완료하지 못했습니다. 다시 시도해 주세요."
+		else: _gem_reroll_note = "서버 보상을 확인하지 못했습니다. 다시 시도해 주세요."
+	if result.get("ok", false) and action == "choose_gem" and values.has("equipIntent") and run_domain.state.get("economyRunId") == values.get("runId"):
+		var intent: Dictionary = values.equipIntent
+		for target in run_domain.state.get("turrets", []):
+			var slot := int(intent.get("slot", -1))
+			var slots: Array = target.get("equippedGemSlots", [])
+			if target.x == intent.x and target.y == intent.y and target.type == intent.turretType and slot >= 0 and slot < slots.size() and slots[slot] == values.choice:
+				scene.play_gem_equip_burst(int(target.id), str(values.choice))
+				break
+	if not _gem_purchase_resume.is_empty():
+		var same_run: bool = run_domain.state.get("economyRunId") == _gem_purchase_resume.get("runId")
+		var reward_finished: bool = run_domain.state.get("phase") in ["preparation", "wave"]
+		if not same_run or (reward_finished and not _pending_gem_reroll()):
+			if same_run and _gem_purchase_resume.get("running", false) and int(_gem_purchase_resume.pauseGeneration) == _pause_generation:
+				command([], {"paused":false})
+			_gem_purchase_resume.clear()
+	if action == "purchase_gems" and not result.get("ok", false): checkpoint.message = _gem_reroll_note
+	refresh_selection()
 	refresh_ui()
 	return result

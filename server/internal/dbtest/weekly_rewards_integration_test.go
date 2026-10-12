@@ -79,7 +79,7 @@ func TestAllCompleteRewardCountsAttendanceAndKeepsAtomicReceipts(t *testing.T) {
 				t.Fatalf("save reward evidence: %v", err)
 			}
 			if _, err := economy.NewService(fixture.pool).Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{
-				IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"bootstrap":true}`),
+				IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"bootstrap":true,"clientCompatibilityVersion":9}`),
 				WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1,
 			}); err != nil {
 				t.Fatalf("bootstrap reward economy: %v", err)
@@ -97,7 +97,7 @@ func TestAllCompleteRewardCountsAttendanceAndKeepsAtomicReceipts(t *testing.T) {
 			service := weeklyreward.NewService(fixture.pool)
 			request := weeklyreward.ClaimRequest{
 				IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90beb",
-				RawBody:        []byte(`{"period":"` + test.period + `","rewardType":"all_complete","clientCompatibilityVersion":4}`),
+				RawBody:        []byte(`{"period":"` + test.period + `","rewardType":"all_complete","clientCompatibilityVersion":9}`),
 				Period:         test.period, RewardType: weeklyreward.RewardTypeAllComplete,
 			}
 			claimed, err := service.Claim(ctx, accountID, fixture.sessionID, request)

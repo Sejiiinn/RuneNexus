@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/runstate"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,7 +19,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = GemRerollClientCompatibilityVersion
+	CurrentClientCompatibilityVersion       = RunAuthorityClientCompatibilityVersion
 )
 
 var (
@@ -76,6 +77,7 @@ type ClaimWriterRequest struct {
 	ClientInstanceID           string
 	RawBody                    []byte
 	ClientCompatibilityVersion int
+	ReceiptOnly                bool
 }
 
 type ClaimWriterResult struct {
@@ -170,6 +172,9 @@ func (service *Service) ClaimWriter(
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("get save writer claim receipt: %w", err)
 	}
+	if request.ReceiptOnly || request.ClientCompatibilityVersion < RunAuthorityClientCompatibilityVersion {
+		return ClaimWriterResult{}, ErrClientUpdateRequired
+	}
 
 	tx, err := service.database.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -198,6 +203,12 @@ func (service *Service) ClaimWriter(
 	if _, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID); err != nil {
 		return ClaimWriterResult{}, fmt.Errorf("lock save writer state: %w", err)
 	}
+	if err := txQueries.EnsureSaveHeader(ctx, databaseAccountID); err != nil {
+		return ClaimWriterResult{}, err
+	}
+	if _, err := txQueries.GetSaveHeaderForUpdate(ctx, databaseAccountID); err != nil {
+		return ClaimWriterResult{}, err
+	}
 	storedClaim, err = txQueries.GetSaveWriterClaim(ctx, claimParams)
 	if err == nil {
 		return resultFromWriterClaim(storedClaim, databaseSessionID, requestHash[:])
@@ -208,11 +219,20 @@ func (service *Service) ClaimWriter(
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
 	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
 		(request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion ||
-			(playerEconomy.GemRerollEnabled && request.ClientCompatibilityVersion < GemRerollClientCompatibilityVersion)) {
+			(playerEconomy.GemRerollEnabled && request.ClientCompatibilityVersion < GemRerollClientCompatibilityVersion) ||
+			(playerEconomy.GemOfferEnabled && request.ClientCompatibilityVersion < GemOfferClientCompatibilityVersion) ||
+			(playerEconomy.RunAuthorityEnabled && request.ClientCompatibilityVersion < RunAuthorityClientCompatibilityVersion)) {
 		return ClaimWriterResult{}, ErrClientUpdateRequired
 	}
 	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("lock authoritative economy for writer claim: %w", economyErr)
+	}
+	currentRunClient, err := runstate.RequiresCurrentClient(ctx, txQueries, databaseAccountID)
+	if err != nil {
+		return ClaimWriterResult{}, err
+	}
+	if currentRunClient && request.ClientCompatibilityVersion < RunAuthorityClientCompatibilityVersion {
+		return ClaimWriterResult{}, ErrClientUpdateRequired
 	}
 
 	snapshot, snapshotErr := txQueries.GetSaveSnapshot(ctx, databaseAccountID)
@@ -222,6 +242,14 @@ func (service *Service) ClaimWriter(
 		}
 	} else if !errors.Is(snapshotErr, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("read growth compatibility: %w", snapshotErr)
+	}
+	if request.ClientCompatibilityVersion >= RunAuthorityClientCompatibilityVersion {
+		if err := runstate.AdoptCanonical(ctx, txQueries, databaseAccountID, snapshot.ActiveRun); err != nil {
+			if errors.Is(err, runstate.ErrConflict) {
+				return ClaimWriterResult{}, ErrGemOfferConflict
+			}
+			return ClaimWriterResult{}, err
+		}
 	}
 
 	advanced, err := txQueries.AdvanceSaveWriter(ctx, dbgen.AdvanceSaveWriterParams{
@@ -289,6 +317,9 @@ func (service *Service) Update(
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return UpdateResult{}, fmt.Errorf("get save request receipt: %w", err)
 	}
+	if request.ClientCompatibilityVersion < RunAuthorityClientCompatibilityVersion {
+		return UpdateResult{}, ErrClientUpdateRequired
+	}
 	if request.ReceiptOnly {
 		return UpdateResult{}, ErrClientUpdateRequired
 	}
@@ -317,11 +348,7 @@ func (service *Service) Update(
 		return UpdateResult{}, fmt.Errorf("lock save header: %w", err)
 	}
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
-	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
-		(request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion ||
-			(playerEconomy.GemRerollEnabled && request.ClientCompatibilityVersion < GemRerollClientCompatibilityVersion)) {
-		return UpdateResult{}, ErrClientUpdateRequired
-	}
+
 	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
 		return UpdateResult{}, fmt.Errorf("lock authoritative economy for save: %w", economyErr)
 	}
@@ -335,6 +362,20 @@ func (service *Service) Update(
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return UpdateResult{}, fmt.Errorf("recheck save request receipt: %w", err)
+	}
+	currentRunClient, err := runstate.RequiresCurrentClient(ctx, txQueries, databaseAccountID)
+	if err != nil {
+		return UpdateResult{}, err
+	}
+	if currentRunClient && request.ClientCompatibilityVersion < RunAuthorityClientCompatibilityVersion {
+		return UpdateResult{}, ErrClientUpdateRequired
+	}
+	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
+		(request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion ||
+			(playerEconomy.GemRerollEnabled && request.ClientCompatibilityVersion < GemRerollClientCompatibilityVersion) ||
+			(playerEconomy.GemOfferEnabled && request.ClientCompatibilityVersion < GemOfferClientCompatibilityVersion) ||
+			(playerEconomy.RunAuthorityEnabled && request.ClientCompatibilityVersion < RunAuthorityClientCompatibilityVersion)) {
+		return UpdateResult{}, ErrClientUpdateRequired
 	}
 	if writer.Generation == 0 || !writer.SessionID.Valid {
 		return UpdateResult{}, ErrWriterRequired
@@ -365,6 +406,27 @@ func (service *Service) Update(
 	}
 	if err := ValidateGrowthUpdate(currentProgression, request.Data.Progression, request.ClientCompatibilityVersion); err != nil {
 		return UpdateResult{}, err
+	}
+
+	if request.ClientCompatibilityVersion >= RunAuthorityClientCompatibilityVersion {
+		if err := runstate.AdoptCanonical(ctx, txQueries, databaseAccountID, snapshot.ActiveRun); err != nil {
+			if errors.Is(err, runstate.ErrConflict) {
+				return UpdateResult{}, ErrGemOfferConflict
+			}
+			return UpdateResult{}, err
+		}
+		playerEconomy.RunAuthorityEnabled = true
+		currentRunClient = true
+	}
+	if currentRunClient {
+		if err := validateRunSave(ctx, txQueries, databaseAccountID, snapshot.ActiveRun, request.Data.ActiveRun); err != nil {
+			return UpdateResult{}, err
+		}
+	}
+	if currentRunClient || (economyErr == nil && playerEconomy.AuthorityState == "server_authoritative") {
+		if err := validateGemOfferSave(ctx, txQueries, databaseAccountID, request.Data.ActiveRun, request.ClientCompatibilityVersion); err != nil {
+			return UpdateResult{}, err
+		}
 	}
 
 	if err := txQueries.UpsertSavePreferences(

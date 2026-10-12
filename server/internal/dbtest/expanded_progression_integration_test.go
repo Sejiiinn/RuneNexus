@@ -68,16 +68,16 @@ func TestExpandedLeaderboardKeepsFixedIDsAndLogicalOrdering(t *testing.T) {
 func TestExpandedSaveMigrationAndNewStageSettlement(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
 	original := gamesave.UpdateRequest{IdempotencyKey: firstSaveKey, ClientCompatibilityVersion: 3, RawBody: []byte(`{"clientCompatibilityVersion":3}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"growthVersion":1,"freeDiamonds":100,"clearedStageNumbers":[6],"unlockedStageCount":7}`), TurretModules: json.RawMessage(`{"tickets":2,"items":[]}`)}}
-	if _, err := fixture.Update(ctx, accountID, original); err != nil {
-		t.Fatal(err)
-	}
+	original.Data.ActiveRun = json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90bc4","stageNumber":16,"completedRounds":40,"phase":"success","gemInventory":{},"gemRerollsUsed":0}`)
+	seeded := seedPreAuthoritySave(t, fixture, accountID, original.Data)
+	seedLegacySaveReceipt(t, fixture, original, seeded)
 	migrated := original
 	migrated.ExpectedRevision = 1
 	migrated.IdempotencyKey = secondSaveKey
-	migrated.ClientCompatibilityVersion = 4
-	migrated.RawBody = []byte(`{"clientCompatibilityVersion":4,"expectedRevision":1}`)
+	migrated.ClientCompatibilityVersion = gamesave.CurrentClientCompatibilityVersion
+	migrated.RawBody = []byte(`{"clientCompatibilityVersion":9,"expectedRevision":1}`)
 	migrated.Data.Progression = json.RawMessage(`{"growthVersion":1,"progressionVersion":1,"unlockedStageIds":[1,2,3,4,5,6,7,16],"grandfatherUnlocks":["turret:lightning"],"freeDiamonds":100,"clearedStageNumbers":[6,16],"bestRoundsByStage":{"16":40}}`)
-	migrated.Data.ActiveRun = json.RawMessage(`{"stageNumber":16,"completedRounds":40}`)
+	migrated.Data.ActiveRun = original.Data.ActiveRun
 	if _, err := fixture.Update(ctx, accountID, migrated); err != nil {
 		t.Fatal(err)
 	}
@@ -99,11 +99,11 @@ func TestExpandedSaveMigrationAndNewStageSettlement(t *testing.T) {
 		t.Fatalf("new active run missing: %d %v", ranked, err)
 	}
 	svc := economy.NewService(fixture.pool)
-	bootstrap := economy.BootstrapRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bc2", RawBody: []byte(`{"clientCompatibilityVersion":4}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 2}
+	bootstrap := economy.BootstrapRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bc2", RawBody: []byte(`{"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 2}
 	if _, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, bootstrap); err != nil {
 		t.Fatal(err)
 	}
-	settlement := economy.RunSettlementRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bc3", RunID: "0198b955-3656-7c40-b3cb-87f427b90bc4", RawBody: []byte(`{"clientCompatibilityVersion":4,"stageNumber":16}`), WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 2, StageNumber: 16, CompletedRounds: 40, Success: true, PendingDiamonds: 10}
+	settlement := economy.RunSettlementRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bc3", RunID: "0198b955-3656-7c40-b3cb-87f427b90bc4", RawBody: []byte(`{"clientCompatibilityVersion":9,"stageNumber":16}`), WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 2, StageNumber: 16, CompletedRounds: 40, Success: true, PendingDiamonds: 10}
 	first, err := svc.SettleRun(ctx, accountID, fixture.sessionID, settlement)
 	if err != nil {
 		t.Fatal(err)
@@ -119,8 +119,18 @@ func TestExpandedSaveMigrationAndNewStageSettlement(t *testing.T) {
 
 func TestRoutedSaveBlocksOldWriterAndPreservesRoutePayload(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
-	run := json.RawMessage(`{"stageNumber":28,"completedRounds":21,"enemies":[{"type":"armored","routeId":"south","distanceTravelled":5}],"spawnQueue":[{"enemyType":"fast","routeId":"north","delay":1}]}`)
+	run := json.RawMessage(`{"stageNumber":28,"phase":"wave","gemInventory":{},"gemRerollsUsed":0,"completedRounds":21,"enemies":[{"type":"armored","routeId":"south","distanceTravelled":5}],"spawnQueue":[{"enemyType":"fast","routeId":"north","delay":1}]}`)
 	request := gamesave.UpdateRequest{IdempotencyKey: firstSaveKey, ClientCompatibilityVersion: 5, RawBody: []byte(`{"clientCompatibilityVersion":5}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"growthVersion":1,"progressionVersion":1,"unlockedStageIds":[1,26,27,28],"freeDiamonds":100}`), TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`), ActiveRun: run}}
+	seedPreAuthoritySave(t, fixture, accountID, request.Data)
+	seeded, err := fixture.Get(ctx, accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	run = seeded.Data.ActiveRun
+	request.Data.ActiveRun = run
+	request.ExpectedRevision = seeded.Revision
+	request.ClientCompatibilityVersion = gamesave.CurrentClientCompatibilityVersion
+	request.RawBody = []byte(`{"clientCompatibilityVersion":9}`)
 	if _, err := fixture.Update(ctx, accountID, request); err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +154,7 @@ func TestRoutedSaveBlocksOldWriterAndPreservesRoutePayload(t *testing.T) {
 	}
 	old := request
 	old.IdempotencyKey = secondSaveKey
-	old.ExpectedRevision = 1
+	old.ExpectedRevision = 2
 	old.ClientCompatibilityVersion = 4
 	old.RawBody = []byte(`{"clientCompatibilityVersion":4}`)
 	old.Data.ActiveRun = nil

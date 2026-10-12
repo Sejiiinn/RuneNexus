@@ -117,8 +117,8 @@ func _account(body: VBoxContainer) -> void:
 	var service = _services()
 	if not _connected():
 		var offline_account: bool = service != null and service.account != null and not service.account.account_id_hint.is_empty()
-		body.add_child(T.label("계정 저장 · 오프라인" if offline_account else "게스트",18))
-		body.add_child(T.label("이 기기에 보관된 계정 진행 상황입니다. 연결이 복구되면 서버 저장을 확인합니다." if offline_account else "이 기기에 진행 상황이 저장됩니다. Google 계정을 연결하면 다른 기기에서도 이어갈 수 있습니다.",12))
+		body.add_child(T.label("인증 연결을 확인해 주세요" if offline_account else "로그인이 필요합니다",18))
+		body.add_child(T.label("계정 정보와 저장은 보존됩니다. 인증을 다시 확인한 뒤 플레이할 수 있습니다." if offline_account else "Google 계정으로 서버 인증을 완료해야 플레이할 수 있습니다.",12))
 		var login := _button(body,"Google 계정 연결",_login)
 		login.custom_minimum_size.y = 44
 		login.disabled = login.disabled or service == null or not service.configured()
@@ -130,6 +130,8 @@ func _account(body: VBoxContainer) -> void:
 	if profile.get("nickname") is String and not profile.nickname.is_empty():
 		body.add_child(T.label(str(profile.nickname)+"#"+str(profile.get("tag","")),18))
 		body.add_child(T.label("온라인 저장 연결됨" if service.online_ready and service.issue.is_empty() else "온라인 저장 상태를 확인해 주세요",12))
+	elif profile.is_empty():
+		body.add_child(T.label("계정 정보를 확인하지 못했습니다. 다시 시도해 주세요.",12))
 	else:
 		body.add_child(T.label("닉네임 설정",18))
 		var guidance = VBoxContainer.new(); guidance.add_theme_constant_override("separation",2); body.add_child(guidance)
@@ -179,7 +181,7 @@ func _show_result(result: Dictionary) -> void:
 	notice = "완료했습니다" if result.get("ok",false) else _error(str(result.get("code","REQUEST_FAILED")))
 
 func _error(code: String) -> String:
-	return {"ACCOUNT_REQUIRED":"계정 연결이 필요합니다.","BUSY":"이전 요청을 처리하고 있습니다.","NICKNAME_REQUIRED":"닉네임을 먼저 설정해 주세요.","NICKNAME_ALREADY_SET":"이미 닉네임이 설정되었습니다. 계정 상태를 다시 확인해 주세요.","SAVE_SYNC_REQUIRED":"진행 상황 동기화 후 다시 시도해 주세요.","SAVE_WRITER_REPLACED":"다른 기기에서 접속했습니다. 동기화 다시 시도를 눌러 주세요.","CLIENT_UPDATE_REQUIRED":"새 버전으로 업데이트해야 합니다.","GOOGLE_SIGN_IN_CANCELLED":"계정 연결을 취소했습니다.","sign_in_cancelled":"계정 연결을 취소했습니다.","invalid_credential":"Google 인증 정보를 확인하지 못했습니다. Google 계정을 다시 선택해 주세요.","sign_in_unavailable":"Google 로그인 요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.","SAVE_RELOAD_REQUIRED":"서버 진행 상황을 불러오고 있습니다.","INSUFFICIENT_DIAMONDS":"다이아가 부족합니다.","INSUFFICIENT_MODULE_TICKETS":"모듈권이 부족합니다.","DRAW_QUOTE_CHANGED":"모듈권 사용량이나 다이아 비용이 변경되었습니다. 새 비용을 확인한 뒤 다시 확인을 눌러 주세요.","ECONOMY_REVISION_CONFLICT":"재화 정보가 갱신되었습니다. 확인 후 다시 시도해 주세요.","MAIL_UNAVAILABLE":"수령할 수 없는 우편입니다."}.get(code,"요청을 완료하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
+	return {"ACCOUNT_REQUIRED":"서버 인증을 완료해야 플레이할 수 있습니다.","LOGIN_UNAVAILABLE":"이 실행 환경에서는 인증을 사용할 수 없어 플레이할 수 없습니다.","AUTH_SESSION_UNAVAILABLE":"서버 인증을 다시 확인해야 합니다. 연결 상태를 확인하고 다시 시도해 주세요.","AUTH_RETRY_PENDING":"인증 서버 연결을 기다리고 있습니다. 잠시 후 다시 시도해 주세요.","NETWORK_UNAVAILABLE":"서버에 연결하지 못했습니다. 계정과 저장은 보존됩니다. 연결 후 다시 시도해 주세요.","BUSY":"이전 요청을 처리하고 있습니다.","NICKNAME_REQUIRED":"닉네임을 먼저 설정해 주세요.","NICKNAME_ALREADY_SET":"이미 닉네임이 설정되었습니다. 계정 상태를 다시 확인해 주세요.","SAVE_SYNC_REQUIRED":"진행 상황 동기화 후 다시 시도해 주세요.","SAVE_WRITER_REPLACED":"다른 기기에서 접속했습니다. 동기화 다시 시도를 눌러 주세요.","CLIENT_UPDATE_REQUIRED":"새 버전으로 업데이트해야 합니다.","GOOGLE_SIGN_IN_CANCELLED":"계정 연결을 취소했습니다.","sign_in_cancelled":"계정 연결을 취소했습니다.","invalid_credential":"Google 인증 정보를 확인하지 못했습니다. Google 계정을 다시 선택해 주세요.","sign_in_unavailable":"Google 로그인 요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.","SAVE_RELOAD_REQUIRED":"서버 진행 상황을 불러오고 있습니다.","INSUFFICIENT_DIAMONDS":"다이아가 부족합니다.","INSUFFICIENT_MODULE_TICKETS":"모듈권이 부족합니다.","DRAW_QUOTE_CHANGED":"모듈권 사용량이나 다이아 비용이 변경되었습니다. 새 비용을 확인한 뒤 다시 확인을 눌러 주세요.","ECONOMY_REVISION_CONFLICT":"재화 정보가 갱신되었습니다. 확인 후 다시 시도해 주세요.","MAIL_UNAVAILABLE":"수령할 수 없는 우편입니다."}.get(code,"요청을 완료하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
 
 func _login() -> void:
 	var captured := view_epoch

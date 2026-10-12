@@ -412,9 +412,14 @@ func _empty_inventory_slot(parent: Node, minimum: Vector2, index: int) -> void:
 
 func _purchase(parent: Node,state: Dictionary) -> void:
 	var cost: int = hud.app.run_domain.growth.data.constants.gemChoicePurchaseCost
-	var b = UiWidgets.button(parent,"젬 구매 · %s 조각" % HudNumber.compact_price(cost),func(): hud.run_command({"kind":"purchaseGemChoice"}))
+	var b = UiWidgets.button(parent,"젬 구매 · %s 조각" % HudNumber.compact_price(cost),_request_purchase)
 	hud.track_purchase_button(b,"gemShards",cost,state.phase not in ["preparation","wave"])
 	b.tooltip_text = "젬 구매 · %d 조각" % cost
+
+func _request_purchase() -> void:
+	if not hud.app.has_method("purchase_reward_gems"): return
+	await hud.app.purchase_reward_gems()
+	if is_instance_valid(hud): hud.refresh()
 
 func gem_name(type: String) -> String:
 	return str(hud.labels.gems.get(type,{}).get("name",type))

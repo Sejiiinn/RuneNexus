@@ -18,6 +18,12 @@ type Account struct {
 	NicknameTag         pgtype.Text        `db:"nickname_tag"`
 }
 
+type AccountRunAuthority struct {
+	AccountID            pgtype.UUID `db:"account_id"`
+	Adopted              bool        `db:"adopted"`
+	LegacySourceRevision pgtype.Int8 `db:"legacy_source_revision"`
+}
+
 type AuthIdentity struct {
 	ID             pgtype.UUID        `db:"id"`
 	AccountID      pgtype.UUID        `db:"account_id"`
@@ -50,6 +56,17 @@ type EconomyCommand struct {
 	RngAlgorithmVersion pgtype.Int4        `db:"rng_algorithm_version"`
 	ResponsePayload     []byte             `db:"response_payload"`
 	CreatedAt           pgtype.Timestamptz `db:"created_at"`
+}
+
+type EconomyGemOffer struct {
+	AccountID  pgtype.UUID        `db:"account_id"`
+	RunID      pgtype.UUID        `db:"run_id"`
+	RewardWave int32              `db:"reward_wave"`
+	OfferID    pgtype.UUID        `db:"offer_id"`
+	Revision   int64              `db:"revision"`
+	Payload    []byte             `db:"payload"`
+	CommandID  pgtype.UUID        `db:"command_id"`
+	UpdatedAt  pgtype.Timestamptz `db:"updated_at"`
 }
 
 type EconomyGemReroll struct {
@@ -92,6 +109,21 @@ type EconomyRewardClaim struct {
 	OriginSaveRevision pgtype.Int8        `db:"origin_save_revision"`
 	Evidence           []byte             `db:"evidence"`
 	ClaimedAt          pgtype.Timestamptz `db:"claimed_at"`
+}
+
+type EconomyRun struct {
+	AccountID        pgtype.UUID        `db:"account_id"`
+	RunID            pgtype.UUID        `db:"run_id"`
+	StageNumber      int32              `db:"stage_number"`
+	Status           string             `db:"status"`
+	OwnedGems        []byte             `db:"owned_gems"`
+	TotalUsed        int32              `db:"total_used"`
+	PurchasedOffer   []byte             `db:"purchased_offer"`
+	PurchaseSequence int64              `db:"purchase_sequence"`
+	LegacyImported   bool               `db:"legacy_imported"`
+	CreatedAt        pgtype.Timestamptz `db:"created_at"`
+	ClosedAt         pgtype.Timestamptz `db:"closed_at"`
+	UpdatedAt        pgtype.Timestamptz `db:"updated_at"`
 }
 
 type EconomySystemState struct {
@@ -199,6 +231,8 @@ type PlayerEconomy struct {
 	UpdatedAt                 pgtype.Timestamptz `db:"updated_at"`
 	GemResetTickets           int64              `db:"gem_reset_tickets"`
 	GemRerollEnabled          bool               `db:"gem_reroll_enabled"`
+	GemOfferEnabled           bool               `db:"gem_offer_enabled"`
+	RunAuthorityEnabled       bool               `db:"run_authority_enabled"`
 }
 
 type PlayerModule struct {

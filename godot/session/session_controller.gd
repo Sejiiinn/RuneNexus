@@ -105,7 +105,7 @@ func retry_stage() -> bool:
 
 ## Starts a combat generation for the stage. False when content cannot be
 ## prepared or the runtime rejects the bootstrap; checkpoint.message says why.
-func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> bool:
+func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}, authority_run_id: Variant = null) -> bool:
 	if index < 0 or index >= stage_count(): return false
 	stage = index
 	next_round = 0
@@ -121,7 +121,7 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	var path: Array = catalog.world_path(stage) if is_content_session() else stage_source(stage).path
 	var initial := {"path":path,"tileSize":1.0,"boardDistanceScale":1.0/48.0,"defense":{"config":{"maxHp":100.0}}}
 	if is_content_session():
-		if not run_domain.initialize(catalog, progression_inputs, stage, epoch):
+		if not run_domain.initialize(catalog, progression_inputs, stage, epoch, authority_run_id):
 			checkpoint.message = run_domain.error
 			return false
 		if not restored_state.is_empty():

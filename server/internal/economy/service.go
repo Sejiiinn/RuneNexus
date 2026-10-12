@@ -82,7 +82,17 @@ func (service *Service) snapshot(
 	if err != nil {
 		return Snapshot{}, err
 	}
+	offer, err := currentGemOffer(ctx, queries, economy.AccountID)
+	if err != nil {
+		return Snapshot{}, err
+	}
+	run, err := currentRunState(ctx, queries, economy.AccountID)
+	if err != nil {
+		return Snapshot{}, err
+	}
 	result := Snapshot{
+		Run:             run,
+		GemOfferVersion: 1, GemOffer: offer,
 		GemRerollVersion: 1, GemReroll: reroll,
 		AuthorityEpoch:   formatUUID(system.AuthorityEpoch),
 		AuthorityState:   economy.AuthorityState,

@@ -107,14 +107,15 @@ func run() -> void:
 	server.counts[ACCOUNT_A] = 3
 	service.refresh_mailbox_summary(); await frames()
 	check(service.mailbox_unclaimed_count == 3 and service.has_unclaimed_mail(), "New mail updates badge without opening mailbox")
-	# Network and malformed responses preserve known state and retry at a cadence.
+	# Network failures preserve known data but lock play until server reauthentication.
 	server.fail_summary = true
 	service.refresh_mailbox_summary(); await frames()
 	count = server.summaries.size()
 	for i in 10: service._process(0)
-	check(server.summaries.size() == count and service.has_unclaimed_mail(), "Failure retains badge and avoids per-frame retries")
+	check(server.summaries.size() == count and service.mailbox_unclaimed_count == 3 and not service.has_unclaimed_mail() and service.blocks_play(), "Network failure preserves cached count, blocks play and avoids per-frame retries")
 	server.fail_summary = false; server.invalid_summary = true
-	service.refresh_mailbox_summary(); await frames()
+	result = await service.retry(); await frames()
+	check(result.ok and service.connected() and not service.blocks_play(), "Mailbox outage requires successful server reauthentication before play resumes")
 	check(service.mailbox_unclaimed_count == 3, "Malformed count cannot clear the last known badge")
 	server.invalid_summary = false; server.counts[ACCOUNT_A] = 4
 	service._mailbox_refresh_at = 0
@@ -162,7 +163,7 @@ func run() -> void:
 	old_request = server.summaries.size() - 1
 	service.account.credentials.clear(); service.account.account_id_hint = ""
 	service._account_changed(); await frames()
-	check(app.checkpoint.owner == "guest" and not service.has_unclaimed_mail() and service.mailbox_unclaimed_count == 0, "Definitive session expiry clears mail status")
+	check(app.checkpoint.owner == ACCOUNT_B and service.blocks_play() and not service.has_unclaimed_mail() and service.mailbox_unclaimed_count == 0, "Definitive session expiry clears mail status")
 	server.held.erase(old_request); await frames()
 	check(not service._mailbox_pending and service.mailbox_unclaimed_count == 0, "Expired session result stays isolated")
 	print("MAILBOX_NOTIFICATIONS checks=", checks, " failures=", failures)

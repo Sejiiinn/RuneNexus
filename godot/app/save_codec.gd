@@ -765,7 +765,8 @@ static func _run(v: Variant, skill: Variant) -> Variant:
 	if not _is_map(v): return null
 	var out := _fields("SavedRunState", v)
 	out.phase = _enum("GamePhase", v.get("phase"), "preparation")
-	out.isPurchasedGemReward = v.get("isPurchasedGemReward") is bool and v.isPurchasedGemReward
+	var purchased: Variant = v.get("isPurchasedGemReward", v.get("paidGemRoll", false))
+	out.isPurchasedGemReward = purchased is bool and purchased
 	out.enemies = _objects(v.get("enemies"), "SavedEnemy")
 	out.spawnQueue = _objects(v.get("spawnQueue"), "SavedSpawnRequest")
 	out.turrets = _objects(v.get("turrets"), "SavedTurret")
@@ -780,6 +781,10 @@ static func _run(v: Variant, skill: Variant) -> Variant:
 	# Loadout fixed at stage start; absent in saves written before it was recorded.
 	if v.has("runCorePassiveNodeRanks"): out.runCorePassiveNodeRanks = _core_ranks(v.runCorePassiveNodeRanks)
 	if v.has("runTurretModules"): out.runTurretModules = _objects(v.runTurretModules, "SavedTurretModule")
+	for key in ["gemOfferRevision", "gemOfferEquipRevision", "gemEconomyRevision"]:
+		if v.has(key): out[key] = maxi(0, _int(v.get(key)))
+	for key in ["gemOfferId", "gemOfferStatus"]:
+		if v.get(key) is String: out[key] = v[key]
 	return out
 
 static func _has_progress(v: Dictionary) -> bool:

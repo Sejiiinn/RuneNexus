@@ -44,7 +44,7 @@ func _initialize() -> void:
 		var command := {"kind":kinds[raw.type],"id":1,"type":raw.get("gem",raw.get("trait",""))}
 		if raw.get("slotIndex") != null: command.slot = raw.slotIndex
 		var before := state.duplicate(true)
-		var result: Dictionary = service.apply(state,command)
+		var result: Dictionary = _execute_command(service,state,command)
 		check(state == before,fixture.name+": input immutable")
 		check(result.ok == fixture.ok,fixture.name+": accepted")
 		for key in ["gold","gemShards","gemInventory"]: check(result.state[key] == fixture.after[key],fixture.name+": "+key)
@@ -75,10 +75,13 @@ func _initialize() -> void:
 	check(buy.commands[0].turret.statInput.towerDamageMultiplier > built.commands[0].turret.statInput.towerDamageMultiplier,"run upgrade refresh")
 	state.gemShards = 100
 	var reward: Dictionary = service.apply(state,{"kind":"purchaseGemChoice"})
-	check(reward.ok and reward.state.phase == "reward" and reward.state.rewardOptions.size() == 3,"purchase gem choice")
-	check(not service.apply(reward.state,{"kind":"chooseRewardShards"}).ok,"purchased choice cannot become shards")
-	var chosen: Dictionary = service.apply(reward.state,{"kind":"chooseRewardGem","type":reward.state.rewardOptions[0]})
-	check(chosen.ok and chosen.state.phase == "preparation" and chosen.state.rewardOptions.is_empty(),"choice resumes prior phase")
+	check(not reward.ok and reward.error == "serverOfferRequired" and state.gemShards == 100,"purchase candidates/debit require server")
+	var forged_purchase: Dictionary = state.duplicate(true)
+	forged_purchase.phase = "reward"
+	forged_purchase.isPurchasedGemReward = true
+	forged_purchase.rewardOptions = ["attackSpeed", "range", "physicalDamage"]
+	for kind in ["chooseRewardGem", "chooseRewardShards", "chooseRewardGemEquip"]:
+		check(not service.apply(forged_purchase,{"kind":kind,"type":"attackSpeed"}).ok,"purchased rewards require server: " + kind)
 	state = service.initial_state()
 	state.phase = "wave"
 	state.runUpgradeLevels = {"killGold":1}
@@ -99,8 +102,12 @@ func _initialize() -> void:
 	state.roundIndex = 4
 	state.completedRounds = 4
 	var fifth: Dictionary = service.complete_wave(state,5)
-	check(fifth.ok and fifth.state.phase == "reward" and fifth.state.rewardOptions.size() == 3,"fifth round gem reward")
-	check(service.apply(fifth.state,{"kind":"chooseRewardShards"}).ok,"round reward can become shards")
+	check(fifth.ok and fifth.state.phase == "reward" and fifth.state.rewardOptions.is_empty(),"fifth round waits for durable server gem offer")
+	check(not service.apply(fifth.state,{"kind":"chooseRewardShards"}).ok,"wave shards require authoritative selection receipt")
+	for kind in ["chooseRewardGem", "chooseRewardGemEquip"]:
+		var forged: Dictionary = fifth.state.duplicate(true)
+		forged.rewardOptions = ["attackSpeed", "range", "physicalDamage"]
+		check(not service.apply(forged,{"kind":kind,"type":"attackSpeed","id":1,"slot":0}).ok,"local wave candidates cannot authorize " + kind)
 	var runtime = Runtime.new()
 	runtime.process_command({"epoch":1,"sequence":0,"dt":0.0,"bootstrap":{"turrets":[built.commands[0].turret]}})
 	var tower: Dictionary = runtime.turrets[str(built.state.turrets[0].id)]
@@ -249,12 +256,14 @@ func _game_cases(service) -> void:
 func _reward_equip_cases(service, built: Dictionary) -> void:
 	var state := built.duplicate(true)
 	state.phase = "reward"
+	# Server-granted purchased choice uses the same local allocation rules.
+	state.isPurchasedGemReward = true
 	state.rewardOptions = ["attackSpeed","range"]
 	state.rewardReturnPhase = "wave"
 	var id: int = state.turrets[0].id
 	var before := state.duplicate(true)
 	var command := {"kind":"chooseRewardGemEquip","type":"attackSpeed","id":id,"slot":0}
-	var result: Dictionary = service.apply(state,command)
+	var result: Dictionary = _execute_command(service,state,command)
 	check(result.ok and result.state.phase == "wave","reward equip resumes wave atomically")
 	check(result.state.turrets[0].equippedGemSlots == ["attackSpeed"] and not result.state.gemInventory.has("attackSpeed"),"reward equip no inventory duplication")
 	check(result.commands.size() == 1 and result.state.rewardOptions.is_empty(),"reward equip updates runtime and consumes choice")
@@ -267,15 +276,15 @@ func _reward_equip_cases(service, built: Dictionary) -> void:
 		check(not failure.ok and failure.state == before and failure.commands.is_empty(),"invalid reward equip rolls back "+str(change))
 	state.turrets[0].equippedGemSlots = ["range"]
 	state.turrets[0].equippedGems = ["range"]
-	result = service.apply(state,command)
+	result = _execute_command(service,state,command)
 	check(result.ok and result.state.gemInventory.get("range") == 1 and result.state.turrets[0].equippedGemSlots == ["attackSpeed"],"reward replacement returns old gem")
 	state.turrets[0].equippedGemSlots = ["attackSpeed"]
 	before = state.duplicate(true)
-	result = service.apply(state,command)
+	result = _execute_command(service,state,command)
 	check(not result.ok and result.state == before,"duplicate gem preserves choice")
 	state.rewardOptions = ["heavyWeapon"]
 	command.type = "heavyWeapon"
-	result = service.apply(state,command)
+	result = _execute_command(service,state,command)
 	check(not result.ok and result.state == state,"incompatible reward preserves choice")
 
 func _gem_slot_boundary_cases(service, built: Dictionary) -> void:
@@ -303,7 +312,7 @@ func _gem_slot_boundary_cases(service, built: Dictionary) -> void:
 		var command: Dictionary = example.command.duplicate()
 		command.id = state.turrets[0].id
 		var before := state.duplicate(true)
-		var result: Dictionary = service.apply(state,command)
+		var result: Dictionary = _execute_command(service,state,command)
 		check(state == before,example.name+": source immutable")
 		if example.has("error"):
 			check(not result.ok and result.error == example.error and result.state == before and result.commands.is_empty(),example.name+": exact atomic rejection")
@@ -331,7 +340,7 @@ func _reward_slot_purchase_cases(service, built: Dictionary) -> void:
 	state.gold = cost
 	var command := {"kind":"chooseRewardGemEquip","type":"attackSpeed","id":id,"slot":1,"buySlot":true}
 	var before := state.duplicate(true)
-	var result: Dictionary = service.apply(state,command)
+	var result: Dictionary = _execute_command(service,state,command)
 	check(result.ok and result.state.gold == 0,"reward slot purchase uses exact quoted gold")
 	check(result.state.turrets[0].investedGold == state.turrets[0].investedGold+cost,"reward slot purchase contributes refund investment")
 	check(result.state.turrets[0].slotLimit == 2 and result.state.turrets[0].equippedGemSlots == ["range","attackSpeed"] and result.state.turrets[0].equippedGems == ["range","attackSpeed"],"reward slot purchase preserves old gem and equips new gem")
@@ -353,7 +362,7 @@ func _reward_slot_purchase_cases(service, built: Dictionary) -> void:
 	command.slot = 2
 	_check_reward_slot_rejection(service,state,command,"third slot level requirement")
 	state.turrets[0].level = 5
-	result = service.apply(state,command)
+	result = _execute_command(service,state,command)
 	check(result.ok and result.state.turrets[0].slotLimit == 3 and result.state.turrets[0].equippedGemSlots == ["range",null,"attackSpeed"] and result.state.gold == state.gold-int(service.quotes(state,id).link),"third slot unlock uses existing quote")
 	state.turrets[0].slotLimit = int(service.derived(state).maxTurretLinkSlots)
 	state.turrets[0].equippedGemSlots.resize(state.turrets[0].slotLimit)
@@ -362,7 +371,7 @@ func _reward_slot_purchase_cases(service, built: Dictionary) -> void:
 
 func _check_reward_slot_rejection(service, state: Dictionary, command: Dictionary, label: String) -> void:
 	var before := state.duplicate(true)
-	var result: Dictionary = service.apply(state,command)
+	var result: Dictionary = _execute_command(service,state,command)
 	check(not result.ok and result.state == before and state == before and result.commands.is_empty(),label+": atomic rejection")
 
 
@@ -392,11 +401,12 @@ func _light_weapon_equip_cases(service, built: Dictionary) -> void:
 				state.gold = 100000
 				if kind == "chooseRewardGemEquip":
 					state.phase = "reward"
+					state.isPurchasedGemReward = true
 					state.rewardOptions = ["lightWeapon","attackSpeed","range"]
 					state.rewardReturnPhase = "wave"
 				var before := state.duplicate(true)
 				var command := {"kind":kind,"type":"lightWeapon","id":state.turrets[0].id,"slot":1 if buy_slot else 0,"buySlot":buy_slot}
-				var result: Dictionary = service.apply(state,command)
+				var result: Dictionary = _execute_command(service,state,command)
 				var label: String = type+" "+kind+" buySlot="+str(buy_slot)
 				check(result.ok == allowed,label+": only light attack tag can equip")
 				check(state == before,label+": source immutable")
@@ -405,3 +415,20 @@ func _light_weapon_equip_cases(service, built: Dictionary) -> void:
 					check(result.state.gemInventory.lightWeapon == (1 if kind == "equipGem" else 2),label+": inventory charged exactly once")
 				else:
 					check(result.state == before and result.commands.is_empty(),label+": rejection preserves inventory, reward, slots and gold")
+
+# Deterministic authority fixture: pure validation runs before a separately
+# supplied server grant; run commands only allocate already-owned inventory.
+func _execute_command(service, state: Dictionary, command: Dictionary) -> Dictionary:
+	if command.get("kind") != "chooseRewardGemEquip": return service.apply(state, command)
+	if not service.validate_reward_equip(state, command): return {"ok":false,"state":state,"commands":[]}
+	var granted := state.duplicate(true)
+	granted.gemInventory[command.type] = int(granted.gemInventory.get(command.type, 0)) + 1
+	granted.phase = state.get("rewardReturnPhase", "preparation")
+	granted.rewardOptions = []
+	granted.rewardReturnPhase = null
+	granted.isPurchasedGemReward = false
+	if command.get("buySlot", false):
+		var linked: Dictionary = service.apply(granted, {"kind":"link","id":command.id})
+		if not linked.ok: return linked
+		granted = linked.state
+	return service.apply(granted, {"kind":"equipGem","id":command.id,"slot":command.slot,"type":command.type})

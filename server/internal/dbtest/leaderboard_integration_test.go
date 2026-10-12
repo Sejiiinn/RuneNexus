@@ -167,19 +167,14 @@ func TestLeaderboardConditionalUpsertAndConcurrentBest(t *testing.T) {
 
 func TestLeaderboardRunSettlementAtomicityAndReceiptBoundary(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
-	_, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
-		IdempotencyKey: firstSaveKey, ExpectedRevision: 0, RawBody: []byte(`{"expectedRevision":0}`),
-		Data: gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"freeDiamonds":0,"paidDiamonds":0,"bestRoundsByStage":{"4":20}}`), TurretModules: json.RawMessage(`{"tickets":0,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`)},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	seedPreAuthoritySave(t, fixture, accountID, gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"freeDiamonds":0,"paidDiamonds":0,"bestRoundsByStage":{"4":20}}`), TurretModules: json.RawMessage(`{"tickets":0,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`), ActiveRun: json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90bf2","stageNumber":4,"completedRounds":20,"phase":"failure","gemInventory":{},"gemRerollsUsed":0}`)})
+	var err error
 	service := economy.NewService(fixture.pool)
-	_, err = service.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"bootstrap":true}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1})
+	_, err = service.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"bootstrap":true,"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
-	request := economy.RunSettlementRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bf3", RunID: "0198b955-3656-7c40-b3cb-87f427b90bf2", RawBody: []byte(`{"run":1}`), WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 1, StageNumber: 4, CompletedRounds: 20, PendingDiamonds: 5}
+	request := economy.RunSettlementRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bf3", RunID: "0198b955-3656-7c40-b3cb-87f427b90bf2", RawBody: []byte(`{"run":1,"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 1, StageNumber: 4, CompletedRounds: 20, PendingDiamonds: 5}
 	// 계정 한정 CHECK 실패로 정산의 마지막 쓰기 실패와 전체 롤백 검증.
 	constraint := "leaderboard_fail_" + strings.ReplaceAll(accountID, "-", "")
 	_, err = fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid)`)
@@ -236,11 +231,11 @@ func TestLeaderboardRunSettlementAtomicityAndReceiptBoundary(t *testing.T) {
 	}
 	request.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90bf5"
 	request.RunID = "0198b955-3656-7c40-b3cb-87f427b90bf6"
-	request.RawBody = []byte(`{"run":2}`)
+	request.RawBody = []byte(`{"run":2,"clientCompatibilityVersion":9}`)
 	request.CompletedRounds = 0
 	request.PendingDiamonds = 0
-	if _, err := service.SettleRun(ctx, accountID, fixture.sessionID, request); err != nil {
-		t.Fatal(err)
+	if _, err := service.SettleRun(ctx, accountID, fixture.sessionID, request); !errors.Is(err, economy.ErrGemOfferConflict) {
+		t.Fatalf("arbitrary zero-round run accepted: %v", err)
 	}
 	var count int
 	if err := fixture.pool.QueryRow(ctx, `SELECT count(*) FROM leaderboard_records WHERE account_id=$1`, accountID).Scan(&count); err != nil || count != 0 {
@@ -248,8 +243,8 @@ func TestLeaderboardRunSettlementAtomicityAndReceiptBoundary(t *testing.T) {
 	}
 	request.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90bf7"
 	request.RunID = "0198b955-3656-7c40-b3cb-87f427b90bf8"
-	request.RawBody = []byte(`{"run":3}`)
-	request.CompletedRounds = 21
+	request.RawBody = []byte(`{"run":3,"clientCompatibilityVersion":9}`)
+	request.CompletedRounds = 41
 	if _, err := service.SettleRun(ctx, accountID, fixture.sessionID, request); !errors.Is(err, economy.ErrInvalidCommand) {
 		t.Fatalf("invalid evidence error=%v", err)
 	}
@@ -264,16 +259,25 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 		t.Fatal(err)
 	}
 	service := leaderboard.NewService(fixture.pool)
-	var revision int64
+	seeded := seedPreAuthoritySave(t, fixture, accountID, gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"bestRoundsByStage":{"15":40}}`), TurretModules: json.RawMessage(`{}`), ActiveRun: json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90d01","stageNumber":4,"completedRounds":0,"phase":"preparation","gemInventory":{},"gemRerollsUsed":0}`)})
+	revision := seeded.Revision
 	update := func(key int, active string) gamesave.UpdateRequest {
 		var run json.RawMessage
 		if active != "" {
-			run = json.RawMessage(active)
+			fields := map[string]any{"economyRunId": "0198b955-3656-7c40-b3cb-87f427b90d01", "stageNumber": 4, "phase": "preparation", "gemInventory": map[string]int{}, "gemRerollsUsed": 0}
+			var incoming map[string]any
+			if err := json.Unmarshal([]byte(active), &incoming); err != nil {
+				t.Fatal(err)
+			}
+			for k, v := range incoming {
+				fields[k] = v
+			}
+			run = gemOfferJSON(t, fields)
 		}
-		return gamesave.UpdateRequest{IdempotencyKey: fmt.Sprintf("0198b955-3656-7c40-b3cb-%012d", key), ExpectedRevision: revision, WriterGeneration: fixture.writerGeneration, ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion, RawBody: []byte(fmt.Sprintf(`{"request":%d}`, key)), Data: gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"bestRoundsByStage":{"15":40}}`), TurretModules: json.RawMessage(`{}`), ActiveRun: run}}
+		return gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion, IdempotencyKey: fmt.Sprintf("0198b955-3656-7c40-b3cb-%012d", key), ExpectedRevision: revision, WriterGeneration: fixture.writerGeneration, RawBody: []byte(fmt.Sprintf(`{"request":%d}`, key)), Data: gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"bestRoundsByStage":{"15":40}}`), TurretModules: json.RawMessage(`{}`), ActiveRun: run}}
 	}
 	// 과거 최고·시작만 한 런·이전 저장·범위 밖 기록은 집계 제외.
-	for i, active := range []string{"", `{"stageNumber":4,"completedRounds":0,"roundIndex":30}`, `{"stageNumber":4,"roundIndex":30}`, `{"stageNumber":31,"completedRounds":1}`, `{"stageNumber":4,"completedRounds":41}`, `{"stageNumber":4,"completedRounds":"2"}`} {
+	for i, active := range []string{`{"stageNumber":4,"completedRounds":0,"roundIndex":30}`, `{"stageNumber":4,"roundIndex":30}`, `{"stageNumber":4,"completedRounds":-1}`, `{"stageNumber":4,"completedRounds":41}`} {
 		result, err := fixture.Update(ctx, accountID, update(i+1, active))
 		if err != nil {
 			t.Fatal(err)
@@ -304,7 +308,7 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 	if _, err := fixture.Update(ctx, accountID, first); err != nil {
 		t.Fatal(err)
 	}
-	for i, active := range []string{`{"stageNumber":4,"completedRounds":2}`, `{"stageNumber":3,"completedRounds":40}`, ""} {
+	for i, active := range []string{`{"stageNumber":4,"completedRounds":2}`, `{"stageNumber":4,"completedRounds":1}`} {
 		result, err := fixture.Update(ctx, accountID, update(20+i, active))
 		if err != nil {
 			t.Fatal(err)
@@ -313,6 +317,11 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 		board, err = service.GetProgression(ctx, accountID)
 		if err != nil || board.MyEntry == nil || !board.MyEntry.AchievedAt.Equal(achieved) || board.MyEntry.CompletedRounds != 2 {
 			t.Fatalf("best regressed: %+v %v", board, err)
+		}
+	}
+	for i, raw := range []string{"", `{"stageNumber":3,"completedRounds":40}`, `{"stageNumber":31,"completedRounds":1}`, `{"stageNumber":4,"completedRounds":"2"}`} {
+		if _, err := fixture.Update(ctx, accountID, update(25+i, raw)); !errors.Is(err, gamesave.ErrGemOfferConflict) {
+			t.Fatalf("unowned/invalid run accepted: %v", err)
 		}
 	}
 	// 저장 revision 충돌은 기록을 갱신하지 않음.
@@ -328,13 +337,13 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 	}
 	// 리더보드 쓰기 실패 시 저장 본문·revision·영수증도 롤백.
 	constraint := "leaderboard_save_fail_" + strings.ReplaceAll(accountID, "-", "")
-	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid OR stage_number < 5)`); err != nil {
+	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid OR completed_rounds < 3)`); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
 		_, _ = fixture.pool.Exec(context.Background(), `ALTER TABLE leaderboard_records DROP CONSTRAINT IF EXISTS `+constraint)
 	})
-	higher := update(40, `{"stageNumber":5,"completedRounds":1}`)
+	higher := update(40, `{"stageNumber":4,"completedRounds":3}`)
 	if _, err := fixture.Update(ctx, accountID, higher); err == nil {
 		t.Fatal("leaderboard failure accepted save")
 	}
@@ -353,7 +362,7 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 		t.Fatal(err)
 	}
 	board, err = service.GetProgression(ctx, accountID)
-	if err != nil || board.MyEntry == nil || board.MyEntry.StageNumber != 5 || board.MyEntry.CompletedRounds != 1 || !board.MyEntry.AchievedAt.After(achieved) {
+	if err != nil || board.MyEntry == nil || board.MyEntry.StageNumber != 4 || board.MyEntry.CompletedRounds != 3 || !board.MyEntry.AchievedAt.After(achieved) {
 		t.Fatalf("higher active record: %+v %v", board, err)
 	}
 }

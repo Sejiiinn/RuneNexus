@@ -89,3 +89,13 @@ token 소비 이력과 receipt 메타데이터는 재사용 판정을 위해 유
 일반 저장·writer 획득·새 경제 명령에 호환 세대 7을 요구한다. 처리된 이전 세대
 exact 영수증 복구는 보존한다. 지갑, 런 상태, 경제 revision과 영수증은 한
 트랜잭션에서 확정한다. 이 마이그레이션은 원장과 예산 보존을 위해 forward-only다.
+
+## 015–016 서버 젬과 도전 소유권
+
+`015_server_gem_offers.sql`은 계정·도전·웨이브별 영속 offer(도전당 최대 7행)를 추가한다. `016_server_run_ownership.sql`은 서버 발급 도전 ID·상태·정확한 타입별 젬 소유 합계·리롤 사용 수·마지막 구매 offer를 `economy_runs`에 분리한다. 계정별 열린 도전은 하나이며 닫힌 도전은 삭제하거나 다시 열지 않는다. 후보/상태 JSON의 타입과 필수 값, header/payload 동일성은 016 제약으로 검사한다.
+
+이전 기준은 016 시점의 인증된 canonical 저장 revision으로 고정한다. 기존 canonical 도전의 ID 누락/null/빈 문자열은 같은 transaction에서 서버 UUID로 채우고 그 header revision만 한 번 증가시킨다. 기존 canonical 리롤 사용량이 영속 예산보다 낮으면 사용량만 최댓값으로 보정하고 해당 revision도 증가시킨 뒤 pin한다. clientSavedAt, 기존 후보·영수증과 다른 진행 필드는 유지한다. `account_run_authorities.legacy_source_revision`이 없는 새 계정에는 기존 UUID/젬을 import하지 않는다. 모든 구세대 새 writer/save는 exact 영수증 확인 뒤 기준을 변경하기 전에 거절하며, 세대 9는 기존 canonical을 먼저 한 번 이전한다. 일반 bootstrap이나 과거 이전 링크가 임의의 젬을 legacy로 추가하는 우회가 되어서는 안 된다. 기존 처리 완료 exact 영수증은 먼저 복구한다.
+
+세대 9의 20파편 구매·선택은 서버 명령이고, 장착·해제·판매의 보유 합계는 정확하게 보존한다. 파편 획득과 전투/클리어 보고는 여전히 클라이언트 신뢰 영역이다. 새 영수증에는 작은 불변 결과만 저장하며 현재 전체 save/economy는 조회로 복구한다. 같은 offer의 새-key 복구와 이미 정리된 close 복구는 읽기만 수행한다.
+
+세대 7/8의 처리 완료 영수증, 기존 예산·리셋권 잔액과 canonical 진행/이미 지불한 pending 구매는 보존한다. 새 앱을 준비한 뒤 구 API 쓰기 차단 → transactional migration → 모든 API 교체 → 필수 앱 전환 순서를 조율하며, 실제 배포·운영 DB 실행은 별도 승인이다. 계정 생존 동안 tombstone·선택·예산·영수증을 보관하고 파괴적 down은 제공하지 않는다. 상세 계약은 [젬과 도전 수명주기](../../../docs/server_authoritative_economy_design.md#젬-보상과-도전-수명주기-호환-세대-9), 미검증/배포 조건은 [배포 인계](../../../docs/deployment_status.md)를 따른다.

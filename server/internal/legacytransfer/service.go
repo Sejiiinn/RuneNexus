@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/runstate"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/Sejiiinn/RuneNexus/server/internal/session"
 	"github.com/jackc/pgx/v5"
@@ -204,6 +205,18 @@ func (service *Service) Consume(
 	}
 	if _, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID); err != nil {
 		return ConsumeResult{}, fmt.Errorf("lock legacy transfer save writer: %w", err)
+	}
+	// A legacy transfer is not a migration authority. Never replace a pinned
+	// canonical source or a server-owned run, including clearing it with null.
+	guarded, guardErr := runstate.RequiresCurrentClient(ctx, txQueries, databaseAccountID)
+	if guardErr != nil {
+		return ConsumeResult{}, guardErr
+	}
+	if guarded {
+		return ConsumeResult{}, ErrTargetNotReplaceable
+	}
+	if err := validateTransferredRun(transfer.ActiveRun); err != nil {
+		return ConsumeResult{}, err
 	}
 	header, err := txQueries.GetSaveHeaderForUpdate(ctx, databaseAccountID)
 	expectedRevision := int64(0)
@@ -429,4 +442,19 @@ func int4(value int32) pgtype.Int4 {
 
 func int8(value int64) pgtype.Int8 {
 	return pgtype.Int8{Int64: value, Valid: true}
+}
+
+// Late guest/local transfers cannot mint run identities or gem ownership. A
+// pristine ID-less checkpoint carries no grants and can later use server Start.
+func validateTransferredRun(raw []byte) error {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil
+	}
+	var run struct {
+		Stage int32 `json:"stageNumber"`
+	}
+	if json.Unmarshal(raw, &run) != nil || runstate.ValidatePristine(raw, run.Stage) != nil {
+		return ErrTargetNotReplaceable
+	}
+	return nil
 }

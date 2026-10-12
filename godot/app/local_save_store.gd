@@ -16,6 +16,8 @@ var _valid_slot: bool = true
 var transition_recovery_enabled := true
 var transition_directory: String
 var transition_owner: String
+# Account backup provenance survives both repository instances and process death.
+var recovered_from_backup := false
 # A single immutable JSON string, never caller-owned data or a destination cache.
 # Reuse its v2 validation only after recovery and a complete read match its bytes.
 var _validated_v2_raw: String = ""
@@ -54,6 +56,7 @@ func _fail(code: Error, context: String) -> Error:
 func load_save() -> Variant:
 	if not _begin():
 		return null
+	recovered_from_backup = recovered_from_backup or has_recovery_marker()
 	var primary := _read_valid(primary_path)
 	if not primary.is_empty():
 		return primary.data
@@ -61,6 +64,11 @@ func load_save() -> Variant:
 		return null
 	var backup := _read_valid(backup_path)
 	if not backup.is_empty():
+		if transition_owner != "guest":
+			# Record uncertainty BEFORE repairing the primary. A process crash must
+			# not turn a fallback checkpoint into apparently healthy local progress.
+			if _write_atomic(primary_path + ".recovery", '{"version":1,"source":"backup"}') != OK: return null
+			recovered_from_backup = true
 		if save_save(backup.data) != OK:
 			return null
 		return backup.data
@@ -70,6 +78,19 @@ func load_save() -> Variant:
 	if legacy.is_empty() or save_save(legacy.data) != OK:
 		return null
 	return legacy.data
+
+func has_recovery_marker() -> bool:
+	for suffix in ["", ".tmp", ".replace"]:
+		if FileAccess.file_exists(primary_path + ".recovery" + suffix): return true
+	return false
+
+# Only a verified current canonical rebase or exact acknowledged-source proof
+# may erase this marker. Ordinary local checkpoints must retain it.
+func acknowledge_recovery() -> Error:
+	for suffix in ["", ".tmp", ".replace"]:
+		if _remove(primary_path + ".recovery" + suffix) != OK: return last_error
+	recovered_from_backup = false
+	return OK
 
 func save_save(data: Dictionary) -> Error:
 	if not _begin():
@@ -121,7 +142,7 @@ func preserve_conflict_backup(envelope: Dictionary) -> Error:
 func clear() -> Error:
 	if not _begin():
 		return last_error
-	for path in [primary_path, backup_path, conflict_path, legacy_path]:
+	for path in [primary_path, backup_path, conflict_path, legacy_path, primary_path + ".recovery"]:
 		if path.is_empty():
 			continue
 		for suffix in ["", ".tmp", ".replace"]:

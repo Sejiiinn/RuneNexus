@@ -1,4 +1,9 @@
 extends SceneTree
+# This prepared-scene fixture isolates persistence/presentation lifecycle from
+# HTTP authority. Formal in-tree auth and server ownership are exercised by
+# verify_server_run_lifecycle and the real account/app-service suites.
+class LifecycleFixture extends "res://app/app_lifecycle.gd":
+	func _detached_debug_lifecycle() -> bool: return true
 class RewardMode extends RefCounted:
 	var replacement := false
 	func targeting() -> bool: return true
@@ -19,7 +24,7 @@ func _initialize() -> void: call_deferred("run")
 func check(ok: bool, label: String) -> void:
 	if not ok: failures.append(label)
 func create_app(scene, owner: String = "guest"):
-	var app = load("res://app/app_lifecycle.gd").new()
+	var app = LifecycleFixture.new()
 	app.ui_enabled = false
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(directory, owner)
 	scene.session_controller = app

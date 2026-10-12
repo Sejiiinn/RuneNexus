@@ -83,7 +83,7 @@ func successful_abandon() -> void:
 	start_pending_wave(app, "abandon")
 	var identity: String = app.run_domain.state.economyRunId
 	var quest_before: int = int(app.run_domain.state.progression.get("dailyQuestProgress", {}).get("clearWaves", 0))
-	check(app.abandon_run(), "pending-wave abandon returns to stage menu")
+	check(await app.abandon_run(), "pending-wave abandon returns to stage menu")
 	var runtime = app.scene.combat_runtime
 	check(app.in_lobby and not app.save_failed and app.run_domain.state.phase == "failure",
 		"abandon leaves a savable terminal session")
@@ -119,7 +119,7 @@ func failed_abandon(outbox_failure: bool) -> void:
 	var epoch: int = app.epoch
 	var failing_store = queue if outbox_failure else app.checkpoint.store
 	failing_store._valid_slot = false
-	check(not app.abandon_run(), label + " failure blocks abandon")
+	check(not await app.abandon_run(), label + " failure blocks abandon")
 	check(app.save_failed and not app.in_lobby and app.epoch == epoch and app.run_domain.state == before,
 		label + " failure preserves live run and progression")
 	check(app.scene.combat_runtime.wave.snapshot() == schedule and app.scene.combat_runtime.session.paused,
@@ -136,7 +136,7 @@ func failed_abandon(outbox_failure: bool) -> void:
 	check(app.run_domain.state.progression == before.progression, label + " failed transition restart restores progression")
 	check(queue.state.pendingRewards.is_empty(), label + " failed transition restart has no premature reward")
 	check(await app.resume_run(), label + " failed transition restart resumes")
-	check(app.abandon_run() and not app.save_failed, label + " recovered abandon succeeds")
+	check(await app.abandon_run() and not app.save_failed, label + " recovered abandon succeeds")
 	check(app.scene.combat_runtime.wave.queue.is_empty() and queue.state.pendingRewards.size() == 1,
 		label + " recovery cancels and rewards exactly once")
 	check(await app.start_stage(0), label + " recovery permits reentry")

@@ -87,6 +87,7 @@ func _run():
 	await _auth_tests()
 	await _save_tests()
 	await _checkpoint_sync_tests()
+	await _legacy_writer_claim_tests()
 	_hash_tests()
 	var local_url := OS.get_environment("RUNE_ACCOUNT_HTTP_FIXTURE")
 	if not local_url.is_empty():
@@ -109,10 +110,10 @@ func _auth_tests():
 	root.add_child(account)
 	account.configure("http://127.0.0.1:19763", secure, wire)
 	var first: Dictionary = await account.restore()
-	check(not first.ok and account.account_id_hint == ACCOUNT, "Offline restore retains account-only hint")
+	check(not first.ok and account.account_id_hint == ACCOUNT and not account.authenticated(), "Offline restore retains account-only hint without play authority")
 	check(SaveJson.parse(secure.value).pendingKey == "persisted-key", "Failed refresh preserves pending key")
 	var restored: Dictionary = await account.restore()
-	check(restored.ok and account.credentials.accountId == ACCOUNT, "Native session restores")
+	check(restored.ok and account.credentials.accountId == ACCOUNT and account.authenticated(), "Native session restores server-confirmed authority")
 	check(wire.calls[0].body == wire.calls[1].body and wire.calls[0].headers == wire.calls[1].headers, "Refresh loss retries exact token/key")
 	check(SaveJson.parse(secure.value).pendingKey == null, "Successful rotation clears pending key")
 	wire.responses = [response(401, {}, "ACCESS_TOKEN_INVALID"), auth_response("new-access"), response(200, {"value": 1})]
@@ -123,6 +124,27 @@ func _auth_tests():
 	account.refresh()
 	var concurrent: Dictionary = await account.refresh()
 	check(concurrent.ok and wire.calls.size() == before + 1, "Concurrent refresh is single flight")
+	var retained: Dictionary = account.credentials.duplicate(true)
+	wire.responses = [response(0, {}, "NETWORK_UNAVAILABLE", true)]
+	var lost: Dictionary = await account.refresh()
+	check(not lost.ok and not account.authenticated() and account.credentials == retained, "Transient timer refresh failure blocks auth while preserving cached credentials")
+	var pending: Dictionary = SaveJson.parse(secure.value)
+	check(pending.refreshToken == "fixture-refresh-rotated" and pending.pendingKey != null and not pending.logoutPending, "Network auth failure keeps secure refresh intent and never requests logout")
+	check(account.context().accessToken.is_empty() and account.context().accountId.is_empty(), "Failed auth cannot publish a usable account context")
+	wire.responses = [auth_response("recovered-access")]
+	account.restore()
+	check(not account.authenticated(), "In-flight server reauthentication locks play authority")
+	while account.authentication_pending(): await process_frame
+	check(account.authenticated(), "Successful server retry restores authority")
+	var expires: String = account.credentials.accessExpiresAt
+	account.credentials.accessExpiresAt = "2020-01-01T00:00:00Z"
+	check(not account.authenticated(), "Expired cached access never grants play authority")
+	account.credentials.accessExpiresAt = expires
+	wire.responses = [response(503, {}, "SERVICE_UNAVAILABLE", true)]
+	var unavailable: Dictionary = await account.request("GET", "v1/economy")
+	check(not unavailable.ok and not account.authenticated() and not SaveJson.parse(secure.value).logoutPending, "Ordinary account API outage blocks offline play without signing out")
+	wire.responses = [auth_response("request-recovered-access")]
+	check((await account.restore()).ok and account.authenticated(), "Account API outage recovers through server reauthentication")
 	wire.responses = [response(0, {}, "NETWORK_UNAVAILABLE", true), response(204)]
 	var logged_out: Dictionary = await account.logout()
 	check(not logged_out.ok and account.credentials.is_empty(), "Offline logout disallows authenticated work")
@@ -264,3 +286,22 @@ func _hash_tests():
 	for fixture in fixtures:
 		var normalized: Variant = Codec.decode(payloads[fixture.index].decoded)
 		check(Hash.hash_payload(normalized) == fixture.hash, "Existing Dart payload hash: " + str(fixture.index))
+
+func _legacy_writer_claim_tests():
+	var remote := SessionFixture.new()
+	remote.tree = self
+	remote.responses = [response(200, {"revision":4,"serverSavedAt":"2026-01-01T00:00:00Z","data":payload(100)}), response(200, {"writerGeneration":7,"claimedAt":"2026-01-01T00:00:00Z"}), response(304)]
+	var online = make_online("old-writer-claim", remote)
+	check((await online.bootstrap({}, false)).ok,"Old writer fixture bootstraps")
+	var old_raw := JSON.stringify({"clientInstanceId":online.state.clientInstanceId,"saveSchemaVersion":2,"clientCompatibilityVersion":8,"clientBuild":"old-build"})
+	online.state.writerClaim = {"idempotencyKey":"52345678-1234-4234-8234-123456789abc","encodedRequestBody":old_raw}
+	online.state.writerGeneration = null
+	check(online._commit(),"Old writer claim remains durable")
+	remote.responses = [response(426, {}, "CLIENT_UPDATE_REQUIRED"), response(200, {"writerGeneration":8,"claimedAt":"2026-01-01T00:00:01Z"})]
+	var result: Dictionary = await online._claim_writer()
+	check(result.ok and remote.calls[-2].body == old_raw and remote.calls[-2].headers["Idempotency-Key"] == "52345678-1234-4234-8234-123456789abc","Upgraded client resolves old writer request exactly first")
+	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == 9 and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh gen9 writer claim")
+	check(online.store.load_save() == payload(100) and remote.credentials.accountId == ACCOUNT,"Writer upgrade keeps local progress and account binding")
+	online.dispose()
+	online.queue_free()
+	await process_frame

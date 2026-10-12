@@ -1,9 +1,23 @@
 extends SceneTree
 const HudNumber = preload("res://ui/hud_number.gd")
 const Fixture = preload("res://verify_battle_hud.gd")
+const GemOffers = preload("res://app/gem_reroll.gd")
+
+# Layout-only fake server. Durable transport/recovery and authorization are
+# exercised by verify_gem_reroll; this fixture never adds a production bypass.
+class RewardApp extends Fixture.App:
+	var recovery_view: Dictionary = {}
+	var recovery_requests := 0
+	func gem_reroll_state() -> Dictionary:
+		if not recovery_view.is_empty(): return recovery_view.duplicate()
+		return {"status":"unsupported","remaining":3,"free":true,"available":false,"locked":false,"note":"젬 다시 뽑기를 사용할 수 없습니다"}
+	func recover_reward_command() -> Dictionary:
+		recovery_requests += 1
+		recovery_view.clear()
+		return {"ok":true}
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
-	var app = Fixture.App.new()
+	var app = RewardApp.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.initialize(app.catalog,{},0,100))
 	root.add_child(app)
@@ -18,10 +32,18 @@ func run() -> void:
 	app.build_selected()
 	var bounds: Rect2 = hud.battlefield_rect()
 	var empty_style: StyleBox = hud.overlay.get_theme_stylebox("panel")
-	assert(app.apply_run_command({"kind":"purchaseGemChoice"}))
+	assert((await app.purchase_reward_gems()).ok)
 	app.run_domain.state.rewardOptions = ["attackSpeed","range","physicalDamage"]
 	hud.refresh()
 	assert(hud.overlay.visible and hud.blocks_board_input())
+	app.recovery_view = {"status":"recovering","remaining":3,"free":true,"available":true,"locked":true,"note":"처리 결과를 확인해야 합니다. 다시 눌러 확인하세요."}
+	hud.refresh()
+	assert(hud.overlay_body.find_child("GemRewardReroll",true,false) == null, "purchase never displays reroll")
+	var purchase_retry: Button = hud.overlay_body.find_child("GemPurchaseRetry",true,false)
+	assert(purchase_retry != null)
+	for card in hud.overlay_body.find_child("GemRewardCards",true,false).get_children(): assert(card.disabled)
+	purchase_retry.pressed.emit()
+	assert(app.recovery_requests == 1 and hud.overlay_body.find_child("GemPurchaseRetry",true,false) == null, "purchase retry recovers authority without rerolling")
 	var reward_style: StyleBox = hud.overlay.get_theme_stylebox("panel")
 	hud.refresh()
 	assert(hud.overlay.get_theme_stylebox("panel") == reward_style)
@@ -33,7 +55,7 @@ func run() -> void:
 	assert(app.run_domain.state.turrets[0].equippedGemSlots[0] == "attackSpeed")
 	assert(not hud.overlay.visible and not hud.rewards.targeting())
 	assert(hud.overlay.get_theme_stylebox("panel") == empty_style)
-	assert(app.apply_run_command({"kind":"purchaseGemChoice"}))
+	assert((await app.purchase_reward_gems()).ok)
 	app.run_domain.state.rewardOptions = ["range","physicalDamage","attackSpeed"]
 	hud.rewards.pending_gem = "range"; hud.rewards.key = ""; hud.refresh()
 	hud.rewards.board_tap(app.selected)
@@ -71,7 +93,7 @@ func run() -> void:
 	app.run_domain.state.turrets[0].slotLimit = 2
 	app.run_domain.state.turrets[0].equippedGemSlots = ["attackSpeed","physicalDamage"]
 	app.run_domain.state.turrets[0].equippedGems = ["attackSpeed","physicalDamage"]
-	assert(app.apply_run_command({"kind":"purchaseGemChoice"}))
+	assert((await app.purchase_reward_gems()).ok)
 	app.run_domain.state.rewardOptions = ["range","physicalDamage","attackSpeed"]
 	hud.rewards.pending_gem = "range"; hud.rewards.key = ""; hud.refresh()
 	hud.rewards.board_tap(app.selected)
@@ -94,7 +116,7 @@ func run() -> void:
 	assert(app.run_domain.state == after_confirmation)
 	assert(not hud.overlay.visible and bounds == hud.battlefield_rect())
 	# Buying a slot equips the pending reward atomically without displacing either gem.
-	assert(app.apply_run_command({"kind":"purchaseGemChoice"}))
+	assert((await app.purchase_reward_gems()).ok)
 	app.run_domain.state.rewardOptions = ["physicalDamage","range","attackSpeed"]
 	hud.rewards.pending_gem = "physicalDamage"; hud.rewards.key = ""; hud.refresh()
 	hud.rewards.board_tap(app.selected)
@@ -237,7 +259,7 @@ func _record_reward_rects(hud) -> Array[Rect2]:
 
 func _assert_no_reward_overshoot(history: Array[Rect2],before: Rect2,after: Rect2) -> void:
 	for bounds in history:
-		assert(bounds == before or bounds == after,"Reward frame must fit once without a temporary larger or smaller rectangle: "+str(bounds))
+		assert(bounds == before or bounds == after,"Reward frame must fit once without a temporary larger or smaller rectangle: "+str(bounds)+" before="+str(before)+" after="+str(after))
 
 func _assert_reward_selection_layout(hud,app) -> void:
 	var original_size := root.size
@@ -247,13 +269,25 @@ func _assert_reward_selection_layout(hud,app) -> void:
 		for purchased in [false,true]:
 			var state: Dictionary = app.run_domain.state
 			state.phase = "reward"; state.isPurchasedGemReward = purchased
+			state.rewardReturnPhase = "preparation" if purchased else null
+			state.completedRounds = 5
+			state.economyRunId = "00000000-0000-4000-8000-000000000123"
+			state.gemOfferId = "00000000-0000-4000-8000-000000000125" if purchased else "00000000-0000-4000-8000-000000000124"
+			state.gemOfferRevision = 1
+			state.gemOfferStatus = "pending"
 			state.rewardOptions = ["damageOverTime","multipleProjectiles","chain"]
+			# This matrix measures steady-state frame fitting. Entrance timing has its
+			# own regression; mark the fixture identity consumed before first layout.
+			var entrance = hud.rewards.gem_entrance
+			entrance.cancel()
+			entrance._seen[JSON.stringify([str(state.economyRunId),app.stage,int(state.completedRounds)])] = true
 			for type in app.run_domain.growth.data.gems: state.gemInventory[type] = 12
 			hud.rewards.pending_gem = ""; hud.rewards.replacement_id = -1; hud.rewards.shard_selected = false
 			hud.rewards.key = ""; hud.refresh(); await _record_reward_rects(hud)
-			# Selection fixtures must wait for the real-time wave-reward input lock.
+			# Isolate steady-state selection layout from the separately tested entrance.
 			if hud.rewards.gem_entrance.active:
-				await create_timer(0.85,true,false,true).timeout
+				hud.rewards.gem_entrance._apply(1.0)
+				await _record_reward_rects(hud)
 			var initial: Rect2 = hud.overlay.get_global_rect()
 			var before_state: Dictionary = state.duplicate(true)
 			var expanded := initial

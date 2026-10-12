@@ -26,7 +26,7 @@
 
 ### 앱/화면 구조
 
-로비·성장 메뉴·전투 HUD·결과 화면이 있다. 무료 웨이브 젬 보상에 도전당 무료 1회·리셋권 추가 최대 2회 리롤을 연결했다. [경제·복구 계약](server_authoritative_economy_design.md#젬-보상-리롤-호환-세대-7)과 [미배포 조건](deployment_status.md#현재-미배포-변경)을 따른다. 화면별 외형·조작 기준은 [DESIGNS](../DESIGNS.md), Godot 대응 범위는 [UI 복원 기준](godot_ui_restoration_baseline.md)을 따른다.
+로비·성장 메뉴·전투 HUD·결과 화면이 있다. 무료 웨이브와 20파편 구매의 후보·선택, 도전 ID·정확한 젬 소유 합계를 서버에서 처리하고, 도전당 무료 1회·리셋권 추가 최대 2회와 필수 인증 gate를 연결했다. [경제·복구 계약](server_authoritative_economy_design.md#젬-보상과-도전-수명주기-호환-세대-9)과 [미배포 조건](deployment_status.md#현재-미배포-변경)을 따른다. 화면별 외형·조작 기준은 [DESIGNS](../DESIGNS.md), Godot 대응 범위는 [UI 복원 기준](godot_ui_restoration_baseline.md)을 따른다.
 
 ### 계정/인증/온라인 저장 기반
 

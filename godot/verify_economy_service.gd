@@ -83,7 +83,7 @@ func run():
 	check(recovered.state.inFlight == null,"receipt clears durable command")
 	var old_applied := applied.size()
 	result = await service._apply(snapshot(2),service.generation)
-	check(result.ok and applied.size() == old_applied and service.snapshot.economyRevision == 4,"old receipt cannot roll back")
+	check(result.ok and applied.size() == old_applied+1 and applied.back().economyRevision == 4 and service.snapshot.economyRevision == 4,"old receipt repairs local checkpoint with newest snapshot without rollback")
 	# Every economic command requires successful real save synchronization first.
 	synced = false
 	session.sent.clear()

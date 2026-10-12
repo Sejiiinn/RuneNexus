@@ -5,6 +5,14 @@ const Checkpoint = preload("res://session/session_checkpoint.gd")
 const Services = preload("res://services/app_services.gd")
 const Resources = preload("res://presentation/stage_resources.gd")
 
+# The fixture drives rendering/preparation without network authority. Auth and
+# update gates remain production-enforced outside these explicit test classes.
+class OfflineApp extends "res://app/app_lifecycle.gd":
+	func _detached_debug_lifecycle() -> bool: return true
+class OfflineServices extends Services:
+	func authentication_required() -> bool: return false
+	func blocks_play() -> bool: return updates != null and updates.blocked
+
 class OfflineBoot extends "res://app/boot.gd":
 	func _ready() -> void:
 		add_to_group("rune_app_boot")
@@ -192,7 +200,13 @@ func run() -> void:
 	scene = ObservedMain.new()
 	scene.app_mode = true
 	root.add_child(scene)
-	app = scene.session_controller
+	var original_app = scene.session_controller
+	if original_app.services != null: original_app.services.free()
+	original_app.services = null
+	original_app.free()
+	app = OfflineApp.new()
+	scene.session_controller = app
+	scene.add_child(app)
 	# Stop deferred live-service initialization before the first frame.
 	var original_services = app.services
 	app.services = null
@@ -205,7 +219,7 @@ func run() -> void:
 	boot = OfflineBoot.new()
 	root.add_child(boot)
 	boot.game = scene
-	var services = Services.new()
+	var services = OfflineServices.new()
 	services.app = app
 	services.boot_host = boot
 	services.updates = boot.updates

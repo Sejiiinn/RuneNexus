@@ -23,6 +23,8 @@ var _logout_result: Dictionary = {}
 var _epoch := 0
 var _retry_at: float = 0.0
 var _failures := 0
+# Retained credentials alone never authorize offline or failed-auth play.
+var _authenticated := false
 
 func configure(base_url: String, native_platform: Object, http: Object = null) -> void:
 	api_base_url = base_url.strip_edges().trim_suffix("/")
@@ -36,15 +38,24 @@ func configure(base_url: String, native_platform: Object, http: Object = null) -
 func _process(_delta: float) -> void:
 	if credentials.is_empty() or _busy or _refreshing or _logging_out: return
 	var now := Time.get_unix_time_from_system()
-	if now >= _retry_at and now >= _expiry(credentials) - 60.0: refresh()
+	if now >= _retry_at and (not authenticated() or now >= _expiry(credentials) - 60.0): refresh()
+
+func authenticated() -> bool:
+	return _authenticated and not authentication_pending() and not credentials.is_empty() and _expiry(credentials) > Time.get_unix_time_from_system()
+
+func authentication_pending() -> bool:
+	return _busy or _refreshing or _logging_out
 
 func context() -> Dictionary:
-	return {"accountId": credentials.get("accountId", ""), "accessToken": credentials.get("accessToken", ""), "apiBaseUrl": api_base_url}
+	return {"accountId": credentials.get("accountId", "") if authenticated() else "", "accessToken": credentials.get("accessToken", "") if authenticated() else "", "apiBaseUrl": api_base_url}
 
 func restore() -> Dictionary:
 	await _lock()
+	_authenticated = false
+	changed.emit()
 	var result := await _restore_locked()
 	_unlock()
+	_complete_auth(result)
 	return result
 
 func refresh() -> Dictionary:
@@ -55,20 +66,19 @@ func refresh() -> Dictionary:
 	if Time.get_unix_time_from_system() < _retry_at: return Http.failure("AUTH_RETRY_PENDING", 0, true)
 	_refreshing = true
 	await _lock()
+	_authenticated = false
+	changed.emit()
 	_refresh_result = await _restore_locked()
-	if not _refresh_result.ok and not str(_refresh_result.get("code", "")) in ENDS_SESSION:
-		_failures += 1
-		_retry_at = Time.get_unix_time_from_system() + maxf(float(_refresh_result.get("retryAfter", 0)), float(1 << mini(_failures, 6)))
-	else:
-		_failures = 0
-		_retry_at = 0
 	_unlock()
 	_refreshing = false
+	_complete_auth(_refresh_result)
 	_refreshed.emit()
 	return _refresh_result.duplicate(true)
 
 func sign_in(id_token: String) -> Dictionary:
 	await _lock()
+	_authenticated = false
+	changed.emit()
 	var stored := _read()
 	var result: Dictionary
 	if not stored.ok:
@@ -83,6 +93,7 @@ func sign_in(id_token: String) -> Dictionary:
 				result = _accept(result, "")
 				if result.ok: _epoch += 1
 	_unlock()
+	_complete_auth(result)
 	return result
 
 func sign_in_google(client_id: String) -> Dictionary:
@@ -100,6 +111,8 @@ func logout() -> Dictionary:
 		return _logout_result.duplicate(true)
 	_logout_in_progress = true
 	_logging_out = true
+	_authenticated = false
+	changed.emit()
 	await _lock()
 	var stored := _read()
 	var result := stored
@@ -130,7 +143,7 @@ func request(method: Variant, path: String, body: String = "", headers: Dictiona
 	if credentials.is_empty() or _logging_out: return Http.failure("AUTH_SESSION_UNAVAILABLE")
 	var epoch := _epoch
 	var account: String = credentials.accountId
-	if _expiry(credentials) <= Time.get_unix_time_from_system() + 60.0:
+	if not authenticated() or _expiry(credentials) <= Time.get_unix_time_from_system() + 60.0:
 		var refreshed := await refresh()
 		if not refreshed.ok: return refreshed
 		if credentials.is_empty(): return Http.failure("AUTH_SESSION_UNAVAILABLE")
@@ -138,14 +151,23 @@ func request(method: Variant, path: String, body: String = "", headers: Dictiona
 	var attempted: String = credentials.accessToken
 	var result := await _authorized(method, path, body, headers, attempted)
 	if _epoch != epoch or _logging_out: return Http.failure("AUTH_SESSION_CHANGED")
-	if int(result.get("status", 0)) != 401: return result
+	if int(result.get("status", 0)) != 401: return _observe_authorized_result(result)
 	if credentials.get("accessToken", "") == attempted:
 		var refreshed := await refresh()
 		if not refreshed.ok: return refreshed
 		if credentials.is_empty(): return Http.failure("AUTH_SESSION_UNAVAILABLE")
 	if credentials.is_empty() or _epoch != epoch or credentials.accountId != account: return Http.failure("AUTH_SESSION_CHANGED")
 	result = await _authorized(method, path, body, headers, credentials.accessToken)
-	return Http.failure("AUTH_SESSION_CHANGED") if _epoch != epoch or _logging_out else result
+	if _epoch != epoch or _logging_out: return Http.failure("AUTH_SESSION_CHANGED")
+	return _observe_authorized_result(result)
+
+func _observe_authorized_result(result: Dictionary) -> Dictionary:
+	var status := int(result.get("status", 0))
+	# Losing the account API during a save/economy request also removes the
+	# permission to keep playing offline. Business rejections remain domain errors.
+	if not result.get("ok", false) and (status == 0 or status == 401 or status >= 500 or result.get("retryable", false) or str(result.get("code", "")) in ENDS_SESSION):
+		_complete_auth(result)
+	return result
 
 func _authorized(method: int, path: String, body: String, headers: Dictionary, access: String) -> Dictionary:
 	if not Http.supports_base_url(api_base_url) or not path.begins_with("/") or path.begins_with("//"): return Http.failure("INVALID_API_URL")
@@ -203,8 +225,20 @@ func _accept(result: Dictionary, account: String) -> Dictionary:
 	account_id_hint = user.id
 	credentials = {"accountId": user.id, "accessToken": data.accessToken, "accessExpiresAt": data.accessExpiresAt}
 	issue_code = ""
-	changed.emit()
 	return {"ok": true, "authenticated": true, "credentials": credentials.duplicate(), "account": user.duplicate(true), "refreshToken": data.refreshToken}
+
+func _complete_auth(result: Dictionary) -> void:
+	_authenticated = result.get("ok", false) and result.get("authenticated", false) and not credentials.is_empty() and _expiry(credentials) > Time.get_unix_time_from_system()
+	issue_code = "" if result.get("ok", false) else str(result.get("code", "AUTH_REQUEST_FAILED"))
+	if not result.get("ok", false) and not issue_code in ENDS_SESSION:
+		_failures += 1
+		_retry_at = Time.get_unix_time_from_system() + maxf(float(result.get("retryAfter", 0)), float(1 << mini(_failures, 6)))
+	else:
+		_failures = 0
+		_retry_at = 0
+	# Network errors retain the encrypted refresh token and its exact rotation
+	# intent. They remove play authority, never initiate logout or erase storage.
+	changed.emit()
 
 func _auth(endpoint: String, body: Dictionary, headers: Dictionary = {}) -> Dictionary:
 	if not Http.supports_base_url(api_base_url): return Http.failure("INVALID_API_URL")

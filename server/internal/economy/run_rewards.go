@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/runstate"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -65,6 +66,9 @@ func (service *Service) SettleRun(
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return CommandResult{}, fmt.Errorf("get run reward claim: %w", err)
 	}
+	if gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.RunAuthorityClientCompatibilityVersion {
+		return CommandResult{}, gamesave.ErrClientUpdateRequired
+	}
 
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
@@ -96,6 +100,29 @@ func (service *Service) SettleRun(
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return CommandResult{}, fmt.Errorf("recheck run reward claim: %w", err)
+	}
+	var closingRun *RunState
+	if economy.RunAuthorityEnabled || gamesave.ClientCompatibilityFromBody(request.RawBody) >= gamesave.RunAuthorityClientCompatibilityVersion {
+		if !economy.RunAuthorityEnabled {
+			if err := runstate.AdoptCanonical(ctx, txQueries, accountUUID, saveSnapshot.ActiveRun); err != nil {
+				return CommandResult{}, runLifecycleError(err)
+			}
+			economy.RunAuthorityEnabled = true
+		}
+		run, err := runstate.RequireActive(ctx, txQueries, accountUUID, runUUID)
+		if err != nil {
+			return CommandResult{}, runLifecycleError(err)
+		}
+		var checkpoint struct {
+			ID        string `json:"economyRunId"`
+			Stage     int    `json:"stageNumber"`
+			Completed int    `json:"completedRounds"`
+			Phase     string `json:"phase"`
+		}
+		if json.Unmarshal(saveSnapshot.ActiveRun, &checkpoint) != nil || checkpoint.ID != request.RunID || checkpoint.Stage != request.StageNumber || checkpoint.Completed != request.CompletedRounds || (checkpoint.Phase != "success" && checkpoint.Phase != "failure") || (checkpoint.Phase == "success") != request.Success || run.StageNumber != int32(request.StageNumber) {
+			return CommandResult{}, ErrInvalidCommand
+		}
+		closingRun = &RunState{RunID: request.RunID, StageNumber: request.StageNumber, Status: "closed", LegacyImported: run.LegacyImported}
 	}
 	var progression runSettlementProgression
 	if json.Unmarshal(saveSnapshot.Progression, &progression) != nil ||
@@ -176,6 +203,15 @@ func (service *Service) SettleRun(
 			return CommandResult{}, err
 		}
 	}
+	if closingRun != nil {
+		changed, err := txQueries.CloseEconomyRun(ctx, dbgen.CloseEconomyRunParams{AccountID: accountUUID, RunID: runUUID})
+		if err != nil {
+			return CommandResult{}, err
+		}
+		if changed != 1 {
+			return CommandResult{}, ErrGemOfferConflict
+		}
+	}
 	snapshot, err := service.snapshot(ctx, txQueries, updated)
 	if err != nil {
 		return CommandResult{}, err
@@ -183,6 +219,7 @@ func (service *Service) SettleRun(
 	result := CommandResult{
 		Snapshot: snapshot, RewardKey: rewardKey,
 		GrantedDiamonds: request.PendingDiamonds, GrantedModuleTickets: stageTickets,
+		Run: closingRun,
 	}
 	if err := storeCommandResult(ctx, txQueries, command.ID, result); err != nil {
 		return CommandResult{}, err

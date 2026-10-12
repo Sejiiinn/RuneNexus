@@ -65,7 +65,7 @@ func _save_to_stage() -> void:
 		hud.close_modal()
 
 func _end_to_stage() -> void:
-	if hud.app.abandon_run():
+	if await hud.app.abandon_run():
 		hud.modal_resume = false
 		hud.close_modal()
 

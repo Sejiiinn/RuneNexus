@@ -68,7 +68,7 @@ func TestMailboxConcurrentClaimAndRetry(t *testing.T) {
 		group.Add(1)
 		go func(i int) {
 			defer group.Done()
-			result, err := service.ClaimMail(ctx, account, economy.MailClaimRequest{IdempotencyKey: fmt.Sprintf("00000000-0000-4000-8000-%012d", i+1), RawBody: []byte(`{"clientCompatibilityVersion":3}`), MailID: id})
+			result, err := service.ClaimMail(ctx, account, economy.MailClaimRequest{IdempotencyKey: fmt.Sprintf("00000000-0000-4000-8000-%012d", i+1), RawBody: []byte(`{"clientCompatibilityVersion":9}`), MailID: id})
 			if err != nil {
 				failures <- err
 				return
@@ -123,7 +123,7 @@ func TestMailboxConcurrentClaimAndRetry(t *testing.T) {
 	if err := service.DisableMail(ctx, id, "test-operator"); err != nil {
 		t.Fatal(err)
 	}
-	retry := economy.MailClaimRequest{IdempotencyKey: key, RawBody: []byte(`{"clientCompatibilityVersion":3}`), MailID: id}
+	retry := economy.MailClaimRequest{IdempotencyKey: key, RawBody: []byte(`{"clientCompatibilityVersion":9}`), MailID: id}
 	if _, err := service.ClaimMail(ctx, account, retry); err != nil {
 		t.Fatal(err)
 	}

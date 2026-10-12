@@ -33,7 +33,15 @@ func rewards():
 	if not reward_queue.loaded and reward_queue.load_state() != OK: message = reward_queue.last_error_message
 	return reward_queue
 
+# Runtime writes cannot certify a fallback backup. Only OnlineSave's canonical
+# rebase may replace it after preserving the original conflict evidence.
+func _ordinary_write_allowed() -> bool:
+	if owner == "guest" or not store.has_recovery_marker(): return true
+	message = "서버 저장 복구를 먼저 완료해 주세요"
+	return false
+
 func enqueue_saved(saved: Dictionary) -> Error:
+	if not _ordinary_write_allowed(): return ERR_BUSY
 	var run: Variant = saved.get("activeRun")
 	if not run is Dictionary or run.phase not in ["success", "failure", "coreDestruction"]: return OK
 	var queue = rewards()
@@ -57,6 +65,7 @@ func enqueue_finished(app) -> Error:
 	return _save_content(app)
 
 func persist_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Error:
+	if not _ordinary_write_allowed(): return ERR_BUSY
 	var runtime = app.scene.combat_runtime
 	if not runtime.active or not is_equal_approx(runtime.tile_size, 1.0) or runtime.origin != Vector2.ZERO:
 		message = "Unsupported checkpoint coordinate configuration"
@@ -93,9 +102,10 @@ func persist_state(app, candidate: Dictionary, abandoning: bool = false, previou
 	message = "Saved v2 checkpoint and retained run reward" if result == OK else (message if store.last_error == OK else store.last_error_message)
 	return result
 
-func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
-	# Called only by the account-bound settlement worker after response validation.
-	if owner == "guest": return false
+func apply_economy_snapshot(app, snapshot: Dictionary, command: Dictionary = {}) -> bool:
+	# A fallback backup remains untouched until current canonical reconciliation;
+	# projecting cached inventory first would destroy its original allocation.
+	if owner == "guest" or store.has_recovery_marker(): return false
 	var mapper = RewardSnapshot.new()
 	if not app.scene.combat_runtime.active:
 		var saved = store.load_save()
@@ -108,7 +118,7 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 		mapped.erase("turretModules")
 		saved.progression = mapped
 		if saved.get("activeRun") is Dictionary:
-			var projected := GemReroll.project(saved.activeRun, snapshot.get("gemReroll"))
+			var projected := GemReroll.project_snapshot(saved.activeRun, snapshot)
 			if projected.is_empty(): return false
 			saved.activeRun = projected
 		if store.save_save(saved) != OK: return false
@@ -123,11 +133,60 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 		message = mapper.error
 		return false
 	candidate.progression = mapped
-	candidate = GemReroll.project(candidate, snapshot.get("gemReroll"))
+	candidate = _project_gem_offer(app, candidate, snapshot, command)
 	if candidate.is_empty(): return false
 	return app.commit_run_state(candidate)
 
+func _project_gem_offer(app, state: Dictionary, snapshot: Dictionary, command: Dictionary = {}) -> Dictionary:
+	var offer: Variant = snapshot.get("gemOffer")
+	var next := GemReroll.project_snapshot(state, snapshot)
+	if next.is_empty() or not offer is Dictionary or offer.status != "chosen": return next
+	if next.get("economyRunId") != offer.runId or int(next.get("completedRounds", 0)) != offer.rewardWave or next.get("gemOfferId") != offer.offerId or int(next.get("gemOfferRevision", 0)) != offer.revision: return next
+	if int(next.get("gemOfferEquipRevision", 0)) >= offer.revision: return next
+	# Cached/offline projections cannot prove that a persisted baseRevision is
+	# current. Only the explicit command callback after fresh reconciliation may
+	# execute or cancel an unhandled equipment intent; inFlight retains retries.
+	if command.is_empty(): return next
+	var intent: Dictionary = command.get("equipIntent", {})
+	if command.get("kind") != "choose_gem" or intent.is_empty(): return next
+	var body: Variant = preload("res://app/save_json.gd").parse(command.get("encodedBody", ""))
+	if not body is Dictionary or body.get("runId") != offer.runId or body.get("offerId") != offer.offerId or body.get("choice") != offer.grantedGem: return next
+	# The grant is authoritative; local equipment is only a best-effort intent.
+	# A newer canonical layout may have sold its target or occupied its slot.
+	# Mark that intent handled without mutating the grant/layout, so recovery can
+	# retire the successful choice and cannot redirect it after a later rebuild.
+	var resolved := next.duplicate(true)
+	resolved.gemOfferEquipRevision = offer.revision
+	# Tile/type can be reused after a sale. Only the original mutation's current
+	# canonical revision proves an unhandled target has not since been replaced.
+	var canonical_revision := -1
+	if app.services != null and app.services.online != null:
+		canonical_revision = int(app.services.online.state.get("baseRevision", -1))
+	if canonical_revision < 0: return next # Cached/offline projection has no fresh target proof.
+	if canonical_revision != int(body.get("sourceSaveRevision", -2)) + 1: return resolved
+	# Runtime IDs are reconstructed on resume. Match the approved target by its
+	# stable tile/type; never redirect an old intent to a new target.
+	var target := {}
+	for turret in next.get("turrets", []):
+		if int(turret.x) == int(intent.get("x", -1)) and int(turret.y) == int(intent.get("y", -1)) and turret.type == intent.get("turretType"):
+			target = turret
+			break
+	if target.is_empty(): return resolved
+	var service = app.run_domain.service
+	var slot := int(intent.get("slot", -1))
+	if intent.get("buySlot", false):
+		if slot != int(target.slotLimit): return resolved
+		var linked: Dictionary = service.apply(next, {"kind":"link", "id":target.id})
+		if not linked.get("ok", false): return resolved
+		next = linked.state
+	var equipped: Dictionary = service.apply(next, {"kind":"equipGem", "id":target.id, "slot":slot, "type":offer.grantedGem})
+	if not equipped.get("ok", false): return resolved
+	next = equipped.state
+	next.gemOfferEquipRevision = offer.revision
+	return next
+
 func save_session(app) -> Error:
+	if not _ordinary_write_allowed(): return ERR_BUSY
 	if app.is_content_session(): return _save_content(app)
 	var runtime = app.scene.combat_runtime
 	if not runtime.active:
@@ -231,6 +290,7 @@ func _save_content(app) -> Error:
 	return persist_state(app, app.run_domain.state)
 
 func save_progression(app, progression: Dictionary) -> Error:
+	if not _ordinary_write_allowed(): return ERR_BUSY
 	var values := progression.duplicate(true)
 	var modules: Dictionary = values.get("turretModules", {}).duplicate(true)
 	values.erase("turretModules")
@@ -245,16 +305,17 @@ func _load_content(app) -> Error:
 	if saved == null:
 		message = "No checkpoint" if store.last_error == OK else store.last_error_message
 		return ERR_FILE_NOT_FOUND if store.last_error == OK else store.last_error
+	var backup_uncertain: bool = owner != "guest" and store.has_recovery_marker()
 	# Persist migration and rights together before the restored state is playable.
 	var migrated := StageProgression.migrate_progression(saved.progression,saved.activeRun if saved.activeRun is Dictionary else {},saved.turretModules)
 	if migrated != saved.progression:
 		saved.progression = migrated
-		if store.save_save(saved) != OK:
+		if not backup_uncertain and store.save_save(saved) != OK:
 			message = store.last_error_message
 			return store.last_error
 	# A local checkpoint is only a cache of server-owned balances. Restore the
 	# durable newest receipt before allowing an older v2 file to become live.
-	if owner != "guest":
+	if owner != "guest" and not backup_uncertain:
 		var queue = rewards()
 		if not queue.loaded: return queue.last_error
 		var cached: Dictionary = queue.state.get("lastServerSnapshot", {})
@@ -268,6 +329,16 @@ func _load_content(app) -> Error:
 			saved.turretModules = mapped.turretModules
 			mapped.erase("turretModules")
 			saved.progression = mapped
+			if saved.get("activeRun") is Dictionary:
+				var projected := GemReroll.project_snapshot(saved.activeRun, cached)
+				if projected.is_empty(): return ERR_INVALID_DATA
+				saved.activeRun = projected
+				if not backup_uncertain and store.save_save(saved) != OK: return store.last_error
+	if saved.activeRun is Dictionary and GemReroll.eligible(saved.activeRun) and not GemReroll.current_offer(saved.activeRun):
+		# Pre-v8 random wave cards are not authority. Keep the paused reward and
+		# migrate by requesting the initial server offer, never by uploading cards.
+		saved.activeRun.rewardOptions = []
+		if not backup_uncertain and store.save_save(saved) != OK: return store.last_error
 	if saved.activeRun == null:
 		if not allow_progression_only:
 			message = "No active run"
@@ -283,19 +354,22 @@ func _load_content(app) -> Error:
 		message = adapter.error
 		return ERR_INVALID_DATA
 	# Assign an identity to older checkpoints before any durable enqueue.
-	if restored.state.get("economyRunId") == null:
+	if owner == "guest" and restored.state.get("economyRunId") == null:
 		restored.state.economyRunId = app.run_domain.new_run_id()
 		saved.activeRun.economyRunId = restored.state.economyRunId
-		if store.save_save(saved) != OK:
+		if not backup_uncertain and store.save_save(saved) != OK:
 			message = store.last_error_message
 			return store.last_error
-	if enqueue_saved(saved) != OK: return reward_queue.last_error
+	if not backup_uncertain and enqueue_saved(saved) != OK: return reward_queue.last_error
 	# All content/configuration validation precedes scene replacement and event ACK.
 	if not app.enter_stage(restored.stage, restored.bootstrap, restored.session, restored.state):
 		return ERR_INVALID_DATA
 	app.next_enemy_id = restored.nextEnemyId
 	app.next_round = restored.nextRound
 	preferences = saved.preferences.duplicate(true)
+	if owner != "guest" and not backup_uncertain:
+		var cached: Dictionary = rewards().state.get("lastServerSnapshot", {})
+		if not cached.is_empty() and not apply_economy_snapshot(app, cached): return ERR_FILE_CANT_WRITE
 	message = "Loaded actual-content v2; Pause resumes"
 	return OK
 

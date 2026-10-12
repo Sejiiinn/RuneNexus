@@ -2,7 +2,8 @@ extends Node
 ## One durable account command at a time. Previously sent request bytes are immutable.
 const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
-const COMPATIBILITY := 7
+const GemResult = preload("res://app/gem_command_result.gd")
+const COMPATIBILITY := 9
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed
@@ -77,11 +78,12 @@ func execute(action: String, values: Dictionary = {}) -> Dictionary:
 
 func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 	if outbox.state.inFlight != null:
-		var recovering_reroll: bool = outbox.state.inFlight.kind == "reroll_gems"
+		var recovering_kind: String = outbox.state.inFlight.kind
+		var recovering_gems: bool = recovering_kind in GemResult.GEM_ACTIONS
 		var recovered: Dictionary = await _send(outbox.state.inFlight.duplicate(true), token, true)
 		if not recovered.get("ok", false): return recovered
 		# A retry tap recovers its original outcome; it is never another purchase.
-		if action == "reroll_gems" and recovering_reroll: return recovered
+		if (action in GemResult.GEM_ACTIONS and recovering_gems) or (action in GemResult.RUN_ACTIONS and action == recovering_kind): return recovered
 	var loaded: Dictionary = await _load(token)
 	if not loaded.get("ok", false): return loaded
 	var effects: Dictionary = await _effects(token)
@@ -113,11 +115,21 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 	var kind := action
 	var path := ""
 	match action:
-		"reroll_gems":
-			if int(snapshot.get("gemRerollVersion", 0)) != 1: return _failure("GEM_REROLL_UNAVAILABLE")
-			path = "v1/economy/gems/reroll"
+		"offer_gems", "purchase_gems", "reroll_gems", "choose_gem":
+			if int(snapshot.get("gemOfferVersion", 0)) != 1: return _failure("GEM_OFFER_UNAVAILABLE")
+			path = "v1/economy/gems/" + {"offer_gems":"offer", "purchase_gems":"purchase", "reroll_gems":"reroll", "choose_gem":"choose"}[action]
 			body.merge(_save_fields(sync))
-			body.merge({"runId":values.get("runId", ""), "completedRounds":values.get("completedRounds", 0), "expectedRerollCount":values.get("expectedRerollCount", -1)})
+			body.merge({"runId":values.get("runId", ""), "completedRounds":values.get("completedRounds", 0)})
+			if action in ["reroll_gems", "choose_gem"]:
+				body.offerId = values.get("offerId", "")
+				body.expectedOfferRevision = values.get("expectedOfferRevision", 0)
+			if action == "reroll_gems": body.expectedRerollCount = values.get("expectedRerollCount", -1)
+			if action == "choose_gem": body.choice = values.get("choice", "")
+		"start_run", "close_run":
+			path = "v1/economy/runs/" + ("start" if action == "start_run" else "close")
+			body.merge(_save_fields(sync))
+			if action == "start_run": body.stageNumber = values.get("stageNumber", 0)
+			else: body.runId = values.get("runId", "")
 		"draw_modules":
 			path = "v1/economy/turret-modules/draw"
 			body.merge(_save_fields(sync))
@@ -145,7 +157,7 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 			path = "v1/mailbox/claim-all"
 			body = {"clientCompatibilityVersion":COMPATIBILITY,"mailIds":values.get("ids",[])}
 		_: return _failure("UNKNOWN_COMMAND")
-	var result: Dictionary = await _prepare(kind, path, body, token)
+	var result: Dictionary = await _prepare(kind, path, body, token, values.get("equipIntent", {}), str(sync.get("sourcePayloadHash", "")) if sync.get("sourcePayloadHash") is String else "")
 	if result.get("ok",false):
 		var applied: Dictionary = await _effects(token)
 		if not applied.get("ok",false): return applied
@@ -175,23 +187,25 @@ func _load(token: int) -> Dictionary:
 	if not result.get("ok",false): return result
 	return await _apply(result.get("body",{}), token)
 
-func _apply(value: Dictionary, token: int) -> Dictionary:
+func _apply(value: Dictionary, token: int, command: Dictionary = {}) -> Dictionary:
 	if not _bound(token): return _failure("STALE_BINDING")
 	if not Settlement.valid_snapshot(value): return _failure("INVALID_ECONOMY_RESPONSE")
-	if not snapshot.is_empty() and snapshot.authorityEpoch == value.authorityEpoch and snapshot.economyRevision > value.economyRevision: return {"ok":true}
+	if not snapshot.is_empty() and snapshot.authorityEpoch == value.authorityEpoch and snapshot.economyRevision > value.economyRevision:
+		value = snapshot.duplicate(true)
 	# Revisions alone do not represent authority, catalog, effects or claim keys.
 	# A recovered outbox also says nothing about the newly loaded local state.
-	if _live_snapshot_applied and _same_economy(snapshot, value) and callbacks.has("snapshot_current") and callbacks.snapshot_current.call(value):
+	if command.is_empty() and _live_snapshot_applied and _same_economy(snapshot, value) and callbacks.has("snapshot_current") and callbacks.snapshot_current.call(value):
 		if not _bound(token): return _failure("STALE_BINDING")
 		# serverTime is GET metadata, not a durable change to the economy. Keep it
 		# current for consumers without rewriting an unchanged recovery snapshot.
 		snapshot = value.duplicate(true)
 		return {"ok":true}
-	var applied: bool = await callbacks.snapshot.call(value)
+	var applied: bool = await callbacks.gem_snapshot.call(value, command) if not command.is_empty() and callbacks.has("gem_snapshot") else await callbacks.snapshot.call(value)
 	if not _bound(token): return _failure("STALE_BINDING")
 	if not applied: return _failure("SNAPSHOT_SAVE_FAILED")
 	var next: Dictionary = outbox.state.duplicate(true)
 	next.lastServerSnapshot = value.duplicate(true)
+	if command.get("kind") == "choose_gem": next.lastGemChoice = command.duplicate(true)
 	if outbox.save_state(next) != OK: return _failure("OUTBOX_WRITE_FAILED")
 	snapshot = value.duplicate(true)
 	_live_snapshot_applied = true
@@ -204,10 +218,12 @@ func _same_economy(a: Dictionary, b: Dictionary) -> bool:
 	right.erase("serverTime")
 	return left == right
 
-func _prepare(kind: String, path: String, body: Dictionary, token: int) -> Dictionary:
+func _prepare(kind: String, path: String, body: Dictionary, token: int, equip_intent: Dictionary = {}, source_payload_hash := "") -> Dictionary:
 	if not _bound(token): return _failure("STALE_BINDING")
 	if outbox.state.inFlight != null: return _failure("COMMAND_PENDING")
 	var command := {"kind":kind,"path":path,"idempotencyKey":Settlement.uuid(),"encodedBody":JSON.stringify(body,"",false,true),"createdAtMillis":int(Time.get_unix_time_from_system()*1000)}
+	if kind in GemResult.GEM_ACTIONS + GemResult.RUN_ACTIONS and not source_payload_hash.is_empty(): command.sourcePayloadHash = source_payload_hash
+	if kind == "choose_gem" and not equip_intent.is_empty(): command.equipIntent = equip_intent.duplicate(true)
 	if not _allowed(command): return _failure("INVALID_COMMAND")
 	var next: Dictionary = outbox.state.duplicate(true)
 	next.inFlight = command
@@ -215,7 +231,7 @@ func _prepare(kind: String, path: String, body: Dictionary, token: int) -> Dicti
 	return await _send(command, token)
 
 func _allowed(command: Dictionary) -> bool:
-	var exact := {"reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
+	var exact := {"start_run":"v1/economy/runs/start","close_run":"v1/economy/runs/close","purchase_gems":"v1/economy/gems/purchase","offer_gems":"v1/economy/gems/offer","choose_gem":"v1/economy/gems/choose","reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
 	if exact.has(command.kind): return command.path == exact[command.kind]
 	var patterns := {"complete_research":"^v1/economy/researches/[A-Za-z][A-Za-z0-9]*/complete$","ack_progression_effect":"^v1/economy/progression-effects/[0-9a-fA-F-]{36}/ack$","mail_claim":"^v1/mailbox/[0-9a-fA-F-]{36}/claim$"}
 	return patterns.has(command.kind) and RegEx.create_from_string(patterns[command.kind]).search(command.path) != null
@@ -252,15 +268,8 @@ func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
 			if not _retire(command, command.kind == "run_settlement" and not legacy and not rebind, code if not legacy and not rebind else ""): return _failure("OUTBOX_WRITE_FAILED")
 			if recovering and (legacy or rebind or code == "MAIL_UNAVAILABLE"): return {"ok":true}
 		return result
-	if command.kind == "reroll_gems":
-		var request: Dictionary = Json.parse(command.encodedBody)
-		var receipt: Variant = data.get("gemReroll")
-		var economy: Variant = data.get("economy")
-		if not economy is Dictionary: return _failure("INVALID_GEM_REROLL_RECEIPT")
-		if not preload("res://app/gem_reroll.gd").valid_receipt(receipt) or economy.get("gemRerollVersion") != 1 or economy.get("gemReroll") != receipt:
-			return _failure("INVALID_GEM_REROLL_RECEIPT")
-		if receipt.runId != request.get("runId") or receipt.rewardWave != request.get("completedRounds") or receipt.totalUsed != int(request.get("expectedRerollCount", -1))+1:
-			return _failure("INVALID_GEM_REROLL_RECEIPT")
+	var authority_command: bool = command.kind in GemResult.GEM_ACTIONS or command.kind in GemResult.RUN_ACTIONS
+	if authority_command and not GemResult.validate(command, data): return _failure("INVALID_GEM_COMMAND_RECEIPT")
 	if reward:
 		var body: Dictionary = Json.parse(command.encodedBody)
 		if not data.get("weekKey") is int or data.weekKey < 0: return _failure("INVALID_REWARD_RECEIPT")
@@ -273,9 +282,28 @@ func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
 		if not applied: return _failure("RECEIPT_SAVE_FAILED")
 		var latest: Dictionary = await _load(token)
 		if not latest.get("ok",false): return latest
+	elif authority_command:
+		# A receipt is an exact historical outcome, never the current account/run.
+		# Resolve it first, then obtain unrelated economy and recovery state afresh.
+		var current: Dictionary = await account.request("GET", "v1/economy")
+		if not _bound(token): return _failure("STALE_BINDING")
+		if not current.get("ok", false): return current
+		var value: Dictionary = current.get("body", {})
+		if not Settlement.valid_snapshot(value): return _failure("INVALID_ECONOMY_RESPONSE")
+		var header: Dictionary = data.get("gemReceipt", data.get("economy", {}))
+		if value.authorityEpoch != header.get("authorityEpoch") or value.economyRevision < int(header.get("economyRevision", -1)): return _failure("STALE_ECONOMY_RESPONSE")
+		var recovery := data.duplicate(true)
+		recovery.currentEconomy = value
+		recovery.command = command
+		# Decide provenance BEFORE offer projection can install current markers on
+		# an older backup. Only then patch the preserved/recovered live checkpoint.
+		if not callbacks.has("gem_save") or not await callbacks.gem_save.call(recovery): return _failure("GEM_SAVE_ACK_FAILED")
+		if not _bound(token): return _failure("STALE_BINDING")
+		var applied: Dictionary = await _apply(value, token, command if command.kind in GemResult.GEM_ACTIONS else {})
+		if not applied.get("ok", false): return applied
 	else:
-		var applied: Dictionary = await _apply(data.get("economy",{}),token)
-		if not applied.get("ok",false): return applied
+		var applied: Dictionary = await _apply(data.get("economy", {}), token)
+		if not applied.get("ok", false): return applied
 	if not _retire(command, command.kind == "run_settlement"): return _failure("OUTBOX_WRITE_FAILED")
 	if command.kind in ["mail_claim", "mail_claim_all"]: mail_claimed.emit()
 	return {"ok":true,"body":data}

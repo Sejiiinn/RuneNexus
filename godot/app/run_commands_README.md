@@ -7,16 +7,16 @@
 `run_commands.gd`는 상태를 복사해 명령을 적용하고 `{ok,state,commands,error}`를 반환한다. 실패 시 입력 상태·재고·골드는 바뀌지 않는다. 호출자는 성공 상태를 채택하고 `commands`를 기존 NativeCombatRuntime으로 보낸다. 강화·장착 갱신은 진행 중인 사격 쿨다운/조준/피해 기록을 보존한다. 특성 선택 때만 원래 Dart가 초기화하던 연속 공격 상태를 `resetTraitState`로 초기화한다.
 
 - `initial_state(progression,stage)`는 실제 시작 골드·조각을 적용한다. stage는 0부터 시작한다.
-- `apply(state,{kind:...,id:...})`의 kind는 build/level/link/sell/equipGem/removeGem/primaryTrait/secondaryTrait/targetPriority/runUpgrade/purchaseGemChoice/chooseRewardGem/chooseRewardShards다. build는 type/x/y, 슬롯은 0부터 시작하는 `slot`, 선택 종류는 `type`을 받는다.
+- `apply(state,{kind:...,id:...})`의 kind는 build/level/link/sell/equipGem/removeGem/primaryTrait/secondaryTrait/targetPriority/runUpgrade다. build는 type/x/y, 슬롯은 0부터 시작하는 `slot`, 선택 종류는 `type`을 받는다.
 - `quotes(state,id)`, `build_cost(state,type)`, `run_upgrade_quote(state,type)`로 비용을 표시한다. `refresh(state)`는 일반 성장 변화 후 전투 설정을 갱신한다.
 - 개별 `level` 명령은 대상 포탑의 전투 설정만 재계산·전달한다. 공통 성장 효과는 전체 전장의 종류·젬 구성을 기준으로 계산하며, HUD 전체 전투력과 코어 발동 피해는 갱신된 대상과 나머지 포탑을 모두 합산한다. 다른 명령과 `refresh(state)`의 전체 포탑 갱신은 유지한다.
 - 젬 장착은 `growth_content.json`의 `turretRules.compatibleGems`를 일반·보상·슬롯 추가 장착에 공통 적용한다. 경량화기 증폭(`lightWeapon`)은 `light` 공격 태그 포탑에만 허용하며 현재는 기관총(`arrow`)이다. 이전 저장의 비경량 포탑에 장착된 경량화기 젬은 `content_run_save.gd` 복원 시 해당 슬롯에서 제거하고 보유 젬으로 반환한다. 원본 저장을 직접 수정하지 않으며 정상 재저장 후 중복 반환하지 않는다.
 - `award_kill(state,enemy)`는 실제 적 정의의 골드·보스 보너스와 소수 골드 지갑을 적용한다. 다이아는 서버 잔액에 지급하지 않고 `pendingEconomyDiamonds`에 누적한다.
-- `rerollRewardFree`는 게스트 무료 리롤의 순수 후보·횟수 변경이다. 앱의 `reroll_reward_gems()`가 저장 성공 후 채택하며 일반 UI 명령으로 직접 호출하지 않는다. 계정 리롤은 서버 snapshot을 통해 지갑·후보·횟수를 함께 적용한다. [경제 계약](../../docs/server_authoritative_economy_design.md#젬-보상-리롤-호환-세대-7)을 따른다.
-- `complete_wave(state,waveId)`는 골드·조각·5웨이브 젬 선택 및 마지막 성공 단계를 처리한다. 선택지가 뜬 동안 phase=reward로 전투를 멈춘다. 다음 웨이브 설정은 현재 콘텐츠 로더를 사용한다.
+- 웨이브 후보 생성·리롤, 20파편 구매 후보와 선택은 서버 offer/purchase/choose 명령과 durable Outbox를 통해서만 확정한다. 로컬 `purchaseGemChoice`·`chooseReward*`는 거부한다. `validate_reward_equip`은 장착 의도의 대상·호환성·슬롯·비용만 검사한다. 앱의 `choose_reward()`는 서버에서 확정한 젬을 저장하고 필요하면 승인된 목표에 기존 장착 규칙을 적용한다. [경제 계약](../../docs/server_authoritative_economy_design.md)을 따른다.
+- `complete_wave(state,waveId)`는 골드·조각·5웨이브 젬 보상 대기 및 마지막 성공 단계를 처리한다. 웨이브 후보는 빈 배열로 두고 durable 서버 offer를 기다린다. 선택지가 뜬 동안 phase=reward로 전투를 멈춘다. 다음 웨이브 설정은 현재 콘텐츠 로더를 사용한다.
 - `growth_rules.execute(progression,command)`는 로컬 성장 명령을 처리한다. 저장·네트워크 I/O를 수행하지 않는다. 연구 시간은 명시적인 `nowMillis`, 성장 효과는 현재 코어 배분·장착·런 업그레이드·전장 종류 수로 계산한다.
 
-`session/run_session.gd`는 scene epoch와 이벤트 ID로 중복 반영을 막는다. 독립 세션에 처치·보스·웨이브·런 강화 퀘스트, KST 일·주 초기화, 플레이 시간과 런 종료 룬·코어·최고 라운드·클리어·해금을 연결했다. 이벤트는 진행에 반영한 뒤 ACK하며, stable run UUID와 기존 `claimedEventIds`의 종료 마커로 중복 정산을 방지한다. `session_checkpoint.gd`와 `content_run_save.gd`가 실제 콘텐츠의 v2 Save/Load를 제공한다. 런 종료 v2 체크포인트와 영속 보상 Outbox를 먼저 기록한 뒤 Stage/재시도로 이동한다. 쓰기 실패 시 전환을 차단한다. 게스트 큐는 로컬에 격리하고 계정으로 자동 재바인딩하지 않으며, 서버 다이아·모듈권을 로컬에서 확정하지 않는다. [정산·퀘스트 기록](../../docs/analysis/godot_rewards_quests_20260921/README.md)을 따른다.
+`session/run_session.gd`는 scene epoch와 이벤트 ID로 중복 반영을 막는다. 독립 세션에 처치·보스·웨이브·런 강화 퀘스트, KST 일·주 초기화, 플레이 시간과 런 종료 룬·코어·최고 라운드·클리어·해금을 연결했다. 이벤트는 진행에 반영한 뒤 ACK하며, stable run UUID와 기존 `claimedEventIds`의 종료 마커로 중복 정산을 방지한다. `session_checkpoint.gd`와 `content_run_save.gd`가 실제 콘텐츠의 v2 Save/Load를 제공한다. 런 종료 v2 체크포인트와 영속 보상 Outbox를 먼저 기록한 뒤 Stage/재시도로 이동한다. 쓰기 실패 시 전환을 차단한다. 정식 앱에는 게스트 플레이가 없으며 과거 게스트 큐는 보존 슬롯에 격리하고 계정으로 자동 재바인딩하지 않는다. 서버 다이아·모듈권을 로컬에서 확정하지 않는다. 정산·퀘스트의 유지 검사는 `verify_reward_settlement.gd`와 `verify_quest_progress.gd`다.
 
 성장 수치의 수정 원본은 `content/growth_content.json`이며 실제 API 계약과 함께 [콘텐츠 원본 안내](../../tool/content/README.md)를 따른다. 이전 Dart/Flutter 생성기는 사용하지 않는다.
 

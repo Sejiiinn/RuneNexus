@@ -21,15 +21,15 @@ func TestEconomyReceiptReplayRequiresSameCommandAndTarget(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{IdempotencyKey: firstSaveKey, ExpectedRevision: 0, ClientCompatibilityVersion: 6, RawBody: []byte(`{"clientCompatibilityVersion":6}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: raw, TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`)}}); err != nil {
+	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{IdempotencyKey: firstSaveKey, ExpectedRevision: 0, ClientCompatibilityVersion: 9, RawBody: []byte(`{"clientCompatibilityVersion":9}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: raw, TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`)}}); err != nil {
 		t.Fatal(err)
 	}
 	svc := economy.NewService(fixture.pool)
-	boot, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{IdempotencyKey: secondSaveKey, RawBody: []byte(`{"clientCompatibilityVersion":6}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1})
+	boot, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{IdempotencyKey: secondSaveKey, RawBody: []byte(`{"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := []byte(`{"clientCompatibilityVersion":6}`)
+	body := []byte(`{"clientCompatibilityVersion":9}`)
 	request := economy.ResearchCompleteRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90d01", RawBody: body, ExpectedRevision: boot.Snapshot.EconomyRevision, ExpectedCatalogVersion: economy.CatalogVersion, WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 1, ResearchType: "linkExpansionTwo"}
 	result, err := svc.CompleteResearch(ctx, accountID, fixture.sessionID, request)
 	if err != nil || result.ProgressionEffect == nil {

@@ -118,7 +118,7 @@ func (handler legacyTransferHandler) consume(
 		return
 	}
 	if errors.Is(err, legacytransfer.ErrTargetNotReplaceable) {
-		writeAPIError(response, request, http.StatusConflict, "LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW", "구매 재화가 있거나 백업할 수 없는 계정 진행은 자동으로 교체할 수 없습니다.")
+		writeAPIError(response, request, http.StatusConflict, "LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW", "서버 소유 도전이나 이전 기준이 고정된 계정 진행은 자동으로 교체할 수 없습니다.")
 		return
 	}
 	if errors.Is(err, legacytransfer.ErrSessionMismatch) {

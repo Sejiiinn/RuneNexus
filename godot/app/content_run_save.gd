@@ -92,7 +92,7 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 	if (live or not run.enemies.is_empty() or not run.spawnQueue.is_empty()) and round_index >= count: return _reject("No active wave")
 	if not live and phase != "failure" and (not run.enemies.is_empty() or not run.spawnQueue.is_empty()): return _reject("Combat outside active wave")
 	if phase == "failure" and not run.spawnQueue.is_empty(): return _reject("Failed run cannot retain a spawn queue")
-	if phase == "reward" and (run.rewardOptions.is_empty() or (run.isPurchasedGemReward and run.rewardReturnPhase not in ["preparation","wave"])): return _reject("Invalid reward phase")
+	if phase == "reward" and run.isPurchasedGemReward and (run.rewardOptions.is_empty() or run.rewardReturnPhase not in ["preparation","wave"]): return _reject("Invalid reward phase")
 	# Save-only validation shares read-only fields, but separates every branch
 	# mutated by ID assignment and legacy gem migration from the returned save.
 	# Restoration retains a full separate state for subsequent runtime commands.

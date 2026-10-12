@@ -17,6 +17,10 @@ var service
 var server
 var platform
 
+class UpdateOnlyServices extends Services:
+	# This fixture isolates update modal lifetime; auth gates are covered below.
+	func authentication_required() -> bool: return false
+
 class ModalLobby extends "res://ui/lobby.gd":
 	func _ready(): pass
 
@@ -75,6 +79,7 @@ class FixtureServer extends RefCounted:
 	var save: Variant = null
 	var offline := false
 	var fail_profile := false
+	var fail_economy := false
 	var auth_status := 200
 	var economy_revision := 0
 	var effects: Array = []
@@ -95,6 +100,7 @@ class FixtureServer extends RefCounted:
 			if path.ends_with("/google"): active = ACCOUNT_B if body.idToken == "b" else ACCOUNT_A
 			return reply(200,{"account":{"id":active},"accessToken":"fixture-access","refreshToken":"fixture-refresh","accessExpiresAt":"2099-01-01T00:00:00Z"})
 		if path.ends_with("/logout"): return reply(204)
+		if path == "/v1/mailbox/summary": return reply(200,{"unclaimedCount":0})
 		if path == "/v1/account/nickname": nickname = body.nickname; return reply(200,{"nickname":nickname,"tag":"0012"})
 		if path == "/v1/account/profile":
 			if fail_profile: return reply(503,{},"NETWORK_UNAVAILABLE")
@@ -109,6 +115,7 @@ class FixtureServer extends RefCounted:
 			revision+=1
 			save=body.data.duplicate(true)
 			return reply(200,{"revision":revision,"serverSavedAt":"2026-09-24T00:00:00Z"})
+		if fail_economy and path.begins_with("/v1/economy"): return reply(409,{},"ECONOMY_RECOVERY_REQUIRED")
 		if path == "/v1/economy":
 			return reply(409,{},"ECONOMY_NOT_BOOTSTRAPPED") if economy_revision==0 else reply(200,economy_snapshot())
 		if path == "/v1/economy/bootstrap": economy_revision=1; return reply(200,{"economy":economy_snapshot()})
@@ -143,6 +150,7 @@ class AppStub extends RefCounted:
 	var lobby = null
 	var services
 	var persist_count := 0
+	var pause_count := 0
 	var retry_count := 0
 	func refresh_ui():
 		if is_instance_valid(lobby): lobby.refresh()
@@ -158,7 +166,10 @@ class AppStub extends RefCounted:
 	func persist_progression() -> bool:
 		persist_count+=1
 		return not startup_blocked and checkpoint.save_progression(self,progression_inputs)==OK
-	func pause_and_save() -> bool: return persist_progression()
+	func pause_runtime() -> void: pause_count += 1
+	func pause_and_save() -> bool:
+		pause_runtime()
+		return persist_progression()
 	## The real commit's no-run branch; these checks never commit during a run.
 	func commit_progression(value: Dictionary) -> bool:
 		if checkpoint.save_progression(self,value) != OK: return false
@@ -175,6 +186,7 @@ func _run():
 	await _gate_checks()
 	await _update_modal_checks()
 	await _login_resume_checks()
+	await _auth_gate_checks()
 	app=AppStub.new()
 	app.run_domain.growth.load_catalog()
 	app.checkpoint=Checkpoint.new(folder)
@@ -183,7 +195,7 @@ func _run():
 	app.persist_progression()
 	platform=Platform.new();root.add_child(platform)
 	server=FixtureServer.new();server.tree=self
-	service=Services.new();service.app=app;service.root_path=folder;service.platform=platform;service.config={"googleClientId":"fixture-client"};root.add_child(service);service.set_process(false)
+	service=Services.new();service._startup_pending=false;service.app=app;service.root_path=folder;service.platform=platform;service.config={"googleClientId":"fixture-client"};root.add_child(service);service.set_process(false)
 	app.services=service
 	service.account=Auth.new();service.add_child(service.account);service.account.configure("http://127.0.0.1:19764",platform,server)
 	service.economy=Economy.new();service.add_child(service.economy)
@@ -192,7 +204,8 @@ func _run():
 	check(app.checkpoint.owner=="guest" and server.calls.all(func(call):return not call.path.begins_with("/v1/save")),"Nickname gate does not publish or overwrite guest save")
 	result=await service.request("PUT","v1/account/nickname",{"nickname":"룬기사"})
 	check(result.ok and service.online_ready and app.checkpoint.owner==ACCOUNT_A and not service.blocks_play(),"Nickname commit binds real online store and unlocks play")
-	check(server.save.progression.runes==27 and app.progression_inputs.freeDiamonds==42,"Interactive bootstrap adopts guest progress and server wallet")
+	check(server.save.progression.runes==0 and app.progression_inputs.freeDiamonds==42,"Interactive bootstrap starts authenticated account without adopting guest progress")
+	check(Checkpoint.new(folder).store.load_save().progression.runes==27,"Legacy guest save remains unchanged and inert")
 	# Pending runtime rewards must use the current synced revision and writer.
 	var reward={"runId":Http.uuid(),"stageNumber":1,"completedRounds":2,"success":false,"pendingDiamonds":3,"firstClearModuleTickets":0,"createdAtMillis":1}
 	app.checkpoint.rewards().enqueue(reward)
@@ -232,19 +245,40 @@ func _run():
 	check(result.ok and service.online.requires_reload and app.startup_blocked,"Automatic sync quiesces before applying newer remote")
 	service._process(0)
 	check(not service.online.requires_reload and not app.startup_blocked and app.progression_inputs.runes==333,"Automatic rebase reloads checkpoint and acknowledges")
+	# A live same-account fallback must be preserved before in-memory migration
+	# or projection can overwrite it through the real AppServices quiesce hook.
+	var fallback: Dictionary = app.checkpoint.store.load_save().duplicate(true)
+	fallback.progression.runes = 12
+	check(app.checkpoint.store._write_atomic(app.checkpoint.store.backup_path, JSON.stringify(fallback,"",false,true)) == OK,"Live backup fixture preserves historical checkpoint")
+	var broken := FileAccess.open(app.checkpoint.store.primary_path,FileAccess.WRITE)
+	broken.store_string("{broken-primary"); broken.close()
+	check(app.checkpoint.store.load_save() == fallback and app.checkpoint.store.has_recovery_marker(),"Live backup provenance exists before rebase")
+	app.progression_inputs.runes = 999 # Represents unsaved in-memory normalization.
+	check(not app.persist_progression() and app.checkpoint.store.load_save() == fallback,"Ordinary checkpoint write cannot replace uncertain backup evidence")
+	server.save.progression.runes = 444
+	server.revision += 1
+	var saved_before: int = app.persist_count
+	var paused_before: int = app.pause_count
+	service.online._reconcile = true
+	result = await service.sync()
+	var conflict: Variant = Json.parse(FileAccess.get_file_as_string(app.checkpoint.store.conflict_path))
+	check(result.ok and conflict is Dictionary and conflict.data == fallback,"Actual quiesce callback preserves original fallback, not migrated live projection")
+	check(app.persist_count == saved_before and app.pause_count == paused_before + 1,"Uncertain account freezes live runtime without a checkpoint write")
+	service._process(0)
+	check(app.progression_inputs.runes == 444 and not app.checkpoint.store.has_recovery_marker() and not app.startup_blocked,"Trusted canonical reload clears provenance and resumes")
 	server.offline=true
 	result=await service.logout()
-	check(not result.ok and not service.connected() and app.checkpoint.owner=="guest" and Json.parse(platform.value).logoutPending,"Offline logout changes slot while preserving server revoke intent")
+	check(not result.ok and not service.connected() and app.checkpoint.owner==ACCOUNT_A and service.blocks_play() and Json.parse(platform.value).logoutPending,"Offline logout keeps inert account slot and preserves server revoke intent")
 	server.offline=false
 	result=await service.account.restore()
 	check(result.ok and platform.value==null,"Next restore finishes offline logout")
-	# Profile failure after interactive login must retain guest-adoption intent.
+	# Profile failure after interactive login must keep prior account data inert.
 	platform.selected="b";server.active=ACCOUNT_B;server.save=null;server.revision=0;server.economy_revision=0;server.effects=[];server.settled=[];server.nickname="새계정";server.fail_profile=true
 	result=await service.login()
-	check(not result.ok and service.blocks_play() and app.checkpoint.owner=="guest","Failed profile lookup prevents cross-account play")
+	check(not result.ok and service.blocks_play() and app.checkpoint.owner==ACCOUNT_A,"Failed profile lookup prevents cross-account play")
 	server.fail_profile=false
 	result=await service.retry()
-	check(result.ok and app.checkpoint.owner==ACCOUNT_B and server.save.progression.runes==27,"Retry retains interactive bootstrap intent for new account")
+	check(result.ok and app.checkpoint.owner==ACCOUNT_B and server.save.progression.runes==0,"Retry starts only the newly authenticated account without guest adoption")
 	service._background_busy=true;service.busy=true
 	check(not service.blocks_play(),"Background synchronization does not disable gameplay controls")
 	service._background_busy=false;service.busy=false
@@ -253,6 +287,7 @@ func _run():
 	server.offline=true
 	service.account.credentials.clear()
 	service.online_ready=false
+	service._startup_pending=true
 	await service._initialize()
 	check(app.checkpoint.owner==ACCOUNT_B and not service.connected() and service.account.account_id_hint==ACCOUNT_B,"Offline restore selects bound cached account, never guest")
 	service.account.account_id_hint=""
@@ -262,7 +297,7 @@ func _run():
 	check(app.checkpoint.owner==ACCOUNT_B,"Session expiry waits for an active operation to finish")
 	service.busy=false
 	service._process(0)
-	check(app.checkpoint.owner=="guest" and not service.online_ready,"Deferred definitive session expiry invalidates economy and switches to guest")
+	check(app.checkpoint.owner==ACCOUNT_B and not service.online_ready and service.blocks_play(),"Deferred definitive session expiry preserves inert account data and blocks play")
 	service.online.dispose()
 	service.queue_free();platform.queue_free()
 	await process_frame
@@ -281,7 +316,7 @@ func _update_modal_checks() -> void:
 	gated_app.catalog.load_catalog()
 	gated_app.run_domain.growth.load_catalog()
 	gated_app.startup_blocked=true
-	var gated=Services.new();root.add_child(gated)
+	var gated=UpdateOnlyServices.new();root.add_child(gated)
 	gated.set_process(false);gated.app=gated_app;gated._startup_pending=false
 	gated_app.services=gated
 	# Run the actual home refresh path, including its kept_modal preservation.
@@ -383,7 +418,7 @@ func _login_resume_checks() -> void:
 			check(not coordinator.connected() and not coordinator.issue.is_empty(),"Failed login retains reason: "+outcome)
 			check(is_instance_valid(lobby.modal) and error_text in _labels(lobby.modal),"Failed login result remains visible: "+outcome)
 			lobby.close_modal();lobby.open_service("계정 및 저장")
-			check(error_text in _labels(lobby.modal),"Reopened guest account retains last login failure: "+outcome)
+			check(error_text in _labels(lobby.modal),"Reopened login gate retains last login failure: "+outcome)
 		elif outcome=="required":
 			check(not coordinator.connected() and update.blocked and update.server_required and coordinator.blocks_play(),"Login server 426 retains mandatory update gate")
 			check(is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_page","")=="업데이트","Login server 426 shows required update instead of account result")
@@ -485,8 +520,49 @@ func _gate_checks() -> void:
 	gated.updates.skip()
 	await process_frame;await process_frame;await process_frame
 	check(gated_app.retry_count==1 and secure.reads==1 and not gated._startup_pending,"Optional update skip initializes local save and secure restore once")
+	check(gated.blocks_play() and not gated.connected(),"Manifest success without server authentication never unlocks play")
 	gated.updates.changed.emit()
 	await process_frame
 	check(gated_app.retry_count==1 and secure.reads==1,"Repeated gate notification cannot duplicate initialization")
 	gated.queue_free();secure.queue_free()
 	await process_frame
+
+func _auth_gate_checks() -> void:
+	var gated_app=AppStub.new()
+	gated_app.catalog.load_catalog();gated_app.run_domain.growth.load_catalog()
+	gated_app.checkpoint=Checkpoint.new(folder.path_join("mandatory-auth"));gated_app.retry_load()
+	var native=Platform.new();root.add_child(native)
+	var wire=FixtureServer.new();wire.tree=self;wire.nickname="인증계정";wire.fail_economy=true
+	var gated=Services.new();root.add_child(gated);gated.set_process(false)
+	gated.app=gated_app;gated_app.services=gated;gated.platform=native;gated.root_path=gated_app.checkpoint.base_directory
+	gated.config={"googleClientId":"fixture-client"};gated._startup_pending=false
+	gated.account=Auth.new();gated.add_child(gated.account);gated.account.configure("http://127.0.0.1:19764",native,wire)
+	gated.account.changed.connect(gated._account_changed)
+	gated.economy=Economy.new();gated.add_child(gated.economy)
+	check(gated.blocks_play(),"No cached or guest slot grants pre-login play")
+	var result: Dictionary=await gated.login()
+	check(not result.ok and gated.connected() and gated.online_ready and not gated.play_ready and gated.blocks_play(),"Successful auth and save binding cannot unlock play before economy recovery")
+	var mutation: Dictionary=await gated.perform("gem_offer",{})
+	check(not mutation.ok and mutation.code=="SAVE_SYNC_REQUIRED","Rewards remain locked during incomplete authenticated recovery")
+	wire.fail_economy=false
+	result=await gated.retry()
+	check(result.ok and gated.play_ready and not gated.blocks_play(),"Complete auth/save/economy recovery unlocks play")
+	var saved_credentials: Dictionary=gated.account.credentials.duplicate(true)
+	wire.offline=true
+	result=await gated.account.refresh()
+	await process_frame
+	check(not result.ok and not gated.connected() and gated.blocks_play() and not gated.play_ready,"Timer refresh failure revokes actual play readiness despite cached access token")
+	check(gated.account.credentials==saved_credentials and not Json.parse(native.value).logoutPending and gated_app.checkpoint.owner==ACCOUNT_A,"Transient auth failure preserves encrypted credentials and account checkpoint without guest fallback")
+	var update=ModalUpdateFixture.new();gated.add_child(update);update.setup(RefCounted.new(),"https://fixture.invalid/update.json")
+	gated.updates=update;update.changed.connect(gated._update_changed)
+	var auth_lobby=load("res://ui/lobby.gd").new();auth_lobby.app=gated_app;root.add_child(auth_lobby);gated_app.lobby=auth_lobby
+	gated._update_changed()
+	await update.check();await process_frame
+	check(not update.blocked and gated.blocks_play(),"A passing update manifest cannot replace failed account authentication")
+	check(is_instance_valid(auth_lobby.modal) and auth_lobby.modal.get_meta("service_page","")=="계정 및 저장","Passing update gate exposes a usable authentication retry modal")
+	auth_lobby.close_modal()
+	check(is_instance_valid(auth_lobby.modal),"Update completion cannot dismiss the still-required authentication gate")
+	wire.offline=false
+	result=await gated.retry()
+	check(result.ok and gated.connected() and gated.play_ready and not gated.blocks_play(),"Explicit retry reauthenticates and completes recovery after network failure")
+	auth_lobby.queue_free();gated.online.dispose();gated.queue_free();native.queue_free();await process_frame

@@ -25,13 +25,13 @@ static func new_run_id() -> String:
 	var value := bytes.hex_encode()
 	return "%s-%s-%s-%s-%s" % [value.substr(0,8),value.substr(8,4),value.substr(12,4),value.substr(16,4),value.substr(20,12)]
 
-func initialize(catalog, progression: Dictionary, stage_index: int, scene_epoch: int) -> bool:
+func initialize(catalog, progression: Dictionary, stage_index: int, scene_epoch: int, authority_run_id: Variant = null) -> bool:
 	if not growth.load_catalog():
 		error = growth.error
 		return false
 	service = Commands.new(catalog, growth)
 	state = service.initial_state(quests.refresh(progression, int(now_millis.call())), stage_index)
-	state.economyRunId = new_run_id()
+	state.economyRunId = new_run_id() if authority_run_id == null else (null if str(authority_run_id).is_empty() else str(authority_run_id))
 	growth.fix_run_loadout(state)
 	for key in ["lastRunRuneReward", "lastRunCorePointReward", "lastRunTurretModuleTicketReward"]: state.progression[key] = 0
 	epoch = scene_epoch
@@ -43,7 +43,6 @@ func initialize(catalog, progression: Dictionary, stage_index: int, scene_epoch:
 
 func restore(restored: Dictionary) -> void:
 	state = restored.duplicate(true)
-	if state.get("economyRunId") == null: state.economyRunId = new_run_id()
 	growth.fix_run_loadout(state)
 	# Older v2 terminal saves already include progression results. Do not grant again.
 	if state.phase in ["success", "failure", "coreDestruction"] and not is_finished():

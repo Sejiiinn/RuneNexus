@@ -57,6 +57,7 @@ func NewHandler(
 		database:         dependencies.Database,
 		readinessTimeout: dependencies.ReadinessTimeout,
 	}
+	gemBuckets := newClientTokenBuckets(60, time.Minute, 20000)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health/live", health.live)
 	mux.HandleFunc("GET /health/ready", health.ready)
@@ -97,7 +98,7 @@ func NewHandler(
 				withAccountAuthentication(
 					logger,
 					dependencies.Authenticator,
-					http.HandlerFunc(saves.get),
+					withGemAccountRateLimit(gemBuckets, time.Now, http.HandlerFunc(saves.get)),
 				),
 			)
 			mux.Handle(
@@ -137,15 +138,23 @@ func NewHandler(
 			mux.Handle("POST /v1/mailbox/claim-all", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(mailbox.claimAll)))
 		}
 		if dependencies.EconomyService != nil {
+			gemRoute := func(f http.HandlerFunc) http.Handler {
+				return withAccountAuthentication(logger, dependencies.Authenticator, withGemAccountRateLimit(gemBuckets, time.Now, f))
+			}
 			economyAPI := economyHandler{
 				logger:                            logger,
 				economy:                           dependencies.EconomyService,
 				minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion,
 			}
-			mux.Handle("GET /v1/economy", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.get)))
+			mux.Handle("GET /v1/economy", gemRoute(economyAPI.get))
 			mux.Handle("GET /v1/economy/catalog", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.catalog)))
 			mux.Handle("POST /v1/economy/bootstrap", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.bootstrap)))
-			mux.Handle("POST /v1/economy/gems/reroll", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.rerollGems)))
+			mux.Handle("POST /v1/economy/runs/start", gemRoute(economyAPI.startRun))
+			mux.Handle("POST /v1/economy/runs/close", gemRoute(economyAPI.closeRun))
+			mux.Handle("POST /v1/economy/gems/purchase", gemRoute(economyAPI.purchaseGems))
+			mux.Handle("POST /v1/economy/gems/offer", gemRoute(economyAPI.offerGems))
+			mux.Handle("POST /v1/economy/gems/choose", gemRoute(economyAPI.chooseGem))
+			mux.Handle("POST /v1/economy/gems/reroll", gemRoute(economyAPI.rerollGems))
 			mux.Handle("POST /v1/economy/turret-modules/draw", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.draw)))
 			mux.Handle("POST /v1/economy/turret-modules/disassemble", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.disassemble)))
 			mux.Handle("POST /v1/economy/researches/{type}/complete", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.completeResearch)))

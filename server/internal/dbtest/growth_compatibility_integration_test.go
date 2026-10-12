@@ -11,38 +11,37 @@ import (
 	"testing"
 )
 
-func TestGrowthMigrationRejectsOldWritersAndEconomyWithoutGlobalLockout(t *testing.T) {
+func TestGrowthMigrationPreservesHistoricalReceiptsUnderCurrentWriterFloor(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
 	original := gamesave.UpdateRequest{IdempotencyKey: firstSaveKey, ClientCompatibilityVersion: 2,
 		RawBody: []byte(`{"clientCompatibilityVersion":2}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`),
 			Progression: json.RawMessage(`{"runes":150,"freeDiamonds":100,"paidDiamonds":0}`), TurretModules: json.RawMessage(`{"tickets":2,"items":[]}`)}}
-	if _, err := fixture.Update(ctx, accountID, original); err != nil {
-		t.Fatal(err)
-	}
+	seeded := seedPreAuthoritySave(t, fixture, accountID, original.Data)
+	seedLegacySaveReceipt(t, fixture, original, seeded)
 	svc := economy.NewService(fixture.pool)
-	bootstrap := economy.BootstrapRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"clientCompatibilityVersion":2}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1}
+	bootstrap := economy.BootstrapRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1}
 	if _, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, bootstrap); err != nil {
 		t.Fatal(err)
 	}
-	// Generation 2 remains allowed even after economy bootstrap, until growth migrates.
+	// Fresh old-generation writes are now blocked before any migration mutation.
 	legacy := original
 	legacy.IdempotencyKey = secondSaveKey
 	legacy.ExpectedRevision = 1
 	legacy.RawBody = []byte(`{"clientCompatibilityVersion":2,"expectedRevision":1}`)
-	if _, err := fixture.Update(ctx, accountID, legacy); err != nil {
-		t.Fatalf("legacy before migration: %v", err)
+	if _, err := fixture.Update(ctx, accountID, legacy); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("fresh legacy write: %v", err)
 	}
 	migrated := original
 	migrated.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90beb"
-	migrated.ExpectedRevision = 2
-	migrated.ClientCompatibilityVersion = 3
-	migrated.RawBody = []byte(`{"clientCompatibilityVersion":3,"expectedRevision":2}`)
+	migrated.ExpectedRevision = 1
+	migrated.ClientCompatibilityVersion = gamesave.CurrentClientCompatibilityVersion
+	migrated.RawBody = []byte(`{"clientCompatibilityVersion":9,"expectedRevision":1}`)
 	migrated.Data.Progression = json.RawMessage(`{"growthVersion":1,"runes":150,"freeDiamonds":100,"paidDiamonds":0,"bossBountyUpgradeLevel":10}`)
 	if _, err := fixture.Update(ctx, accountID, migrated); err != nil {
 		t.Fatal(err)
 	}
 	// Exact receipts are read-only and remain recoverable after migration.
-	if _, err := fixture.Update(ctx, accountID, legacy); err != nil {
+	if _, err := fixture.Update(ctx, accountID, original); err != nil {
 		t.Fatalf("legacy receipt: %v", err)
 	}
 	if _, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, bootstrap); err != nil {
@@ -50,11 +49,11 @@ func TestGrowthMigrationRejectsOldWritersAndEconomyWithoutGlobalLockout(t *testi
 	}
 	stale := legacy
 	stale.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90bec"
-	stale.ExpectedRevision = 3
+	stale.ExpectedRevision = 2
 	if _, err := fixture.Update(ctx, accountID, stale); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
 		t.Fatalf("old update err=%v", err)
 	}
-	stale.ClientCompatibilityVersion = 3
+	stale.ClientCompatibilityVersion = gamesave.CurrentClientCompatibilityVersion
 	if _, err := fixture.Update(ctx, accountID, stale); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
 		t.Fatalf("current stale growth err=%v", err)
 	}
@@ -62,7 +61,7 @@ func TestGrowthMigrationRejectsOldWritersAndEconomyWithoutGlobalLockout(t *testi
 		t.Fatalf("old writer err=%v", err)
 	}
 	requestBody := []byte(`{"clientCompatibilityVersion":2}`)
-	_, err := svc.UnlockResearchSlotTwo(ctx, accountID, fixture.sessionID, economy.ResearchSlotUnlockRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bed", RawBody: requestBody, WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 3, ExpectedRevision: 1, ExpectedCatalogVersion: economy.CatalogVersion})
+	_, err := svc.UnlockResearchSlotTwo(ctx, accountID, fixture.sessionID, economy.ResearchSlotUnlockRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bed", RawBody: requestBody, WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 2, ExpectedRevision: 1, ExpectedCatalogVersion: economy.CatalogVersion})
 	if !errors.Is(err, gamesave.ErrClientUpdateRequired) {
 		t.Fatalf("old writer-bound economy err=%v", err)
 	}
@@ -78,7 +77,7 @@ func TestGrowthMigrationRejectsOldWritersAndEconomyWithoutGlobalLockout(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	if snapshot.Revision != 3 || gamesave.GrowthVersion(snapshot.Data.Progression) != 1 {
+	if snapshot.Revision != 2 || gamesave.GrowthVersion(snapshot.Data.Progression) != 1 {
 		t.Fatalf("save changed: %+v", snapshot)
 	}
 	wallet, err := svc.Get(ctx, accountID)

@@ -20,6 +20,11 @@ import (
 const maxEconomyBodyBytes int64 = 64 * 1024
 
 type EconomyService interface {
+	PurchaseGems(context.Context, string, string, economy.GemOfferRequest) (economy.CommandResult, error)
+	StartRun(context.Context, string, string, economy.StartRunRequest) (economy.CommandResult, error)
+	CloseRun(context.Context, string, string, economy.CloseRunRequest) (economy.CommandResult, error)
+	OfferGems(context.Context, string, string, economy.GemOfferRequest) (economy.CommandResult, error)
+	ChooseGem(context.Context, string, string, economy.GemChooseRequest) (economy.CommandResult, error)
 	RerollGems(context.Context, string, string, economy.GemRerollRequest) (economy.CommandResult, error)
 	Get(context.Context, string) (economy.Snapshot, error)
 	Bootstrap(context.Context, string, string, economy.BootstrapRequest) (economy.BootstrapResult, error)
@@ -44,6 +49,8 @@ type economyBootstrapRequest struct {
 }
 
 type economyGemRerollRequest struct {
+	OfferID                    string `json:"offerId"`
+	ExpectedOfferRevision      *int64 `json:"expectedOfferRevision"`
 	ExpectedEconomyRevision    *int64 `json:"expectedEconomyRevision"`
 	ExpectedCatalogVersion     *int32 `json:"expectedCatalogVersion"`
 	SourceSaveRevision         *int64 `json:"sourceSaveRevision"`
@@ -55,7 +62,11 @@ type economyGemRerollRequest struct {
 }
 
 func (handler economyHandler) rerollGems(response http.ResponseWriter, request *http.Request) {
-	principal, key, raw, input, ok := decodeEconomyCommand[economyGemRerollRequest](handler, response, request)
+	// Generation-seven exact receipts remain recoverable even when the global
+	// minimum is eight. The service gates new work after receipt lookup.
+	decoderHandler := handler
+	decoderHandler.minimumClientCompatibilityVersion = gamesave.GemRerollClientCompatibilityVersion
+	principal, key, raw, input, ok := decodeEconomyCommand[economyGemRerollRequest](decoderHandler, response, request)
 	if !ok {
 		return
 	}
@@ -67,12 +78,78 @@ func (handler economyHandler) rerollGems(response http.ResponseWriter, request *
 		writeAPIError(response, request, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST", "젬 재선택 요청 정보가 부족합니다.")
 		return
 	}
+	var offerRevision int64
+	if input.ExpectedOfferRevision != nil {
+		offerRevision = *input.ExpectedOfferRevision
+	}
 	result, err := handler.economy.RerollGems(request.Context(), principal.AccountID, principal.SessionID, economy.GemRerollRequest{
+		OfferID: input.OfferID, ExpectedOfferRevision: offerRevision,
 		IdempotencyKey: key, RawBody: raw, ExpectedRevision: *input.ExpectedEconomyRevision,
 		ExpectedCatalogVersion: *input.ExpectedCatalogVersion, SourceSaveRevision: *input.SourceSaveRevision,
 		WriterGeneration: *input.WriterGeneration, RunID: input.RunID, CompletedRounds: *input.CompletedRounds,
 		ExpectedRerollCount: *input.ExpectedRerollCount,
 	})
+	if handler.writeEconomyError(response, request, err) {
+		return
+	}
+	writeJSON(response, http.StatusOK, result)
+}
+
+type economyGemOfferRequest struct {
+	ExpectedEconomyRevision    *int64 `json:"expectedEconomyRevision"`
+	ExpectedCatalogVersion     *int32 `json:"expectedCatalogVersion"`
+	SourceSaveRevision         *int64 `json:"sourceSaveRevision"`
+	WriterGeneration           *int64 `json:"writerGeneration"`
+	ClientCompatibilityVersion *int   `json:"clientCompatibilityVersion"`
+	RunID                      string `json:"runId"`
+	CompletedRounds            *int   `json:"completedRounds"`
+}
+
+type economyGemChooseRequest struct {
+	economyGemOfferRequest
+	OfferID               string `json:"offerId"`
+	ExpectedOfferRevision *int64 `json:"expectedOfferRevision"`
+	Choice                string `json:"choice"`
+}
+
+func validGemOfferInput(input economyGemOfferRequest) bool {
+	return input.ExpectedEconomyRevision != nil && input.ExpectedCatalogVersion != nil && input.SourceSaveRevision != nil && input.WriterGeneration != nil && input.CompletedRounds != nil && input.RunID != ""
+}
+
+func gemOfferCommand(input economyGemOfferRequest, key string, raw []byte) economy.GemOfferRequest {
+	return economy.GemOfferRequest{IdempotencyKey: key, RawBody: raw, ExpectedRevision: *input.ExpectedEconomyRevision, ExpectedCatalogVersion: *input.ExpectedCatalogVersion, SourceSaveRevision: *input.SourceSaveRevision, WriterGeneration: *input.WriterGeneration, RunID: input.RunID, CompletedRounds: *input.CompletedRounds}
+}
+
+func (handler economyHandler) offerGems(response http.ResponseWriter, request *http.Request) {
+	decoderHandler := handler
+	decoderHandler.minimumClientCompatibilityVersion = gamesave.GemOfferClientCompatibilityVersion
+	principal, key, raw, input, ok := decodeEconomyCommand[economyGemOfferRequest](decoderHandler, response, request)
+	if !ok {
+		return
+	}
+	if !validGemOfferInput(input) {
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST", "젬 보상 요청 정보가 부족합니다.")
+		return
+	}
+	result, err := handler.economy.OfferGems(request.Context(), principal.AccountID, principal.SessionID, gemOfferCommand(input, key, raw))
+	if handler.writeEconomyError(response, request, err) {
+		return
+	}
+	writeJSON(response, http.StatusOK, result)
+}
+
+func (handler economyHandler) chooseGem(response http.ResponseWriter, request *http.Request) {
+	decoderHandler := handler
+	decoderHandler.minimumClientCompatibilityVersion = gamesave.GemOfferClientCompatibilityVersion
+	principal, key, raw, input, ok := decodeEconomyCommand[economyGemChooseRequest](decoderHandler, response, request)
+	if !ok {
+		return
+	}
+	if !validGemOfferInput(input.economyGemOfferRequest) || input.OfferID == "" || input.ExpectedOfferRevision == nil || input.Choice == "" {
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST", "젬 선택 요청 정보가 부족합니다.")
+		return
+	}
+	result, err := handler.economy.ChooseGem(request.Context(), principal.AccountID, principal.SessionID, economy.GemChooseRequest{GemOfferRequest: gemOfferCommand(input.economyGemOfferRequest, key, raw), OfferID: input.OfferID, ExpectedOfferRevision: *input.ExpectedOfferRevision, Choice: input.Choice})
 	if handler.writeEconomyError(response, request, err) {
 		return
 	}
@@ -277,7 +354,9 @@ func (handler economyHandler) acknowledgeEffect(response http.ResponseWriter, re
 }
 
 func (handler economyHandler) settleRun(response http.ResponseWriter, request *http.Request) {
-	principal, key, raw, input, ok := decodeEconomyCommand[economyRunSettlementRequest](handler, response, request)
+	decoderHandler := handler
+	decoderHandler.minimumClientCompatibilityVersion = gamesave.EconomyClientCompatibilityVersion
+	principal, key, raw, input, ok := decodeEconomyCommand[economyRunSettlementRequest](decoderHandler, response, request)
 	if !ok {
 		return
 	}
@@ -356,6 +435,12 @@ func compatibilityVersion(value any) *int {
 		return input.ClientCompatibilityVersion
 	case economyGemRerollRequest:
 		return input.ClientCompatibilityVersion
+	case economyGemOfferRequest:
+		return input.ClientCompatibilityVersion
+	case economyGemChooseRequest:
+		return input.ClientCompatibilityVersion
+	case economyRunLifecycleRequest:
+		return input.ClientCompatibilityVersion
 	case economyDrawRequest:
 		return input.ClientCompatibilityVersion
 	case economyDisassembleRequest:
@@ -400,8 +485,12 @@ func (handler economyHandler) writeEconomyError(response http.ResponseWriter, re
 		status, code, message = http.StatusConflict, "SAVE_WRITER_REPLACED", "다른 기기의 진행을 확인한 뒤 다시 시도해 주세요."
 	case errors.Is(err, economy.ErrSaveRevisionConflict):
 		status, code, message = http.StatusConflict, "SAVE_SYNC_REQUIRED", "최신 계정 진행을 저장한 뒤 다시 시도해 주세요."
+	case errors.Is(err, economy.ErrInsufficientGemShards):
+		status, code, message = http.StatusUnprocessableEntity, "INSUFFICIENT_GEM_SHARDS", "젬 조각이 부족합니다."
 	case errors.Is(err, economy.ErrInsufficientDiamonds):
 		status, code, message = http.StatusUnprocessableEntity, "INSUFFICIENT_DIAMONDS", "다이아가 부족합니다."
+	case errors.Is(err, economy.ErrGemOfferConflict):
+		status, code, message = http.StatusConflict, "GEM_OFFER_STATE_CONFLICT", "서버 젬 보상을 복구한 뒤 다시 시도해 주세요."
 	case errors.Is(err, economy.ErrGemRerollLimit):
 		status, code, message = http.StatusUnprocessableEntity, "GEM_REROLL_LIMIT_REACHED", "이번 도전의 젬 재선택을 모두 사용했습니다."
 	case errors.Is(err, economy.ErrGemRerollConflict):
@@ -419,6 +508,16 @@ func (handler economyHandler) writeEconomyError(response http.ResponseWriter, re
 	default:
 		handler.writeInternalError(response, request, err)
 		return true
+	}
+	// Rejections are diagnostic signals, including harmless stale/retry races.
+	// Never classify these as cheating or record bodies, candidates, or credentials.
+	if handler.logger != nil {
+		switch request.URL.Path {
+		case "/v1/economy/gems/offer", "/v1/economy/gems/reroll", "/v1/economy/gems/choose":
+			handler.logger.WarnContext(request.Context(), "gem_reward_command_rejected",
+				slog.String("request_id", requestIDFromContext(request.Context())),
+				slog.String("code", code), slog.Int("status", status))
+		}
 	}
 	writeAPIError(response, request, status, code, message)
 	return true

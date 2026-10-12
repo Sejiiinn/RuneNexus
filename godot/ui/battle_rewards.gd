@@ -211,7 +211,7 @@ func _owned(state: Dictionary) -> Dictionary:
 	return result
 
 func _reward_identity(state: Dictionary) -> String:
-	return JSON.stringify([state.get("economyRunId",""),hud.app.stage,state.get("completedRounds",0),state.get("isPurchasedGemReward",false)])
+	return JSON.stringify([state.get("economyRunId",""),hud.app.stage,state.get("completedRounds",0),state.get("isPurchasedGemReward",false),state.get("gemOfferId", "") if state.get("isPurchasedGemReward",false) else ""])
 
 func _reroll_state() -> Dictionary:
 	if hud.app is Object and hud.app.has_method("gem_reroll_state"):
@@ -246,7 +246,7 @@ func _reroll(revision: int) -> void:
 		return
 	if result.get("ok",false):
 		_hold_reroll_offer = false
-		_start_reroll_flip(hud.app.run_domain.state)
+		if not result.get("initialOffer", false): _start_reroll_flip(hud.app.run_domain.state)
 	elif not bool(_reroll_state().get("locked",false)) and not _offer_changed(hud.app.run_domain.state):
 		_hold_reroll_offer = false
 	key = ""; hud.refresh()
@@ -262,7 +262,7 @@ func _exit_reward_view() -> void:
 		key = ""
 
 func _offer_changed(state: Dictionary) -> bool:
-	return not _displayed_offer.is_empty() and state.get("rewardOptions",[]).size() == 3 and int(state.get("gemRerollsUsed",0)) > int(_displayed_offer.gemRerollsUsed) and state.get("rewardOptions",[]) != _displayed_offer.rewardOptions
+	return not _displayed_offer.is_empty() and _displayed_offer.get("rewardOptions", []).size() == 3 and state.get("rewardOptions",[]).size() == 3 and int(state.get("gemRerollsUsed",0)) > int(_displayed_offer.gemRerollsUsed) and state.get("rewardOptions",[]) != _displayed_offer.rewardOptions
 
 func _present_reward(state: Dictionary) -> Dictionary:
 	var locked := bool(_reroll_state().get("locked",false))
@@ -385,6 +385,7 @@ func _cards(state: Dictionary, width: float) -> void:
 	if not state.get("isPurchasedGemReward",false): _text(body,"%d웨이브 클리어 보상" % int(state.get("completedRounds",0)),12,true)
 	var row := HBoxContainer.new()
 	row.name = "GemRewardCards"
+	row.custom_minimum_size.y = 220 # Keep the established frame while initial candidates are pending.
 	row.add_theme_constant_override("separation",8)
 	body.add_child(row)
 	var collection := _owned(state)
@@ -401,6 +402,12 @@ func _cards(state: Dictionary, width: float) -> void:
 	if state.get("isPurchasedGemReward",false):
 		for type in state.get("rewardOptions",[]):
 			if RULES.has(type): _text(body,RULES[type],10).modulate = Color("939aa4")
+		if locked:
+			var info := _reroll_state()
+			_text(body,str(info.get("note", "서버 보상 확인 중…")),11,true)
+			if info.get("status") in ["recovering", "save_failed"]:
+				var retry := UiWidgets.button(body,"처리 결과 다시 확인",_recover_reward)
+				retry.name = "GemPurchaseRetry"
 	else:
 		_reward_details(body,state,width)
 	if not state.get("isPurchasedGemReward",false):
@@ -726,9 +733,18 @@ func _buy_replacement_slot() -> void:
 	if not replacing() or turret.is_empty(): return
 	_settle({"kind":"chooseRewardGemEquip","type":pending_gem,"id":replacement_id,"slot":int(turret.slotLimit),"buySlot":true})
 
+func _recover_reward() -> void:
+	if not hud.app.has_method("recover_reward_command"): return
+	await hud.app.recover_reward_command()
+	if is_instance_valid(hud) and hud.is_inside_tree():
+		key = ""
+		hud.refresh()
+
 func _settle(command: Dictionary) -> void:
 	if _reroll_locked() or hud.app.run_domain.state.get("phase") != "reward": return
-	hud.app.apply_run_command(command)
+	if hud.app.has_method("choose_reward"): await hud.app.choose_reward(command)
+	else: hud.app.apply_run_command(command)
+	if not is_instance_valid(hud): return
 	# Persistence can fail after a successful domain mutation; never replay settlement.
 	if hud.app.run_domain.state.get("phase") != "reward":
 		pending_gem = ""

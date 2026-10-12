@@ -294,6 +294,8 @@ func _process(delta: float) -> void:
 		apply_frame(frame)
 	if combat_runtime.native_session():
 		var host_active: bool = _session_has_focus and not _session_suspended
+		if app_mode and is_instance_valid(session_controller) and session_controller.get("services") != null:
+			host_active = host_active and not session_controller.services.blocks_play()
 		var activation: int = _session_host_revision
 		var session_delta := _session_frame_delta(delta, host_active, activation)
 		var combat_tick := RuntimeProfile.begin()

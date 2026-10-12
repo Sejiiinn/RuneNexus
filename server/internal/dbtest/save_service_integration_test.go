@@ -53,13 +53,16 @@ func (fixture *claimedSaveService) Update(
 	request gamesave.UpdateRequest,
 ) (gamesave.UpdateResult, error) {
 	request.WriterGeneration = fixture.writerGeneration
+	if request.ClientCompatibilityVersion == 0 {
+		request.ClientCompatibilityVersion = gamesave.CurrentClientCompatibilityVersion
+	}
 	return fixture.service.Update(ctx, accountID, fixture.sessionID, request)
 }
 
 func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
 	claimBody := []byte(`{"clientInstanceId":"` + clientInstanceID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`)
-	replayed, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{
+	replayed, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   writerClaimKey,
 		ClientInstanceID: clientInstanceID,
 		RawBody:          claimBody,
@@ -70,9 +73,16 @@ func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
 	if replayed.WriterGeneration != fixture.writerGeneration {
 		t.Fatalf("replayed generation = %d", replayed.WriterGeneration)
 	}
+	oldReceipt, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{IdempotencyKey: writerClaimKey, ClientInstanceID: clientInstanceID, RawBody: claimBody, ClientCompatibilityVersion: 8, ReceiptOnly: true})
+	if err != nil || oldReceipt.WriterGeneration != replayed.WriterGeneration {
+		t.Fatalf("old exact writer receipt lost: %+v %v", oldReceipt, err)
+	}
+	if _, err = fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bdd", ClientInstanceID: clientInstanceID, RawBody: claimBody, ClientCompatibilityVersion: 8}); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("fresh old writer accepted: %v", err)
+	}
 	changedBody := append([]byte(nil), claimBody...)
 	changedBody[len(changedBody)-2] = ' '
-	if _, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{
+	if _, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   writerClaimKey,
 		ClientInstanceID: clientInstanceID,
 		RawBody:          changedBody,
@@ -105,7 +115,7 @@ func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
 	if err := fixture.pool.QueryRow(ctx, "SELECT $1::uuid::text", otherSession.ID).Scan(&otherSessionID); err != nil {
 		t.Fatalf("format other session ID: %v", err)
 	}
-	if _, err := fixture.service.ClaimWriter(ctx, accountID, otherSessionID, gamesave.ClaimWriterRequest{
+	if _, err := fixture.service.ClaimWriter(ctx, accountID, otherSessionID, gamesave.ClaimWriterRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bea",
 		ClientInstanceID: "0198b955-3656-7c40-b3cb-87f427b90beb",
 		RawBody:          []byte(`{"clientInstanceId":"0198b955-3656-7c40-b3cb-87f427b90beb","saveSchemaVersion":2,"clientBuild":"integration-test"}`),
@@ -113,7 +123,7 @@ func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
 		t.Fatalf("cross-account writer claim error = %v", err)
 	}
 
-	acceptedRequest := gamesave.UpdateRequest{
+	acceptedRequest := gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   firstSaveKey,
 		WriterGeneration: fixture.writerGeneration,
 		ExpectedRevision: 0,
@@ -146,7 +156,7 @@ func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
 		t.Fatalf("format second session ID: %v", err)
 	}
 	secondBody := []byte(`{"clientInstanceId":"` + secondClientID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`)
-	secondClaim, err := fixture.service.ClaimWriter(ctx, accountID, secondSessionID, gamesave.ClaimWriterRequest{
+	secondClaim, err := fixture.service.ClaimWriter(ctx, accountID, secondSessionID, gamesave.ClaimWriterRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   secondClaimKey,
 		ClientInstanceID: secondClientID,
 		RawBody:          secondBody,
@@ -219,21 +229,12 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("encode progression: %v", err)
 	}
-	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
-		IdempotencyKey:   firstSaveKey,
-		ExpectedRevision: 0,
-		RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
-		Data: gamesave.Data{
-			Version:     gamesave.CurrentSchemaVersion,
-			Preferences: json.RawMessage(`{}`),
-			Progression: progression,
-			// 분해 성공 흐름은 unique가 나올 수 있는 무작위 뽑기 대신 유효한 normal 원본을 사용한다.
-			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":1,"items":[{"id":"disassembly-fixture","turretType":"arrow","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1}]}`),
-		},
-	}); err != nil {
-		t.Fatalf("save weekly progression: %v", err)
-	}
-	bootstrapBody := []byte(`{"expectedSaveRevision":1,"writerGeneration":1,"clientCompatibilityVersion":2}`)
+	seedPreAuthoritySave(t, fixture, accountID, gamesave.Data{
+		Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: progression,
+		TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":1,"items":[{"id":"disassembly-fixture","turretType":"arrow","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1}]}`),
+		ActiveRun:     json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90bf2","stageNumber":11,"phase":"preparation","completedRounds":0,"gemRerollsUsed":0,"gemInventory":{}}`),
+	})
+	bootstrapBody := []byte(`{"expectedSaveRevision":1,"writerGeneration":1,"clientCompatibilityVersion":9}`)
 	bootstrap, err := economy.NewService(fixture.pool).Bootstrap(
 		ctx,
 		accountID,
@@ -259,7 +260,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	drawService := economy.NewService(fixture.pool)
 	draw, err := drawService.DrawModules(ctx, accountID, fixture.sessionID, economy.DrawRequest{
 		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90beb",
-		RawBody:          []byte(`{"expectedEconomyRevision":1,"count":1}`),
+		RawBody:          []byte(`{"clientCompatibilityVersion":9,"expectedEconomyRevision":1,"count":1}`),
 		ExpectedRevision: 1, ExpectedCatalogVersion: economy.CatalogVersion,
 		SourceSaveRevision: 1, WriterGeneration: fixture.writerGeneration,
 		Count: 1, TurretType: "arrow",
@@ -273,7 +274,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 	disassembled, err := drawService.DisassembleModules(ctx, accountID, economy.DisassembleRequest{
 		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bec",
-		RawBody:          []byte(`{"expectedEconomyRevision":2,"moduleIds":["` + disassemblyModuleID + `"]}`),
+		RawBody:          []byte(`{"clientCompatibilityVersion":9,"expectedEconomyRevision":2,"moduleIds":["` + disassemblyModuleID + `"]}`),
 		ExpectedRevision: 2, ExpectedCatalogVersion: economy.CatalogVersion,
 		ModuleIDs: []string{disassemblyModuleID},
 	})
@@ -282,7 +283,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 
 	service := weeklyreward.NewService(fixture.pool)
-	body := []byte(`{"period":"weekly","rewardType":"quest","questType":"killEnemies"}`)
+	body := []byte(`{"clientCompatibilityVersion":9,"period":"weekly","rewardType":"quest","questType":"killEnemies"}`)
 	request := weeklyreward.ClaimRequest{
 		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bed",
 		RawBody:        body,
@@ -303,7 +304,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 
 	changedBody := request
-	changedBody.RawBody = []byte(`{"period":"weekly","rewardType":"quest", "questType":"killEnemies"}`)
+	changedBody.RawBody = []byte(`{"clientCompatibilityVersion":9,"period":"weekly","rewardType":"quest", "questType":"killEnemies"}`)
 	if _, err := service.Claim(ctx, accountID, fixture.sessionID, changedBody); !errors.Is(err, weeklyreward.ErrIdempotencyKeyReused) {
 		t.Fatalf("changed-body replay error = %v", err)
 	}
@@ -317,7 +318,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 			t.Fatalf("duplicate reward error = %v", err)
 		}
 	}
-	dailyBody := []byte(`{"period":"daily","rewardType":"attendance"}`)
+	dailyBody := []byte(`{"clientCompatibilityVersion":9,"period":"daily","rewardType":"attendance"}`)
 	daily, err := service.Claim(ctx, accountID, fixture.sessionID, weeklyreward.ClaimRequest{
 		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bef",
 		RawBody:        dailyBody, Period: "daily", RewardType: weeklyreward.RewardTypeAttendance,
@@ -342,17 +343,18 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		WriterGeneration:           fixture.writerGeneration,
 		ExpectedRevision:           1,
 		ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
-		RawBody:                    []byte(`{"expectedRevision":1,"clientCompatibilityVersion":2,"data":{"version":2}}`),
+		RawBody:                    []byte(`{"expectedRevision":1,"clientCompatibilityVersion":9,"data":{"version":2}}`),
 		Data: gamesave.Data{
 			Version:       gamesave.CurrentSchemaVersion,
 			Preferences:   json.RawMessage(`{}`),
 			Progression:   settledProgressionJSON,
+			ActiveRun:     json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90bf2","stageNumber":11,"phase":"success","completedRounds":40,"gemRerollsUsed":0,"gemInventory":{}}`),
 			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
 		},
 	}); err != nil {
 		t.Fatalf("save stage 11 settlement proof: %v", err)
 	}
-	runBody := []byte(`{"runId":"0198b955-3656-7c40-b3cb-87f427b90bf2","writerGeneration":1,"sourceSaveRevision":2,"stageNumber":11,"completedRounds":40,"success":true,"pendingDiamonds":0,"firstClearModuleTickets":5,"clientCompatibilityVersion":2}`)
+	runBody := []byte(`{"runId":"0198b955-3656-7c40-b3cb-87f427b90bf2","writerGeneration":1,"sourceSaveRevision":2,"stageNumber":11,"completedRounds":40,"success":true,"pendingDiamonds":0,"firstClearModuleTickets":5,"clientCompatibilityVersion":9}`)
 	runResult, err := drawService.SettleRun(ctx, accountID, fixture.sessionID, economy.RunSettlementRequest{
 		IdempotencyKey:          "0198b955-3656-7c40-b3cb-87f427b90bf3",
 		RawBody:                 runBody,
@@ -383,7 +385,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		WriterGeneration:           fixture.writerGeneration,
 		ExpectedRevision:           2,
 		ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
-		RawBody:                    []byte(`{"expectedRevision":2,"clientCompatibilityVersion":2,"data":{"version":2}}`),
+		RawBody:                    []byte(`{"expectedRevision":2,"clientCompatibilityVersion":9,"data":{"version":2}}`),
 		Data: gamesave.Data{
 			Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`),
 			Progression:   researchProgressionJSON,
@@ -394,7 +396,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 	researchResult, err := drawService.CompleteResearch(ctx, accountID, fixture.sessionID, economy.ResearchCompleteRequest{
 		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bf5",
-		RawBody:          []byte(`{"expectedEconomyRevision":6,"sourceSaveRevision":3,"researchType":"researchEfficiency"}`),
+		RawBody:          []byte(`{"clientCompatibilityVersion":9,"expectedEconomyRevision":6,"sourceSaveRevision":3,"researchType":"researchEfficiency"}`),
 		ExpectedRevision: 6, ExpectedCatalogVersion: economy.CatalogVersion,
 		WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 3,
 		ResearchType: "researchEfficiency",
@@ -404,7 +406,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 	if _, err := drawService.CompleteResearch(ctx, accountID, fixture.sessionID, economy.ResearchCompleteRequest{
 		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bf6",
-		RawBody:          []byte(`{"expectedEconomyRevision":7,"sourceSaveRevision":3,"researchType":"researchEfficiency"}`),
+		RawBody:          []byte(`{"clientCompatibilityVersion":9,"expectedEconomyRevision":7,"sourceSaveRevision":3,"researchType":"researchEfficiency"}`),
 		ExpectedRevision: 7, ExpectedCatalogVersion: economy.CatalogVersion,
 		WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 3,
 		ResearchType: "researchEfficiency",
@@ -415,6 +417,12 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 
 func TestLegacyTransferBacksUpAndReplacesExistingAccountSave(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
+	// Model a never-upgraded target account for the remaining supported
+	// progression-only/pristine transfer path. Adopted targets are covered by
+	// explicit rejection tests and cannot be reset through this fixture.
+	if _, err := fixture.pool.Exec(ctx, `DELETE FROM account_run_authorities WHERE account_id=$1`, accountID); err != nil {
+		t.Fatal(err)
+	}
 	service := legacytransfer.NewService(fixture.pool, 15*time.Minute)
 	data := gamesave.Data{
 		Version:       gamesave.CurrentSchemaVersion,
@@ -422,7 +430,7 @@ func TestLegacyTransferBacksUpAndReplacesExistingAccountSave(t *testing.T) {
 		Preferences:   json.RawMessage(`{"music":true}`),
 		Progression:   json.RawMessage(`{"runes":30,"freeDiamonds":40,"paidDiamonds":0}`),
 		TurretModules: json.RawMessage(`{"tickets":2,"items":[]}`),
-		ActiveRun:     json.RawMessage(`{"roundIndex":3}`),
+		ActiveRun:     json.RawMessage(`{"economyRunId":null,"stageNumber":1,"phase":"preparation","roundIndex":0,"completedRounds":0,"gemInventory":{},"gemShards":0,"turrets":[]}`),
 	}
 	created, err := service.Create(ctx, legacytransfer.CreateRequest{
 		RawBody: []byte(`{"clientCompatibilityVersion":1,"data":{"version":2}}`),
@@ -577,7 +585,7 @@ func TestLegacyTransferBacksUpAndReplacesExistingAccountSave(t *testing.T) {
 		writer.SessionID.Valid == false || writer.ClientInstanceID.Valid {
 		t.Fatalf("invalidated writer = %#v", writer)
 	}
-	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
+	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   secondSaveKey,
 		ExpectedRevision: 2,
 		RawBody:          []byte(`{"expectedRevision":2,"data":{"version":2}}`),
@@ -617,7 +625,7 @@ func TestSaveWriterClaimAndUpdateUseOneLockOrder(t *testing.T) {
 	updateErrors := make(chan error, 1)
 	go func() {
 		<-start
-		result, err := fixture.service.ClaimWriter(ctx, accountID, secondSessionID, gamesave.ClaimWriterRequest{
+		result, err := fixture.service.ClaimWriter(ctx, accountID, secondSessionID, gamesave.ClaimWriterRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 			IdempotencyKey:   secondClaimKey,
 			ClientInstanceID: secondClientID,
 			RawBody:          []byte(`{"clientInstanceId":"` + secondClientID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`),
@@ -627,7 +635,7 @@ func TestSaveWriterClaimAndUpdateUseOneLockOrder(t *testing.T) {
 	}()
 	go func() {
 		<-start
-		_, err := fixture.service.Update(ctx, accountID, fixture.sessionID, gamesave.UpdateRequest{
+		_, err := fixture.service.Update(ctx, accountID, fixture.sessionID, gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 			IdempotencyKey:   firstSaveKey,
 			WriterGeneration: fixture.writerGeneration,
 			ExpectedRevision: 0,
@@ -672,8 +680,8 @@ func TestSaveWriterClaimAndUpdateUseOneLockOrder(t *testing.T) {
 
 func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
-	firstBody := []byte(`{"expectedRevision":0,"data":{"version":2,"savedAtMillis":1234,"preferences":{"music":true},"progression":{"runes":30},"turretModules":{"tickets":4},"activeRun":{"roundIndex":3}}}`)
-	firstRequest := gamesave.UpdateRequest{
+	firstBody := []byte(`{"expectedRevision":0,"data":{"version":2,"savedAtMillis":1234,"preferences":{"music":true},"progression":{"runes":30},"turretModules":{"tickets":4},"activeRun":{"economyRunId":"","stageNumber":1,"phase":"preparation","roundIndex":0,"completedRounds":0,"gemInventory":{},"turrets":[]}}}`)
+	firstRequest := gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   firstSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          firstBody,
@@ -683,7 +691,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 			Preferences:   json.RawMessage(`{"music":true}`),
 			Progression:   json.RawMessage(`{"runes":30}`),
 			TurretModules: json.RawMessage(`{"tickets":4}`),
-			ActiveRun:     json.RawMessage(`{"roundIndex":3}`),
+			ActiveRun:     json.RawMessage(`{"economyRunId":"","stageNumber":1,"phase":"preparation","roundIndex":0,"completedRounds":0,"gemInventory":{},"turrets":[]}`),
 		},
 	}
 
@@ -712,7 +720,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 		t.Fatalf("changed body error = %v", err)
 	}
 
-	if _, err := service.Update(ctx, accountID, gamesave.UpdateRequest{
+	if _, err := service.Update(ctx, accountID, gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   secondSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0}`),
@@ -739,7 +747,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 	requireSameJSON(t, snapshot.Data.ActiveRun, firstRequest.Data.ActiveRun)
 
 	secondBody := []byte(`{"expectedRevision":1,"data":{"version":2,"savedAtMillis":5678,"preferences":{},"progression":{},"turretModules":{},"activeRun":null}}`)
-	updated, err := service.Update(ctx, accountID, gamesave.UpdateRequest{
+	updated, err := service.Update(ctx, accountID, gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   secondSaveKey,
 		ExpectedRevision: 1,
 		RawBody:          secondBody,
@@ -768,7 +776,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 
 func TestSaveServiceConcurrentIdenticalRequestReturnsOneRevision(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
-	request := gamesave.UpdateRequest{
+	request := gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   firstSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
@@ -941,7 +949,7 @@ func TestSaveServiceConcurrentRevisionsAllowsOnlyOneWriter(t *testing.T) {
 
 func TestSaveServiceRollsBackWholeTransactionOnPayloadFailure(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
-	_, err := service.Update(ctx, accountID, gamesave.UpdateRequest{
+	_, err := service.Update(ctx, accountID, gamesave.UpdateRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   firstSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0}`),
@@ -1014,7 +1022,7 @@ func openSaveService(t *testing.T) (context.Context, *claimedSaveService, string
 	}
 	service := gamesave.NewService(pool)
 	claimBody := []byte(`{"clientInstanceId":"` + clientInstanceID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`)
-	claim, err := service.ClaimWriter(ctx, accountID, sessionID, gamesave.ClaimWriterRequest{
+	claim, err := service.ClaimWriter(ctx, accountID, sessionID, gamesave.ClaimWriterRequest{ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
 		IdempotencyKey:   writerClaimKey,
 		ClientInstanceID: clientInstanceID,
 		RawBody:          claimBody,

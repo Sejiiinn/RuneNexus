@@ -160,6 +160,24 @@ func run() -> void:
 	var generation: int = hud.rewards._layout_revision
 	app.response_ready.emit(); await frames()
 	check(hud.rewards._layout_revision == generation and not hud.rewards._reroll_pending,"late response leaves new reward untouched")
+	# Initial receipt, including migrated budget, must not manufacture a reroll
+	# flip from zero cards or resize the approved reward frame.
+	state.economyRunId = "initial-empty"
+	state.rewardOptions = []
+	state.gemRerollsUsed = 0
+	app.reroll_view.merge({"status":"awaiting_offer","available":true,"locked":true,"note":"서버 젬 후보를 확인하고 있습니다."},true)
+	hud.refresh(); await frames()
+	hud.rewards.gem_entrance._apply(1.0); await frames()
+	var waiting_bounds := reward_bounds(hud)
+	check(hud.overlay_body.find_child("GemRewardCards",true,false).get_child_count() == 0 and hud.overlay_body.find_child("GemRewardShards",true,false).disabled, "initial wait has no candidates and disables alternate")
+	check(hud.overlay_body.find_child("GemRerollStatus",true,false).text == "서버 젬 후보를 확인하고 있습니다.", "initial pending status is visible")
+	state.rewardOptions = ["attackSpeed","range","heavyWeapon"]
+	state.gemRerollsUsed = 1
+	app.reroll_view.merge({"status":"available","available":true,"locked":false,"free":false,"remaining":2,"note":""},true)
+	hud.refresh(); await frames()
+	check(not hud.rewards.gem_flip.active and not hud.rewards._hold_reroll_offer and hud.overlay_body.find_child("GemRewardCards",true,false).get_child_count() == 3, "initial server receipt appears without a flip even with migrated budget")
+	if reward_bounds(hud) != waiting_bounds: print("INITIAL_BOUNDS before=", waiting_bounds, " after=", reward_bounds(hud))
+	check(reward_bounds(hud) == waiting_bounds, "initial arrival preserves existing row and modal layout")
 	print("GEM_REROLL_UI checks=",checks," failures=",failures)
 	hud.queue_free(); app.queue_free(); await frames(2)
 	quit(0 if failures.is_empty() else 1)

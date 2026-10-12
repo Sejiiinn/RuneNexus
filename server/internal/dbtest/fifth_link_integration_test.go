@@ -19,14 +19,13 @@ func TestFifthLinkResearchSaveCompletionAndOldWriterProtection(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = fixture.Update(ctx, accountID, gamesave.UpdateRequest{IdempotencyKey: key, ExpectedRevision: revision, ClientCompatibilityVersion: client, RawBody: []byte(`{"clientCompatibilityVersion":6}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: raw, TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`), ActiveRun: run}})
+		_, err = fixture.Update(ctx, accountID, gamesave.UpdateRequest{IdempotencyKey: key, ExpectedRevision: revision, ClientCompatibilityVersion: client, RawBody: []byte(`{"clientCompatibilityVersion":9}`), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: raw, TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`), ActiveRun: run}})
 		return err
 	}
-	if err := save(firstSaveKey, 0, 6, nil); err != nil {
-		t.Fatal(err)
-	}
+	initialProgression, _ := json.Marshal(p)
+	seedPreAuthoritySave(t, fixture, accountID, gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: initialProgression, TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`), ActiveRun: json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90d00","stageNumber":1,"phase":"preparation","completedRounds":0,"gemRerollsUsed":0,"gemInventory":{"attackSpeed":1,"range":1,"physicalDamage":1,"criticalChance":1,"multipleProjectiles":1},"turrets":[]}`)})
 	svc := economy.NewService(fixture.pool)
-	boot, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{IdempotencyKey: secondSaveKey, RawBody: []byte(`{"clientCompatibilityVersion":6}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1})
+	boot, err := svc.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{IdempotencyKey: secondSaveKey, RawBody: []byte(`{"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +35,7 @@ func TestFifthLinkResearchSaveCompletionAndOldWriterProtection(t *testing.T) {
 	if err = save("0198b955-3656-7c40-b3cb-87f427b90c01", 1, 5, nil); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
 		t.Fatalf("old update: %v", err)
 	}
-	request := economy.ResearchCompleteRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90c02", RawBody: []byte(`{"clientCompatibilityVersion":6,"researchType":"linkExpansionTwo"}`), ExpectedRevision: boot.Snapshot.EconomyRevision, ExpectedCatalogVersion: economy.CatalogVersion, WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 1, ResearchType: "linkExpansionTwo"}
+	request := economy.ResearchCompleteRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90c02", RawBody: []byte(`{"clientCompatibilityVersion":9,"researchType":"linkExpansionTwo"}`), ExpectedRevision: boot.Snapshot.EconomyRevision, ExpectedCatalogVersion: economy.CatalogVersion, WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 1, ResearchType: "linkExpansionTwo"}
 	result, err := svc.CompleteResearch(ctx, accountID, fixture.sessionID, request)
 	if err != nil || result.ProgressionEffect == nil || result.ProgressionEffect.Payload["researchType"] != "linkExpansionTwo" {
 		t.Fatalf("II complete: %+v %v", result, err)
@@ -47,11 +46,11 @@ func TestFifthLinkResearchSaveCompletionAndOldWriterProtection(t *testing.T) {
 	}
 	p["researchLevels"] = map[string]int{"linkExpansionOne": 1, "linkExpansionTwo": 1}
 	p["activeResearches"] = []any{}
-	run := json.RawMessage(`{"stageNumber":1,"gold":1000,"turrets":[{"type":"arrow","level":5,"slotLimit":5,"equippedGemSlots":["attackSpeed","range","physicalDamage","criticalChance","multipleProjectiles"]}]}`)
-	if err = save("0198b955-3656-7c40-b3cb-87f427b90c03", 1, 6, run); err != nil {
+	run := json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90d00","stageNumber":1,"phase":"preparation","completedRounds":0,"gemRerollsUsed":0,"gemInventory":{},"gold":1000,"turrets":[{"type":"arrow","level":5,"slotLimit":5,"equippedGemSlots":["attackSpeed","range","physicalDamage","criticalChance","multipleProjectiles"]}]}`)
+	if err = save("0198b955-3656-7c40-b3cb-87f427b90c03", 1, gamesave.CurrentClientCompatibilityVersion, run); err != nil {
 		t.Fatalf("save five: %v", err)
 	}
-	ack, err := svc.AcknowledgeProgressionEffect(ctx, accountID, fixture.sessionID, economy.EffectAckRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90c04", RawBody: []byte(`{"clientCompatibilityVersion":6}`), EffectID: result.ProgressionEffect.ID, WriterGeneration: fixture.writerGeneration, AppliedSaveRevision: 2})
+	ack, err := svc.AcknowledgeProgressionEffect(ctx, accountID, fixture.sessionID, economy.EffectAckRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90c04", RawBody: []byte(`{"clientCompatibilityVersion":9}`), EffectID: result.ProgressionEffect.ID, WriterGeneration: fixture.writerGeneration, AppliedSaveRevision: 2})
 	if err != nil || len(ack.Snapshot.PendingProgressionEffects) != 0 {
 		t.Fatalf("II ack: %+v %v", ack, err)
 	}

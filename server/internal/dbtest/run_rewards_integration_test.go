@@ -16,25 +16,17 @@ import (
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 )
 
+const settlementTerminalRun = `{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90bf2","stageNumber":11,"phase":"success","completedRounds":40,"roundIndex":39,"gemRerollsUsed":0,"gemInventory":{},"gemShards":0,"turrets":[],"rewardOptions":[]}`
+
 const settlementRunID = "0198b955-3656-7c40-b3cb-87f427b90bf2"
 
 func openRunSettlement(t *testing.T) (context.Context, *claimedSaveService, string, *economy.Service, economy.RunSettlementRequest) {
 	t.Helper()
 	ctx, fixture, accountID := openSaveService(t)
-	_, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
-		IdempotencyKey: firstSaveKey, ExpectedRevision: 0, RawBody: []byte(`{"expectedRevision":0}`),
-		Data: gamesave.Data{
-			Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`),
-			Progression:   json.RawMessage(`{"freeDiamonds":0,"paidDiamonds":0}`),
-			TurretModules: json.RawMessage(`{"tickets":0,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	seedPreAuthoritySave(t, fixture, accountID, gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"freeDiamonds":0,"paidDiamonds":0}`), TurretModules: json.RawMessage(`{"tickets":0,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`), ActiveRun: json.RawMessage(settlementTerminalRun)})
 	service := economy.NewService(fixture.pool)
-	_, err = service.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{
-		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"bootstrap":true}`),
+	_, err := service.Bootstrap(ctx, accountID, fixture.sessionID, economy.BootstrapRequest{
+		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bea", RawBody: []byte(`{"bootstrap":true,"clientCompatibilityVersion":9}`),
 		WriterGeneration: fixture.writerGeneration, ExpectedSaveRevision: 1,
 	})
 	if err != nil {
@@ -43,10 +35,11 @@ func openRunSettlement(t *testing.T) (context.Context, *claimedSaveService, stri
 	_, err = fixture.Update(ctx, accountID, gamesave.UpdateRequest{
 		IdempotencyKey: secondSaveKey, ExpectedRevision: 1,
 		ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
-		RawBody:                    []byte(`{"expectedRevision":1,"clientCompatibilityVersion":4}`),
+		RawBody:                    []byte(`{"expectedRevision":1,"clientCompatibilityVersion":9}`),
 		Data: gamesave.Data{
 			Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`),
 			Progression:   json.RawMessage(`{"bestRoundsByStage":{"11":40},"clearedStageNumbers":[11]}`),
+			ActiveRun:     json.RawMessage(settlementTerminalRun),
 			TurretModules: json.RawMessage(`{"tickets":0,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
 		},
 	})
@@ -55,7 +48,7 @@ func openRunSettlement(t *testing.T) (context.Context, *claimedSaveService, stri
 	}
 	request := economy.RunSettlementRequest{
 		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bf3", RunID: settlementRunID,
-		RawBody: []byte(`{"runId":"` + settlementRunID + `"}`), WriterGeneration: fixture.writerGeneration,
+		RawBody: []byte(`{"clientCompatibilityVersion":9,"runId":"` + settlementRunID + `"}`), WriterGeneration: fixture.writerGeneration,
 		SourceSaveRevision: 2, StageNumber: 11, CompletedRounds: 40, Success: true,
 		PendingDiamonds: 5, FirstClearModuleTickets: economy.StageElevenModuleTicketGift,
 	}
@@ -83,7 +76,7 @@ func TestRunSettlementCanonicalUUIDAndExactReplay(t *testing.T) {
 		t.Run(firstRunID, func(t *testing.T) {
 			ctx, fixture, accountID, service, request := openRunSettlement(t)
 			request.RunID = firstRunID
-			request.RawBody = []byte(`{"runId":"` + firstRunID + `"}`)
+			request.RawBody = []byte(`{"clientCompatibilityVersion":9,"runId":"` + firstRunID + `"}`)
 			first, err := service.SettleRun(ctx, accountID, fixture.sessionID, request)
 			if err != nil {
 				t.Fatal(err)
@@ -108,7 +101,7 @@ func TestRunSettlementCanonicalUUIDAndExactReplay(t *testing.T) {
 			for i, runID := range []string{strings.ToUpper(settlementRunID), settlementRunID, "0198B955-3656-7c40-b3Cb-87F427b90bF2"} {
 				request.IdempotencyKey = fmt.Sprintf("0198b955-3656-7c40-b3cb-87f427b90b%02x", i+244)
 				request.RunID = runID
-				request.RawBody = []byte(`{"runId":"` + runID + `"}`)
+				request.RawBody = []byte(`{"clientCompatibilityVersion":9,"runId":"` + runID + `"}`)
 				// 성공 영수증은 현재 writer/save 상태와 무관하게 복구된다.
 				request.WriterGeneration++
 				replay, err := service.SettleRun(ctx, accountID, fixture.sessionID, request)
@@ -117,15 +110,15 @@ func TestRunSettlementCanonicalUUIDAndExactReplay(t *testing.T) {
 				}
 			}
 			assertSingleRunSettlement(t, ctx, fixture)
-			// 다른 UUID의 런은 다이아를 받지만 최초 클리어 모듈권은 다시 받지 않는다.
+			// A fabricated fresh ID cannot reuse terminal progress to reset lifecycle.
 			request.RunID = "0198b955-3656-7c40-b3cb-87f427b90bf7"
 			request.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90bf8"
-			request.RawBody = []byte(`{"runId":"` + request.RunID + `"}`)
+			request.RawBody = []byte(`{"clientCompatibilityVersion":9,"runId":"` + request.RunID + `"}`)
 			request.WriterGeneration = fixture.writerGeneration
-			next, err := service.SettleRun(ctx, accountID, fixture.sessionID, request)
-			if err != nil || next.GrantedDiamonds != 5 || next.GrantedModuleTickets != 0 || next.Snapshot.Wallet.FreeDiamonds != 10 || next.Snapshot.Wallet.ModuleTickets != economy.StageElevenModuleTicketGift {
-				t.Fatalf("different run = %+v, err=%v", next, err)
+			if _, err := service.SettleRun(ctx, accountID, fixture.sessionID, request); !errors.Is(err, economy.ErrGemOfferConflict) {
+				t.Fatalf("fabricated new run settled: %v", err)
 			}
+
 		})
 	}
 }
@@ -134,7 +127,7 @@ func TestRunSettlementLegacyMixedCaseReceipt(t *testing.T) {
 	ctx, fixture, accountID, service, request := openRunSettlement(t)
 	legacyRunID := "0198B955-3656-7c40-b3Cb-87F427b90bF2"
 	request.RunID = legacyRunID
-	request.RawBody = []byte(`{"runId":"` + legacyRunID + `"}`)
+	request.RawBody = []byte(`{"clientCompatibilityVersion":9,"runId":"` + legacyRunID + `"}`)
 	first, err := service.SettleRun(ctx, accountID, fixture.sessionID, request)
 	if err != nil {
 		t.Fatal(err)
@@ -165,7 +158,7 @@ func TestRunSettlementLegacyMixedCaseReceipt(t *testing.T) {
 	for i, runID := range []string{settlementRunID, strings.ToUpper(settlementRunID), legacyRunID} {
 		request.IdempotencyKey = fmt.Sprintf("0198b955-3656-7c40-b3cb-87f427b90b%02x", i+244)
 		request.RunID = runID
-		request.RawBody = []byte(`{"runId":"` + runID + `"}`)
+		request.RawBody = []byte(`{"clientCompatibilityVersion":9,"runId":"` + runID + `"}`)
 		replay, err := service.SettleRun(ctx, accountID, fixture.sessionID, request)
 		if err != nil || !reflect.DeepEqual(replay, first) {
 			t.Fatalf("legacy receipt replay = %+v, err=%v", replay, err)
@@ -186,7 +179,7 @@ func TestRunSettlementConcurrentUUIDCaseVariants(t *testing.T) {
 		variant := request
 		variant.IdempotencyKey = fmt.Sprintf("0198b955-3656-7c40-b3cb-87f427b90b%02x", i+244)
 		variant.RunID = runID
-		variant.RawBody = []byte(`{"runId":"` + runID + `"}`)
+		variant.RawBody = []byte(`{"clientCompatibilityVersion":9,"runId":"` + runID + `"}`)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

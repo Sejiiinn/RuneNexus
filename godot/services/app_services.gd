@@ -18,12 +18,15 @@ var issue := ""
 var root_path := "user://standalone-session"
 var sync_elapsed := 0.0
 var online_ready := false
+# Writer/save readiness is not permission to play before economy recovery.
+var play_ready := false
 var epoch := 0
 var _quiesced := false
 var _interactive_login := false
 var _background_busy := false
 var _startup_pending := true
 var _initializing := false
+var _update_was_blocked := false
 var _session_end_pending := false
 var _login_resume_pending := false
 var _login_in_progress := false
@@ -78,21 +81,28 @@ func setup(application, native_platform: Object = null, settings: Dictionary = {
 	economy = Economy.new()
 	add_child(economy)
 	economy.changed.connect(func():
+		if online != null: online.set_process(not economy.busy and not (updates != null and updates.blocked))
 		if economy.issue == "CLIENT_UPDATE_REQUIRED": updates.require_update()
 		changed.emit())
 	_initialize.call_deferred()
 
 func connected() -> bool:
-	return account != null and not account.credentials.is_empty()
+	return account != null and account.authenticated()
 
 func needs_profile() -> bool:
-	return connected() and (not profile.get("nickname") is String or profile.nickname.is_empty())
+	return connected() and not profile.is_empty() and (not profile.get("nickname") is String or profile.nickname.is_empty())
+
+func authentication_required() -> bool:
+	return not connected() or needs_profile() or not online_ready or not play_ready
 
 func blocks_play() -> bool:
-	return (busy and not _background_busy) or needs_profile() or (connected() and (not online_ready or app.checkpoint.owner != str(account.credentials.accountId).to_lower())) or (updates != null and updates.blocked)
+	return _startup_pending or (busy and not _background_busy) or authentication_required() or app.checkpoint.owner != str(account.credentials.accountId).to_lower() or (updates != null and updates.blocked)
 
 func _update_changed() -> void:
-	if online != null: online.set_process(not updates.blocked)
+	var released: bool = _update_was_blocked and not updates.blocked
+	_update_was_blocked = updates.blocked
+	if released: _show_auth_gate.call_deferred()
+	if online != null: online.set_process(not updates.blocked and (economy == null or not economy.busy))
 	if account != null: account.set_process(not updates.blocked)
 	if boot_host!=null:
 		if updates.blocked and not app.startup_blocked: app.pause_and_save()
@@ -118,31 +128,45 @@ func _update_changed() -> void:
 	changed.emit()
 
 func _account_changed() -> void:
-	# A definitive timer-driven refresh failure removes account authority.
-	# Defer slot changes until the authentication operation has completed.
-	if not connected() and account.account_id_hint.is_empty():
+	# A refresh in flight temporarily blocks play. Only a completed failure opens
+	# the retry gate; retained credentials never count as successful authority.
+	if not connected() and not account.authentication_pending():
 		_session_end_pending = true
 		_handle_session_end.call_deferred()
 	changed.emit()
 
 func _handle_session_end() -> void:
-	if busy: return
-	if connected() or not account.account_id_hint.is_empty() or app.checkpoint.owner == "guest":
+	if busy or account.authentication_pending(): return
+	if connected():
 		_session_end_pending = false
 		return
-	if not app.startup_blocked and not app.pause_and_save():
+	play_ready = false
+	if not app.startup_blocked and app.checkpoint.owner != "guest" and not app.pause_and_save():
 		issue = "LOCAL_SAVE_FAILED"
 		return
-	epoch += 1
-	online_ready = false
-	economy.invalidate()
-	_reset_mailbox_summary()
-	if online != null: online.dispose()
-	profile = {}
-	if not _load_slot("guest"): issue = "GUEST_SAVE_LOAD_FAILED"
+	# Keep the last account checkpoint and durable outbox inert for recovery.
+	# Never switch to a playable guest slot or sign out on a network failure.
+	if account.account_id_hint.is_empty():
+		epoch += 1
+		online_ready = false
+		if economy != null: economy.invalidate()
+		_reset_mailbox_summary()
+		if online != null: online.dispose()
+		profile = {}
+	issue = account.issue_code if not account.issue_code.is_empty() else "ACCOUNT_REQUIRED"
 	_session_end_pending = false
 	_quiesced = false
+	_show_auth_gate()
 	changed.emit()
+
+func _show_auth_gate() -> void:
+	if busy or _startup_pending or not authentication_required() or (updates != null and updates.blocked): return
+	app.in_lobby = true
+	app.refresh_ui()
+	if app.lobby == null: return
+	if app.lobby._services != null and app.lobby._services.page == "계정 및 저장" and app.lobby._services._active_view(app.lobby._services.view_epoch):
+		app.lobby._services._render()
+	else: app.lobby.open_service("계정 및 저장")
 
 func has_unclaimed_mail() -> bool:
 	return connected() and online_ready and _mailbox_owner == str(account.credentials.get("accountId", "")).to_lower() and mailbox_unclaimed_count > 0
@@ -229,26 +253,27 @@ func _initialize() -> void:
 		issue = "LOCAL_SAVE_LOAD_FAILED"
 		changed.emit()
 		return
-	var result := {"ok":true}
+	play_ready = false
+	var result := {"ok":false,"code":"LOGIN_UNAVAILABLE"}
 	if platform != null and account != null:
 		result = await account.restore()
 		if result.get("ok",false) and connected(): result = await _bind(false)
-		elif not account.account_id_hint.is_empty():
-			if not _load_slot(account.account_id_hint): result = {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
+		elif result.get("ok",false): result = {"ok":false,"code":"ACCOUNT_REQUIRED"}
 	_startup_pending = false
 	_initializing = false
 	busy = false
 	issue = "" if result.get("ok",false) else str(result.get("code", ""))
 	app.refresh_ui()
 	changed.emit()
-	if needs_profile() and app.lobby != null: app.lobby.open_service("계정 및 저장")
+	_show_auth_gate()
 
 func login() -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if busy or (economy != null and economy.busy): return {"ok":false,"code":"BUSY"}
 	if not configured(): return {"ok":false,"code":"LOGIN_UNAVAILABLE"}
-	if not app.startup_blocked and not app.pause_and_save(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	if not app.startup_blocked and app.checkpoint.owner != "guest" and not app.pause_and_save(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	busy = true
+	play_ready = false
 	issue = ""
 	_login_in_progress = true
 	_login_resume_pending = false
@@ -269,6 +294,7 @@ func login() -> Dictionary:
 	issue = "" if result.get("ok",false) else str(result.get("code","LOGIN_FAILED"))
 	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
 	app.refresh_ui()
+	_show_auth_gate()
 	changed.emit()
 	return result
 
@@ -276,6 +302,7 @@ func _bind(interactive: bool) -> Dictionary:
 	epoch += 1
 	var binding := epoch
 	online_ready = false
+	play_ready = false
 	economy.invalidate()
 	_reset_mailbox_summary()
 	profile = {}
@@ -289,24 +316,22 @@ func _bind(interactive: bool) -> Dictionary:
 	if not loaded.get("ok",false): return loaded
 	profile = loaded.body
 	if needs_profile(): return {"ok":true,"code":"NICKNAME_REQUIRED"}
-	var guest: Dictionary = {}
-	if interactive and app.checkpoint.owner == "guest":
-		var saved: Variant = app.checkpoint.store.load_save()
-		if saved is Dictionary: guest = saved
 	online = load("res://services/online_save.gd").new()
 	add_child(online)
 	online.configure(account, root_path, str(config.get("clientBuild","godot-local")), {"quiesce":_quiesce,"resume":_resume})
 	online.changed.connect(_online_changed)
-	var result: Dictionary = await online.bootstrap(guest,interactive)
+	var result: Dictionary = await online.bootstrap({},false)
 	if binding != epoch: return {"ok":false,"code":"STALE_BINDING"}
 	if not result.get("ok",false): return result
 	if not _load_slot(str(account.credentials.accountId)): return {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
 	online.acknowledge_reload()
 	online_ready = true
 	_interactive_login = false
-	economy.configure(account,app.checkpoint.rewards(),{"sync":sync,"snapshot":_apply_snapshot,"snapshot_current":_snapshot_current,"receipt":_apply_receipt,"effect":_apply_effect})
+	economy.configure(account,app.checkpoint.rewards(),{"sync":sync,"snapshot":_apply_snapshot,"snapshot_current":_snapshot_current,"receipt":_apply_receipt,"effect":_apply_effect,"gem_snapshot":_apply_gem_snapshot,"gem_save":_ack_gem_save})
 	if not economy.mail_claimed.is_connected(_mail_claimed): economy.mail_claimed.connect(_mail_claimed)
 	result = await economy.refresh()
+	if binding != epoch: return {"ok":false,"code":"STALE_BINDING"}
+	play_ready = result.get("ok", false) and connected()
 	# Recovery can replay a previously sent mail claim. Query after that replay;
 	# its receipt signal may already have started or completed the same check.
 	if binding == epoch and _mailbox_owner.is_empty(): refresh_mailbox_summary()
@@ -328,8 +353,9 @@ func _load_slot(owner: String) -> bool:
 func logout() -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if busy or (economy != null and economy.busy): return {"ok":false,"code":"BUSY"}
-	if not app.startup_blocked and not app.pause_and_save(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	if not app.startup_blocked and app.checkpoint.owner != "guest" and not app.pause_and_save(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	busy = true
+	play_ready = false
 	epoch += 1
 	economy.invalidate()
 	_reset_mailbox_summary()
@@ -339,18 +365,20 @@ func logout() -> Dictionary:
 		profile = {}
 		_interactive_login = false
 		if online != null and online.has_method("dispose"): online.dispose()
-		if not _load_slot("guest"): result = {"ok":false,"code":"GUEST_SAVE_LOAD_FAILED"}
 		_quiesced = false
 		if platform != null: platform.sign_out_google()
 	busy = false
-	issue = "" if result.get("ok",false) else str(result.get("code","LOGOUT_PENDING"))
+	issue = "ACCOUNT_REQUIRED" if result.get("ok",false) else str(result.get("code","LOGOUT_PENDING"))
+	_show_auth_gate()
 	changed.emit()
 	return result
 
 func sync() -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if not connected() or not online_ready: return {"ok":false,"code":"ACCOUNT_REQUIRED"}
-	if not app.persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	# An uncertain fallback must reach canonical reconciliation without a live
+	# checkpoint write first; ordinary checkpoint writers reject its marker.
+	if not app.checkpoint.store.has_recovery_marker() and not app.persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	var result: Dictionary = await online.sync_checkpoint()
 	if online.requires_reload and online.state.get("rebase") == null:
 		if not _load_slot(str(account.credentials.accountId)): return {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
@@ -363,8 +391,12 @@ func retry() -> Dictionary:
 	if account == null: return {"ok":false,"code":"LOGIN_UNAVAILABLE"}
 	if busy: return {"ok":false,"code":"BUSY"}
 	busy = true
-	var result: Dictionary
-	if connected():
+	play_ready = false
+	changed.emit()
+	# Every foreground/retry must confirm server authentication, even with an
+	# unexpired cached access token. Manifest success cannot satisfy this gate.
+	var result: Dictionary = await account.restore()
+	if result.get("ok",false) and connected():
 		if not online_ready: result = await _bind(_interactive_login)
 		else:
 			result = await online.foreground()
@@ -375,18 +407,18 @@ func retry() -> Dictionary:
 					online.acknowledge_reload()
 			if result.get("ok",false): result = await economy.refresh()
 			refresh_mailbox_summary()
-	else:
-		result = await account.restore()
-		if result.get("ok",false) and connected(): result = await _bind(false)
+	elif result.get("ok",false): result = {"ok":false,"code":"ACCOUNT_REQUIRED"}
+	play_ready = result.get("ok",false) and connected() and online_ready
 	busy = false
 	issue = "" if result.get("ok",false) else str(result.get("code","SYNC_FAILED"))
-	if issue == "CLIENT_UPDATE_REQUIRED": updates.require_update()
+	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
+	_show_auth_gate()
 	changed.emit()
 	return result
 
 func perform(action: String, values: Dictionary = {}) -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
-	if busy or not online_ready: return {"ok":false,"code":"ACCOUNT_REQUIRED" if not connected() else "SAVE_SYNC_REQUIRED"}
+	if busy or not connected() or not online_ready or not play_ready: return {"ok":false,"code":"ACCOUNT_REQUIRED" if not connected() else "SAVE_SYNC_REQUIRED"}
 	var binding := epoch
 	var result: Dictionary = await economy.execute(action,values)
 	if binding != epoch: return {"ok":false,"code":"STALE_BINDING"}
@@ -475,7 +507,11 @@ func _online_changed() -> void:
 	changed.emit()
 
 func _quiesce() -> bool:
-	if not app.startup_blocked and not app.pause_and_save(): return false
+	# A recovered account backup is evidence, not a trusted live checkpoint.
+	# Freeze runtime without persisting its in-memory migration/projection before
+	# OnlineSave captures the untouched fallback as a conflict backup.
+	if app.checkpoint.store.has_recovery_marker(): app.pause_runtime()
+	elif not app.startup_blocked and not app.pause_and_save(): return false
 	_quiesced = true
 	app.startup_blocked = true
 	return true
@@ -486,7 +522,16 @@ func _resume() -> void:
 	_quiesced = false
 
 func _apply_snapshot(value: Dictionary) -> bool:
-	if not app.checkpoint.apply_economy_snapshot(app,value): return false
+	if not connected() or app.checkpoint.owner != str(account.credentials.accountId).to_lower() or economy.outbox != app.checkpoint.rewards(): return false
+	if app.checkpoint.store.has_recovery_marker():
+		if not await _ack_gem_save({"currentEconomy":value}): return false
+	var intent := _retired_equip_intent(value)
+	if not intent.is_empty():
+		# The command was already successful and retired, but a corrupt primary
+		# can lose its not-yet-uploaded equipment allocation. Re-read current save
+		# before restoring/cancelling that durable local intent; never POST again.
+		if not await _ack_gem_save({"currentEconomy":value,"command":intent}): return false
+	if not app.checkpoint.apply_economy_snapshot(app,value,intent): return false
 	_snapshot_checkpoint = weakref(app.checkpoint)
 	_snapshot_projection = _economy_projection().duplicate(true)
 	if not _economy_ui_pending:
@@ -503,15 +548,52 @@ func _economy_projection_of(p: Dictionary) -> Dictionary:
 	return {"freeDiamonds":p.get("freeDiamonds",0),"paidDiamonds":p.get("paidDiamonds",0),
 		"gemResetTickets":p.get("gemResetTickets",0),"turretModules":p.get("turretModules",{}),"researchSlotTwoUnlocked":p.get("researchSlotTwoUnlocked",false)}
 
-func _snapshot_current(_value: Dictionary) -> bool:
-	var receipt: Variant = _value.get("gemReroll")
-	if receipt is Dictionary and app.run_domain.state.get("economyRunId") == receipt.runId:
-		var live: Dictionary = app.run_domain.state
-		if int(live.get("gemRerollsUsed", 0)) < int(receipt.totalUsed): return false
-		if preload("res://app/gem_reroll.gd").eligible(live) and int(live.completedRounds) == int(receipt.rewardWave) and live.rewardOptions != receipt.gemOptions: return false
+func _snapshot_current(value: Dictionary) -> bool:
+	if app.checkpoint.store.has_recovery_marker() or not _retired_equip_intent(value).is_empty(): return false
+	var live: Dictionary = app.run_domain.state
+	var projected := preload("res://app/gem_reroll.gd").project_snapshot(live, value)
+	if projected != live: return false
 	if _snapshot_checkpoint == null or _snapshot_checkpoint.get_ref() != app.checkpoint or _snapshot_projection != _economy_projection(): return false
-	if app.scene.combat_runtime.active and not app.run_domain.state.is_empty():
-		return _snapshot_projection == _economy_projection_of(app.run_domain.state.get("progression",{}))
+	if app.scene.combat_runtime.active and not live.is_empty():
+		return _snapshot_projection == _economy_projection_of(live.get("progression",{}))
+	return true
+
+func _retired_equip_intent(value: Dictionary) -> Dictionary:
+	var offer: Variant = value.get("gemOffer")
+	var live: Dictionary = app.run_domain.state
+	if not offer is Dictionary or offer.get("status") != "chosen" or live.is_empty(): return {}
+	if live.get("economyRunId") != offer.get("runId") or live.get("gemOfferId") != offer.get("offerId") or int(live.get("completedRounds", -1)) != int(offer.get("rewardWave", -2)): return {}
+	if int(live.get("gemOfferEquipRevision", 0)) >= int(offer.get("revision", 0)): return {}
+	var box = app.checkpoint.rewards()
+	if box.state.get("inFlight") != null: return {}
+	var intent: Dictionary = box.state.get("lastGemChoice", {})
+	if intent.get("kind") != "choose_gem" or intent.get("equipIntent", {}).is_empty(): return {}
+	var body: Variant = Json.parse(intent.get("encodedBody", ""))
+	if not body is Dictionary or body.get("runId") != offer.runId or body.get("offerId") != offer.offerId or body.get("choice") != offer.get("grantedGem"): return {}
+	return intent.duplicate(true)
+
+func _apply_gem_snapshot(value: Dictionary, command: Dictionary) -> bool:
+	if not connected() or app.checkpoint.owner != str(account.credentials.accountId).to_lower() or economy.outbox != app.checkpoint.rewards(): return false
+	if not app.checkpoint.apply_economy_snapshot(app, value, command): return false
+	_snapshot_checkpoint = weakref(app.checkpoint)
+	_snapshot_projection = _economy_projection().duplicate(true)
+	_economy_ui_pending = true
+	_flush_economy_ui.call_deferred()
+	return true
+
+func _ack_gem_save(result: Dictionary) -> bool:
+	if online == null or not connected() or app.checkpoint.owner != str(account.credentials.accountId).to_lower(): return false
+	var was_battle: bool = not app.in_lobby
+	var previous_run := str(app.run_domain.state.get("economyRunId", ""))
+	var accepted: bool = await online.accept_gem_save(result)
+	if not accepted: return false
+	if online.requires_reload:
+		if not _load_slot(str(account.credentials.accountId)): return false
+		economy.outbox = app.checkpoint.rewards()
+		online.acknowledge_reload()
+		if was_battle and not app._stage_entry_pending and not previous_run.is_empty() and app.run_domain.state.get("economyRunId") == previous_run:
+			if not await app._realize_battle_presentation(): return false
+			app.in_lobby = false
 	return true
 
 func _flush_economy_ui() -> void:

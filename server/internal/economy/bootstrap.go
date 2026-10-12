@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/runstate"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -97,6 +98,18 @@ func (service *Service) Bootstrap(
 	}
 	if economy.AuthorityState == "server_authoritative" {
 		return BootstrapResult{}, ErrAlreadyBootstrapped
+	}
+	currentRunClient, err := runstate.RequiresCurrentClient(ctx, txQueries, databaseAccountID)
+	if err != nil {
+		return BootstrapResult{}, err
+	}
+	if currentRunClient && gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.RunAuthorityClientCompatibilityVersion {
+		return BootstrapResult{}, gamesave.ErrClientUpdateRequired
+	}
+	if gamesave.ClientCompatibilityFromBody(request.RawBody) >= gamesave.RunAuthorityClientCompatibilityVersion {
+		if err = runstate.AdoptCanonical(ctx, txQueries, databaseAccountID, snapshot.ActiveRun); err != nil {
+			return BootstrapResult{}, runLifecycleError(err)
+		}
 	}
 
 	legacyEconomy, accepted, rejected, cleared, err := decodeLegacyEconomy(

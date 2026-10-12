@@ -12,13 +12,22 @@ const ACCOUNT := "00000000-0000-4000-8000-000000000001"
 class Online extends Node:
 	var app
 	var requires_reload := false
-	var state := {"rebase":null}
+	var state := {"rebase":null,"baseRevision":8}
 	var fail_sync := false
 	var sync_calls := 0
+	var synced_gem_uses: Array = []
+	var ack_fail := false
+	var acknowledged_revision := 0
+	func accept_gem_save(receipt: Dictionary) -> bool:
+		if ack_fail: return false
+		acknowledged_revision = maxi(acknowledged_revision, int(receipt.get("saveRevision", 0)))
+		state.baseRevision = maxi(int(state.baseRevision), acknowledged_revision)
+		return true
 	func sync_checkpoint() -> Dictionary:
 		sync_calls += 1
+		synced_gem_uses.append(int(app.run_domain.state.get("gemRerollsUsed", 0)))
 		if fail_sync: return {"ok":false,"code":"SAVE_SYNC_REQUIRED"}
-		return {"ok":true,"accountId":ACCOUNT,"sourceSaveRevision":8,"writerGeneration":2}
+		return {"ok":true,"accountId":ACCOUNT,"sourceSaveRevision":int(state.baseRevision),"writerGeneration":2}
 class Transport extends Node:
 	signal release
 	var app
@@ -26,6 +35,7 @@ class Transport extends Node:
 	var hold := false
 	var response: Dictionary = {}
 	var snapshot: Dictionary = {}
+	var next_snapshot: Dictionary = {}
 	var durable := true
 	func request(method: int, url: String, body := "", headers := {}) -> Dictionary:
 		var saved = app.checkpoint.store.load_save()
@@ -36,6 +46,12 @@ class Transport extends Node:
 		sent.append({"method":method,"url":url,"body":body,"headers":headers.duplicate(true)})
 		if method == HTTPClient.METHOD_GET: return {"ok":true,"status":200,"body":snapshot.duplicate(true)}
 		if hold: await release
+		if response.get("ok", false):
+			if not next_snapshot.is_empty():
+				snapshot = next_snapshot.duplicate(true)
+				next_snapshot = {}
+			elif response.get("body", {}).get("economy") is Dictionary:
+				snapshot = response.body.economy.duplicate(true)
 		return response.duplicate(true)
 var directory := ""
 var failures: Array = []
@@ -55,6 +71,7 @@ func attach(app):
 	var service = Services.new()
 	service.app = app
 	service.online_ready = true
+	service.play_ready = true
 	service.profile = {"nickname":"fixture"}
 	service._startup_pending = false
 	root.add_child(service)
@@ -66,15 +83,17 @@ func attach(app):
 	service.account.add_child(transport)
 	service.account.configure("https://fixture.invalid", null, transport)
 	service.account.credentials = {"accountId":ACCOUNT,"accessToken":"fixture-access","accessExpiresAt":"2099-01-01T00:00:00Z"}
+	service.account._authenticated = true
 	service.account.set_process(false)
 	service.online = Online.new()
 	service.online.app = app
 	service.add_child(service.online)
 	service.economy = Economy.new()
 	service.add_child(service.economy)
-	service.economy.configure(service.account, app.checkpoint.rewards(), {"sync":service.sync,"snapshot":service._apply_snapshot,"snapshot_current":service._snapshot_current,"receipt":service._apply_receipt,"effect":service._apply_effect})
+	service.economy.configure(service.account, app.checkpoint.rewards(), {"sync":service.sync,"snapshot":service._apply_snapshot,"snapshot_current":service._snapshot_current,"receipt":service._apply_receipt,"effect":service._apply_effect,"gem_snapshot":service._apply_gem_snapshot,"gem_save":service._ack_gem_save})
 	var fixture = EconomyFixture.new()
 	transport.snapshot = fixture.snapshot()
+	if not app.run_domain.state.is_empty(): transport.snapshot.run = {"runId":app.run_domain.state.economyRunId,"stageNumber":app.catalog.stage_id(app.stage),"status":"active"}
 	transport.response = {"ok":true,"status":200,"body":{"economy":fixture.snapshot(4)}}
 	fixture.free()
 	app.services = service
@@ -111,7 +130,7 @@ func run():
 	check(not service.blocks_play(), "background settlement does not gate navigation")
 	check(posts[0].headers.Authorization == "Bearer fixture-access" and posts[0].headers.has("Idempotency-Key") and http.durable, "authenticated HTTP only after durable terminal/outbox/inFlight writes")
 	var body: Dictionary = JSON.parse_string(posts[0].body)
-	check(body.runId == run_id and body.success and body.pendingDiamonds == 15 and body.sourceSaveRevision == 8 and body.writerGeneration == 2 and body.clientCompatibilityVersion == 7, "production save-writer/run settlement contract")
+	check(body.runId == run_id and body.success and body.pendingDiamonds == 15 and body.sourceSaveRevision == 8 and body.writerGeneration == 2 and body.clientCompatibilityVersion == 9, "production save-writer/run settlement contract")
 	service.request_run_settlement(true)
 	check(app.open_stage_menu_destination() and app.in_lobby, "result exit allowed during request")
 	await frames()
@@ -133,7 +152,7 @@ func run():
 	await frames()
 	posts = settle_posts(http)
 	var lost: Dictionary = posts[0].duplicate(true)
-	check(service.run_settlement_state(run_id).status == "retry" and app.checkpoint.rewards().state.pendingRewards.size() == 1, "failure result keeps reward and reports retry")
+	check(service.run_settlement_state(run_id).status == "offline" and not service.account.authenticated() and app.checkpoint.rewards().state.pendingRewards.size() == 1, "network failure retains reward and requires authenticated retry")
 	service.request_run_settlement()
 	await frames()
 	check(settle_posts(http).size() == 1, "failed request does not retry each frame")

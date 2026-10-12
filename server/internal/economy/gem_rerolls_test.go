@@ -2,8 +2,10 @@ package economy
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"io"
 	"slices"
 	"testing"
 	"time"
@@ -11,41 +13,34 @@ import (
 
 const rerollTestRun = "0198b955-3656-7c40-b3cb-87f427b90be6"
 
-func TestGemRerollDeterminismAndImmediateExclusion(t *testing.T) {
+func TestGemSamplingUniquenessImmediateExclusionAndEntropyFailure(t *testing.T) {
 	previous := []string{"attackSpeed", "range", "physicalDamage"}
-	first, err := rerolledGems(rerollTestRun, 5, 1, gemTypes, previous)
-	if err != nil {
-		t.Fatal(err)
-	}
-	repeated, err := rerolledGems(rerollTestRun, 5, 1, gemTypes, previous)
-	if err != nil || !slices.Equal(first, repeated) {
-		t.Fatalf("not deterministic: %v %v", first, repeated)
-	}
-	reordered := slices.Clone(gemTypes)
-	slices.Reverse(reordered)
-	repeated, _ = rerolledGems(rerollTestRun, 5, 1, reordered, previous)
-	if !slices.Equal(first, repeated) {
-		t.Fatal("catalog iteration order changed result")
-	}
-	seenEarlier := false
-	for wave := 5; wave <= 35; wave += 5 {
-		next, err := rerolledGems(rerollTestRun, wave, 2, gemTypes, first)
-		if err != nil || len(next) != 3 {
-			t.Fatalf("reroll: %v %v", next, err)
+	for i := 0; i < 100; i++ {
+		options, err := sampleGems(rand.Reader, gemTypes, previous)
+		if err != nil || len(options) != 3 {
+			t.Fatalf("sampling %v %v", options, err)
 		}
-		for _, gem := range next {
-			if slices.Contains(first, gem) {
-				t.Fatal("immediately previous option repeated")
+		seen := map[string]bool{}
+		for _, gem := range options {
+			if seen[gem] || slices.Contains(previous, gem) || !slices.Contains(gemTypes, gem) {
+				t.Fatalf("invalid draw %v", options)
 			}
-			if slices.Contains(previous, gem) {
-				seenEarlier = true
-			}
+			seen[gem] = true
 		}
 	}
-	if !seenEarlier {
-		t.Fatal("earlier option set should be eligible again")
+	// The only eligible candidates are exactly the set from two offers earlier.
+	options, err := sampleGems(bytes.NewReader(make([]byte, 32)), append(slices.Clone(previous), "chain", "explosion", "criticalChance"), []string{"chain", "explosion", "criticalChance"})
+	if err != nil || len(options) != 3 {
+		t.Fatalf("earlier candidates: %v %v", options, err)
 	}
-	t.Logf("cross-language vector: %v", first)
+	for _, gem := range previous {
+		if !slices.Contains(options, gem) {
+			t.Fatal("older set incorrectly excluded")
+		}
+	}
+	if _, err = sampleGems(bytes.NewReader(nil), gemTypes, nil); !errors.Is(err, io.EOF) {
+		t.Fatalf("entropy failure ignored: %v", err)
+	}
 }
 
 func TestGemRerollUnlocksAndInvalidCandidates(t *testing.T) {
@@ -67,51 +62,8 @@ func TestGemRerollUnlocksAndInvalidCandidates(t *testing.T) {
 	}
 	for _, previous := range [][]string{{"range"}, {"range", "range", "chain"}, {"unknown", "range", "chain"}, {"aimSpeed", "range", "chain"}} {
 		available, _ := availableGems([]byte(`{}`))
-		if _, err := rerolledGems(rerollTestRun, 5, 1, available, previous); !errors.Is(err, ErrInvalidCommand) {
+		if _, err := sampleGems(rand.Reader, available, previous); !errors.Is(err, ErrInvalidCommand) {
 			t.Fatalf("accepted candidates %v", previous)
-		}
-	}
-}
-
-func TestGemRerollRunRequiresRecoveredState(t *testing.T) {
-	base := gemRewardRun{RunID: rerollTestRun, Phase: "reward", CompletedRounds: 5, Options: []string{"range", "chain", "explosion"}}
-	request := GemRerollRequest{RunID: rerollTestRun, CompletedRounds: 5}
-	if used, err := validateGemRerollRun(base, request, nil); err != nil || used != 0 {
-		t.Fatalf("free: %d %v", used, err)
-	}
-	latest := &GemRerollState{RunID: rerollTestRun, RewardWave: 5, TotalUsed: 1, GemOptions: []string{"attackSpeed", "physicalDamage", "lightWeapon"}}
-	if _, err := validateGemRerollRun(base, request, latest); !errors.Is(err, ErrGemRerollConflict) {
-		t.Fatalf("stale recovered save: %v", err)
-	}
-	base.Used = 1
-	base.Options = latest.GemOptions
-	request.ExpectedRerollCount = 1
-	if used, err := validateGemRerollRun(base, request, latest); err != nil || used != 1 {
-		t.Fatalf("recovered: %d %v", used, err)
-	}
-	base.CompletedRounds = 10
-	request.CompletedRounds = 10
-	base.Options = []string{"range", "chain", "explosion"}
-	if _, err := validateGemRerollRun(base, request, latest); err != nil {
-		t.Fatalf("next wave: %v", err)
-	}
-	latest.RewardWave = 15
-	if _, err := validateGemRerollRun(base, request, latest); !errors.Is(err, ErrGemRerollConflict) {
-		t.Fatalf("previous wave restored: %v", err)
-	}
-	latest.RewardWave = 10
-	latest.GemOptions = base.Options
-	latest.TotalUsed = 3
-	base.Used = 3
-	request.ExpectedRerollCount = 3
-	if _, err := validateGemRerollRun(base, request, latest); !errors.Is(err, ErrGemRerollLimit) {
-		t.Fatalf("limit: %v", err)
-	}
-	for _, mutate := range []func(*gemRewardRun){func(r *gemRewardRun) { r.Purchased = true }, func(r *gemRewardRun) { r.LegacyPaid = true }, func(r *gemRewardRun) { r.Phase = "wave" }, func(r *gemRewardRun) { r.CompletedRounds = 0 }, func(r *gemRewardRun) { r.CompletedRounds = 40 }, func(r *gemRewardRun) { r.CompletedRounds = 45 }, func(r *gemRewardRun) { r.CompletedRounds = 6 }, func(r *gemRewardRun) { r.RunID = "other" }} {
-		changed := base
-		mutate(&changed)
-		if _, err := validateGemRerollRun(changed, request, nil); !errors.Is(err, ErrInvalidCommand) {
-			t.Fatalf("invalid run accepted: %+v %v", changed, err)
 		}
 	}
 }
@@ -123,21 +75,8 @@ func TestLegacyReceiptDoesNotAdvertiseUnsupportedRerollVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 	replay, err := json.Marshal(result)
-	if err != nil || bytes.Contains(replay, []byte(`"gemRerollVersion"`)) {
+	if err != nil || (bytes.Contains(replay, []byte(`"gemRerollVersion"`)) || bytes.Contains(replay, []byte(`"gemOfferVersion"`)) || bytes.Contains(replay, []byte(`"serverSavedAt"`))) {
 		t.Fatalf("old receipt invented capability: %s %v", replay, err)
-	}
-}
-
-func TestLinkedGuestRerollNeverRestoresFreeBudget(t *testing.T) {
-	run := gemRewardRun{RunID: rerollTestRun, Phase: "reward", CompletedRounds: 5, Used: 1, Options: []string{"range", "chain", "explosion"}}
-	request := GemRerollRequest{RunID: rerollTestRun, CompletedRounds: 5, ExpectedRerollCount: 1}
-	used, err := validateGemRerollRun(run, request, nil)
-	if err != nil || used != 1 {
-		t.Fatalf("guest usage lost: %d %v", used, err)
-	}
-	request.ExpectedRerollCount = 0
-	if _, err = validateGemRerollRun(run, request, nil); !errors.Is(err, ErrGemRerollConflict) {
-		t.Fatalf("guest reset free budget: %v", err)
 	}
 }
 
@@ -162,5 +101,50 @@ func TestGemTicketMailValidationAndLegacyDispatchHash(t *testing.T) {
 	encoded, err := json.Marshal(request)
 	if err != nil || bytes.Contains(encoded, []byte(`"gemResetTickets"`)) {
 		t.Fatalf("legacy dispatch hash would change: %s %v", encoded, err)
+	}
+}
+
+func TestGemChoiceProjectionPreservesUnrelatedStateAndIsAbsolute(t *testing.T) {
+	offer := &GemOfferState{OfferID: "opaque", RunID: rerollTestRun, RewardWave: 5, Revision: 2, Status: "chosen", Choice: "shards", GrantedShards: 10, GemShards: 30, GemInventory: map[string]int64{"range": 1}, GemOptions: []string{"range", "chain", "explosion"}}
+	raw := []byte(`{"phase":"reward","gemShards":20,"gemInventory":{"range":1},"rewardOptions":["range","chain","explosion"],"gold":19,"turrets":[],"gemOfferEquipRevision":0}`)
+	first, err := projectGemOffer(raw, offer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := projectGemOffer(first, offer)
+	if err != nil || !bytes.Equal(first, second) {
+		t.Fatalf("projection added twice: %s %v", second, err)
+	}
+	var value map[string]any
+	if err = json.Unmarshal(first, &value); err != nil {
+		t.Fatal(err)
+	}
+	if value["phase"] != "preparation" || value["gold"] != float64(19) || value["gemShards"] != float64(30) || len(value["rewardOptions"].([]any)) != 0 || value["gemOfferStatus"] != "chosen" {
+		t.Fatalf("bad projection %s", first)
+	}
+}
+
+// This benchmark isolates server candidate generation. It deliberately excludes
+// PostgreSQL transactions and network round trips, which require separate timing.
+func BenchmarkGemOfferSampling(b *testing.B) {
+	defaultPool, err := availableGems([]byte(`{}`))
+	if err != nil {
+		b.Fatal(err)
+	}
+	for _, scenario := range []struct {
+		name                string
+		available, previous []string
+	}{
+		{"initial_12", defaultPool, nil},
+		{"reroll_14_exclude_3", gemTypes, []string{"attackSpeed", "range", "physicalDamage"}},
+	} {
+		b.Run(scenario.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				if _, err := sampleGems(rand.Reader, scenario.available, scenario.previous); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	}
 }
