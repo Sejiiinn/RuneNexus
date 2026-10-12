@@ -7,12 +7,14 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -46,6 +48,72 @@ func testMailRequest() economy.CreateMailRequest {
 	dispatchKey := fmt.Sprintf("%x-%x-%x-%x-%x", dispatch[0:4], dispatch[4:6], dispatch[6:8], dispatch[8:10], dispatch[10:16])
 	return economy.CreateMailRequest{DispatchKey: dispatchKey, Title: "업데이트 선물", Body: "무료 다이아와 모듈권입니다.", FreeDiamonds: 100, ModuleTickets: 2, Audience: "all", StartsAt: now.Add(-time.Hour), EligibilityCutoff: now, ExpiresAt: now.Add(time.Hour), CreatedBy: "integration-test"}
 }
+
+func TestMailboxLegacyReceiptSurvivesGemRerollActivation(t *testing.T) {
+	ctx, pool := openTestPool(t)
+	service := economy.NewService(pool)
+	account := mailAccount(t, ctx, pool)
+	mailID := createTestMail(t, ctx, pool, service, testMailRequest())
+	legacy := economy.MailClaimRequest{IdempotencyKey: "00000000-0000-4000-8000-000000000091", RawBody: []byte(`{"clientCompatibilityVersion":6}`), MailID: mailID}
+	first, err := service.ClaimMail(ctx, account, legacy)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ticketMail := testMailRequest()
+	ticketMail.FreeDiamonds, ticketMail.ModuleTickets, ticketMail.GemResetTickets = 0, 0, 2
+	ticketMailID := createTestMail(t, ctx, pool, service, ticketMail)
+	grant, err := service.ClaimMail(ctx, account, economy.MailClaimRequest{IdempotencyKey: "00000000-0000-4000-8000-000000000092", RawBody: []byte(`{"clientCompatibilityVersion":7}`), MailID: ticketMailID})
+	if err != nil || grant.Snapshot.Wallet.GemResetTickets != 2 {
+		t.Fatalf("activate gem rerolls: %+v %v", grant, err)
+	}
+	if err := service.DisableMail(ctx, mailID, "integration-test"); err != nil {
+		t.Fatal(err)
+	}
+	var group sync.WaitGroup
+	for range 16 {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			replay, err := service.ClaimMail(ctx, account, legacy)
+			if err != nil || !reflect.DeepEqual(first, replay) {
+				t.Errorf("exact legacy receipt: %+v %v", replay, err)
+			}
+		}()
+	}
+	group.Wait()
+
+	changed := legacy
+	changed.RawBody = []byte(`{"clientCompatibilityVersion":7}`)
+	if _, err := service.ClaimMail(ctx, account, changed); !errors.Is(err, economy.ErrIdempotencyKeyReused) {
+		t.Fatalf("changed receipt body: %v", err)
+	}
+	changed = legacy
+	changed.MailID = ticketMailID
+	if _, err := service.ClaimMail(ctx, account, changed); !errors.Is(err, economy.ErrIdempotencyKeyReused) {
+		t.Fatalf("changed receipt URL: %v", err)
+	}
+	changed = legacy
+	changed.IdempotencyKey = "00000000-0000-4000-8000-000000000093"
+	if _, err := service.ClaimMail(ctx, account, changed); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("new legacy command: %v", err)
+	}
+	current, err := service.Get(ctx, account)
+	if err != nil || !reflect.DeepEqual(current.Wallet, grant.Snapshot.Wallet) || current.EconomyRevision != grant.Snapshot.EconomyRevision {
+		t.Fatalf("receipt retry changed wallet: %+v %v", current, err)
+	}
+	var commands, claims int
+	if err := pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM economy_commands WHERE account_id=$1),(SELECT count(*) FROM economy_reward_claims WHERE account_id=$1)`, account).Scan(&commands, &claims); err != nil || commands != 2 || claims != 2 {
+		t.Fatalf("commands=%d claims=%d err=%v", commands, claims, err)
+	}
+	if _, err := pool.Exec(ctx, `UPDATE economy_commands SET command_type='turret_module_draw' WHERE account_id=$1 AND idempotency_key=$2`, account, legacy.IdempotencyKey); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.ClaimMail(ctx, account, legacy); !errors.Is(err, economy.ErrIdempotencyKeyReused) {
+		t.Fatalf("different receipt command type: %v", err)
+	}
+}
+
 func TestMailboxConcurrentClaimAndRetry(t *testing.T) {
 	ctx, pool := openTestPool(t)
 	service := economy.NewService(pool)

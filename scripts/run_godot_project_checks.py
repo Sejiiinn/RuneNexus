@@ -41,6 +41,8 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_boss_death.gd": ("failures=[]", {}),
     "verify_boss_presentation.gd": ("BOSS_PRESENTATION failures=[]", {}),
     "verify_camera.gd": ("Camera verification: 0 failures", {}),
+    "verify_chapter_one_expansion_preview.gd": ("CHAPTER_ONE_EXPANSION_PREVIEW failures=[]",
+                                               {"env": {"RUNE_EXPANSION_DESIGN_ROOT": "{root}/design/chapter1_map_expansion"}}),
     "verify_chapter_one_stages.gd": ("Chapter one stages verification: 0 failures",
                                      {"renderer": True, "args": ["{build}/chapter_one_frames.json"]}),
     "verify_chapter_two_stages.gd": ("Chapter two stages verification: 0 failures",
