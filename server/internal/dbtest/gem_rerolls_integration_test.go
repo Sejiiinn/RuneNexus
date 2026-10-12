@@ -25,7 +25,11 @@ func TestGemRerollAuthorityRecoveryAndBudget(t *testing.T) {
 	p := json.RawMessage(`{"growthVersion":1,"progressionVersion":1,"clearedStageNumbers":[3,21],"freeDiamonds":1000}`)
 	revision := int64(0)
 	save := func(client int, active any) error {
-		raw, _ := json.Marshal(active)
+		// nil clears the active run, as the HTTP layer maps a JSON null.
+		var raw json.RawMessage
+		if active != nil {
+			raw, _ = json.Marshal(active)
+		}
 		id := key()
 		_, err := f.Update(ctx, account, gamesave.UpdateRequest{IdempotencyKey: id, ExpectedRevision: revision, ClientCompatibilityVersion: client, RawBody: []byte(fmt.Sprintf(`{"clientCompatibilityVersion":%d,"save":%d}`, client, n)), Data: gamesave.Data{Version: 2, Preferences: json.RawMessage(`{}`), Progression: p, TurretModules: json.RawMessage(`{"tickets":0,"items":[]}`), ActiveRun: raw}})
 		if err == nil {
