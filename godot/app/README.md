@@ -6,6 +6,7 @@
 | --- | --- |
 | `boot.gd`, `boot.tscn` | 경량 시작 화면·업데이트 게이트, 통과 후 본게임 장면 비동기 로딩 |
 | `app_lifecycle.gd` | 정식 `--app`의 시작·정지 복원, 10초 및 동작 시 저장, 로비·전투 전환·종료 |
+| `launch_mode.gd` | 실행 인자(`--app`·`--session`·`--fixture`·검사 스크립트) 해석. 부트는 전장의 `app_mode`를 명시 지정하고, 이 기본값은 부트 없이 만든 전장에만 쓴다 |
 | `save_json.gd` | signed int64를 정밀도 손실 없이 읽고 문자열·실수 타입을 구분 |
 | `save_codec.gd` | 기존 `GameSaveData` v2 정규화·기본값·enum·모듈 ID 및 v1 이전 |
 | `local_save_slot.gd`, `local_save_store.gd` | guest/UUID 계정 슬롯, v2 원본·백업·충돌 백업, v1 가져오기와 중단된 쓰기 복구 |
