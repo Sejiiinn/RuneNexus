@@ -291,9 +291,14 @@ UNIQUE(account_id, resulting_revision)
 
 `response_payload`에는 뽑힌 모듈을 포함한 최초 성공 응답을 그대로 보존한다. 같은
 key와 같은 body 재시도는 RNG를 다시 실행하지 않고 이 응답을 돌려준다. 같은 key를
-다른 body에 재사용하면 `IDEMPOTENCY_KEY_REUSED`를 반환한다.
+다른 body·다른 명령 종류·다른 URL 대상(연구 종류, effect ID, 우편 ID)에 재사용하면
+`IDEMPOTENCY_KEY_REUSED`를 반환한다.
 
-- `request_hash`는 SHA-256 32 bytes CHECK를 둔다.
+- `request_hash`는 SHA-256 32 bytes CHECK를 둔다. URL 대상이 있는 명령은
+  `<대상>\n<body>`(`research:<type>`, `effect:<id>`, `mail:<id>`), 나머지는 body를
+  해시한다. 재생은 저장된 `command_type`과 해시가 모두 같을 때만 허용한다.
+- 대상 결속 전 연구 완료·effect ack 영수증은 body만 해시했으므로, 같은 명령 종류와
+  body의 재시도는 계속 재생한다(진행 중 재시도 호환). 이 영수증의 대상은 기록되지 않았다.
 - `expected_revision`이 있는 성공 명령은 `resulting_revision = expected_revision + 1`
   CHECK를 둔다.
 - reward·구매처럼 expected revision이 없는 성공 명령도 잠근 head의 직전 revision보다

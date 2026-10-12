@@ -132,28 +132,76 @@ func moduleFromRow(row dbgen.PlayerModule) (Module, error) {
 	}, nil
 }
 
-func existingCommandResult[T any](
-	command dbgen.EconomyCommand,
-	requestHash []byte,
-) (T, error) {
-	var zero T
-	if !bytes.Equal(command.RequestHash, requestHash) {
-		return zero, ErrIdempotencyKeyReused
-	}
-	var result T
-	if err := json.Unmarshal(command.ResponsePayload, &result); err != nil {
-		return zero, fmt.Errorf("decode economy command receipt: %w", err)
-	}
-	return result, nil
+// commandIdentity names one economy command receipt. A stored receipt replays
+// only for the same command type and the same request hash; the hash binds the
+// URL target (research type, effect, mail), when the route has one, to the body.
+type commandIdentity struct {
+	key         pgtype.UUID
+	commandType string
+	requestHash []byte
+	// Body-only hash that research completion and effect acknowledgement stored
+	// before their URL target was bound. Such receipts still replay for the same
+	// type and body; their target was never recorded.
+	legacyHash []byte
 }
 
-func requestIdentity(idempotencyKey string, rawBody []byte) (pgtype.UUID, []byte, error) {
+// Command types whose receipts once hashed the body without their URL target.
+var bodyOnlyLegacyCommandTypes = map[string]bool{
+	"research_complete":      true,
+	"progression_effect_ack": true,
+}
+
+func newCommandIdentity(idempotencyKey, commandType, target string, rawBody []byte) (commandIdentity, error) {
 	key, err := parseUUID(idempotencyKey)
 	if err != nil {
-		return pgtype.UUID{}, nil, ErrInvalidIdempotencyKey
+		return commandIdentity{}, ErrInvalidIdempotencyKey
 	}
-	hash := sha256.Sum256(rawBody)
-	return key, hash[:], nil
+	identity := commandIdentity{key: key, commandType: commandType}
+	if target == "" {
+		hash := sha256.Sum256(rawBody)
+		identity.requestHash = hash[:]
+		return identity, nil
+	}
+	hash := sha256.Sum256(append([]byte(target+"\n"), rawBody...))
+	identity.requestHash = hash[:]
+	if bodyOnlyLegacyCommandTypes[commandType] {
+		legacy := sha256.Sum256(rawBody)
+		identity.legacyHash = legacy[:]
+	}
+	return identity, nil
+}
+
+func (identity commandIdentity) matches(command dbgen.EconomyCommand) bool {
+	if command.CommandType != identity.commandType {
+		return false
+	}
+	return bytes.Equal(command.RequestHash, identity.requestHash) ||
+		(identity.legacyHash != nil && bytes.Equal(command.RequestHash, identity.legacyHash))
+}
+
+// storedCommandResult replays the receipt stored under the identity's key.
+// found is false when the key has no receipt yet; a receipt for a different
+// command, target or body is ErrIdempotencyKeyReused.
+func storedCommandResult[T any](
+	ctx context.Context,
+	queries *dbgen.Queries,
+	accountID pgtype.UUID,
+	identity commandIdentity,
+) (result T, found bool, err error) {
+	command, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountID, IdempotencyKey: identity.key})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return result, false, nil
+	}
+	if err != nil {
+		return result, false, fmt.Errorf("get %s receipt: %w", identity.commandType, err)
+	}
+	if !identity.matches(command) {
+		return result, true, ErrIdempotencyKeyReused
+	}
+	if err := json.Unmarshal(command.ResponsePayload, &result); err != nil {
+		return result, true, fmt.Errorf("decode %s receipt: %w", identity.commandType, err)
+	}
+	return result, true, nil
 }
 
 func parseUUID(value string) (pgtype.UUID, error) {

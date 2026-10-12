@@ -167,7 +167,7 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	}
 	request.MailID = formatUUID(mailUUID)
 	// 경로도 영수증 해시에 포함하여 동일 본문의 다른 우편 재사용 차단.
-	key, hash, err := requestIdentity(request.IdempotencyKey, append([]byte("mail:"+request.MailID+"\n"), request.RawBody...))
+	identity, err := newCommandIdentity(request.IdempotencyKey, "reward_claim", "mail:"+request.MailID, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -181,15 +181,8 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err := q.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: account, IdempotencyKey: key})
-	if err == nil {
-		if stored.CommandType != "reward_claim" {
-			return CommandResult{}, ErrIdempotencyKeyReused
-		}
-		return existingCommandResult[CommandResult](stored, hash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, err
+	if result, found, err := storedCommandResult[CommandResult](ctx, q, account, identity); found || err != nil {
+		return result, err
 	}
 	rewardKey := "mail:" + request.MailID
 	claimed, err := q.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{AccountID: account, RewardKey: rewardKey})
@@ -217,7 +210,7 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	if err != nil {
 		return CommandResult{}, err
 	}
-	command, err := q.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{AccountID: account, IdempotencyKey: key, CommandType: "reward_claim", RequestHash: hash, ResultingRevision: wallet.Revision + 1, AuthorityEpoch: system.AuthorityEpoch, CatalogVersion: int4(CatalogVersion), ResponsePayload: []byte(`{}`)})
+	command, err := q.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{AccountID: account, IdempotencyKey: identity.key, CommandType: identity.commandType, RequestHash: identity.requestHash, ResultingRevision: wallet.Revision + 1, AuthorityEpoch: system.AuthorityEpoch, CatalogVersion: int4(CatalogVersion), ResponsePayload: []byte(`{}`)})
 	if err != nil {
 		return CommandResult{}, err
 	}

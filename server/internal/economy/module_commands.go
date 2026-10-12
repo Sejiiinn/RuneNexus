@@ -34,7 +34,7 @@ func (service *Service) DrawModules(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("parse draw session ID: %w", err)
 	}
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "turret_module_draw", "", request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -42,12 +42,8 @@ func (service *Service) DrawModules(
 		return CommandResult{}, ErrInvalidCommand
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("get module draw receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 
 	tx, err := service.database.Begin(ctx)
@@ -67,12 +63,8 @@ func (service *Service) DrawModules(
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("recheck module draw receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
@@ -102,8 +94,8 @@ func (service *Service) DrawModules(
 		return CommandResult{}, fmt.Errorf("get draw authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: accountUUID, IdempotencyKey: key, CommandType: "turret_module_draw",
-		RequestHash: requestHash, ExpectedRevision: int8(economy.Revision),
+		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ExpectedRevision: int8(economy.Revision),
 		ResultingRevision: resultingRevision, AuthorityEpoch: system.AuthorityEpoch,
 		CatalogVersion: int4(CatalogVersion), RngAlgorithmVersion: int4(RNGAlgorithmVersion),
 		ResponsePayload: []byte(`{}`),
@@ -190,7 +182,7 @@ func (service *Service) DisassembleModules(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("parse disassemble account ID: %w", err)
 	}
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "turret_module_disassemble", "", request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -205,12 +197,8 @@ func (service *Service) DisassembleModules(
 		}
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("get disassemble receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
@@ -222,12 +210,8 @@ func (service *Service) DisassembleModules(
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("recheck disassemble receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
@@ -258,8 +242,8 @@ func (service *Service) DisassembleModules(
 		return CommandResult{}, fmt.Errorf("get disassemble authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: accountUUID, IdempotencyKey: key, CommandType: "turret_module_disassemble",
-		RequestHash: requestHash, ExpectedRevision: int8(economy.Revision),
+		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ExpectedRevision: int8(economy.Revision),
 		ResultingRevision: resultingRevision, AuthorityEpoch: system.AuthorityEpoch,
 		CatalogVersion: int4(CatalogVersion), ResponsePayload: []byte(`{}`),
 	})

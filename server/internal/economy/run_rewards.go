@@ -45,17 +45,13 @@ func (service *Service) SettleRun(
 	// UUID의 표기 대소문자는 보상 동일성에 영향을 주지 않는다.
 	// RawBody는 기존 exact 재전송 영수증의 해시 계약을 그대로 보존한다.
 	request.RunID = formatUUID(runUUID)
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "run_settlement", "", request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("get run settlement receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	rewardKey := "run:" + request.RunID + ":settlement"
 	receipt, err := runSettlementReceipt(ctx, queries, accountUUID, rewardKey)
@@ -87,12 +83,8 @@ func (service *Service) SettleRun(
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("recheck run settlement receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	receipt, err = runSettlementReceipt(ctx, txQueries, accountUUID, rewardKey)
 	if err == nil {
@@ -129,8 +121,8 @@ func (service *Service) SettleRun(
 		return CommandResult{}, fmt.Errorf("get run authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: accountUUID, IdempotencyKey: key, CommandType: "run_settlement",
-		RequestHash: requestHash, ResultingRevision: resultingRevision,
+		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ResultingRevision: resultingRevision,
 		AuthorityEpoch: system.AuthorityEpoch, CatalogVersion: int4(CatalogVersion),
 		ResponsePayload: []byte(`{}`),
 	})

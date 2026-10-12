@@ -63,19 +63,13 @@ func (service *Service) Bootstrap(
 	if err != nil {
 		return BootstrapResult{}, fmt.Errorf("parse bootstrap session ID: %w", err)
 	}
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "legacy_bootstrap", "", request.RawBody)
 	if err != nil {
 		return BootstrapResult{}, err
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{
-		AccountID: databaseAccountID, IdempotencyKey: key,
-	})
-	if err == nil {
-		return existingCommandResult[BootstrapResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return BootstrapResult{}, fmt.Errorf("get bootstrap receipt: %w", err)
+	if result, found, err := storedCommandResult[BootstrapResult](ctx, queries, databaseAccountID, identity); found || err != nil {
+		return result, err
 	}
 
 	tx, err := service.database.Begin(ctx)
@@ -98,14 +92,8 @@ func (service *Service) Bootstrap(
 	if err != nil {
 		return BootstrapResult{}, fmt.Errorf("lock player economy: %w", err)
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{
-		AccountID: databaseAccountID, IdempotencyKey: key,
-	})
-	if err == nil {
-		return existingCommandResult[BootstrapResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return BootstrapResult{}, fmt.Errorf("recheck bootstrap receipt: %w", err)
+	if result, found, err := storedCommandResult[BootstrapResult](ctx, txQueries, databaseAccountID, identity); found || err != nil {
+		return result, err
 	}
 	if economy.AuthorityState == "server_authoritative" {
 		return BootstrapResult{}, ErrAlreadyBootstrapped
@@ -122,8 +110,8 @@ func (service *Service) Bootstrap(
 		return BootstrapResult{}, fmt.Errorf("get economy authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: databaseAccountID, IdempotencyKey: key, CommandType: "legacy_bootstrap",
-		RequestHash: requestHash, ResultingRevision: 1, AuthorityEpoch: system.AuthorityEpoch,
+		AccountID: databaseAccountID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ResultingRevision: 1, AuthorityEpoch: system.AuthorityEpoch,
 		CatalogVersion: int4(CatalogVersion), ResponsePayload: []byte(`{}`),
 	})
 	if err != nil {

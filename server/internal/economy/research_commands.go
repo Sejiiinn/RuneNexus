@@ -45,17 +45,13 @@ func (service *Service) CompleteResearch(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("parse research session ID: %w", err)
 	}
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "research_complete", "research:"+request.ResearchType, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("get research command receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
@@ -71,12 +67,8 @@ func (service *Service) CompleteResearch(
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("recheck research command receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
@@ -110,8 +102,8 @@ func (service *Service) CompleteResearch(
 		return CommandResult{}, fmt.Errorf("get research authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: accountUUID, IdempotencyKey: key, CommandType: "research_complete",
-		RequestHash: requestHash, ExpectedRevision: int8(economy.Revision),
+		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ExpectedRevision: int8(economy.Revision),
 		ResultingRevision: resultingRevision, AuthorityEpoch: system.AuthorityEpoch,
 		CatalogVersion: int4(CatalogVersion), ResponsePayload: []byte(`{}`),
 	})
@@ -178,17 +170,13 @@ func (service *Service) UnlockResearchSlotTwo(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("parse research slot session ID: %w", err)
 	}
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "research_slot_two_unlock", "", request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("get research slot receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
@@ -204,12 +192,8 @@ func (service *Service) UnlockResearchSlotTwo(
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("recheck research slot receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
@@ -227,8 +211,8 @@ func (service *Service) UnlockResearchSlotTwo(
 		return CommandResult{}, fmt.Errorf("get research slot authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: accountUUID, IdempotencyKey: key, CommandType: "research_slot_two_unlock",
-		RequestHash: requestHash, ExpectedRevision: int8(economy.Revision),
+		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ExpectedRevision: int8(economy.Revision),
 		ResultingRevision: resultingRevision, AuthorityEpoch: system.AuthorityEpoch,
 		CatalogVersion: int4(CatalogVersion), ResponsePayload: []byte(`{}`),
 	})
@@ -288,17 +272,13 @@ func (service *Service) AcknowledgeProgressionEffect(
 	if err != nil {
 		return CommandResult{}, ErrProgressionEffect
 	}
-	key, requestHash, err := requestIdentity(request.IdempotencyKey, request.RawBody)
+	identity, err := newCommandIdentity(request.IdempotencyKey, "progression_effect_ack", "effect:"+formatUUID(effectUUID), request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
 	queries := dbgen.New(service.database)
-	stored, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("get effect ack receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
@@ -314,12 +294,8 @@ func (service *Service) AcknowledgeProgressionEffect(
 	if err != nil {
 		return CommandResult{}, err
 	}
-	stored, err = txQueries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{AccountID: accountUUID, IdempotencyKey: key})
-	if err == nil {
-		return existingCommandResult[CommandResult](stored, requestHash)
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("recheck effect ack receipt: %w", err)
+	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
+		return result, err
 	}
 	effect, err := txQueries.GetEconomyProgressionEffectForUpdate(ctx, dbgen.GetEconomyProgressionEffectForUpdateParams{AccountID: accountUUID, ID: effectUUID})
 	if errors.Is(err, pgx.ErrNoRows) || effect.Status != "pending" {
@@ -337,8 +313,8 @@ func (service *Service) AcknowledgeProgressionEffect(
 		return CommandResult{}, fmt.Errorf("get effect authority epoch: %w", err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
-		AccountID: accountUUID, IdempotencyKey: key, CommandType: "progression_effect_ack",
-		RequestHash: requestHash, ResultingRevision: resultingRevision,
+		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
+		RequestHash: identity.requestHash, ResultingRevision: resultingRevision,
 		AuthorityEpoch: system.AuthorityEpoch, ResponsePayload: []byte(`{}`),
 	})
 	if err != nil {
