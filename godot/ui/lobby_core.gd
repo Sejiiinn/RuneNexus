@@ -310,14 +310,14 @@ func select_at(location: Vector2) -> void:
 	_close_inline()
 	view.queue_redraw()
 
-func _close_inline() -> void:
+func _close_inline(update_layout := true) -> void:
 	if is_instance_valid(inline_panel):
 		inline_panel.get_parent().remove_child(inline_panel)
 		inline_panel.queue_free()
 	inline_panel = null
 	inline_body = null
 	# Zoom controls sit above the sheet; return them to the bottom when it closes.
-	_layout_inline()
+	if update_layout: _layout_inline()
 
 func _open_inline(title: String) -> VBoxContainer:
 	_close_inline()
@@ -387,13 +387,17 @@ func cancel() -> void:
 	if not selected.is_empty(): node_details(selected)
 func apply() -> void:
 	if allocating or not changed() or not valid(lobby.core_draft): return
+	# Keep the exact view at the press, even if a selection is still easing.
+	if expanded(): expanded_tree.interrupt()
 	allocation_base = actual().duplicate()
 	allocation_target = lobby.core_draft.duplicate()
 	allocation_steps = build_allocation_steps(allocation_base,allocation_target)
 	allocation_elapsed = 0
 	allocation_duration = 0 if allocation_steps.is_empty() else float(allocation_steps.back().wave)*200+700
 	allocating = true
-	lobby.apply_growth_change({"kind":"setCorePassiveRanks","ranks":allocation_target.duplicate()})
+	# This command only changes core points/ranks, which update_state refreshes.
+	# Rebuilding the page would briefly resize the viewport and fit the tree again.
+	lobby.apply_growth_change({"kind":"setCorePassiveRanks","ranks":allocation_target.duplicate()},false)
 	if actual() != allocation_target:
 		_finish_allocation()
 		return

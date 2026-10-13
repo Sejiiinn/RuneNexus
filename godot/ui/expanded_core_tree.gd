@@ -56,17 +56,12 @@ class Dots extends Control:
 		for i in 3: draw_circle(size/2+Vector2((i-1)*7,0),2.2,Color("cfe0e6"))
 
 class RankBar extends Control:
-	var tree
-	var core
 	var applied := 0
 	var rank := 0
 	var maximum := 1
-	var marks: Array = []
-	var reached := false
 	func _draw() -> void:
-		var end_pad := 15.0 if not marks.is_empty() and maximum == 3 else 0.0
 		var gap := 4.0
-		var seg := (size.x-end_pad-gap*(maximum-1))/maximum
+		var seg := (size.x-gap*(maximum-1))/maximum
 		var top := size.y/2-4
 		for i in maximum:
 			var cell := Rect2(i*(seg+gap),top,seg,8)
@@ -83,15 +78,6 @@ class RankBar extends Control:
 					draw_rect(Rect2(x,top,minf(3,cell.end.x-x),8),Color("6fae76"))
 					x += 7
 			draw_rect(cell,border,false,1)
-		if marks.is_empty(): return
-		# Milestone on the rank-3 boundary: the nodes this rank opens by itself.
-		var boundary := 3*(seg+gap)-gap/2
-		var width := 28.0+14*(marks.size()-1)
-		for index in range(marks.size()-1,-1,-1):
-			var at := Vector2(boundary-width/2+14+14*index,size.y/2)
-			draw_circle(at,13,Color("07131e"))
-			draw_arc(at,12.5,0,TAU,32,GOLD if reached else Color(CREAM,0.75),1.8,true)
-			tree.draw_node_art(self,core,str(marks[index]),at,22.0/float(tree.visuals[marks[index]].diameter),not reached)
 
 func diameter(id: String) -> float:
 	return float(visuals[id].diameter)
@@ -103,28 +89,11 @@ func hit_rect(owner, id: String) -> Rect2:
 	return Rect2(owner.offset+owner.point(id)*owner.zoom-Vector2.ONE*width/2,Vector2.ONE*width)
 
 # ---- rules shown on the map ----
-func accessible_for(owner, ranks: Dictionary) -> Array:
-	return owner.lobby.app.run_domain.growth.core_accessible_nodes(ranks,int(owner.data().get("revision",5)))
-
 func is_locked(owner, id: String) -> bool:
 	return int(owner.lobby.core_draft.get(id,0)) <= 0 and not owner.accessible_nodes().has(id)
 
 func applied_rank(owner, id: String) -> int:
 	return mini(owner.rendered_rank(id),int(owner.lobby.core_draft.get(id,0)))
-
-## Neighbours this node opens by itself at rank 3; drawn as the rank bar milestone.
-func opens_from(owner, id: String) -> Array:
-	var d: Dictionary = owner.data().nodes[id]
-	var rank := int(owner.lobby.core_draft.get(id,0))
-	if bool(d.get("terminal",false)) or int(d.maxRank) < 3 or is_locked(owner,id): return []
-	var ranks: Dictionary = owner.lobby.core_draft.duplicate()
-	if mini(rank,2) > 0: ranks[id] = mini(rank,2)
-	else: ranks.erase(id)
-	var before := accessible_for(owner,ranks)
-	var result := []
-	for neighbor in d.neighbors:
-		if not before.has(neighbor) and int(owner.lobby.core_draft.get(neighbor,0)) <= 0: result.append(neighbor)
-	return result
 
 ## A locked selection highlights the neighbours that can open it.
 func openers(owner) -> Array:
@@ -413,6 +382,7 @@ func update_overlay(owner) -> void:
 func layout(owner) -> void:
 	if not is_instance_valid(owner.view): return
 	var view_size: Vector2 = owner.view.size
+	if view_size.x <= 0 or view_size.y <= 0: return
 	if is_instance_valid(owner.inline_panel):
 		var width := maxf(1,view_size.x-16)
 		var frame: StyleBox = owner.inline_panel.get_theme_stylebox("panel")
@@ -435,7 +405,9 @@ func layout(owner) -> void:
 
 # ---- sheets ----
 func open_sheet(owner) -> VBoxContainer:
-	owner._close_inline()
+	# A replacement is one layout change. Clamping the briefly absent sheet
+	# would start a camera move toward a full-view boundary and keep it running.
+	owner._close_inline(false)
 	var panel := PanelContainer.new()
 	panel.name = "CoreInlineDetails"
 	var style := _frame("ui/components/panel_frame.png",12)
@@ -453,7 +425,7 @@ func open_sheet(owner) -> VBoxContainer:
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	owner.inline_scroll.add_child(body)
 	owner.inline_body = body
-	body.minimum_size_changed.connect(func(): layout(owner))
+	body.minimum_size_changed.connect(func(): layout(owner),CONNECT_DEFERRED)
 	return body
 
 func _close_button(owner) -> Button:
@@ -573,13 +545,9 @@ func node_details(owner, id: String) -> void:
 	body.add_child(rank_row)
 	var bar := RankBar.new()
 	bar.name = "CoreRankBar"
-	bar.tree = self
-	bar.core = owner
 	bar.applied = applied_rank(owner,id)
 	bar.rank = rank
 	bar.maximum = maximum
-	bar.marks = opens_from(owner,id)
-	bar.reached = rank >= 3
 	bar.custom_minimum_size = Vector2(0,28)
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE

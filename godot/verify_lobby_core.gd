@@ -22,7 +22,7 @@ class Host extends Control:
 		modal = VBoxContainer.new()
 		add_child(modal)
 		return modal
-	func apply_growth_change(command: Dictionary) -> void:
+	func apply_growth_change(command: Dictionary, _refresh_page := true) -> void:
 		if fail_save: return
 		var result: Dictionary = app.run_domain.growth.execute(state,command)
 		if result.ok: state = result.state

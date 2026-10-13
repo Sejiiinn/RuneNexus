@@ -1,6 +1,17 @@
 extends SceneTree
 const Lobby = preload("res://ui/lobby.gd")
 const TestLobby = preload("res://verify_lobby.gd")
+class RefreshingApp extends TestLobby.FakeApp:
+	var lobby_view
+	var reject_next := false
+	func apply_growth_command(command: Dictionary) -> bool:
+		if reject_next:
+			reject_next = false
+			return false
+		var applied := super.apply_growth_command(command)
+		# The real lifecycle refreshes the lobby from inside the command too.
+		if applied and is_instance_valid(lobby_view): lobby_view.refresh()
+		return applied
 var failures: Array[String] = []
 func _initialize() -> void: run.call_deferred()
 func check(value: bool,message: String) -> void:
@@ -17,7 +28,7 @@ func capture(name: String) -> void:
 func run() -> void:
 	root.content_scale_size = Vector2i(440,760)
 	root.size = Vector2i(440,900)
-	var app := TestLobby.FakeApp.new()
+	var app := RefreshingApp.new()
 	check(app.catalog.load_catalog(),"catalog loads")
 	check(app.run_domain.growth.load_catalog(),"growth loads")
 	app.progression_inputs = app.run_domain.growth.data.defaultProgression.duplicate(true)
@@ -26,6 +37,7 @@ func run() -> void:
 	app.progression_inputs.corePassiveNodeRanks = {}
 	var lobby := Lobby.new()
 	lobby.app = app
+	app.lobby_view = lobby
 	root.add_child(lobby)
 	await settle()
 	lobby.open_page("코어")
@@ -84,7 +96,6 @@ func run() -> void:
 	core.change_rank("K1",1)
 	check(lobby.core_draft.is_empty(),"unreachable key rejected")
 	core.node_details("S1")
-	check(core.expanded_tree.opens_from(core,"S1")==["A02","A03"],"rank bar milestone lists nodes S1 opens")
 	core.change_rank("S1",1)
 	check(core.expanded_tree.tick(core,0.05) and core.expanded_tree.grow["S1"]>0 and core.expanded_tree.grow["S1"]<1.0/3,"links grow toward neighbours instead of appearing")
 	for i in 2: core.change_rank("S1",1)
@@ -116,16 +127,63 @@ func run() -> void:
 	core.node_details("C02")
 	for i in 20: core.expanded_tree.tick(core,0.1)
 	var c02: Node = core.inline_body.find_child("CoreRankBar",true,false)
-	check(c02.marks==["C01","K2"] and not c02.reached,"C02 milestone shows the keystone and branch it opens")
+	check(c02.rank==2 and c02.maximum==3 and c02.applied==0,"C02 rank bar preserves its three segments and planned ranks")
 	await settle()
 	await capture("expanded-tree-node-detail-440")
 	lobby.core_draft = k2_path
 	core.update_state()
-	core.node_details("K2")
-	core.apply()
+	core.node_details("C12")
+	await settle()
+	core.settle_camera()
+	# Lower-edge selections are valid above the sheet, but outside the full-view
+	# clamp. Rebuilding the sheet must not clamp its briefly absent state.
+	core.offset = Vector2(core.view.size.x/2-core.point("C12").x*core.zoom,core.expanded_tree.visible_height(core)-2800.0*core.zoom)
+	var apply_zoom: float = core.zoom
+	var apply_offset: Vector2 = core.offset
+	var apply_view: Control = core.view
+	await capture("expanded-tree-before-apply-440")
+	core.apply_button.pressed.emit()
+	check(core.view==apply_view,"apply updates the existing viewport even when the app refreshes inside the command")
 	check(core.actual()==lobby.core_draft,"draft apply persists through real lobby command")
-	if core.allocation_tween: core.allocation_tween.kill()
-	core._finish_allocation()
+	check(core.zoom==apply_zoom and core.offset==apply_offset,"apply keeps the current viewport immediately")
+	for i in 120:
+		await process_frame
+		if not is_equal_approx(core.zoom,apply_zoom) or not core.offset.is_equal_approx(apply_offset):
+			check(false,"apply keeps the current viewport through refresh and allocation")
+			break
+	await create_timer(core.allocation_duration/1000.0+0.1).timeout
+	check(not core.allocating and core.selected=="C12","apply finishes allocation and preserves selection")
+	check(is_equal_approx(core.zoom,apply_zoom) and core.offset.is_equal_approx(apply_offset),"allocation completion keeps the current viewport")
+	await capture("expanded-tree-after-apply-440")
+	core.change_rank("S1",1)
+	await settle()
+	core.settle_camera()
+	core.expanded_tree.animate_to(core,[core.zoom*1.1,core.offset+Vector2(40,30)])
+	check(not core.expanded_tree.camera.is_empty(),"selection can still be easing before apply")
+	apply_zoom = core.zoom
+	apply_offset = core.offset
+	core.apply_button.pressed.emit()
+	check(core.expanded_tree.camera.is_empty(),"apply stops the in-flight camera at its current position")
+	await create_timer(core.allocation_duration/1000.0+0.2).timeout
+	check(core.actual()==lobby.core_draft and not core.allocating,"apply during easing persists and completes")
+	check(is_equal_approx(core.zoom,apply_zoom) and core.offset.is_equal_approx(apply_offset),"apply during easing preserves position and zoom through completion")
+	core.change_rank("S1",1)
+	app.reject_next = true
+	core.apply_button.pressed.emit()
+	await settle()
+	check(not lobby.message.is_empty() and core.changed() and not core.allocating,"failed apply keeps its draft and displays the existing error")
+	core.zoom = 0.6
+	core.expanded_tree.interrupt()
+	core._clamp()
+	core.settle_camera()
+	var error_label: Label = lobby._message_label
+	apply_view = core.view
+	apply_zoom = core.zoom
+	apply_offset = core.offset
+	core.apply_button.pressed.emit()
+	await create_timer(core.allocation_duration/1000.0+0.2).timeout
+	check(lobby.message.is_empty() and error_label.text.is_empty(),"successful retry clears the previous failure text")
+	check(core.view==apply_view and is_equal_approx(core.zoom,apply_zoom) and core.offset.is_equal_approx(apply_offset),"successful retry preserves the viewport while clearing its error")
 	var zoom_before: float = core.zoom
 	var offset_before: Vector2 = core.offset
 	core.skills()

@@ -19,6 +19,7 @@ var home: Control
 var body: VBoxContainer
 var safe: MarginContainer
 var message := ""
+var _message_label: Label
 var core_names: Dictionary = {}
 var core_draft: Dictionary = {}
 var growth = Growth.new()
@@ -112,6 +113,7 @@ func refresh() -> void:
 		modal = null
 		modal_frame = null
 	_page_scroll = null
+	_message_label = null
 	_rendered_page = page
 	for child in get_children():
 		if child == warning_toast: continue
@@ -177,7 +179,9 @@ func refresh() -> void:
 		"코어": core.render()
 		"포탑": collection.modules()
 		"설정": _settings()
-	if not message.is_empty(): _margin(column, 12).add_child(AppTheme.label(message, 12))
+	if not message.is_empty():
+		_message_label = AppTheme.label(message,12)
+		_margin(column,12).add_child(_message_label)
 	if page == "강화" and growth.has_method("upgrades_tabs"): growth.upgrades_tabs(column)
 	_footer(column)
 	_finish_refresh(kept_modal, scroll_position)
@@ -535,10 +539,20 @@ func open_service(label_text: String, context: Dictionary = {}) -> void:
 		_services.lobby = self
 	_services.open(label_text,context)
 
-func apply_growth_change(command: Dictionary) -> void:
-	if app.apply_growth_command(command): message = ""
+func apply_growth_change(command: Dictionary, refresh_page := true) -> void:
+	# The app also calls refresh_ui inside a successful command. Hold that
+	# reentrant page rebuild when the caller updates its existing controls.
+	var was_refreshing := _refreshing
+	if not refresh_page: _refreshing = true
+	var applied: bool = app.apply_growth_command(command)
+	_refreshing = was_refreshing
+	if applied: message = ""
 	else: message = "변경하지 못했습니다. 비용·해금 조건 또는 저장 상태를 확인하세요."
-	refresh()
+	if refresh_page or not applied: refresh()
+	elif is_instance_valid(_message_label):
+		# Clear a previous failure without changing the tree's viewport height.
+		_message_label.custom_minimum_size.y = _message_label.size.y
+		_message_label.text = ""
 
 func request_stage_start(index: int) -> void:
 	if index < 0 or not Progression.stage_unlocked(progression(), index + 1) or app.get("startup_blocked") == true: return
