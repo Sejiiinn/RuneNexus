@@ -57,6 +57,8 @@ func setup(application, native_platform: Object = null, settings: Dictionary = {
 	if platform != null: root_path = platform.application_support_path()
 	# Native support directory matches the former app, so no destructive copying.
 	if platform != null:
+		# Join any worker of the replaced binding before its slot is rebound.
+		if app.checkpoint != null: app.checkpoint.shutdown()
 		app.checkpoint = Checkpoint.new(root_path)
 		app.checkpoint.allow_progression_only = true
 		# JNI plugin methods are callable even when Object.has_method() is false.

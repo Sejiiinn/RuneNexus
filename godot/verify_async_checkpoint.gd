@@ -165,6 +165,12 @@ func lifecycle_requests() -> void:
 	check(app.checkpoint.pending_count() == 0 and app.checkpoint.store.load_save().activeRun.gold == 600,
 		"background boundary preserves latest state")
 	check(app.scene.combat_runtime.session.paused, "background boundary pauses runtime")
+	var held = app.checkpoint.store.transaction_scope()
+	app.run_domain.state.gold = 700
+	check(app.checkpoint.request_session(app) == OK and app.checkpoint.pending_count() == 0,
+		"request inside a held slot transaction saves synchronously")
+	held = null
+	check(app.checkpoint.store.load_save().activeRun.gold == 700, "held transaction request is durable")
 	check(app.checkpoint.shutdown() == OK, "lifecycle shutdown drains")
 	free_app(app)
 

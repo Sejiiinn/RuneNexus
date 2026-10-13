@@ -87,7 +87,9 @@ func _clear_async_failure() -> void:
 # OK means snapshot accepted; durable success/failure is delivered by poll/flush.
 # Terminal checkpoints stay synchronous because the live outbox is main-owned.
 func request_session(app) -> Error:
-	if worker == null: return save_session(app)
+	# A request queued behind a slot transaction this thread holds could never run
+	# before a later flush in that transaction; save synchronously inside it.
+	if worker == null or store.slot_order().held_by_caller(): return save_session(app)
 	if not app.is_content_session() or app.run_domain.state.is_empty(): return save_session(app)
 	if not app.command():
 		message = app.run_domain.error

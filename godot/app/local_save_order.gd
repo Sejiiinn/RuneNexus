@@ -41,6 +41,12 @@ class SlotOrder extends RefCounted:
 		mutex.unlock()
 		return memo
 
+	func held_by_caller() -> bool:
+		mutex.lock()
+		var held := owner_thread != 0 and owner_thread == OS.get_thread_caller_id()
+		mutex.unlock()
+		return held
+
 	func reserve() -> int:
 		mutex.lock()
 		issued += 1
