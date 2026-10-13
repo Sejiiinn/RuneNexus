@@ -52,7 +52,7 @@ func _build_state(app) -> void:
 			if gem != null:
 				entry.orbitGemColors.append(Color(str(GemPalette.GEM_COLORS.get(gem, "69D7FF"))))
 		if selected and level_preview:
-			var quote: Dictionary = app.run_domain.service.quotes(state,int(turret.id))
+			var quote: Dictionary = app.run_domain.service.quotes_from_derived(state,int(turret.id),derived)
 			if int(quote.get("level",0)) > 0 and int(state.gold) >= int(quote.level):
 				var next: Dictionary = turret.duplicate(true)
 				next.level += 1

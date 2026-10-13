@@ -34,6 +34,7 @@ SERVICE_RUNNERS = (ROOT / "scripts/verify_godot_account_services.py", ROOT / "sc
 CASES: dict[str, tuple[str, dict]] = {
     "verify_app_lifecycle.gd": ("APP_LIFECYCLE failures=[]", {}),
     "verify_app_resume.gd": ("APP_RESUME failures=[]", {}),
+    "verify_native_frame_coalescing.gd": ("NATIVE_FRAME_COALESCING checks=", {}),
     "verify_auxiliary_display_cache.gd": ("Auxiliary display cache verification: 0 failures", {}),
     "verify_battlefield_effects.gd": ("Battlefield effects:", {}),
     "verify_battlefield_labels.gd": ("Battlefield labels verification: 0 failures", {}),

@@ -15,6 +15,11 @@ class QueryCatalog extends "res://content/content_catalog.gd":
 	func wave_definition(si: int, wi: int) -> Dictionary:
 		wave_queries += 1
 		return super.wave_definition(si,wi)
+class CountingCommands extends "res://app/run_commands.gd":
+	var derive_calls := 0
+	func derived(state: Dictionary) -> Dictionary:
+		derive_calls += 1
+		return super.derived(state)
 ## UI smoke with the actual catalog/command owner, no editor or persistent save.
 class App extends Node:
 	var services := FixtureServices.new()
@@ -115,6 +120,7 @@ func run() -> void:
 	var app := App.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.initialize(app.catalog,{},0,100))
+	app.run_domain.service = CountingCommands.new(app.catalog,app.run_domain.growth)
 	root.add_child(app)
 	var hud = load("res://ui/battle_hud.gd").new()
 	hud.app = app
@@ -208,6 +214,9 @@ func run() -> void:
 	assert(hud.status.autowrap_mode == TextServer.AUTOWRAP_OFF)
 	assert(hud.wave_label.autowrap_mode == TextServer.AUTOWRAP_OFF)
 	var turret_nodes := node_identities(hud.body)
+	var cached_derive_calls: int = app.run_domain.service.derive_calls
+	hud.refresh()
+	assert(app.run_domain.service.derive_calls == cached_derive_calls,"Selected turret refresh reuses synchronized quote configuration")
 	(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
 	assert(node_identities(hud.body) == turret_nodes,"Preview must keep every existing node")
 	assert(app.run_domain.state.turrets[0].level == 1)
@@ -317,7 +326,9 @@ func run() -> void:
 	hud.run_selected_command("link")
 	assert(app.run_domain.state.turrets[0].slotLimit == 2)
 	hud.main_tab = "upgrades"
+	cached_derive_calls = app.run_domain.service.derive_calls
 	hud.refresh()
+	assert(app.run_domain.service.derive_calls == cached_derive_calls,"Three run-upgrade rows reuse synchronized quote configuration")
 	var upgrade_cost := int(app.run_domain.service.run_upgrade_quote(app.run_domain.state,"towerDamage").cost)
 	assert_wallet_refresh(app,hud,buttons(hud.body)[0],"gold",upgrade_cost)
 	var upgrade_nodes := node_identities(hud.body)

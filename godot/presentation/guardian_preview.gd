@@ -49,6 +49,7 @@ var _run_scene: PackedScene
 var _boss_scene: PackedScene
 var _boss_head_bounds := AABB()
 var _boss_head_bounds_ready := false
+var _boss_head_bounds_scene_id := 0
 var _tank_scene: PackedScene
 var _tank_death_scene: PackedScene
 var _tank_head_bounds := AABB()
@@ -67,6 +68,15 @@ var walkers := {}
 
 func _init(world: Node3D) -> void:
 	_world = world
+
+
+func adopt_prepared_boss_label(source) -> void:
+	# Rehearsal rigs are discarded. Keep only immutable bind bounds and their
+	# resource identity; the living actor must bind its own skeleton/head bone.
+	if not source._boss_head_bounds_ready or source._boss_scene == null: return
+	_boss_head_bounds = source._boss_head_bounds
+	_boss_head_bounds_ready = true
+	_boss_head_bounds_scene_id = source._boss_head_bounds_scene_id
 
 
 func prepare() -> bool:
@@ -215,6 +225,12 @@ func new_walker(kind: String = "normal") -> Dictionary:
 		if _boss_scene == null:
 			failure.emit("보스 GLB를 불러오지 못했습니다.")
 			return {}
+		# A different imported scene cannot reuse another resource's bind bounds.
+		# The integer identity does not pin a rehearsal model or stage resource.
+		if _boss_head_bounds_scene_id != _boss_scene.get_instance_id():
+			_boss_head_bounds = AABB()
+			_boss_head_bounds_ready = false
+			_boss_head_bounds_scene_id = _boss_scene.get_instance_id()
 		return _instantiate(_boss_scene, 0.0, kind, "HeavyWalk")
 	if kind == "tank":
 		if _tank_death_scene == null:
@@ -437,3 +453,4 @@ func retain_stage(enemy_types: Array) -> void:
 	if not enemy_types.any(func(kind): return kind in BOSS_KINDS):
 		_boss_scene = null
 		_boss_head_bounds_ready = false
+		_boss_head_bounds_scene_id = 0

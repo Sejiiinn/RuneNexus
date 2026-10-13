@@ -62,6 +62,7 @@ func _build(state: Dictionary) -> void:
 		b.toggle_mode = true; b.button_pressed = type == kind
 
 func _upgrades(state: Dictionary) -> void:
+	var configuration: Dictionary = hud.configuration_cache.derived(state,hud.app.run_domain.service)
 	var compact := hud.get_viewport_rect().size.x < 380
 	var rows := VBoxContainer.new()
 	rows.name = "RunUpgradeRows"
@@ -78,7 +79,7 @@ func _upgrades(state: Dictionary) -> void:
 			divider.add_theme_constant_override("separation",5)
 			divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			rows.add_child(divider)
-		var q: Dictionary = hud.app.run_domain.service.run_upgrade_quote(state,type)
+		var q: Dictionary = hud.app.run_domain.service.run_upgrade_quote_from_derived(state,type,configuration)
 		var values: Array = hud.app.run_domain.growth.data.runUpgrades[type].effects
 		var current = float(values[mini(int(q.level),values.size()-1)])
 		var next = float(values[mini(int(q.level)+1,values.size()-1)])
@@ -161,10 +162,11 @@ func _upgrades(state: Dictionary) -> void:
 		hud.track_purchase_button(b,"gold",int(q.cost),at_max)
 
 func _update_upgrades(state: Dictionary) -> void:
+	var configuration: Dictionary = hud.configuration_cache.derived(state,hud.app.run_domain.service)
 	var rows: VBoxContainer = hud.body.get_node("RunUpgradeRows")
 	for type in hud.UPGRADES:
 		var row: HBoxContainer = rows.get_node("Upgrade_"+str(type))
-		var q: Dictionary = hud.app.run_domain.service.run_upgrade_quote(state,type)
+		var q: Dictionary = hud.app.run_domain.service.run_upgrade_quote_from_derived(state,type,configuration)
 		var values: Array = hud.app.run_domain.growth.data.runUpgrades[type].effects
 		var at_max := int(q.level) >= int(q.maxLevel)
 		(row.find_child("UpgradeLevel",true,false) as Label).text = "Lv.%d/%d" % [q.level,q.maxLevel]

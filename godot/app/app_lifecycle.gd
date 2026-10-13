@@ -95,7 +95,7 @@ func refresh_economy_ui() -> void:
 
 func refresh_selection() -> void:
 	selection_view.apply(self)
-	if not scene.combat_base_frame.is_empty(): scene.apply_frame(scene.combat_base_frame)
+	scene.request_native_frame()
 
 func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}, server_run_id: Variant = null) -> bool:
 	var entered := super.enter_stage(index, bootstrap, session_state, restored_state, server_run_id)
@@ -174,6 +174,7 @@ func retry_load() -> bool:
 		epoch += 1
 		scene.apply_frame({"reset":true,"sceneEpoch":epoch})
 	elif scene.combat_runtime.active: command([], {"paused":true})
+	if is_inside_tree() and not _detached_debug_lifecycle(): checkpoint.enable_worker(self)
 	refresh_ui()
 	return true
 
@@ -417,6 +418,32 @@ func persist_progression() -> bool:
 	RuntimeProfile.finish("save", save_tick)
 	return result == OK
 
+# Accepted background snapshot; durable consumers use persist_progression().
+# Completion is consumed on main before any service/play gate can return early.
+func request_checkpoint() -> bool:
+	if startup_blocked or saving: return false
+	if RuntimeProfile.options.get("skip_save", false): return true
+	if not scene.combat_runtime.active or run_domain.state.is_empty(): return persist_progression()
+	var save_tick := RuntimeProfile.begin()
+	saving = true
+	var result: Error = checkpoint.request_session(self)
+	saving = false
+	if result != OK: _record_save_failure()
+	else:
+		autosave_elapsed = 0.0
+		progression_inputs = run_domain.state.progression.duplicate(true)
+	RuntimeProfile.finish("save_request", save_tick)
+	return result == OK
+
+func _poll_checkpoint_completions() -> void:
+	for result in checkpoint.poll_completions():
+		if result.error != OK:
+			checkpoint.message = result.message
+			_record_save_failure()
+
+func _exit_tree() -> void:
+	checkpoint.shutdown()
+
 func apply_growth_command(request: Dictionary) -> bool:
 	if _gem_reroll_requesting or _pending_gem_reroll() or _battle_preparation_pending(): return false
 	if services != null and services.blocks_play(): return false
@@ -444,7 +471,7 @@ func apply_run_command(request: Dictionary) -> bool:
 	if save_failed and not persist_progression(): return false
 	if not super.apply_run_command(request): return false
 	refresh_selection()
-	if not persist_progression(): return false
+	if not request_checkpoint(): return false
 	# Command receipts, rather than equipment snapshots, own this transient cue.
 	# Loading, removing gems and repeated selection frames cannot replay it.
 	if request.get("kind") in ["equipGem", "chooseRewardGemEquip"]:
@@ -457,7 +484,7 @@ func start_wave() -> void:
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return
 	if save_failed and not persist_progression(): return
 	super.start_wave()
-	persist_progression()
+	request_checkpoint()
 
 func toggle_pause() -> void:
 	if _gem_reroll_requesting or _pending_gem_reroll(): return
@@ -465,19 +492,19 @@ func toggle_pause() -> void:
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return
 	if save_failed and not persist_progression(): return
 	super.toggle_pause()
-	persist_progression()
+	request_checkpoint()
 
 func toggle_speed() -> void:
 	if services != null and services.blocks_play(): return
 	if startup_blocked or _battle_preparation_pending() or (save_failed and not persist_progression()): return
 	super.toggle_speed()
-	persist_progression()
+	request_checkpoint()
 
 func set_speed(value: float) -> void:
 	if services != null and services.blocks_play(): return
 	if value not in [1.0, 2.0, 4.0] or startup_blocked or in_lobby or _battle_preparation_pending(): return
 	if save_failed and not persist_progression(): return
-	if command([], {"speed":value}): persist_progression()
+	if command([], {"speed":value}): request_checkpoint()
 
 func begin_modal_pause() -> bool:
 	if startup_blocked or in_lobby or save_failed: return false
@@ -485,7 +512,7 @@ func begin_modal_pause() -> bool:
 	_modal_resume_allowed = running
 	if running:
 		command([], {"paused":true})
-		persist_progression()
+		request_checkpoint()
 	return running
 
 func end_modal_pause(was_running: bool) -> void:
@@ -494,7 +521,7 @@ func end_modal_pause(was_running: bool) -> void:
 	_modal_resume_allowed = false
 	if not resume or in_lobby or startup_blocked or save_failed or _battle_preparation_pending(): return
 	if run_domain.state.get("phase") not in ["preparation", "wave"]: return
-	if command([], {"paused":false}): persist_progression()
+	if command([], {"paused":false}): request_checkpoint()
 
 func abandon_run() -> bool:
 	if _gem_reroll_requesting or _pending_gem_reroll() or _battle_preparation_pending(): return false
@@ -578,6 +605,10 @@ func pause_and_save() -> bool:
 func request_quit() -> bool:
 	# A corrupt startup has no live mutations to preserve and can safely close.
 	if startup_blocked or pause_and_save():
+		if checkpoint.shutdown() != OK:
+			_record_save_failure()
+			refresh_ui()
+			return false
 		get_tree().quit()
 		return true
 	refresh_ui()
@@ -618,6 +649,7 @@ func _resume_services() -> void:
 	if services.account != null and not services.busy: await services.retry()
 
 func _process(delta: float) -> void:
+	_poll_checkpoint_completions()
 	if services != null and services.blocks_play(): return
 	if _stage_entry_pending or _run_close_pending: return
 	if services != null and services.updates != null and services.updates.blocked: return
@@ -635,7 +667,7 @@ func _process(delta: float) -> void:
 	if checkpoint.store.last_error != OK or (checkpoint.reward_queue != null and checkpoint.reward_queue.last_error != OK):
 		_record_save_failure()
 		return
-	if str(run_domain.state.get("phase", "")) != previous_phase: persist_progression()
+	if str(run_domain.state.get("phase", "")) != previous_phase: request_checkpoint()
 	if services != null: services.request_run_settlement()
 	_maybe_request_gem_offer()
 	_maybe_auto_start()
@@ -648,9 +680,8 @@ func _process(delta: float) -> void:
 				break
 	autosave_elapsed += delta
 	if autosave_elapsed >= autosave_interval:
-		# Retry failed writes at the same bounded interval, preserving the error.
 		autosave_elapsed = 0.0
-		persist_progression()
+		request_checkpoint()
 
 # Every offer/purchase/choice/reroll is an immutable account command. In-flight state
 # is read from the checkpoint even before the economy service has been configured.

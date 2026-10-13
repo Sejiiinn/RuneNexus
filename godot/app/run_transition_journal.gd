@@ -24,6 +24,7 @@ func valid_record(value: Variant) -> bool:
 	return SaveJson.is_json_value(value)
 
 func _recover(path: String) -> Error:
+	var _transaction_scope = transaction_scope()
 	# The displaced old decision wins over an uninstalled temporary commit.
 	var raw: Variant = _read_text(path)
 	if last_error != OK: return last_error
@@ -44,6 +45,7 @@ func _recover(path: String) -> Error:
 	return OK
 
 func write_record(record: Dictionary) -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin(): return last_error
 	if not valid_record(record): return _fail(ERR_INVALID_DATA, "Invalid run transition record")
 	if _recover(primary_path) != OK: return last_error
@@ -73,10 +75,12 @@ func _install_temporary(temporary: String) -> Error:
 	return _fail(error, "Install run transition decision")
 
 func read_record() -> Variant:
+	var _transaction_scope = transaction_scope()
 	if not _begin() or _recover(primary_path) != OK: return null
 	return _read_json(primary_path)
 
 func remove_record() -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin(): return last_error
 	# Delete the decision last, so an interrupted cleanup cannot resurrect an old
 	# prepared decision from .replace after a committed primary was removed.
@@ -85,6 +89,7 @@ func remove_record() -> Error:
 	return OK
 
 func recover_transaction(target_store, queue = null) -> Error:
+	var _transaction_scope = transaction_scope()
 	if target_store.primary_path.get_file() != "save_v2.json":
 		queue = target_store
 		target_store = load("res://app/local_save_store.gd").new(directory, Slot.guest() if owner == "guest" else Slot.account(owner))
@@ -127,6 +132,7 @@ func _restore(record: Dictionary, target_store, queue) -> Error:
 	return remove_record()
 
 func persist(target_store, queue, before: Dictionary, after: Dictionary, reward: Dictionary) -> Error:
+	var _transaction_scope = transaction_scope()
 	if recover_transaction(target_store, queue) != OK: return last_error
 	if not queue.loaded and queue.load_state() != OK: return _fail(queue.last_error, queue.last_error_message)
 	if not queue.valid_reward(reward): return _fail(ERR_INVALID_DATA, "Invalid transition reward")

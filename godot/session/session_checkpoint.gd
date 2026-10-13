@@ -6,6 +6,9 @@ const Codec = preload("res://app/save_codec.gd")
 const GemReroll = preload("res://app/gem_reroll.gd")
 const Adapter = preload("res://app/run_save_adapter.gd")
 const ContentSave = preload("res://app/content_run_save.gd")
+const Capture = preload("res://app/checkpoint_capture.gd")
+const Worker = preload("res://app/checkpoint_worker.gd")
+const SaveOrder = preload("res://app/local_save_order.gd")
 const Store = preload("res://app/local_save_store.gd")
 const Slot = preload("res://app/local_save_slot.gd")
 const RewardOutbox = preload("res://app/reward_outbox.gd")
@@ -19,6 +22,13 @@ var owner: String
 var reward_queue
 var queued_run_id := ""
 var allow_progression_only := false
+var worker
+var generation := 1
+var last_requested_sequence := 0
+var last_completed_sequence := 0
+var last_durable_sequence := 0
+var _async_error: Error = OK
+var _async_message := ""
 
 func _init(directory: String = "user://standalone-session", account_owner: String = "guest") -> void:
 	base_directory = directory
@@ -26,6 +36,72 @@ func _init(directory: String = "user://standalone-session", account_owner: Strin
 	var slot = Slot.guest() if owner == "guest" else Slot.account(owner)
 	store = Store.new(directory, slot)
 	if slot == null: store._valid_slot = false
+
+# Detached fixtures retain the synchronous contract unless explicitly enabled.
+# Content and growth are cloned once per binding, never shared with live errors.
+func enable_worker(app, before_commit: Callable = Callable()) -> void:
+	if worker != null: return
+	worker = Worker.new(app.catalog._data.duplicate(true), app.run_domain.growth.data.duplicate(true), base_directory, owner, before_commit)
+
+func pending_count() -> int:
+	return 0 if worker == null else worker.pending_count()
+
+func _accept_completions(completed: Array) -> Array:
+	var accepted := []
+	var slot := SaveOrder.slot_key(base_directory, owner)
+	for result in completed:
+		if int(result.generation) != generation or result.slot != slot: continue
+		last_completed_sequence = maxi(last_completed_sequence, int(result.sequence))
+		if result.error == OK:
+			last_durable_sequence = maxi(last_durable_sequence, int(result.sequence))
+			if _async_error == OK and int(result.sequence) == last_requested_sequence: message = result.message
+		elif _async_error == OK:
+			_async_error = result.error
+			_async_message = result.message
+			message = _async_message
+		accepted.append(result)
+	return accepted
+
+func poll_completions() -> Array:
+	return [] if worker == null else _accept_completions(worker.take_completions())
+
+# Returns durable completion, never mere queue acceptance. An explicit successful
+# synchronous checkpoint may repair a prior background failure afterward.
+func flush_pending() -> Error:
+	if worker != null: _accept_completions(worker.flush())
+	if _async_error != OK: message = _async_message
+	return _async_error
+
+func shutdown() -> Error:
+	if worker != null:
+		_accept_completions(worker.shutdown())
+		worker = null
+	var result: Error = _async_error
+	generation += 1
+	return result
+
+func _clear_async_failure() -> void:
+	_async_error = OK
+	_async_message = ""
+
+# OK means snapshot accepted; durable success/failure is delivered by poll/flush.
+# Terminal checkpoints stay synchronous because the live outbox is main-owned.
+func request_session(app) -> Error:
+	if worker == null: return save_session(app)
+	if not app.is_content_session() or app.run_domain.state.is_empty(): return save_session(app)
+	if not app.command():
+		message = app.run_domain.error
+		return ERR_INVALID_DATA
+	if app.run_domain.state.phase in ["success", "failure", "coreDestruction"]: return save_session(app)
+	var request := capture_state(app, app.run_domain.state)
+	if request.is_empty(): return ERR_UNAVAILABLE
+	request.generation = generation
+	var accepted: Dictionary = worker.submit(request)
+	if accepted.error != OK:
+		message = "저장 작업을 시작하지 못했습니다"
+		return accepted.error
+	last_requested_sequence = int(accepted.sequence)
+	return OK
 
 func rewards():
 	if reward_queue == null:
@@ -41,6 +117,8 @@ func _ordinary_write_allowed() -> bool:
 	return false
 
 func enqueue_saved(saved: Dictionary) -> Error:
+	flush_pending()
+	var _transaction_scope = store.transaction_scope()
 	if not _ordinary_write_allowed(): return ERR_BUSY
 	var run: Variant = saved.get("activeRun")
 	if not run is Dictionary or run.phase not in ["success", "failure", "coreDestruction"]: return OK
@@ -64,27 +142,35 @@ func _saved_reward(saved: Dictionary) -> Dictionary:
 func enqueue_finished(app) -> Error:
 	return _save_content(app)
 
-func persist_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Error:
-	if not _ordinary_write_allowed(): return ERR_BUSY
+# The simulation/event ACK remains on main. Every branch handed to conversion
+# is owned, so later live commands cannot mutate a queued checkpoint.
+func capture_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Dictionary:
 	var runtime = app.scene.combat_runtime
 	if not runtime.active or not is_equal_approx(runtime.tile_size, 1.0) or runtime.origin != Vector2.ZERO:
 		message = "Unsupported checkpoint coordinate configuration"
-		return ERR_UNAVAILABLE
-	var snapshot: Dictionary = app.scene.combat_runtime.snapshot()
-	var adapter = ContentSave.new(app.catalog, app.run_domain.growth)
-	var before: Dictionary = {}
-	if not previous.is_empty():
-		before = adapter.capture(previous, snapshot, int(app.run_domain.now_millis.call()), preferences)
-		if before.is_empty():
-			message = adapter.error
-			return ERR_INVALID_DATA
-	if abandoning:
-		snapshot.session.phase = "failure"
-		snapshot.wave.spawnQueue = []
-	var saved: Dictionary = adapter.capture(candidate, snapshot, int(app.run_domain.now_millis.call()), preferences)
-	if saved.is_empty():
-		message = adapter.error
+		return {}
+	return {"state":candidate.duplicate(true), "previous":previous.duplicate(true),
+		"snapshot":runtime.snapshot(), "abandoning":abandoning,
+		"saved_at":int(app.run_domain.now_millis.call()), "preferences":preferences.duplicate(true)}
+
+# Synchronous durable boundary. Conversion is separate from live capture and
+# commit_saved owns the complete save/outbox journal decision.
+func commit_capture(request: Dictionary, content, growth_rules) -> Error:
+	flush_pending()
+	if request.is_empty(): return ERR_UNAVAILABLE
+	var capture = Capture.new(content, growth_rules)
+	var prepared: Dictionary = capture.prepare(request)
+	if prepared.is_empty():
+		message = capture.error
 		return ERR_INVALID_DATA
+	return commit_saved(prepared)
+
+func commit_saved(prepared: Dictionary) -> Error:
+	flush_pending()
+	var _transaction_scope = store.transaction_scope()
+	if not _ordinary_write_allowed(): return ERR_BUSY
+	var saved: Dictionary = prepared.saved
+	var before: Dictionary = prepared.before
 	var result: Error
 	if not before.is_empty():
 		var queue = rewards()
@@ -98,11 +184,18 @@ func persist_state(app, candidate: Dictionary, abandoning: bool = false, previou
 	else:
 		result = store.save_save(saved)
 		if result == OK: result = enqueue_saved(saved)
-	if result == OK: preferences = saved.preferences.duplicate(true)
+	if result == OK:
+		preferences = saved.preferences.duplicate(true)
+		_clear_async_failure()
 	message = "Saved v2 checkpoint and retained run reward" if result == OK else (message if store.last_error == OK else store.last_error_message)
 	return result
 
+func persist_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Error:
+	return commit_capture(capture_state(app, candidate, abandoning, previous), app.catalog, app.run_domain.growth)
+
 func apply_economy_snapshot(app, snapshot: Dictionary, command: Dictionary = {}) -> bool:
+	flush_pending()
+	var _transaction_scope = store.transaction_scope()
 	# A fallback backup remains untouched until current canonical reconciliation;
 	# projecting cached inventory first would destroy its original allocation.
 	if owner == "guest" or store.has_recovery_marker(): return false
@@ -186,6 +279,8 @@ func _project_gem_offer(app, state: Dictionary, snapshot: Dictionary, command: D
 	return next
 
 func save_session(app) -> Error:
+	flush_pending()
+	var _transaction_scope = store.transaction_scope()
 	if not _ordinary_write_allowed(): return ERR_BUSY
 	if app.is_content_session(): return _save_content(app)
 	var runtime = app.scene.combat_runtime
@@ -221,6 +316,8 @@ func save_session(app) -> Error:
 	return error
 
 func load_session(app) -> Error:
+	flush_pending()
+	var _transaction_scope = store.transaction_scope()
 	if app.is_content_session(): return _load_content(app)
 	var saved = store.load_save()
 	if saved == null:
@@ -290,6 +387,8 @@ func _save_content(app) -> Error:
 	return persist_state(app, app.run_domain.state)
 
 func save_progression(app, progression: Dictionary) -> Error:
+	flush_pending()
+	var _transaction_scope = store.transaction_scope()
 	if not _ordinary_write_allowed(): return ERR_BUSY
 	var values := progression.duplicate(true)
 	var modules: Dictionary = values.get("turretModules", {}).duplicate(true)
@@ -297,6 +396,7 @@ func save_progression(app, progression: Dictionary) -> Error:
 	var saved: Variant = Codec.decode({"version":2,"savedAtMillis":int(app.run_domain.now_millis.call()),"preferences":preferences,"progression":values,"turretModules":modules,"activeRun":null})
 	if saved == null: return ERR_INVALID_DATA
 	var result: Error = store.save_save(saved)
+	if result == OK: _clear_async_failure()
 	message = "진행 상황을 저장했습니다" if result == OK else store.last_error_message
 	return result
 

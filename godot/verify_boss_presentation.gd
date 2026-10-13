@@ -123,6 +123,18 @@ func run() -> void:
 		units._sync_enemies([data])
 		check(is_equal_approx(units.enemies[id].player.current_animation_position, 0.0), kind + " new epoch starts at initial gait")
 		units.clear()
+	var expected_bounds: AABB = motion._boss_head_bounds
+	var previous_id: int = motion._boss_head_bounds_scene_id
+	motion._boss_scene = motion._boss_scene.duplicate() as PackedScene
+	motion._boss_head_bounds = AABB(Vector3.ONE * 100.0, Vector3.ONE)
+	var changed_resource := motion.new_walker("forgeBoss")
+	check(motion._boss_head_bounds_scene_id != previous_id and motion._boss_head_bounds_scene_id == motion._boss_scene.get_instance_id(), "Different PackedScene identity invalidates old bind bounds")
+	check(changed_resource.label_bounds == expected_bounds, "Different PackedScene safely recalculates exact authored head bounds")
+	changed_resource.root.free()
+	units.retain_stage(["shieldBoss"])
+	check(motion._boss_head_bounds_ready, "Overlapping boss alias stage keeps its immutable bounds")
+	units.retain_stage(["normal"])
+	check(motion._boss_scene == null and not motion._boss_head_bounds_ready and motion._boss_head_bounds_scene_id == 0, "Stage without bosses releases scene and bound identity")
 	world.free()
 	print("BOSS_PRESENTATION failures=", failures)
 	quit(0 if failures.is_empty() else 1)

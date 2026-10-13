@@ -78,6 +78,10 @@ func _forward_guardian_failure(message: String) -> void:
 	failure.emit(message)
 
 
+func adopt_prepared_label_bounds(source) -> void:
+	_guardian_preview.adopt_prepared_boss_label(source._guardian_preview)
+
+
 func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> void:
 	_time = time
 	columns = map_size.x

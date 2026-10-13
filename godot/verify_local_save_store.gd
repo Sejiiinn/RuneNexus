@@ -2,6 +2,7 @@ extends SceneTree
 const Store = preload("res://app/local_save_store.gd")
 const Slot = preload("res://app/local_save_slot.gd")
 const Codec = preload("res://app/save_codec.gd")
+const RewardOutbox = preload("res://app/reward_outbox.gd")
 class CountingStore extends Store:
 	var writes := 0
 	var reads := 0
@@ -192,6 +193,56 @@ func verify_validated_bytes(a: Dictionary, b: Dictionary) -> void:
 	fault.fault_path = ""
 	fault.clear()
 
+func verify_shared_validation(a: Dictionary, b: Dictionary) -> void:
+	var directory := test_directory.path_join("shared-validation")
+	var first = CountingStore.new(directory)
+	var second = CountingStore.new(directory)
+	var other := CountingStore.new(directory, Slot.account("abcdef01-2345-6789-abcd-0123456789ab"))
+	var outbox := RewardOutbox.new(directory, "ABCDEF01-2345-6789-ABCD-0123456789AB")
+	var a_raw := JSON.stringify(a,"",false,true)
+	var b_raw := JSON.stringify(b,"",false,true)
+	check(first._validation_memo == second._validation_memo and first._validation_memo != other._validation_memo,
+		"repositories share validation only within their directory/account slot")
+	check(outbox._validation_memo == other._validation_memo and outbox._validation_memo != first._validation_memo,
+		"account outbox binds validation to its account rather than the guest slot")
+	check(first.save_save(a) == OK and second._validation_memo.matches(a_raw) and not other._validation_memo.matches(a_raw),
+		"successful writer publishes immutable bytes to its peer only")
+	check(outbox.clear() == OK and second._validation_memo.matches(a_raw), "account outbox clear cannot erase the guest memo")
+	var reads: int = second.reads
+	check(second.save_save(b) == OK and second.reads > reads and FileAccess.get_file_as_string(second.backup_path) == a_raw,
+		"peer reads all bytes before reusing validation and rotates the exact previous save")
+	check(first._validation_memo.matches(b_raw) and not first._validation_memo.matches(a_raw),
+		"shared memo retains only the latest validated string")
+	check(first.load_save() == b, "memo reuse does not bypass normal load decoding")
+	# A peer's cached bytes cannot certify a later external replacement.
+	write(first.primary_path, "{broken")
+	check(second.preserve_current_as_backup() == OK and FileAccess.get_file_as_string(second.backup_path) == a_raw,
+		"shared validation cannot rotate corrupt external bytes over a valid backup")
+	write(first.primary_path, a_raw)
+	check(second.save_save(b) == OK and FileAccess.get_file_as_string(second.backup_path) == a_raw,
+		"same-length external replacement remains authoritative across repositories")
+	check(DirAccess.remove_absolute(first.primary_path) == OK, "remove primary for shared recovery")
+	write(first.primary_path + ".replace", a_raw)
+	write(first.primary_path + ".tmp", b_raw)
+	check(second.preserve_current_as_backup() == OK and FileAccess.get_file_as_string(second.backup_path) == a_raw and not FileAccess.file_exists(first.primary_path + ".tmp"),
+		"shared memo still recovers displaced primary before inspecting bytes")
+	check(DirAccess.make_dir_absolute(first.primary_path + ".tmp") == OK, "block shared atomic temporary path")
+	check(second.save_save(b) != OK and first._validation_memo.matches(a_raw) and not first._validation_memo.matches(b_raw),
+		"failed atomic write cannot publish attempted bytes to a peer")
+	check(DirAccess.remove_absolute(first.primary_path + ".tmp") == OK, "repair shared atomic temporary path")
+	check(first.clear() == OK and not second._validation_memo.matches(a_raw), "clear releases shared validated bytes")
+	check(first.save_save(a) == OK, "warm validation lifetime fixture")
+	var memo: WeakRef = weakref(first._validation_memo)
+	first = null
+	check(memo.get_ref() != null and second._validation_memo.matches(a_raw), "memo lives while a peer repository owns it")
+	second = null
+	check(memo.get_ref() == null, "permanent FIFO registry does not retain save bytes after all repositories leave")
+	var reopened := CountingStore.new(directory)
+	check(not reopened._validation_memo.matches(a_raw) and reopened.load_save() == a,
+		"reopened slot revalidates its existing disk save after memo expiration")
+	reopened.clear()
+	other.clear()
+
 func _initialize() -> void:
 	test_directory = OS.get_environment("TMPDIR").path_join("rune-nexus-save-store-test-" + str(OS.get_process_id()) + "-" + str(Time.get_ticks_usec()))
 	if not test_directory.is_absolute_path():
@@ -205,6 +256,7 @@ func _initialize() -> void:
 	c.savedAtMillis = 3
 	verify_read_errors(a, b)
 	verify_validated_bytes(a, b)
+	verify_shared_validation(a, b)
 	var store := CountingStore.new(test_directory)
 	check(store.primary_path == test_directory.path_join("saves/guest/save_v2.json"), "guest path")
 	check(store.load_save() == null and store.last_error == OK, "empty load")

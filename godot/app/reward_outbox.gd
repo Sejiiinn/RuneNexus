@@ -10,12 +10,14 @@ func _init(base_directory: String = "user://", account_owner: String = "guest") 
 	super(base_directory)
 	owner = account_owner.to_lower()
 	transition_owner = owner
+	_validation_memo = slot_order().validation_memo()
 	_valid_slot = owner == "guest" or Slot.account(owner) != null
 	var directory := base_directory.path_join("saves/guest" if owner == "guest" else "saves/accounts/" + owner)
 	primary_path = directory.path_join("godot_reward_outbox.json" if owner == "guest" else "economy_outbox.json")
 	backup_path = primary_path + ".backup"
 
 func _begin() -> bool:
+	var _transaction_scope = transaction_scope()
 	var ok: bool = super._begin()
 	if not ok:
 		loaded = false
@@ -23,6 +25,7 @@ func _begin() -> bool:
 	return ok
 
 func load_state() -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin(): return last_error
 	loaded = false
 	state = {}
@@ -44,6 +47,7 @@ func load_state() -> Error:
 	return OK
 
 func save_state(next: Dictionary) -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin(): return last_error
 	if not loaded or not valid_state(next): return _fail(ERR_INVALID_DATA, "Invalid or unread reward outbox")
 	if _recover(primary_path) != OK: return last_error
@@ -60,6 +64,7 @@ func save_state(next: Dictionary) -> Error:
 	return OK
 
 func enqueue(reward: Dictionary) -> Error:
+	var _transaction_scope = transaction_scope()
 	if not loaded:
 		if load_state() != OK: return last_error
 	if not valid_reward(reward): return _fail(ERR_INVALID_DATA, "Invalid run reward")
@@ -104,6 +109,7 @@ static func valid_reward(value: Variant) -> bool:
 	return StageProgression.ordinal_for(value.stageNumber) > 0 and value.completedRounds <= 40 and value.pendingDiamonds <= (value.completedRounds + 1) * 300 and tickets is int and (tickets == 0 or (tickets == 5 and value.success and value.stageNumber == 11))
 
 func _recover(path: String) -> Error:
+	var _transaction_scope = transaction_scope()
 	if not FileAccess.file_exists(path):
 		for suffix in [".replace", ".tmp"]:
 			if not FileAccess.file_exists(path + suffix): continue

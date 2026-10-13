@@ -52,6 +52,8 @@ var app_mode := LaunchMode.default_app_mode()
 var combat_runtime := _new_native_combat()
 ## Session-owned static presentation (map, selection, preview) decorated each frame.
 var combat_base_frame: Dictionary = {}
+var _native_frame_pending := false
+var _pending_gem_bursts: Array = []
 var camera := Camera3D.new()
 var _battlefield_camera := BattlefieldCamera.new(camera)
 # Compatibility for scene consumers and existing camera verification scripts.
@@ -302,7 +304,10 @@ func _process(delta: float) -> void:
 		var advanced := combat_runtime.advance_session(session_delta, host_active)
 		RuntimeProfile.finish("combat", combat_tick)
 		if advanced and not combat_base_frame.is_empty():
-			apply_frame(combat_base_frame)
+			request_native_frame()
+		# Schedule from the render process, not input: input's deferred queue can
+		# flush during physics before this frame's simulation has advanced.
+		_flush_native_frame.call_deferred()
 	if _frame_metrics.advance(delta):
 		_frame_metrics.report({"received_frames":received_frames,"sequence":last_sequence,
 			"authored_terrain":_using_authored,"combat_active":combat_runtime.active,
@@ -477,10 +482,32 @@ func presentation() -> Dictionary:
 
 func _report_presentation() -> void:
 	if not _battle_visible or _battle_deferred: return
+	_flush_native_frame()
 	_units.update_placements()
 	_apply_world_shake()
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
 	_present_overlays()
+
+## The process-owned idle flush combines input, simulation and child changes.
+## Canvas redraws must be queued before frame_pre_draw to reach this render.
+func request_native_frame() -> void:
+	if combat_base_frame.is_empty(): return
+	if not combat_runtime.native_session():
+		apply_frame(combat_base_frame)
+		return
+	_native_frame_pending = true
+
+func _flush_native_frame() -> void:
+	if not _native_frame_pending or not _battle_visible or _battle_deferred: return
+	_native_frame_pending = false
+	if combat_base_frame.is_empty():
+		_pending_gem_bursts.clear()
+		return
+	apply_frame(combat_base_frame)
+	# A build followed by equipment in this render must create the model first.
+	for receipt in _pending_gem_bursts:
+		_units.play_gem_equip_burst(receipt.id, receipt.gem)
+	_pending_gem_bursts.clear()
 
 func confirm_turret_placement(id: int, type: String, x: int, y: int) -> void:
 	_units.confirm_placement(id,type,x,y)
@@ -613,6 +640,8 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 
 
 func _clear_scene() -> void:
+	_native_frame_pending = false
+	_pending_gem_bursts.clear()
 	_lightning_presentation.clear()
 	_machinegun_ricochet.clear()
 	combat_runtime.active = false
@@ -668,7 +697,10 @@ func _sync_enemies(units: Array) -> void:
 
 
 func play_gem_equip_burst(id: int, gem: String) -> void:
-	_units.play_gem_equip_burst(id, gem)
+	if _native_frame_pending:
+		_pending_gem_bursts.append({"id":id,"gem":gem})
+	else:
+		_units.play_gem_equip_burst(id, gem)
 
 
 func _sync_build_preview(data) -> void:

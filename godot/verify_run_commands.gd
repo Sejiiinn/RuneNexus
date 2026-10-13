@@ -5,6 +5,7 @@ const Commands = preload("res://app/run_commands.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const Json = preload("res://app/save_json.gd")
+const ConfigurationCache = preload("res://ui/hud_configuration_cache.gd")
 class CountingCommands extends Commands:
 	var derive_calls := 0
 	func derived(state: Dictionary) -> Dictionary:
@@ -28,6 +29,7 @@ func _initialize() -> void:
 	check(growth.load_catalog(),"growth")
 	var service = Commands.new(catalog,growth)
 	_build_price_cache_checks(catalog,growth)
+	_upgrade_quote_cache_checks(catalog,growth)
 	var path := ProjectSettings.globalize_path("res://../test/fixtures/growth_cases.json")
 	var fixtures: Dictionary = Json.parse(FileAccess.get_file_as_string(path))
 	var kinds := {"levelUp":"level","upgradeLink":"link","choosePrimaryTrait":"primaryTrait","chooseSecondaryTrait":"secondaryTrait","equipGem":"equipGem","removeGem":"removeGem","refund":"sell"}
@@ -388,6 +390,80 @@ func _build_price_cache_checks(catalog, growth) -> void:
 		check(service.derive_calls == previous + 1, "authoritative build price derives exactly once")
 		previous = service.derive_calls
 	check(service.build_cost(state,"unsupported") == 0, "unknown turret price remains zero")
+
+func _upgrade_quote_cache_checks(catalog, growth) -> void:
+	var service := CountingCommands.new(catalog,growth)
+	var state: Dictionary = service.initial_state()
+	state.progression.clearedStageNumbers = range(1,61)
+	var map: Dictionary = catalog.stage_map(0)
+	var tile: int = map.tiles.find("build")
+	state.gold = 100000
+	state = service.apply(state,{"kind":"build","type":"arrow","x":tile%int(map.columns),"y":tile/int(map.columns)}).state
+	var id: int = state.turrets[0].id
+	var configuration: Dictionary = service.derived(state)
+	var calls := service.derive_calls
+	var quote: Dictionary = service.quotes_from_derived(state,id,configuration)
+	check(service.derive_calls == calls and quote == service.quotes(state,id),"cached turret quote matches fresh quote without deriving")
+	calls = service.derive_calls
+	for type in growth.data.runUpgrades:
+		var run_quote: Dictionary = service.run_upgrade_quote_from_derived(state,type,configuration)
+		check(service.derive_calls == calls and run_quote == service.run_upgrade_quote(state,type),"cached run quote matches fresh quote: "+type)
+		calls = service.derive_calls
+	check(service.quotes_from_derived(state,-1,configuration).is_empty() and service.run_upgrade_quote_from_derived(state,"unknown",configuration).is_empty(),"cached unknown quotes remain empty")
+	# Simulate growth changing after a display quote. Acceptance must use the
+	# new state; no UI cache is passed into the transaction owner.
+	state.progression.turretLevelUpOptimizationUpgradeLevel = 10
+	var fresh: Dictionary = service.quotes(state,id)
+	check(fresh.level < quote.level,"growth updates price after earlier display quote")
+	state.gold = int(fresh.level)
+	var before := state.duplicate(true)
+	var result: Dictionary = service.apply(state,{"kind":"level","id":id})
+	check(result.ok and result.state.gold == 0 and state == before,"level purchase charges fresh quote exactly and preserves source")
+	state.runUpgradeLevels.towerDamage = 1
+	var old_run_quote: Dictionary = service.run_upgrade_quote_from_derived(state,"towerDamage",configuration)
+	state.progression.researchLevels = {"runUpgradeCostOptimization":1}
+	var new_run_quote: Dictionary = service.run_upgrade_quote(state,"towerDamage")
+	check(new_run_quote.cost < old_run_quote.cost,"live research updates run quote")
+	state.gold = int(new_run_quote.cost)-1
+	before = state.duplicate(true)
+	result = service.apply(state,{"kind":"runUpgrade","type":"towerDamage"})
+	check(not result.ok and result.error == "gold" and state == before and result.state == before and result.commands.is_empty(),"insufficient fresh run price rejects atomically")
+	state.gold += 1
+	result = service.apply(state,{"kind":"runUpgrade","type":"towerDamage"})
+	check(result.ok and result.state.gold == 0 and result.state.runUpgradeLevels.towerDamage == 2,"run purchase charges fresh quote exactly")
+	var cache := ConfigurationCache.new()
+	cache.bind(service,catalog,service)
+	cache.sync(state,growth.data)
+	cache.derived(state,service)
+	# Each entry edits the live dictionary in place, as explicit UI refreshes
+	# must handle tools, restore loadouts and live account growth alike.
+	var changes := [
+		{"field":"runCorePassiveNodeRanks","value":{"efficiencyDiversity":5}},
+		{"field":"runCorePassiveNodeRanks","value":{"efficiencyDiversity":4}},
+		{"field":"runTurretModules","value":[]},
+		{"field":"runTurretModules","value":[{"id":"test","turretType":"arrow","part":"core","family":"balanced","grade":"normal","equipped":true,"options":[{"type":"levelUpCostDiscount","value":10}]}]},
+		{"field":"runCorePassiveNodeRanks","remove":true},
+		{"field":"runTurretModules","remove":true},
+		{"field":"runUpgradeLevels","value":{"towerDamage":3}},
+		{"field":"progression","value":{"clearedStageNumbers":range(1,61),"researchLevels":{"runUpgradeCostOptimization":2},"corePassiveNodeRanks":{"efficiencyDiversity":5}}},
+	]
+	for change in changes:
+		var revision := cache.revision
+		if change.get("remove",false): state.erase(change.field)
+		else: state[change.field] = change.value
+		cache.sync(state,growth.data)
+		configuration = cache.derived(state,service)
+		check(cache.revision == revision+1 and configuration == service.derived(state),"explicit cache refresh detects growth/loadout boundary: "+change.field)
+		check(service.quotes_from_derived(state,id,configuration) == service.quotes(state,id),"cached turret quote stays fresh after "+change.field)
+		check(service.run_upgrade_quote_from_derived(state,"towerDamage",configuration) == service.run_upgrade_quote(state,"towerDamage"),"cached run quote stays fresh after "+change.field)
+	var revision := cache.revision
+	state.turrets[0].equippedGemSlots = ["range"]
+	cache.sync(state,growth.data)
+	check(cache.revision == revision+1 and cache.derived(state,service) == service.derived(state),"equipped gem composition refreshes shared derived")
+	revision = cache.revision
+	state.turrets[0].type = "cannon"
+	cache.sync(state,growth.data)
+	check(cache.revision == revision+1 and cache.derived(state,service) == service.derived(state),"turret type composition refreshes shared derived")
 
 func _light_weapon_equip_cases(service, built: Dictionary) -> void:
 	for type in service.catalog.turret_types():

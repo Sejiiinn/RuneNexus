@@ -202,6 +202,7 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 	if ricochet != null: ricochet.reset()
 	projectiles._update_impacts([])
 	if not _failed:
+		scene._units.adopt_prepared_label_bounds(units)
 		scene._projectile_renderer.adopt_prepared(projectiles)
 	_dispose(scene, units, projectiles, viewport)
 	return not _failed

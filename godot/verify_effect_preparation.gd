@@ -4,6 +4,29 @@ const Preparation = preload("res://presentation/effect_preparation.gd")
 const Resources = preload("res://presentation/stage_resources.gd")
 const ALL_ENEMIES := ["normal", "fast", "armored", "shielded", "tank", "boss", "shieldBoss", "forgeBoss"]
 const ALL_TOWERS := ["arrow", "cannon", "magic", "frost", "sniper", "lightning"]
+
+class CountingMotion extends "res://presentation/guardian_preview.gd":
+	var cold_boss_labels := 0
+	func _prepare_boss_label(entry: Dictionary, model: Node3D) -> void:
+		if not _boss_head_bounds_ready: cold_boss_labels += 1
+		super._prepare_boss_label(entry, model)
+
+class InterruptedPreparation extends "res://presentation/effect_preparation.gd":
+	var destination: Node3D
+	var cancel_generation := false
+	var interrupted := false
+	func _draw() -> void:
+		# Interrupt after the authored boss and its label bounds really exist,
+		# before the success handoff. Failed and cancelled rehearsals must not
+		# seed the actual presentation, even when they finished this CPU work.
+		if not interrupted and get_child_count() > 0:
+			for player: AnimationPlayer in get_child(0).find_children("*", "AnimationPlayer", true, false):
+				if not player.has_animation("HeavyWalk"): continue
+				interrupted = true
+				if cancel_generation: destination._stage_preparation_generation += 1
+				else: _failed = true
+		await super._draw()
+
 var failures: Array[String] = []
 func _initialize() -> void: run.call_deferred()
 func check(value: bool, message: String) -> void:
@@ -13,6 +36,9 @@ func run() -> void:
 	root.add_child(scene)
 	scene.set_process(false)
 	select_fixture(scene)
+	scene._units._guardian_preview = CountingMotion.new(scene.world)
+	scene._units._guardian_preview.failure.connect(scene._units._forward_guardian_failure)
+	var motion: CountingMotion = scene._units._guardian_preview
 	var before: Dictionary = scene.last_frame.duplicate(true)
 	var rng_state: int = scene.combat_runtime.rng.state
 	var field: Texture3D = scene.field.texture
@@ -20,9 +46,16 @@ func run() -> void:
 	check(scene.effects_prepared and not scene._effects_preparing, "Readiness follows complete preparation")
 	check(scene.last_frame == before and scene.combat_runtime.rng.state == rng_state, "Presentation preparation preserves frame and combat RNG")
 	check(scene.field.texture == field, "Large impact field is reused")
+	check(motion._boss_head_bounds_ready and motion._boss_scene == null, "Successful rehearsal transfers boss bounds without retaining its scene or rig")
+	var prepared_bounds: AABB = motion._boss_head_bounds
+	var prepared_id: int = motion._boss_head_bounds_scene_id
 	for kind in ["normal", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]:
 		var data := [10,4.0,5.0,0.0,0.0,1.0,0.0,kind,false,false]
 		scene._sync_enemies([data])
+		if kind in ["boss", "shieldBoss", "forgeBoss"]:
+			check(scene.enemies[10].label_bounds == prepared_bounds and motion._boss_head_bounds_scene_id == prepared_id, "First actual boss retains exact prepared bounds: " + kind)
+			check(motion.cold_boss_labels == 0, "First actual boss skips vertex/bone bounds traversal: " + kind)
+			check(scene.enemies[10].label_skeleton.is_inside_tree(), "Actual boss binds its own live skeleton: " + kind)
 		check(not scene.enemies[10].has("burn") and not scene.enemies[10].has("frost"), "Prepared status resources never attach to an unaffected enemy: " + kind)
 		data[8] = true; data[9] = true
 		scene._sync_enemies([data])
@@ -41,6 +74,7 @@ func run() -> void:
 	check(await scene.prepare_effects(), "Repeated readiness request is idempotent")
 	check(renderer._ballistic_pool.cannon.back() == cannon, "Repeated preparation preserves ready instances")
 	scene._clear_scene()
+	check(motion._boss_head_bounds_ready and motion._boss_head_bounds == prepared_bounds, "Epoch reset preserves prepared immutable boss bounds")
 	check(renderer._ballistic_pool.cannon.back() == cannon and renderer._fire_projectile_pool.back() == fire and renderer.impact_pool.back() == impact, "Epoch reset preserves bounded reserve")
 	check(not cannon.visible and not fire.visible and not impact.visible, "Ready effects stay invisible")
 	for emitter in fire._particles:
@@ -56,6 +90,16 @@ func run() -> void:
 	for light in renderer.impact_lights: check(light.light_energy == 0.0, "Reset clears impact lights")
 	renderer.clear()
 	check(renderer._ballistic_pool.cannon.is_empty() and renderer._fire_projectile_pool.is_empty() and renderer.impact_pool.is_empty(), "Full teardown still releases all effects")
+	for cancel_generation: bool in [false, true]:
+		scene._units.retain_stage([])
+		var interrupted := InterruptedPreparation.new()
+		interrupted.destination = scene
+		interrupted.cancel_generation = cancel_generation
+		scene.add_child(interrupted)
+		check(not await interrupted.prepare(scene, {"enemy_types": ["boss"], "tower_types": []}), "Rehearsal aborts after boss bounds calculation, cancellation=" + str(cancel_generation))
+		check(interrupted.interrupted and interrupted.get_child_count() == 0, "Aborted boss rehearsal releases its realized viewport")
+		check(not motion._boss_head_bounds_ready and motion._boss_head_bounds_scene_id == 0, "Aborted boss rehearsal cannot transfer computed bounds")
+		interrupted.free()
 	scene.free()
 	var cancelled = load("res://main.tscn").instantiate()
 	root.add_child(cancelled)

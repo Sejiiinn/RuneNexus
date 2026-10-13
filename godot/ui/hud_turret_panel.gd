@@ -28,7 +28,7 @@ func _action_spec(turret: Dictionary,q: Dictionary) -> Dictionary:
 	}
 
 func _turret(state: Dictionary,turret: Dictionary) -> void:
-	var q: Dictionary = hud.app.run_domain.service.quotes(state,int(turret.id))
+	var q: Dictionary = hud.app.run_domain.service.quotes_from_derived(state,int(turret.id),hud.configuration_cache.derived(state,hud.app.run_domain.service))
 	var panel = preload("res://ui/turret_action_panel.gd").new()
 	hud.body.add_child(panel)
 	panel.configure(_action_spec(turret,q))
@@ -60,7 +60,7 @@ func _update_actions(panel: Control,turret: Dictionary,q: Dictionary) -> void:
 	panel.sell_action.tooltip_text = "판매 · +%d G · 금액 확인" % q.sell
 
 func _update_turret(state: Dictionary,turret: Dictionary) -> void:
-	var q: Dictionary = hud.app.run_domain.service.quotes(state,int(turret.id))
+	var q: Dictionary = hud.app.run_domain.service.quotes_from_derived(state,int(turret.id),hud.configuration_cache.derived(state,hud.app.run_domain.service))
 	var panel: Control = hud.body.get_node("TurretActionPanel")
 	panel.update_values(_action_spec(turret,q)); _update_actions(panel,turret,q)
 	# Display-only fields belong to this presenter, not the shared raw stat cache.

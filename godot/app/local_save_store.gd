@@ -6,6 +6,7 @@ extends RefCounted
 const Codec = preload("res://app/save_codec.gd")
 const SaveJson = preload("res://app/save_json.gd")
 const Slot = preload("res://app/local_save_slot.gd")
+const SaveOrder = preload("res://app/local_save_order.gd")
 var last_error: Error = OK
 var last_error_message: String = ""
 var primary_path: String
@@ -18,9 +19,10 @@ var transition_directory: String
 var transition_owner: String
 # Account backup provenance survives both repository instances and process death.
 var recovered_from_backup := false
-# A single immutable JSON string, never caller-owned data or a destination cache.
-# Reuse its v2 validation only after recovery and a complete read match its bytes.
-var _validated_v2_raw: String = ""
+# Main and worker repositories share the latest immutable validation fact.
+# Reuse only after recovery and a complete read match its bytes. This strong
+# reference keeps bytes alive only while a repository for this slot is alive.
+var _validation_memo
 
 func _init(base_directory: String = "user://", slot = null, legacy_file: String = "") -> void:
 	if slot == null:
@@ -30,13 +32,21 @@ func _init(base_directory: String = "user://", slot = null, legacy_file: String 
 		return
 	transition_directory = base_directory
 	transition_owner = "guest" if slot.is_guest() else slot.account_id.to_lower()
+	_validation_memo = slot_order().validation_memo()
 	var directory: String = base_directory.path_join("saves/guest" if slot.is_guest() else "saves/accounts/" + slot.account_id.to_lower())
 	primary_path = directory.path_join("save_v2.json")
 	backup_path = directory.path_join("save_v2.backup.json")
 	conflict_path = directory.path_join("save_v2.conflict.json")
 	legacy_path = legacy_file if slot.is_guest() else ""
 
+func slot_order():
+	return SaveOrder.for_slot(transition_directory, transition_owner)
+
+func transaction_scope(reserved_ticket: int = 0):
+	return SaveOrder.scope(slot_order(), reserved_ticket)
+
 func _begin() -> bool:
+	var _transaction_scope = transaction_scope()
 	last_error = OK
 	last_error_message = ""
 	if not _valid_slot:
@@ -54,6 +64,7 @@ func _fail(code: Error, context: String) -> Error:
 	return code
 
 func load_save() -> Variant:
+	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return null
 	recovered_from_backup = recovered_from_backup or has_recovery_marker()
@@ -80,6 +91,7 @@ func load_save() -> Variant:
 	return legacy.data
 
 func has_recovery_marker() -> bool:
+	var _transaction_scope = transaction_scope()
 	for suffix in ["", ".tmp", ".replace"]:
 		if FileAccess.file_exists(primary_path + ".recovery" + suffix): return true
 	return false
@@ -87,12 +99,14 @@ func has_recovery_marker() -> bool:
 # Only a verified current canonical rebase or exact acknowledged-source proof
 # may erase this marker. Ordinary local checkpoints must retain it.
 func acknowledge_recovery() -> Error:
+	var _transaction_scope = transaction_scope()
 	for suffix in ["", ".tmp", ".replace"]:
 		if _remove(primary_path + ".recovery" + suffix) != OK: return last_error
 	recovered_from_backup = false
 	return OK
 
 func save_save(data: Dictionary) -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return last_error
 	if not SaveJson.is_json_value(data) or not Codec.is_normalized_v2(data):
@@ -114,10 +128,11 @@ func save_save(data: Dictionary) -> Error:
 	# Validated normalized JSON values serialized by Godot have the same canonical
 	# envelope and signed-int64/finite-number contract as parse_record accepts.
 	# Failed writes cannot certify the attempted replacement's bytes.
-	if result == OK: _validated_v2_raw = raw
+	if result == OK: _validation_memo.remember(raw)
 	return result
 
 func preserve_current_as_backup() -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return last_error
 	var current := _read_valid(primary_path, false, false)
@@ -126,6 +141,7 @@ func preserve_current_as_backup() -> Error:
 	return _write_atomic(backup_path, current.raw)
 
 func preserve_conflict_backup(envelope: Dictionary) -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return last_error
 	if not SaveJson.is_json_value(envelope) or envelope.get("version") != 1 or not envelope.get("rebaseId") is String or not Codec.is_normalized_v2(envelope.get("data")):
@@ -140,6 +156,7 @@ func preserve_conflict_backup(envelope: Dictionary) -> Error:
 	return _write_atomic(conflict_path, JSON.stringify(envelope, "", false, true))
 
 func clear() -> Error:
+	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return last_error
 	for path in [primary_path, backup_path, conflict_path, legacy_path, primary_path + ".recovery"]:
@@ -148,9 +165,11 @@ func clear() -> Error:
 		for suffix in ["", ".tmp", ".replace"]:
 			if _remove(path + suffix) != OK:
 				return last_error
+	_validation_memo.clear()
 	return OK
 
 func _read_json(path: String) -> Variant:
+	var _transaction_scope = transaction_scope()
 	var raw: Variant = _read_text(path)
 	return null if raw == null else SaveJson.parse(raw)
 
@@ -163,6 +182,7 @@ func _open_read(path: String):
 	return file
 
 func _read_text(path: String) -> Variant:
+	var _transaction_scope = transaction_scope()
 	# file_exists() also returns false when a parent directory is inaccessible.
 	# Opening distinguishes a missing save from those I/O failures.
 	var file = _open_read(path)
@@ -183,12 +203,13 @@ func _read_text(path: String) -> Variant:
 	return bytes.get_string_from_utf8()
 
 func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = true) -> Dictionary:
+	var _transaction_scope = transaction_scope()
 	if _recover(path) != OK:
 		return {}
 	var raw: Variant = _read_text(path)
 	if raw == null:
 		return {}
-	if not legacy_only and not decode_data and not _validated_v2_raw.is_empty() and raw == _validated_v2_raw:
+	if not legacy_only and not decode_data and _validation_memo.matches(raw):
 		return {"raw":raw}
 	var parsed := SaveJson.parse_record(raw)
 	if not parsed.ok:
@@ -199,7 +220,7 @@ func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = tr
 			return {}
 	elif not Codec.is_canonical_v2(value):
 		return {}
-	if not legacy_only: _validated_v2_raw = raw
+	if not legacy_only: _validation_memo.remember(raw)
 	# The v2 reader accepts every canonical envelope and normalizes its fields.
 	# Backup rotation only needs validated bytes, not a discarded normalized tree.
 	if not decode_data and not legacy_only:
@@ -218,6 +239,7 @@ func _rename(source: String, destination: String) -> Error:
 	return OK if error == OK else _fail(error, "Rename: " + source)
 
 func _recover(path: String) -> Error:
+	var _transaction_scope = transaction_scope()
 	var temporary := path + ".tmp"
 	var displaced := path + ".replace"
 	if not FileAccess.file_exists(path):
@@ -237,6 +259,7 @@ func _recover(path: String) -> Error:
 	return OK
 
 func _write_atomic(path: String, contents: String) -> Error:
+	var _transaction_scope = transaction_scope()
 	var ancestor := path.get_base_dir()
 	while not ancestor.is_empty():
 		if FileAccess.file_exists(ancestor):

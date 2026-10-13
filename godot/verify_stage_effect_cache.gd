@@ -15,6 +15,7 @@ class Battle extends Node3D:
 	var camera := Camera3D.new()
 	var world := Node3D.new()
 	var _projectile_renderer
+	var _units
 	var _stage_manifest := {}
 	var _stage_preparation_generation := 0
 	var last_frame := {"time": 0.0}
@@ -25,12 +26,15 @@ class Battle extends Node3D:
 		add_child(camera)
 		add_child(sun)
 		_projectile_renderer = Projectiles.new(world, camera)
+		_units = Units.new(world, camera)
 var scene: Battle
 var failures := []
 func _initialize(): run.call_deferred()
 func check(value: bool, label: String):
 	if not value: failures.append(label);push_error(label)
 func select(enemies: Array, towers: Array):
+	scene._units.clear()
+	scene._units.retain_stage(enemies)
 	var paths := Preparation.resource_paths(enemies,towers)
 	for kind: String in enemies:
 		paths.append(Units.ENEMY_MODELS[kind])
@@ -86,6 +90,8 @@ func run():
 	await process_frame
 	check(outcomes==[false], "generation switch cancels rehearsal")
 	check(scene._projectile_renderer._fire_projectile_pool.is_empty(), "cancelled rehearsal cannot adopt stale pools")
+	scene._units.clear()
+	scene._units.retain_stage([])
 	scene._projectile_renderer.clear()
 	scene.free()
 	Preparation.retain_stage([],[])

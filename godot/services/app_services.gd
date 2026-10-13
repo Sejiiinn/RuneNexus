@@ -338,6 +338,10 @@ func _bind(interactive: bool) -> Dictionary:
 	return result
 
 func _load_slot(owner: String) -> bool:
+	# Do not let the previous slot's accepted requests survive its binding.
+	if app.checkpoint.shutdown() != OK:
+		app._record_save_failure()
+		return false
 	app.startup_blocked = true
 	app.checkpoint = Checkpoint.new(root_path,owner)
 	app.checkpoint.allow_progression_only = true

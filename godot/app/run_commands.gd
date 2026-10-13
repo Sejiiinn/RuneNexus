@@ -53,11 +53,16 @@ func build_cost_from_derived(type: String, configuration: Dictionary) -> int:
 	return maxi(1, roundi(discounted * float(configuration.get("passiveTurretBuildCostMultiplier",1))))
 
 func quotes(state: Dictionary, id: int) -> Dictionary:
+	if turret(state,id).is_empty(): return {}
+	return quotes_from_derived(state,id,derived(state))
+
+# Display callers supply the configuration already synchronized for this state.
+# Transaction callers keep using quotes above to recheck authoritative growth.
+func quotes_from_derived(state: Dictionary, id: int, d: Dictionary) -> Dictionary:
 	var t := turret(state,id)
 	if t.is_empty(): return {}
-	var d := derived(state)
 	var r := _rule(t.type)
-	var m := _module(state,t.type)
+	var m: Dictionary = d.get("turretStatInputs", {}).get(t.type, {}).get("moduleEffect", {})
 	var level := int(t.level)
 	var slot := int(t.slotLimit)
 	var level_discount := clampf(float(m.get("levelUpCostDiscountRate",0)) + (float(m.get("highLevelUpgradeCostDiscountRate",0)) if level >= 5 else 0.0),0,0.8)
@@ -76,9 +81,12 @@ func turret(state: Dictionary, id: int) -> Dictionary:
 	return {}
 
 func run_upgrade_quote(state: Dictionary, type: String) -> Dictionary:
+	if growth.data.get("runUpgrades", {}).get(type,{}).is_empty(): return {}
+	return run_upgrade_quote_from_derived(state,type,derived(state))
+
+func run_upgrade_quote_from_derived(state: Dictionary, type: String, d: Dictionary) -> Dictionary:
 	var r: Dictionary = growth.data.get("runUpgrades", {}).get(type,{})
 	if r.is_empty(): return {}
-	var d := derived(state)
 	var level := int(state.get("runUpgradeLevels",{}).get(type,0))
 	var maximum := int(r.maxLevel) + int(d.get("runUpgradeMaxLevelBonuses",{}).get(type,0))
 	return {"level":level,"maxLevel":maximum,"cost":maxi(1,roundi(roundi(float(r.baseCost)*pow(float(r.costMultiplier),level))*float(d.get("runUpgradeCostMultiplier",1)))) if level < maximum else 0}

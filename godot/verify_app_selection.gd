@@ -7,6 +7,11 @@ class CountingCatalog extends "res://content/content_catalog.gd":
 	func turret_stats(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 		stat_calls += 1
 		return super.turret_stats(type,inputs)
+class CountingCommands extends "res://app/run_commands.gd":
+	var derive_calls := 0
+	func derived(state: Dictionary) -> Dictionary:
+		derive_calls += 1
+		return super.derived(state)
 class RewardPreview extends RefCounted:
 	var pending_gem := "attackSpeed"
 	func targeting() -> bool: return true
@@ -17,6 +22,7 @@ func _initialize() -> void:
 	app.catalog = CountingCatalog.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.initialize(app.catalog,{},0,100))
+	app.run_domain.service = CountingCommands.new(app.catalog,app.run_domain.growth)
 	app.scene.combat_base_frame = {"presentation":{}}
 	app.run_domain.state.gold = 10000
 	var adapter := Adapter.new()
@@ -50,11 +56,13 @@ func _initialize() -> void:
 	var runtime_stats: Dictionary = app.catalog.turret_stats("arrow",{"tileSize":1.0})
 	assert(is_equal_approx(selected.range,runtime_stats.range))
 	adapter.level_preview = true
+	var derive_calls: int = app.run_domain.service.derive_calls
 	app.catalog.stat_calls = 0
 	adapter.apply(app)
 	assert(app.catalog.stat_calls == 1,"Only next-level preview needs stats")
 	adapter.apply(app)
 	assert(app.catalog.stat_calls == 1,"Repeated preview preserves current and future stats")
+	assert(app.run_domain.service.derive_calls == derive_calls,"Selection preview quotes reuse synchronized growth configuration")
 	assert(frame.presentation.selection.state.turrets[0].previewRange > selected.range)
 	app.selected = positions[2]
 	adapter.apply(app)

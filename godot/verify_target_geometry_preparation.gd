@@ -24,6 +24,8 @@ class Battle extends Node3D:
 	var _stage_preparation_generation := 0
 	var last_frame := {"time": 0.0}
 	var units
+	var _units:
+		get: return units
 	var lightning
 	var field: Dictionary:
 		get: return _projectile_renderer.field
