@@ -106,7 +106,17 @@ func _all_definitions() -> void:
 		# and compare only fixtures with the exact current source definition.
 		if assembled.definition == source.definition:
 			_compare(assembled, source, "growth stat input")
-			_compare(Stats.resolve(assembled), case.expected, "Dart growth stats")
+			_compare_legacy_stats(Stats.resolve(assembled), case.expected, "Dart growth stats")
+
+func _compare_legacy_stats(actual: Dictionary, expected: Dictionary, label: String) -> void:
+	# Preserve the historical calculator fixture and its strict field comparison.
+	# New core passives must be neutral when those old inputs omit coreEffects.
+	var defaults := {"directDamageIncrease":0.0,"splashDamageIncrease":0.0,"chainDamageIncrease":0.0,"chainJumpRangeMultiplier":1.0,"firstControlDurationMultiplier":1.0,"controlDurationMultiplier":1.0}
+	for key in defaults:
+		if not expected.snapshot.has(key):
+			_compare(actual.snapshot.get(key), defaults[key], label + "/new neutral snapshot/" + key)
+			actual.snapshot.erase(key)
+	_compare(actual, expected, label)
 
 func _dart_cases() -> void:
 	var path := "res://../test/fixtures/game_content_cases.json"
@@ -137,7 +147,7 @@ func _dart_cases() -> void:
 		var inputs := {"tileSize": case.input.boardDistanceScale * 48.0, "statInput": overrides}
 		var actual: Dictionary = catalog.turret(case.type, inputs)
 		_compare(actual, case.input, "actual Dart turret input")
-		_compare(Stats.resolve(actual), case.expected, "actual Dart turret stats")
+		_compare_legacy_stats(Stats.resolve(actual), case.expected, "actual Dart turret stats")
 
 func _runtime_cases() -> void:
 	# Existing chapter endpoints plus both expansion endpoints, final boss round.
