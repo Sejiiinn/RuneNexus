@@ -1054,14 +1054,12 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 	var result: Dictionary = Enemy.apply_hit(e, {"damage": resolved.damage, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer})
 	_visual("damage", _pos(e), t, {"text":str(roundi(float(result.get("actualDamage", 0)))), "duration":0.65})
 	t[kind + "DamageDealt"] += float(result.get("actualDamage", 0))
-	if float(result.get("bonusDamage", 0)) > 0:
-		_emit({"kind":"coreBonusDamage","enemyId":e.id,"damage":result.bonusDamage})
+	_add_core_bonus_damage(float(result.get("bonusDamage", 0)))
 	_collect(result.get("events", []))
 	if burst > 0 and _alive(e):
 		result = Enemy.apply_hit(e, {"damage": burst, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer})
 		t.directDamageDealt += float(result.get("actualDamage", 0))
-		if float(result.get("bonusDamage", 0)) > 0:
-			_emit({"kind":"coreBonusDamage","enemyId":e.id,"damage":result.bonusDamage})
+		_add_core_bonus_damage(float(result.get("bonusDamage", 0)))
 		_collect(result.get("events", []))
 
 # Preserve all turrets at a source coordinate and their insertion order. Numeric
@@ -1084,8 +1082,18 @@ func _burn_source_turrets(source: Dictionary, index: Dictionary) -> Array:
 
 func _collect(items: Array, burn_sources: Dictionary = {}) -> void:
 	for raw in items:
+		var type: String = raw.get("type", "")
+		# Continuous damage is settled here into turret and core totals. No journal
+		# reader consumes it, so per-tick burn/poison never wakes economy settlement.
+		if type == "damage":
+			_add_core_bonus_damage(float(raw.get("bonusDamage", 0)))
+			if raw.get("kind") == "burn":
+				for t in _burn_source_turrets(raw, burn_sources):
+					if t.state.get("x") == raw.get("sourceX") and t.state.get("y") == raw.get("sourceY"):
+						t.burnDamageDealt += float(raw.get("damage", 0))
+			continue
+		if type == "damageNumber": continue
 		var event: Dictionary = raw.duplicate(true)
-		var type: String = event.get("type", "")
 		if type == "killed":
 			event.kind = "kill"
 			_diamond_reward_visual(enemies.get(str(event.enemyId), {}))
@@ -1112,14 +1120,6 @@ func _collect(items: Array, burn_sources: Dictionary = {}) -> void:
 		else:
 			event.effectKind = raw.get("kind", "")
 			event.kind = type
-			if type == "damage":
-				event.damageKind = raw.get("kind", "burn")
-				if float(raw.get("bonusDamage", 0)) > 0:
-					_emit({"kind":"coreBonusDamage","enemyId":raw.enemyId,"damage":raw.bonusDamage})
-				if raw.get("kind") == "burn":
-					for t in _burn_source_turrets(raw, burn_sources):
-						if t.state.get("x") == raw.get("sourceX") and t.state.get("y") == raw.get("sourceY"):
-							t.burnDamageDealt += float(raw.get("damage", 0))
 		_emit(event)
 
 func _spread_burn(event: Dictionary) -> void:
@@ -1140,9 +1140,10 @@ func _spread_burn(event: Dictionary) -> void:
 	transfer.remaining *= 0.6
 	Enemy.add_burn(target, transfer)
 
+func _add_core_bonus_damage(damage: float) -> void:
+	if core.configured and damage > 0: core.bonus_damage_dealt += damage
+
 func _emit(event: Dictionary) -> void:
-	if core.configured and event.kind == "coreBonusDamage":
-		core.bonus_damage_dealt += float(event.get("damage",0))
 	event_id += 1
 	event.id = event_id
 	events.append(event)

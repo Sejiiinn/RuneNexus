@@ -2,12 +2,14 @@ extends SceneTree
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Wave = preload("res://combat/native_wave_state.gd")
 const Core = preload("res://combat/native_core_skill_state.gd")
+const Enemy = preload("res://combat/native_enemy_state.gd")
 var checks: int = 0
 var failures: Array = []
 func _initialize() -> void:
 	var fixture = JSON.parse_string(FileAccess.get_file_as_string("res://../test/fixtures/native_wave_core_timing.json"))
 	_reference(fixture)
 	_runtime()
+	_continuous_damage_journal()
 	if failures.is_empty():
 		print("PASS native wave/core: ",checks," checks; original Dart timing fixture, spawn/beam order, caps, sync, queue restore, immediate native defense, terminal failure, ACK idempotency, round transitions")
 		quit(0)
@@ -76,6 +78,27 @@ func _setup(enemies: Array = [], queue: Array = [], skill = "guardianBeam"):
 	var r = Runtime.new()
 	r.process_command({"epoch":1,"sequence":0,"running":true,"dt":0,"bootstrap":{"enemies":enemies,"turrets":[],"coreConfig":_config(skill),"wave":{"id":1,"active":true,"spawnQueue":queue}}})
 	return r
+
+# Burn/poison settle into turret and core totals every step, but only kills and
+# lifecycle events enter the ACK journal that wakes economy settlement.
+func _continuous_damage_journal() -> void:
+	var r = _setup([_enemy(41)])
+	r.core.cooldown = 1000.0
+	var e: Dictionary = r.enemies["41"]
+	Enemy.add_burn(e, {"damagePerSecond":60.0,"duration":2.0,"sourceX":1,"sourceY":1})
+	Enemy.add_rift_mark(e, 0.25, 5.0)
+	r.events.clear()
+	var journal_id: int = r.event_id
+	var bonus: float = r.core.bonus_damage_dealt
+	for step in range(60): r._step(1.0/60.0)
+	_check(r.event_id == journal_id and r.events.is_empty(), "burn ticks and numbers stay out of the ACK journal")
+	_compare(e.hp, 925.0, "amplified burn damage still applies")
+	_compare(r.core.bonus_damage_dealt - bonus, 15.0, "rift bonus from burn reaches core total")
+	Enemy.add_burn(e, {"damagePerSecond":1000000.0,"duration":1.0,"sourceX":1,"sourceY":1})
+	r._step(1.0/60.0)
+	# The emptied wave may also complete in this step; only damage records are excluded.
+	var kinds: Array = r.events.map(func(v): return v.kind)
+	_check(kinds.count("kill") == 1 and not kinds.has("damage") and not kinds.has("damageNumber"), "lethal burn journals its kill without damage records: " + str(kinds))
 
 func _count(r, kind: String) -> int:
 	var count := 0
