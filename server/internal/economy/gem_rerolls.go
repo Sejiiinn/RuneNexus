@@ -281,6 +281,13 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 	if err != nil {
 		return CommandResult{}, ErrGemOfferConflict
 	}
+	if len(authority.GemDeck) > 0 {
+		// Deck runs present candidates locally and are reconciled at close.
+		if gamesave.ClientCompatibilityFromBody(request.RawBody) < GemDeckClientCompatibilityVersion {
+			return CommandResult{}, gamesave.ErrClientUpdateRequired
+		}
+		return CommandResult{}, ErrGemOfferConflict
+	}
 	var run gemRewardRun
 	if json.Unmarshal(source.ActiveRun, &run) != nil || run.RunID != request.RunID || run.CompletedRounds != request.CompletedRounds {
 		return CommandResult{}, ErrInvalidCommand
@@ -554,13 +561,7 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 }
 
 func newGemUUID() (pgtype.UUID, error) {
-	id := pgtype.UUID{Valid: true}
-	if _, err := io.ReadFull(rand.Reader, id.Bytes[:]); err != nil {
-		return pgtype.UUID{}, err
-	}
-	id.Bytes[6] = (id.Bytes[6] & 0x0f) | 0x40
-	id.Bytes[8] = (id.Bytes[8] & 0x3f) | 0x80
-	return id, nil
+	return gemUUIDFrom(rand.Reader)
 }
 
 func projectGemOffer(raw []byte, offer *GemOfferState) ([]byte, error) {

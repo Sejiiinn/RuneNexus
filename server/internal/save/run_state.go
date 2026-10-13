@@ -74,7 +74,15 @@ func validateRunSave(ctx context.Context, q *dbgen.Queries, account pgtype.UUID,
 		}
 	}
 	id, idErr := runstate.ParseUUID(run.ID)
-	if idErr != nil || id != row.RunID || run.Stage != row.StageNumber || run.Used != row.TotalUsed {
+	if idErr != nil || id != row.RunID || run.Stage != row.StageNumber {
+		return ErrGemOfferConflict
+	}
+	if len(row.GemDeck) > 0 {
+		// Deck runs record their reward history in the checkpoint itself. It is
+		// replayed against the issued deck when the run closes, not per upload.
+		return nil
+	}
+	if run.Used != row.TotalUsed {
 		return ErrGemOfferConflict
 	}
 	state, err := runstate.FromRow(row)

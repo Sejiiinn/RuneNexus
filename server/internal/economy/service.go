@@ -86,12 +86,13 @@ func (service *Service) snapshot(
 	if err != nil {
 		return Snapshot{}, err
 	}
-	run, err := currentRunState(ctx, queries, economy.AccountID)
+	run, deck, err := currentRunState(ctx, queries, economy.AccountID)
 	if err != nil {
 		return Snapshot{}, err
 	}
 	result := Snapshot{
 		Run:             run,
+		GemDeck:         deck,
 		GemOfferVersion: 1, GemOffer: offer,
 		GemRerollVersion: 1, GemReroll: reroll,
 		AuthorityEpoch:   formatUUID(system.AuthorityEpoch),
@@ -108,6 +109,9 @@ func (service *Service) snapshot(
 		},
 		PendingProgressionEffects: make([]ProgressionEffect, 0, len(effects)),
 		ClaimedRewardKeys:         claimKeys,
+	}
+	if deck != nil {
+		result.GemDeckVersion = GemDeckVersion
 	}
 	result.TurretModules.DrawCount = economy.ModuleDrawCount
 	result.TurretModules.TicketPurchaseCount = economy.ModuleTicketPurchaseCount

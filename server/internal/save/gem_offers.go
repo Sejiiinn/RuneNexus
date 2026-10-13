@@ -63,6 +63,11 @@ func validateGemOfferSave(ctx context.Context, q *dbgen.Queries, account pgtype.
 		}
 		return nil
 	}
+	if deckRun, err := q.GetEconomyRun(ctx, dbgen.GetEconomyRunParams{AccountID: account, RunID: id}); err == nil && len(deckRun.GemDeck) > 0 {
+		return nil
+	} else if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
 	if client < RunAuthorityClientCompatibilityVersion {
 		// Pre-adoption compatibility only. Adopted accounts use the exact run
 		// aggregate validator before entering this presentation-state adapter.

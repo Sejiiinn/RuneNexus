@@ -117,6 +117,8 @@ type GemRerollRequest struct {
 
 type Snapshot struct {
 	Run              *RunState       `json:"run,omitempty"`
+	GemDeckVersion   int             `json:"gemDeckVersion,omitempty"`
+	GemDeck          *GemDeck        `json:"gemDeck,omitempty"`
 	GemOfferVersion  int             `json:"gemOfferVersion,omitempty"`
 	GemOffer         *GemOfferState  `json:"gemOffer,omitempty"`
 	GemRerollVersion int             `json:"gemRerollVersion,omitempty"`
@@ -171,6 +173,7 @@ type GemCommandReceipt struct {
 
 type CommandResult struct {
 	Run                    *RunState          `json:"run,omitempty"`
+	GemDeck                *GemDeck           `json:"gemDeck,omitempty"`
 	GemReceipt             *GemCommandReceipt `json:"gemReceipt,omitempty"`
 	GemOffer               *GemOfferState     `json:"gemOffer,omitempty"`
 	SaveRevision           int64              `json:"saveRevision,omitempty"`

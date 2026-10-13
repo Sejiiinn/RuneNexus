@@ -124,6 +124,7 @@ type EconomyRun struct {
 	CreatedAt        pgtype.Timestamptz `db:"created_at"`
 	ClosedAt         pgtype.Timestamptz `db:"closed_at"`
 	UpdatedAt        pgtype.Timestamptz `db:"updated_at"`
+	GemDeck          []byte             `db:"gem_deck"`
 }
 
 type EconomySystemState struct {

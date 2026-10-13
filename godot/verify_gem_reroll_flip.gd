@@ -3,8 +3,14 @@ extends SceneTree
 const Fixture = preload("res://verify_gem_reroll_ui.gd")
 class App extends Fixture.App:
 	var response := {"ok":true}
+	var immediate: Array = []
 	func reroll_reward_gems() -> Dictionary:
 		requests += 1
+		if not immediate.is_empty():
+			# Deck runs commit the next candidates before returning, with no wait.
+			run_domain.state.rewardOptions = immediate.duplicate()
+			run_domain.state.gemRerollsUsed += 1
+			return {"ok":true, "initialOffer":false}
 		reroll_view.merge({"status":"processing","available":false,"locked":true,"note":"리롤 처리 중…"},true)
 		hud.refresh()
 		await response_ready
@@ -100,6 +106,19 @@ func short_clip() -> void:
 	check(flip.get_child_count() == 0,"short scrolled composite cleans up")
 	await destroy()
 
+# A locally committed deck reroll flips on the same press, never showing a wait.
+func immediate_flip() -> void:
+	await reset(440)
+	app.immediate = NEW.duplicate()
+	hit().pressed.emit()
+	var flip = hud.rewards.gem_flip
+	flip.set_process(false)
+	await frames()
+	check(app.requests == 1 and flip.active and not hud.rewards._reroll_pending, "instant result starts the flip at once")
+	flip._apply(0.6); await frames()
+	check(faces() == NEW and not flip.active, "instant result settles on the new candidates")
+	await destroy()
+
 func run() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-dir="): capture_dir = argument.trim_prefix("--capture-dir=")
@@ -154,6 +173,7 @@ func run() -> void:
 		await capture("flip-"+str(width)+"-final")
 		await destroy()
 	await short_clip()
+	await immediate_flip()
 	# An already-open shard confirmation keeps its geometry and cannot settle.
 	await reset(320)
 	hud.overlay_body.find_child("GemRewardShards",true,false).pressed.emit(); await frames()

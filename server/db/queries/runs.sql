@@ -14,6 +14,10 @@ SELECT * FROM economy_runs WHERE account_id = $1 AND status = 'active' FOR UPDAT
 INSERT INTO economy_runs(account_id,run_id,stage_number,status,owned_gems,total_used,legacy_imported)
 VALUES ($1,$2,$3,'active',$4,$5,$6) RETURNING *;
 
+-- name: SetEconomyRunGemDeck :execrows
+UPDATE economy_runs SET gem_deck=$3,updated_at=now()
+WHERE account_id=$1 AND run_id=$2 AND status='active' AND gem_deck IS NULL;
+
 -- name: UpdateEconomyRun :execrows
 UPDATE economy_runs SET owned_gems=$3,total_used=$4,purchased_offer=$5,purchase_sequence=$6,updated_at=now()
 WHERE account_id=$1 AND run_id=$2 AND status='active';

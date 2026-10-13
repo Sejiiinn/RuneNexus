@@ -106,7 +106,7 @@ func run():
 	check((await f.service.execute("purchase_gems", {"runId":RUN,"completedRounds":0})).ok,"zero-round purchase uses server command")
 	posts = f.remote.calls.filter(func(call): return call.method == "POST")
 	var body: Dictionary = Json.parse(posts[0].raw)
-	check(posts[0].path == "v1/economy/gems/purchase" and body.clientCompatibilityVersion == 9 and not body.has("offerId"),"purchase wire contract")
+	check(posts[0].path == "v1/economy/gems/purchase" and body.clientCompatibilityVersion == 10 and not body.has("offerId"),"purchase wire contract")
 	var local := {"economyRunId":RUN,"phase":"wave","completedRounds":0,"gemInventory":{},"gemShards":40,"rewardOptions":[]}
 	var pending_purchase := Offer.project(local, purchased)
 	check(pending_purchase.phase == "reward" and pending_purchase.gemShards == 20 and pending_purchase.isPurchasedGemReward,"purchase projection debits only confirmed twenty shards")

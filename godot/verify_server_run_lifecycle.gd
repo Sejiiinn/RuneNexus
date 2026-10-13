@@ -15,6 +15,9 @@ class Online extends RefCounted:
 class Economy extends RefCounted:
 	var snapshot := {"run":null, "gemOfferVersion":1}
 	var busy := false
+	var deck := {}
+	func gem_deck(run_id: String) -> Dictionary:
+		return deck if deck.get("runId") == run_id else {}
 class Services extends RefCounted:
 	signal release
 	var app
@@ -229,5 +232,34 @@ func run() -> void:
 			check(terminal.phase == "failure", "pending offer terminalizes without granting its choice")
 		check(await app.start_stage(0) and app.run_domain.state.economyRunId != pending_offer.economyRunId, "new server lifecycle starts after pending offer closes")
 		destroy(app)
+	await deck_run()
 	print("SERVER_RUN_LIFECYCLE checks=%d failures=%s" % [checks,JSON.stringify(failures)])
 	quit(0 if failures.is_empty() else 1)
+
+# Generation-10 deck runs apply every reward step locally, with no server call.
+func deck_run() -> void:
+	var chain := [["attackSpeed","range","physicalDamage"],["elementalDamage","lightWeapon","heavyWeapon"]]
+	var bought := ["chain","explosion","criticalChance"]
+	var app = make_app("deck")
+	check(await app.start_stage(0), "deck fixture authority start")
+	var run_id: String = app.run_domain.state.economyRunId
+	app.services.economy.deck = {"version":1,"runId":run_id,"waves":{"5":{"offerId":Id.uuid(),"options":chain}},"purchases":[{"offerId":Id.uuid(),"options":bought}]}
+	var requests: int = app.services.requests.size()
+	app.run_domain.state.merge({"phase":"reward","roundIndex":5,"completedRounds":5},true)
+	app.command([], {"phase":"reward","paused":true})
+	app._maybe_request_gem_offer()
+	var saved: Dictionary = app.checkpoint.store.load_save().activeRun
+	check(app.run_domain.state.rewardOptions == chain[0] and saved.rewardOptions == chain[0] and saved.gemDeckLog.size() == 1, "wave reward appears at once and is durable")
+	check(not app.gem_reroll_state().locked and app.gem_reroll_state().available, "deck offer can reroll without a server round trip")
+	check((await app.reroll_reward_gems()).ok and app.run_domain.state.rewardOptions == chain[1] and app.checkpoint.store.load_save().activeRun.gemDeckLog[0].rerolls == 1, "reroll applies the next chain entry locally")
+	check((await app.choose_reward({"kind":"chooseRewardGem","type":chain[1][2]})).ok and app.run_domain.state.gemInventory.get(chain[1][2]) == 1 and app.run_domain.state.phase == "preparation", "choice grants locally")
+	app.run_domain.state.gemShards = 40
+	app.run_domain.state.phase = "wave"
+	app.command([], {"phase":"wave","paused":false})
+	check((await app.purchase_reward_gems()).ok and app.run_domain.state.rewardOptions == bought and app.run_domain.state.gemShards == 20 and app.scene.combat_runtime.session.paused, "purchase presents its deck entry and pauses combat")
+	check((await app.choose_reward({"kind":"chooseRewardGem","type":bought[0]})).ok and app.run_domain.state.phase == "wave" and not app.scene.combat_runtime.session.paused, "purchased choice resumes combat")
+	check(app.services.requests.size() == requests, "deck rewards never call the server")
+	var log: Array = app.checkpoint.store.load_save().activeRun.gemDeckLog
+	check(log == [{"kind":"wave","wave":5,"rerolls":1,"choice":chain[1][2]},{"kind":"purchase","sequence":1,"choice":bought[0]}], "checkpoint records the replayable history")
+	check(await app.abandon_run() and app.services.closed_runs.size() == 1 and app.services.closed_runs[0].gemDeckLog == log, "close uploads the history for reconciliation")
+	destroy(app)

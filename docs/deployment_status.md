@@ -10,6 +10,8 @@
 
 확인 기준: 2026-10-13 KST. 대상 `9a51122a`까지 확정된 클라이언트 변경은 6050 공개본에 포함했다. 서버·DB는 아래 6049 운영 반영본을 유지하며 이번에 재배포하지 않았다. 최신 공개본의 검증 범위는 아래 6050 이력에 기록한다. 실제 Google 계정과 Android 본게임·실기기 지속 성능 확인은 [체크리스트](implementation_checklist.md)에 유지한다.
 
+- [런 젬 덱](server_authoritative_economy_design.md#런-젬-덱-호환-세대-10)(경제 호환 세대 10, migration 017)은 미배포다. 서버 단위 테스트, 실제 DB 통합 검사(덱 발급·조회·덱 저장 수락·기존 명령 거절·종료/정산 차감), Godot 젬·수명주기·UI 회귀를 통과했다. 실제 서버와 연결한 앱 플레이와 Android 확인은 하지 않았다. 반영 순서는 migration 017 → API → 세대 10 앱이며, 구 앱은 덱 없는 기존 흐름을 계속 쓴다.
+
 ## 2026-10-13 Android 0.2.21 / code 6050 — 공개 완료
 
 - APK 대상 `9a51122a73f1d39da6a8be473f72c9bed98ec665`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38363973929), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6050), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6050/rune-nexus.apk). 검수한 build-only 산출물 5개를 **선택 업데이트·최소 지원 코드 6049**로 2026-10-13 08:10:11 UTC(17:10:11 KST)에 공개·최신 지정했다.

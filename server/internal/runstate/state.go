@@ -24,6 +24,7 @@ type State struct {
 	PurchasedOffer   json.RawMessage
 	PurchaseSequence int64
 	LegacyImported   bool
+	GemDeck          json.RawMessage
 }
 
 // RequiresCurrentClient also covers pinned pre-economy saves: no old write may
@@ -40,7 +41,7 @@ func RequiresCurrentClient(ctx context.Context, q *dbgen.Queries, account pgtype
 }
 
 func FromRow(row dbgen.EconomyRun) (State, error) {
-	state := State{RunID: row.RunID, StageNumber: row.StageNumber, Status: row.Status, TotalUsed: row.TotalUsed, PurchasedOffer: row.PurchasedOffer, PurchaseSequence: row.PurchaseSequence, LegacyImported: row.LegacyImported}
+	state := State{RunID: row.RunID, StageNumber: row.StageNumber, Status: row.Status, TotalUsed: row.TotalUsed, PurchasedOffer: row.PurchasedOffer, PurchaseSequence: row.PurchaseSequence, LegacyImported: row.LegacyImported, GemDeck: row.GemDeck}
 	if json.Unmarshal(row.OwnedGems, &state.OwnedGems) != nil || state.OwnedGems == nil {
 		return State{}, ErrConflict
 	}

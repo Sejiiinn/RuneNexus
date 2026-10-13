@@ -31,7 +31,7 @@ func (q *Queries) CloseEconomyRun(ctx context.Context, arg CloseEconomyRunParams
 
 const createEconomyRun = `-- name: CreateEconomyRun :one
 INSERT INTO economy_runs(account_id,run_id,stage_number,status,owned_gems,total_used,legacy_imported)
-VALUES ($1,$2,$3,'active',$4,$5,$6) RETURNING account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at
+VALUES ($1,$2,$3,'active',$4,$5,$6) RETURNING account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at, gem_deck
 `
 
 type CreateEconomyRunParams struct {
@@ -66,6 +66,7 @@ func (q *Queries) CreateEconomyRun(ctx context.Context, arg CreateEconomyRunPara
 		&i.CreatedAt,
 		&i.ClosedAt,
 		&i.UpdatedAt,
+		&i.GemDeck,
 	)
 	return i, err
 }
@@ -100,7 +101,7 @@ func (q *Queries) GetAccountRunAuthority(ctx context.Context, accountID pgtype.U
 }
 
 const getActiveEconomyRun = `-- name: GetActiveEconomyRun :one
-SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at FROM economy_runs WHERE account_id = $1 AND status = 'active'
+SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at, gem_deck FROM economy_runs WHERE account_id = $1 AND status = 'active'
 `
 
 func (q *Queries) GetActiveEconomyRun(ctx context.Context, accountID pgtype.UUID) (EconomyRun, error) {
@@ -119,12 +120,13 @@ func (q *Queries) GetActiveEconomyRun(ctx context.Context, accountID pgtype.UUID
 		&i.CreatedAt,
 		&i.ClosedAt,
 		&i.UpdatedAt,
+		&i.GemDeck,
 	)
 	return i, err
 }
 
 const getActiveEconomyRunForUpdate = `-- name: GetActiveEconomyRunForUpdate :one
-SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at FROM economy_runs WHERE account_id = $1 AND status = 'active' FOR UPDATE
+SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at, gem_deck FROM economy_runs WHERE account_id = $1 AND status = 'active' FOR UPDATE
 `
 
 func (q *Queries) GetActiveEconomyRunForUpdate(ctx context.Context, accountID pgtype.UUID) (EconomyRun, error) {
@@ -143,12 +145,13 @@ func (q *Queries) GetActiveEconomyRunForUpdate(ctx context.Context, accountID pg
 		&i.CreatedAt,
 		&i.ClosedAt,
 		&i.UpdatedAt,
+		&i.GemDeck,
 	)
 	return i, err
 }
 
 const getEconomyRun = `-- name: GetEconomyRun :one
-SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at FROM economy_runs WHERE account_id = $1 AND run_id = $2
+SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at, gem_deck FROM economy_runs WHERE account_id = $1 AND run_id = $2
 `
 
 type GetEconomyRunParams struct {
@@ -172,12 +175,13 @@ func (q *Queries) GetEconomyRun(ctx context.Context, arg GetEconomyRunParams) (E
 		&i.CreatedAt,
 		&i.ClosedAt,
 		&i.UpdatedAt,
+		&i.GemDeck,
 	)
 	return i, err
 }
 
 const getEconomyRunForUpdate = `-- name: GetEconomyRunForUpdate :one
-SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at FROM economy_runs WHERE account_id = $1 AND run_id = $2 FOR UPDATE
+SELECT account_id, run_id, stage_number, status, owned_gems, total_used, purchased_offer, purchase_sequence, legacy_imported, created_at, closed_at, updated_at, gem_deck FROM economy_runs WHERE account_id = $1 AND run_id = $2 FOR UPDATE
 `
 
 type GetEconomyRunForUpdateParams struct {
@@ -201,6 +205,7 @@ func (q *Queries) GetEconomyRunForUpdate(ctx context.Context, arg GetEconomyRunF
 		&i.CreatedAt,
 		&i.ClosedAt,
 		&i.UpdatedAt,
+		&i.GemDeck,
 	)
 	return i, err
 }
@@ -212,6 +217,25 @@ UPDATE account_run_authorities SET adopted=true,legacy_source_revision=NULL WHER
 func (q *Queries) MarkAccountRunAdopted(ctx context.Context, accountID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, markAccountRunAdopted, accountID)
 	return err
+}
+
+const setEconomyRunGemDeck = `-- name: SetEconomyRunGemDeck :execrows
+UPDATE economy_runs SET gem_deck=$3,updated_at=now()
+WHERE account_id=$1 AND run_id=$2 AND status='active' AND gem_deck IS NULL
+`
+
+type SetEconomyRunGemDeckParams struct {
+	AccountID pgtype.UUID `db:"account_id"`
+	RunID     pgtype.UUID `db:"run_id"`
+	GemDeck   []byte      `db:"gem_deck"`
+}
+
+func (q *Queries) SetEconomyRunGemDeck(ctx context.Context, arg SetEconomyRunGemDeckParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setEconomyRunGemDeck, arg.AccountID, arg.RunID, arg.GemDeck)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateEconomyRun = `-- name: UpdateEconomyRun :execrows

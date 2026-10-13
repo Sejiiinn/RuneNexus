@@ -41,15 +41,21 @@ type CloseRunRequest struct {
 	RunID                  string
 }
 
-func currentRunState(ctx context.Context, q *dbgen.Queries, account pgtype.UUID) (*RunState, error) {
+// The active run's deck is part of the current read so a restarted client can
+// keep presenting candidates locally without ever persisting the deck itself.
+func currentRunState(ctx context.Context, q *dbgen.Queries, account pgtype.UUID) (*RunState, *GemDeck, error) {
 	row, err := q.GetActiveEconomyRun(ctx, account)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil
+		return nil, nil, nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return runView(row), nil
+	deck, err := parseGemDeck(row.GemDeck)
+	if err != nil {
+		return nil, nil, err
+	}
+	return runView(row), deck, nil
 }
 
 func runView(row dbgen.EconomyRun) *RunState {
@@ -144,6 +150,8 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 	}
 	var row dbgen.EconomyRun
 	var activeRun map[string]json.RawMessage
+	var deck *GemDeck
+	var closingDeck []byte
 	if kind == "run_start" {
 		if _, activeErr := q.GetActiveEconomyRunForUpdate(ctx, account); activeErr == nil {
 			return CommandResult{}, ErrGemOfferConflict
@@ -162,6 +170,11 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 		row, err = q.CreateEconomyRun(ctx, dbgen.CreateEconomyRunParams{AccountID: account, RunID: id, StageNumber: int32(request.StageNumber), OwnedGems: []byte(`{}`)})
 		if err != nil {
 			return CommandResult{}, err
+		}
+		if gamesave.ClientCompatibilityFromBody(request.RawBody) >= GemDeckClientCompatibilityVersion {
+			if deck, err = issueGemDeck(ctx, q, account, id, source.Progression); err != nil {
+				return CommandResult{}, err
+			}
 		}
 		if json.Unmarshal(source.ActiveRun, &activeRun) != nil || activeRun == nil {
 			return CommandResult{}, ErrInvalidCommand
@@ -202,6 +215,7 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 			return CommandResult{Run: runView(row), GemReceipt: newGemReceipt(wallet, system), SaveRevision: source.Revision, ServerSavedAt: source.UpdatedAt.Time.UTC()}, nil
 		}
 		if row.Status == "active" {
+			closingDeck = row.GemDeck
 			changed, e := q.CloseEconomyRun(ctx, dbgen.CloseEconomyRunParams{AccountID: account, RunID: id})
 			if e != nil {
 				return CommandResult{}, e
@@ -227,11 +241,15 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 	if err != nil {
 		return CommandResult{}, err
 	}
+	order := int16(0)
+	if err = chargeDeckRerolls(ctx, q, account, closingDeck, source.ActiveRun, wallet.GemResetTickets, command.ID, &order); err != nil {
+		return CommandResult{}, err
+	}
 	wallet, err = q.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{AccountID: account, Revision: wallet.Revision + 1, FreeDiamonds: wallet.FreeDiamonds, PaidDiamonds: wallet.PaidDiamonds, ModuleTickets: wallet.ModuleTickets, ModuleDrawCount: wallet.ModuleDrawCount, ModuleTicketPurchaseCount: wallet.ModuleTicketPurchaseCount, ModuleItemSequence: wallet.ModuleItemSequence, ResearchSlotTwoUnlocked: wallet.ResearchSlotTwoUnlocked, Revision_2: wallet.Revision})
 	if err != nil {
 		return CommandResult{}, err
 	}
-	result := CommandResult{Run: runView(row), GemReceipt: newGemReceipt(wallet, system), SaveRevision: advanced.Revision, ServerSavedAt: advanced.UpdatedAt.Time.UTC()}
+	result := CommandResult{Run: runView(row), GemReceipt: newGemReceipt(wallet, system), SaveRevision: advanced.Revision, ServerSavedAt: advanced.UpdatedAt.Time.UTC(), GemDeck: deck}
 	if err = storeCommandResult(ctx, q, command.ID, result); err != nil {
 		return CommandResult{}, err
 	}
@@ -239,6 +257,31 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 		return CommandResult{}, err
 	}
 	return result, nil
+}
+
+// Decks are drawn from the unlocks of the checkpoint the run starts from. Clear
+// progression only changes after settlement, so they stay valid for the run.
+func issueGemDeck(ctx context.Context, q *dbgen.Queries, account, runID pgtype.UUID, progression []byte) (*GemDeck, error) {
+	available, err := availableGems(progression)
+	if err != nil {
+		return nil, err
+	}
+	deck, err := generateGemDeck(rand.Reader, formatUUID(runID), available)
+	if err != nil || deck == nil {
+		return nil, err
+	}
+	raw, err := json.Marshal(deck)
+	if err != nil {
+		return nil, err
+	}
+	changed, err := q.SetEconomyRunGemDeck(ctx, dbgen.SetEconomyRunGemDeckParams{AccountID: account, RunID: runID, GemDeck: raw})
+	if err != nil {
+		return nil, err
+	}
+	if changed != 1 {
+		return nil, ErrGemOfferConflict
+	}
+	return deck, nil
 }
 
 func runLifecycleError(err error) error {

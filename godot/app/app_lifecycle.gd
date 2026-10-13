@@ -5,6 +5,7 @@ const SaveCodec = preload("res://app/save_codec.gd")
 const DevicePreferences = preload("res://app/device_preferences.gd")
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 const GemReroll = preload("res://app/gem_reroll.gd")
+const GemDeck = preload("res://app/gem_deck.gd")
 var startup_blocked := true
 var in_lobby := true
 var autosave_interval := 10.0
@@ -703,6 +704,15 @@ func gem_reroll_state() -> Dictionary:
 	var view := {"status":"available", "remaining":GemReroll.MAX_USES-used, "free":used == 0, "available":false, "locked":false, "note":_gem_reroll_note}
 	var purchased := bool(state.get("isPurchasedGemReward", false))
 	if state.get("phase") != "reward" or (not purchased and not GemReroll.eligible(state)): return view
+	if _gem_deck_missing():
+		view.merge({"status":"processing", "locked":true, "note":"젬 후보를 불러오는 중…"}, true)
+		return view
+	if not _gem_deck().is_empty():
+		# Deck runs never wait for the network; only local save health matters.
+		if save_failed:
+			view.merge({"status":"save_failed", "available":true, "locked":true, "note":"저장에 실패했습니다. 다시 눌러 저장을 재시도하세요."}, true)
+			return view
+		return _gem_reroll_budget(view, state, purchased)
 	if _gem_reroll_requesting or (services != null and services.economy != null and services.economy.busy):
 		view.merge({"status":"processing", "locked":true, "note":"서버 보상 확인 중…"}, true)
 		return view
@@ -720,6 +730,13 @@ func gem_reroll_state() -> Dictionary:
 		return view
 	if not GemReroll.current_offer(state):
 		view.merge({"status":"awaiting_offer", "available":true, "locked":true, "note":"서버 젬 후보를 확인하고 있습니다. 다시 눌러 재시도하세요."}, true)
+		return view
+	return _gem_reroll_budget(view, state, purchased)
+
+func _gem_reroll_budget(view: Dictionary, state: Dictionary, purchased: bool) -> Dictionary:
+	var used := clampi(int(state.get("gemRerollsUsed", 0)), 0, GemReroll.MAX_USES)
+	if not GemReroll.current_offer(state):
+		view.merge({"status":"awaiting_offer", "locked":true}, true)
 		return view
 	if purchased:
 		view.status = "purchased"
@@ -743,14 +760,31 @@ func _maybe_request_gem_offer() -> void:
 	if in_lobby: return
 	if run_domain.state.get("isPurchasedGemReward", false) or not GemReroll.eligible(run_domain.state) or GemReroll.current_offer(run_domain.state): return
 	if _gem_reroll_requesting or Time.get_ticks_msec() < _gem_offer_retry_at: return
+	var deck := _gem_deck()
+	if not deck.is_empty():
+		if not _apply_gem_step(func(state: Dictionary) -> Dictionary: return GemDeck.offer(state, deck)).get("ok", false):
+			_gem_offer_retry_at = Time.get_ticks_msec() + 5000
+		return
+	if _gem_deck_missing():
+		_gem_offer_retry_at = Time.get_ticks_msec() + 5000
+		if services != null and not services.blocks_play() and not services.economy.busy: _reload_gem_deck.call_deferred()
+		return
 	if services == null or services.blocks_play() or services.economy == null or services.economy.busy: return
 	_gem_offer_retry_at = Time.get_ticks_msec() + 5000
 	reroll_reward_gems.call_deferred()
 
 func reroll_reward_gems() -> Dictionary:
 	if run_domain.state.get("isPurchasedGemReward", false): return {"ok":false,"code":"REROLL_UNAVAILABLE"}
+	var deck := _gem_deck()
+	if not deck.is_empty():
+		if save_failed and not persist_progression(): return {"ok":false, "code":"LOCAL_SAVE_FAILED", "initialOffer":false}
+		var available := gem_reroll_state()
+		if not available.available or available.locked: return {"ok":false, "code":"REROLL_UNAVAILABLE", "initialOffer":false}
+		var rerolled := _apply_gem_step(func(state: Dictionary) -> Dictionary: return GemDeck.reroll(state, deck))
+		rerolled.initialOffer = false
+		return rerolled
 	var view := gem_reroll_state()
-	if not view.available or _gem_reroll_requesting or startup_blocked or in_lobby: return {"ok":false, "code":"REROLL_UNAVAILABLE"}
+	if not view.available or _gem_reroll_requesting or startup_blocked or in_lobby or _gem_deck_missing(): return {"ok":false, "code":"REROLL_UNAVAILABLE"}
 	if save_failed and not persist_progression(): return {"ok":false, "code":"LOCAL_SAVE_FAILED"}
 	if not GemReroll.eligible(run_domain.state): return {"ok":false, "code":"STALE_REWARD"}
 	var initial := not GemReroll.current_offer(run_domain.state)
@@ -760,12 +794,21 @@ func reroll_reward_gems() -> Dictionary:
 	return result
 
 func purchase_reward_gems() -> Dictionary:
-	if _gem_reroll_requesting or startup_blocked or in_lobby or _battle_preparation_pending(): return {"ok":false,"code":"GEM_PURCHASE_UNAVAILABLE"}
+	if _gem_reroll_requesting or startup_blocked or in_lobby or _battle_preparation_pending() or _gem_deck_missing(): return {"ok":false,"code":"GEM_PURCHASE_UNAVAILABLE"}
 	if _pending_gem_reroll(): return await recover_reward_command()
 	if services == null or services.blocks_play() or not _server_run_matches(): return {"ok":false,"code":"ACCOUNT_REQUIRED"}
 	if save_failed and not persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	if not command() or run_domain.state.get("phase") not in ["preparation", "wave"]: return {"ok":false,"code":"STALE_REWARD"}
-	if int(run_domain.state.get("gemShards", 0)) < int(run_domain.growth.data.constants.gemChoicePurchaseCost): return {"ok":false,"code":"INSUFFICIENT_GEM_SHARDS"}
+	var cost := int(run_domain.growth.data.constants.gemChoicePurchaseCost)
+	if int(run_domain.state.get("gemShards", 0)) < cost: return {"ok":false,"code":"INSUFFICIENT_GEM_SHARDS"}
+	var deck := _gem_deck()
+	if not deck.is_empty():
+		var resume := {"runId":run_domain.state.get("economyRunId", ""), "running":not bool(scene.combat_runtime.session.get("paused", false)), "pauseGeneration":_pause_generation}
+		if not command([], {"paused":true}): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+		var purchased := _apply_gem_step(func(state: Dictionary) -> Dictionary: return GemDeck.purchase(state, deck, cost))
+		if purchased.get("ok", false): _gem_purchase_resume = resume
+		elif resume.running and int(resume.pauseGeneration) == _pause_generation: command([], {"paused":false})
+		return purchased
 	return await _perform_gem_command("purchase_gems", _gem_values())
 
 func recover_reward_command() -> Dictionary:
@@ -785,7 +828,61 @@ func choose_reward(command: Dictionary) -> Dictionary:
 		if not run_domain.service.validate_reward_equip(run_domain.state, command): return {"ok":false,"code":"INVALID_EQUIP"}
 		var target: Dictionary = run_domain.service.turret(run_domain.state, int(command.get("id", -1)))
 		values.equipIntent = {"x":target.x,"y":target.y,"turretType":target.type,"slot":command.get("slot", -1),"buySlot":command.get("buySlot", false)}
+	if not _gem_deck().is_empty():
+		var chosen := _apply_gem_step(func(state: Dictionary) -> Dictionary: return _deck_choice(state, str(values.choice), command))
+		if chosen.get("ok", false) and command.kind == "chooseRewardGemEquip": scene.play_gem_equip_burst(int(command.id), str(values.choice))
+		_resume_after_gem_purchase()
+		refresh_ui()
+		return chosen
 	return await _perform_gem_command("choose_gem", values)
+
+## The active run's gem deck, or {} when rewards use server commands.
+func _gem_deck() -> Dictionary:
+	if services == null or services.economy == null or checkpoint.owner == "guest" or run_domain.state.is_empty() or not services.economy.has_method("gem_deck"): return {}
+	return services.economy.gem_deck(str(run_domain.state.get("economyRunId", "")))
+
+func _gem_deck_missing() -> bool:
+	if services == null or services.economy == null or run_domain.state.is_empty() or not services.economy.has_method("gem_deck_missing"): return false
+	return services.economy.gem_deck_missing(str(run_domain.state.get("economyRunId", "")))
+
+# A restarted process reads the deck again; deck runs never use server offers.
+func _reload_gem_deck() -> void:
+	_gem_reroll_requesting = true
+	refresh_ui()
+	await services.perform("refresh")
+	_gem_reroll_requesting = false
+	refresh_ui()
+
+## Applies one deck reward step to the live run and its durable checkpoint.
+func _apply_gem_step(step: Callable) -> Dictionary:
+	if startup_blocked or in_lobby or _battle_preparation_pending(): return {"ok":false,"code":"GEM_OFFER_PENDING"}
+	if (step.call(run_domain.state) as Dictionary).is_empty(): return {"ok":false,"code":"REROLL_UNAVAILABLE"}
+	# Settle combat events first so the step builds on the live run.
+	if not command(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	var next: Dictionary = step.call(run_domain.state)
+	if next.is_empty(): return {"ok":false,"code":"REROLL_UNAVAILABLE"}
+	if not commit_run_state(next):
+		_record_save_failure()
+		return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
+	_gem_reroll_note = ""
+	refresh_selection()
+	refresh_ui()
+	return {"ok":true}
+
+func _deck_choice(state: Dictionary, choice: String, request: Dictionary) -> Dictionary:
+	var next := GemDeck.choose(state, choice)
+	if next.is_empty() or request.get("kind") != "chooseRewardGemEquip": return next
+	var service = run_domain.service
+	var id := int(request.get("id", -1))
+	if request.get("buySlot", false):
+		var linked: Dictionary = service.apply(next, {"kind":"link", "id":id})
+		if not linked.get("ok", false): return {}
+		next = linked.state
+	var equipped: Dictionary = service.apply(next, {"kind":"equipGem", "id":id, "slot":int(request.get("slot", -1)), "type":choice})
+	if not equipped.get("ok", false): return {}
+	next = equipped.state
+	next.gemOfferEquipRevision = next.gemOfferRevision
+	return next
 
 func _perform_gem_command(action: String, values: Dictionary) -> Dictionary:
 	if _gem_reroll_requesting or _battle_preparation_pending(): return {"ok":false,"code":"BUSY"}
@@ -815,14 +912,18 @@ func _perform_gem_command(action: String, values: Dictionary) -> Dictionary:
 			if target.x == intent.x and target.y == intent.y and target.type == intent.turretType and slot >= 0 and slot < slots.size() and slots[slot] == values.choice:
 				scene.play_gem_equip_burst(int(target.id), str(values.choice))
 				break
-	if not _gem_purchase_resume.is_empty():
-		var same_run: bool = run_domain.state.get("economyRunId") == _gem_purchase_resume.get("runId")
-		var reward_finished: bool = run_domain.state.get("phase") in ["preparation", "wave"]
-		if not same_run or (reward_finished and not _pending_gem_reroll()):
-			if same_run and _gem_purchase_resume.get("running", false) and int(_gem_purchase_resume.pauseGeneration) == _pause_generation:
-				command([], {"paused":false})
-			_gem_purchase_resume.clear()
+	_resume_after_gem_purchase()
 	if action == "purchase_gems" and not result.get("ok", false): checkpoint.message = _gem_reroll_note
 	refresh_selection()
 	refresh_ui()
 	return result
+
+# A purchased choice paused combat; resume it once that reward is finished.
+func _resume_after_gem_purchase() -> void:
+	if _gem_purchase_resume.is_empty(): return
+	var same_run: bool = run_domain.state.get("economyRunId") == _gem_purchase_resume.get("runId")
+	var reward_finished: bool = run_domain.state.get("phase") in ["preparation", "wave"]
+	if not same_run or (reward_finished and not _pending_gem_reroll()):
+		if same_run and _gem_purchase_resume.get("running", false) and int(_gem_purchase_resume.pauseGeneration) == _pause_generation:
+			command([], {"paused":false})
+		_gem_purchase_resume.clear()

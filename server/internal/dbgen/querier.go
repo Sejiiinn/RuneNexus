@@ -98,6 +98,7 @@ type Querier interface {
 	RotateEconomyAuthorityEpoch(ctx context.Context) (EconomySystemState, error)
 	RotateSessionAccessToken(ctx context.Context, arg RotateSessionAccessTokenParams) (Session, error)
 	SetAccountNickname(ctx context.Context, arg SetAccountNicknameParams) (Account, error)
+	SetEconomyRunGemDeck(ctx context.Context, arg SetEconomyRunGemDeckParams) (int64, error)
 	SetGemResetTickets(ctx context.Context, arg SetGemResetTicketsParams) error
 	TouchAuthIdentity(ctx context.Context, id pgtype.UUID) (AuthIdentity, error)
 	TouchSession(ctx context.Context, id pgtype.UUID) error

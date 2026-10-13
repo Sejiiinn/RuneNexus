@@ -785,6 +785,20 @@ static func _run(v: Variant, skill: Variant) -> Variant:
 		if v.has(key): out[key] = maxi(0, _int(v.get(key)))
 	for key in ["gemOfferId", "gemOfferStatus"]:
 		if v.get(key) is String: out[key] = v[key]
+	if v.has("gemDeckLog"): out.gemDeckLog = _deck_log(v.gemDeckLog)
+	return out
+
+# Generation-10 deck runs: one entry per presented offer, replayed by the server.
+static func _deck_log(v: Variant) -> Array:
+	var out := []
+	if not v is Array: return out
+	for item in v:
+		if not _is_map(item): continue
+		var choice: Variant = item.get("choice")
+		if not choice is String or (not choice.is_empty() and choice != "shards" and _enum("GemType", choice) == null): continue
+		match item.get("kind"):
+			"wave": out.append({"kind": "wave", "wave": maxi(0, _int(item.get("wave"))), "rerolls": clampi(_int(item.get("rerolls")), 0, 3), "choice": choice})
+			"purchase": out.append({"kind": "purchase", "sequence": maxi(1, _int(item.get("sequence"))), "choice": choice})
 	return out
 
 static func _has_progress(v: Dictionary) -> bool:

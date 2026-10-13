@@ -3,7 +3,8 @@ extends Node
 const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
 const GemResult = preload("res://app/gem_command_result.gd")
-const COMPATIBILITY := 9
+const GemDeck = preload("res://app/gem_deck.gd")
+const COMPATIBILITY := 10
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed
@@ -163,6 +164,17 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 		if not applied.get("ok",false): return applied
 	return result
 
+## The active run's pre-committed gem deck, or {} for legacy runs.
+func gem_deck(run_id: String) -> Dictionary:
+	var deck: Variant = snapshot.get("gemDeck")
+	if snapshot.get("gemDeckVersion") != 1 or not GemDeck.valid(deck, run_id): return {}
+	return deck
+
+## True when the run has a deck that this process has not read yet.
+func gem_deck_missing(run_id: String) -> bool:
+	var run: Variant = snapshot.get("run")
+	return snapshot.get("gemDeckVersion") == 1 and run is Dictionary and run.get("runId") == run_id and gem_deck(run_id).is_empty()
+
 static func draw_quote(count: int, tickets: int) -> Dictionary:
 	var used := mini(count,maxi(0,tickets))
 	return {"moduleTickets":used,"diamonds":maxi(0,count-used)*MODULE_TICKET_DIAMONDS}
@@ -205,6 +217,9 @@ func _apply(value: Dictionary, token: int, command: Dictionary = {}) -> Dictiona
 	if not applied: return _failure("SNAPSHOT_SAVE_FAILED")
 	var next: Dictionary = outbox.state.duplicate(true)
 	next.lastServerSnapshot = value.duplicate(true)
+	# The run gem deck stays in memory; a restarted client reads it again. The
+	# version marker remains so a deck run never falls back to server offers.
+	next.lastServerSnapshot.erase("gemDeck")
 	if command.get("kind") == "choose_gem": next.lastGemChoice = command.duplicate(true)
 	if outbox.save_state(next) != OK: return _failure("OUTBOX_WRITE_FAILED")
 	snapshot = value.duplicate(true)

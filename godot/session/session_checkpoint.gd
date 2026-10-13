@@ -4,6 +4,7 @@ const StageProgression = preload("res://content/stage_progression.gd")
 ## Account settlement and existing-installation data handoff remain separate.
 const Codec = preload("res://app/save_codec.gd")
 const GemReroll = preload("res://app/gem_reroll.gd")
+const GemDeck = preload("res://app/gem_deck.gd")
 const Adapter = preload("res://app/run_save_adapter.gd")
 const ContentSave = preload("res://app/content_run_save.gd")
 const Capture = preload("res://app/checkpoint_capture.gd")
@@ -209,6 +210,7 @@ func apply_economy_snapshot(app, snapshot: Dictionary, command: Dictionary = {})
 		input.turretModules = saved.turretModules
 		var mapped: Dictionary = mapper.apply_authoritative(input, snapshot)
 		if mapped.is_empty(): return false
+		if saved.get("activeRun") is Dictionary: _hold_deck_tickets(mapped, saved.activeRun, snapshot)
 		saved.turretModules = mapped.turretModules
 		mapped.erase("turretModules")
 		saved.progression = mapped
@@ -227,10 +229,18 @@ func apply_economy_snapshot(app, snapshot: Dictionary, command: Dictionary = {})
 	if mapped.is_empty():
 		message = mapper.error
 		return false
+	_hold_deck_tickets(mapped, candidate, snapshot)
 	candidate.progression = mapped
 	candidate = _project_gem_offer(app, candidate, snapshot, command)
 	if candidate.is_empty(): return false
 	return app.commit_run_state(candidate)
+
+# A deck run spends reset tickets locally; the server debits them when the run
+# closes. Until then its open run keeps those tickets out of the local balance.
+static func _hold_deck_tickets(progression: Dictionary, run: Dictionary, snapshot: Dictionary) -> void:
+	var open: Variant = snapshot.get("run")
+	if not run.has("gemDeckLog") or not progression.has("gemResetTickets") or not open is Dictionary or open.get("status") != "active" or open.get("runId") != run.get("economyRunId"): return
+	progression.gemResetTickets = maxi(0, int(progression.gemResetTickets) - GemDeck.pending_ticket_cost(run))
 
 func _project_gem_offer(app, state: Dictionary, snapshot: Dictionary, command: Dictionary = {}) -> Dictionary:
 	var offer: Variant = snapshot.get("gemOffer")
@@ -428,6 +438,7 @@ func _load_content(app) -> Error:
 			if mapped.is_empty():
 				message = "Invalid cached authoritative economy"
 				return ERR_INVALID_DATA
+			if saved.get("activeRun") is Dictionary: _hold_deck_tickets(mapped, saved.activeRun, cached)
 			saved.turretModules = mapped.turretModules
 			mapped.erase("turretModules")
 			saved.progression = mapped

@@ -102,6 +102,7 @@ func (service *Service) SettleRun(
 		return CommandResult{}, fmt.Errorf("recheck run reward claim: %w", err)
 	}
 	var closingRun *RunState
+	var closingDeck []byte
 	if economy.RunAuthorityEnabled || gamesave.ClientCompatibilityFromBody(request.RawBody) >= gamesave.RunAuthorityClientCompatibilityVersion {
 		if !economy.RunAuthorityEnabled {
 			if err := runstate.AdoptCanonical(ctx, txQueries, accountUUID, saveSnapshot.ActiveRun); err != nil {
@@ -123,6 +124,7 @@ func (service *Service) SettleRun(
 			return CommandResult{}, ErrInvalidCommand
 		}
 		closingRun = &RunState{RunID: request.RunID, StageNumber: request.StageNumber, Status: "closed", LegacyImported: run.LegacyImported}
+		closingDeck = run.GemDeck
 	}
 	var progression runSettlementProgression
 	if json.Unmarshal(saveSnapshot.Progression, &progression) != nil ||
@@ -178,6 +180,10 @@ func (service *Service) SettleRun(
 			return CommandResult{}, fmt.Errorf("create stage reward claim: %w", err)
 		}
 	}
+	entryOrder := int16(0)
+	if err := chargeDeckRerolls(ctx, txQueries, accountUUID, closingDeck, saveSnapshot.ActiveRun, economy.GemResetTickets, command.ID, &entryOrder); err != nil {
+		return CommandResult{}, err
+	}
 	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
 		AccountID: accountUUID, Revision: resultingRevision,
 		FreeDiamonds:              economy.FreeDiamonds + request.PendingDiamonds,
@@ -192,7 +198,6 @@ func (service *Service) SettleRun(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after run: %w", err)
 	}
-	entryOrder := int16(0)
 	if request.PendingDiamonds > 0 {
 		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "free_diamond", request.PendingDiamonds, updated.FreeDiamonds, "run_settlement"); err != nil {
 			return CommandResult{}, err
