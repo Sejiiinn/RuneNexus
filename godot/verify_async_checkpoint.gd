@@ -7,7 +7,11 @@ const Slot = preload("res://app/local_save_slot.gd")
 class Gate extends RefCounted:
 	var entered := Semaphore.new()
 	var release := Semaphore.new()
+	var calls := 0
+	var blocking := true
 	func stop() -> void:
+		calls += 1
+		if not blocking: return
 		entered.post()
 		release.wait()
 class Reader extends RefCounted:
@@ -89,6 +93,31 @@ func worker_ordering() -> void:
 		"real worker shares successfully validated bytes with the main repository")
 	check(worker.pending_count() == 0 and worker.shutdown().is_empty(), "shutdown joins drained worker")
 	check(worker.submit(second).error != OK, "closed worker rejects further requests")
+	free_app(app)
+
+func worker_coalescing() -> void:
+	var app = create_app("coalesce-source")
+	check(await app.start_stage(0), "coalesce stage")
+	var path := directory.path_join("coalesce")
+	var gate := Gate.new()
+	var worker = worker_for(app, path, gate)
+	var first := request_for(app)
+	first.state.gold = 100
+	check(worker.submit(first).error == OK, "coalesce first request accepted")
+	gate.entered.wait()
+	gate.blocking = false
+	for gold in [200, 300, 400]:
+		var queued := request_for(app)
+		queued.state.gold = gold
+		check(worker.submit(queued).error == OK, "queued request accepted " + str(gold))
+	gate.release.post()
+	var completed: Array = worker.flush()
+	check(completed.map(func(v): return v.sequence) == [1, 2, 3, 4], "every coalesced request completes once in order")
+	check(completed.all(func(v): return v.error == OK and v.durable), "coalesced requests report the covering write")
+	check(gate.calls == 2, "queued snapshots are converted and written once")
+	check(Store.new(path, Slot.guest()).load_save().activeRun.gold == 400, "latest queued snapshot is persisted")
+	check(worker.submit(request_for(app)).error == OK and worker.flush().size() == 1, "skipped tickets are released")
+	worker.shutdown()
 	free_app(app)
 
 func worker_failure() -> void:
@@ -205,6 +234,7 @@ func run() -> void:
 	check(directory.is_absolute_path(), "isolated async save root")
 	await capture_ownership()
 	await worker_ordering()
+	await worker_coalescing()
 	await worker_failure()
 	await lifecycle_requests()
 	await lifecycle_failure()

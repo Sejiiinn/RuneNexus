@@ -64,23 +64,32 @@ func _run() -> void:
 			_mutex.unlock()
 			if closing: return
 			continue
-		var job: Dictionary = _requests.pop_front()
+		var jobs: Array = [_requests.pop_front()]
+		# The newest queued snapshot supersedes older unstarted ones. Only adjacent
+		# tickets coalesce, so no other slot user can observe a skipped state.
+		while not _requests.is_empty() and int(_requests[0].ticket) == int(jobs[-1].ticket) + 1:
+			jobs.append(_requests.pop_front())
 		_mutex.unlock()
-		var completion: Dictionary = _commit(job)
+		var completed: Array = _commit(jobs)
 		_mutex.lock()
-		_completions.append(completion)
-		_finished = int(job.sequence)
+		_completions.append_array(completed)
+		_finished = int(jobs[-1].sequence)
 		var done: bool = _closing and _requests.is_empty()
 		_mutex.unlock()
 		_progress.post()
 		if done: return
 
-func _commit(job: Dictionary) -> Dictionary:
+# Converts and writes only the last job; every job completes with that result.
+func _commit(jobs: Array) -> Array:
+	var job: Dictionary = jobs[-1]
 	var request: Dictionary = job.request
 	var result: Error = OK
 	var message := "Saved v2 checkpoint"
 	var prepared: Dictionary = _capture.prepare(request)
 	if _before_commit.is_valid(): _before_commit.call()
+	# Superseded tickets are passed in order before the final write claims its own.
+	for skipped in jobs.slice(0, jobs.size() - 1):
+		_order.leave(_order.enter(int(skipped.ticket)))
 	# Scope is claimed even on validation failure, releasing the reserved ticket
 	# exactly once and allowing later requests/barriers to make progress.
 	var _transaction_scope = Order.scope(_order, int(job.ticket))
@@ -100,9 +109,12 @@ func _commit(job: Dictionary) -> Dictionary:
 	if result == OK:
 		durable_progression = prepared.saved.progression.duplicate()
 		durable_progression.turretModules = prepared.saved.turretModules
-	return {"sequence":int(job.sequence), "generation":int(request.generation),
-		"slot":_slot, "error":result, "message":message, "durable":result == OK,
-		"saved_at":int(request.saved_at), "progression":durable_progression}
+	var completed: Array = []
+	for each: Dictionary in jobs:
+		completed.append({"sequence":int(each.sequence), "generation":int(each.request.generation),
+			"slot":_slot, "error":result, "message":message, "durable":result == OK,
+			"saved_at":int(request.saved_at), "progression":durable_progression})
+	return completed
 
 func take_completions() -> Array:
 	_mutex.lock()
