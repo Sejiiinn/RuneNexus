@@ -1,4 +1,5 @@
 extends Control
+const CoreHealthText = preload("res://ui/core_health_text.gd")
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 ## Presentation only. Transactions and prices remain owned by RunCommands.
 const AppTheme = preload("res://ui/app_theme.gd")
@@ -146,9 +147,8 @@ func _ready() -> void:
 	home_art.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	home_art.offset_left = -14; home_art.offset_top = -14
 	home_art.offset_right = 14; home_art.offset_bottom = 14
-	hp = ProgressBar.new(); hp.custom_minimum_size = Vector2(28,4); hp.show_percentage = false; hp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hp.add_theme_stylebox_override("background",BattleTheme.box(Color("1a2a39"),Color.TRANSPARENT,0))
-	hp.add_theme_stylebox_override("fill",BattleTheme.box(Color("6ef6a5"),Color.TRANSPARENT,0)); status_box.add_child(hp)
+	hp = preload("res://ui/core_health_bar.gd").new(); hp.custom_minimum_size = Vector2(28,4); hp.show_percentage = false; hp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_box.add_child(hp)
 	var intel_row := HBoxContainer.new(); intel_row.add_theme_constant_override("separation",5); status_box.add_child(intel_row)
 	var enemies := VBoxContainer.new(); enemies.add_theme_constant_override("separation",0); intel_row.add_child(enemies)
 	enemy_caption = UiWidgets.label(enemies,"다음 적",10); enemy_caption.autowrap_mode = TextServer.AUTOWRAP_OFF; enemy_caption.add_theme_color_override("font_color",Color("91adba"))
@@ -290,10 +290,10 @@ func refresh(polled := false) -> void:
 	for label in [gold_label,shard_label,resources]: label.get_parent().tooltip_text = label.tooltip_text
 	var wave_count: int = app.catalog.wave_count(app.stage)
 	_refresh_intel(state,wave_count)
-	status.text = "♡ %s/%s" % [HudNumber.compact_integer(ceili(runtime.defense.hp)),HudNumber.compact_integer(ceili(runtime.defense.max_hp))]
-	status.tooltip_text = "체력 %d/%d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
+	status.text = "♡ "+CoreHealthText.combined_numbers(runtime.defense)
+	status.tooltip_text = CoreHealthText.tooltip(runtime.defense)
 	wave_label.text = "웨이브 %d/%d" % [mini(int(state.get("completedRounds",0))+1,wave_count),wave_count]
-	hp.max_value = maxf(1,runtime.defense.max_hp); hp.value = runtime.defense.hp
+	CoreHealthText.update_bar(hp,runtime.defense)
 	for value in speed_buttons:
 		var selected: bool = int(runtime.session.get("speed",1)) == value
 		var button: Button = speed_buttons[value]

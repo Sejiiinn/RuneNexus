@@ -11,6 +11,7 @@ from stage_progression import stage_ordinals
 from content_compiler import check_generated
 from content_runtime_format import load_compiled_content
 from compile_progression import compile_progression
+from compile_core_passive_tree import compile_core_tree
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,6 +37,7 @@ def read(relative: str):
 def verify() -> None:
     check_generated(ROOT)
     compile_progression(ROOT, check=True)
+    compile_core_tree(ROOT, check=True)
     game = read("godot/content/game_content.json")
     growth = read("godot/content/growth_content.json")
     game_cases = read("test/fixtures/game_content_cases.json")

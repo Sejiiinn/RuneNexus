@@ -3,7 +3,7 @@ extends RefCounted
 ## Explicit sync also detects direct state edits by tools and regression tests.
 ## Timer polling may trust a run-session replacement/finish revision.
 const TURRET_FIELDS := ["id", "type", "x", "y", "level", "slotLimit", "primaryTrait", "secondaryTrait", "equippedGemSlots", "targetPriority", "investedGold"]
-const RUN_LOADOUT_FIELDS := ["runCorePassiveNodeRanks", "runTurretModules"]
+const RUN_LOADOUT_FIELDS := ["runCorePassiveNodeRanks", "runCorePassiveTreeRevision", "runTurretModules"]
 var revision := 0
 var derive_count := 0
 var _stage := -1
@@ -75,7 +75,7 @@ func sync(state: Dictionary, growth_data: Dictionary) -> int:
 	_source_id = 0
 	_source_revision = -1
 	if _fields.is_empty():
-		_fields = ["researchLevels", "corePassiveNodeRanks", "turretModules", "clearedStageNumbers"]
+		_fields = ["researchLevels", "corePassiveNodeRanks", "corePassiveTreeRevision", "turretModules", "clearedStageNumbers"]
 		for key in growth_data.get("permanentUpgrades", {}):
 			_fields.append(growth_data.permanentUpgrades[key].get("field", key + "UpgradeLevel"))
 	if revision > 0 and _matches(state): return revision

@@ -39,17 +39,46 @@ func _level(p: Dictionary, key: String) -> int:
 	var definition: Dictionary = data.permanentUpgrades.get(key, {})
 	return clampi(int(p.get(definition.get("field", key + "UpgradeLevel"), 0)) if StageProgression.has_unlock(p,"upgrade",key) else 0, 0, int(definition.get("maxLevel", 0)))
 
+func core_catalog(p: Dictionary = {}) -> Dictionary:
+	var revision := int(p.get("corePassiveTreeRevision", 4))
+	if revision == int(data.get("core", {}).get("revision", 5)): return data.core
+	if revision >= 0 and revision <= 4: return data.get("legacyCore", data.get("core", {}))
+	return {}
+
 func core_effects(p: Dictionary) -> Dictionary:
-	var out: Dictionary = {}
-	for node in data.core.nodes:
-		var def: Dictionary = data.core.nodes[node]
-		var rank := clampi(int(p.get("corePassiveNodeRanks", {}).get(node, 0)), 0, int(def.maxRank))
-		var effects: Dictionary = def.effects[rank]
+	var catalog := core_catalog(p)
+	if catalog.is_empty(): return {}
+	var out: Dictionary = catalog.get("effectDefaults", {}).duplicate(true)
+	for node in catalog.nodes:
+		var definition: Dictionary = catalog.nodes[node]
+		var rank := clampi(int(p.get("corePassiveNodeRanks", {}).get(node, 0)), 0, int(definition.maxRank))
+		var effects: Dictionary = definition.effects[rank]
 		for key in effects:
 			if effects[key] is bool: out[key] = out.get(key, false) or effects[key]
 			elif key.ends_with("Multiplier"): out[key] = float(out.get(key, 1.0)) * float(effects[key])
 			else: out[key] = float(out.get(key, 0.0)) + float(effects[key])
 	return out
+
+## A v4 stage is never stopped or reconfigured by migration. Finished records
+## retain their old frozen catalog even when their account allocation is reset.
+## This only prepares an owned candidate; the lifecycle persists it atomically.
+func migrate_core_tree(envelope: Dictionary) -> Dictionary:
+	var out := envelope.duplicate(true)
+	var p: Dictionary = out.get("progression", {})
+	var revision := int(p.get("corePassiveTreeRevision", 4))
+	if revision >= 5: return {"changed":false,"deferred":false,"state":out}
+	var run: Variant = out.get("activeRun")
+	if run is Dictionary and not str(run.get("phase", "preparation")) in ["success", "failure", "coreDestruction"]:
+		return {"changed":false,"deferred":true,"state":out}
+	if run is Dictionary:
+		if not run.has("runCorePassiveTreeRevision"): run.runCorePassiveTreeRevision = revision
+		if not run.has("runCorePassiveNodeRanks"): run.runCorePassiveNodeRanks = p.get("corePassiveNodeRanks", {}).duplicate(true)
+	var ranks: Dictionary = p.get("corePassiveNodeRanks", {}).duplicate(true)
+	p.corePassiveLegacyAllocation = {"revision":revision,"ranks":ranks,"refundedPoints":core_spent_points(ranks, revision)}
+	p.corePassiveTreeRevision = 5
+	p.corePassiveNodeRanks = {}
+	out.progression = p
+	return {"changed":true,"deferred":false,"state":out}
 
 func module_effect(p: Dictionary, type: String) -> Dictionary:
 	var result: Dictionary = {}
@@ -87,6 +116,7 @@ func kill_rewards(p: Dictionary, run_levels: Dictionary = {}) -> Dictionary:
 func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	if data.is_empty(): return {}
 	var core := core_effects(p)
+	if core.is_empty(): return {}
 	var count := int(context.get("distinctTurretTypeCount", 0))
 	var gems := int(context.get("distinctEquippedGemTypeCount", 0))
 	var combined: float = core.combinedFrontMultiplier if count >= 4 else 1.0
@@ -94,18 +124,18 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	var run_levels: Dictionary = context.get("runUpgradeLevels", {})
 	var rewards := kill_rewards(p, run_levels)
 	var result := {
-		"initialGold": int(_c("baseInitialGold") + _level(p, "startingGold") * _c("startingGoldPerUpgradeLevel")),
+		"initialGold": int((_c("baseInitialGold") + _level(p, "startingGold") * _c("startingGoldPerUpgradeLevel")) * float(core.get("startingGoldMultiplier", 1.0))),
 		"maxNexusHp": (_c("baseNexusHp") + _level(p, "nexusHp")) * core.nexusMaxHpMultiplier,
 		"startingGemShards": int(_research(p, "gemAttunement") * _c("gemShardsPerGemAttunementLevel")),
 		"maxTurretLinkSlots": max_link_slots(p),
 		"canSetTurretTargetPriority": _research(p, "turretTargetPriority") > 0,
-		"turretRefundPercent": int(_c("baseTurretRefundPercent") + (_research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") if economy_unlocked else 0)),
+		"turretRefundPercent": minf(82.0, _c("baseTurretRefundPercent") + (_research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") if economy_unlocked else 0) + float(core.get("turretRefundBonusRate", 0.0)) * 100.0) if int(p.get("corePassiveTreeRevision", 4)) >= 5 else int(_c("baseTurretRefundPercent") + (_research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") if economy_unlocked else 0)),
 		"permanentLinkCostMultiplier": 1.0 - _level(p, "linkCostOptimization") * _c("permanentCostReductionPerUpgradeLevel"),
 		"permanentTurretLevelUpCostMultiplier": 1.0 - _level(p, "turretLevelUpOptimization") * _c("permanentCostReductionPerUpgradeLevel"),
 		"firstLinkUpgradeDiscountRate": _research(p, "linkMaintenance") * _c("linkMaintenanceDiscountPerLevel"),
 		"runUpgradeCostMultiplier": 1.0 - _research(p, "runUpgradeCostOptimization") * _c("runUpgradeCostDiscountPerLevel"),
 		"passiveTurretBuildCostMultiplier": core.buildCostMultiplier * combined,
-		"passiveTurretLevelUpCostMultiplier": (1.0 - core.diversityDiscountPerType * clampi(count - 1, 0, 4)) * combined,
+		"passiveTurretLevelUpCostMultiplier": (1.0 - core.diversityDiscountPerType * clampi(count - 1, 0, 4)) * combined * float(core.get("turretLevelUpCostMultiplier", 1.0)),
 		"passiveTurretLinkCostMultiplier": core.linkCostMultiplier * combined,
 		"passiveTraitShardCostMultiplier": core.traitShardCostMultiplier,
 		"passiveNumericGemEffectMultiplier": 1.0 + (core.gemSpectrumPerType * mini(gems, 6) if gems >= 3 else 0.0),
@@ -119,6 +149,11 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"runUpgradeMaxLevelBonuses": {}, "turretStatInputs": {},
 	}
 	result.defenseConfig = {"maxHp": result.maxNexusHp}
+	if int(p.get("corePassiveTreeRevision", 4)) >= 5:
+		result.defenseConfig.nexusAdditionalHpRate = core.get("nexusAdditionalHpRate", 0.0)
+		result.defenseConfig.baseMaxHp = _c("baseNexusHp") + _level(p, "nexusHp")
+		result.defenseConfig.hasIndomitableFortress = core.get("hasIndomitableFortress", false)
+	result.maxTurretLevelBonus = int(core.get("maxTurretLevelBonus", 0))
 	for key in ["roundRecoveryRate", "damageRestorationRate", "impactDispersionRate", "threatWeakeningRate", "emergencyRecoveryRate", "hasFinalDefense"]: result.defenseConfig[key] = core[key]
 	for type in ["towerDamage", "killGold", "waveGold"]:
 		result.runUpgradeMaxLevelBonuses[type] = int(_research(p, type + "LimitExpansion") * _c("runUpgradeLimitExpansionMaxLevelPerLevel"))
@@ -136,6 +171,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		var run_bonus: float = int(run_levels.get("towerDamage", 0)) * float(data.get("runUpgrades", {}).get("towerDamage", {}).get("effectPerLevel", 0))
 		result.turretStatInputs[type] = {
 			"moduleEffect": module_effect(p, type),
+			"coreEffects": core,
 			"towerDamageMultiplier": 1.0 + run_bonus + _level(p, "fireTraining") * _c("fireTrainingDamagePerUpgradeLevel") + _level(p, "physicalDamageTraining" if physical else "elementalDamageTraining") * _c("familyDamageTrainingBonusPerUpgradeLevel"),
 			"criticalChanceProgressionBonusRate": _research(p, "criticalChance") * _c("criticalChanceBonusPerResearchLevel") if StageProgression.has_unlock(p,"research","criticalChance") else 0.0,
 			"criticalDamageProgressionBonusRate": _level(p, "criticalDamage") * _c("criticalDamageBonusPerUpgradeLevel") if StageProgression.has_unlock(p,"upgrade","criticalDamage") else 0.0,
@@ -154,26 +190,62 @@ func research_quote(p: Dictionary, type: String) -> Dictionary:
 	var elapsed := clampi(int(p.get("researchElapsedMillis", {}).get(type, 0)), 0, duration - 1)
 	return {"cost": cost, "durationMillis": duration, "remainingMillis": duration - elapsed, "level": level}
 
-func _valid_core(ranks: Dictionary, points: int) -> bool:
-	var accessible: Array = data.core.startingNodes.duplicate()
+func core_spent_points(ranks: Dictionary, revision: int = 5) -> int:
+	var catalog := core_catalog({"corePassiveTreeRevision":revision})
+	if catalog.is_empty(): return -1
 	var spent := 0
 	for key in ranks:
-		if not data.core.nodes.has(key) or not ranks[key] is int: return false
+		if not catalog.nodes.has(key) or not ranks[key] is int: return -1
 		var rank: int = ranks[key]
-		var node: Dictionary = data.core.nodes[key]
-		if rank < 0 or rank > int(node.maxRank): return false
+		var node: Dictionary = catalog.nodes[key]
+		if rank < 0 or rank > int(node.maxRank): return -1
 		for i in range(rank): spent += int(node.rankCosts[i])
-	if spent > points: return false
-	var previous := -1
-	while previous != accessible.size():
-		previous = accessible.size()
-		for key in accessible.duplicate():
-			if int(ranks.get(key, 0)) >= 3:
-				for neighbor in data.core.nodes[key].neighbors:
-					if not neighbor in accessible: accessible.append(neighbor)
+	return spent
+
+func core_accessible_nodes(ranks: Dictionary, revision: int = 5) -> Array:
+	var catalog := core_catalog({"corePassiveTreeRevision":revision})
+	if catalog.is_empty(): return []
+	var accessible: Array = catalog.startingNodes.duplicate()
+	var index := 0
+	while index < accessible.size():
+		var key: String = str(accessible[index])
+		index += 1
+		if catalog.nodes[key].get("terminal", false) or int(ranks.get(key, 0)) < 3: continue
+		for neighbor in catalog.nodes[key].neighbors:
+			if not neighbor in accessible: accessible.append(neighbor)
+	return accessible
+
+func _valid_core(ranks: Dictionary, points: int, revision: int = 5) -> bool:
+	var spent := core_spent_points(ranks, revision)
+	if spent < 0 or spent > points: return false
+	var accessible := core_accessible_nodes(ranks, revision)
 	for key in ranks:
 		if int(ranks[key]) > 0 and not key in accessible: return false
 	return true
+
+func valid_core_ranks(p: Dictionary, ranks: Dictionary) -> bool:
+	return _valid_core(ranks, int(p.get("totalCorePoints", 0)), int(p.get("corePassiveTreeRevision", 4)))
+
+## A single refund never silently removes descendants. The UI may show the
+## separately confirmed bundle, or the always-free full reset, to the player.
+func core_refund_preview(p: Dictionary, id: String, target_rank: int) -> Dictionary:
+	var revision := int(p.get("corePassiveTreeRevision", 4))
+	var before: Dictionary = p.get("corePassiveNodeRanks", {})
+	var ranks := before.duplicate()
+	if target_rank < 0 or target_rank >= int(before.get(id, 0)):
+		return {"valid":false,"ranks":ranks,"orphaned":[],"refundedPoints":0}
+	if target_rank == 0: ranks.erase(id)
+	else: ranks[id] = target_rank
+	var accessible := core_accessible_nodes(ranks, revision)
+	var orphaned := []
+	var bundle := ranks.duplicate()
+	for key in ranks:
+		if int(ranks[key]) > 0 and not key in accessible:
+			orphaned.append(key)
+			bundle.erase(key)
+	return {"valid":valid_core_ranks(p,ranks),"ranks":ranks,"orphaned":orphaned,
+		"refundedPoints":core_spent_points(before,revision)-core_spent_points(ranks,revision),
+		"bundleRanks":bundle,"bundleRefundedPoints":core_spent_points(before,revision)-core_spent_points(bundle,revision)}
 
 func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 	var state := p.duplicate(true)
@@ -204,9 +276,9 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 			else: ranks[id] = command.get("rank", -1)
 			for key in ranks.keys():
 				if ranks[key] == 0: ranks.erase(key)
-			if ranks == state.corePassiveNodeRanks or not _valid_core(ranks, int(state.get("totalCorePoints", 0))): return rejected
+			if ranks == state.corePassiveNodeRanks or not valid_core_ranks(state, ranks): return rejected
 			state.corePassiveNodeRanks = ranks
-			state.corePassiveTreeRevision = data.core.revision
+			state.corePassiveTreeRevision = int(state.get("corePassiveTreeRevision", 4))
 		"equipCoreCombatSkill":
 			if not id in ["guardianBeam", "riftMark"] or not StageProgression.has_unlock(state,"core",id): return rejected
 			state.coreCombatSkill = id
@@ -286,6 +358,7 @@ func run_core_combat_skill(p: Dictionary) -> Variant:
 func fix_run_loadout(state: Dictionary) -> void:
 	var p: Dictionary = state.get("progression", {})
 	if not state.has("runCoreCombatSkill"): state.runCoreCombatSkill = run_core_combat_skill(p)
+	if not state.has("runCorePassiveTreeRevision"): state.runCorePassiveTreeRevision = int(p.get("corePassiveTreeRevision", 4))
 	if not state.has("runCorePassiveNodeRanks"): state.runCorePassiveNodeRanks = p.get("corePassiveNodeRanks", {}).duplicate(true)
 	if not state.has("runTurretModules"):
 		state.runTurretModules = p.get("turretModules", {}).get("items", []).filter(func(item): return item.get("equipped", false)).map(func(item): return item.duplicate(true))
@@ -296,7 +369,9 @@ func run_effect_progression(state: Dictionary) -> Dictionary:
 	var p: Dictionary = state.get("progression", {})
 	if not state.has("runCorePassiveNodeRanks") and not state.has("runTurretModules"): return p
 	var out := p.duplicate()
-	if state.has("runCorePassiveNodeRanks"): out.corePassiveNodeRanks = state.runCorePassiveNodeRanks
+	if state.has("runCorePassiveNodeRanks"):
+		out.corePassiveNodeRanks = state.runCorePassiveNodeRanks
+		out.corePassiveTreeRevision = int(state.get("runCorePassiveTreeRevision", p.get("corePassiveTreeRevision", 4)))
 	if state.has("runTurretModules"): out.turretModules = {"items": state.runTurretModules}
 	return out
 
@@ -306,11 +381,15 @@ func core_config(state: Dictionary, stage: int, round_index: int, catalog) -> Di
 		return {}
 	var p: Dictionary = run_effect_progression(state) if state.has("progression") else state
 	var effects := core_effects(p)
+	if effects.is_empty():
+		error = "Unsupported core tree catalog"
+		return {}
 	var config: Dictionary = data.coreConfig.duplicate(true)
 	var skill: Variant = state.get("runCoreCombatSkill") if state.has("runCoreCombatSkill") else run_core_combat_skill(p)
 	if skill != null and not skill in ["guardianBeam", "riftMark"]: skill = "guardianBeam"
 	config.runSkill = skill
 	config.cooldownRecoveryMultiplier = 1.0 + effects.cooldownRecoveryRate
+	config.killCoreChargeRate = effects.get("killCoreChargeRate", 0.0)
 	config.powerMultiplier = effects.coreSkillPowerMultiplier
 	config.powerEveryThirdMultiplier = effects.thirdCoreSkillPowerMultiplier / effects.coreSkillPowerMultiplier
 	config.attackSyncDamageMultiplier = 1.0 + effects.turretDamageAmplification

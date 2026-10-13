@@ -3,7 +3,7 @@ extends Node
 const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
 const GemResult = preload("res://app/gem_command_result.gd")
-const COMPATIBILITY := 9
+const COMPATIBILITY := 10
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed

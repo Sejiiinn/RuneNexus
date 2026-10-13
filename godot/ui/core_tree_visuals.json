@@ -1,0 +1,722 @@
+{
+  "S1": {
+    "icon": "core_recovery",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      1344.7,
+      1068.144
+    ],
+    "labelSize": 24
+  },
+  "S2": {
+    "icon": "area_radius_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1400.0,
+      1155.0
+    ],
+    "labelSize": 24
+  },
+  "S3": {
+    "icon": "slow_duration_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      1766.5,
+      1408.0
+    ],
+    "labelSize": 24
+  },
+  "S4": {
+    "icon": "hp_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1400.0,
+      1660.0
+    ],
+    "labelSize": 24
+  },
+  "S5": {
+    "icon": "build_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#add4a9",
+    "labelPosition": [
+      1344.7,
+      1707.856
+    ],
+    "labelSize": 24
+  },
+  "S6": {
+    "icon": "direct_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      1175.0,
+      1533.0
+    ],
+    "labelSize": 24
+  },
+  "A01": {
+    "icon": "direct_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      883.515,
+      1189.302
+    ],
+    "labelSize": 24
+  },
+  "A02": {
+    "icon": "core_power",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      1103.675,
+      1013.6859999999999
+    ],
+    "labelSize": 24
+  },
+  "A03": {
+    "icon": "core_sync_rate",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      1096.317,
+      947.322
+    ],
+    "labelSize": 24
+  },
+  "A04": {
+    "icon": "dot_duration_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1650.592,
+      970.456
+    ],
+    "labelSize": 24
+  },
+  "A05": {
+    "icon": "area_radius_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1896.279,
+      1076.616
+    ],
+    "labelSize": 24
+  },
+  "A06": {
+    "icon": "slow_duration_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      1907.237,
+      1191.954
+    ],
+    "labelSize": 24
+  },
+  "A07": {
+    "icon": "slow_strength_pp",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      1913.691,
+      1634.563
+    ],
+    "labelSize": 24
+  },
+  "A08": {
+    "icon": "impact_reduction",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1719.636,
+      1849.992
+    ],
+    "labelSize": 24
+  },
+  "A09": {
+    "icon": "wave_heal",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1341.748,
+      1916.125
+    ],
+    "labelSize": 24
+  },
+  "A10": {
+    "icon": "level_cost_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#add4a9",
+    "labelPosition": [
+      1376.724,
+      1801.256
+    ],
+    "labelSize": 24
+  },
+  "A11": {
+    "icon": "link_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      1054.316,
+      1809.767
+    ],
+    "labelSize": 24
+  },
+  "A12": {
+    "icon": "wave_gold_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      823.254,
+      1394.81
+    ],
+    "labelSize": 24
+  },
+  "B01": {
+    "icon": "crit_chance_pp",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      565.028,
+      1262.165
+    ],
+    "labelSize": 24
+  },
+  "B02": {
+    "icon": "projectile_speed_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      901.211,
+      1011.258
+    ],
+    "labelSize": 24
+  },
+  "B03": {
+    "icon": "core_power",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      900.954,
+      886.851
+    ],
+    "labelSize": 24
+  },
+  "B04": {
+    "icon": "core_recovery",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      1385.421,
+      673.704
+    ],
+    "labelSize": 24
+  },
+  "B05": {
+    "icon": "dot_duration_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1480.069,
+      614.81
+    ],
+    "labelSize": 24
+  },
+  "B06": {
+    "icon": "area_hit_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1905.1770000000001,
+      855.223
+    ],
+    "labelSize": 24
+  },
+  "B07": {
+    "icon": "chain_hit_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1982.117,
+      1115.51
+    ],
+    "labelSize": 24
+  },
+  "B08": {
+    "icon": "range_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      2132.36,
+      1365.865
+    ],
+    "labelSize": 24
+  },
+  "B09": {
+    "icon": "slow_strength_pp",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      2149.5229999999997,
+      1506.507
+    ],
+    "labelSize": 24
+  },
+  "B10": {
+    "icon": "threat_weakening",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1961.233,
+      1995.797
+    ],
+    "labelSize": 24
+  },
+  "B11": {
+    "icon": "hp_mult",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1673.846,
+      2193.744
+    ],
+    "labelSize": 24
+  },
+  "B12": {
+    "icon": "wave_heal",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1283.574,
+      2126.019
+    ],
+    "labelSize": 24
+  },
+  "B13": {
+    "icon": "level_damage_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#add4a9",
+    "labelPosition": [
+      1252.238,
+      2089.458
+    ],
+    "labelSize": 24
+  },
+  "B14": {
+    "icon": "starting_gold_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      768.592,
+      1856.457
+    ],
+    "labelSize": 24
+  },
+  "B15": {
+    "icon": "link_mult",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      711.568,
+      1793.145
+    ],
+    "labelSize": 24
+  },
+  "B16": {
+    "icon": "trait_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      820.352,
+      1456.588
+    ],
+    "labelSize": 24
+  },
+  "C01": {
+    "icon": "crit_damage_pp",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      457.512,
+      1429.095
+    ],
+    "labelSize": 24
+  },
+  "C02": {
+    "icon": "direct_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      468.459,
+      826.356
+    ],
+    "labelSize": 24
+  },
+  "C03": {
+    "icon": "third_core_power",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      707.833,
+      552.27
+    ],
+    "labelSize": 24
+  },
+  "C04": {
+    "icon": "core_recovery",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      1012.395,
+      555.643
+    ],
+    "labelSize": 24
+  },
+  "C05": {
+    "icon": "dot_duration_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1407.654,
+      549.606
+    ],
+    "labelSize": 24
+  },
+  "C06": {
+    "icon": "dot_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1728.845,
+      567.6610000000001
+    ],
+    "labelSize": 24
+  },
+  "C07": {
+    "icon": "area_radius_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1970.235,
+      437.40999999999997
+    ],
+    "labelSize": 24
+  },
+  "C08": {
+    "icon": "chain_range_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      2311.1549999999997,
+      897.054
+    ],
+    "labelSize": 24
+  },
+  "C09": {
+    "icon": "slow_strength_pp",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      2380.362,
+      1232.313
+    ],
+    "labelSize": 24
+  },
+  "C10": {
+    "icon": "slow_duration_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      2352.968,
+      1615.161
+    ],
+    "labelSize": 24
+  },
+  "C11": {
+    "icon": "attack_rate_inc",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      2375.734,
+      1942.999
+    ],
+    "labelSize": 24
+  },
+  "C12": {
+    "icon": "hp_mult",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      2106.673,
+      2278.873
+    ],
+    "labelSize": 24
+  },
+  "C13": {
+    "icon": "hp_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1811.241,
+      2418.661
+    ],
+    "labelSize": 24
+  },
+  "C14": {
+    "icon": "damage_restoration",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      1450.448,
+      2457.602
+    ],
+    "labelSize": 24
+  },
+  "C15": {
+    "icon": "level_damage_inc",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#add4a9",
+    "labelPosition": [
+      1248.163,
+      2372.352
+    ],
+    "labelSize": 24
+  },
+  "C16": {
+    "icon": "link_mult",
+    "frame": "medium",
+    "diameter": 136.0,
+    "iconSize": 85.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      775.1840000000001,
+      2299.57
+    ],
+    "labelSize": 24
+  },
+  "C17": {
+    "icon": "trait_mult",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      462.551,
+      1972.654
+    ],
+    "labelSize": 24
+  },
+  "C18": {
+    "icon": "refund_pp",
+    "frame": "small",
+    "diameter": 96.0,
+    "iconSize": 60.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      400.047,
+      1600.099
+    ],
+    "labelSize": 24
+  },
+  "K1": {
+    "icon": "core_recovery",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#ebae74",
+    "labelPosition": [
+      874.655,
+      384.298
+    ],
+    "labelSize": 29
+  },
+  "K2": {
+    "icon": "직격",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#eda78b",
+    "labelPosition": [
+      276.893,
+      970.748
+    ],
+    "labelSize": 29
+  },
+  "K3": {
+    "icon": "원소",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      1730.907,
+      118.99000000000001
+    ],
+    "labelSize": 29
+  },
+  "K4": {
+    "icon": "area_radius_inc",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#96d9db",
+    "labelPosition": [
+      2211.009,
+      505.471
+    ],
+    "labelSize": 29
+  },
+  "K5": {
+    "icon": "level_damage_inc",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#add4a9",
+    "labelPosition": [
+      1020.224,
+      2711.829
+    ],
+    "labelSize": 29
+  },
+  "K6": {
+    "icon": "link_mult",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#a7d8ba",
+    "labelPosition": [
+      576.931,
+      2489.833
+    ],
+    "labelSize": 29
+  },
+  "K7": {
+    "icon": "slow_duration_inc",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#a2d8f1",
+    "labelPosition": [
+      2566.79,
+      1665.635
+    ],
+    "labelSize": 29
+  },
+  "K8": {
+    "icon": "hp_mult",
+    "frame": "large",
+    "diameter": 192.0,
+    "iconSize": 120.0,
+    "color": "#a8b8e9",
+    "labelPosition": [
+      2315.901,
+      2458.901
+    ],
+    "labelSize": 29
+  }
+}

@@ -36,11 +36,12 @@ def main():
         raise SystemExit("Godot is required; set GODOT_BIN. This check cannot pass by skipping.")
     with tempfile.TemporaryDirectory(prefix="rune-account-check-") as directory:
         project = Path(directory)
+        environment = dict(os.environ, XDG_DATA_HOME=str(project / "user"), XDG_CACHE_HOME=str(project / "cache"), XDG_CONFIG_HOME=str(project / "config"))
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Isolated account checks"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
         for folder, files in {
             "app": ["save_codec.gd", "save_json.gd", "local_save_slot.gd", "local_save_store.gd", "local_save_order.gd",
                     "run_transition_journal.gd", "reward_outbox.gd", "reward_settlement.gd", "gem_reroll.gd", "gem_command_result.gd"],
-            "content": ["stage_progression.gd", "generated_progression.gd"],
+            "content": ["stage_progression.gd", "generated_progression.gd", "generated_core_tree.gd"],
             "services": ["http_transport.gd", "durable_record.gd", "account_session.gd", "online_save.gd", "save_payload_hash.gd"],
         }.items():
             (project / folder).mkdir()
@@ -48,12 +49,12 @@ def main():
                 shutil.copyfile(ROOT / "godot" / folder / name, project / folder / name)
         shutil.copyfile(ROOT / "godot/verify_account_services.gd", project / "verify.gd")
         shutil.copyfile(ROOT / "godot/verify_durable_record.gd", project / "verify_durable_record.gd")
-        imported = subprocess.run([str(GODOT), "--headless", "--editor", "--path", str(project), "--quit"], capture_output=True, text=True, timeout=60)
+        imported = subprocess.run([str(GODOT), "--headless", "--editor", "--path", str(project), "--quit"], env=environment, capture_output=True, text=True, timeout=60)
         if imported.returncode or ENGINE_ERROR.search(imported.stdout + imported.stderr):
             raise SystemExit(imported.stdout + imported.stderr)
         with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
             threading.Thread(target=server.serve_forever, daemon=True).start()
-            env = dict(os.environ, RUNE_ACCOUNT_TEST_ROOT=str(project / "state"), RUNE_ACCOUNT_HASH_FIXTURE=str(ROOT / "test/fixtures/godot_account_payload_hashes.json"), RUNE_ACCOUNT_CODEC_FIXTURE=str(ROOT / "test/fixtures/godot_save_codec_expected.json"), RUNE_ACCOUNT_HTTP_FIXTURE=f"http://127.0.0.1:{server.server_port}")
+            env = dict(environment, RUNE_ACCOUNT_TEST_ROOT=str(project / "state"), RUNE_ACCOUNT_HASH_FIXTURE=str(ROOT / "test/fixtures/godot_account_payload_hashes.json"), RUNE_ACCOUNT_CODEC_FIXTURE=str(ROOT / "test/fixtures/godot_save_codec_expected.json"), RUNE_ACCOUNT_HTTP_FIXTURE=f"http://127.0.0.1:{server.server_port}")
             try:
                 for script in ("verify_durable_record.gd", "verify.gd"):
                     result = subprocess.run([str(GODOT), "--headless", "--path", str(project), "--script", script], env=env, capture_output=True, text=True, timeout=60)

@@ -1,0 +1,4670 @@
+{
+  "schema_version": "runenexus-core-passive-v5",
+  "source_commit": "780457672dcc5b4cbce848ec6a48a590d1e6b00d",
+  "status": "Approved implementation catalog, 2026-10-13 final keystone and additional HP decisions",
+  "canvas": {
+    "width": 2800,
+    "height": 2800,
+    "core_position": [
+      1400.0,
+      1400.0
+    ],
+    "start_radius": 225
+  },
+  "points": {
+    "per_first_clear": 2,
+    "stage_count": 30,
+    "natural_total": 60,
+    "preserve_actual_saved_total": true
+  },
+  "rules": {
+    "graph": "undirected except terminal keystones never propagate",
+    "unlock_rank": 3,
+    "or_and": "OR",
+    "rank_costs_total_at_rank": false,
+    "effects_total_at_rank": true,
+    "refund": "reject invalid single-node draft; explicit separately confirmed orphan bundle or free full reset; no new currency",
+    "snapshot": "apply to next stage; keep runCorePassiveNodeRanks immutable for active run",
+    "cost_aggregation": "Each rank_costs entry is the incremental point price. Refund paid ranks exactly; use saved totalCorePoints, not a hardcoded60 cap.",
+    "migration": "Defer v4-to-v5 migration until no active/suspended run. Preserve v4 catalog/evaluator and version-aware codec until that run ends. Then free full refund; preserve actual totalCorePoints and reward claims; archive v4 ranks. Never auto-end run."
+  },
+  "starting_nodes": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "nodes": [
+    {
+      "id": "S1",
+      "name": "발동 조율",
+      "category": "발동",
+      "type": "start",
+      "position": [
+        1287.5,
+        1205.144
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "core_recovery",
+          "values_by_rank": [
+            0.0,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "코어 재사용 회복 속도 증가: +1% / +2% / +3% / +4% / +5%",
+      "neighbors": [
+        "A02",
+        "A03"
+      ],
+      "prerequisite": {
+        "mode": "ROOT",
+        "reachable_neighbor_rank_at_least": null,
+        "neighbors": [],
+        "note": "CORE is a navigation hub, not a purchased node; starts are available immediately."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "코어 재사용 회복 속도 증가: +1% / +2% / +3% / +4% / +5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "S2",
+      "name": "원소 조율",
+      "category": "원소",
+      "type": "start",
+      "position": [
+        1512.5,
+        1205.144
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "area_radius_inc",
+          "values_by_rank": [
+            0.0,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05
+          ]
+        },
+        {
+          "key": "dot_inc",
+          "values_by_rank": [
+            0.0,
+            0.007,
+            0.013,
+            0.02,
+            0.027,
+            0.033
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "범위 반경 증가: +1% / +2% / +3% / +4% / +5%; 지속피해 증가: +0.7% / +1.3% / +2% / +2.7% / +3.3%",
+      "neighbors": [
+        "A04",
+        "A05"
+      ],
+      "prerequisite": {
+        "mode": "ROOT",
+        "reachable_neighbor_rank_at_least": null,
+        "neighbors": [],
+        "note": "CORE is a navigation hub, not a purchased node; starts are available immediately."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "범위 반경 증가: +1% / +2% / +3% / +4% / +5%",
+        "지속피해 증가: +0.7% / +1.3% / +2% / +2.7% / +3.3%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "S3",
+      "name": "냉각 전개",
+      "category": "제어",
+      "type": "start",
+      "position": [
+        1625.0,
+        1400.0
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "control_duration_inc",
+          "values_by_rank": [
+            0.0,
+            0.02,
+            0.04,
+            0.06,
+            0.08,
+            0.1
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "제어 지속시간 증가: +2% / +4% / +6% / +8% / +10%",
+      "neighbors": [
+        "A05",
+        "A06",
+        "A07",
+        "A08"
+      ],
+      "prerequisite": {
+        "mode": "ROOT",
+        "reachable_neighbor_rank_at_least": null,
+        "neighbors": [],
+        "note": "CORE is a navigation hub, not a purchased node; starts are available immediately."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "제어 지속시간 증가: +2% / +4% / +6% / +8% / +10%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "S4",
+      "name": "성벽 정비",
+      "category": "방위",
+      "type": "start",
+      "position": [
+        1512.5,
+        1594.856
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "hp_mult",
+          "values_by_rank": [
+            1.0,
+            1.015,
+            1.035,
+            1.05,
+            1.065,
+            1.085
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "넥서스 최대 체력 배율: +1.5% / +3.5% / +5% / +6.5% / +8.5%",
+      "neighbors": [
+        "A08",
+        "A09"
+      ],
+      "prerequisite": {
+        "mode": "ROOT",
+        "reachable_neighbor_rank_at_least": null,
+        "neighbors": [],
+        "note": "CORE is a navigation hub, not a purchased node; starts are available immediately."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "넥서스 최대 체력 배율: +1.5% / +3.5% / +5% / +6.5% / +8.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "S5",
+      "name": "배치 절약",
+      "category": "육성",
+      "type": "start",
+      "position": [
+        1287.5,
+        1594.856
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "build_mult",
+          "values_by_rank": [
+            1.0,
+            0.993,
+            0.987,
+            0.98,
+            0.973,
+            0.967
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "포탑 설치 비용 배율: -0.7% / -1.3% / -2% / -2.7% / -3.3%",
+      "neighbors": [
+        "A10",
+        "A11"
+      ],
+      "prerequisite": {
+        "mode": "ROOT",
+        "reachable_neighbor_rank_at_least": null,
+        "neighbors": [],
+        "note": "CORE is a navigation hub, not a purchased node; starts are available immediately."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 설치 비용 배율: -0.7% / -1.3% / -2% / -2.7% / -3.3%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "S6",
+      "name": "집중 사격",
+      "category": "직격",
+      "type": "start",
+      "position": [
+        1175.0,
+        1400.0
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "direct_inc",
+          "values_by_rank": [
+            0.0,
+            0.015,
+            0.025,
+            0.04,
+            0.055,
+            0.065
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "직접 타격 피해 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%",
+      "neighbors": [
+        "A01",
+        "A02",
+        "A11",
+        "A12"
+      ],
+      "prerequisite": {
+        "mode": "ROOT",
+        "reachable_neighbor_rank_at_least": null,
+        "neighbors": [],
+        "note": "CORE is a navigation hub, not a purchased node; starts are available immediately."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "직접 타격 피해 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A01",
+      "name": "탄도 정렬",
+      "category": "직격",
+      "type": "minor",
+      "position": [
+        940.715,
+        1268.302
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "direct_inc",
+          "values_by_rank": [
+            0.0,
+            0.015,
+            0.025,
+            0.04,
+            0.055,
+            0.065
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "직접 타격 피해 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%",
+      "neighbors": [
+        "A02",
+        "B01",
+        "S6"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A02",
+          "B01",
+          "S6"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "직접 타격 피해 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A02",
+      "name": "출력 공진",
+      "category": "발동",
+      "type": "minor",
+      "position": [
+        1046.475,
+        1092.686
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "core_power",
+          "values_by_rank": [
+            1.0,
+            1.015,
+            1.035,
+            1.05,
+            1.065,
+            1.085
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "코어 위력 배율: +1.5% / +3.5% / +5% / +6.5% / +8.5%",
+      "neighbors": [
+        "A01",
+        "B02",
+        "B03",
+        "S1",
+        "S6"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A01",
+          "B02",
+          "B03",
+          "S1",
+          "S6"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "코어 위력 배율: +1.5% / +3.5% / +5% / +6.5% / +8.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A03",
+      "name": "발동 동기화",
+      "category": "발동",
+      "type": "minor",
+      "position": [
+        1250.317,
+        939.322
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "core_sync_rate",
+          "values_by_rank": [
+            0.0,
+            0.008,
+            0.016,
+            0.024,
+            0.032,
+            0.04
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "코어 발동 후 2초 포탑 공격 속도 증가: +0.8% / +1.6% / +2.4% / +3.2% / +4%",
+      "neighbors": [
+        "A04",
+        "B04",
+        "S1"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A04",
+          "B04",
+          "S1"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "코어 발동 후 2초 포탑 공격 속도 증가: +0.8% / +1.6% / +2.4% / +3.2% / +4%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "회복 속도 반복을 기존 코어 발동 후2초 포탑 공격속도 창으로 분리."
+      }
+    },
+    {
+      "id": "A04",
+      "name": "잔열 유지",
+      "category": "원소",
+      "type": "minor",
+      "position": [
+        1509.092,
+        962.456
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "dot_duration_inc",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.045,
+            0.07,
+            0.095,
+            0.115
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "지속피해 시간 증가: +2.5% / +4.5% / +7% / +9.5% / +11.5%",
+      "neighbors": [
+        "A03",
+        "B04",
+        "B05",
+        "S2"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A03",
+          "B04",
+          "B05",
+          "S2"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "지속피해 시간 증가: +2.5% / +4.5% / +7% / +9.5% / +11.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A05",
+      "name": "넓은 여파",
+      "category": "원소",
+      "type": "minor",
+      "position": [
+        1754.779,
+        1032.616
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "area_radius_inc",
+          "values_by_rank": [
+            0.0,
+            0.015,
+            0.025,
+            0.04,
+            0.055,
+            0.065
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "범위 반경 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%",
+      "neighbors": [
+        "A06",
+        "B06",
+        "B07",
+        "S2",
+        "S3"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A06",
+          "B06",
+          "B07",
+          "S2",
+          "S3"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "범위 반경 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A06",
+      "name": "서리 유지",
+      "category": "제어",
+      "type": "minor",
+      "position": [
+        1850.037,
+        1270.954
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "control_duration_inc",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.045,
+            0.07,
+            0.095,
+            0.115
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "제어 지속시간 증가: +2.5% / +4.5% / +7% / +9.5% / +11.5%",
+      "neighbors": [
+        "A05",
+        "B08",
+        "B09",
+        "S3"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A05",
+          "B08",
+          "B09",
+          "S3"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "제어 지속시간 증가: +2.5% / +4.5% / +7% / +9.5% / +11.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A07",
+      "name": "한기 농축",
+      "category": "제어",
+      "type": "minor",
+      "position": [
+        1856.491,
+        1539.563
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "slow_strength_pp",
+          "values_by_rank": [
+            0.0,
+            0.003,
+            0.007,
+            0.01,
+            0.013,
+            0.017
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "둔화 강도 증가: +0.3%p / +0.7%p / +1%p / +1.3%p / +1.7%p",
+      "neighbors": [
+        "A08",
+        "B09",
+        "S3"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A08",
+          "B09",
+          "S3"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "둔화 강도 증가: +0.3%p / +0.7%p / +1%p / +1.3%p / +1.7%p"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A08",
+      "name": "충격 흡수",
+      "category": "방위",
+      "type": "minor",
+      "position": [
+        1719.636,
+        1754.992
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "impact_reduction",
+          "values_by_rank": [
+            0.0,
+            0.008,
+            0.016,
+            0.024,
+            0.032,
+            0.04
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "넥서스 피격 피해 감소: +0.8% / +1.6% / +2.4% / +3.2% / +4%",
+      "neighbors": [
+        "A07",
+        "B10",
+        "S3",
+        "S4"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A07",
+          "B10",
+          "S3",
+          "S4"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "넥서스 피격 피해 감소: +0.8% / +1.6% / +2.4% / +3.2% / +4%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "A09",
+      "name": "정비 순환",
+      "category": "방위",
+      "type": "minor",
+      "position": [
+        1483.248,
+        1872.125
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "wave_heal",
+          "values_by_rank": [
+            0.0,
+            0.001,
+            0.003,
+            0.004,
+            0.005,
+            0.007
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "웨이브 종료 최대 체력 비례 회복: +0.1% / +0.3% / +0.4% / +0.5% / +0.7%",
+      "neighbors": [
+        "A10",
+        "B11",
+        "B12",
+        "S4"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A10",
+          "B11",
+          "B12",
+          "S4"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "웨이브 종료 최대 체력 비례 회복: +0.1% / +0.3% / +0.4% / +0.5% / +0.7%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "A10",
+      "name": "성장 절약",
+      "category": "육성",
+      "type": "minor",
+      "position": [
+        1235.224,
+        1829.256
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "level_cost_mult",
+          "values_by_rank": [
+            1.0,
+            0.992,
+            0.984,
+            0.976,
+            0.968,
+            0.96
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 레벨업 비용 배율: -0.8% / -1.6% / -2.4% / -3.2% / -4%",
+      "neighbors": [
+        "A09",
+        "B13",
+        "B14",
+        "S5"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A09",
+          "B13",
+          "B14",
+          "S5"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 레벨업 비용 배율: -0.8% / -1.6% / -2.4% / -3.2% / -4%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "A11",
+      "name": "연결 절약",
+      "category": "지원",
+      "type": "minor",
+      "position": [
+        997.116,
+        1714.767
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "link_mult",
+          "values_by_rank": [
+            1.0,
+            0.992,
+            0.984,
+            0.976,
+            0.968,
+            0.96
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "포탑 링크 비용 배율: -0.8% / -1.6% / -2.4% / -3.2% / -4%",
+      "neighbors": [
+        "A12",
+        "B14",
+        "B15",
+        "S5",
+        "S6"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A12",
+          "B14",
+          "B15",
+          "S5",
+          "S6"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 링크 비용 배율: -0.8% / -1.6% / -2.4% / -3.2% / -4%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "A12",
+      "name": "보급 계획",
+      "category": "지원",
+      "type": "minor",
+      "position": [
+        964.754,
+        1422.81
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "wave_gold_mult",
+          "values_by_rank": [
+            1.0,
+            1.015,
+            1.025,
+            1.04,
+            1.055,
+            1.065
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "웨이브 보상 골드 배율: +1.5% / +2.5% / +4% / +5.5% / +6.5%",
+      "neighbors": [
+        "A11",
+        "B16",
+        "S6"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A11",
+          "B16",
+          "S6"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "웨이브 보상 골드 배율: +1.5% / +2.5% / +4% / +5.5% / +6.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "B01",
+      "name": "약점 포착",
+      "category": "직격",
+      "type": "minor",
+      "position": [
+        706.528,
+        1290.165
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "crit_chance_pp",
+          "values_by_rank": [
+            0.0,
+            0.004,
+            0.008,
+            0.012,
+            0.016,
+            0.02
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "치명타 확률 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p",
+      "neighbors": [
+        "A01",
+        "B02",
+        "C02"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A01",
+          "B02",
+          "C02"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "치명타 확률 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "B02",
+      "name": "탄속 설계",
+      "category": "직격",
+      "type": "notable",
+      "position": [
+        739.711,
+        1003.258
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "projectile_speed_inc",
+          "values_by_rank": [
+            0.0,
+            0.02,
+            0.04,
+            0.06
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "투사체 속도 증가: +2% / +4% / +6%",
+      "neighbors": [
+        "A02",
+        "B01",
+        "C02",
+        "C03"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A02",
+          "B01",
+          "C02",
+          "C03"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "투사체 속도 증가: +2% / +4% / +6%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "직격 피해 반복을 투사체 명중 도달 속도로 분리. 선택 가지이며 최단 K2 경로는 기존 직격/치명 경로 유지."
+      }
+    },
+    {
+      "id": "B03",
+      "name": "코어 집광",
+      "category": "발동",
+      "type": "minor",
+      "position": [
+        958.154,
+        791.851
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "core_power",
+          "values_by_rank": [
+            1.0,
+            1.02,
+            1.04,
+            1.06,
+            1.08,
+            1.1
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "코어 위력 배율: +2% / +4% / +6% / +8% / +10%",
+      "neighbors": [
+        "A02",
+        "B04",
+        "C03"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A02",
+          "B04",
+          "C03"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "코어 위력 배율: +2% / +4% / +6% / +8% / +10%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "B04",
+      "name": "충전 회로",
+      "category": "발동",
+      "type": "minor",
+      "position": [
+        1243.921,
+        665.704
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "core_recovery",
+          "values_by_rank": [
+            0.0,
+            0.015,
+            0.025,
+            0.04,
+            0.055,
+            0.065
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "코어 재사용 회복 속도 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%",
+      "neighbors": [
+        "A03",
+        "A04",
+        "B03",
+        "C04",
+        "C05"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A03",
+          "A04",
+          "B03",
+          "C04",
+          "C05"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "코어 재사용 회복 속도 증가: +1.5% / +2.5% / +4% / +5.5% / +6.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "B05",
+      "name": "느린 연소",
+      "category": "원소",
+      "type": "minor",
+      "position": [
+        1537.269,
+        693.81
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "dot_duration_inc",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.055,
+            0.08,
+            0.105,
+            0.135
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "지속피해 시간 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%",
+      "neighbors": [
+        "A04",
+        "B06",
+        "C06"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A04",
+          "B06",
+          "C06"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "지속피해 시간 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "B06",
+      "name": "범위 타격",
+      "category": "원소",
+      "type": "minor",
+      "position": [
+        1847.977,
+        760.223
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "area_hit_inc",
+          "values_by_rank": [
+            0.0,
+            0.012,
+            0.024,
+            0.036,
+            0.048,
+            0.06
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "기존 범위 타격 피해 증가: +1.2% / +2.4% / +3.6% / +4.8% / +6%",
+      "neighbors": [
+        "A05",
+        "B05",
+        "C07"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A05",
+          "B05",
+          "C07"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "기존 범위 타격 피해 증가: +1.2% / +2.4% / +3.6% / +4.8% / +6%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "반경 반복을 실제 기존 범위 타격 피해로 분리. K4 기본 경로에서 냉기·폭발 모두 가치가 있음."
+      }
+    },
+    {
+      "id": "B07",
+      "name": "연쇄 강화",
+      "category": "원소",
+      "type": "notable",
+      "position": [
+        2039.317,
+        1000.51
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "chain_hit_inc",
+          "values_by_rank": [
+            0.0,
+            0.03,
+            0.06,
+            0.09
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "기존 연쇄 타격 피해 증가: +3% / +6% / +9%",
+      "neighbors": [
+        "A05",
+        "B08",
+        "C08"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A05",
+          "B08",
+          "C08"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "기존 연쇄 타격 피해 증가: +3% / +6% / +9%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "반경 반복을 기존 연쇄 피해로 분리. 선택 가지에서 C08 연쇄 거리와 역할 보완."
+      }
+    },
+    {
+      "id": "B08",
+      "name": "전선 사거리",
+      "category": "제어",
+      "type": "minor",
+      "position": [
+        2132.36,
+        1270.865
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "range_inc",
+          "values_by_rank": [
+            0.0,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 사거리 증가: +1% / +2% / +3% / +4% / +5%",
+      "neighbors": [
+        "A06",
+        "B07",
+        "C09"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A06",
+          "B07",
+          "C09"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 사거리 증가: +1% / +2% / +3% / +4% / +5%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "둔화시간 반복을 사거리/냉기 적용 영역으로 분리. 냉기에는 없는 투사체 속도를 넣지 않음."
+      }
+    },
+    {
+      "id": "B09",
+      "name": "서리 압력",
+      "category": "제어",
+      "type": "minor",
+      "position": [
+        2092.323,
+        1585.507
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "slow_strength_pp",
+          "values_by_rank": [
+            0.0,
+            0.004,
+            0.008,
+            0.012,
+            0.016,
+            0.02
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "둔화 강도 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p",
+      "neighbors": [
+        "A06",
+        "A07",
+        "B10",
+        "C10",
+        "C11"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A06",
+          "A07",
+          "B10",
+          "C10",
+          "C11"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "둔화 강도 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "B10",
+      "name": "잔존 위협",
+      "category": "방위",
+      "type": "minor",
+      "position": [
+        2018.433,
+        1900.797
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "threat_weakening",
+          "values_by_rank": [
+            0.0,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "적 소모 내구도 비례 피격 피해 감소: +1% / +2% / +3% / +4% / +5%",
+      "neighbors": [
+        "A08",
+        "B09",
+        "C11",
+        "C12"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A08",
+          "B09",
+          "C11",
+          "C12"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "적 소모 내구도 비례 피격 피해 감소: +1% / +2% / +3% / +4% / +5%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "고정 피격감소 반복을 기존 적 소모 내구도 비례 감소로 분리. 건강한 적에는 효과 없음."
+      }
+    },
+    {
+      "id": "B11",
+      "name": "성벽 증축",
+      "category": "방위",
+      "type": "notable",
+      "position": [
+        1731.046,
+        2078.744
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "hp_mult",
+          "values_by_rank": [
+            1.0,
+            1.04,
+            1.08,
+            1.12
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "넥서스 최대 체력 배율: +4% / +8% / +12%",
+      "neighbors": [
+        "A09",
+        "B12",
+        "C13"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A09",
+          "B12",
+          "C13"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "넥서스 최대 체력 배율: +4% / +8% / +12%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "B12",
+      "name": "복구 정비",
+      "category": "방위",
+      "type": "minor",
+      "position": [
+        1425.074,
+        2118.019
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "wave_heal",
+          "values_by_rank": [
+            0.0,
+            0.002,
+            0.004,
+            0.006,
+            0.008,
+            0.01
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "웨이브 종료 최대 체력 비례 회복: +0.2% / +0.4% / +0.6% / +0.8% / +1%",
+      "neighbors": [
+        "A09",
+        "B11",
+        "C14"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A09",
+          "B11",
+          "C14"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "웨이브 종료 최대 체력 비례 회복: +0.2% / +0.4% / +0.6% / +0.8% / +1%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "B13",
+      "name": "성장 배율",
+      "category": "육성",
+      "type": "minor",
+      "position": [
+        1110.738,
+        2081.458
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "level_damage_inc",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.055,
+            0.08,
+            0.105,
+            0.135
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 레벨 피해 보너스 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%",
+      "neighbors": [
+        "A10",
+        "B14",
+        "C15"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A10",
+          "B14",
+          "C15"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 레벨 피해 보너스 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "B14",
+      "name": "초기 보급",
+      "category": "지원",
+      "type": "minor",
+      "position": [
+        825.792,
+        1935.457
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "starting_gold_mult",
+          "values_by_rank": [
+            1.0,
+            1.008,
+            1.016,
+            1.024,
+            1.032,
+            1.04
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "시작 골드 배율: +0.8% / +1.6% / +2.4% / +3.2% / +4%",
+      "neighbors": [
+        "A10",
+        "A11",
+        "B13",
+        "C16",
+        "C17"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A10",
+          "A11",
+          "B13",
+          "C16",
+          "C17"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "시작 골드 배율: +0.8% / +1.6% / +2.4% / +3.2% / +4%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "링크 비용 반복을 스테이지 시작 골드로 분리. 런 진행 중 골드 증식 없음."
+      }
+    },
+    {
+      "id": "B15",
+      "name": "연결 기술",
+      "category": "지원",
+      "type": "notable",
+      "position": [
+        711.568,
+        1678.145
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "link_mult",
+          "values_by_rank": [
+            1.0,
+            0.975,
+            0.945,
+            0.92
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "포탑 링크 비용 배율: -2.5% / -5.5% / -8%",
+      "neighbors": [
+        "A11",
+        "B16",
+        "C17"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A11",
+          "B16",
+          "C17"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 링크 비용 배율: -2.5% / -5.5% / -8%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "B16",
+      "name": "특성 절약",
+      "category": "지원",
+      "type": "minor",
+      "position": [
+        678.852,
+        1412.588
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "trait_mult",
+          "values_by_rank": [
+            1.0,
+            0.985,
+            0.975,
+            0.96,
+            0.945,
+            0.935
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "특성 젬 조각 비용 배율: -1.5% / -2.5% / -4% / -5.5% / -6.5%",
+      "neighbors": [
+        "A12",
+        "B15",
+        "C01",
+        "C18"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "A12",
+          "B15",
+          "C01",
+          "C18"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "특성 젬 조각 비용 배율: -1.5% / -2.5% / -4% / -5.5% / -6.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C01",
+      "name": "치명 설계",
+      "category": "직격",
+      "type": "minor",
+      "position": [
+        457.512,
+        1334.095
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "crit_damage_pp",
+          "values_by_rank": [
+            0.0,
+            0.02,
+            0.04,
+            0.06,
+            0.08,
+            0.1
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "치명타 추가 피해 증가: +2%p / +4%p / +6%p / +8%p / +10%p",
+      "neighbors": [
+        "B16",
+        "C02"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B16",
+          "C02"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "치명타 추가 피해 증가: +2%p / +4%p / +6%p / +8%p / +10%p"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "C02",
+      "name": "집중 조준",
+      "category": "직격",
+      "type": "notable",
+      "position": [
+        468.459,
+        925.356
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "direct_inc",
+          "values_by_rank": [
+            0.0,
+            0.035,
+            0.065,
+            0.1
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "직접 타격 피해 증가: +3.5% / +6.5% / +10%",
+      "neighbors": [
+        "B01",
+        "B02",
+        "C01",
+        "K2"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B01",
+          "B02",
+          "C01",
+          "K2"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "직접 타격 피해 증가: +3.5% / +6.5% / +10%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C03",
+      "name": "삼중 집광",
+      "category": "발동",
+      "type": "minor",
+      "position": [
+        707.833,
+        631.27
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "third_core_power",
+          "values_by_rank": [
+            1.0,
+            1.02,
+            1.04,
+            1.06,
+            1.08,
+            1.1
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "매 3번째 코어 위력 추가 배율: +2% / +4% / +6% / +8% / +10%",
+      "neighbors": [
+        "B02",
+        "B03"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B02",
+          "B03"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "매 3번째 코어 위력 추가 배율: +2% / +4% / +6% / +8% / +10%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "상시 코어 위력 반복을 기존 매3번째 시전 강화로 분리. 추가 조건 시스템 없음."
+      }
+    },
+    {
+      "id": "C04",
+      "name": "충전 완성",
+      "category": "발동",
+      "type": "notable",
+      "position": [
+        1012.395,
+        440.643
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "core_recovery",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.055,
+            0.08
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "코어 재사용 회복 속도 증가: +2.5% / +5.5% / +8%",
+      "neighbors": [
+        "B04",
+        "K1"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B04",
+          "K1"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "코어 재사용 회복 속도 증가: +2.5% / +5.5% / +8%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C05",
+      "name": "잔류 시간",
+      "category": "원소",
+      "type": "minor",
+      "position": [
+        1350.454,
+        454.606
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "dot_duration_inc",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.055,
+            0.08,
+            0.105,
+            0.135
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "지속피해 시간 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%",
+      "neighbors": [
+        "B04"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B04"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "지속피해 시간 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C06",
+      "name": "연성 증폭",
+      "category": "원소",
+      "type": "notable",
+      "position": [
+        1671.645,
+        452.661
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "dot_inc",
+          "values_by_rank": [
+            0.0,
+            0.04,
+            0.08,
+            0.12
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "지속피해 증가: +4% / +8% / +12%",
+      "neighbors": [
+        "B05",
+        "K3"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B05",
+          "K3"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "지속피해 증가: +4% / +8% / +12%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "C07",
+      "name": "확산 완성",
+      "category": "원소",
+      "type": "notable",
+      "position": [
+        2027.435,
+        536.41
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "area_radius_inc",
+          "values_by_rank": [
+            0.0,
+            0.035,
+            0.065,
+            0.1
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "범위 반경 증가: +3.5% / +6.5% / +10%",
+      "neighbors": [
+        "B06",
+        "C08",
+        "K4"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B06",
+          "C08",
+          "K4"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "범위 반경 증가: +3.5% / +6.5% / +10%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C08",
+      "name": "연쇄 거리",
+      "category": "원소",
+      "type": "minor",
+      "position": [
+        2253.955,
+        802.054
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "chain_range_inc",
+          "values_by_rank": [
+            0.0,
+            0.025,
+            0.055,
+            0.08,
+            0.105,
+            0.135
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "연쇄 탐색 거리 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%",
+      "neighbors": [
+        "B07",
+        "C07"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B07",
+          "C07"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "연쇄 탐색 거리 증가: +2.5% / +5.5% / +8% / +10.5% / +13.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C09",
+      "name": "빙점 압력",
+      "category": "제어",
+      "type": "minor",
+      "position": [
+        2380.362,
+        1137.313
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "slow_strength_pp",
+          "values_by_rank": [
+            0.0,
+            0.004,
+            0.008,
+            0.012,
+            0.016,
+            0.02
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "둔화 강도 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p",
+      "neighbors": [
+        "B08"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B08"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "둔화 강도 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "C10",
+      "name": "동결 설계",
+      "category": "제어",
+      "type": "notable",
+      "position": [
+        2352.968,
+        1500.161
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "control_duration_inc",
+          "values_by_rank": [
+            0.0,
+            0.055,
+            0.105,
+            0.16
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "제어 지속시간 증가: +5.5% / +10.5% / +16%",
+      "neighbors": [
+        "B09",
+        "K7"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B09",
+          "K7"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "제어 지속시간 증가: +5.5% / +10.5% / +16%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C11",
+      "name": "냉각 속도",
+      "category": "제어",
+      "type": "minor",
+      "position": [
+        2318.534,
+        1847.999
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "attack_rate_inc",
+          "values_by_rank": [
+            0.0,
+            0.006,
+            0.012,
+            0.018,
+            0.024,
+            0.03
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 공격 속도 증가: +0.6% / +1.2% / +1.8% / +2.4% / +3%",
+      "neighbors": [
+        "B09",
+        "B10",
+        "C12"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B09",
+          "B10",
+          "C12"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 공격 속도 증가: +0.6% / +1.2% / +1.8% / +2.4% / +3%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "둔화시간 반복을 포탑의 재타격 빈도로 분리. 기존 둔화를 더 자주 가할 기회만 제공."
+      }
+    },
+    {
+      "id": "C12",
+      "name": "추가 체력",
+      "category": "방위",
+      "type": "notable",
+      "position": [
+        2163.873,
+        2163.873
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "nexusAdditionalHpRate",
+          "values_by_rank": [
+            0.0,
+            0.05,
+            0.1,
+            0.15
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "스테이지 시작 시 기본 최대 체력의 5% / 10% / 15%를 추가 체력으로 부여 · 피해로 잃으면 회복되지 않음",
+      "neighbors": [
+        "B10",
+        "C11",
+        "K8"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B10",
+          "C11",
+          "K8"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "스테이지 시작 시 기본 최대 체력의 5% / 10% / 15%를 추가 체력으로 부여 · 피해로 잃으면 회복되지 않음"
+      ]
+    },
+    {
+      "id": "C13",
+      "name": "두꺼운 성벽",
+      "category": "방위",
+      "type": "minor",
+      "position": [
+        1811.241,
+        2323.661
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "hp_mult",
+          "values_by_rank": [
+            1.0,
+            1.025,
+            1.045,
+            1.07,
+            1.095,
+            1.115
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "넥서스 최대 체력 배율: +2.5% / +4.5% / +7% / +9.5% / +11.5%",
+      "neighbors": [
+        "B11"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B11"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "넥서스 최대 체력 배율: +2.5% / +4.5% / +7% / +9.5% / +11.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C14",
+      "name": "손실 복구",
+      "category": "방위",
+      "type": "minor",
+      "position": [
+        1450.448,
+        2362.602
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "damage_restoration",
+          "values_by_rank": [
+            0.0,
+            0.002,
+            0.004,
+            0.006,
+            0.008,
+            0.01
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "웨이브 종료 실제 잃은 체력 회복: +0.2% / +0.4% / +0.6% / +0.8% / +1%",
+      "neighbors": [
+        "B12"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B12"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "웨이브 종료 실제 잃은 체력 회복: +0.2% / +0.4% / +0.6% / +0.8% / +1%"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "최대HP 비례 웨이브 회복 반복을 실제 해당 웨이브 손실HP 비례 회복으로 분리."
+      }
+    },
+    {
+      "id": "C15",
+      "name": "정예 훈련",
+      "category": "육성",
+      "type": "notable",
+      "position": [
+        1086.663,
+        2364.352
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "level_damage_inc",
+          "values_by_rank": [
+            0.0,
+            0.055,
+            0.105,
+            0.16
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 레벨 피해 보너스 증가: +5.5% / +10.5% / +16%",
+      "neighbors": [
+        "B13",
+        "C16",
+        "K5"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B13",
+          "C16",
+          "K5"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 레벨 피해 보너스 증가: +5.5% / +10.5% / +16%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C16",
+      "name": "지원 설계",
+      "category": "지원",
+      "type": "notable",
+      "position": [
+        717.984,
+        2184.57
+      ],
+      "max_rank": 3,
+      "rank_costs": [
+        2,
+        3,
+        5
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "link_mult",
+          "values_by_rank": [
+            1.0,
+            0.97,
+            0.94,
+            0.91
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "포탑 링크 비용 배율: -3% / -6% / -9%",
+      "neighbors": [
+        "B14",
+        "C15",
+        "K6"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B14",
+          "C15",
+          "K6"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 링크 비용 배율: -3% / -6% / -9%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      }
+    },
+    {
+      "id": "C17",
+      "name": "특성 정제",
+      "category": "지원",
+      "type": "minor",
+      "position": [
+        462.551,
+        1877.654
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "trait_mult",
+          "values_by_rank": [
+            1.0,
+            0.985,
+            0.97,
+            0.955,
+            0.94,
+            0.925
+          ]
+        }
+      ],
+      "implementation_status": "existing_hook",
+      "effect_summary": "특성 젬 조각 비용 배율: -1.5% / -3% / -4.5% / -6% / -7.5%",
+      "neighbors": [
+        "B14",
+        "B15"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B14",
+          "B15"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "특성 젬 조각 비용 배율: -1.5% / -3% / -4.5% / -6% / -7.5%"
+      ],
+      "balance_revision": {
+        "change_type": "same_effect_bonus_two_thirds",
+        "note": "기존 보너스 약 2/3 수준을 유지하며 반복 소수만 가까운 0.5% 또는 작은 효과 0.1% 단위로 정리. 배율은 중립1 기준, 랭크별 총량."
+      },
+      "number_cleanup": {
+        "basis": "2026-10-13 exact-two-thirds revision",
+        "scope": "numeric rounding only; roles, ranks, costs and conditions unchanged"
+      }
+    },
+    {
+      "id": "C18",
+      "name": "철수 회수",
+      "category": "지원",
+      "type": "minor",
+      "position": [
+        400.047,
+        1505.099
+      ],
+      "max_rank": 5,
+      "rank_costs": [
+        1,
+        1,
+        2,
+        2,
+        3
+      ],
+      "activation_rank": 3,
+      "effects": [
+        {
+          "key": "refund_pp",
+          "values_by_rank": [
+            0.0,
+            0.004,
+            0.008,
+            0.012,
+            0.016,
+            0.02
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 판매 골드 환급률 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p",
+      "neighbors": [
+        "B16"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "B16"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 판매 골드 환급률 증가: +0.4%p / +0.8%p / +1.2%p / +1.6%p / +2%p"
+      ],
+      "balance_revision": {
+        "change_type": "new_role_proposal_not_equivalent_scaling",
+        "note": "웨이브 보상 반복을 실제 지불 골드의 판매 환급률로 분리. 최종82% 상한."
+      }
+    },
+    {
+      "id": "K1",
+      "name": "처치 충전",
+      "category": "발동",
+      "type": "keystone",
+      "position": [
+        931.855,
+        241.298
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C04",
+      "effects": [
+        {
+          "key": "killCoreChargeRate",
+          "values_by_rank": [
+            0.0,
+            0.1
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "적 처치 시 코어 최대 충전량의 10% 회복",
+      "neighbors": [
+        "C04"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C04"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "적 처치 시 코어 최대 충전량의 10% 회복"
+      ]
+    },
+    {
+      "id": "K2",
+      "name": "비축 사격",
+      "category": "직격",
+      "type": "keystone",
+      "position": [
+        276.893,
+        827.748
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C02",
+      "effects": [
+        {
+          "key": "hasStockpileFire",
+          "values_by_rank": [
+            false,
+            true
+          ]
+        },
+        {
+          "key": "stockpileAimSpeedMultiplier",
+          "values_by_rank": [
+            1.0,
+            1.5
+          ]
+        },
+        {
+          "key": "stockpileCooldownRecoveryMultiplier",
+          "values_by_rank": [
+            1.0,
+            1.5
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "대기 중 최대 2회 사격 비축 · 비축 사격 조준 속도 및 발사 후 쿨다운 회복 속도 +50%",
+      "neighbors": [
+        "C02"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C02"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "대기 중 최대 2회 사격 비축 · 비축 사격 조준 속도 및 발사 후 쿨다운 회복 속도 +50%"
+      ]
+    },
+    {
+      "id": "K3",
+      "name": "잔류 연성",
+      "category": "원소",
+      "type": "keystone",
+      "position": [
+        1730.907,
+        245.99
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C06",
+      "effects": [
+        {
+          "key": "damageOverTimeSpeedMultiplier",
+          "values_by_rank": [
+            1.0,
+            1.5
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "지속 피해 속도 ×1.5 · 초당 피해 ×1.5 · 지속시간 ÷1.5",
+      "neighbors": [
+        "C06"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C06"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "지속 피해 속도 ×1.5 · 초당 피해 ×1.5 · 지속시간 ÷1.5"
+      ]
+    },
+    {
+      "id": "K4",
+      "name": "광역 파동",
+      "category": "원소",
+      "type": "keystone",
+      "position": [
+        2153.809,
+        362.471
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C07",
+      "effects": [
+        {
+          "key": "splashSecondaryDamageBonus",
+          "values_by_rank": [
+            0.0,
+            0.15
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "폭발의 주변 대상 피해 계수 +15%p (50% → 65%) · 주 대상 피해 유지",
+      "neighbors": [
+        "C07"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C07"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "폭발의 주변 대상 피해 계수 +15%p (50% → 65%) · 주 대상 피해 유지"
+      ]
+    },
+    {
+      "id": "K5",
+      "name": "정예 육성",
+      "category": "육성",
+      "type": "keystone",
+      "position": [
+        1020.224,
+        2568.829
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C15",
+      "effects": [
+        {
+          "key": "maxTurretLevelBonus",
+          "values_by_rank": [
+            0,
+            1
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "포탑 최대 레벨 +1 · 추가 레벨은 골드로 구매",
+      "neighbors": [
+        "C15"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C15"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "포탑 최대 레벨 +1 · 추가 레벨은 골드로 구매"
+      ]
+    },
+    {
+      "id": "K6",
+      "name": "지원 연결",
+      "category": "지원",
+      "type": "keystone",
+      "position": [
+        576.931,
+        2346.833
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C16",
+      "effects": [
+        {
+          "key": "equippedGemDamageAmplificationPerGem",
+          "values_by_rank": [
+            0.0,
+            0.05
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "장착한 모든 젬 하나당 피해 증폭 +5% · 최대 +25%",
+      "neighbors": [
+        "C16"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C16"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "장착한 모든 젬 하나당 피해 증폭 +5% · 최대 +25%"
+      ]
+    },
+    {
+      "id": "K7",
+      "name": "선제 제압",
+      "category": "제어",
+      "type": "keystone",
+      "position": [
+        2566.79,
+        1522.635
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C10",
+      "effects": [
+        {
+          "key": "firstControlDurationMultiplier",
+          "values_by_rank": [
+            1.0,
+            2.0
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "각 적에게 처음 성공한 둔화·기절·빙결 지속시간 ×2",
+      "neighbors": [
+        "C10"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C10"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "각 적에게 처음 성공한 둔화·기절·빙결 지속시간 ×2"
+      ]
+    },
+    {
+      "id": "K8",
+      "name": "불굴 성채",
+      "category": "방위",
+      "type": "keystone",
+      "position": [
+        2315.901,
+        2315.901
+      ],
+      "max_rank": 1,
+      "rank_costs": [
+        5
+      ],
+      "activation_rank": null,
+      "terminal": true,
+      "gate": "C12",
+      "effects": [
+        {
+          "key": "hasIndomitableFortress",
+          "values_by_rank": [
+            false,
+            true
+          ]
+        }
+      ],
+      "implementation_status": "new_hook",
+      "effect_summary": "스테이지당 1회 치명 피해 시 넥서스 체력 1로 생존 · 3초 무적",
+      "neighbors": [
+        "C12"
+      ],
+      "prerequisite": {
+        "mode": "OR",
+        "reachable_neighbor_rank_at_least": 3,
+        "neighbors": [
+          "C12"
+        ],
+        "note": "Any one reachable adjacent nonterminal node at rank 3. Never require all neighbors."
+      },
+      "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
+      "display_effects": [
+        "스테이지당 1회 치명 피해 시 넥서스 체력 1로 생존 · 3초 무적"
+      ]
+    }
+  ],
+  "edges": [
+    [
+      "CORE",
+      "S1"
+    ],
+    [
+      "CORE",
+      "S2"
+    ],
+    [
+      "CORE",
+      "S3"
+    ],
+    [
+      "CORE",
+      "S4"
+    ],
+    [
+      "CORE",
+      "S5"
+    ],
+    [
+      "CORE",
+      "S6"
+    ],
+    [
+      "S6",
+      "A01"
+    ],
+    [
+      "S1",
+      "A02"
+    ],
+    [
+      "S1",
+      "A03"
+    ],
+    [
+      "S2",
+      "A04"
+    ],
+    [
+      "S2",
+      "A05"
+    ],
+    [
+      "S3",
+      "A06"
+    ],
+    [
+      "S3",
+      "A07"
+    ],
+    [
+      "S4",
+      "A08"
+    ],
+    [
+      "S4",
+      "A09"
+    ],
+    [
+      "S5",
+      "A10"
+    ],
+    [
+      "S5",
+      "A11"
+    ],
+    [
+      "S6",
+      "A12"
+    ],
+    [
+      "A01",
+      "B01"
+    ],
+    [
+      "A02",
+      "B02"
+    ],
+    [
+      "A02",
+      "B03"
+    ],
+    [
+      "A03",
+      "B04"
+    ],
+    [
+      "A04",
+      "B05"
+    ],
+    [
+      "A05",
+      "B06"
+    ],
+    [
+      "A05",
+      "B07"
+    ],
+    [
+      "A06",
+      "B08"
+    ],
+    [
+      "A07",
+      "B09"
+    ],
+    [
+      "A08",
+      "B10"
+    ],
+    [
+      "A09",
+      "B11"
+    ],
+    [
+      "A09",
+      "B12"
+    ],
+    [
+      "A10",
+      "B13"
+    ],
+    [
+      "A11",
+      "B14"
+    ],
+    [
+      "A11",
+      "B15"
+    ],
+    [
+      "A12",
+      "B16"
+    ],
+    [
+      "B16",
+      "C01"
+    ],
+    [
+      "B02",
+      "C02"
+    ],
+    [
+      "B03",
+      "C03"
+    ],
+    [
+      "B04",
+      "C04"
+    ],
+    [
+      "B04",
+      "C05"
+    ],
+    [
+      "B05",
+      "C06"
+    ],
+    [
+      "B06",
+      "C07"
+    ],
+    [
+      "B07",
+      "C08"
+    ],
+    [
+      "B08",
+      "C09"
+    ],
+    [
+      "B09",
+      "C10"
+    ],
+    [
+      "B10",
+      "C11"
+    ],
+    [
+      "B10",
+      "C12"
+    ],
+    [
+      "B11",
+      "C13"
+    ],
+    [
+      "B12",
+      "C14"
+    ],
+    [
+      "B13",
+      "C15"
+    ],
+    [
+      "B14",
+      "C16"
+    ],
+    [
+      "B15",
+      "C17"
+    ],
+    [
+      "B16",
+      "C18"
+    ],
+    [
+      "S6",
+      "A02"
+    ],
+    [
+      "S3",
+      "A05"
+    ],
+    [
+      "S3",
+      "A08"
+    ],
+    [
+      "S6",
+      "A11"
+    ],
+    [
+      "A04",
+      "B04"
+    ],
+    [
+      "A06",
+      "B09"
+    ],
+    [
+      "A10",
+      "B14"
+    ],
+    [
+      "B02",
+      "C03"
+    ],
+    [
+      "B09",
+      "C11"
+    ],
+    [
+      "B14",
+      "C17"
+    ],
+    [
+      "A01",
+      "A02"
+    ],
+    [
+      "A03",
+      "A04"
+    ],
+    [
+      "A05",
+      "A06"
+    ],
+    [
+      "A07",
+      "A08"
+    ],
+    [
+      "A09",
+      "A10"
+    ],
+    [
+      "A11",
+      "A12"
+    ],
+    [
+      "B01",
+      "B02"
+    ],
+    [
+      "B03",
+      "B04"
+    ],
+    [
+      "B05",
+      "B06"
+    ],
+    [
+      "B07",
+      "B08"
+    ],
+    [
+      "B09",
+      "B10"
+    ],
+    [
+      "B11",
+      "B12"
+    ],
+    [
+      "B13",
+      "B14"
+    ],
+    [
+      "B15",
+      "B16"
+    ],
+    [
+      "C01",
+      "C02"
+    ],
+    [
+      "C07",
+      "C08"
+    ],
+    [
+      "C11",
+      "C12"
+    ],
+    [
+      "C15",
+      "C16"
+    ],
+    [
+      "B01",
+      "C02"
+    ],
+    [
+      "C04",
+      "K1"
+    ],
+    [
+      "C02",
+      "K2"
+    ],
+    [
+      "C06",
+      "K3"
+    ],
+    [
+      "C07",
+      "K4"
+    ],
+    [
+      "C15",
+      "K5"
+    ],
+    [
+      "C16",
+      "K6"
+    ],
+    [
+      "C10",
+      "K7"
+    ],
+    [
+      "C12",
+      "K8"
+    ]
+  ],
+  "effect_registry": {
+    "core_recovery": {
+      "name": "코어 재사용 회복 속도 증가",
+      "implementation_status": "existing_hook",
+      "aggregation": "sum",
+      "target_field": "cooldownRecoveryRate",
+      "contract": "코어 재사용 대기시간 = 기본 / (1 + 합계). 상한 +75%는 신규 안전 한도 제안. 빔과 균열 낙인 모두; 포탑·지속피해와 무관.",
+      "tree_cap_proposed": 0.75,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "core_power": {
+      "name": "코어 위력 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "coreSkillPowerMultiplier",
+      "contract": "빔 피해와 낙인 위력에 기존 방식으로 곱함. 세 번째 시전에도 동일 적용하려면 thirdCoreSkillPowerMultiplier에 같은 값을 기록. 포탑/젬에는 적용하지 않음.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "direct_inc": {
+      "name": "직접 타격 피해 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "directHitIncreaseRate",
+      "contract": "포탑 직접 타격에만 1+합계 계층 적용. 폭발/연쇄 타격 포함; 화상·독 산출에는 전이하지 않음. 보스도 동일, 저항·방어구는 기존 유지.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "crit_chance_pp": {
+      "name": "치명타 확률 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveCriticalChanceBonusRate",
+      "contract": "기존 연구/모듈 치명타 확률에 %p 합산, 최종 0~100% 제한. 기존 화상 발사 치명타 추가분 50% 승계 유지. 독에는 미적용.",
+      "tree_cap_proposed": null,
+      "unit": "percentage_points",
+      "new_catalog_entries_required": true
+    },
+    "crit_damage_pp": {
+      "name": "치명타 추가 피해 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveCriticalDamageBonusRate",
+      "contract": "1+기본 추가 피해+영구 강화+이 합계를 사용. 추가 배율로 다시 곱하지 않음. 화상은 기존 추가분 50% 승계, 독 제외.",
+      "tree_cap_proposed": null,
+      "unit": "percentage_points",
+      "new_catalog_entries_required": true
+    },
+    "area_radius_inc": {
+      "name": "범위 반경 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveAreaRadiusIncreaseRate",
+      "contract": "포탑 기본 범위/기존 폭발 젬의 반경에 1+합계. 사거리/연쇄 거리/코어 빔 폭은 제외. 트리 반경 증가 합계 상한 +75%. 존재하지 않는 범위를 만들지 않음.",
+      "tree_cap_proposed": 0.75,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "dot_inc": {
+      "name": "지속피해 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveDotDamageIncreaseRate",
+      "contract": "기존 화상/독의 증가 계층에 합산. 지속 고통 젬의 30% 증폭은 그 뒤 별도 곱셈. 새 상태를 부여하지 않음; 최강 화상 1개/독 기존 중첩/방어구 우회/저항 유지. 보스 동일.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "dot_duration_inc": {
+      "name": "지속피해 시간 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveDotDurationIncreaseRate",
+      "contract": "특성/모듈/지속 고통 젬의 시간 증가율에 합산. 기본시간 ×(1+합계), 틱당 DPS 불변. 기존 재적용 최댓값과 만료구간 계산 유지.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "chain_range_inc": {
+      "name": "연쇄 탐색 거리 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveChainRangeIncreaseRate",
+      "contract": "번개 포탑 또는 기존 연쇄 젬의 탐색 거리만 1+합계. 횟수/피해/분열 수 불변; 잠긴 젬을 열거나 연쇄를 새로 부여하지 않음.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "slow_strength_pp": {
+      "name": "둔화 강도 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveSlowStrengthBonusRate",
+      "contract": "기존 이동속도 배율에서 %p 차감, 기존 clamp [0.1,1] 유지. 효과 중 가장 강한 둔화만 적용. 보스의 별도 저항/면역 정책 그대로; 면역을 뚫지 않음.",
+      "tree_cap_proposed": null,
+      "unit": "percentage_points",
+      "new_catalog_entries_required": true
+    },
+    "hp_mult": {
+      "name": "넥서스 최대 체력 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "nexusMaxHpMultiplier",
+      "contract": "(기본 HP + 영구 HP 강화)에 노드별 배율을 곱함. 다음 스테이지 초기화에 반영; 진행 중 체력 재계산·무료 회복 금지.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "wave_heal": {
+      "name": "웨이브 종료 최대 체력 비례 회복",
+      "implementation_status": "existing_hook",
+      "aggregation": "sum",
+      "target_field": "roundRecoveryRate",
+      "contract": "웨이브 종료에 최대 HP×합계 회복. 최종 HP 상한은 최대 HP; 트리 합계 상한 6%. 진행 중 편집으로 추가 회복 불가.",
+      "tree_cap_proposed": 0.06,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "impact_reduction": {
+      "name": "넥서스 피격 피해 감소",
+      "implementation_status": "existing_hook",
+      "aggregation": "sum",
+      "target_field": "impactDispersionRate",
+      "contract": "피격 피해×(1-합계), 트리 합계 상한 25%. 기존 threatWeakening 계층과는 별도로 곱함. 보스 코어 피격도 동일; 무적/회피 아님.",
+      "tree_cap_proposed": 0.25,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "build_mult": {
+      "name": "포탑 설치 비용 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "buildCostMultiplier",
+      "contract": "기존 설치 비용 배율 위치에 곱함. 모든 할인/가산 뒤 최소 비용 1 및 기존 반올림 유지. 판매 회수율·젬 가격은 불변.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "link_mult": {
+      "name": "포탑 링크 비용 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "linkCostMultiplier",
+      "contract": "기존 영구/연구 할인과 정해진 비용 단계에서 곱함. 링크 슬롯/잠금/판매 회수율 불변. 최종 최소 비용 1 및 기존 반올림 유지.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "level_cost_mult": {
+      "name": "포탑 레벨업 비용 배율",
+      "implementation_status": "new_hook",
+      "aggregation": "product",
+      "target_field": "passiveLevelCostMultiplier",
+      "contract": "기존 다양성 할인 뒤 레벨업 비용에 곱함. 영구 할인과 분리; 최소 비용 1, 기존 반올림. 연구 요구/최대 레벨 불변.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "level_damage_inc": {
+      "name": "포탑 레벨 피해 보너스 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveLevelDamageIncreaseRate",
+      "contract": "포탑 레벨에 따른 기존 추가 피해분만 ×(1+합계). 레벨1 기본 피해·링크 계수·영구 강화는 미포함. 공통 공격 피해에 반영되어 기존 화상/독도 승계. 상한 +100%. 레벨 피해 계수 Ld를 1+(Ld-1)×(1+합계)로 교체하며 나머지 피해 계층은 그대로 둠.",
+      "tree_cap_proposed": 1.0,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "trait_mult": {
+      "name": "특성 젬 조각 비용 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "traitShardCostMultiplier",
+      "contract": "해당 포탑 특성 해금/강화의 기존 조각 비용만 변경. 젬 합성/돌파/뽑기 가격, 획득량, 특성 잠금 불변. 기존 반올림/최소 1 유지.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "wave_gold_mult": {
+      "name": "웨이브 보상 골드 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "roundClearGoldMultiplier",
+      "contract": "기존 웨이브 정산 골드 경로에 곱함. 영구 화폐/젬 조각/킬 골드 제외. 기존 정수화 유지; 스테이지 스냅샷 사용.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "starting_gold_mult": {
+      "name": "시작 골드 배율",
+      "implementation_status": "new_hook",
+      "aggregation": "product",
+      "target_field": "passiveStartingGoldMultiplier",
+      "contract": "(기본+영구 시작골드)×배율을 스테이지 시작에 한 번 내림. 최소0. 현재 런 골드에는 적용하지 않음.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true
+    },
+    "projectile_speed_inc": {
+      "name": "투사체 속도 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveProjectileSpeedIncreaseRate",
+      "contract": "기존 moduleEffect.projectileSpeedIncreaseRate 가산 계층에 합산. 실제 투사체를 발사하는 화살·대포·마법 포탑에만 적용. 저격 즉발·냉기 중심 범위·번개·코어에는 미적용. 사거리·공격 주기·연쇄 횟수·피해는 불변.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/turret_stat_calculation.gd#L101-L149"
+    },
+    "core_sync_rate": {
+      "name": "코어 발동 후 2초 포탑 공격 속도 증가",
+      "implementation_status": "existing_hook",
+      "aggregation": "sum",
+      "target_field": "turretAttackRateAmplification",
+      "contract": "기존 코어 실제 발동 시 attackSyncDuration=2초 구간만 1+합계로 포탑 공격 빈도를 증폭. 항상 켜진 공격속도가 아님. 코어 미장착·미발동에는 효과 없음. 지속피해 틱 속도·코어 대기시간 불변. 기존 재발동 갱신 규칙 유지.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/native_core_skill_state.gd#L52-L75"
+    },
+    "third_core_power": {
+      "name": "매 3번째 코어 위력 추가 배율",
+      "implementation_status": "existing_hook",
+      "aggregation": "product",
+      "target_field": "thirdCoreSkillPowerMultiplier",
+      "contract": "기존 매3회째 발동 규칙 사용. 이 설계 키는 정상 코어 위력에 추가로 곱하는 배율이다. 카탈로그 변환 시 core_power의 모든 배율을 normal과third 총필드 양쪽에 기록하고 이 키만 third 총필드에 추가로 곱함. third총/normal 비율을 쓰는 현행 평가기에서 정상 시전은 불변, 매3회째만 추가 배율. 코어 종류·시전 횟수·대기시간 불변. 이 키를 third 총위력 자체로 대입하면 안 됨.",
+      "tree_cap_proposed": null,
+      "unit": "multiplier",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/app/growth_rules.gd#L313-L315"
+    },
+    "area_hit_inc": {
+      "name": "기존 범위 타격 피해 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveAreaHitIncreaseRate",
+      "contract": "이미 존재하는 중심 범위 공격과 폭발의 주변 보조 타격 피해의 기존 direct_inc 증가 계층에 합산. 최종 증가 계층은1+direct_inc+area_hit_inc이며 direct_more는 그 뒤 한 번 적용. 폭발 중심 대상의 원래 단일 직격은 제외. 반경·사거리·새 폭발 부여·화상·독 산출은 불변. 연결된 폭발의 보조 타격은 area_hit_inc만, 연쇄의 직격은 chain_hit_inc만 적용하여 같은 피해 이벤트에 중복 적용하지 않음. direct_inc와direct_more는 해당 직접 타격에 각각 한 번만 적용. 신규 범위 타격 분류/패시브 소비 훅이 필요.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/turret_stat_calculation.gd#L121-L163"
+    },
+    "chain_hit_inc": {
+      "name": "기존 연쇄 타격 피해 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveChainHitIncreaseRate",
+      "contract": "기존 번개 연쇄와 투사체 연쇄 젬의 첫 대상 이후 연쇄 직격 피해의 기존 direct_inc 증가 계층에 합산. 최종 증가 계층은1+direct_inc+chain_hit_inc이며 direct_more는 그 뒤 한 번 적용. 최초 타격·연쇄의 폭발 보조 타격·화상·독 산출 제외. 기존 번개 연쇄 배율 뒤 적용. 횟수·탐색 거리 불변; 연쇄를 새로 부여하지 않음. 연쇄 직격과 범위 보조 타격을 별도 이벤트로 구분하여 area_hit_inc와 같은 이벤트에 겹치지 않음. direct_inc/direct_more 각각 한 번. 신규 연쇄 타격 분류/패시브 소비 훅 필요.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/turret_stat_calculation.gd#L130-L168"
+    },
+    "range_inc": {
+      "name": "포탑 사거리 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveRangeIncreaseRate",
+      "contract": "기존 moduleEffect.rangeIncreaseRate 가산 계층에 합산. 모든 포탑의 실제 사거리만 확대하며 연쇄 탐색 거리·폭발 반경·코어 빔 제외. 냉기 등 기존 중심 범위 공격은 현행 centeredAreaRadius=range×effectAreaMultiplier 구조를 유지하므로 공격 반경도 함께 넓어짐. 별도의 범위 배율을 또 곱하지 않음.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/turret_stat_calculation.gd#L96-L166"
+    },
+    "attack_rate_inc": {
+      "name": "포탑 공격 속도 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveAttackRateIncreaseRate",
+      "contract": "기존 moduleEffect.attackRateIncreaseRate 가산 계층에 합산하여 포탑 발사 빈도를 높임. 발동 후2초 증폭과는 다른 상시 가산 계층. 코어 대기시간·지속피해 틱 속도 불변. 기존 발사 간격 제한 유지. 냉기의 재타격 기회를 늘리지만 둔화시간·강도를 직접 변경하지 않음.",
+      "tree_cap_proposed": 0.2,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/turret_stat_calculation.gd#L97-L100"
+    },
+    "threat_weakening": {
+      "name": "적 소모 내구도 비례 피격 피해 감소",
+      "implementation_status": "existing_hook",
+      "aggregation": "sum",
+      "target_field": "threatWeakeningRate",
+      "contract": "기존 threatWeakeningRate에 합산. 넥서스 도달 적의 소모 내구도 비율 L=1-(현재HP+방어막+방어구)/(최대HP+최대방어막+최대방어구), L을0~1로 제한. 피격 피해에 (1-합계×L)을 곱함. 건강한 적에는0, 완전히 소모된 한계에서 표기 수치가 최대 감소율. impact_reduction과 별도 곱셈. 보스도 기존 동일 처리. 상시 고정 감소율/체력 임계 발동이 아님.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/native_core_defense_state.gd#L42-L48"
+    },
+    "damage_restoration": {
+      "name": "웨이브 종료 실제 잃은 체력 회복",
+      "implementation_status": "existing_hook",
+      "aggregation": "sum",
+      "target_field": "damageRestorationRate",
+      "contract": "웨이브 종료 시 그 웨이브에서 실제 잃은 넥서스HP×합계를 회복. 최대HP 비율 회복과 다름. 기존 최대HP 상한·실패 시 회복 금지·웨이브 손실값 초기화를 유지하며 부활/즉시 회복 없음. 최대HP 비례 wave_heal과 별도 합산.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/combat/native_core_defense_state.gd#L60-L70"
+    },
+    "refund_pp": {
+      "name": "포탑 판매 골드 환급률 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "passiveTurretRefundBonusRate",
+      "contract": "기존 포탑 판매 환급률에 %p 합산하되 최종 상한82% 제안. 실제 지불해 investedGold에 기록한 골드만 기준으로 최종 골드값을 한 번 내림. 소수%p는 계산 끝까지 유지하도록 현행 중간 int 변환 지점 수정 필요. 특성 조각·룬·코어 포인트·미지불 정가를 환급하지 않음. 설치·강화 할인 후 실지불액 기준과100% 미만 상한으로 판매 차익 금지. 신규 패시브 훅 필요.",
+      "tree_cap_proposed": null,
+      "unit": "percentage_points",
+      "new_catalog_entries_required": true,
+      "source_evidence": "https://github.com/Sejiiinn/RuneNexus/blob/780457672dcc5b4cbce848ec6a48a590d1e6b00d/godot/app/run_commands.gd#L57-L71",
+      "final_refund_rate_cap_proposed": 0.82
+    },
+    "control_duration_inc": {
+      "name": "제어 지속시간 증가",
+      "implementation_status": "new_hook",
+      "aggregation": "sum",
+      "target_field": "controlDurationIncrease",
+      "contract": "기존 둔화·기절·빙결 지속시간 증가 계층에 합산. 제어를 새로 부여하지 않고 저항·면역 유지. 지속 피해는 제외.",
+      "tree_cap_proposed": null,
+      "unit": "fraction",
+      "new_catalog_entries_required": true
+    },
+    "nexusAdditionalHpRate": {
+      "name": "추가 체력",
+      "target_field": "nexusAdditionalHpRate",
+      "contract": "스테이지 시작 시 기본 최대 체력의 5% / 10% / 15%를 추가 체력으로 부여 · 피해로 잃으면 회복되지 않음",
+      "aggregation": "sum"
+    },
+    "killCoreChargeRate": {
+      "name": "처치 충전",
+      "target_field": "killCoreChargeRate",
+      "contract": "적 처치 시 코어 최대 충전량의 10% 회복",
+      "aggregation": "sum"
+    },
+    "hasStockpileFire": {
+      "name": "비축 사격",
+      "target_field": "hasStockpileFire",
+      "contract": "대기 중 최대 2회 사격 비축 · 비축 사격 조준 속도 및 발사 후 쿨다운 회복 속도 +50%",
+      "aggregation": "any"
+    },
+    "stockpileAimSpeedMultiplier": {
+      "name": "비축 사격",
+      "target_field": "stockpileAimSpeedMultiplier",
+      "contract": "대기 중 최대 2회 사격 비축 · 비축 사격 조준 속도 및 발사 후 쿨다운 회복 속도 +50%",
+      "aggregation": "product"
+    },
+    "stockpileCooldownRecoveryMultiplier": {
+      "name": "비축 사격",
+      "target_field": "stockpileCooldownRecoveryMultiplier",
+      "contract": "대기 중 최대 2회 사격 비축 · 비축 사격 조준 속도 및 발사 후 쿨다운 회복 속도 +50%",
+      "aggregation": "product"
+    },
+    "damageOverTimeSpeedMultiplier": {
+      "name": "잔류 연성",
+      "target_field": "damageOverTimeSpeedMultiplier",
+      "contract": "지속 피해 속도 ×1.5 · 초당 피해 ×1.5 · 지속시간 ÷1.5",
+      "aggregation": "product"
+    },
+    "splashSecondaryDamageBonus": {
+      "name": "광역 파동",
+      "target_field": "splashSecondaryDamageBonus",
+      "contract": "폭발의 주변 대상 피해 계수 +15%p (50% → 65%) · 주 대상 피해 유지",
+      "aggregation": "sum"
+    },
+    "maxTurretLevelBonus": {
+      "name": "정예 육성",
+      "target_field": "maxTurretLevelBonus",
+      "contract": "포탑 최대 레벨 +1 · 추가 레벨은 골드로 구매",
+      "aggregation": "sum"
+    },
+    "equippedGemDamageAmplificationPerGem": {
+      "name": "지원 연결",
+      "target_field": "equippedGemDamageAmplificationPerGem",
+      "contract": "장착한 모든 젬 하나당 피해 증폭 +5% · 최대 +25%",
+      "aggregation": "sum"
+    },
+    "firstControlDurationMultiplier": {
+      "name": "선제 제압",
+      "target_field": "firstControlDurationMultiplier",
+      "contract": "각 적에게 처음 성공한 둔화·기절·빙결 지속시간 ×2",
+      "aggregation": "product"
+    },
+    "hasIndomitableFortress": {
+      "name": "불굴 성채",
+      "target_field": "hasIndomitableFortress",
+      "contract": "스테이지당 1회 치명 피해 시 넥서스 체력 1로 생존 · 3초 무적",
+      "aggregation": "any"
+    }
+  },
+  "visual_contract": {
+    "outer_radii": {
+      "S1": 48,
+      "S2": 48,
+      "S3": 48,
+      "S4": 48,
+      "S5": 48,
+      "S6": 48,
+      "A01": 48,
+      "A02": 48,
+      "A03": 48,
+      "A04": 48,
+      "A05": 48,
+      "A06": 48,
+      "A07": 48,
+      "A08": 48,
+      "A09": 48,
+      "A10": 48,
+      "A11": 48,
+      "A12": 48,
+      "B01": 48,
+      "B02": 68,
+      "B03": 48,
+      "B04": 48,
+      "B05": 48,
+      "B06": 48,
+      "B07": 68,
+      "B08": 48,
+      "B09": 48,
+      "B10": 48,
+      "B11": 68,
+      "B12": 48,
+      "B13": 48,
+      "B14": 48,
+      "B15": 68,
+      "B16": 48,
+      "C01": 48,
+      "C02": 68,
+      "C03": 48,
+      "C04": 68,
+      "C05": 48,
+      "C06": 68,
+      "C07": 68,
+      "C08": 48,
+      "C09": 48,
+      "C10": 68,
+      "C11": 48,
+      "C12": 68,
+      "C13": 48,
+      "C14": 48,
+      "C15": 68,
+      "C16": 68,
+      "C17": 48,
+      "C18": 48,
+      "K1": 96,
+      "K2": 96,
+      "K3": 96,
+      "K4": 96,
+      "K5": 96,
+      "K6": 96,
+      "K7": 96,
+      "K8": 96,
+      "CORE": 150
+    },
+    "selection_halo_extra": 8,
+    "detail_min_scale": 0.47,
+    "minimum_touch_css_px": 44,
+    "phone_viewport_css": [
+      390,
+      844
+    ],
+    "detail_viewbox_width": 720,
+    "full_map_direct_allocation": false,
+    "phone_detail": {
+      "viewport": [
+        390,
+        844
+      ],
+      "map_rect": [
+        0,
+        135,
+        390,
+        364
+      ],
+      "viewbox": [
+        1370.907,
+        75,
+        720,
+        672
+      ],
+      "touch_diameter_minor": 52,
+      "panels_rect": [
+        0,
+        510,
+        390,
+        334
+      ]
+    }
+  },
+  "balance_revision": {
+    "date": "2026-10-13",
+    "baseline_graph_sha256": "2d1d9515fddf74411256cd35b46167cdcd635d0734515a05f06e578a08397453",
+    "scope": "52 non-keystones; 41 same-role nodes reduced to approximately two-thirds; 11 distinct-role proposals. All 8 keystones and topology/costs preserved.",
+    "retained_effect_rounding": "Approximate two-thirds bonus, then only recurring-decimal rank series cleaned to nearest 0.5 percentage point; small series <=3.5% and tiny effects use 0.1. Already clean series unchanged. Multiplier neutral is 1.",
+    "replacement_nodes": [
+      "B02",
+      "A03",
+      "C03",
+      "B06",
+      "B07",
+      "B08",
+      "C11",
+      "B10",
+      "C14",
+      "B14",
+      "C18"
+    ],
+    "before_repetition": {
+      "nonkeystone_nodes": 52,
+      "effect_instances": 53,
+      "distinct_effect_keys": 20,
+      "excess_instances_beyond_first": 33,
+      "unique_effect_sets": 21,
+      "nodes_beyond_first_identical_effect_set": 31,
+      "adjacent_same_key_edges": 23,
+      "shared_edges": [
+        {
+          "edge": [
+            "S6",
+            "A01"
+          ],
+          "keys": [
+            "direct_inc"
+          ]
+        },
+        {
+          "edge": [
+            "S1",
+            "A03"
+          ],
+          "keys": [
+            "core_recovery"
+          ]
+        },
+        {
+          "edge": [
+            "S2",
+            "A05"
+          ],
+          "keys": [
+            "area_radius_inc"
+          ]
+        },
+        {
+          "edge": [
+            "S3",
+            "A06"
+          ],
+          "keys": [
+            "slow_duration_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A02",
+            "B03"
+          ],
+          "keys": [
+            "core_power"
+          ]
+        },
+        {
+          "edge": [
+            "A03",
+            "B04"
+          ],
+          "keys": [
+            "core_recovery"
+          ]
+        },
+        {
+          "edge": [
+            "A04",
+            "B05"
+          ],
+          "keys": [
+            "dot_duration_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A05",
+            "B06"
+          ],
+          "keys": [
+            "area_radius_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A05",
+            "B07"
+          ],
+          "keys": [
+            "area_radius_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A06",
+            "B08"
+          ],
+          "keys": [
+            "slow_duration_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A07",
+            "B09"
+          ],
+          "keys": [
+            "slow_strength_pp"
+          ]
+        },
+        {
+          "edge": [
+            "A08",
+            "B10"
+          ],
+          "keys": [
+            "impact_reduction"
+          ]
+        },
+        {
+          "edge": [
+            "A09",
+            "B12"
+          ],
+          "keys": [
+            "wave_heal"
+          ]
+        },
+        {
+          "edge": [
+            "A11",
+            "B14"
+          ],
+          "keys": [
+            "link_mult"
+          ]
+        },
+        {
+          "edge": [
+            "A11",
+            "B15"
+          ],
+          "keys": [
+            "link_mult"
+          ]
+        },
+        {
+          "edge": [
+            "B02",
+            "C02"
+          ],
+          "keys": [
+            "direct_inc"
+          ]
+        },
+        {
+          "edge": [
+            "B03",
+            "C03"
+          ],
+          "keys": [
+            "core_power"
+          ]
+        },
+        {
+          "edge": [
+            "B04",
+            "C04"
+          ],
+          "keys": [
+            "core_recovery"
+          ]
+        },
+        {
+          "edge": [
+            "B06",
+            "C07"
+          ],
+          "keys": [
+            "area_radius_inc"
+          ]
+        },
+        {
+          "edge": [
+            "B11",
+            "C13"
+          ],
+          "keys": [
+            "hp_mult"
+          ]
+        },
+        {
+          "edge": [
+            "B12",
+            "C14"
+          ],
+          "keys": [
+            "wave_heal"
+          ]
+        },
+        {
+          "edge": [
+            "B13",
+            "C15"
+          ],
+          "keys": [
+            "level_damage_inc"
+          ]
+        },
+        {
+          "edge": [
+            "B14",
+            "C16"
+          ],
+          "keys": [
+            "link_mult"
+          ]
+        }
+      ],
+      "key_counts": {
+        "core_recovery": 4,
+        "area_radius_inc": 5,
+        "dot_inc": 2,
+        "slow_duration_inc": 5,
+        "hp_mult": 4,
+        "build_mult": 1,
+        "direct_inc": 4,
+        "core_power": 3,
+        "dot_duration_inc": 3,
+        "slow_strength_pp": 3,
+        "impact_reduction": 2,
+        "wave_heal": 3,
+        "level_cost_mult": 1,
+        "link_mult": 4,
+        "wave_gold_mult": 2,
+        "crit_chance_pp": 1,
+        "level_damage_inc": 2,
+        "trait_mult": 2,
+        "crit_damage_pp": 1,
+        "chain_range_inc": 1
+      }
+    },
+    "after_repetition": {
+      "nonkeystone_nodes": 52,
+      "effect_instances": 53,
+      "distinct_effect_keys": 31,
+      "excess_instances_beyond_first": 22,
+      "unique_effect_sets": 32,
+      "nodes_beyond_first_identical_effect_set": 20,
+      "adjacent_same_key_edges": 11,
+      "shared_edges": [
+        {
+          "edge": [
+            "S6",
+            "A01"
+          ],
+          "keys": [
+            "direct_inc"
+          ]
+        },
+        {
+          "edge": [
+            "S2",
+            "A05"
+          ],
+          "keys": [
+            "area_radius_inc"
+          ]
+        },
+        {
+          "edge": [
+            "S3",
+            "A06"
+          ],
+          "keys": [
+            "slow_duration_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A02",
+            "B03"
+          ],
+          "keys": [
+            "core_power"
+          ]
+        },
+        {
+          "edge": [
+            "A04",
+            "B05"
+          ],
+          "keys": [
+            "dot_duration_inc"
+          ]
+        },
+        {
+          "edge": [
+            "A07",
+            "B09"
+          ],
+          "keys": [
+            "slow_strength_pp"
+          ]
+        },
+        {
+          "edge": [
+            "A09",
+            "B12"
+          ],
+          "keys": [
+            "wave_heal"
+          ]
+        },
+        {
+          "edge": [
+            "A11",
+            "B15"
+          ],
+          "keys": [
+            "link_mult"
+          ]
+        },
+        {
+          "edge": [
+            "B04",
+            "C04"
+          ],
+          "keys": [
+            "core_recovery"
+          ]
+        },
+        {
+          "edge": [
+            "B11",
+            "C13"
+          ],
+          "keys": [
+            "hp_mult"
+          ]
+        },
+        {
+          "edge": [
+            "B13",
+            "C15"
+          ],
+          "keys": [
+            "level_damage_inc"
+          ]
+        }
+      ],
+      "key_counts": {
+        "core_recovery": 3,
+        "area_radius_inc": 3,
+        "dot_inc": 2,
+        "slow_duration_inc": 3,
+        "hp_mult": 4,
+        "build_mult": 1,
+        "direct_inc": 3,
+        "core_power": 2,
+        "core_sync_rate": 1,
+        "dot_duration_inc": 3,
+        "slow_strength_pp": 3,
+        "impact_reduction": 1,
+        "wave_heal": 2,
+        "level_cost_mult": 1,
+        "link_mult": 3,
+        "wave_gold_mult": 1,
+        "crit_chance_pp": 1,
+        "projectile_speed_inc": 1,
+        "area_hit_inc": 1,
+        "chain_hit_inc": 1,
+        "range_inc": 1,
+        "threat_weakening": 1,
+        "level_damage_inc": 2,
+        "starting_gold_mult": 1,
+        "trait_mult": 2,
+        "crit_damage_pp": 1,
+        "third_core_power": 1,
+        "chain_range_inc": 1,
+        "attack_rate_inc": 1,
+        "damage_restoration": 1,
+        "refund_pp": 1
+      }
+    },
+    "combat_balance_validation": "Not playtested. Cross-unit replacement effects have no claimed numeric power equivalence."
+  },
+  "number_cleanup": {
+    "date": "2026-10-13",
+    "baseline_graph_sha256": "7d99e131806a61608041af22e4388478c8bb55638a795231523bdb3ac9c54c41",
+    "changed_nodes": 26,
+    "changed_effect_series": 26,
+    "changed_rank_values": 93,
+    "max_absolute_delta_percentage_points": 0.17,
+    "max_rank_relative_bonus_delta_percent": 4.477611940298507,
+    "keystones_unchanged": true,
+    "effect_registry_unchanged": true,
+    "all_replacement_role_values_unchanged": true
+  }
+}

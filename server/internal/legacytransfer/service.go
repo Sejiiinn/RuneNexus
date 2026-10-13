@@ -327,6 +327,9 @@ func validateImportedData(data gamesave.Data) error {
 		(data.ActiveRun != nil && !isJSONObject(data.ActiveRun)) {
 		return ErrInvalidData
 	}
+	if err := gamesave.ValidateCoreTreeUpdate(nil, nil, data.Progression, data.ActiveRun, gamesave.CurrentClientCompatibilityVersion); err != nil {
+		return ErrInvalidData
+	}
 	var progression progressionBounds
 	if err := json.Unmarshal(data.Progression, &progression); err != nil ||
 		progression.Runes == nil || progression.FreeDiamonds == nil ||
@@ -349,6 +352,9 @@ func validateImportedData(data gamesave.Data) error {
 }
 
 func validateReplaceableTarget(progression []byte) error {
+	if gamesave.ValidateCoreTreeClient(progression, nil, gamesave.CoreTreeClientCompatibilityVersion-1) != nil {
+		return ErrTargetNotReplaceable
+	}
 	if gamesave.GrowthVersion(progression) >= gamesave.CurrentGrowthVersion {
 		return ErrTargetNotReplaceable
 	}

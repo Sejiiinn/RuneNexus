@@ -14,7 +14,7 @@ static func clear_shared_cache() -> void:
 
 static func shared_stats_at(i: Dictionary, level: int) -> Dictionary:
 	var neutral := i.duplicate()
-	neutral.level = clampi(level,1,10)
+	neutral.level = clampi(level,1,10 + int(i.get("coreEffects", {}).get("maxTurretLevelBonus", 0)))
 	neutral.boardDistanceScale = 1.0
 	neutral.corePassiveTurretDamageMultiplier = 1.0
 	neutral.corePassiveTurretAttackRateMultiplier = 1.0
@@ -76,9 +76,14 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 	var gems: Array = i.gems
 	var p = i.primaryTrait
 	var s = i.secondaryTrait
-	var target_level := clampi(level, 1, 10)
+	var core: Dictionary = i.get("coreEffects", {})
+	var target_level := clampi(level, 1, 10 + int(core.get("maxTurretLevelBonus", 0)))
 	var gem: float = (1.0 + m.gemEffectIncreaseRate) * i.passiveNumericGemEffectMultiplier
-	var damage: float = d.damage * pow(1.2, target_level - 1)
+	var level_multiplier := pow(1.2, target_level - 1)
+	level_multiplier += (level_multiplier - 1.0) * float(core.get("turretLevelDamageIncrease", 0.0))
+	var damage: float = d.damage * level_multiplier
+	# All actually equipped gems count, regardless of numeric/rule/support kind.
+	damage *= 1.0 + min(gems.size(), 5) * float(core.get("equippedGemDamageAmplificationPerGem", 0.0))
 	if d.damageFamily == "physical" and "physicalDamage" in gems:
 		damage *= 1.0 + 0.4 * gem
 	if d.damageFamily == "elemental" and "elementalDamage" in gems:
@@ -93,19 +98,19 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		damage *= 1.0 + 0.25 * gem
 	intermediates.damagePrefix = damage
 	damage *= (1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in gems else 1.0)
-	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate) * i.boardDistanceScale
-	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.0 + m.attackRateIncreaseRate)
+	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate + float(core.get("rangeIncrease", 0.0))) * i.boardDistanceScale
+	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.0 + m.attackRateIncreaseRate + float(core.get("attackRateIncrease", 0.0)))
 	if i.chainCleanupActive:
 		rate *= 1.4
 	rate *= i.corePassiveTurretAttackRateMultiplier
-	var projectile_speed: float = d.projectileSpeed * (1.3 if p == "lightweightBarrel" else 1.0) * (1.0 + m.projectileSpeedIncreaseRate) * i.boardDistanceScale
+	var projectile_speed: float = d.projectileSpeed * (1.3 if p == "lightweightBarrel" else 1.0) * (1.0 + m.projectileSpeedIncreaseRate + float(core.get("projectileSpeedIncrease", 0.0))) * i.boardDistanceScale
 	var dot_damage := 1.0
 	var dot_duration := 1.0
 	if "damageOverTime" in d.attackTags:
 		var bonus := 0.0
 		if p == "highHeatBurn":
 			bonus += 0.25
-		bonus += m.damageOverTimeIncreaseRate
+		bonus += m.damageOverTimeIncreaseRate + float(core.get("damageOverTimeIncrease", 0.0))
 		dot_damage = 1.0 + bonus
 		if "damageOverTime" in gems:
 			dot_damage *= 1.0 + 0.3 * gem
@@ -114,13 +119,17 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 			bonus += 0.3 * gem
 		if p == "lingeringEmbers":
 			bonus += 0.4
-		bonus += m.burnDurationIncreaseRate
+		bonus += m.burnDurationIncreaseRate + float(core.get("burnDurationIncrease", 0.0))
 		dot_duration = 1.0 + bonus
+		# Speed compresses any existing DoT, preserving a single application total.
+		var dot_speed := maxf(0.000001, float(core.get("damageOverTimeSpeedMultiplier", 1.0)))
+		dot_damage *= dot_speed
+		dot_duration /= dot_speed
 	var slow: float = d.slowMultiplier
 	if slow > 0:
 		var level_bonus: float = (target_level - 1) * 0.02 if d.type == "frost" else 0.0
-		slow = clampf(slow - level_bonus - (0.08 if s == "rapidCooling" else 0.0) - m.slowStrengthBonusRate, 0.1, 1.0)
-	var effect_area: float = 1.0 + (0.25 * gem if "explosion" in gems else 0.0) + (0.2 * gem if "heavy" in d.attackTags and "heavyWeapon" in gems else 0.0)
+		slow = clampf(slow - level_bonus - (0.08 if s == "rapidCooling" else 0.0) - m.slowStrengthBonusRate - float(core.get("slowStrengthBonus", 0.0)), 0.1, 1.0)
+	var effect_area: float = 1.0 + float(core.get("splashRadiusIncrease", 0.0)) + (0.25 * gem if "explosion" in gems else 0.0) + (0.2 * gem if "heavy" in d.attackTags and "heavyWeapon" in gems else 0.0)
 	var splash := 0.0
 	if not d.centeredAreaAttack:
 		var base_radius: float = d.splashRadius if d.splashRadius > 0 else (i.explosionGemValue if "explosion" in gems else 0.0)
@@ -136,7 +145,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		if p == "focusedLightning":
 			jumps -= 1
 		jumps = maxi(0, jumps)
-	var crit_bonus: float = (i.criticalChanceGemValue * gem if "criticalChance" in gems else 0.0) + i.criticalChanceProgressionBonusRate + m.criticalChanceBonusRate + (0.2 if p == "deadeyeFocus" else 0.0) - (0.05 if p == "quickScope" else 0.0)
+	var crit_bonus: float = (i.criticalChanceGemValue * gem if "criticalChance" in gems else 0.0) + i.criticalChanceProgressionBonusRate + m.criticalChanceBonusRate + float(core.get("criticalChanceBonus", 0.0)) + (0.2 if p == "deadeyeFocus" else 0.0) - (0.05 if p == "quickScope" else 0.0)
 	var aim: float = d.aimDuration
 	if d.instantHit and aim > 0:
 		var gem_aim: float = 1.0 + i.aimSpeedGemValue * gem if "aimSpeed" in gems else 1.0
@@ -151,11 +160,11 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		"damageOverTimeDamageMultiplier": dot_damage,
 		"damageOverTimeDurationMultiplier": dot_duration,
 		"slowMultiplier": slow,
-		"slowDuration": d.slowDuration * (0.85 if p == "coolingCycle" else 1.0) * (1.0 + m.slowDurationIncreaseRate),
+		"slowDuration": d.slowDuration * (0.85 if p == "coolingCycle" else 1.0) * (1.0 + m.slowDurationIncreaseRate + float(core.get("controlDurationIncrease", 0.0))),
 		"appliesFrostCrack": s == "frostCrack", "appliesIgnitionBurst": s == "ignitionBurst", "spreadsChainIgnition": s == "chainIgnition",
 		"physicalResistanceReduction": 0.2 if s == "fractureImpact" else 0.0,
 		"effectAreaMultiplier": effect_area, "centeredAreaRadius": range_value * effect_area,
-		"splashSecondaryDamageMultiplier": 0.5 + (0.1 if s == "expandedBlastCore" else 0.0) + m.splashSecondaryDamageBonusRate,
+		"splashSecondaryDamageMultiplier": 0.5 + (0.1 if s == "expandedBlastCore" else 0.0) + m.splashSecondaryDamageBonusRate + float(core.get("splashSecondaryDamageBonus", 0.0)),
 		"splashRadius": splash,
 		"chainCount": jumps if d.type == "lightning" else (2 if "chain" in gems and fires_projectile else 0),
 		"ignoresArmorReduction": "armorPiercing" in gems,
@@ -163,7 +172,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		"lightningChainDamageMultiplier": (0.7 if s == "currentAmplification" else 0.5) * (1.0 + m.lightningChainDamageIncreaseRate),
 		"appliesLightningRecovery": s == "lightningRecovery",
 		"criticalChance": clampf(d.criticalChance + crit_bonus, 0.0, 1.0),
-		"criticalDamageMultiplier": d.criticalDamageMultiplier + i.criticalDamageProgressionBonusRate + m.criticalDamageBonusRate,
+		"criticalDamageMultiplier": d.criticalDamageMultiplier + i.criticalDamageProgressionBonusRate + m.criticalDamageBonusRate + float(core.get("criticalDamageBonus", 0.0)),
 		"aimDuration": aim,
 	}
 
@@ -172,9 +181,16 @@ static func firing_stats(i: Dictionary, stats: Dictionary, critical_multiplier: 
 	for key in ["damage", "range", "effectAreaMultiplier", "centeredAreaRadius", "chainCount", "splashRadius", "splashSecondaryDamageMultiplier", "projectileSpeed", "physicalResistanceReduction", "ignoresArmorReduction", "damageOverTimeDamageMultiplier", "damageOverTimeDurationMultiplier", "slowDuration", "slowMultiplier", "appliesFrostCrack", "appliesIgnitionBurst", "spreadsChainIgnition", "lightningChainMaxJumps", "lightningChainDamageMultiplier"]:
 		out[key] = stats[key]
 	out.criticalMultiplier = critical_multiplier
+	var core: Dictionary = i.get("coreEffects", {})
+	out.directDamageIncrease = float(core.get("directDamageIncrease", 0.0))
+	out.splashDamageIncrease = float(core.get("splashDamageIncrease", 0.0))
+	out.chainDamageIncrease = float(core.get("lightningChainDamageIncrease", 0.0))
+	out.chainJumpRangeMultiplier = 1.0 + float(core.get("lightningChainRangeIncrease", 0.0))
+	out.firstControlDurationMultiplier = float(core.get("firstControlDurationMultiplier", 1.0))
+	out.controlDurationMultiplier = 1.0 + float(core.get("controlDurationIncrease", 0.0))
 	out.hasChain = "chain" in i.gems
 	out.hasDamageOverTime = "damageOverTime" in i.definition.attackTags
-	out.lightningChainJumpRange = i.lightningChainJumpRange * (1.0 + i.moduleEffect.lightningChainRangeIncreaseRate)
+	out.lightningChainJumpRange = i.lightningChainJumpRange * (1.0 + i.moduleEffect.lightningChainRangeIncreaseRate + float(core.get("lightningChainRangeIncrease", 0.0)))
 	for trait_name in ["chainCleanup", "suppressiveFire", "exposedMark", "finishingShot"]:
 		out["applies" + trait_name.left(1).to_upper() + trait_name.substr(1)] = i.secondaryTrait == trait_name
 	for trait_name in ["overheatMagazine", "compressedCharge", "focusedLightning"]:

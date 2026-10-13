@@ -431,7 +431,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
                                 SOURCE_ASSETS=assets), \
                     patch.object(preparation, "check_generated") as content_check, \
                     patch.object(preparation, "load_compiled_content", return_value=catalog) as content_load, \
-                    patch.object(preparation, "compile_progression") as progression_check:
+                    patch.object(preparation, "compile_progression") as progression_check, \
+                    patch.object(preparation, "compile_core_tree") as core_check:
                 write(source / "content/source/authoring.json", b"source must not be packaged")
                 write(project / "content/source/old.json", b"old staged source")
                 preparation.prepare()
@@ -439,6 +440,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 content_check.assert_called_with(root)
                 content_load.assert_called_with(source / "content/game_content.json")
                 progression_check.assert_called_with(root, check=True)
+                core_check.assert_called_with(root, check=True)
                 self.assertFalse((project / "content/source").exists())
                 self.assertEqual(len(json.loads((project.parent / "chapter_one_frames.json").read_text())), 5)
                 self.assertEqual(len(json.loads((project.parent / "chapter_two_frames.json").read_text())), 5)

@@ -284,7 +284,9 @@ func _hash_tests():
 	var fixtures: Variant = SaveJson.parse(FileAccess.get_file_as_string(fixture_path))
 	var payloads: Variant = SaveJson.parse(FileAccess.get_file_as_string(OS.get_environment("RUNE_ACCOUNT_CODEC_FIXTURE")))
 	for fixture in fixtures:
-		var normalized: Variant = Codec.decode(payloads[fixture.index].decoded)
+		# Hash archived normalized payloads directly: exact old receipts remain
+		# stable even when newer codecs reject synthetic unsupported revisions.
+		var normalized: Variant = payloads[fixture.index].decoded
 		check(Hash.hash_payload(normalized) == fixture.hash, "Existing Dart payload hash: " + str(fixture.index))
 
 func _legacy_writer_claim_tests():
@@ -300,7 +302,7 @@ func _legacy_writer_claim_tests():
 	remote.responses = [response(426, {}, "CLIENT_UPDATE_REQUIRED"), response(200, {"writerGeneration":8,"claimedAt":"2026-01-01T00:00:01Z"})]
 	var result: Dictionary = await online._claim_writer()
 	check(result.ok and remote.calls[-2].body == old_raw and remote.calls[-2].headers["Idempotency-Key"] == "52345678-1234-4234-8234-123456789abc","Upgraded client resolves old writer request exactly first")
-	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == 9 and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh gen9 writer claim")
+	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == 10 and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh gen10 writer claim")
 	check(online.store.load_save() == payload(100) and remote.credentials.accountId == ACCOUNT,"Writer upgrade keeps local progress and account binding")
 	online.dispose()
 	online.queue_free()

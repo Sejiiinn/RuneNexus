@@ -1,7 +1,12 @@
 extends RefCounted
 const Progression = preload("res://content/stage_progression.gd")
-## Flutter's 720-unit core tree, with persistent viewport and uncommitted ranks.
+## Version-aware tree with persistent viewport and uncommitted ranks.
 const AppTheme = preload("res://ui/app_theme.gd")
+const ExpandedTree = preload("res://ui/expanded_core_tree.gd")
+var expanded_tree := ExpandedTree.new()
+var catalog_revision := 0
+var inline_scroll: ScrollContainer
+var zoom_controls: HBoxContainer
 const ROOT := "core_passive_tree/"
 const CENTER := Vector2(360, 360)
 const POLAR := {"attackHaste":[110,300],"attackOutput":[110,0],"efficiencySaving":[110,60],"efficiencyDiversity":[110,120],"controlSelfRepair":[110,180],"controlThreatSense":[110,240],"attackPrecompute":[180,310],"attackFocus":[180,350],"attackGuardianBeam":[245,300],"attackRiftMark":[245,0],"attackOverclock":[300,330],"efficiencySupplyRecovery":[180,70],"efficiencyGemSpectrum":[180,110],"efficiencyFirstDeploy":[245,60],"efficiencyFirstLink":[245,120],"efficiencyCombinedFront":[300,90],"controlRetarget":[180,190],"controlRearLock":[180,230],"controlBufferShell":[245,180],"controlEmergencyCharge":[245,240],"controlFinalLine":[300,210]}
@@ -46,17 +51,28 @@ func setup(owner) -> void:
 	if ResourceLoader.exists("res://assets/ui/MaterialIcons-Regular.otf"):
 		material_font = load("res://assets/ui/MaterialIcons-Regular.otf")
 
-func data() -> Dictionary: return lobby.app.run_domain.growth.data.core
+func data() -> Dictionary: return lobby.app.run_domain.growth.core_catalog(lobby.progression())
+func expanded() -> bool: return int(data().get("revision",4)) >= 5
+func center() -> Vector2: return Vector2(1400,1400) if expanded() else CENTER
+func extent() -> Vector2: return Vector2(2800,2800) if expanded() else Vector2(720,720)
+func node_ids() -> Array: return data().nodes.keys()
+func node_name(id: String) -> String: return str(data().nodes[id].get("name",lobby.display_title(id)))
+func accessible_nodes() -> Array: return lobby.app.run_domain.growth.core_accessible_nodes(lobby.core_draft,int(data().get("revision",4)))
 func actual() -> Dictionary: return lobby.progression().get("corePassiveNodeRanks", {})
 func total() -> int: return int(lobby.progression().get("totalCorePoints", 0))
-func valid(ranks: Dictionary) -> bool: return lobby.app.run_domain.growth._valid_core(ranks, total())
+func valid(ranks: Dictionary) -> bool: return lobby.app.run_domain.growth.valid_core_ranks(lobby.progression(),ranks)
 func spent(ranks: Dictionary) -> int:
 	var count := 0
 	for id in ranks:
-		for rank in range(int(ranks[id])): count += int(data().nodes[id].rankCosts[rank])
+		if not data().nodes.has(id): continue
+		for rank in range(mini(int(ranks[id]),data().nodes[id].rankCosts.size())): count += int(data().nodes[id].rankCosts[rank])
 	return count
 func changed() -> bool: return lobby.core_draft != actual()
 func point(id: String) -> Vector2:
+	if id == "CORE": return center()
+	if expanded():
+		var pos: Array = data().nodes[id].position
+		return Vector2(float(pos[0]),float(pos[1]))
 	var polar: Array = POLAR[id]
 	return CENTER + Vector2.from_angle(deg_to_rad(float(polar[1]))) * float(polar[0])
 func tex(path: String) -> Texture2D:
@@ -64,6 +80,23 @@ func tex(path: String) -> Texture2D:
 	return textures[path]
 
 func render() -> void:
+	var next_revision := int(data().get("revision",4))
+	if catalog_revision != 0 and catalog_revision != next_revision:
+		# A paused v4 run may finish while another lobby page is visible. Never
+		# reuse its node IDs, draft, or 720-unit camera in the expanded graph.
+		selected = ""
+		selecting_skill = false
+		lobby.core_draft = actual().duplicate()
+		viewport_size = Vector2.ZERO
+		zoom = 1.0
+		offset = Vector2.ZERO
+		touches.clear()
+		dragging = false
+		allocating = false
+		allocation_steps.clear()
+		if allocation_tween and allocation_tween.is_valid(): allocation_tween.kill()
+	catalog_revision = next_revision
+	if not selected.is_empty() and not data().nodes.has(selected): selected = ""
 	view = TreeCanvas.new()
 	view.owner_helper = self
 	view.name = "CoreTreeViewport"
@@ -131,6 +164,17 @@ func render() -> void:
 			transparent.content_margin_right = 7
 			button.add_theme_stylebox_override(state,transparent)
 	apply_button = action(outer, "포인트 적용", apply)
+	if expanded():
+		zoom_controls = HBoxContainer.new()
+		zoom_controls.name = "CoreZoomControls"
+		zoom_controls.add_theme_constant_override("separation",5)
+		view.add_child(zoom_controls)
+		for entry in [["−",0.75],["전체",0.0],["+",1.35]]:
+			var factor: float = entry[1]
+			var button := action(zoom_controls,entry[0],func():
+				if factor == 0: fit_tree()
+				else: scale_at(factor,view.size*0.5))
+			button.custom_minimum_size = Vector2(44,44)
 	update_state()
 	if selecting_skill: skills()
 	elif not selected.is_empty(): node_details(selected)
@@ -138,7 +182,7 @@ func render() -> void:
 
 func action(parent: Node, title: String, callback: Callable) -> Button:
 	var b := AppTheme.button(title, callback)
-	b.custom_minimum_size.y = 32
+	b.custom_minimum_size.y = 44 if expanded() else 32
 	b.add_theme_font_size_override("font_size", 12)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(b)
@@ -161,17 +205,24 @@ func _resize() -> void:
 	if viewport_size != view.size:
 		viewport_size = view.size
 		zoom = minimum_zoom()
-		offset = (viewport_size - Vector2.ONE * 720 * zoom) / 2
+		offset = (viewport_size - extent() * zoom) / 2
 	_clamp()
 	_layout_inline()
 	view.queue_redraw()
-func minimum_zoom() -> float: return minf(viewport_size.x, viewport_size.y) / 720.0 * 0.92
+func minimum_zoom() -> float:
+	var available := viewport_size-Vector2(0,128 if expanded() else 0)
+	return minf(available.x/extent().x,maxf(80,available.y)/extent().y) * (1.0 if expanded() else 0.92)
+func fit_tree() -> void:
+	zoom = minimum_zoom()
+	offset = (viewport_size-extent()*zoom)/2
+	_clamp()
+	view.queue_redraw()
 func _clamp() -> void:
-	var extent := 720.0 * zoom
+	var world_size := extent() * zoom
 	for axis in range(2):
-		offset[axis] = (viewport_size[axis] - extent) / 2 if extent <= viewport_size[axis] else clampf(offset[axis], viewport_size[axis]-extent, 0)
+		offset[axis] = (viewport_size[axis] - world_size[axis]) / 2 if world_size[axis] <= viewport_size[axis] else clampf(offset[axis], viewport_size[axis]-world_size[axis]-96, 96)
 func scale_at(factor: float, focus: Vector2) -> void:
-	var next := clampf(zoom * factor, minimum_zoom(), minimum_zoom()*2.2)
+	var next := clampf(zoom * factor, minimum_zoom(), maxf(0.9,minimum_zoom()*7.0) if expanded() else minimum_zoom()*2.2)
 	offset = focus - (focus-offset) * next / zoom
 	zoom = next
 	_clamp()
@@ -228,10 +279,13 @@ func input_tree(event: InputEvent) -> void:
 
 func select_at(location: Vector2) -> void:
 	if allocating: return
+	if expanded():
+		expanded_tree.select_at(self,location)
+		return
 	var pos := (location-offset)/zoom
 	if pos.distance_to(CENTER) < 64: skills(); return
 	# Match Flutter's per-node SizedBox hit region; no oversized overlapping circles.
-	for id in POLAR:
+	for id in node_ids():
 		var maximum := int(data().nodes[id].maxRank)
 		var diameter := 48.0 if maximum == 5 else (68.0 if maximum == 3 else 96.0)
 		if Rect2(point(id)-Vector2.ONE*diameter/2,Vector2.ONE*diameter).has_point(pos):
@@ -263,7 +317,14 @@ func _open_inline(title: String) -> VBoxContainer:
 	view.add_child(inline_panel)
 	inline_body = VBoxContainer.new()
 	inline_body.add_theme_constant_override("separation",8)
-	inline_panel.add_child(inline_body)
+	if expanded():
+		inline_scroll = ScrollContainer.new()
+		inline_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		inline_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		inline_panel.add_child(inline_scroll)
+		inline_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		inline_scroll.add_child(inline_body)
+	else: inline_panel.add_child(inline_body)
 	var header := HBoxContainer.new()
 	inline_body.add_child(header)
 	var title_label := AppTheme.label(title,14)
@@ -279,6 +340,9 @@ func _open_inline(title: String) -> VBoxContainer:
 	return inline_body
 
 func _layout_inline() -> void:
+	if expanded() and is_instance_valid(view):
+		expanded_tree.layout(self)
+		return
 	if not is_instance_valid(inline_panel) or not is_instance_valid(view): return
 	var width := minf(430, maxf(1,view.size.x-24))
 	inline_panel.size.x = width
@@ -304,6 +368,7 @@ func cancel() -> void:
 	if allocating: return
 	lobby.core_draft = actual().duplicate()
 	update_state()
+	if not selected.is_empty(): node_details(selected)
 func apply() -> void:
 	if allocating or not changed() or not valid(lobby.core_draft): return
 	allocation_base = actual().duplicate()
@@ -327,7 +392,7 @@ func apply() -> void:
 
 func build_allocation_steps(base: Dictionary, target: Dictionary) -> Array[Dictionary]:
 	var traversal := {}; var activation := {}; var sources := {}; var queue := []
-	for id in POLAR:
+	for id in node_ids():
 		var before := int(base.get(id,0)); var after := int(target.get(id,0))
 		if before > 0:
 			traversal[id] = -1 if before >= 3 else 0
@@ -338,7 +403,7 @@ func build_allocation_steps(base: Dictionary, target: Dictionary) -> Array[Dicti
 	var cursor := 0
 	while cursor < queue.size():
 		var source: String = queue[cursor]; cursor += 1
-		if int(target.get(source,0)) < 3: continue
+		if int(target.get(source,0)) < 3 or bool(data().nodes[source].get("terminal",false)): continue
 		var wave := int(traversal[source])+1
 		for id in data().nodes[source].neighbors:
 			if int(target.get(id,0)) <= 0 or int(base.get(id,0)) > 0: continue
@@ -349,7 +414,7 @@ func build_allocation_steps(base: Dictionary, target: Dictionary) -> Array[Dicti
 	var compact := {}; var next := 0
 	for wave in waves:
 		if not compact.has(wave): compact[wave] = next; next += 1
-	for id in POLAR:
+	for id in node_ids():
 		if activation.has(id) and int(target.get(id,0)) > int(base.get(id,0)):
 			result.append({"id":id,"source":sources.get(id,""),"wave":compact[activation[id]],"lightsConnection":int(base.get(id,0))==0})
 	result.sort_custom(func(a,b): return int(a.wave)<int(b.wave))
@@ -393,6 +458,9 @@ func confirm_reset() -> void:
 		update_state())
 
 func node_details(id: String) -> void:
+	if expanded():
+		expanded_tree.node_details(self,id)
+		return
 	selecting_skill = false
 	selected = id
 	view.queue_redraw()
@@ -476,6 +544,9 @@ func _text(canvas: Control, value: String, center: Vector2, height: int, color :
 	var baseline := font.get_ascent(height) - font.get_height(height) / 2.0
 	canvas.draw_string(font,center+Vector2(-width/2,baseline),value,HORIZONTAL_ALIGNMENT_LEFT,-1,height,color)
 func draw_tree(canvas: Control) -> void:
+	if expanded():
+		expanded_tree.draw_tree(self,canvas)
+		return
 	canvas.draw_rect(Rect2(Vector2.ZERO,canvas.size),Color("04111b"))
 	var background := tex(ROOT+"tree_circuit_background.png")
 	if background:
@@ -485,7 +556,7 @@ func draw_tree(canvas: Control) -> void:
 	canvas.draw_set_transform(offset,0,Vector2.ONE*zoom)
 	var nodes: Dictionary = data().nodes
 	var visited := {}
-	for id in POLAR:
+	for id in node_ids():
 		if id in data().startingNodes: _connection(canvas,CENTER,point(id),int(lobby.core_draft.get(id,0))>0,rendered_rank(id)>0)
 		for neighbor in nodes[id].neighbors:
 			var edge := "|".join([id,neighbor] if id < neighbor else [neighbor,id])
@@ -503,7 +574,7 @@ func draw_tree(canvas: Control) -> void:
 	# extents are distinct. Native 32px end caps must occupy 16 world units.
 	_nameplate(canvas,Rect2(CENTER+Vector2(-width/2,34),Vector2(width,30)))
 	_text(canvas,title,CENTER+Vector2(0,49),15,Color("f4e6c8"))
-	for id in POLAR:
+	for id in node_ids():
 		var rank := int(lobby.core_draft.get(id,0))
 		var original := int(allocation_base.get(id,0)) if allocating else int(actual().get(id,0))
 		var maximum := int(nodes[id].maxRank)
@@ -516,7 +587,7 @@ func draw_tree(canvas: Control) -> void:
 		if not accessible:
 			var ranks: Dictionary = lobby.core_draft.duplicate()
 			ranks[id] = 1
-			accessible = lobby.app.run_domain.growth._valid_core(ranks,2147483647)
+			accessible = accessible_nodes().has(id)
 		var muted := not accessible and original == 0 and rank == original
 		var color := Color("ffb84d") if id.begins_with("attack") else (Color("56d9e8") if id.begins_with("control") else Color("72e0a2"))
 		if selected == id: _image(canvas,ROOT+"selection_ring_v1.png",Rect2(pos-Vector2.ONE*diameter*0.66,Vector2.ONE*diameter*1.32))

@@ -388,6 +388,9 @@ func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 	result.lightningChainJumpRange *= layout.boardDistanceScale
 	# Only known, explicitly supplied stat inputs cross the app/runtime boundary.
 	for key in inputs.get("statInput", {}):
+		if key == "coreEffects" and inputs.statInput[key] is Dictionary:
+			result[key] = inputs.statInput[key].duplicate(true)
+			continue
 		if key in ["definition", "boardDistanceScale"] or not result.has(key):
 			error = "Unsupported turret input: " + str(key)
 			return {}

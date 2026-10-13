@@ -1,4 +1,5 @@
 extends RefCounted
+const CoreHealthText = preload("res://ui/core_health_text.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
@@ -89,8 +90,8 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 	if tile == "core":
 		UiWidgets.label(hud.body,"코어 방어",16)
 		var defense = hud.app.scene.combat_runtime.defense
-		hud.core_label = UiWidgets.label(hud.body,"체력 %s / %s" % [HudNumber.compact_integer(ceili(defense.hp)),HudNumber.compact_integer(ceili(defense.max_hp))],13)
-		var bar = ProgressBar.new(); bar.max_value = maxf(1,defense.max_hp); bar.value = defense.hp; bar.show_percentage = false; bar.custom_minimum_size.y = 10; hud.body.add_child(bar); hud.core_bar = bar
+		hud.core_label = UiWidgets.label(hud.body,"체력 "+CoreHealthText.combined_numbers(defense),13)
+		var bar = preload("res://ui/core_health_bar.gd").new(); CoreHealthText.update_bar(bar,defense); bar.custom_minimum_size.y = 10; hud.body.add_child(bar); hud.core_bar = bar
 		hud.core_metric = UiWidgets.label(hud.body,"",12)
 		return
 	var preparing: bool = state.phase == "preparation"
@@ -163,9 +164,9 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 func _refresh_core() -> void:
 	if not is_instance_valid(hud.core_label): return
 	var runtime = hud.app.scene.combat_runtime
-	hud.core_label.text = "체력 %s / %s" % [HudNumber.compact_integer(ceili(runtime.defense.hp)),HudNumber.compact_integer(ceili(runtime.defense.max_hp))]
-	hud.core_label.tooltip_text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
-	hud.core_bar.max_value = maxf(1,runtime.defense.max_hp); hud.core_bar.value = runtime.defense.hp
+	hud.core_label.text = "체력 "+CoreHealthText.combined_numbers(runtime.defense)
+	hud.core_label.tooltip_text = CoreHealthText.tooltip(runtime.defense)
+	CoreHealthText.update_bar(hud.core_bar,runtime.defense)
 	var core = runtime.get("core")
 	if core == null: hud.core_metric.text = "전투 스킬 없음"; return
 	if core.skill == "guardianBeam":

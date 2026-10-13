@@ -209,6 +209,10 @@ func (handler saveHandler) claimWriter(response http.ResponseWriter, request *ht
 		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 계정 진행을 사용할 수 있습니다.")
 		return
 	}
+	if errors.Is(err, gamesave.ErrCoreTreeConflict) {
+		writeAPIError(response, request, http.StatusUnprocessableEntity, "INVALID_SAVE_DATA", "코어 트리 또는 도전 시작 시점의 배분 데이터가 올바르지 않습니다.")
+		return
+	}
 	if errors.Is(err, gamesave.ErrGemOfferConflict) {
 		writeAPIError(response, request, http.StatusConflict, "GEM_OFFER_STATE_CONFLICT", "서버 도전과 젬 상태를 복구한 뒤 다시 시도해 주세요.")
 		return
@@ -310,6 +314,10 @@ func (handler saveHandler) update(response http.ResponseWriter, request *http.Re
 			"IDEMPOTENCY_KEY_REUSED",
 			"같은 Idempotency-Key를 다른 저장 요청에 사용할 수 없습니다.",
 		)
+		return
+	}
+	if errors.Is(err, gamesave.ErrCoreTreeConflict) {
+		writeAPIError(response, request, http.StatusUnprocessableEntity, "INVALID_SAVE_DATA", "코어 트리 또는 도전 시작 시점의 배분 데이터가 올바르지 않습니다.")
 		return
 	}
 	if errors.Is(err, gamesave.ErrGemOfferConflict) {

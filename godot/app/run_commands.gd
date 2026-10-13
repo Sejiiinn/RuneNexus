@@ -35,6 +35,20 @@ func kill_rewards(state: Dictionary) -> Dictionary:
 func _rule(type: String) -> Dictionary:
 	return growth.data.get("turretRules", {}).get(type, {})
 
+func max_turret_level(state: Dictionary, type: String) -> int:
+	return max_turret_level_from_derived(type, derived(state))
+
+func max_turret_level_from_derived(type: String, configuration: Dictionary) -> int:
+	return int(_rule(type).get("maxLevel", 10)) + int(configuration.get("coreEffects", {}).get("maxTurretLevelBonus", 0))
+
+func _level_base_cost(rule: Dictionary, level: int) -> int:
+	var costs: Array = rule.get("levelUpCosts", [])
+	if level >= 1 and level <= costs.size(): return int(costs[level - 1])
+	# The existing authored costs follow buildCost * (0.70 + 0.45 * (level-1)).
+	# Extend that same gold curve for the purchased elite level, never reuse the
+	# previous level's price or grant the level for free.
+	return roundi(float(rule.get("buildCost", 0)) * (0.70 + 0.45 * float(level - 1)))
+
 func _module(state: Dictionary, type: String) -> Dictionary:
 	return derived(state).get("turretStatInputs", {}).get(type, {}).get("moduleEffect", {})
 
@@ -67,11 +81,11 @@ func quotes_from_derived(state: Dictionary, id: int, d: Dictionary) -> Dictionar
 	var slot := int(t.slotLimit)
 	var level_discount := clampf(float(m.get("levelUpCostDiscountRate",0)) + (float(m.get("highLevelUpgradeCostDiscountRate",0)) if level >= 5 else 0.0),0,0.8)
 	var link_discount := clampf(float(m.get("linkUpgradeCostDiscountRate",0)) + (float(d.get("firstLinkUpgradeDiscountRate",0)) if slot == 1 else 0.0),0,0.8)
-	var level_base := int(r.levelUpCosts[mini(level-1,r.levelUpCosts.size()-1)])
+	var level_base := _level_base_cost(r, level)
 	var link_base := int(r.linkUpgradeCosts[mini(slot-1,r.linkUpgradeCosts.size()-1)])
-	return {"level":maxi(1,roundi(level_base*(1-level_discount)*float(d.get("passiveTurretLevelUpCostMultiplier",1))*float(d.get("permanentTurretLevelUpCostMultiplier",1)))) if level < int(r.get("maxLevel",10)) else 0,
+	return {"level":maxi(1,roundi(level_base*(1-level_discount)*float(d.get("passiveTurretLevelUpCostMultiplier",1))*float(d.get("permanentTurretLevelUpCostMultiplier",1)))) if level < max_turret_level_from_derived(t.type, d) else 0,
 		"link":maxi(1,roundi(link_base*(1-link_discount)*float(d.get("passiveTurretLinkCostMultiplier",1))*float(d.get("permanentLinkCostMultiplier",1)))) if slot < int(d.get("maxTurretLinkSlots",3)) and slot <= r.linkUpgradeCosts.size() and level >= int(r.linkRequiredLevels[mini(slot-1,r.linkRequiredLevels.size()-1)]) else 0,
-		"sell":int(int(t.investedGold)*int(d.get("turretRefundPercent",50))/100),
+		"sell":int(float(t.investedGold)*float(d.get("turretRefundPercent",50))/100.0),
 		"primaryTrait":maxi(1,roundi(12*float(d.get("passiveTraitShardCostMultiplier",1)))), "secondaryTrait":maxi(1,roundi(24*float(d.get("passiveTraitShardCostMultiplier",1)))),
 		"primaryTraits":r.get("primaryTraits",[]), "secondaryTraits":r.get("secondaryTraits",[])}
 

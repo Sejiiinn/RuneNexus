@@ -43,9 +43,22 @@ static func _capture_owned_normalized(result: Variant, snapshot: Dictionary, tur
 	run.roundNexusHpLost = snapshot.defense.roundHpLost
 	run.emergencyChargeUsedThisRound = snapshot.defense.emergencyChargeUsedThisRound
 	run.finalDefenseUsedThisRound = snapshot.defense.finalDefenseUsedThisRound
+	# Stage-limited passives are checkpoint state, not recreated by a new epoch.
+	# Keep v4 payload shape intact for exact legacy receipt/hash recovery.
+	if int(run.get("runCorePassiveTreeRevision", result.progression.get("corePassiveTreeRevision", 4))) >= 5:
+		run.nexusAdditionalHp = float(snapshot.defense.get("additionalHp", 0.0))
+		run.nexusAdditionalHpGranted = bool(snapshot.defense.get("additionalHpGranted", true))
+		run.indomitableUsedThisStage = bool(snapshot.defense.get("indomitableUsedThisStage", false))
+		run.nexusInvulnerableRemaining = float(snapshot.defense.get("invulnerableRemaining", 0.0))
 	# These temporary references are read synchronously by decode below, which
 	# creates the owned enemy/status and queue trees returned to the caller.
 	run.enemies = snapshot.enemies
+	if int(run.get("runCorePassiveTreeRevision", result.progression.get("corePassiveTreeRevision", 4))) < 5:
+		run.enemies = []
+		for enemy in snapshot.enemies:
+			var legacy_enemy: Dictionary = enemy.duplicate()
+			for field in ["firstControlApplied", "stunRemaining", "freezeRemaining"]: legacy_enemy.erase(field)
+			run.enemies.append(legacy_enemy)
 	run.spawnQueue = snapshot.wave.spawnQueue
 	run.turrets = []
 	for state in snapshot.turrets:
@@ -54,6 +67,8 @@ static func _capture_owned_normalized(result: Variant, snapshot: Dictionary, tur
 		# Only scalar runtime stats change here; decode owns the nested gem lists.
 		var turret: Dictionary = turret_templates[key].duplicate()
 		turret.cooldown = state.cooldown
+		if int(run.get("runCorePassiveTreeRevision", result.progression.get("corePassiveTreeRevision", 4))) >= 5:
+			turret.stockpileCharges = int(state.get("stockpileCharges", 0))
 		turret.damageDealt = 0.0
 		for field in DAMAGE_FIELDS:
 			turret[field] = state[field]

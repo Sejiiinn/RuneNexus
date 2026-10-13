@@ -32,6 +32,9 @@ SERVICE_RUNNERS = (ROOT / "scripts/verify_godot_account_services.py", ROOT / "sc
 # args/steps: "{build}", "{root}" and "{tmp}" expand to the build folder, the
 # repository and the case's isolated temporary folder.
 CASES: dict[str, tuple[str, dict]] = {
+    "verify_expanded_core_ui.gd": ("EXPANDED_CORE_UI failures=[]", {}),
+    "verify_stockpile_indicator.gd": ("STOCKPILE_INDICATOR failures=[]", {"args":["--fixture"]}),
+    "verify_additional_hp_ui.gd": ("ADDITIONAL_HP_UI failures=[]", {}),
     "verify_app_lifecycle.gd": ("APP_LIFECYCLE failures=[]", {}),
     "verify_app_resume.gd": ("APP_RESUME failures=[]", {}),
     "verify_native_frame_coalescing.gd": ("NATIVE_FRAME_COALESCING checks=", {}),

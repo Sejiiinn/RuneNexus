@@ -109,6 +109,11 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 	state.progression = decoded.progression.duplicate(true) if for_restore else decoded.progression.duplicate()
 	state.progression.turretModules = decoded.turretModules.duplicate(true) if for_restore else decoded.turretModules
 	state.nextTurretId = 1000
+	var frozen_progression: Dictionary = growth.run_effect_progression(state)
+	if int(state.progression.get("corePassiveTreeRevision", 4)) >= 5 and not growth.valid_core_ranks(state.progression, state.progression.get("corePassiveNodeRanks", {})): return _reject("Invalid core allocation")
+	if int(frozen_progression.get("corePassiveTreeRevision", 4)) >= 5 and not growth.valid_core_ranks(frozen_progression, frozen_progression.get("corePassiveNodeRanks", {})): return _reject("Invalid frozen core allocation")
+	var service = Commands.new(catalog,growth)
+	var derived: Dictionary = service.derived(state)
 	var occupied := {}
 	for t in state.turrets:
 		var rule: Dictionary = growth.data.turretRules.get(t.type,{})
@@ -116,7 +121,8 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 		var cell := int(t.y) * int(map.columns) + int(t.x)
 		if occupied.has(cell) or map.tiles[cell] != "build": return _reject("Occupied or unbuildable turret tile")
 		occupied[cell] = true
-		if t.level < 1 or t.level > int(rule.maxLevel) or t.slotLimit < 1 or t.slotLimit > 5 or (t.slotLimit == 5 and growth.max_link_slots(state.progression) < 5) or t.equippedGemSlots.size() > t.slotLimit: return _reject("Invalid turret level/slots")
+		if t.level < 1 or t.level > service.max_turret_level_from_derived(t.type, derived) or t.slotLimit < 1 or t.slotLimit > 5 or (t.slotLimit == 5 and growth.max_link_slots(state.progression) < 5) or t.equippedGemSlots.size() > t.slotLimit: return _reject("Invalid turret level/slots")
+		if int(t.get("stockpileCharges", 0)) > 0 and not bool(derived.coreEffects.get("hasStockpileFire", false)): return _reject("Unavailable stockpile charges")
 		for key in ["primaryTrait","secondaryTrait"]:
 			if t[key] != null and t[key] not in rule.get(key+"s",[]): return _reject("Invalid turret trait")
 		if GemSlots.has_duplicates(t.equippedGemSlots): return _reject("Invalid turret gems")
@@ -136,11 +142,16 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 	for type in state.runUpgradeLevels:
 		var rule: Dictionary = growth.data.runUpgrades.get(type,{})
 		if rule.is_empty() or int(state.runUpgradeLevels[type]) < 0: return _reject("Invalid run upgrade")
-	var service = Commands.new(catalog,growth)
-	var derived: Dictionary = service.derived(state)
+	# Legacy gem compatibility normalization above may change diversity effects.
+	derived = service.derived(state)
 	for type in state.runUpgradeLevels:
 		if int(state.runUpgradeLevels[type]) > int(growth.data.runUpgrades[type].maxLevel) + int(derived.runUpgradeMaxLevelBonuses.get(type,0)): return _reject("Invalid run upgrade level")
 	if run.nexusHp < 0 or run.nexusHp > derived.maxNexusHp: return _reject("Invalid nexus HP")
+	var additional_cap: float = float(derived.defenseConfig.get("baseMaxHp", derived.maxNexusHp)) * float(derived.coreEffects.get("nexusAdditionalHpRate", 0.0))
+	if float(run.get("nexusAdditionalHp", 0.0)) < 0.0 or float(run.get("nexusAdditionalHp", 0.0)) > additional_cap + 0.000001: return _reject("Invalid additional nexus HP")
+	if float(run.get("nexusInvulnerableRemaining", 0.0)) < 0.0 or float(run.get("nexusInvulnerableRemaining", 0.0)) > 3.0: return _reject("Invalid nexus invulnerability")
+	if bool(run.get("indomitableUsedThisStage", false)) and not bool(derived.coreEffects.get("hasIndomitableFortress", false)): return _reject("Unavailable indomitable fortress")
+	if float(run.get("nexusInvulnerableRemaining", 0.0)) > 0.0 and (not bool(run.get("indomitableUsedThisStage", false)) or not bool(derived.coreEffects.get("hasIndomitableFortress", false))): return _reject("Untriggered nexus invulnerability")
 	var inputs := battle_inputs.duplicate(true)
 	inputs.defenseConfig = derived.defenseConfig
 	# Only the frozen skill changes; growth reads the other nested fields.
@@ -189,6 +200,9 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 	var bootstrap: Dictionary = catalog.bootstrap(stage,inputs)
 	if bootstrap.is_empty(): return _reject(catalog.error)
 	bootstrap.defense.state = {"hp":run.nexusHp,"roundHpLost":run.roundNexusHpLost,"emergencyChargeUsedThisRound":run.emergencyChargeUsedThisRound,"finalDefenseUsedThisRound":run.finalDefenseUsedThisRound}
+	# Loading is never a stage-start grant, including an older checkpoint that
+	# predates these optional fields. Only fresh bootstrap grants additional HP.
+	bootstrap.defense.state.merge({"additionalHp":float(run.get("nexusAdditionalHp", 0.0)),"additionalHpGranted":true,"indomitableUsedThisStage":bool(run.get("indomitableUsedThisStage", false)),"invulnerableRemaining":float(run.get("nexusInvulnerableRemaining", 0.0))}, true)
 	bootstrap.core = run.runCoreCombatSkillStats.duplicate(true)
 	bootstrap.turrets = []
 	for command in service.runtime_commands(state): bootstrap.turrets.append(command.turret)

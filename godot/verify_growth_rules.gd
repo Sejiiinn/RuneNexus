@@ -46,9 +46,10 @@ func _init() -> void:
 				for key in rewards: check(rewards[key] == full[key],sample.name+": reward subset " + key + " level=" + str(run_level))
 			for key in ["initialGold", "maxNexusHp", "startingGemShards", "maxTurretLinkSlots", "canSetTurretTargetPriority", "firstLinkUpgradeDiscountRate", "bossKillGemShardBonus", "runeResonanceBonusRate", "runUpgradeCostMultiplier", "bossBountyBonusRate", "permanentLinkCostMultiplier", "permanentTurretLevelUpCostMultiplier", "waveClearGoldBonus"]:
 				check(near(d[key], pair[1][key]), sample.name + ": " + key)
-	for sample in growth.data.core.verificationCases:
+	for sample in growth.data.legacyCore.verificationCases:
 		check(near(growth.core_effects({"corePassiveNodeRanks":sample.ranks}), sample.effects), "combined core effects " + str(sample.ranks))
 	var p: Dictionary = growth.data.defaultProgression.duplicate(true)
+	p.corePassiveTreeRevision = 4 # Historical allocation assertions retain the old catalog.
 	p.runes = 1000000
 	p.clearedStageNumbers = [1,2,3,4,5,6,7,8,9,10]
 	p.totalCorePoints = 100

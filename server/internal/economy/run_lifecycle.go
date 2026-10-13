@@ -145,6 +145,9 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 	var row dbgen.EconomyRun
 	var activeRun map[string]json.RawMessage
 	if kind == "run_start" {
+		if err := gamesave.ValidateCoreTreeRunStart(source.Progression, source.ActiveRun, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+			return CommandResult{}, err
+		}
 		if _, activeErr := q.GetActiveEconomyRunForUpdate(ctx, account); activeErr == nil {
 			return CommandResult{}, ErrGemOfferConflict
 		} else if !errors.Is(activeErr, pgx.ErrNoRows) {
