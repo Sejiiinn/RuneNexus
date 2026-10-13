@@ -56,6 +56,11 @@ var _target_candidates: Array = []
 var _target_candidates_ready := false
 # [min x, min y, max x, max y, max target radius] of the shared candidates.
 var _target_bounds: Array = []
+# Core sync changes only when its actual multipliers change. New/replaced
+# turrets still receive the current sync in _turret, independent of this cache.
+var _sync_stats_ready := false
+var _sync_stats_damage := 1.0
+var _sync_stats_rate := 1.0
 var visual_id: int = 1000000000
 var damage_number_index: int = 0
 var event_id: int = 0
@@ -265,6 +270,7 @@ func _reset(packet: Dictionary) -> void:
 	active = true
 	wave = Wave.new()
 	core = CoreSkill.new()
+	_sync_stats_ready = false
 	defense = Defense.new()
 	wave_configured = false
 	terminal = false
@@ -351,10 +357,18 @@ func _apply_sync(t: Dictionary) -> void:
 
 func _refresh_turret_stats() -> void:
 	if not core.configured: return
+	var sync: bool = core.attack_sync_remaining > 0
+	var damage: float = float(core.config.get("attackSyncDamageMultiplier",1.0)) if sync else 1.0
+	var rate: float = float(core.config.get("attackSyncAttackRateMultiplier",1.0)) if sync else 1.0
+	if _sync_stats_ready and damage == _sync_stats_damage and rate == _sync_stats_rate: return
+	_sync_stats_ready = true
+	_sync_stats_damage = damage
+	_sync_stats_rate = rate
 	for t in turrets.values():
 		var old_damage: float = t.statInput.corePassiveTurretDamageMultiplier
 		var old_rate: float = t.statInput.corePassiveTurretAttackRateMultiplier
-		_apply_sync(t)
+		t.statInput.corePassiveTurretDamageMultiplier = damage
+		t.statInput.corePassiveTurretAttackRateMultiplier = rate
 		if old_damage != float(t.statInput.corePassiveTurretDamageMultiplier) or old_rate != float(t.statInput.corePassiveTurretAttackRateMultiplier):
 			t.stats = Stats.shared_stats_at(t.statInput,int(t.statInput.level))
 

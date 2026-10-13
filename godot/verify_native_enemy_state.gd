@@ -16,6 +16,7 @@ func enemy(extra: Dictionary={}) -> Dictionary:
 	return Enemy.create(raw)
 func _initialize() -> void:
 	_path_revision_checks()
+	_vulnerability_timer_checks()
 	_dot_armor_checks()
 	_dot_expiry_checks()
 	_dot_reapplication_checks()
@@ -120,6 +121,35 @@ func _initialize() -> void:
 	close(result.bonusDamage,25*(0.12+0.88*25/55.0)-20*(0.12+0.88*20/50.0),"rift bonus includes nonlinear armor response")
 	print(JSON.stringify({"checks":checks,"failures":failures}))
 	quit(0 if failures.is_empty() else 1)
+
+func _vulnerability_timer_checks() -> void:
+	var e := enemy({"speed":0.0,"physicalVulnerabilityRemaining":0.1,"physicalVulnerabilityBonus":0.2,
+		"elementalVulnerabilityRemaining":0.2,"elementalVulnerabilityBonus":0.3,
+		"riftMarkRemaining":0.3,"riftMarkDamageAmplification":0.4})
+	var before := Enemy.snapshot(e)
+	Enemy.step(e,0.0)
+	for field in ["physicalVulnerabilityRemaining","physicalVulnerabilityBonus","elementalVulnerabilityRemaining","elementalVulnerabilityBonus","riftMarkRemaining","riftMarkDamageAmplification"]:
+		close(e[field],before[field],"zero step preserves "+field)
+	Enemy.step(e,0.1)
+	close(e.physicalVulnerabilityRemaining,0,"physical exact expiry")
+	close(e.physicalVulnerabilityBonus,0,"physical expiry clears own bonus")
+	close(e.elementalVulnerabilityRemaining,0.1,"elemental countdown independent")
+	close(e.elementalVulnerabilityBonus,0.3,"elemental bonus survives physical expiry")
+	close(e.riftMarkRemaining,0.2,"rift countdown independent")
+	close(e.riftMarkDamageAmplification,0.4,"rift amplification survives other expiry")
+	Enemy.step(e,0.1)
+	close(e.elementalVulnerabilityBonus,0,"elemental exact expiry clears own bonus")
+	Enemy.step(e,0.2)
+	close(e.riftMarkRemaining,0,"rift overshoot clamps to zero")
+	close(e.riftMarkDamageAmplification,0,"rift expiry clears amplification")
+	# Inactive values are left alone; only a positive timer owns expiry reset.
+	e.physicalVulnerabilityBonus=0.2
+	e.elementalVulnerabilityRemaining=-1.0
+	e.elementalVulnerabilityBonus=0.3
+	Enemy.step(e,0.1)
+	close(e.physicalVulnerabilityBonus,0.2,"zero inactive timer leaves bonus unchanged")
+	close(e.elementalVulnerabilityRemaining,-1,"negative inactive timer left unchanged")
+	close(e.elementalVulnerabilityBonus,0.3,"negative inactive timer leaves bonus unchanged")
 
 
 func _dot_armor_checks() -> void:

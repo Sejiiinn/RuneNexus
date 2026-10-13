@@ -168,6 +168,7 @@ func _runtime() -> void:
 	sync.process_command({"epoch":1,"sequence":2,"dt":2.1})
 	_compare(sync.turrets["1"].stats.damage,damage,"native sync expiration restores damage")
 	_compare(sync.turrets["1"].stats.attackRate,rate,"native sync expiration restores attack rate")
+	_sync_command_checks(input)
 	# Two simultaneous arrivals apply sequentially and consume emergency only once.
 	var second := arriving.duplicate(true)
 	second.id = 18
@@ -193,3 +194,38 @@ func _runtime() -> void:
 	var pulses: Array = rift_frame.presentation.effects.items.filter(func(v): return v.kind == "rift")
 	_check(pulses.size()==1 and pulses[0].points.size()==4,"rift contains all marked target endpoints")
 	_compare(pulses[0].duration,0.42,"rift preserves original lifetime")
+
+func _sync_command_checks(input: Dictionary) -> void:
+	var r = _setup([_enemy(61,10000)])
+	r._turret({"id":1,"position":[5000,0],"statInput":input,"state":{}})
+	var base: Dictionary = r.turrets["1"].stats.duplicate(true)
+	var config := _config()
+	r._command({"kind":"coreConfig","config":config,"state":{"attackSyncRemaining":1.0}})
+	_compare(r.turrets["1"].stats.damage,base.damage*1.25,"restored active sync refreshes existing turret immediately")
+	r._turret({"id":2,"position":[5000,0],"statInput":input,"state":{}})
+	_compare(r.turrets["2"].stats.damage,base.damage*1.25,"new turret receives unchanged active sync")
+	var upgraded := input.duplicate(true)
+	upgraded.level = 3
+	r._turret({"id":1,"position":[5000,0],"statInput":upgraded,"state":{}})
+	var upgraded_damage: float = r.turrets["1"].stats.damage
+	config.attackSyncDamageMultiplier = 1.5
+	config.attackSyncAttackRateMultiplier = 1.2
+	r._command({"kind":"coreConfig","config":config,"state":{"attackSyncRemaining":1.0}})
+	_compare(r.turrets["1"].stats.damage,upgraded_damage/1.25*1.5,"active config updates upgraded turret multiplier")
+	_compare(r.turrets["2"].stats.attackRate,base.attackRate*1.2,"active config updates all turret rates")
+	r._command({"kind":"coreConfig","config":config,"state":{"attackSyncRemaining":2.0}})
+	_compare(r.turrets["2"].stats.damage,base.damage*1.5,"same actual multiplier preserves active stats")
+	r._command({"kind":"resetCoreCycle"})
+	_compare(r.turrets["2"].stats.damage,base.damage,"reset cycle clears sync immediately")
+	r._command({"kind":"waveStart","wave":{"id":2,"active":true,"spawnQueue":[],"core":{"attackSyncRemaining":1.0}}})
+	_compare(r.turrets["2"].stats.attackRate,base.attackRate*1.2,"wave core restoration refreshes sync immediately")
+	# Guardian reads unboosted DPS when old sync expires, then activates new sync.
+	config.normalMaxHp = 0.0
+	r._command({"kind":"coreConfig","config":config,"state":{"attackSyncRemaining":0.01,"cooldown":0.0}})
+	var upgraded_base_damage: float = upgraded_damage/1.25
+	var upgraded_base_rate: float = r.turrets["1"].stats.attackRate/1.2
+	var dps: float = upgraded_base_damage*upgraded_base_rate + float(base.damage)*float(base.attackRate)
+	var expected: float = dps*5.0*0.08*1.5/(1.0/0.1)
+	r._step(0.02)
+	_compare(r.core.guardian_beam_tick_damage,expected,"guardian DPS read follows old sync expiry before new activation")
+	_compare(r.turrets["2"].stats.damage,base.damage*1.5,"new guardian activation refreshes next shots in same step")

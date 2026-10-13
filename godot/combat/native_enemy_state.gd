@@ -317,10 +317,17 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 	if not e.slowInstances.is_empty():
 		for slow in e.slowInstances: slow.remaining-=dt
 		e.slowInstances=e.slowInstances.filter(func(s): return s.remaining>0)
-	for prefix in ["physicalVulnerability","elementalVulnerability","riftMark"]:
-		if e[prefix+"Remaining"]>0:
-			e[prefix+"Remaining"]=maxf(0,e[prefix+"Remaining"]-dt)
-			if e[prefix+"Remaining"]==0: e[prefix+("DamageAmplification" if prefix=="riftMark" else "Bonus")]=0.0
+	# Fixed fields avoid assembling keys for every enemy at every 60 Hz step.
+	# Keep physical -> elemental -> rift expiry after continuous damage.
+	if e.physicalVulnerabilityRemaining>0:
+		e.physicalVulnerabilityRemaining=maxf(0,e.physicalVulnerabilityRemaining-dt)
+		if e.physicalVulnerabilityRemaining==0: e.physicalVulnerabilityBonus=0.0
+	if e.elementalVulnerabilityRemaining>0:
+		e.elementalVulnerabilityRemaining=maxf(0,e.elementalVulnerabilityRemaining-dt)
+		if e.elementalVulnerabilityRemaining==0: e.elementalVulnerabilityBonus=0.0
+	if e.riftMarkRemaining>0:
+		e.riftMarkRemaining=maxf(0,e.riftMarkRemaining-dt)
+		if e.riftMarkRemaining==0: e.riftMarkDamageAmplification=0.0
 	if e.hp<=0 or int(e.targetIndex)>=e.path.size(): return events
 	# Includes a portal at the spawn waypoint, without advancing a paused frame.
 	if dt > 0 and not e.get("teleportPairs",[]).is_empty():
