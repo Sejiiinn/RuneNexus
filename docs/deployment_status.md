@@ -8,9 +8,26 @@
 
 ## 현재 미배포 변경
 
-확인 기준: 2026-10-13 KST. 대상 `9a51122a`까지 확정된 클라이언트 변경은 6050 공개본에 포함했다. 서버·DB는 아래 6049 운영 반영본을 유지하며 이번에 재배포하지 않았다. 최신 공개본의 검증 범위는 아래 6050 이력에 기록한다. 실제 Google 계정과 Android 본게임·실기기 지속 성능 확인은 [체크리스트](implementation_checklist.md)에 유지한다.
+확인 기준: 2026-10-14 KST. 앱 `1bd39c2d`까지 확정된 변경을 6051 공개본에 포함했고, 같은 서버·공용 콘텐츠 입력의 API `b4e848a3`와 DB17을 먼저 운영 반영했다. 이 대상까지의 확정된 앱·API·DB 변경은 모두 배포했다. 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이, Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
 
-- [런 젬 덱](server_authoritative_economy_design.md#런-젬-덱-호환-세대-10)(경제 호환 세대 10, migration 017)은 미배포다. 서버 단위 테스트, 실제 DB 통합 검사(덱 발급·조회·덱 저장 수락·기존 명령 거절·종료/정산 차감), Godot 젬·수명주기·UI 회귀를 통과했다. 실제 서버와 연결한 앱 플레이와 Android 확인은 하지 않았다. 반영 순서는 migration 017 → API → 세대 10 앱이며, 구 앱은 덱 없는 기존 흐름을 계속 쓴다.
+## 2026-10-14 Android 0.2.22 / code 6051 — 공개 완료
+
+- APK 대상 `1bd39c2de857a0175d4846536a4f561d3481cc42`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38431257495), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6051), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6051/rune-nexus.apk). 검수한 build-only 산출물 5개를 **필수 업데이트·최소 지원 코드 6051**로 2026-10-13 17:07:55 UTC(10-14 02:07:55 KST)에 공개·최신 지정했다. 아래 DB017→API 세대10 반영을 먼저 마쳤다.
+- 60노드 코어 트리와 핵심 효과 8개, 추가 체력·비축 표시, 승인 시안의 포인트/투자 계획·노드/스킬 시트·확대/이동 조작, 원소 연소/확산 분류를 포함한다. 런 시작에 발급한 젬 덱으로 선택·재선택·구매 대기를 줄였고, 연구 완료·강화·전투 처리와 백그라운드 저장의 반복 비용·슬롯 거래 교착을 보완했다. 기존 진행 중 v4 런의 고정 트리·코어·모듈을 유지하며 실제 종료 후 계정 트리를 v5로 이관한다. 총 포인트와 최초 보상 기록은 보존한다.
+- 최초 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38428737471)는 기존 5링크 검사가 새 v5 런 고정을 생략해 실패했다. 전체 사전 대조에서 스테이지 검사의 성장 도메인 주입·런 고정과 과거 스탯 fixture의 새 중립 효과 필드도 보완했다. 원본 fixture·기존 엄격한 수치/키 대조를 유지하고 새 6필드의 중립값을 명시 검증한다. 유효하지 않은 코어 체크포인트는 스크립트 예외 대신 거절하도록 국소 수정했고 원본 불변 검사를 추가했다. 관련 변경은 `f33aa7e1`·`1bd39c2d`이며 별도 검증자가 재현과 수정 후 결과를 확인했다. 중간 CI는 사전 검사 중 발견한 누락 때문에 취소했으며 APK 공개에 쓰지 않았다.
+- 최종 CI의 Python180개·Godot 네이티브87개·prepared session/lifecycle7개(NOT_RUN0)·계정/AppServices·서명 빌드·Android 패치 디코더·6048/6049/6050 서명 일치와 Python/Kotlin 차등 복원이 통과했다. 별도 검증자는 실제 APK 신원/서명/자원/패치35조건, 실제 앱과 같은 gd→gdc 경로의 compiled 출처·기능24조건을 확인했다. 새 이미지43개의 크기/엔진 기본 알파 경계 보정 후 픽셀, 기존 imported 씬63개의 노드·자원·메시·재질·애니메이션 의미값도 대조했다. 부모와 검증자가 최종 입력에 대응하는 Metal Mobile의 승인 트리·상세·스킬·추가 체력 HUD와 비축 표시를 직접 확인했다.
+- API37 arm64 read-only AVD에서 6050→6051 업데이트·동일 서명·appId/최초 설치 시각을 확인했다. 설치 직후 primary/backup 저장 바이트는 동일하며, 실제 로그인 gate·뒤로가기·홈 복귀·강제 재시작 후 진행·설정·고정 코어/모듈과 activeRun 전체를 보존했다. 런에 생략됐던 `runCorePassiveTreeRevision=4`를 정상 고정한 1필드와 날짜 표시/저장 시각만 바뀌었다. 별도 검증자17조건이 통과했고 부모도 대표 최종 화면을 직접 확인했다. 초기 짧은 캡처는 로딩 중이어서 완료 근거로 쓰지 않고 실제 준비 완료 후 화면/복귀 근거로 확인했다. 원본 AVD 디스크 크기/mtime는 모두 동일하며 소유 검수 에뮬레이터를 정상 종료했다. **실제 Google 로그인·계정 동기화·운영 서버와 연결한 앱 젬 덱 플레이·Android 본게임·새 트리의 실기기 터치/글자·모바일 GPU/지속 성능은 미검증**이다.
+- APK **420,590,114 bytes**, SHA-256 `efc6059d9f8e6fdbd3fe87582618d9f80979bd8e68d29370a8db9e307f78a864`. 6050 대비 **+9,802,400 bytes(+2.39%)**로 PCK 증가분과 같다. PCK192,365,808 bytes·1297항목이며 새 코어 트리 이미지/콘텐츠·compiled 코드가 원인이다. 제작 원본 미포함·ABI3종/네이티브6파일 동일을 확인했다. 완전 중복2,707,494 bytes 중 기존699,208 bytes는 유지되고 신규22그룹2,008,286 bytes는 새 트리와 기존 UI아이콘의 별칭 재사용이다. 해당 원본 픽셀이 모두 같음을 대조했으며 이번 배포에서 중복 경로를 정리하지 않았다. 6050→6051 패치는139,070,609 bytes다.
+- 초안 검수 뒤 공개 태그 대상·latest/버전별 manifest 바이트 일치와 최소 지원6051, 공개5자산의 크기/GitHub SHA-256·익명 다운로드 바이트가 검수본과 동일함을 확인했다. 상세 CI·패키지·시각/Android·공개·독립 검수 근거는 Git 밖 `build/release-verification/apk-6051/`에 보관한다.
+
+## 2026-10-14 서버·DB — 6051 대상 운영 반영 완료
+
+- API 실제 소스 `b4e848a3f4ea5d9db669b6141eff89faa4592d80`, 이미지 `rune-nexus-api:b4e848a3`, image ID `sha256:65dc610e7506db23e012d0ba8bb0635da5f98eed4a3376ccb14f18497455e707`이며 healthy다. 최종 APK 대상 `1bd39c2de857a0175d4846536a4f561d3481cc42`와 서버·공용 콘텐츠·fixture 바이트가 동일하다. 2026-10-13 17:05:24 UTC(10-14 02:05:24 KST)에 API 쓰기를 정지하고 17:05:37 UTC에 최종 자체 검증을 마쳤다.
+- 세대10 런 젬 덱 migration017과 60노드 코어 트리/저장 검증을 반영했다. DB를 **16→17**로 올렸으며 기존 경제 런은 `gem_deck=NULL`로 유지한다. API 정지·DB 연결0 뒤 보호된 동결 백업을 격리 PostgreSQL18에 복원해 migration017을 검증하고, 기존33개 데이터 테이블(스키마 버전 포함34개)의 전체 행·ID·updated_at 및 영수증이 그대로 보존됨을 확인했다. 실제 운영17의 새 API 시작 전 행 fingerprint도 검증된 동결 복원본과 동일하다.
+- 기존 DB16 SQL 체크 함수는 내부 함수명을 비한정으로 호출해 빈 검색 경로의 기본 pg_restore에서 데이터 복원이 실패한다. 보호 백업에서 생성한 복원 SQL의 단일 `search_path` 설정만 `public, pg_catalog`로 지정해 정확 복원을 검증했다. 제품 소스·운영 함수·데이터는 이 우회 때문에 수정하지 않았다. 해당 보호된 복원 절차와 원본 dump를 함께 보존한다. migration017의 down은 덱을 삭제하지 않으며 새 쓰기 뒤 구 API/DB 자동 복귀는 수행하지 않는다.
+- 정확 소스 Go test/vet, 전체 실제 pgx 통합102개(skip0)와 별도 CGO compiler를 갖춘 격리 DB race102개를 통과했다. 최초 Alpine 기본 runner의 race는 CGO 누락으로 실패했으며 대체 실행 결과를 별도로 보존한다. 실제 API 이미지의 격리 HTTP26개에서 세대10 writer/60노드 tree 이관·구9 저장 exact receipt·구9 신규 writer/save 거절·잘못된 allocation422, 런 덱 발급/7waves/runId·exact replay·snapshot 복구, 세대10 우편 및 구6 completed 우편 영수증 exact 복구·구6/7/8 신규 명령 거절과 wallet revision 불변을 확인했다.
+- 운영 환경 전체·인증 영수증 키·mount·port·network 및 PostgreSQL/Caddy/DuckDNS 컨테이너를 보존한다. 환경 최소 저장 호환 세대4를 유지하며 콘텐츠 계약이 신규 이관 상태의 구세대 쓰기를 거절한다. loopback/공개 HTTPS live/ready200 4건과 무인증 보호401 14건을 확인했다. 운영 계정 명령·지급·로그인·저장 조작은 수행하지 않았으며 실제 계정 앱 E2E는 이 서버 검증 범위에서 미검증이다.
+- 상세 소스·보호 백업/compose·Go/pgx/race·실제 이미지 HTTP·동결 복원과 운영 검증 근거는 Git 밖 `~/Library/Application Support/RuneNexus/operations/apk-6051-server-20261013T161316Z/`에 보존한다. 별도 검증자가 실제 운영 이미지·환경·DB17·보호 HTTP18건과 동결 복원본/운영 migration 직후 전체 행을 자체 대조해 통과했다. 검수용 API·DB·네트워크 및 임시 비밀번호/환경 파일을 정리했으며 운영4개 컨테이너와 보호 백업·소스·compose·로그는 보존한다.
 
 ## 2026-10-13 Android 0.2.21 / code 6050 — 공개 완료
 
