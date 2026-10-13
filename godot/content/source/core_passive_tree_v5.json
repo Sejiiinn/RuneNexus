@@ -92,7 +92,7 @@
     {
       "id": "S2",
       "name": "원소 조율",
-      "category": "원소",
+      "category": "연소",
       "type": "start",
       "position": [
         1512.5,
@@ -567,7 +567,7 @@
     {
       "id": "A04",
       "name": "잔열 유지",
-      "category": "원소",
+      "category": "연소",
       "type": "minor",
       "position": [
         1509.092,
@@ -630,7 +630,7 @@
     {
       "id": "A05",
       "name": "넓은 여파",
-      "category": "원소",
+      "category": "확산",
       "type": "minor",
       "position": [
         1754.779,
@@ -1356,7 +1356,7 @@
     {
       "id": "B05",
       "name": "느린 연소",
-      "category": "원소",
+      "category": "연소",
       "type": "minor",
       "position": [
         1537.269,
@@ -1417,7 +1417,7 @@
     {
       "id": "B06",
       "name": "범위 타격",
-      "category": "원소",
+      "category": "확산",
       "type": "minor",
       "position": [
         1847.977,
@@ -1474,7 +1474,7 @@
     {
       "id": "B07",
       "name": "연쇄 강화",
-      "category": "원소",
+      "category": "확산",
       "type": "notable",
       "position": [
         2039.317,
@@ -2280,7 +2280,7 @@
     {
       "id": "C05",
       "name": "잔류 시간",
-      "category": "원소",
+      "category": "연소",
       "type": "minor",
       "position": [
         1350.454,
@@ -2337,7 +2337,7 @@
     {
       "id": "C06",
       "name": "연성 증폭",
-      "category": "원소",
+      "category": "연소",
       "type": "notable",
       "position": [
         1671.645,
@@ -2388,7 +2388,7 @@
     {
       "id": "C07",
       "name": "확산 완성",
-      "category": "원소",
+      "category": "확산",
       "type": "notable",
       "position": [
         2027.435,
@@ -2445,7 +2445,7 @@
     {
       "id": "C08",
       "name": "연쇄 거리",
-      "category": "원소",
+      "category": "확산",
       "type": "minor",
       "position": [
         2253.955,
@@ -3150,7 +3150,7 @@
     {
       "id": "K3",
       "name": "잔류 연성",
-      "category": "원소",
+      "category": "연소",
       "type": "keystone",
       "position": [
         1730.907,
@@ -3193,7 +3193,7 @@
     {
       "id": "K4",
       "name": "광역 파동",
-      "category": "원소",
+      "category": "확산",
       "type": "keystone",
       "position": [
         2153.809,
