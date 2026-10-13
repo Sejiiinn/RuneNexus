@@ -8,7 +8,17 @@
 
 ## 현재 미배포 변경
 
-확인 기준: 2026-10-13 KST. 사용자가 승인한 로컬·원격 main 통합본의 앱·API·DB 배포를 완료했다. 최신 공개본과 검증 범위는 아래 6049 이력에 기록한다. 실제 Google 계정과 실기기 본게임·지속 성능 확인은 [체크리스트](implementation_checklist.md)에 유지한다.
+확인 기준: 2026-10-13 KST. 대상 `9a51122a`까지 확정된 클라이언트 변경은 6050 공개본에 포함했다. 서버·DB는 아래 6049 운영 반영본을 유지하며 이번에 재배포하지 않았다. 최신 공개본의 검증 범위는 아래 6050 이력에 기록한다. 실제 Google 계정과 Android 본게임·실기기 지속 성능 확인은 [체크리스트](implementation_checklist.md)에 유지한다.
+
+## 2026-10-13 Android 0.2.21 / code 6050 — 공개 완료
+
+- APK 대상 `9a51122a73f1d39da6a8be473f72c9bed98ec665`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38363973929), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6050), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6050/rune-nexus.apk). 검수한 build-only 산출물 5개를 **선택 업데이트·최소 지원 코드 6049**로 2026-10-13 08:10:11 UTC(17:10:11 KST)에 공개·최신 지정했다.
+- 3링크의 포탑 레벨 조건을 Lv.3, 5링크를 Lv.7로 조정하고 기존 구매 슬롯·저장을 유지한다. 일반 체크포인트의 전용 스레드 처리·슬롯별 기록 순서·필수 동기 저장, 화면 갱신 통합·강화 견적 재사용, 첫 보스 표시 경계 재사용·웨이브 전환의 중복 저장 검증 감소, 모든 배속의 전투 스탯·적 상태 처리 비용 감소를 포함한다. 서버·DB·저장 형식·호환 세대·Android 호스트·엔진·서명 설정 변경은 없다.
+- CI의 Python 174개·Godot 네이티브 82개·prepared session/lifecycle 7개(NOT_RUN 0)·계정/AppServices·서명 빌드·Android 패치 디코더·6047/6048/6049 서명 일치와 Python/Kotlin 차등 복원이 통과했다. 별도 검증자는 기존 최종 소스·Metal 화면·저장/전투 독립 근거의 유효 범위를 대조하고, 실제 APK의 compiled 저장·링크/견적·코어/적·화면 갱신·HUD/보상 계약 9개를 실행했다. CI preset 밖의 화면 갱신 통합도 실제 APK에서 71건 통과했다.
+- 실제 APK 버전·package·운영 설정·정확 build·기존 서명과 ABI 3종·네이티브 6파일 SHA가 일치한다. 텍스처·기타 에셋 바이트는 6049와 동일하며 imported 씬 63개는 엔진에서 읽은 노드·자원·메시·재질·애니메이션 의미값이 모두 같다. 별도 검증자가 6049 패치의 정확 APK 복원을 독립 확인했다.
+- API37 arm64 read-only AVD에서 6049→6050 업데이트·appId/최초 설치 시각·동일 서명을 확인했다. 설치 직후 primary/backup 저장 바이트가 동일하고, 뒤로가기·홈 복귀·강제 재시작 뒤 진행·코어/모듈 스냅샷·설정을 보존했다. 테스트 저장 복사본을 사용했고 원본 AVD와 사용자 저장은 보존했으며 검수 에뮬레이터를 종료했다. 부모도 대표 실제 로그인 제한 화면을 직접 확인했다. **실계정 인증·서버 동기화, Android 본게임 중 일반 비동기 저장, 실기기 본게임·모바일 GPU/지속 성능은 미검증**이다.
+- APK **410,787,714 bytes**, SHA-256 `37c8df27d4ad34de6c1b9fb72b4eb9ee8f646fa52a9f68c54d41094bbeab8691`. 6049 대비 **+15,168 bytes(+0.00369%)**로 PCK 증가분과 같다. PCK 182,563,408 bytes·1198항목이며 주로 compiled 스크립트 증가다. 제작 원본 미포함·기존 중복 699,208 bytes 유지·새 중복 0·네이티브 변경 0. 6049→6050 패치는 129,370,343 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치와 최소 지원 6049, 공개 5자산의 크기/GitHub SHA-256·익명 다운로드 바이트가 검수본과 동일함을 확인했다. 상세 CI·패키지·독립 검사·Android 저장/화면·공개 검증 근거는 Git 밖 로컬 `build/release-verification/apk-6050/`에 보관한다.
 
 ## 2026-10-13 Android 0.2.20 / code 6049 — 공개 완료
 
