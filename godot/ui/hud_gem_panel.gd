@@ -160,6 +160,10 @@ func _fit_slot_price(tag: Label, available: float) -> void:
 	tag.text = display
 	tag.add_theme_font_size_override("font_size",font_size)
 
+func _slot_required_level(turret: Dictionary, slot: int) -> int:
+	var levels: Array = hud.app.run_domain.growth.data.turretRules[turret.type].linkRequiredLevels
+	return int(levels[clampi(slot-1,0,levels.size()-1)])
+
 func _slot_price(state: Dictionary, turret_id: int, slot: int) -> int:
 	# Quote a hypothetical opened count with the same production pricing rules.
 	# Only the target turret is copied deeply; live state and derived data stay intact.
@@ -169,7 +173,7 @@ func _slot_price(state: Dictionary, turret_id: int, slot: int) -> int:
 		if int(preview.turrets[index].id) != turret_id: continue
 		var target: Dictionary = preview.turrets[index].duplicate(true)
 		target.slotLimit = slot
-		target.level = maxi(int(target.level),5 if slot >= 2 else 1)
+		target.level = maxi(int(target.level),_slot_required_level(target,slot))
 		preview.turrets[index] = target
 		return int(hud.app.run_domain.service.quotes(preview,turret_id).get("link",0))
 	return 0
@@ -181,7 +185,7 @@ func _unlock_popover(band: Control, socket: Button, state: Dictionary, turret: D
 	var price := int(hud.app.run_domain.service.quotes(state,turret_id).get("link",0))
 	var reason := ""
 	if slot != opened: reason = "앞 소켓부터 해금"
-	elif price <= 0: reason = "포탑 Lv.5 필요"
+	elif price <= 0: reason = "포탑 Lv.%d 필요" % _slot_required_level(turret,slot)
 	var popup := PanelContainer.new()
 	popup.name = "GemSlotUnlock"
 	popup.mouse_filter = Control.MOUSE_FILTER_STOP

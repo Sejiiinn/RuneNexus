@@ -77,13 +77,15 @@ func run() -> void:
 	assert(int(turret().slotLimit) == 2 and int(fixture.run_domain.state.gold) == gold-price)
 	check_socket_count(3)
 	assert_clean_purchase_copy()
-	# Third purchase remains gated by the existing level-5 quote, never by UI invention.
+	# Third purchase follows the content's level-3 quote, never a UI-only gate.
+	while int(turret().level) < 2: panel.run_selected_command("level")
 	click_slot(2)
 	assert(named_button("UnlockGemSlot").disabled)
+	assert(all_text(panel.body).contains("포탑 Lv.3 필요"))
 	gold = fixture.run_domain.state.gold
 	named_button("UnlockGemSlot").pressed.emit()
 	assert(int(turret().slotLimit) == 2 and int(fixture.run_domain.state.gold) == gold)
-	while int(turret().level) < 5: panel.run_selected_command("level")
+	while int(turret().level) < 3: panel.run_selected_command("level")
 	click_slot(2)
 	price = fixture.run_domain.service.quotes(fixture.run_domain.state,int(turret().id)).link
 	assert(not named_button("UnlockGemSlot").disabled and price > 0)
@@ -96,6 +98,7 @@ func run() -> void:
 	panel.refresh(); await settle()
 	check_socket_count(4)
 	assert(int(turret().slotLimit) == 3)
+	await check_later_link_levels()
 	# Future capacities are presentation-only fixtures: no new progression rule is added.
 	for width in [440,320]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
@@ -185,6 +188,29 @@ func check_responsive_strip() -> void:
 				assert(cells[-1].get_global_rect().end.x <= viewport.get_global_rect().end.x+1.1)
 			print("Responsive strip %dpx / owned %d: %d cells, %d empty, %.2fpx square" % [width,owned,cells.size(),blank_count,first.size.x])
 
+func check_later_link_levels() -> void:
+	var initial: Dictionary = fixture.run_domain.state.duplicate(true)
+	for slot in [3,4]:
+		fixture.run_domain.state = initial.duplicate(true)
+		fixture.run_domain.state.progression.researchLevels = {"linkExpansionOne":1,"linkExpansionTwo":1}
+		fixture.run_domain.state.progression.clearedStageNumbers = [20,30]
+		var target: Dictionary = turret()
+		var required_level: int = 5 if slot == 3 else 7
+		target.slotLimit = slot; target.equippedGemSlots.resize(slot); target.level = required_level-1
+		panel.selected_slot = slot; panel.body_key = null; panel.refresh(); await settle()
+		var before: Dictionary = fixture.run_domain.state.duplicate(true)
+		var expected_cost: int = fixture.run_domain.growth.data.turretRules[target.type].linkUpgradeCosts[slot-1]
+		assert(named_button("UnlockGemSlot").disabled)
+		assert(all_text(panel.body).contains("포탑 Lv.%d 필요" % required_level))
+		assert(panel.body.find_child("GemSlotUnlockPrice",true,false).text == "%d G" % expected_cost)
+		named_button("UnlockGemSlot").pressed.emit()
+		assert(fixture.run_domain.state == before,"Level-gated UI purchase is atomic")
+		target.level = required_level; panel.refresh(); await settle()
+		assert(not named_button("UnlockGemSlot").disabled)
+		named_button("UnlockGemSlot").pressed.emit()
+		assert(int(turret().slotLimit) == slot+1 and int(fixture.run_domain.state.gold) == int(before.gold)-expected_cost)
+	fixture.run_domain.state = initial; panel.selected_slot = -1; panel.body_key = null; panel.refresh(); await settle()
+
 func check_popup_unlock() -> void:
 	panel.set_process(false)
 	var initial: Dictionary = fixture.run_domain.state.duplicate(true)
@@ -206,7 +232,7 @@ func check_popup_unlock() -> void:
 			for slot in range(1,capacity):
 				var predicted: Dictionary = fixture.run_domain.state.duplicate(true)
 				predicted.turrets[0].slotLimit = slot
-				predicted.turrets[0].level = maxi(5,int(predicted.turrets[0].level))
+				predicted.turrets[0].level = maxi(panel.gem_panel._slot_required_level(turret(),slot),int(predicted.turrets[0].level))
 				var price: int = fixture.run_domain.service.quotes(predicted,int(turret().id)).link
 				var tag: Label = panel.body.find_child("GemSlotPrice%d" % slot,true,false)
 				assert(tag != null and tag.text == ("%d G" % price if price > 0 else "—"))

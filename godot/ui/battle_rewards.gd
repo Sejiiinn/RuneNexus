@@ -657,7 +657,7 @@ func _replacement(state: Dictionary) -> void:
 		else:
 			_replacement_money(detail,"새 슬롯 추가 ·",display_cost,"SlotPrice",14)
 		var reason := "기존 젬 유지 · 새 슬롯에 장착"
-		if cost <= 0: reason = "포탑 Lv.5부터 추가 가능"
+		if cost <= 0: reason = "포탑 Lv.%d부터 추가 가능" % hud.gem_panel._slot_required_level(turret,opened)
 		elif int(state.gold) < cost: reason = "골드 %s 부족" % HudNumber.compact_integer(cost-int(state.gold))
 		var description := _text(detail,reason,10 if narrow else 11)
 		description.name = "AddSlotDescription"

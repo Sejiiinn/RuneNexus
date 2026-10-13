@@ -360,8 +360,9 @@ func _reward_slot_purchase_cases(service, built: Dictionary) -> void:
 	state.turrets[0].slotLimit = 2
 	state.turrets[0].equippedGemSlots.append(null)
 	command.slot = 2
+	state.turrets[0].level = 2
 	_check_reward_slot_rejection(service,state,command,"third slot level requirement")
-	state.turrets[0].level = 5
+	state.turrets[0].level = 3
 	result = _execute_command(service,state,command)
 	check(result.ok and result.state.turrets[0].slotLimit == 3 and result.state.turrets[0].equippedGemSlots == ["range",null,"attackSpeed"] and result.state.gold == state.gold-int(service.quotes(state,id).link),"third slot unlock uses existing quote")
 	state.turrets[0].slotLimit = int(service.derived(state).maxTurretLinkSlots)

@@ -118,14 +118,16 @@ func run() -> void:
 	# Buying a slot equips the pending reward atomically without displacing either gem.
 	assert((await app.purchase_reward_gems()).ok)
 	app.run_domain.state.rewardOptions = ["physicalDamage","range","attackSpeed"]
+	app.run_domain.state.turrets[0].level = 2
 	hud.rewards.pending_gem = "physicalDamage"; hud.rewards.key = ""; hud.refresh()
 	hud.rewards.board_tap(app.selected)
 	_assert_socket_assets(hud.overlay_body,2)
-	assert(_confirm_button(hud.overlay_body).disabled) # Third slot requires level 5.
+	assert(_confirm_button(hud.overlay_body).disabled) # Third slot requires level 3.
+	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.3부터 추가 가능")
 	before_choice = app.run_domain.state.duplicate(true)
 	hud.rewards._select_replacement_slot(2)
 	assert(hud.rewards.replacement_slot == -1 and app.run_domain.state == before_choice)
-	app.run_domain.state.turrets[0].level = 5
+	app.run_domain.state.turrets[0].level = 3
 	app.run_domain.state.gold = 0
 	hud.rewards.key = ""; hud.refresh()
 	assert(_confirm_button(hud.overlay_body).disabled)
@@ -159,6 +161,23 @@ func run() -> void:
 	hud.rewards.board_tap(app.selected)
 	hud.rewards._buy_replacement_slot()
 	assert(app.run_domain.state == unified_result)
+	# The reward picker shows the fifth price and Lv7 gate before purchase.
+	app.run_domain.state.phase = "reward"
+	app.run_domain.state.rewardOptions = ["criticalChance","damageAmplifier","multipleProjectiles"]
+	app.run_domain.state.progression.researchLevels = {"linkExpansionOne":1,"linkExpansionTwo":1}
+	app.run_domain.state.progression.clearedStageNumbers = [20,30]
+	app.run_domain.state.turrets[0].slotLimit = 4
+	app.run_domain.state.turrets[0].equippedGemSlots = ["attackSpeed","range","physicalDamage","lightWeapon"]
+	app.run_domain.state.turrets[0].level = 6
+	hud.rewards.pending_gem = "criticalChance"; hud.rewards.replacement_id = int(app.run_domain.state.turrets[0].id)
+	hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+	assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)
+	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.7부터 추가 가능")
+	var fifth_cost: int = app.run_domain.growth.data.turretRules.arrow.linkUpgradeCosts[3]
+	assert(hud.overlay_body.find_child("SlotPrice",true,false).get_node("Amount").text == HudNumber.compact_integer(fifth_cost))
+	app.run_domain.state.turrets[0].level = 7; hud.rewards.key = ""; hud.refresh()
+	assert(not hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)
+	app.run_domain.state = unified_result.duplicate(true)
 	# Six unlocked sockets are a display fixture; progression rules remain unchanged.
 	app.run_domain.state.phase = "reward"
 	app.run_domain.state.turrets[0].slotLimit = 6

@@ -67,9 +67,20 @@ func _initialize() -> void:
 		var result: Dictionary=commands.apply(state,{"kind":"build","type":type,"x":cell%int(map.columns),"y":cell/int(map.columns)})
 		check(result.ok,type+" build"); state=result.state
 		var id: int=state.turrets[0].id
-		while state.turrets[0].level<5: state=commands.apply(state,{"kind":"level","id":id}).state
 		var costs: Array=growth.data.turretRules[type].linkUpgradeCosts
-		for expected in costs:
+		var required_levels: Array=[1,3,5,7]
+		check(growth.data.turretRules[type].linkRequiredLevels==required_levels,type+" link level progression")
+		check(int(growth.data.turretRules[type].maxLevel)>=required_levels.back(),type+" all links reachable")
+		for index in range(costs.size()):
+			var required_level: int=required_levels[index]
+			while int(state.turrets[0].level)<required_level:
+				var locked := state.duplicate(true)
+				check(commands.quotes(state,id).link==0,type+" quote locked below Lv"+str(required_level))
+				result=commands.apply(state,{"kind":"link","id":id})
+				check(not result.ok and result.state==locked and state==locked and result.commands.is_empty(),type+" purchase locked below Lv"+str(required_level))
+				result=commands.apply(state,{"kind":"level","id":id})
+				check(result.ok,type+" level to link threshold"); state=result.state
+			var expected: int=costs[index]
 			var before: int=state.gold
 			check(commands.quotes(state,id).link==int(expected),type+" exact sequential cost")
 			result=commands.apply(state,{"kind":"link","id":id}); check(result.ok,type+" sequential buy"); state=result.state
@@ -82,11 +93,12 @@ func _initialize() -> void:
 			check(result.ok,type+" equip "+str(i)); state=result.state
 		var emitted: Dictionary=commands.runtime_commands(state)[0].turret
 		check(emitted.state.equippedGemSlots.size()==5,type+" runtime keeps all five")
-		var expected: Dictionary=catalog.turret(type,{"tileSize":1.0,"statInput":{"level":5,"gems":gems}})
-		check(Stats.shared_stats_at(emitted.statInput,5)==Stats.stats_at(expected,5),type+" five gems calculated")
+		var level: int=state.turrets[0].level
+		var expected: Dictionary=catalog.turret(type,{"tileSize":1.0,"statInput":{"level":level,"gems":gems}})
+		check(Stats.shared_stats_at(emitted.statInput,level)==Stats.stats_at(expected,level),type+" five gems calculated")
 		if type=="arrow":
 			var four: Dictionary=emitted.statInput.duplicate(true);four.gems=gems.slice(0,4)
-			var five_stats: Dictionary=Stats.shared_stats_at(emitted.statInput,5);var four_stats: Dictionary=Stats.shared_stats_at(four,5)
+			var five_stats: Dictionary=Stats.shared_stats_at(emitted.statInput,level);var four_stats: Dictionary=Stats.shared_stats_at(four,level)
 			check(five_stats.projectileCount==four_stats.projectileCount+2 and is_equal_approx(five_stats.damage,four_stats.damage*0.5),"fifth gem changes real projectile count and damage")
 		var runtime := Runtime.new(); var bootstrap: Dictionary=catalog.bootstrap(0,{"defenseConfig":commands.derived(state).defenseConfig,"coreConfig":growth.core_config(state,0,0,catalog)})
 		bootstrap.turrets=[emitted]; bootstrap.enemies=[]; bootstrap.wave={"id":1,"active":false,"spawnQueue":[]}
@@ -99,6 +111,8 @@ func _initialize() -> void:
 		var restored: Dictionary=adapter.prepare(saved)
 		check(not restored.is_empty(),type+" checkpoint resume "+adapter.error)
 		if not restored.is_empty(): check(restored.state.turrets[0].equippedGemSlots==gems and restored.state.gold==state.gold,type+" five gems gold restored")
+		var existing_five := saved.duplicate(true); existing_five.activeRun.turrets[0].level=5
+		check(not adapter.prepare(existing_five).is_empty(),type+" existing Lv5 five-link save preserved")
 		var unauthorized := saved.duplicate(true); unauthorized.progression.researchLevels.erase("linkExpansionTwo")
 		check(adapter.prepare(unauthorized).is_empty(),type+" five requires research on restore")
 		var sixth := saved.duplicate(true); sixth.activeRun.turrets[0].slotLimit=6; sixth.activeRun.turrets[0].equippedGemSlots.append(null)

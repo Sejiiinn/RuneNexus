@@ -5354,9 +5354,9 @@
       ],
       "linkRequiredLevels": [
         1,
+        3,
         5,
-        5,
-        5
+        7
       ],
       "primaryTraits": [
         "overheatMagazine",
@@ -5404,9 +5404,9 @@
       ],
       "linkRequiredLevels": [
         1,
+        3,
         5,
-        5,
-        5
+        7
       ],
       "primaryTraits": [
         "shrapnelShell",
@@ -5454,9 +5454,9 @@
       ],
       "linkRequiredLevels": [
         1,
+        3,
         5,
-        5,
-        5
+        7
       ],
       "primaryTraits": [
         "highHeatBurn",
@@ -5503,9 +5503,9 @@
       ],
       "linkRequiredLevels": [
         1,
+        3,
         5,
-        5,
-        5
+        7
       ],
       "primaryTraits": [
         "coolingCycle",
@@ -5550,9 +5550,9 @@
       ],
       "linkRequiredLevels": [
         1,
+        3,
         5,
-        5,
-        5
+        7
       ],
       "primaryTraits": [
         "deadeyeFocus",
@@ -5598,9 +5598,9 @@
       ],
       "linkRequiredLevels": [
         1,
+        3,
         5,
-        5,
-        5
+        7
       ],
       "primaryTraits": [
         "branchCurrent",
