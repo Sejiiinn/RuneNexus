@@ -165,6 +165,41 @@ func lifecycle_failure() -> void:
 	app.checkpoint.shutdown()
 	free_app(app)
 
+func research_completion() -> void:
+	var app = create_app("research")
+	check(await app.start_stage(0), "research stage")
+	var gate := Gate.new()
+	app.checkpoint.enable_worker(app, gate.stop)
+	var now := int(Time.get_unix_time_from_system() * 1000)
+	var pending := {"type":"researchCostEfficiency", "targetLevel":1,
+		"startedAtMillis":now, "durationMillis":3600000, "initialElapsedMillis":0}
+	app.run_domain.state.progression.activeResearches = [pending]
+	check(app._due_research_millis(app.run_domain.state.progression) < 0, "unfinished research is not due")
+	var finished := pending.duplicate()
+	finished.startedAtMillis = now - 2000
+	finished.durationMillis = 1000
+	# A replaced list is detected without waiting for the previous deadline.
+	app.run_domain.state.progression.activeResearches = [finished]
+	check(app._due_research_millis(app.run_domain.state.progression) >= 0, "replaced list recomputes deadline")
+	check(app._due_research_millis(app.run_domain.state.progression) < 0, "unreplaced due list waits before retry")
+	app.run_domain.state.progression.activeResearches = [finished.duplicate()]
+	check(app.checkpoint.persist_state(app, app.run_domain.state) == OK, "active research saved")
+	app._process(0.0)
+	gate.entered.wait()
+	check(app.checkpoint.last_durable_sequence == 0 and app.checkpoint.pending_count() == 1,
+		"completion is handed to the background worker")
+	check(int(app.run_domain.state.progression.researchLevels.get("researchCostEfficiency", 0)) == 1
+		and app.run_domain.state.progression.activeResearches.is_empty()
+		and int(app.progression_inputs.researchLevels.get("researchCostEfficiency", 0)) == 1,
+		"finished research applies before durable completion")
+	gate.release.post()
+	check(app.checkpoint.flush_pending() == OK and not app.save_failed, "background research save succeeds")
+	var saved: Dictionary = app.checkpoint.store.load_save()
+	check(int(saved.progression.researchLevels.get("researchCostEfficiency", 0)) == 1
+		and saved.progression.activeResearches.is_empty(), "saved progression includes finished research")
+	check(app.checkpoint.shutdown() == OK, "research shutdown drains")
+	free_app(app)
+
 func run() -> void:
 	directory = OS.get_environment("TMPDIR").path_join("rune-async-checkpoint-" + str(OS.get_process_id()))
 	check(directory.is_absolute_path(), "isolated async save root")
@@ -173,5 +208,6 @@ func run() -> void:
 	await worker_failure()
 	await lifecycle_requests()
 	await lifecycle_failure()
+	await research_completion()
 	print("ASYNC_CHECKPOINT checks=", checks, " failures=", JSON.stringify(failures))
 	quit(0 if failures.is_empty() else 1)

@@ -456,6 +456,16 @@ func apply_growth_command(request: Dictionary) -> bool:
 	if not result.get("ok", false):
 		checkpoint.message = str(result.get("error", "성장 명령을 적용할 수 없습니다"))
 		return false
+	if active and str(request.get("kind", request.get("type", ""))) == "completeFinishedResearches":
+		# Finished research spends nothing, and its saved start time and duration
+		# complete it again after a crash. Apply at once; save in the background.
+		var candidate: Dictionary = run_domain.state.duplicate(true)
+		candidate.progression = result.state
+		apply_run_state(candidate)
+		var requested := request_checkpoint()
+		refresh_selection()
+		refresh_ui()
+		return requested
 	if not commit_progression(result.state):
 		_record_save_failure()
 		return false
@@ -671,13 +681,9 @@ func _process(delta: float) -> void:
 	if services != null: services.request_run_settlement()
 	_maybe_request_gem_offer()
 	_maybe_auto_start()
-	if run_domain.state.is_empty() and Time.get_ticks_msec() >= next_research_check:
-		next_research_check = Time.get_ticks_msec() + 1000
-		var now := int(Time.get_unix_time_from_system() * 1000)
-		for research in progression_inputs.get("activeResearches", []):
-			if now >= int(research.startedAtMillis) + int(research.durationMillis):
-				apply_growth_command({"type":"completeFinishedResearches","nowMillis":now})
-				break
+	if run_domain.state.is_empty():
+		var now := _due_research_millis(progression_inputs)
+		if now >= 0: apply_growth_command({"type":"completeFinishedResearches","nowMillis":now})
 	autosave_elapsed += delta
 	if autosave_elapsed >= autosave_interval:
 		autosave_elapsed = 0.0

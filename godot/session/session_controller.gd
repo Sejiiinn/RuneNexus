@@ -5,7 +5,11 @@ const Catalog = preload("res://content/content_catalog.gd")
 var progression_inputs: Dictionary = {}
 var run_domain = preload("res://session/run_session.gd").new()
 var applying_events := false
-var next_research_check := 0
+# Earliest wall-clock completion of the watched active research list. Growth
+# commands and restores replace that array, so identity detects changes and a
+# frame only compares one timestamp.
+var _research_watch: Array = []
+var _research_deadline := 0
 var next_terminal_save := 0
 var reward_worker
 var catalog = Catalog.new()
@@ -246,10 +250,19 @@ func commit_run_state(candidate: Dictionary) -> bool:
 	var refresh: Dictionary = run_domain.service.refresh(candidate)
 	# Durable save precedes live mutation; failed purchases never spend balances.
 	if checkpoint.persist_state(self, refresh.state) != OK: return false
+	_apply_refreshed_run(candidate, refresh)
+	return true
+
+## Live-only counterpart of commit_run_state, for changes that spend nothing and
+## are derived again from the last save after a crash (finished research). The
+## caller requests a checkpoint afterwards.
+func apply_run_state(candidate: Dictionary) -> void:
+	_apply_refreshed_run(candidate, run_domain.service.refresh(candidate))
+
+func _apply_refreshed_run(candidate: Dictionary, refresh: Dictionary) -> void:
 	run_domain.state = refresh.state
 	progression_inputs = candidate.progression.duplicate(true)
 	command(progression_commands(refresh))
-	return true
 
 func board_tap(tile: Vector2i) -> void:
 	selected = tile
@@ -320,16 +333,26 @@ func _on_combat_step_completed() -> void:
 		if runtime.event_id > run_domain.event_ack or runtime.session.get("phase") != run_domain.state.phase:
 			if not command(): runtime.session.paused = true
 
+## Current wall-clock millis when a watched research has finished, else -1.
+func _due_research_millis(progression: Dictionary) -> int:
+	var researches: Variant = progression.get("activeResearches")
+	if not researches is Array or researches.is_empty(): return -1
+	if not is_same(researches, _research_watch):
+		_research_watch = researches
+		_research_deadline = 0x7fffffffffffffff
+		for research in researches:
+			_research_deadline = mini(_research_deadline, int(research.startedAtMillis) + int(research.durationMillis))
+	var now := int(Time.get_unix_time_from_system() * 1000)
+	if now < _research_deadline: return -1
+	# A rejected or gated completion keeps this array; retry after a second.
+	_research_deadline = now + 1000
+	return now
+
 func _process(_delta: float) -> void:
 	var runtime = scene.combat_runtime
-	if is_content_session() and runtime.active and not run_domain.state.is_empty() and Time.get_ticks_msec() >= next_research_check:
-		next_research_check = Time.get_ticks_msec() + 1000
-		if not run_domain.state.progression.get("activeResearches", []).is_empty():
-			var now := int(Time.get_unix_time_from_system() * 1000)
-			for research in run_domain.state.progression.activeResearches:
-				if now >= int(research.startedAtMillis) + int(research.durationMillis):
-					apply_growth_command({"type":"completeFinishedResearches","nowMillis":now})
-					break
+	if is_content_session() and runtime.active and not run_domain.state.is_empty():
+		var now := _due_research_millis(run_domain.state.progression)
+		if now >= 0: apply_growth_command({"type":"completeFinishedResearches","nowMillis":now})
 	if is_content_session() and runtime.active and not run_domain.state.is_empty():
 		if runtime.event_id > run_domain.event_ack or runtime.session.get("phase") != run_domain.state.phase:
 			command()
