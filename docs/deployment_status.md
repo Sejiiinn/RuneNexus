@@ -8,22 +8,25 @@
 
 ## 현재 미배포 변경
 
-확인 기준: 2026-10-13 KST. 아래 **Android 0.2.19 / 6048과 서버 배포**는 공개·운영 반영했다. 이후 승인된 [웨이브 젬 서버 offer와 도전 소유권](server_authoritative_economy_design.md#젬-보상과-도전-수명주기-호환-세대-9), 필수 인증/복구 gate는 로컬 구현·검증 대상이다. 이번 구조 재편에서 원격 푸시, 운영 DB 적용, API·APK 배포는 하지 않았다.
+확인 기준: 2026-10-13 KST. 사용자가 승인한 로컬·원격 main 통합본의 앱·API·DB 배포를 완료했다. 최신 공개본과 검증 범위는 아래 6049 이력에 기록한다. 실제 Google 계정과 실기기 본게임·지속 성능 확인은 [체크리스트](implementation_checklist.md)에 유지한다.
 
-2026-10-13 별도 작업의 `make -C server integration-test` 일회용 PostgreSQL18(포트 비공개 tmpfs)에서 migration 001–014와 기존 전체 pgx 통합 검사가 통과한 이력은 유지한다. 이 이력은 아래 신규 015–016·호환 세대 9 후보의 실제 트랜잭션·동시성 통과 근거가 아니다. 새 격리 실행기는 운영 DB와 다른 네트워크·임시 인증 정보를 사용한다.
+## 2026-10-13 Android 0.2.20 / code 6049 — 공개 완료
 
-6048 이후 다음도 미배포다. 서버는 경제 명령 영수증 재생에 명령 종류·URL 대상(연구 종류·effect ID)을 함께 확인한다(`5a6de7c2`, DB 마이그레이션 없음, 대상 결속 전 영수증은 같은 종류·본문 재시도로 계속 재생). 앱은 [런 중 성장 반영 규칙](gameplay_balance_reference.md#결과와-성장)에 따라 강화·연구를 모든 경로에서 진행 중 스테이지에 즉시 반영하고, 코어 스킬·코어 패시브·장착 모듈은 스테이지 시작 구성으로 고정한다. 진행 중 런 저장에 `runCorePassiveNodeRanks`·`runTurretModules`를 추가했으며 기존 저장 해시는 바뀌지 않는다. 전투 런타임의 시작·명령 거절은 진입·복원 실패와 오류로 표시한다. 이 최신 main 변경은 젬 구조 재편과 별도 worktree에서 통합 검증하며 Android 저장·복원은 아직 확인하지 않았다.
+- APK 대상 `a627c4ab9ac674fbfb0b48b415107219813763d0`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38322470095), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6049), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6049/rune-nexus.apk). 검수한 build-only 산출물 5개를 **필수 업데이트·최소 지원 코드 6049**로 2026-10-13 00:08:44 UTC(09:08:44 KST)에 공개·최신 지정했다.
+- [젬 서버 offer와 도전 소유권](server_authoritative_economy_design.md#젬-보상과-도전-수명주기-호환-세대-9), 무료/리셋권 재선택·선택/10파편 보상과 필수 계정 인증/복구 gate를 호환 세대 9로 반영했다. 강화·연구의 진행 중 전투 반영, 스테이지 시작 코어/모듈 구성 고정, 저장 복원과 구세대 우편 exact 영수증 재시도 수정을 포함한다. 신재화는 초기 0이며 실계정 지급·상점·광고·다이아 대체 결제는 포함하지 않았다. 파편 획득·전투/클리어 보고의 기존 클라이언트 신뢰 경계는 유지한다.
+- 최종 CI의 Python174개·Godot 네이티브81개·prepared session/lifecycle7개(NOT_RUN0)·계정/AppServices·서명 빌드·Android 패치 디코더·6046/6047/6048 서명 일치와 Python/Kotlin 차등 복원이 통과했다. 통합 중 구세대 우편 재시도를 저장된 영수증으로 먼저 복구하도록 서버 순서를 보정했다. legacy-transfer fixture와 Godot 검사3개는 실제 미이관/서버 보상 계약으로 보정했고 별도 검증자가 보상 누락·중복 연출·1px 오류 주입의 실패를 확인했다. 배포 확인 도구의 실제 PCK 경로 표기 보정은 `1429cf4c`에 별도로 반영했으며 APK/서버 바이트를 바꾸지 않았다. 관련34개 도구 검사와 입력 부정 조건을 독립 대조했다.
+- 별도 검증자가 실제 APK 버전·package·운영 설정·정확 build·서명·ABI3종·네이티브6파일·PCK1192항목을 대조했다. 실제 compiled 계약13개·이전 저장87개와 최종 입력의 Metal UI144개·flip319개·Boot 동작7개, Back/닫기/ESC5개 경계가 통과했다. 기존 imported 씬63개의 엔진 의미값도 동일했다. 부모는 대표 화면을 직접 검토했다. fresh lobby 종료의 미부착 조명/ObjectDB 경고는 실제6048 PCK의 같은 조건에서도 재현한 기존 문제이며 이번 배포에서 수정하지 않았다.
+- API37 read-only AVD에서 6048→6049 업데이트·서명/설치 식별자·primary/backup 진행 및 합성 코어/모듈 스냅샷 보존, 로그인 gate·BACK·HOME 복귀·강제 재시작을 확인했다. 저장 차이는 날짜 rollover와 저장 시각뿐이다. 초기 GUI 소실 판독은 PNG13개의 동일 SHA-256과 부모·별도 검증자의 Vision OCR로 오판임을 확인해 철회했다. 원본 AVD와 사용자 저장을 보존하고 검수 에뮬레이터·Godot 프로세스를 정상 종료했다. **실제 Google 로그인·계정 동기화·실기기 본게임·모바일 GPU/지속 성능은 미검증**이다.
+- APK **410,772,546 bytes**, SHA-256 `d957cec168a30b12de60a2a6fec792784fe37e305d0b1a2a4f9f24d5da78226d`. 6048 대비 **+114,544 bytes(+0.02789%)**로 PCK 증가분과 같다. PCK182,548,240 bytes·1192항목이며 새 리셋권 아이콘과 compiled 코드/셰이더가 원인이다. 제작 원본 미포함·기존 중복699,208 bytes 유지·새 중복0·네이티브 변경0. 6048→6049 패치는129,359,866 bytes다.
+- 공개 태그 대상·latest/버전별 manifest 바이트 일치와 최소 지원6049, 공개5자산의 크기/GitHub SHA-256·익명 다운로드 바이트가 검수본과 동일함을 확인했다. 상세 CI·패키지·서버·독립 검수·대표 화면은 Git 밖 `~/Library/Application Support/RuneNexus/operations/apk-6049-release-verification/`에 보관한다.
 
-공개 순서와 조건:
+## 2026-10-13 서버·DB — 6049 대상 운영 반영 완료
 
-1. 승인된 운영 백업/복원 절차와 새 앱 준비 후 구 API 쓰기를 차단하고 migration 014(미적용 환경)–016를 transaction으로 적용한 뒤 모든 API를 새 버전으로 바꾼다. 구 바이너리가 이전 pin을 덮어쓰는 혼합 쓰기 기간은 허용하지 않는다. 기존 completed 세대 7/8 exact 영수증 복구를 유지한다.
-2. 모든 새 writer/save는 서비스에서 호환 세대 9를 요구하므로 앱 필수 업데이트와 전환 시점을 조율한다. 호환 세대 9 앱의 초기 offer→무료 리롤→권 소모→선택/10파편→즉시 장착과 재시작/응답 유실을 확인한 뒤 앱을 공개한다. 새 서버 offer를 사용하는 계정은 구 앱 쓰기를 거절한다. 미지원 API에서 클라이언트가 후보를 대신 생성하지 않는다.
-3. PostgreSQL 실제 listener/pgx 트랜잭션·동시성 통합, 실제 Google 계정, Android 강제종료·세션 복원·터치/수명주기는 별도 검증한다. 과거 PostgreSQL listener 시작은 명시 승인 후에도 OS socket 제한으로 실패했다. 이번 검증에서 이를 다른 listener로 우회하지 않는다. 단일사용자 SQL/마이그레이션 검사는 실제 pgx 동시성 결과와 구분한다.
-4. 신재화는 초기 0이다. 실제 계정 지급·상점·광고·다이아 대체 결제는 범위 밖이다. 20파편 구매 선택은 서버로 옮기지만 파편 획득과 전투/스테이지 클리어 보고는 기존 클라이언트 신뢰 경계이며, 이 변경으로 전체 게임의 부정행위 방지를 완료했다고 판정하지 않는다.
+- API 소스는 `008a9fee838e91da6b38f4396e95bf53bd027732`, 이미지 `rune-nexus-api:008a9fee`, image ID `sha256:08e1eea9eba532c6dc9bcc926098235b222beacdf4a5ef533d07f670a71f05c3`이며 healthy다. APK 대상과의 차이는 회귀 검사3개뿐이고 서버 소스·마이그레이션이 동일함을 독립 대조했다.
+- 구 API 쓰기를 정지하고 연결0을 확인한 뒤 보호된 동결 백업을 격리 PostgreSQL18에 복원해 014–016 이관과 기존34개 데이터 테이블·canonical ID/updated_at 보존·신규 리셋권 초기0을 검증했다. 운영 DB를 **13→16**으로 올린 뒤 실제 운영34개 테이블을 검증한 복원본과 완전히 대조하고 새 API를 시작했다. 구·신 API 혼합 쓰기는 허용하지 않았다. 014–016은 forward-only이며 새 쓰기 뒤 구 API 자동 복귀/down을 수행하지 않는다.
+- 정확 소스의 Go test/vet, 전체 PostgreSQL18 pgx 통합(skip0)·race와 격리 HTTP15개 계약을 확인했다. 세대9 신규 writer/save·exact replay, 구6/7/8 신규 명령 거절, 구6 completed 우편 영수증 exact 복구와 거절/재시도 시 wallet revision 불변을 확인했다. loopback·공개 HTTPS live/ready200과 무인증 보호14건도 확인했다. 운영 계정 명령·지급·로그인·저장 조작은 하지 않았다.
+- 운영 인증키·환경 전체·마운트·포트·네트워크와 DB/Caddy/DuckDNS 컨테이너를 보존했다. **환경 최소 저장 호환 세대4**는 유지하며 서비스에서 신규 writer/save에 세대9를 요구한다. 환경값을9로 올려 기존 completed 영수증 복구를 막지 않았다. 별도 검증자의 실제 운영 image/DB/환경·34개 테이블/HTTP 대조를 마친 뒤 임시 API·DB·테스트 네트워크를 정리했다. 보호 백업·compose·로그는 보존한다.
 
-2026-10-13 KST, 최신 main `21b2e18d`에 구조 재편을 별도 worktree로 통합한 후보에서 Go 전체 test/vet, 경제·save·runstate·HTTP·legacy-transfer race, sqlc 검사, tagged DB 검사 컴파일/vet가 통과했다. PostgreSQL18 단일사용자 실행은 migration 001–016, 이전 canonical ID/예산 보정·영수증 보존, 44개 wave·10개 구매 JSON/header 거부와 도전 제약을 확인했다. 실제 pgx 실행·동시성 통과로 해석하지 않는다. Godot4.7.2의 젬/복구/계정/AppServices·원래 flip·결과/전환·관련 UI 회귀와 준비된 프로젝트의 앱 수명주기·세션·프로세스 재시작·복원·리소스/로딩 7개 검사가 통과했다. 최신 코어/모듈 고정·즉시 성장 계약도 보존했다. 추가 렌더 fixture 2개는 오프라인 검사 진입만 명시하고 스크립트 로드를 확인했으며 렌더 실행은 하지 않았다. 독립 검수에서 발견한 이전·backup 출처·직접 명령 트랜잭션·통합 시그니처 문제는 수정 후 재검사했다. 실제 pgx/Android/Google 계정 E2E와 운영 전환은 위 공개 선행 조건으로 남는다. 최초 후보는 현재 보상 경계에서 비동기로 요청하며 사전 공개/prefetch를 확정하지 않았다.
-
-기존 선택 업데이트와 최소 지원 APK 코드 6039는 변경하지 않았다. 공개 APK 빌드·배포에는 별도 승인이 필요하다.
 
 ## 2026-10-12 Android 0.2.19 / code 6048 — 공개 완료
 
