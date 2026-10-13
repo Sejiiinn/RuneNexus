@@ -19,6 +19,9 @@ class RejectMigrationStore extends Store:
 		return super.save_save(data)
 class ProgressionApp extends RefCounted:
 	var progression_inputs: Dictionary = {}
+	var run_domain: Dictionary
+	func _init(growth_rules) -> void:
+		run_domain = {"growth":growth_rules}
 const Hash = preload("res://services/save_payload_hash.gd")
 var failures := 0
 var checks := 0
@@ -93,7 +96,7 @@ func _initialize() -> void:
 	checkpoint.allow_progression_only = true
 	var old_save: Dictionary = Codec.decode({"version":2,"savedAtMillis":123,"progression":{"growthVersion":0,"runes":100,"criticalChanceUpgradeLevel":5,"emergencySaleUpgradeLevel":2,"researchLevels":{"bossBounty":3},"activeResearches":[{"type":"bossBounty","targetLevel":6,"startedAtMillis":50,"durationMillis":100}]},"turretModules":{},"preferences":{"selectedStageNumber":11},"activeRun":null})
 	check(checkpoint.store.save_save(old_save) == OK,"store old raw normalized growth0")
-	var app = ProgressionApp.new()
+	var app = ProgressionApp.new(growth)
 	var loaded_result: Error = checkpoint._load_content(app)
 	check(loaded_result == OK,"formal app migration before play: "+checkpoint.message)
 	if loaded_result != OK:
@@ -106,7 +109,7 @@ func _initialize() -> void:
 	failure_checkpoint.allow_progression_only = true
 	failure_checkpoint.store = RejectMigrationStore.new(temp_root+"-failure")
 	check(failure_checkpoint.store.save_save(old_save) == OK,"failure test preserves original save")
-	var untouched_app = ProgressionApp.new()
+	var untouched_app = ProgressionApp.new(growth)
 	check(failure_checkpoint._load_content(untouched_app) == ERR_CANT_CREATE and untouched_app.progression_inputs.is_empty(),"failed migration blocks play without assigning state")
 	check(failure_checkpoint.store.load_save() == old_save,"failed migration leaves original raw0 save intact")
 	failure_checkpoint.store = Store.new(temp_root+"-failure")
@@ -127,6 +130,7 @@ func _initialize() -> void:
 			runtime._step(float(wave.spawnQueue[0].delay)+0.01)
 			check(not runtime.enemies.is_empty(),"native spawn %d:%d" % [source.id,round_index+1])
 		var state: Dictionary = service.initial_state(p,index)
+		growth.fix_run_loadout(state)
 		state.phase = "wave"
 		state.nexusHp = 20.0
 		state.economyRunId = "expansion-run-%d" % source.id

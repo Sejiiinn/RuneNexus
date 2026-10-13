@@ -31,7 +31,8 @@ func capture(state: Dictionary, snapshot: Dictionary, saved_at: int, preferences
 	progression.erase("turretModules")
 	# run still contains the entire source progression, including module inventory.
 	if not _finite_tree(run): return _reject("Non-finite domain value")
-	var envelope: Dictionary = Codec.decode({"version":2,"savedAtMillis":saved_at,"preferences":preferences,"progression":progression,"turretModules":inventory,"activeRun":run})
+	var envelope: Variant = Codec.decode({"version":2,"savedAtMillis":saved_at,"preferences":preferences,"progression":progression,"turretModules":inventory,"activeRun":run})
+	if envelope == null: return _reject("Domain state cannot roundtrip v2")
 	if not _compatible(run, envelope.activeRun) or not _compatible(progression,envelope.progression) or not _compatible(inventory,envelope.turretModules): return _reject("Domain state cannot roundtrip v2")
 	if not snapshot.has_all(["session","defense","wave","enemies","turrets"]) or not _finite_tree(snapshot): return _reject("Invalid combat snapshot")
 	if snapshot.turrets.size() != state.get("turrets",[]).size(): return _reject("Turret checkpoint mismatch")

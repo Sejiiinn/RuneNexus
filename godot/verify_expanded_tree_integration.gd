@@ -83,6 +83,12 @@ func _initialize() -> void:
 	state.economyRunId = "00000000-0000-4000-8000-000000000123"
 	runtime.apply_batch(100, [], {}, runtime.event_id)
 	var adapter = Adapter.new(catalog, growth)
+	var unfrozen := state.duplicate(true)
+	unfrozen.erase("runCorePassiveTreeRevision")
+	unfrozen.erase("runCorePassiveNodeRanks")
+	var unfrozen_before := unfrozen.duplicate(true)
+	check(adapter.capture(unfrozen, runtime.snapshot(), 123).is_empty() and adapter.error == "Domain state cannot roundtrip v2", "unfrozen v5 checkpoint fails without a script error")
+	check(unfrozen == unfrozen_before, "rejected unfrozen checkpoint does not mutate its source")
 	var saved: Dictionary = adapter.capture(state, runtime.snapshot(), 123)
 	check(not saved.is_empty(), "save v5 checkpoint: " + adapter.error)
 	if not saved.is_empty():

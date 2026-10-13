@@ -63,6 +63,7 @@ func _initialize() -> void:
 	var adapter := Adapter.new(catalog,growth)
 	for type in growth.data.turretRules:
 		var state: Dictionary=commands.initial_state(completed.state,0); state.gold=100000
+		growth.fix_run_loadout(state)
 		var map: Dictionary=catalog.stage_map(0); var cell: int=map.tiles.find("build")
 		var result: Dictionary=commands.apply(state,{"kind":"build","type":type,"x":cell%int(map.columns),"y":cell/int(map.columns)})
 		check(result.ok,type+" build"); state=result.state
