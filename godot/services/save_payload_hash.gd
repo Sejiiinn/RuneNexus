@@ -2,6 +2,7 @@ extends RefCounted
 ## Wire ordering retained from the v2 Dart GameSaveData.toJson contract. Hashes
 ## in existing outboxes and rebase journals must survive engine migration.
 const ORDERS = {
+	"SavedCorePassiveLegacyAllocation": ["revision", "ranks", "refundedPoints"],
 	"SavedProgression": [
 		"runes",
 		"growthVersion",
@@ -53,7 +54,8 @@ const ORDERS = {
 		"progressionVersion",
 		"unlockedStageIds",
 		"grandfatherUnlocks",
-		"gemResetTickets"
+		"gemResetTickets",
+		"corePassiveLegacyAllocation"
 	],
 	"SavedActiveResearch": [
 		"type",
@@ -79,7 +81,8 @@ const ORDERS = {
 		"burnDamageDealt",
 		"targetPriority",
 		"primaryTrait",
-		"secondaryTrait"
+		"secondaryTrait",
+		"stockpileCharges"
 	],
 	"SavedBurnInstance": [
 		"remaining",
@@ -127,7 +130,10 @@ const ORDERS = {
 		"laneOffsetRatio",
 		"diamondReward",
 		"riftMarkRemaining",
-		"riftMarkDamageAmplification"
+		"riftMarkDamageAmplification",
+		"firstControlApplied",
+		"stunRemaining",
+		"freezeRemaining"
 	],
 	"SavedSpawnRequest": [
 		"routeId",
@@ -175,7 +181,12 @@ const ORDERS = {
 		"gemOfferStatus",
 		"gemOfferEquipRevision",
 		"gemEconomyRevision",
-		"gemDeckLog"
+		"gemDeckLog",
+		"runCorePassiveTreeRevision",
+		"nexusAdditionalHp",
+		"nexusAdditionalHpGranted",
+		"indomitableUsedThisStage",
+		"nexusInvulnerableRemaining"
 	],
 	"SavedGemDeckEntry": [
 		"kind",
@@ -206,7 +217,7 @@ const ORDERS = {
 		"value"
 	]
 }
-const CHILDREN = {"preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "slowInstances": "SavedSlowInstance", "gemDeckLog": "SavedGemDeckEntry"}
+const CHILDREN = {"corePassiveLegacyAllocation": "SavedCorePassiveLegacyAllocation", "preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "slowInstances": "SavedSlowInstance", "gemDeckLog": "SavedGemDeckEntry"}
 
 static func hash_payload(payload: Dictionary) -> String:
 	return encode(payload, "GameSaveData").sha256_text()

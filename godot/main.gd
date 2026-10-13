@@ -7,6 +7,7 @@ const RuntimeProfile = preload("res://app/runtime_profile.gd")
 const LaunchMode = preload("res://app/launch_mode.gd")
 const FrameMetrics = preload("res://app/frame_metrics.gd")
 
+const StockpileIndicator = preload("res://ui/stockpile_indicator.gd")
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
 const BattlefieldLabels = preload("res://ui/battlefield_labels.gd")
 const BattlefieldSelection = preload("res://ui/battlefield_selection.gd")
@@ -71,6 +72,7 @@ var terrain := Node3D.new()
 var turrets: Dictionary:
 	get: return _units.turrets
 var _turret_level_labels := TurretLevelLabels.new()
+var _stockpile_indicator := StockpileIndicator.new()
 var _presentation_layer := CanvasLayer.new()
 var _presentation_nodes := {"labels": BattlefieldLabels.new(), "selection": BattlefieldSelection.new(), "effects": BattlefieldEffects.new()}
 var _applied_groups: Array = []
@@ -206,6 +208,7 @@ func _ready() -> void:
 	_set_profile_enabled(RuntimeProfile.enabled)
 	add_child(_space_background)
 	add_child(_turret_level_labels)
+	add_child(_stockpile_indicator)
 	_presentation_layer.layer = 2
 	add_child(_presentation_layer)
 	for group: String in _presentation_nodes:
@@ -486,6 +489,7 @@ func _report_presentation() -> void:
 	_units.update_placements()
 	_apply_world_shake()
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
+	_stockpile_indicator.update(camera,turrets,world.visible)
 	_present_overlays()
 
 ## The process-owned idle flush combines input, simulation and child changes.
@@ -653,6 +657,7 @@ func _clear_scene() -> void:
 	combat_base_frame.clear()
 	world.position = Vector3.ZERO
 	_turret_level_labels.clear()
+	_stockpile_indicator.clear()
 	for node: Node2D in _presentation_nodes.values():
 		node.clear()
 		node.hide()
@@ -849,10 +854,12 @@ func set_battle_visible(active: bool) -> void:
 			node.set_process(false)
 			node.set_canvas_enabled(false)
 		_turret_level_labels.hide()
+		_stockpile_indicator.hide()
 		_screen_feedback.hide()
 	else:
 		for node: Node2D in _presentation_nodes.values(): node.set_process(true)
 		_turret_level_labels.show()
+		_stockpile_indicator.show()
 
 func stage_preparation_current(generation: int) -> bool:
 	return is_inside_tree() and generation == _stage_preparation_generation

@@ -51,6 +51,12 @@ migration 014–016과 API, 세대 9 앱을 함께 검증해 준비한다. 실�
 
 닫힌 도전 ID, wave 완료 기록, 리롤 예산과 exact 명령 영수증은 계정 생존 동안 보존한다. 기간 기반 삭제나 재사용은 하지 않는다. 계정 삭제의 기존 cascading 정책 외에 이번 변경으로 데이터를 지우지 않는다. 향후 보관 축소에는 replay/부활 방지를 보존하는 별도 정책과 migration이 필요하다.
 
+### 코어 트리 v5 호환 경계
+
+코어 트리 v5와 새 전투 저장 필드는 호환 세대 10에서 사용한다. 저장 스키마는 2를 유지하며, [코어 트리 계약](core_passive_tree_implementation_plan.md)의 생성 카탈로그를 서버 배분 검사에도 사용한다. 서버가 지원하는 최댓값 10과 모든 계정의 최저 버전은 별개다. 기존 세대 9의 revision 4 진행·활성 도전·초기 preparation 체크포인트 복구는 유지하고, 새 앱이 만드는 도전은 revision 5 배분을 시작 시점에 고정한다. 이미 고정한 도전 배분은 바꾸지 않으며, 계정 배분 변경은 다음 도전에만 적용한다.
+
+revision 5 계정 또는 새 필드를 사용하는 저장에는 세대 10 writer/save·경제 명령이 필요하다. 이전 세대의 새 쓰기나 최신 클라이언트의 오래된 Outbox로 revision을 낮출 수 없다. exact 본문 SHA-256 영수증 조회는 이 검사보다 먼저 수행하며 기존 요청 본문과 누락된 필드는 다시 쓰지 않는다. 살아 있는 revision 4 도전의 이전은 미루고, 종료 시 legacy 배분·실제 누적 비용을 보관한 뒤 무료 초기화한다. 종료 보상·다음 배분이 한 PUT으로 합쳐져도 허용하며, 코어 포인트 획득의 기존 클라이언트 신뢰 경계는 바꾸지 않는다. 잘못된 배분·보관 비용·고정 런·새 전투 필드는 `422 INVALID_SAVE_DATA`, 구세대의 새 쓰기는 `426 CLIENT_UPDATE_REQUIRED`로 거절한다. 배포·검증 상태는 [배포 인계](deployment_status.md)가 원본이다.
+
 ### API·snapshot 계약
 
 - `POST /v1/economy/runs/start`: source save/economy revision·catalog·writer generation·compatibility와 `stageNumber`. 초기 canonical checkpoint에 서버 UUID를 결속한다.

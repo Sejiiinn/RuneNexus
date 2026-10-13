@@ -1,6 +1,7 @@
 extends RefCounted
 ## Existing Dart GameSaveData v2 wire contract, including v1 migration.
 ## Enum IDs and scalar field rules mirror lib/data/save/game_save*.dart.
+const CoreTree = preload("res://content/generated_core_tree.gd")
 const ENUMS = {
 	"ResearchType": [
 		"researchEfficiency",
@@ -581,7 +582,7 @@ const SCALARS = {
 		]
 	}
 }
-const CORE_MAX_RANK = {"attackHaste": 5, "attackOutput": 5, "attackPrecompute": 5, "attackFocus": 5, "attackGuardianBeam": 3, "attackRiftMark": 3, "attackOverclock": 1, "controlThreatSense": 5, "controlSelfRepair": 5, "controlRetarget": 5, "controlRearLock": 5, "controlEmergencyCharge": 3, "controlBufferShell": 3, "controlFinalLine": 1, "efficiencySaving": 5, "efficiencyDiversity": 5, "efficiencyFirstDeploy": 3, "efficiencyFirstLink": 3, "efficiencyGemSpectrum": 5, "efficiencySupplyRecovery": 5, "efficiencyCombinedFront": 1}
+
 
 static func _is_map(v: Variant) -> bool:
 	if not v is Dictionary: return false
@@ -683,7 +684,35 @@ static func _skill(v: Dictionary, key: String, fallback: Variant) -> Variant:
 	return null if v[key] == null else _enum("CoreCombatSkill", v[key], "guardianBeam")
 
 static func is_canonical_v2(v: Variant) -> bool:
-	return _is_map(v) and _int(v.get("version")) == 2 and _is_map(v.get("preferences")) and _is_map(v.get("progression")) and _is_map(v.get("turretModules")) and v.has("activeRun") and (v.activeRun == null or _is_map(v.activeRun))
+	return _is_map(v) and _int(v.get("version")) == 2 and _is_map(v.get("preferences")) and _is_map(v.get("progression")) and _is_map(v.get("turretModules")) and v.has("activeRun") and (v.activeRun == null or _is_map(v.activeRun)) and _valid_core_wire(v)
+
+# Legacy readers intentionally retain their historical normalization. The new
+# schema must fail closed instead of deleting unknown allocations on reload.
+static func _valid_core_wire(v: Dictionary) -> bool:
+	var p: Dictionary = v.progression
+	if not _valid_core_revision(p, "corePassiveTreeRevision"): return false
+	var revision: int = _int(p.get("corePassiveTreeRevision"), 4)
+	if revision == 5:
+		if not p.get("corePassiveTreeRevision") is int or not _strict_core_ranks(p.get("corePassiveNodeRanks", {}), revision): return false
+	var run: Variant = v.activeRun
+	if run is Dictionary:
+		if not _valid_core_revision(run, "runCorePassiveTreeRevision"): return false
+		var run_revision: int = _int(run.get("runCorePassiveTreeRevision"), revision)
+		if run_revision == 5:
+			if not run.has("runCorePassiveTreeRevision") or not run.has("runCorePassiveNodeRanks"): return false
+			if not _strict_core_ranks(run.runCorePassiveNodeRanks, run_revision): return false
+	return true
+
+static func _valid_core_revision(value: Dictionary, field: String) -> bool:
+	if not value.has(field): return true
+	return value[field] is int and value[field] >= 0 and value[field] <= CoreTree.CURRENT_REVISION
+
+static func _strict_core_ranks(value: Variant, revision: int) -> bool:
+	if not _is_map(value): return false
+	var nodes: Dictionary = CoreTree.CATALOGS.get(str(revision), {}).get("nodes", {})
+	for key in value:
+		if not nodes.has(key) or not value[key] is int or value[key] < 0 or value[key] > int(nodes[key].maxRank): return false
+	return true
 
 # Envelope validation above intentionally matches Dart's permissive reader.
 # A writer must receive the equivalent of a typed GameSaveData.toJson(), not a
@@ -707,13 +736,14 @@ static func _same_typed_value(a: Variant, b: Variant) -> bool:
 
 static func decode(v: Variant) -> Variant:
 	if not _is_map(v): return null
+	if not _valid_core_revision(_map(v.get("progression")), "corePassiveTreeRevision"): return null
 	var legacy: bool = _int(v.get("version")) == 1
 	if not legacy and not is_canonical_v2(v): return null
 	var progression := _progression(_map(v.get("progression")))
 	var prefs: Dictionary = {"selectedStageNumber": v.get("stageNumber"), "autoStartMode": v.get("autoStartMode")} if legacy else v.preferences
 	var preferences := _fields("SavedPreferences", prefs)
 	preferences.autoStartMode = _enum("AutoStartMode", prefs.get("autoStartMode"), "pauseEachRound")
-	var run: Variant = _run(v if legacy else v.activeRun, progression.coreCombatSkill)
+	var run: Variant = _run(v if legacy else v.activeRun, progression.coreCombatSkill, progression.corePassiveTreeRevision)
 	if legacy and not _has_progress(run): run = null
 	return {"version": 2, "savedAtMillis": _int(v.get("savedAtMillis")), "preferences": preferences, "progression": progression, "turretModules": _inventory(_map(v.get("progression") if legacy else v.get("turretModules")), legacy), "activeRun": run}
 
@@ -738,17 +768,31 @@ static func _progression(v: Dictionary) -> Dictionary:
 	out.researchSlotTwoUnlocked = v.researchSlotTwoUnlocked if v.get("researchSlotTwoUnlocked") is bool else out.activeResearches.size() > 1
 	out.coreCombatSkill = _skill(v, "coreCombatSkill", "guardianBeam")
 	out.corePassiveTreeRevision = _int(v.get("corePassiveTreeRevision"), 4)
-	out.corePassiveNodeRanks = _core_ranks(v.get("corePassiveNodeRanks"))
+	out.corePassiveNodeRanks = _core_ranks(v.get("corePassiveNodeRanks"), out.corePassiveTreeRevision)
+	if v.get("corePassiveLegacyAllocation") is Dictionary:
+		var archive: Dictionary = v.corePassiveLegacyAllocation
+		var revision: int = _int(archive.get("revision"), 4)
+		out.corePassiveLegacyAllocation = {"revision":revision,"ranks":_core_ranks(archive.get("ranks"),revision),"refundedPoints":maxi(0,_int(archive.get("refundedPoints")))}
 	if out.growthVersion >= 1:
 		out.erase("criticalChanceUpgradeLevel")
 		out.erase("emergencySaleUpgradeLevel")
 	return out
 
-static func _core_ranks(v: Variant) -> Dictionary:
+static func _core_ranks(v: Variant, revision: int = 4) -> Dictionary:
 	var out := {}
+	var nodes: Dictionary = CoreTree.CATALOGS.get(str(5 if revision == 5 else 4), {}).get("nodes", {})
 	for key in _map(v):
-		if CORE_MAX_RANK.has(key) and _int(v[key]) > 0: out[key] = mini(_int(v[key]), CORE_MAX_RANK[key])
+		if nodes.has(key) and _int(v[key]) > 0: out[key] = mini(_int(v[key]), int(nodes[key].maxRank))
 	return out
+
+static func _optional_float(out: Dictionary, v: Dictionary, key: String, maximum: float = INF) -> void:
+	if not v.has(key): return
+	var value: Variant = v[key]
+	out[key] = clampf(float(value), 0.0, maximum) if (value is int or value is float) and is_finite(float(value)) else 0.0
+
+static func _optional_bool(out: Dictionary, v: Dictionary, key: String) -> void:
+	if v.has(key): out[key] = v[key] if v[key] is bool else false
+
 
 static func _inventory(v: Dictionary, legacy: bool) -> Dictionary:
 	var names := ["tickets", "drawCount", "ticketPurchaseCount", "itemSequence", "items"]
@@ -761,7 +805,7 @@ static func _inventory(v: Dictionary, legacy: bool) -> Dictionary:
 	var draws: int = maxi(0, _int(m.get("drawCount"))) if m.has("drawCount") else sequence
 	return {"tickets": _int(m.get("tickets")), "drawCount": draws, "ticketPurchaseCount": maxi(0, _int(m.get("ticketPurchaseCount"))) if m.has("ticketPurchaseCount") else draws, "itemSequence": sequence, "items": _objects(m.get("items"), "SavedTurretModule")}
 
-static func _run(v: Variant, skill: Variant) -> Variant:
+static func _run(v: Variant, skill: Variant, tree_revision: int = 4) -> Variant:
 	if not _is_map(v): return null
 	var out := _fields("SavedRunState", v)
 	out.phase = _enum("GamePhase", v.get("phase"), "preparation")
@@ -779,7 +823,12 @@ static func _run(v: Variant, skill: Variant) -> Variant:
 	out.pendingEconomyDiamonds = clampi(_int(v.get("pendingEconomyDiamonds")), 0, 1000000)
 	if v.has("gemRerollsUsed"): out.gemRerollsUsed = clampi(_int(v.get("gemRerollsUsed")), 0, 3)
 	# Loadout fixed at stage start; absent in saves written before it was recorded.
-	if v.has("runCorePassiveNodeRanks"): out.runCorePassiveNodeRanks = _core_ranks(v.runCorePassiveNodeRanks)
+	if v.has("runCorePassiveTreeRevision"): out.runCorePassiveTreeRevision = _int(v.runCorePassiveTreeRevision, tree_revision)
+	if v.has("runCorePassiveNodeRanks"): out.runCorePassiveNodeRanks = _core_ranks(v.runCorePassiveNodeRanks, int(out.get("runCorePassiveTreeRevision", tree_revision)))
+	_optional_float(out, v, "nexusAdditionalHp")
+	_optional_float(out, v, "nexusInvulnerableRemaining", 3.0)
+	_optional_bool(out, v, "nexusAdditionalHpGranted")
+	_optional_bool(out, v, "indomitableUsedThisStage")
 	if v.has("runTurretModules"): out.runTurretModules = _objects(v.runTurretModules, "SavedTurretModule")
 	for key in ["gemOfferRevision", "gemOfferEquipRevision", "gemEconomyRevision"]:
 		if v.has(key): out[key] = maxi(0, _int(v.get(key)))
@@ -829,6 +878,7 @@ static func _object(name: String, v: Variant) -> Variant:
 			out.options = _objects(v.get("options"), "SavedTurretModuleOption")
 			if out.id == null or out.options.is_empty(): return null
 		"SavedTurret":
+			if v.has("stockpileCharges"): out.stockpileCharges = clampi(_int(v.stockpileCharges), 0, 2)
 			out.equippedGems = _list(v.get("equippedGems"), "GemType")
 			out.equippedGemSlots = _list(v.get("equippedGemSlots"), "GemType", false, true) if v.has("equippedGemSlots") else out.equippedGems.duplicate()
 			out.targetPriority = _enum("TurretTargetPriority", v.get("targetPriority"), "first")
@@ -839,6 +889,9 @@ static func _object(name: String, v: Variant) -> Variant:
 		"SavedSlowInstance":
 			if not is_finite(out.multiplier) or out.multiplier < 0 or out.multiplier >= 1 or not is_finite(out.remaining) or out.remaining <= 0: return null
 		"SavedEnemy":
+			_optional_bool(out, v, "firstControlApplied")
+			_optional_float(out, v, "stunRemaining")
+			_optional_float(out, v, "freezeRemaining")
 			out.burnRemaining = float(v.get("burnRemaining")) if v.get("burnRemaining") is float or v.get("burnRemaining") is int else 0.0
 			out.burnDamagePerSecond = float(v.get("burnDamagePerSecond")) if v.get("burnDamagePerSecond") is float or v.get("burnDamagePerSecond") is int else 0.0
 			out.burnInstances = _objects(v.get("burnInstances"), "SavedBurnInstance")

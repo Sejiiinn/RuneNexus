@@ -503,6 +503,8 @@ func (handler economyHandler) writeEconomyError(response http.ResponseWriter, re
 		status, code, message = http.StatusUnprocessableEntity, "MODULE_NOT_OWNED", "소유하지 않은 모듈입니다."
 	case errors.Is(err, economy.ErrModuleNotAllowed):
 		status, code, message = http.StatusUnprocessableEntity, "MODULE_NOT_DISASSEMBLABLE", "분해할 수 없는 모듈이 포함되어 있습니다."
+	case errors.Is(err, gamesave.ErrCoreTreeConflict):
+		status, code, message = http.StatusUnprocessableEntity, "INVALID_SAVE_DATA", "코어 트리 또는 도전 시작 시점의 배분 데이터가 올바르지 않습니다."
 	case errors.Is(err, economy.ErrInvalidCommand), errors.Is(err, economy.ErrProgressionEffect):
 		status, code, message = http.StatusUnprocessableEntity, "ECONOMY_COMMAND_REJECTED", "현재 진행 상태로 처리할 수 없는 요청입니다."
 	default:

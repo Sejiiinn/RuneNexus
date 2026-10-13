@@ -1,6 +1,6 @@
 # 실제 콘텐츠 설정
 
-역할: Godot 전투 콘텐츠와 제작 원본 계약. 스테이지·적·포탑·기본 설정의 수정 원본은 [source/](source/)이며, `game_content.json`은 [컴파일러](../../scripts/content_compiler.py)가 만드는 추적 중인 실행 입력이다. `growth_content.json`은 성장 수치의 수정 원본이다. 빌드·검사 준비는 실행 입력의 최신성을 먼저 확인하고 원본 폴더를 제외해 복사한다. 이전 Dart 생성기는 사용하지 않는다.
+역할: Godot 전투 콘텐츠와 제작 원본 계약. 스테이지·적·포탑·기본 설정의 수정 원본은 [source/](source/)이며, `game_content.json`은 [컴파일러](../../scripts/content_compiler.py)가 만드는 추적 중인 실행 입력이다. `growth_content.json`은 일반 성장 수치의 수정 원본이며, 그 안의 `core`·`legacyCore`는 아래 버전별 원본에서 생성한다. 빌드·검사 준비는 실행 입력의 최신성을 먼저 확인하고 원본 폴더를 제외해 복사한다. 이전 Dart 생성기는 사용하지 않는다.
 
 `content_catalog.gd`는 `save_json.gd`의 타입 보존 JSON 파서를 사용한다. 스테이지·웨이브·적·포탑 정의와 생성 스폰 순서를 보존하고, 기존 `native_combat_runtime.gd` 및 `turret_stat_calculation.gd`에 입력을 조립한다. 정의 수치나 피해 공식을 별도로 작성하지 않는다. `stage()`의 `map.theme`은 renderer가 요구하는 `tileTheme` 별칭이다.
 
@@ -9,6 +9,7 @@
 - `source/settings.json`: 단위·기본 지연·방어·확률과 내구도 산식 버전 `ordinal-v1`.
 - `source/enemies.json`, `source/turrets.json`: 기본 정의와 네이티브 입력 템플릿.
 - `source/stages/001.json`~`030.json`: 고정 ID별 맵·최초 보상·40라운드의 그룹·표시 문구·클리어 보상. 그룹은 한 레코드, 타일은 보드 한 행을 한 줄로 기록한다. `spawnQueue`·`enemyDurability`는 원본에 쓰지 않는다.
+- `source/core_passive_tree_v5.json`: 확장 코어 트리의 좌표·연결·랭크별 비용·효과 원본. `source/core_passive_tree_v4.json`은 기존 런을 위한 보존 원본이다. [코어 생성기](../../scripts/compile_core_passive_tree.py)가 성장 카탈로그·Godot 랭크 레지스트리·서버 검증 레지스트리를 함께 만든다. 투자·이관 계약은 [현행 코어 기준](../../docs/core_passive_tree_implementation_plan.md)을 따른다.
 - `source/progression.json`: 진행 순서·표시·해금의 공유 원본. [진행 생성기](../../scripts/compile_progression.py)가 Godot·서버 테이블을 만든다.
   - `researchPrerequisites`는 연구 간 선행 조건이다. 선행 조건이 있는 연구는 새 콘텐츠로 보고 고정 스테이지 조건만 인정하며, 레거시·grandfather 해금은 적용하지 않는다. 서버·Godot의 판정은 [공용 사례](../../test/fixtures/research_prerequisite_cases.json)로 함께 검사한다.
 

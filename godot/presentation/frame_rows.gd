@@ -60,7 +60,8 @@ class Turret extends RefCounted:
 	var fire_feedback := 0.0
 	var type := "cannon"
 	var level := 1
-	## Type-specific presentation state (sniper aim, frost charge); never saved.
+	## Presentation projection of turret state (sniper aim, frost, stockpile).
+	## The authoritative saved state lives in combat checkpoints.
 	var extension: Dictionary = {}
 
 	static func from_array(d: Array) -> Turret:
@@ -73,6 +74,9 @@ class Turret extends RefCounted:
 		if d.size() > 7: row.level = int(d[7])
 		if d.size() > 8 and d[8] is Dictionary: row.extension = d[8]
 		return row
+
+	func stockpile_enabled() -> bool: return bool(extension.get("stockpileEnabled",false))
+	func stockpile_charges() -> int: return clampi(int(extension.get("stockpileCharges",0)),0,2)
 
 	func to_array() -> Array:
 		var d := [id, x, y, aim_angle, shot_sequence, fire_feedback, type, level]

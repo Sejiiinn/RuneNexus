@@ -194,7 +194,25 @@ func commit_saved(prepared: Dictionary) -> Error:
 	return result
 
 func persist_state(app, candidate: Dictionary, abandoning: bool = false, previous: Dictionary = {}) -> Error:
-	return commit_capture(capture_state(app, candidate, abandoning, previous), app.catalog, app.run_domain.growth)
+	# The candidate already contains the terminal reward/claim decision. Migrate
+	# only that ended run, and commit the refund/archive in the same checkpoint
+	# (and transition journal when abandoning). Failure leaves live ranks intact.
+	var migration := {"changed":false}
+	if int(candidate.get("progression", {}).get("corePassiveTreeRevision", 4)) < 5 and str(candidate.get("phase", "preparation")) in ["success", "failure", "coreDestruction"]:
+		migration = app.run_domain.growth.migrate_core_tree({"progression":candidate.get("progression", {}),"activeRun":candidate})
+	var prepared := candidate
+	if migration.get("changed", false):
+		prepared = migration.state.activeRun
+		prepared.progression = migration.state.progression
+	var result := commit_capture(capture_state(app, prepared, abandoning, previous), app.catalog, app.run_domain.growth)
+	if result == OK and migration.get("changed", false):
+		var was_live := is_same(candidate, app.run_domain.state)
+		candidate.clear()
+		candidate.merge(prepared, true)
+		if was_live:
+			app.run_domain.state = candidate
+			app.progression_inputs = candidate.progression.duplicate(true)
+	return result
 
 func apply_economy_snapshot(app, snapshot: Dictionary, command: Dictionary = {}) -> bool:
 	flush_pending()
@@ -407,8 +425,15 @@ func save_progression(app, progression: Dictionary) -> Error:
 	values.erase("turretModules")
 	var saved: Variant = Codec.decode({"version":2,"savedAtMillis":int(app.run_domain.now_millis.call()),"preferences":preferences,"progression":values,"turretModules":modules,"activeRun":null})
 	if saved == null: return ERR_INVALID_DATA
+	var migration: Dictionary = app.run_domain.growth.migrate_core_tree(saved)
+	if migration.get("changed", false): saved = migration.state
 	var result: Error = store.save_save(saved)
-	if result == OK: _clear_async_failure()
+	if result == OK:
+		_clear_async_failure()
+		if migration.get("changed", false):
+			progression.clear()
+			progression.merge(saved.progression, true)
+			progression.turretModules = modules
 	message = "진행 상황을 저장했습니다" if result == OK else store.last_error_message
 	return result
 
@@ -452,6 +477,15 @@ func _load_content(app) -> Error:
 		# migrate by requesting the initial server offer, never by uploading cards.
 		saved.activeRun.rewardOptions = []
 		if not backup_uncertain and store.save_save(saved) != OK: return store.last_error
+	# Journal recovery and authoritative economy projection precede this change.
+	# A suspended v4 run stays v4, including preparation/reward in the lobby.
+	# Terminal run records remain available, with their old loadout pinned.
+	var core_migration: Dictionary = app.run_domain.growth.migrate_core_tree(saved)
+	if core_migration.get("changed", false) and not backup_uncertain:
+		if store.save_save(core_migration.state) != OK:
+			message = store.last_error_message
+			return store.last_error
+		saved = core_migration.state
 	if saved.activeRun == null:
 		if not allow_progression_only:
 			message = "No active run"

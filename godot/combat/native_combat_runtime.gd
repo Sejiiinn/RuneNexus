@@ -21,6 +21,8 @@ const FIXED_STEP: float = 1.0 / 60.0
 const LOGICAL_CANVAS_TILE := 48.0
 const MAX_STEPS_PER_FRAME: int = 64
 const STEP_EPSILON: float = 1.0e-10
+const STOCKPILE_MAX_CHARGES: int = 2
+const STOCKPILE_SPEED_MULTIPLIER: float = 1.5
 # Emitted only after a complete step. Application events/commands may be settled
 # synchronously here, before another step consumes debt in this render frame.
 signal step_completed
@@ -98,6 +100,18 @@ var portal_alert: float = 0.0
 
 func native_session() -> bool:
 	return session.get("clock", "") == "godot"
+
+## Read-only production/UI observation; normal timings exclude stockpile amplification.
+## Cooldown is nominal (before the existing per-shot random 0.95..1.05 jitter).
+func stockpile_firing_state(turret_id: int) -> Dictionary:
+	var t: Dictionary = turrets.get(str(turret_id), {})
+	if t.is_empty(): return {}
+	var cooldown := 1.0 / _normal_attack_rate(t)
+	var aim := _normal_aim_duration(t)
+	return {"enabled":t.stockpileEnabled,"charges":t.stockpileCharges,
+		"idleElapsed":t.stockpileIdleElapsed,"chargeInterval":cooldown+aim,
+		"normalCooldown":cooldown,"normalAimDuration":aim,
+		"speedMultiplier":_stockpile_aim_multiplier(t) if t.stockpileEnabled and t.stockpileCharges > 0 else 1.0}
 
 func _session_time_enabled() -> bool:
 	return active and native_session() and not bool(session.get("paused", false)) \
@@ -386,7 +400,7 @@ func _core_base_damage() -> float:
 		var definition: Dictionary = t.statInput.definition
 		var projectile: bool = not definition.instantHit and not definition.centeredAreaAttack and definition.type != "lightning"
 		var rate: float = stats.attackRate / (1.4 if t.statInput.chainCleanupActive else 1.0) * (1.4 if t.cleanup>0 else 1.0)
-		dps += float(stats.damage)*maxf(0,rate)*(int(stats.projectileCount) if projectile else 1)
+		dps += float(stats.damage)*(1.0 + float(t.statInput.get("coreEffects", {}).get("directDamageIncrease", 0.0)))*maxf(0,rate)*(int(stats.projectileCount) if projectile else 1)
 		if "damageOverTime" in definition.attackTags:
 			dps += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
 	return maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))
@@ -413,7 +427,7 @@ func _core_beam_tick(tick_damage: float) -> void:
 	if damage <= 0: return
 	target.hitFlashTimer = 0.1
 	var result: Dictionary = Enemy.apply_hit(target,{"damage":damage})
-	_collect(result.events)
+	_collect(result.events, {}, true)
 	core.direct_damage_dealt += float(result.actualDamage)
 	core.bonus_damage_dealt += float(result.bonusDamage)
 	if float(result.actualDamage)>0:
@@ -572,6 +586,12 @@ func _turret(raw: Dictionary) -> void:
 	var state: Dictionary = t.get("state", {})
 	for key in ["cooldown", "aimProgress", "aimTargetId", "aimAngle", "shotSequence", "directDamageDealt", "splashDamageDealt", "chainDamageDealt", "burnDamageDealt", "cleanup", "recent", "overheatTarget", "overheatStacks", "suppressiveTarget", "suppressiveHits", "lastBaseCooldown", "lightningElapsed", "fireFeedback"]:
 		t[key] = old.get(key, raw.get(key, state.get(key, {} if key == "recent" else 0)))
+	# Frozen run build activates the perk for every turret type. Refresh keeps
+	# earned charges; a checkpoint restores them but breaks partial idle time.
+	t.stockpileEnabled = bool(t.statInput.get("coreEffects", {}).get("hasStockpileFire", false))
+	t.stockpileCharges = clampi(int(old.get("stockpileCharges", raw.get("stockpileCharges", state.get("stockpileCharges", 0)))), 0, STOCKPILE_MAX_CHARGES) if t.stockpileEnabled else 0
+	t.stockpileIdleElapsed = float(old.get("stockpileIdleElapsed", 0.0)) if t.stockpileEnabled else 0.0
+	t.stockpilePrefiring = bool(old.get("stockpilePrefiring", false)) if t.stockpileEnabled else false
 	_apply_sync(t)
 	t.stats = Stats.shared_stats_at(t.statInput, int(t.statInput.level))
 	turrets[id] = t
@@ -674,10 +694,11 @@ func _command(c: Dictionary) -> void:
 		"coreDamage":
 			if enemies.has(str(c.enemyId)):
 				var result: Dictionary = Enemy.apply_hit(enemies[str(c.enemyId)], {"damage": c.damage})
-				_collect(result.get("events", []))
+				_collect(result.get("events", []), {}, true)
 				_emit({"kind": "coreDamage", "enemyId": c.enemyId, "damage": result.get("actualDamage", 0.0)})
 
 func _step(dt: float) -> void:
+	if running: defense.step(dt)
 	_target_candidates_ready = false
 	clock += dt
 	if not visual_effects.is_empty():
@@ -728,6 +749,7 @@ func _finish_step(dt: float) -> void:
 		_check_native_wave_complete()
 
 func _tick_turret(t: Dictionary, dt: float) -> void:
+	var ready_dt := maxf(0.0, dt - maxf(0.0, float(t.cooldown)))
 	t.cooldown = maxf(0, float(t.cooldown) - dt)
 	t.cleanup = maxf(0, float(t.cleanup) - dt)
 	t.fireFeedback = maxf(0, float(t.fireFeedback) - dt)
@@ -736,7 +758,7 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 		t.recent[id] -= dt
 		if t.recent[id] <= 0:
 			t.recent.erase(id)
-	if not running or t.cooldown > 0:
+	if not running or t.cooldown > 0 or t.stockpilePrefiring:
 		t.aimProgress = 0
 		return
 	var s: Dictionary = t.stats
@@ -754,12 +776,17 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 		target = _target(_vec(t.position), radius, t.get("targetPriority", t.state.get("targetPriority", "first")), [], true)
 	if target.is_empty():
 		t.aimProgress = 0
+		if t.stockpileEnabled: _charge_stockpile(t, ready_dt)
 		return
+	# Acquisition breaks the continuous no-target interval even if this target
+	# dies or leaves before firing. Completed charges survive interrupted aim.
+	if t.stockpileEnabled: t.stockpileIdleElapsed = 0.0
+	var stockpiled: bool = t.stockpileEnabled and t.stockpileCharges > 0
 	if definition.instantHit:
 		if not retained_aim and str(t.aimTargetId) != str(target.id):
 			t.aimProgress = 0
 		t.aimTargetId = target.id
-		t.aimProgress += dt
+		t.aimProgress += dt * (_stockpile_aim_multiplier(t) if stockpiled else 1.0)
 		t.aimAngle = (_pos(target) - _vec(t.position)).angle()
 		if t.aimProgress < s.aimDuration:
 			return
@@ -768,7 +795,10 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 	attack.definition = definition
 	attack.burnDamagePerSecondScale = 0.5
 	attack.burnDurationSeconds = 2.0
-	t.cooldown = (0.95 + rng.randf() * 0.1) / maxf(0.001, s.attackRate / (1.4 if t.statInput.chainCleanupActive else 1.0) * (1.4 if t.cleanup > 0 else 1.0))
+	t.cooldown = (0.95 + rng.randf() * 0.1) / _normal_attack_rate(t)
+	if stockpiled and definition.type != "lightning":
+		t.stockpileCharges -= 1
+		t.cooldown /= _stockpile_cooldown_multiplier(t)
 	t.lastBaseCooldown = t.cooldown
 	t.lightningElapsed = 0.0
 	t.aimProgress = 0.0
@@ -786,8 +816,10 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 		_visual("impact", _pos(target), t, {"style":"sniperBlast", "radius":12.0 * board_scale})
 		_impact(t, attack, target, _pos(target))
 	elif definition.type == "lightning":
-		_visual("charge", _vec(t.position), t, {"duration":0.3, "ownerId":int(t.id), "attachmentRadius":0.4})
-		delayed.append({"kind": "charge", "timer": 0.3, "owner": str(t.id), "attack": attack})
+		var charge_time := 0.3 / (_stockpile_aim_multiplier(t) if stockpiled else 1.0)
+		t.stockpilePrefiring = t.stockpileEnabled
+		_visual("charge", _vec(t.position), t, {"duration":charge_time, "ownerId":int(t.id), "attachmentRadius":0.4})
+		delayed.append({"kind": "charge", "timer": charge_time, "owner": str(t.id), "attack": attack, "stockpiled":stockpiled})
 	else:
 		var projectile_origin := _vec(t.position)
 		if definition.type == "magic":
@@ -795,6 +827,30 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 		for index in range(int(s.projectileCount)):
 			var angle: float = t.aimAngle + (index - (int(s.projectileCount) - 1) / 2.0) * PI / 18.0
 			_projectile(t, attack, projectile_origin, Vector2.from_angle(angle), int(attack.chainCount), [], false, (s.range + 64.0 * board_scale) * PROJECTILE_TRAVEL_MULTIPLIER)
+
+func _normal_aim_duration(t: Dictionary) -> float:
+	if t.statInput.definition.type == "lightning": return 0.3
+	return float(t.stats.aimDuration) if t.statInput.definition.instantHit else 0.0
+
+func _stockpile_aim_multiplier(t: Dictionary) -> float:
+	return maxf(1.0, float(t.statInput.get("coreEffects", {}).get("stockpileAimSpeedMultiplier", STOCKPILE_SPEED_MULTIPLIER)))
+
+func _stockpile_cooldown_multiplier(t: Dictionary) -> float:
+	return maxf(1.0, float(t.statInput.get("coreEffects", {}).get("stockpileCooldownRecoveryMultiplier", STOCKPILE_SPEED_MULTIPLIER)))
+
+func _normal_attack_rate(t: Dictionary) -> float:
+	return maxf(0.001, t.stats.attackRate / (1.4 if t.statInput.chainCleanupActive else 1.0) * (1.4 if t.cleanup > 0 else 1.0))
+
+func _charge_stockpile(t: Dictionary, ready_dt: float) -> void:
+	if ready_dt <= 0.0 or t.stockpileCharges >= STOCKPILE_MAX_CHARGES: return
+	var aim := _normal_aim_duration(t)
+	var interval := 1.0 / _normal_attack_rate(t) + aim
+	t.stockpileIdleElapsed += ready_dt
+	while t.stockpileIdleElapsed + STEP_EPSILON >= interval and t.stockpileCharges < STOCKPILE_MAX_CHARGES:
+		t.stockpileIdleElapsed = maxf(0.0, t.stockpileIdleElapsed - interval)
+		t.stockpileCharges += 1
+	# Never bank overflow past the two-charge cap.
+	if t.stockpileCharges >= STOCKPILE_MAX_CHARGES: t.stockpileIdleElapsed = 0.0
 
 func _target_candidate_list() -> Array:
 	var candidates: Array = []
@@ -950,9 +1006,10 @@ func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> 
 	p.excluded.append(str(hit.id))
 	_impact(t, p.attack, hit, p.position, 0.5 if p.chained else 1.0, p.chained, p.direction)
 	if p.chains > 0:
-		var next := _target(p.position, 110.0 * board_scale, "nearest", p.excluded)
+		var chain_range := 110.0 * board_scale * float(p.attack.get("chainJumpRangeMultiplier", 1.0))
+		var next := _target(p.position, chain_range, "nearest", p.excluded)
 		if not next.is_empty():
-			_projectile(t, p.attack, p.position, _pos(next) - p.position, int(p.chains) - 1, p.excluded, true, 110.0 * board_scale * PROJECTILE_TRAVEL_MULTIPLIER)
+			_projectile(t, p.attack, p.position, _pos(next) - p.position, int(p.chains) - 1, p.excluded, true, chain_range * PROJECTILE_TRAVEL_MULTIPLIER)
 
 func _release(d: Dictionary) -> void:
 	var t: Dictionary = turrets.get(d.owner, {})
@@ -966,9 +1023,15 @@ func _release(d: Dictionary) -> void:
 	var priority: String = t.get("targetPriority", t.state.get("targetPriority", "first")) if d.kind == "charge" else "first"
 	var target := _target(from, a.range if d.kind == "charge" else a.lightningChainJumpRange, priority, excluded, d.kind == "charge")
 	var used := int(d.get("used", 0))
+	if d.kind == "charge": t.stockpilePrefiring = false
 	if target.is_empty():
 		_lightning_complete(t, a, used)
 		return
+	# Charge/cancel never spends a stored shot. A valid first discharge does.
+	if d.kind == "charge" and bool(d.get("stockpiled", false)) and t.stockpileCharges > 0:
+		t.stockpileCharges -= 1
+		t.lastBaseCooldown /= _stockpile_cooldown_multiplier(t)
+		t.cooldown = maxf(0.0, float(t.lastBaseCooldown) - float(t.lightningElapsed))
 	var visual_source_id := -1 if d.kind == "charge" or excluded.is_empty() else int(excluded[-1])
 	_visual("chain", from, t, {"points":[[from.x,from.y],[_pos(target).x, _pos(target).y]], "targetIds":[-1,target.id], "sourceTargetId":visual_source_id})
 	_impact(t, a, target, _pos(target), 1.0 if d.kind == "charge" else float(a.lightningChainDamageMultiplier), d.kind != "charge")
@@ -1004,7 +1067,7 @@ func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scal
 	for e in impacted:
 		if _alive(e):
 			var primary: bool = is_same(e, target)
-			_hit(t, a, e, scale * (1.0 if primary else float(a.splashSecondaryDamageMultiplier)), ("chain" if chained else "direct") if primary else "splash", primary and not chained)
+			_hit(t, a, e, scale * (1.0 if primary else float(a.splashSecondaryDamageMultiplier)), ("chain" if chained else "direct") if primary else "splash", primary and not chained, chained)
 
 func _traits(t: Dictionary, a: Dictionary, e: Dictionary) -> float:
 	var id := str(e.id)
@@ -1031,7 +1094,7 @@ func _traits(t: Dictionary, a: Dictionary, e: Dictionary) -> float:
 		multiplier *= 1.45
 	return multiplier
 
-func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: String, direct: bool) -> void:
+func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: String, direct: bool, chained: bool = false) -> void:
 	e.hitFlashTimer = 0.1
 	var source := {"x": int(t.state.get("x", 0)), "y": int(t.state.get("y", 0))}
 	var burn: Dictionary = Enemy.burn_transfer(e, source) if direct and a.appliesIgnitionBurst else {}
@@ -1041,10 +1104,14 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 	var resistance := {"family": family, "familyResistance": e.get("familyResistances", {}).get(family, 0.0), "tags": a.definition.attackTags, "tagResistances": e.get("tagResistances", {}), "attackPhysicalReduction": a.physicalResistanceReduction, "enemyPhysicalReduction": e.get("physicalVulnerabilityBonus", 0.0) if float(e.get("physicalVulnerabilityRemaining", 0)) > 0 else 0.0, "enemyElementalReduction": e.get("elementalVulnerabilityBonus", 0.0) if float(e.get("elementalVulnerabilityRemaining", 0)) > 0 else 0.0}
 	var status := a.duplicate()
 	status.damageScale = scale
-	var resolved := Attack.resolve({"baseDamage": float(a.damage) * float(a.criticalMultiplier) * scale, "traitMultiplier": trait_multiplier, "resistance": resistance, "status": status})
+	# Same-layer hit increases add before multiplication. They do not leak into DoT.
+	var hit_increase := float(a.get("directDamageIncrease", 0.0))
+	if kind == "splash": hit_increase += float(a.get("splashDamageIncrease", 0.0))
+	elif kind == "chain": hit_increase += float(a.get("chainDamageIncrease", 0.0))
+	var resolved := Attack.resolve({"baseDamage": float(a.damage) * float(a.criticalMultiplier) * scale * (1.0 + hit_increase), "traitMultiplier": trait_multiplier, "resistance": resistance, "status": status})
 	for effect in resolved.effects:
 		match effect.type:
-			"slow": Enemy.add_slow(e, effect.multiplier, effect.duration)
+			"slow": Enemy.add_control(e, "slow", effect.duration, {"multiplier":effect.multiplier, "firstControlDurationMultiplier":a.get("firstControlDurationMultiplier", 1.0)})
 			"elementalVulnerability": Enemy.add_vulnerability(e, "elemental", effect.bonus, effect.duration)
 			"burn":
 				effect.sourceX = source.x
@@ -1080,7 +1147,7 @@ func _burn_source_turrets(source: Dictionary, index: Dictionary) -> Array:
 	var row: Dictionary = index.rows.get(_burn_coordinate_key(source.get("sourceX")), {})
 	return row.get(_burn_coordinate_key(source.get("sourceY")), [])
 
-func _collect(items: Array, burn_sources: Dictionary = {}) -> void:
+func _collect(items: Array, burn_sources: Dictionary = {}, core_owned: bool = false) -> void:
 	for raw in items:
 		var type: String = raw.get("type", "")
 		# Continuous damage is settled here into turret and core totals. No journal
@@ -1096,6 +1163,7 @@ func _collect(items: Array, burn_sources: Dictionary = {}) -> void:
 		var event: Dictionary = raw.duplicate(true)
 		if type == "killed":
 			event.kind = "kill"
+			if not core_owned: core.charge_from_kill()
 			_diamond_reward_visual(enemies.get(str(event.enemyId), {}))
 			_spread_burn(event)
 			for t in turrets.values():
@@ -1172,8 +1240,9 @@ func snapshot() -> Dictionary:
 	var turret_states: Array = []
 	for t in turrets.values():
 		var state := {"id": t.id}
-		for key in ["cooldown", "aimAngle", "aimProgress", "aimTargetId", "shotSequence", "directDamageDealt", "splashDamageDealt", "chainDamageDealt", "burnDamageDealt"]:
+		for key in ["cooldown", "aimAngle", "aimProgress", "aimTargetId", "shotSequence", "directDamageDealt", "splashDamageDealt", "chainDamageDealt", "burnDamageDealt", "stockpileEnabled", "stockpileCharges", "stockpileIdleElapsed"]:
 			state[key] = t[key]
+		state.stockpileChargeInterval = 1.0 / _normal_attack_rate(t) + _normal_aim_duration(t)
 		turret_states.append(state)
 	var wave_state: Dictionary = wave.snapshot()
 	return {"stateRevision":state_revision,"session":session_snapshot(),"defense":defense.snapshot(),"wave":wave_state,"core":core.snapshot(),"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
@@ -1287,6 +1356,9 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 			if duration <= 0.0:
 				duration = maxf(float(t.cooldown), 1.0 / maxf(.001, float(t.stats.attackRate)))
 			row.extension = {"cooldown":t.cooldown, "duration":duration, "radius":float(t.stats.centeredAreaRadius)/tile_size}
+		if t.stockpileEnabled:
+			if is_same(row.extension, FrameRows.NO_EXTENSION): row.extension = {}
+			row.extension.merge({"stockpileEnabled":true,"stockpileCharges":int(t.stockpileCharges),"stockpileIdleElapsed":float(t.stockpileIdleElapsed),"stockpileChargeInterval":1.0 / _normal_attack_rate(t) + _normal_aim_duration(t)}, true)
 		frame.turrets.append(row)
 	if frame.has("presentation"):
 		if not frame.presentation.has("labels"): frame.presentation.labels = {}

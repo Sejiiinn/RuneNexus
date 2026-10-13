@@ -64,3 +64,12 @@ func TestMigratedGrowthCannotBeReplacedByLegacyTransfer(t *testing.T) {
 		t.Fatalf("migrated target error = %v", err)
 	}
 }
+
+func TestLegacyTransferValidatesExpandedCoreAllocation(t *testing.T) {
+	data := validImportedData(t)
+	data.Progression = json.RawMessage(`{"runes":10,"freeDiamonds":20,"paidDiamonds":0,"corePassiveTreeRevision":5,"totalCorePoints":100,"corePassiveNodeRanks":{"S1":3,"A03":1}}`)
+	if err := validateImportedData(data); err != nil { t.Fatal(err) }
+	data.Progression = json.RawMessage(`{"runes":10,"freeDiamonds":20,"paidDiamonds":0,"corePassiveTreeRevision":5,"totalCorePoints":100,"corePassiveNodeRanks":{"A03":1}}`)
+	if err := validateImportedData(data); !errors.Is(err, ErrInvalidData) { t.Fatalf("unreachable imported allocation: %v", err) }
+	if err := validateReplaceableTarget([]byte(`{"corePassiveTreeRevision":5,"paidDiamonds":0}`)); !errors.Is(err,ErrTargetNotReplaceable) { t.Fatalf("expanded target overwrite: %v",err) }
+}

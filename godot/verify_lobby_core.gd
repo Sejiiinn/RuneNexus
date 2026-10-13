@@ -37,6 +37,7 @@ func run() -> void:
 	host.app = {"run_domain":{"growth":growth}}
 	host.state = growth.data.defaultProgression.duplicate(true)
 	host.state.totalCorePoints = 30
+	host.state.corePassiveTreeRevision = 4
 	host.state.corePassiveNodeRanks = {}
 	host.add_child(host.body)
 	root.add_child(host)

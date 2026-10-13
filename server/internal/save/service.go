@@ -19,7 +19,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = RunAuthorityClientCompatibilityVersion
+	CurrentClientCompatibilityVersion       = CoreTreeClientCompatibilityVersion
 )
 
 var (
@@ -405,6 +405,9 @@ func (service *Service) Update(
 		return UpdateResult{}, err
 	}
 	if err := ValidateGrowthUpdate(currentProgression, request.Data.Progression, request.ClientCompatibilityVersion); err != nil {
+		return UpdateResult{}, err
+	}
+	if err := ValidateCoreTreeUpdate(currentProgression, snapshot.ActiveRun, request.Data.Progression, request.Data.ActiveRun, request.ClientCompatibilityVersion); err != nil {
 		return UpdateResult{}, err
 	}
 

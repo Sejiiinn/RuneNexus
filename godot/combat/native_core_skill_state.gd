@@ -57,6 +57,15 @@ func activate() -> float:
 	attack_sync_remaining = float(config.get("attackSyncDuration", 2.0))
 	return power_for_activation(activation_count)
 
+## A kill contributes a fraction of maximum charge, alongside normal time.
+## A ready/active skill discards overflow; its own kills are filtered by runtime.
+func charge_from_kill() -> float:
+	var amount := interval() * maxf(0.0, float(config.get("killCoreChargeRate", 0.0)))
+	if not configured or skill == null or guardian_beam_active_remaining > 0.0 or cooldown <= 0.0 or amount <= 0.0: return 0.0
+	var before := cooldown
+	cooldown = maxf(0.0, cooldown - amount)
+	return before - cooldown
+
 func emergency_charge(recovery_rate: float) -> bool:
 	if emergency_charge_used_this_round or skill == null or guardian_beam_active_remaining > 0 or cooldown <= 0 or recovery_rate <= 0 or interval() <= 0:
 		return false

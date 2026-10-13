@@ -188,6 +188,7 @@ func _new_turret(type: String) -> Dictionary:
 		"last_shot": -1, "last_time": -INF, "fire_start": -INF, "active_port": 0,
 	}
 	entry["level_bounds"] = TurretLevelLabels.base_bounds(root, entry["head"], root.transform.affine_inverse())
+	entry["stockpile_bounds"] = TurretLevelLabels.base_bounds(root, null, root.transform.affine_inverse())
 	if type == "lightning":
 		entry["lightning_glow"] = _lightning_materials(root)
 		return entry
@@ -280,6 +281,8 @@ func _sync_turrets(units: Array) -> void:
 		var entry: Dictionary = turrets[id]
 		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
 		entry["level"] = row.level
+		entry["stockpileEnabled"] = row.stockpile_enabled()
+		entry["stockpileCharges"] = row.stockpile_charges()
 		entry["root"].position = Vector3(row.x - columns / 2.0, 0.0, row.y - rows / 2.0)
 		_placements.apply_entry(id,entry,columns,rows)
 		entry["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - row.aim_angle

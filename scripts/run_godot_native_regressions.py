@@ -13,10 +13,15 @@ import sys
 import tempfile
 from content_compiler import check_generated
 from compile_progression import compile_progression
+from compile_core_passive_tree import compile_core_tree
 from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_expanded_tree_combat.gd": "EXPANDED_TREE_COMBAT checks=",
+    "verify_stockpile_firing.gd": None,
+    "verify_expanded_tree_integration.gd": "EXPANDED_TREE_INTEGRATION checks=",
+    "verify_expanded_core_tree.gd": "EXPANDED_CORE_TREE assertions=",
     "verify_gem_authority_protocol.gd": "GEM_AUTHORITY_PROTOCOL checks=",
     "verify_server_run_lifecycle.gd": "SERVER_RUN_LIFECYCLE checks=",
     "verify_gem_save_recovery.gd": "GEM_SAVE_RECOVERY checks=",
@@ -150,6 +155,7 @@ def isolated_environment(home: Path, temporary: Path) -> dict[str, str]:
 def prepare(directory: Path, executable: str) -> Path:
     check_generated(ROOT)
     compile_progression(ROOT, check=True)
+    compile_core_tree(ROOT, check=True)
     project = directory / "godot"
     for folder in ("combat", "app", "fixtures", "content", "session", "ui", "services"):
         (project / folder).mkdir(parents=True, exist_ok=True)

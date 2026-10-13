@@ -5,7 +5,7 @@ extends RefCounted
 
 static func create(raw: Dictionary) -> Dictionary:
 	var e: Dictionary = raw.duplicate(true)
-	var defaults := {"id":0,"maxHp":1.0,"maxShield":0.0,"maxArmor":0.0,"speed":0.0,"shieldRegenRate":0.0,"boardDistanceScale":1.0,"distanceTravelled":0.0,"targetIndex":1,"facingAngle":0.0,"shieldBroken":false,"arrived":false,"killReported":false,"burnInstances":[],"slowInstances":[],"poisonRemaining":0.0,"poisonDamagePerSecond":0.0,"poisonDamageMultiplier":1.0,"poisonStacks":0,"physicalVulnerabilityRemaining":0.0,"physicalVulnerabilityBonus":0.0,"elementalVulnerabilityRemaining":0.0,"elementalVulnerabilityBonus":0.0,"riftMarkRemaining":0.0,"riftMarkDamageAmplification":0.0,"burnNumberDamage":0.0,"burnNumberTimer":0.0,"poisonNumberDamage":0.0,"poisonNumberTimer":0.0,"hitFlashTimer":0.0,"statusEffectTime":0.0,"laneOffsetRatio":0.0,"visualPhase":0.0,"diamondReward":0,"path":[]}
+	var defaults := {"id":0,"maxHp":1.0,"maxShield":0.0,"maxArmor":0.0,"speed":0.0,"shieldRegenRate":0.0,"boardDistanceScale":1.0,"distanceTravelled":0.0,"targetIndex":1,"facingAngle":0.0,"shieldBroken":false,"arrived":false,"killReported":false,"burnInstances":[],"slowInstances":[],"firstControlApplied":false,"stunRemaining":0.0,"freezeRemaining":0.0,"poisonRemaining":0.0,"poisonDamagePerSecond":0.0,"poisonDamageMultiplier":1.0,"poisonStacks":0,"physicalVulnerabilityRemaining":0.0,"physicalVulnerabilityBonus":0.0,"elementalVulnerabilityRemaining":0.0,"elementalVulnerabilityBonus":0.0,"riftMarkRemaining":0.0,"riftMarkDamageAmplification":0.0,"burnNumberDamage":0.0,"burnNumberTimer":0.0,"poisonNumberDamage":0.0,"poisonNumberTimer":0.0,"hitFlashTimer":0.0,"statusEffectTime":0.0,"laneOffsetRatio":0.0,"visualPhase":0.0,"diamondReward":0,"path":[]}
 	for key in defaults:
 		if not e.has(key): e[key] = defaults[key]
 	e.hp = clampf(float(e.get("hp",e.maxHp)),0,float(e.maxHp))
@@ -13,7 +13,7 @@ static func create(raw: Dictionary) -> Dictionary:
 	e.armor = clampf(float(e.get("armor",0.0)),0,float(e.maxArmor))
 	e.shieldBroken = e.maxShield > 0 and e.shieldBroken
 	e.distanceTravelled = maxf(0,e.distanceTravelled)
-	for key in ["poisonRemaining","poisonDamagePerSecond","poisonDamageMultiplier","poisonStacks","physicalVulnerabilityRemaining","physicalVulnerabilityBonus","elementalVulnerabilityRemaining","elementalVulnerabilityBonus","riftMarkRemaining","riftMarkDamageAmplification"]:
+	for key in ["stunRemaining","freezeRemaining","poisonRemaining","poisonDamagePerSecond","poisonDamageMultiplier","poisonStacks","physicalVulnerabilityRemaining","physicalVulnerabilityBonus","elementalVulnerabilityRemaining","elementalVulnerabilityBonus","riftMarkRemaining","riftMarkDamageAmplification"]:
 		e[key] = maxf(0,float(e[key]))
 	var slows: Array = e.slowInstances.duplicate(true)
 	e.slowInstances = []
@@ -164,6 +164,24 @@ static func add_slow(e: Dictionary,multiplier: float,duration: float) -> void:
 			return
 	e.slowInstances.append({"multiplier":multiplier,"remaining":duration})
 
+## Shared successful-control gate for current slow and future stun/freeze attacks.
+## Restoring slowInstances uses add_slow directly, never this application gate.
+static func add_control(e: Dictionary, kind: String, duration: float, options: Dictionary = {}) -> bool:
+	if kind not in ["slow", "stun", "freeze"] or e.hp <= 0.0 or e.arrived: return false
+	if bool(e.get("controlImmune", false)) or kind in e.get("controlImmunities", []) or bool(e.get(kind + "Immune", false)): return false
+	var multiplier := float(options.get("multiplier", 1.0))
+	if kind == "slow" and (not is_finite(multiplier) or multiplier < 0.0 or multiplier >= 1.0): return false
+	duration *= float(options.get("durationMultiplier", 1.0))
+	if not is_finite(duration) or duration <= 0.0: return false
+	if not bool(e.get("firstControlApplied", false)):
+		duration *= maxf(1.0, float(options.get("firstControlDurationMultiplier", 1.0)))
+	if not is_finite(duration) or duration <= 0.0: return false
+	# Immunity and invalid/no-op controls do not consume the global first control.
+	e.firstControlApplied = true
+	if kind == "slow": add_slow(e, multiplier, duration)
+	else: e[kind + "Remaining"] = maxf(float(e.get(kind + "Remaining", 0.0)), duration)
+	return true
+
 static func add_burn(e: Dictionary,burn: Dictionary) -> void:
 	var dps := float(burn.get("damagePerSecond",0))
 	var duration := float(burn.get("duration",burn.get("remaining",0)))
@@ -190,11 +208,13 @@ static func clear_burn_source(e: Dictionary,source: Dictionary) -> void:
 			b.sourceX=null
 			b.sourceY=null
 
-static func add_poison(e: Dictionary,dps: float,duration: float,max_stacks: int,multiplier: float=1) -> void:
-	e.poisonDamagePerSecond=dps
+static func add_poison(e: Dictionary,dps: float,duration: float,max_stacks: int,multiplier: float=1,speed_multiplier: float=1) -> void:
+	# Optional speed applies to existing poison only, never grants a new attack.
+	speed_multiplier = maxf(0.000001, speed_multiplier)
+	e.poisonDamagePerSecond=dps*speed_multiplier
 	e.poisonDamageMultiplier=multiplier
 	e.poisonStacks=mini(max_stacks,int(e.poisonStacks)+1)
-	e.poisonRemaining=duration
+	e.poisonRemaining=duration/speed_multiplier
 
 static func add_vulnerability(e: Dictionary,kind: String,bonus: float,duration: float) -> void:
 	if kind not in ["physical","elemental"] or bonus<=0 or duration<=0: return
@@ -314,6 +334,9 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 			e.poisonDamagePerSecond=0.0
 			e.poisonNumberDamage=0.0
 			e.poisonNumberTimer=0.0
+	var hard_controlled_time := minf(dt, maxf(float(e.stunRemaining), float(e.freezeRemaining)))
+	e.stunRemaining = maxf(0.0, float(e.stunRemaining) - dt)
+	e.freezeRemaining = maxf(0.0, float(e.freezeRemaining) - dt)
 	if not e.slowInstances.is_empty():
 		for slow in e.slowInstances: slow.remaining-=dt
 		e.slowInstances=e.slowInstances.filter(func(s): return s.remaining>0)
@@ -340,7 +363,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 	if distance>0.001: e.facingAngle=atan2(dy,dx)
 	var multiplier := 1.0
 	for slow in e.slowInstances: multiplier=minf(multiplier,slow.multiplier)
-	var movement: float=e.speed*e.boardDistanceScale*multiplier*dt
+	var movement: float=e.speed*e.boardDistanceScale*multiplier*maxf(0.0,dt-hard_controlled_time)
 	if distance<=movement:
 		e.distanceTravelled+=distance
 		_set_position(e,_px(target),_py(target))
