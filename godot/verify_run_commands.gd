@@ -193,6 +193,16 @@ func _targeted_level_cases(catalog, growth, built: Dictionary) -> void:
 	check(run_upgrade.ok and run_upgrade.commands.size() == types.size() and counted.turret_calls == types,"run upgrade still calculates and updates every turret")
 	for i in types.size():
 		check(run_upgrade.commands[i].turret.statInput.towerDamageMultiplier > full_commands[i].turret.statInput.towerDamageMultiplier,"run upgrade refresh reaches turret "+str(i))
+	var economy_state: Dictionary = result.state.duplicate(true)
+	economy_state.gold = 1000000
+	for type in ["killGold","waveGold"]:
+		counted.turret_calls.clear()
+		var economy: Dictionary = service.apply(economy_state,{"kind":"runUpgrade","type":type})
+		check(economy.ok and int(economy.state.runUpgradeLevels.get(type,0)) == int(economy_state.runUpgradeLevels.get(type,0))+1
+			and economy.commands.is_empty() and counted.turret_calls.is_empty(),"economy run upgrade skips unchanged turret refresh: "+type)
+	var derive_service := CountingCommands.new(counted,growth)
+	var leveled: Dictionary = derive_service.apply(state,{"kind":"level","id":target_id})
+	check(leveled.ok and derive_service.derive_calls == 1 and leveled.commands == result.commands,"level derives its unchanged configuration once")
 	for reason in ["gold","requirement","turret","phase"]:
 		var rejected := state.duplicate(true)
 		var command := {"kind":"level","id":target_id}

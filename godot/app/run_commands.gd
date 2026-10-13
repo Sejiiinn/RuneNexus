@@ -14,13 +14,18 @@ func _init(content = null, growth_rules = null) -> void:
 	growth = growth_rules
 
 func derived(state: Dictionary) -> Dictionary:
+	return growth.derive(growth.run_effect_progression(state), _derive_context(state))
+
+# Board and run inputs of derived(). Its other inputs, progression and the fixed
+# run loadout, never change inside a run transaction.
+func _derive_context(state: Dictionary) -> Dictionary:
 	var types := {}
 	var gems := {}
 	for t in state.get("turrets", []):
 		types[t.type] = true
 		for gem in t.get("equippedGemSlots", []):
 			if gem != null: gems[gem] = true
-	return growth.derive(growth.run_effect_progression(state), {"distinctTurretTypeCount":types.size(), "distinctEquippedGemTypeCount":gems.size(), "runUpgradeLevels":state.get("runUpgradeLevels", {})})
+	return {"distinctTurretTypeCount":types.size(), "distinctEquippedGemTypeCount":gems.size(), "runUpgradeLevels":state.get("runUpgradeLevels", {})}
 
 func initial_state(progression: Dictionary = {}, stage: int = 0) -> Dictionary:
 	var state := {"phase":"preparation", "stage":stage, "progression":progression.duplicate(true), "turrets":[], "gemInventory":{}, "runUpgradeLevels":{}, "nextTurretId":1000, "gold":0, "gemShards":0, "killGoldFractionWallet":0.0,"roundIndex":0,"completedRounds":0,"pendingEconomyDiamonds":0, "rewardOptions":[], "gemRerollsUsed":0}
@@ -92,9 +97,10 @@ func run_upgrade_quote_from_derived(state: Dictionary, type: String, d: Dictiona
 	return {"level":level,"maxLevel":maximum,"cost":maxi(1,roundi(roundi(float(r.baseCost)*pow(float(r.costMultiplier),level))*float(d.get("runUpgradeCostMultiplier",1)))) if level < maximum else 0}
 
 # Even targeted refreshes derive growth from the whole board's types and gems.
-func runtime_commands(state: Dictionary, target_id: Variant = null) -> Array:
+# configuration, when supplied, must be derived(state) for this exact state.
+func runtime_commands(state: Dictionary, target_id: Variant = null, configuration: Dictionary = {}) -> Array:
 	var result: Array = []
-	var d := derived(state)
+	var d := configuration if not configuration.is_empty() else derived(state)
 	for t in state.turrets:
 		if target_id != null and int(t.id) != int(target_id): continue
 		var input: Dictionary = d.get("turretStatInputs",{}).get(t.type,{}).duplicate(true)
@@ -115,11 +121,12 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 	var next := state.duplicate(true)
 	var t := turret(next,int(command.get("id",-1)))
 	var removed := -1
+	# One fresh authoritative configuration serves every quote in this transaction.
+	var d := derived(state)
 	if kind == "build":
 		var type := str(command.get("type",""))
-		var cost := build_cost(state,type)
+		var cost := build_cost_from_derived(type,d)
 		if cost <= 0: return _reject(state,"type")
-		var d := derived(state)
 		if type not in d.get("availableTurretTypes",["arrow","cannon","magic","frost"]): return _reject(state,"locked")
 		var x := int(command.get("x",-1))
 		var y := int(command.get("y",-1))
@@ -135,14 +142,14 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		next.turrets.append(t)
 	elif kind == "runUpgrade":
 		var type := str(command.get("type",""))
-		var q := run_upgrade_quote(state,type)
+		var q := run_upgrade_quote_from_derived(state,type,d)
 		if q.is_empty() or int(q.cost) <= 0: return _reject(state,"maxLevel")
 		if int(next.gold) < int(q.cost): return _reject(state,"gold")
 		next.gold -= int(q.cost)
 		next.runUpgradeLevels[type] = int(q.level)+1
 	else:
 		if t.is_empty(): return _reject(state,"turret")
-		var q := quotes(state,int(t.id))
+		var q := quotes_from_derived(state,int(t.id),d)
 		match kind:
 			"level", "link":
 				var cost := int(q[kind])
@@ -186,12 +193,16 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 				next.gemShards -= int(q[kind])
 				t[kind] = trait_name
 			"targetPriority":
-				if not derived(state).get("canSetTurretTargetPriority",false): return _reject(state,"research")
+				if not d.get("canSetTurretTargetPriority",false): return _reject(state,"research")
 				var priority := str(command.get("type",""))
 				if priority not in ["first","last","strongest","weakest","nearest"]: return _reject(state,"priority")
 				t.targetPriority = priority
 			_: return _reject(state,"command")
-	var commands := runtime_commands(next, t.id) if kind == "level" else runtime_commands(next)
+	var next_d := d if _derive_context(next) == _derive_context(state) else derived(next)
+	var commands: Array = []
+	# Economy-only run upgrades leave every turret's combat inputs unchanged.
+	if kind != "runUpgrade" or next_d.get("turretStatInputs") != d.get("turretStatInputs"):
+		commands = runtime_commands(next, t.id, next_d) if kind == "level" else runtime_commands(next, null, next_d)
 	if kind in ["primaryTrait","secondaryTrait"]: commands.append({"kind":"resetTraitState","id":t.id,"primary":kind == "primaryTrait"})
 	if removed >= 0: commands.push_front({"kind":"removeTurret","id":removed})
 	return {"ok":true,"error":"","state":next,"commands":commands}
