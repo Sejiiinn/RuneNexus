@@ -6,7 +6,7 @@ const ExpandedTree = preload("res://ui/expanded_core_tree.gd")
 var expanded_tree := ExpandedTree.new()
 var catalog_revision := 0
 var inline_scroll: ScrollContainer
-var zoom_controls: HBoxContainer
+var zoom_controls: Control
 const ROOT := "core_passive_tree/"
 const CENTER := Vector2(360, 360)
 const POLAR := {"attackHaste":[110,300],"attackOutput":[110,0],"efficiencySaving":[110,60],"efficiencyDiversity":[110,120],"controlSelfRepair":[110,180],"controlThreatSense":[110,240],"attackPrecompute":[180,310],"attackFocus":[180,350],"attackGuardianBeam":[245,300],"attackRiftMark":[245,0],"attackOverclock":[300,330],"efficiencySupplyRecovery":[180,70],"efficiencyGemSpectrum":[180,110],"efficiencyFirstDeploy":[245,60],"efficiencyFirstLink":[245,120],"efficiencyCombinedFront":[300,90],"controlRetarget":[180,190],"controlRearLock":[180,230],"controlBufferShell":[245,180],"controlEmergencyCharge":[245,240],"controlFinalLine":[300,210]}
@@ -43,6 +43,10 @@ var allocation_tween: Tween
 
 class TreeCanvas extends Control:
 	var owner_helper
+	func _ready() -> void: set_process(false)
+	# Runs only while the camera or growing links are easing; stops itself when settled.
+	func _process(delta: float) -> void:
+		if not owner_helper.tick(delta): set_process(false)
 	func _draw() -> void: owner_helper.draw_tree(self)
 	func _gui_input(event: InputEvent) -> void: owner_helper.input_tree(event)
 
@@ -105,6 +109,13 @@ func render() -> void:
 	view.clip_contents = true
 	lobby.body.add_child(view)
 	view.resized.connect(_resize)
+	if expanded():
+		expanded_tree.build_overlay(self)
+		update_state()
+		if selecting_skill: skills()
+		elif not selected.is_empty(): node_details(selected)
+		_resize.call_deferred()
+		return
 	var panel := PanelContainer.new()
 	panel.name = "CorePointOverlay"
 	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -164,17 +175,6 @@ func render() -> void:
 			transparent.content_margin_right = 7
 			button.add_theme_stylebox_override(state,transparent)
 	apply_button = action(outer, "포인트 적용", apply)
-	if expanded():
-		zoom_controls = HBoxContainer.new()
-		zoom_controls.name = "CoreZoomControls"
-		zoom_controls.add_theme_constant_override("separation",5)
-		view.add_child(zoom_controls)
-		for entry in [["−",0.75],["전체",0.0],["+",1.35]]:
-			var factor: float = entry[1]
-			var button := action(zoom_controls,entry[0],func():
-				if factor == 0: fit_tree()
-				else: scale_at(factor,view.size*0.5))
-			button.custom_minimum_size = Vector2(44,44)
 	update_state()
 	if selecting_skill: skills()
 	elif not selected.is_empty(): node_details(selected)
@@ -190,6 +190,10 @@ func action(parent: Node, title: String, callback: Callable) -> Button:
 
 func update_state() -> void:
 	if not is_instance_valid(view): return
+	if expanded():
+		expanded_tree.update_overlay(self)
+		view.queue_redraw()
+		return
 	summary.text = "코어 포인트 %d" % total()
 	used_summary.text = "사용 %d" % spent(actual())
 	planned_summary.text = "예정 %d" % spent(lobby.core_draft)
@@ -210,14 +214,23 @@ func _resize() -> void:
 	_layout_inline()
 	view.queue_redraw()
 func minimum_zoom() -> float:
+	if expanded(): return expanded_tree.minimum_zoom(self)
 	var available := viewport_size-Vector2(0,128 if expanded() else 0)
 	return minf(available.x/extent().x,maxf(80,available.y)/extent().y) * (1.0 if expanded() else 0.92)
 func fit_tree() -> void:
+	if expanded():
+		expanded_tree.interrupt()
+		expanded_tree.fit(self)
+		view.queue_redraw()
+		return
 	zoom = minimum_zoom()
 	offset = (viewport_size-extent()*zoom)/2
 	_clamp()
 	view.queue_redraw()
 func _clamp() -> void:
+	if expanded():
+		expanded_tree.clamp_view(self)
+		return
 	var world_size := extent() * zoom
 	for axis in range(2):
 		offset[axis] = (viewport_size[axis] - world_size[axis]) / 2 if world_size[axis] <= viewport_size[axis] else clampf(offset[axis], viewport_size[axis]-world_size[axis]-96, 96)
@@ -230,6 +243,7 @@ func scale_at(factor: float, focus: Vector2) -> void:
 
 func input_tree(event: InputEvent) -> void:
 	if allocating: return
+	if expanded() and (event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventGesture): expanded_tree.interrupt()
 	if event is InputEventMagnifyGesture: scale_at(event.factor, event.position)
 	elif event is InputEventPanGesture:
 		offset -= event.delta * 16
@@ -302,6 +316,8 @@ func _close_inline() -> void:
 		inline_panel.queue_free()
 	inline_panel = null
 	inline_body = null
+	# Zoom controls sit above the sheet; return them to the bottom when it closes.
+	_layout_inline()
 
 func _open_inline(title: String) -> VBoxContainer:
 	_close_inline()
@@ -504,6 +520,9 @@ func node_details(id: String) -> void:
 
 func skills() -> void:
 	if allocating: return
+	if expanded():
+		expanded_tree.skills(self)
+		return
 	selecting_skill = true
 	selected = ""
 	var box := _open_inline("코어 스킬 선택")
@@ -527,6 +546,12 @@ func skills() -> void:
 		action(box,"해제" if current == id else ("장착" if unlocked else "잠김 · 챕터 2 해금"),func():
 			lobby.apply_growth_change({"kind":"unequipCoreCombatSkill" if current == id else "equipCoreCombatSkill","id":id})
 			skills()).disabled = not unlocked
+
+func tick(delta: float) -> bool:
+	return expanded() and is_instance_valid(view) and expanded_tree.tick(self,delta)
+## Completes an eased camera move immediately (lifecycle changes and checks).
+func settle_camera() -> void:
+	if expanded(): expanded_tree.settle_camera(self)
 
 func _image(canvas: Control, asset: String, rectangle: Rect2, color := Color.WHITE) -> void:
 	var texture := tex(asset)

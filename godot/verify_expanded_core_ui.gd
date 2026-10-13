@@ -45,9 +45,15 @@ func run() -> void:
 	await capture("expanded-tree-overview-440")
 	var origin: Vector2 = core.offset+core.point("S1")*core.zoom
 	core.select_at(origin)
+	check(not core.expanded_tree.camera.is_empty() and core.zoom<0.39,"overview tap eases the camera instead of jumping")
+	await create_timer(0.7).timeout
+	check(core.expanded_tree.camera.is_empty() and not core.view.is_processing(),"camera ease finishes on the frame loop and stops ticking")
 	check(core.zoom>=0.39 and core.selected.is_empty(),"overview tap zooms without investing")
 	core.select_at(core.offset+core.point("S1")*core.zoom)
+	core.settle_camera()
 	check(core.selected=="S1","detailed touch selects node")
+	var s1: Vector2 = core.offset+core.point("S1")*core.zoom
+	check(s1.y<core.inline_panel.position.y,"selected node eases above its sheet")
 	check(core.expanded_tree.hit_rect(core,"S1").size.x>=44,"minimum detailed touch width")
 	check(lobby.core_draft.is_empty(),"selection never purchases")
 	var touch := InputEventScreenTouch.new()
@@ -64,9 +70,27 @@ func run() -> void:
 	second.pressed = false; core.input_tree(second)
 	touch.pressed = false; core.input_tree(touch)
 	check(lobby.core_draft.is_empty(),"pinch never purchases or changes selection")
+	# Background always covers the view: extreme drags stop at the art edge.
+	for z in [core.minimum_zoom(),0.3,0.6,0.9]:
+		for corner in [Vector2(9000,9000),Vector2(-9000,-9000),Vector2(9000,-9000),Vector2(-9000,9000)]:
+			core.zoom = z
+			core.offset = corner
+			core._clamp()
+			var bz: float = maxf(core.zoom,core.expanded_tree.cover_zoom(core))
+			var art := Rect2(core.offset+core.center()*core.zoom-Vector2.ONE*1400*bz,Vector2.ONE*2800*bz)
+			check(art.position.x<=0.01 and art.position.y<=0.01 and art.end.x>=core.view.size.x-0.01 and art.end.y>=core.expanded_tree.visible_height(core)-0.01,"background covers view at zoom %.2f" % z)
+	core.zoom = 0.5
+	core._clamp()
 	core.change_rank("K1",1)
 	check(lobby.core_draft.is_empty(),"unreachable key rejected")
-	for i in 3: core.change_rank("S1",1)
+	core.node_details("S1")
+	check(core.expanded_tree.opens_from(core,"S1")==["A02","A03"],"rank bar milestone lists nodes S1 opens")
+	core.change_rank("S1",1)
+	check(core.expanded_tree.tick(core,0.05) and core.expanded_tree.grow["S1"]>0 and core.expanded_tree.grow["S1"]<1.0/3,"links grow toward neighbours instead of appearing")
+	for i in 2: core.change_rank("S1",1)
+	for i in 30: core.expanded_tree.tick(core,0.1)
+	check(is_equal_approx(core.expanded_tree.grow["S1"],1.0),"rank three link reaches its neighbours")
+	check(core.expanded_tree.remaining_label.text=="60" and core.expanded_tree.draft_chip.visible and core.expanded_tree.draft_chip.text=="−4P 예정","point bar shows remaining points and the draft delta")
 	check(core.spent(lobby.core_draft)==4,"three ranks spend four points")
 	check(core.accessible_nodes().has("A03"),"three-rank start opens neighbor")
 	core.change_rank("A03",1)
@@ -80,11 +104,24 @@ func run() -> void:
 	check(core.spent(lobby.core_draft)==27,"approved K2 route costs 27P")
 	core.zoom = 0.6
 	core.expanded_tree.select_at(core,core.offset+core.point("K2")*core.zoom)
+	core.settle_camera()
 	await settle()
-	var label: Label = core.inline_body.get_node("CoreCurrentEffect")
+	var label: Label = core.inline_body.find_child("CoreCurrentEffect",true,false)
 	check(label.text.contains("2회") and label.text.contains("50%"),"stockpile detail uses latest key")
 	check(not label.text.contains("감폭"),"removed penalty absent")
 	await capture("expanded-tree-stockpile-detail-440")
+	var k2_path: Dictionary = lobby.core_draft.duplicate()
+	lobby.core_draft = {"S6":3,"A01":3,"B01":3,"C02":2,"B02":1}
+	core.update_state()
+	core.node_details("C02")
+	for i in 20: core.expanded_tree.tick(core,0.1)
+	var c02: Node = core.inline_body.find_child("CoreRankBar",true,false)
+	check(c02.marks==["C01","K2"] and not c02.reached,"C02 milestone shows the keystone and branch it opens")
+	await settle()
+	await capture("expanded-tree-node-detail-440")
+	lobby.core_draft = k2_path
+	core.update_state()
+	core.node_details("K2")
 	core.apply()
 	check(core.actual()==lobby.core_draft,"draft apply persists through real lobby command")
 	if core.allocation_tween: core.allocation_tween.kill()
@@ -95,7 +132,7 @@ func run() -> void:
 	check(core.zoom==zoom_before and core.offset==offset_before,"central skill selection preserves viewport")
 	core.node_details("C12")
 	await settle()
-	check(core.inline_body.get_node("CoreCurrentEffect").text.contains("회복 불가"),"C12 latest nonrecoverable HP detail")
+	check(core.inline_body.find_child("CoreCurrentEffect",true,false).text.contains("회복 불가"),"C12 latest nonrecoverable HP detail")
 	for size in [Vector2i(320,480),Vector2i(800,360),Vector2i(440,900)]:
 		root.size = size
 		await settle()
@@ -108,6 +145,15 @@ func run() -> void:
 		if size==Vector2i(320,480): await capture("expanded-tree-detail-320")
 	root.size = Vector2i(440,900)
 	await settle()
+	check(not core.zoom_controls.visible,"camera controls hide while a sheet is open")
+	core._close_inline()
+	var controls: Rect2 = core.zoom_controls.get_rect()
+	check(core.zoom_controls.visible and is_equal_approx(controls.end.x,core.view.size.x-8) and is_equal_approx(controls.end.y,core.view.size.y-8),"closing details returns camera controls to the bottom right")
+	core.settle_camera()
+	core.skills()
+	await settle()
+	check(core.inline_body.find_child("CoreSkill_guardianBeam",true,false)!=null,"central rune opens the skill sheet")
+	await capture("expanded-tree-skill-440")
 	core._close_inline()
 	core.fit_tree()
 	await settle()

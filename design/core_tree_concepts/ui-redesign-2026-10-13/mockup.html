@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=440, user-scalable=no">
+<title>코어 스킬트리 시안</title>
+<style>
+@font-face { font-family: "NotoKR"; src: url("../../../assets/fonts/NotoSansKR-VF.ttf"); font-weight: 100 900; }
+:root { --ink: #e8f8ff; --muted: #8ea4ab; --gold: #edc785; --mint: #9bd89b; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: #0b1620; }
+body { width: 440px; height: 900px; margin: 0; background: #04111b; font-family: "NotoKR", sans-serif; color: var(--ink); overflow: hidden; position: relative; user-select: none; -webkit-user-select: none; }
+@media (min-width: 600px) { body { margin: 0 auto; } }
+#tree { position: absolute; left: 0; top: 72px; width: 440px; height: 762px; touch-action: none; cursor: grab; }
+#tree.dragging { cursor: grabbing; }
+.chrome { position: absolute; left: 0; width: 440px; background-image: url("current-overview-440.png"); background-size: 440px 900px; }
+#header { top: 0; height: 72px; background-position: 0 0; }
+#tabs { top: 834px; height: 66px; background-position: 0 -834px; }
+#overlay { position: absolute; left: 0; top: 0; width: 440px; height: 900px; pointer-events: none; }
+#overlay > * { pointer-events: auto; }
+#overlay > .passive { pointer-events: none; }
+
+/* Shipped nine-patch frames (masters are 4x logical; native buttons are 1x) */
+.framed { position: relative; isolation: isolate; }
+.framed::before { content: ""; position: absolute; inset: 0; z-index: -1; border-style: solid; }
+.panel::before { border-width: 14px; border-image: url("../../../assets/images/ui/components/panel_frame.png") 56 fill / 14px stretch; }
+.row::before { border-width: 11px 11px 10px; border-image: url("../../../assets/images/ui/components/row_frame.png") 40 44 fill / 10px 11px stretch; }
+.group::before { border-width: 8px; border-image: url("../../../assets/images/ui/components/button_frame.png") 32 fill / 8px stretch; }
+.btn { height: 44px; min-width: 44px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; font: 900 12px "NotoKR"; color: #e8f8ff; cursor: pointer; transition: transform .09s; }
+.btn:active { transform: scale(.96); }
+.btn::before { border-width: 11px; border-image: url("../../../assets/images/ui/combat_components/native/secondary.png") 11 fill / 11px stretch; filter: brightness(.78) saturate(.9); }
+.btn:hover::before { filter: brightness(1.05); }
+.btn.primary::before { border-image-source: url("../../../assets/images/ui/combat_components/native/primary.png"); filter: none; }
+.btn.danger { color: #ffd7c5; }
+.btn.danger::before { border-image-source: url("../../../assets/images/ui/combat_components/native/danger.png"); filter: none; }
+.btn.disabled { color: #7b909e; pointer-events: none; }
+.btn.disabled::before { border-image-source: url("../../../assets/images/ui/combat_components/native/disabled.png"); filter: none; }
+.close { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex: none; cursor: pointer; }
+.close img { width: 30px; height: 30px; }
+
+/* Point bar */
+#points { position: absolute; left: 8px; right: 8px; top: 80px; height: 56px; display: flex; align-items: center; padding: 0 8px 0 14px; gap: 8px; }
+#points .num { display: flex; flex-direction: column; line-height: 1.05; }
+#points .num small { font-size: 10px; color: var(--muted); font-weight: 700; }
+#points .num b { font-size: 21px; font-weight: 900; }
+#points .num b span { font-size: 12px; color: var(--muted); font-weight: 700; margin-left: 3px; }
+.chip { font-size: 12px; font-weight: 800; color: var(--mint); border: 1px dashed rgba(155,216,155,.6); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.grow { flex: 1; }
+#menu { position: absolute; right: 12px; top: 140px; padding: 10px; width: 160px; }
+
+/* Overview bands */
+.badge { position: absolute; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(4,14,22,.78); border: 1px solid rgba(255,255,255,.08); font-size: 13px; font-weight: 800; color: #edd8b3; }
+.badge i { width: 8px; height: 8px; border-radius: 50%; }
+.badge em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--muted); }
+.badge em.on { color: var(--gold); }
+.badge .meter { width: 46px; height: 4px; border-radius: 2px; background: #1d2d37; overflow: hidden; }
+.badge .meter b { display: block; height: 100%; background: var(--gold); }
+#legend { position: absolute; left: 12px; top: 796px; display: flex; gap: 7px; font-size: 10px; color: #b7cbcf; font-weight: 600; align-items: center; }
+#legend canvas { vertical-align: middle; margin-right: 3px; }
+#hint { position: absolute; left: 12px; top: 772px; font-size: 11px; color: #b7cbcf; font-weight: 600; }
+
+/* Camera: one grouped control */
+#zoom { position: absolute; right: 8px; top: 786px; height: 40px; display: flex; align-items: stretch; padding: 0 2px; }
+#zoom div { width: 38px; display: flex; align-items: center; justify-content: center; font: 800 11px "NotoKR"; color: #cfe0e6; cursor: pointer; }
+#zoom div + div { border-left: 1px solid rgba(160,190,200,.22); }
+#zoom div.wide { width: 44px; }
+#zoom div:active { background: rgba(185,255,235,.12); }
+
+/* Bottom sheets */
+.sheet { position: absolute; left: 8px; right: 8px; bottom: 74px; padding: 12px 14px 12px; }
+.s-head { display: flex; align-items: center; gap: 10px; }
+.s-title { flex: 1; }
+.s-title h2 { font-size: 18px; font-weight: 900; color: #f3e6c4; }
+.s-title p { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 3px; display: flex; gap: 5px; align-items: center; }
+.cat { color: #1c0f08; border-radius: 4px; padding: 0 6px; font-weight: 800; }
+.rank { display: flex; align-items: center; gap: 8px; margin: 12px 0 10px; }
+.rank .bar { flex: 1; display: flex; gap: 4px; align-items: center; }
+.rank .bar span { flex: 1; height: 8px; border-radius: 2px; background: #1d2d37; border: 1px solid #2f4552; }
+.rank .bar span.plan { background: repeating-linear-gradient(-45deg,#9bd89b 0 4px,#6fae76 4px 7px); border-color: #b9e8b9; }
+.rank .bar span.on { background: var(--gold); border-color: #f7e2b6; }
+.rank b { font-size: 15px; font-weight: 900; min-width: 38px; text-align: right; }
+.effect { background: rgba(255,255,255,.035); border: 1px solid #22394a; border-radius: 8px; padding: 9px 12px; }
+.effect + .effect { margin-top: 6px; }
+.effect .k { font-size: 12px; color: #c7d5d8; font-weight: 700; line-height: 1.45; }
+.effect .v { display: flex; align-items: baseline; gap: 10px; margin-top: 3px; }
+.effect .v b { font-size: 22px; font-weight: 900; color: var(--mint); }
+.effect .v b.applied { color: #f3e6c4; }
+.effect .v b.none { color: var(--muted); }
+.effect .v b.next { color: var(--gold); }
+/* Rank down and level-up share one row and the upgrade screen's level-up frame. */
+.acts { display: flex; gap: 8px; margin-top: 12px; }
+.acts .lvl.down { flex: none; width: 64px; }
+.lvl { flex: 1; height: 46px; display: flex; align-items: center; justify-content: center; font: 900 14px "NotoKR"; color: #e8fbff; cursor: pointer; transition: transform .09s; }
+.lvl:active { transform: scale(.98); }
+.lvl::before { border-width: 6px 12px; border-image: url("../../../assets/images/ui/components/upgrade_levelup_frame_v2.png") 20 48 fill / 6px 12px stretch; }
+.lvl:hover::before { filter: brightness(1.15); }
+.lvl .cost { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 30px; padding: 0 11px; display: flex; gap: 4px; align-items: center; font: 800 13px "NotoKR"; color: #b9d6e4; }
+.lvl .cost::before { border-width: 6px 10px; border-image: url("../../../assets/images/ui/components/upgrade_rune_cost_frame_v2.png") 24 40 fill / 6px 10px stretch; }
+.lvl.disabled { color: #6d7f8f; pointer-events: none; }
+.lvl.disabled::before { filter: brightness(.7) saturate(.5); }
+.lvl.disabled .cost, .lvl.disabled > svg { opacity: .45; }
+.rank .bar { position: relative; }
+.rank .bar.end { padding-right: 15px; }
+.mile { position: absolute; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.foot { font-size: 10px; color: var(--muted); margin-top: 8px; text-align: center; font-weight: 600; }
+.skill { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 8px; margin-top: 8px; }
+.skill .sock { width: 52px; height: 52px; flex: none; background: url("../../../assets/images/ui/components/icon_socket.png") center/contain no-repeat; display: flex; align-items: center; justify-content: center; }
+.skill .sock img { width: 34px; height: 34px; }
+.skill .txt { flex: 1; min-width: 0; }
+.skill .txt h3 { font-size: 14px; font-weight: 900; color: #f3e6c4; display: flex; align-items: center; gap: 6px; }
+.skill .txt h3 small { font-size: 10px; font-weight: 800; color: #1c1406; background: var(--gold); border-radius: 4px; padding: 0 5px; }
+.skill .txt p { font-size: 11px; line-height: 1.45; color: #b9d6e4; font-weight: 600; margin-top: 2px; }
+.skill .btn { width: 72px; flex: none; }
+.skill.on::after { content: ""; position: absolute; left: 3px; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--gold); box-shadow: 0 0 8px rgba(237,199,133,.8); }
+</style>
+</head>
+<body>
+<canvas id="tree" width="880" height="1524"></canvas>
+<div id="header" class="chrome"></div>
+<div id="tabs" class="chrome"></div>
+<div id="overlay"></div>
+<script src="tree_data.js"></script>
+<script>
+// Interactive prototype of the proposed core tree screen. Rules mirror the v5
+// catalog: starts are open, a node opens when a reachable non-keystone
+// neighbour reaches rank 3, refunds may not disconnect other ranks.
+const SVG = {
+  hub: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7fd8e6" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="3.5" r="1.8"/><circle cx="12" cy="20.5" r="1.8"/><circle cx="4.5" cy="7.8" r="1.8"/><circle cx="19.5" cy="7.8" r="1.8"/><circle cx="4.5" cy="16.2" r="1.8"/><circle cx="19.5" cy="16.2" r="1.8"/><path d="M12 5.3V9M12 15v3.7M6 8.7l3.4 2M14.6 13.3l3.4 2M6 15.3l3.4-2M14.6 10.7l3.4-2"/></svg>',
+  more: '<svg width="20" height="20" viewBox="0 0 24 24" fill="#cfe0e6"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+  minus: '<svg width="14" height="14" viewBox="0 0 24 24" stroke="#cfe0e6" stroke-width="2.8" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  plus: '<svg width="14" height="14" viewBox="0 0 24 24" stroke="#cfe0e6" stroke-width="2.8" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg>',
+  arrow: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8ea4ab" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>'
+};
+const W = 440, H = 762, DETAIL = 0.40, FIT = 424 / 2470, MAX_ZOOM = 0.9, TOTAL = 60;
+const IMG = "../../../assets/images/", ASSET = IMG + "core_passive_tree/";
+const T = window.TREE;
+const byId = Object.fromEntries(T.nodes.map(n => [n.id, n]));
+const CORE = {x: 1400, y: 1400};
+const REGIONS = [
+  {name: "집중 타격", cats: ["직격", "발동"], color: "#eda78b", at: [410, 235], badge: "left:12px;top:146px"},
+  {name: "원소 공명", cats: ["연소", "확산"], color: "#96d9db", at: [2360, 170], badge: "right:12px;top:146px"},
+  {name: "강화 육성", cats: ["육성", "지원"], color: "#add4a9", at: [410, 2580], badge: "left:12px;top:690px"},
+  {name: "전선 제어", cats: ["제어", "방위"], color: "#a2d8f1", at: [2320, 2580], badge: "right:12px;top:690px"}
+];
+const regionOf = cat => REGIONS.find(r => r.cats.includes(cat));
+const SKILLS = {
+  guardianBeam: {name: "수호 광선", icon: "guardian_beam", text: "5초마다 자동 발동 · 가장 앞선 적에게 광선을 발사하며 포탑 화력에 비례해 피해가 증가합니다."},
+  riftMark: {name: "균열 낙인", icon: "rift_mark", text: "10초마다 자동 발동 · 내구도가 높은 적 4명의 받는 모든 피해를 기본 25% 증폭합니다. 코어 스킬 위력에 비례하며 보스는 절반입니다."}
+};
+
+// ---- state ----
+let actual = {S6: 5, A01: 3, B01: 3, S1: 2};
+let draft = {...actual};
+let equipped = "guardianBeam", selected = "", sheet = "", menu = false, pendingFocus = "";
+let zoom = FIT, ox = 0, oy = 0, cam = null, lastT = null;
+const grow = {};                              // displayed min(rank,3)/3 per node, eased toward the draft
+const preset = (location.hash || "").slice(1);
+
+// ---- rules ----
+const costOf = (id, k) => byId[id].costs.slice(0, k).reduce((a, b) => a + b, 0);
+const spent = r => Object.entries(r).reduce((s, [id, k]) => s + costOf(id, k), 0);
+const same = (a, b) => JSON.stringify(Object.entries(a).filter(e => e[1]).sort()) === JSON.stringify(Object.entries(b).filter(e => e[1]).sort());
+function reached(r) {
+  const seen = new Set(T.starts.filter(id => r[id] > 0)), queue = [...seen];
+  while (queue.length) {
+    const id = queue.shift();
+    if (byId[id].type === "keystone" || r[id] < 3) continue;
+    for (const n of byId[id].neighbors) if (r[n] > 0 && !seen.has(n)) { seen.add(n); queue.push(n); }
+  }
+  return seen;
+}
+function openSet(r) {
+  const open = new Set(T.starts);
+  for (const id of reached(r)) if (byId[id].type !== "keystone" && r[id] >= 3) byId[id].neighbors.forEach(n => open.add(n));
+  return open;
+}
+const valid = r => { const s = reached(r); return Object.entries(r).every(([id, k]) => !k || s.has(id)) && spent(r) <= TOTAL; };
+const withRank = (id, k) => { const r = {...draft}; if (k > 0) r[id] = k; else delete r[id]; return r; };
+const canBuy = id => (draft[id] || 0) < byId[id].maxRank && valid(withRank(id, (draft[id] || 0) + 1));
+const canRefund = id => (draft[id] || 0) > 0 && valid(withRank(id, draft[id] - 1));
+// A locked selection highlights the neighbours that can open it.
+function openers() {
+  if (!selected || selected === "CORE" || draft[selected] > 0 || openSet(draft).has(selected)) return [];
+  return byId[selected].neighbors.filter(id => byId[id].type !== "keystone");
+}
+// Neighbours this node opens by itself at rank 3: the milestone on its rank bar.
+function opensFrom(id) {
+  const n = byId[id];
+  if (n.type === "keystone" || n.maxRank < 3 || !(draft[id] > 0 || openSet(draft).has(id))) return [];
+  const r = {...draft}; if (Math.min(draft[id] || 0, 2)) r[id] = Math.min(draft[id], 2); else delete r[id];
+  const before = openSet(r);
+  return n.neighbors.filter(x => !before.has(x) && !(draft[x] > 0));
+}
+
+// ---- camera ----
+const S = p => ({x: ox + p.x * zoom, y: oy + p.y * zoom});
+// The background must always cover the view: pan only while its edges stay
+// outside the screen. Below cover scale the art is larger than the world, so
+// the limit follows the art rectangle, not the 2800 world square.
+// While a sheet is open only the area above it must stay covered, so edge nodes
+// can still be lifted into view.
+function visibleH() { const el = document.querySelector(".sheet"); return el ? Math.min(H, el.offsetTop - 72) : H; }
+function clampView() {
+  const bz = Math.max(zoom, H / 2800), shift = 1400 * (zoom - bz);
+  const c = (o, view) => Math.min(-shift, Math.max(view - 2800 * bz - shift, o));
+  ox = c(ox, W); oy = c(oy, visibleH());
+}
+function fit() { zoom = FIT; ox = W / 2 - CORE.x * zoom; oy = H / 2 - CORE.y * zoom; clampView(); }
+function scaleAt(f, px, py) {
+  const next = Math.min(MAX_ZOOM, Math.max(FIT, zoom * f));
+  ox = px - (px - ox) * next / zoom; oy = py - (py - oy) * next / zoom; zoom = next; clampView();
+}
+function focus(wx, wy, sx, sy, z) { zoom = z; ox = sx - wx * zoom; oy = sy - wy * zoom; clampView(); }
+// Smooth moves: compute the clamped destination, then ease the screen-centre world point and zoom.
+function destination(change) { const saved = [zoom, ox, oy]; change(); const out = [zoom, ox, oy]; [zoom, ox, oy] = saved; return out; }
+function animateTo([z1, x1, y1], dur = 340) {
+  const centre = (z, x, y) => ({x: (W / 2 - x) / z, y: (H / 2 - y) / z});
+  cam = {t0: performance.now(), dur, z0: zoom, z1, c0: centre(zoom, ox, oy), c1: centre(z1, x1, y1)};
+  render();
+}
+
+// ---- images ----
+const images = {};
+function img(path) { if (!images[path]) { images[path] = new Image(); images[path].src = path; } return images[path]; }
+const needed = [ASSET + "expanded/background.png", ASSET + "expanded/core.png", ASSET + "expanded/small.png", ASSET + "expanded/medium.png",
+  ASSET + "expanded/large.png", ASSET + "skill_nameplate_v1.png", IMG + "core_abilities/guardian_beam.png", IMG + "core_abilities/rift_mark.png",
+  ...T.nodes.map(n => ASSET + "expanded/" + n.icon + ".png")];
+const fontsReady = Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]);
+Promise.all([...new Set(needed)].map(p => new Promise(r => { const i = img(p); if (i.complete) r(); else { i.addEventListener("load", r); i.addEventListener("error", r); } })))
+  .then(() => fontsReady).then(start);
+
+function rgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+
+// ---- drawing ----
+const ctx = document.getElementById("tree").getContext("2d");
+let queued = false, overlayKey = "";
+function render() { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; draw(); }); } }
+
+function draw() {
+  const now = performance.now(), dt = lastT === null ? 0 : Math.min(64, now - lastT);
+  let animating = false;
+  if (cam) {
+    const p = Math.min(1, (now - cam.t0) / cam.dur), e = 1 - Math.pow(1 - p, 3);
+    zoom = cam.z0 * Math.pow(cam.z1 / cam.z0, e);
+    const cx = cam.c0.x + (cam.c1.x - cam.c0.x) * e, cy = cam.c0.y + (cam.c1.y - cam.c0.y) * e;
+    ox = W / 2 - cx * zoom; oy = H / 2 - cy * zoom; clampView();
+    if (p < 1) animating = true; else cam = null;
+  }
+  for (const n of T.nodes) {
+    const t = Math.min(draft[n.id] || 0, 3) / 3, g = grow[n.id] ?? t, step = dt / 1000;
+    grow[n.id] = Math.abs(t - g) <= step ? t : g + Math.sign(t - g) * step;
+    if (grow[n.id] !== t) animating = true;
+  }
+  lastT = animating ? now : null;
+  const c = ctx, detailed = zoom >= DETAIL;
+  c.setTransform(2, 0, 0, 2, 0, 0);
+  c.fillStyle = "#04111b"; c.fillRect(0, 0, W, H);
+  const bgZoom = Math.max(zoom, H / 2800), core = S(CORE);
+  c.save(); c.filter = "brightness(0.62) saturate(0.85)";
+  c.drawImage(img(ASSET + "expanded/background.png"), core.x - 1400 * bgZoom, core.y - 1400 * bgZoom, 2800 * bgZoom, 2800 * bgZoom);
+  c.restore();
+  const g = c.createRadialGradient(core.x, core.y, 0, core.x, core.y, 1300 * zoom * 1.15);
+  g.addColorStop(0, "rgba(4,14,22,0.82)"); g.addColorStop(0.75, "rgba(4,14,22,0.6)"); g.addColorStop(1, "rgba(4,14,22,0.2)");
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+
+  const open = openSet(draft), hint = openers(), k = Math.max(zoom / 0.46, 0.5);
+  const rankOf = id => id === "CORE" ? 1 : (draft[id] || 0);
+  const appliedOf = id => id === "CORE" ? 1 : (actual[id] || 0);
+  for (const [a, b] of T.edges) {
+    const pa = S(a === "CORE" ? CORE : byId[a]), pb = S(byId[b]);
+    const lit = appliedOf(a) > 0 && appliedOf(b) > 0 && rankOf(a) > 0 && rankOf(b) > 0;
+    const planned = !lit && rankOf(a) > 0 && rankOf(b) > 0;
+    const route = a === "CORE" && !rankOf(b);
+    c.lineCap = "round"; c.setLineDash([]);
+    c.strokeStyle = "rgba(2,8,13,0.85)"; c.lineWidth = (lit || planned ? 7 : 5) * k;
+    c.beginPath(); c.moveTo(pa.x, pa.y); c.lineTo(pb.x, pb.y); c.stroke();
+    c.save();
+    if (lit) { c.strokeStyle = "#edc785"; c.lineWidth = 3.6 * k; c.shadowColor = "rgba(237,199,133,.8)"; c.shadowBlur = 8; }
+    else if (planned) { c.strokeStyle = "#9bd89b"; c.lineWidth = 3.4 * k; }
+    else if (route) { c.strokeStyle = "#b8ccd3"; c.lineWidth = 2.2 * k; }
+    else { c.strokeStyle = "rgba(110,135,148,0.75)"; c.lineWidth = 1.6 * k; }
+    c.beginPath(); c.moveTo(pa.x, pa.y); c.lineTo(pb.x, pb.y); c.stroke();
+    c.restore();
+    if (!lit && !planned) { growLine(c, a, pa, b, pb, k); growLine(c, b, pb, a, pa, k); }
+  }
+  if (detailed) for (const r of REGIONS) { const p = S({x: r.at[0], y: r.at[1]}); text(c, r.name, p.x, p.y, Math.max(36 * zoom, 14), "#edd8b3", 900); }
+  for (const n of T.nodes) drawNode(c, n, null, null, open, hint, detailed);
+  drawCore(c, core, detailed);
+  const key = JSON.stringify([detailed, sheet, selected, draft, actual, equipped, menu]);
+  if (key !== overlayKey) { overlayKey = key; overlay(detailed); }
+  if (animating) render();
+}
+
+// Each rank up to 3 extends the link from a node toward its unranked neighbours;
+// at rank 3 it reaches them and they open. Applied ranks gold, planned mint.
+function growLine(c, from, pf, to, pt, k) {
+  if (from === "CORE" || byId[from].type === "keystone" || !(draft[from] > 0) || draft[to] > 0) return;
+  const f = grow[from] || 0, applied = Math.min(f, Math.min(actual[from] || 0, draft[from], 3) / 3);
+  const at = t => ({x: pf.x + (pt.x - pf.x) * t, y: pf.y + (pt.y - pf.y) * t});
+  const seg = (t0, t1, color, glow) => {
+    if (t1 <= t0) return;
+    const p0 = at(t0), p1 = at(t1);
+    c.save(); c.lineCap = "round"; c.strokeStyle = color; c.lineWidth = 3 * k; c.shadowColor = glow; c.shadowBlur = 7;
+    c.beginPath(); c.moveTo(p0.x, p0.y); c.lineTo(p1.x, p1.y); c.stroke(); c.restore();
+  };
+  seg(0, applied, "#edc785", "rgba(237,199,133,.85)");
+  seg(applied, f, "#9bd89b", "rgba(155,216,155,.8)");
+  if (f > 0 && f < 1) {                           // glowing tip shows the line is still growing
+    const tip = at(f), col = f > applied ? "155,216,155" : "237,199,133";
+    c.save(); c.fillStyle = `rgba(${col},1)`; c.shadowColor = `rgba(${col},1)`; c.shadowBlur = 10;
+    c.beginPath(); c.arc(tip.x, tip.y, 2.6 * k, 0, 7); c.fill(); c.restore();
+  }
+}
+
+function text(c, s, x, y, size, color, weight = 800) {
+  c.font = `${weight} ${size}px NotoKR`; c.textAlign = "center";
+  c.lineJoin = "round"; c.strokeStyle = "#061019"; c.lineWidth = Math.max(3, size * 0.28); c.strokeText(s, x, y);
+  c.fillStyle = color; c.fillText(s, x, y);
+}
+
+function drawCore(c, core, detailed) {
+  const R = 150 * zoom;
+  c.save(); c.strokeStyle = "rgba(127,216,230,.55)"; c.lineWidth = 1.5; c.shadowColor = "rgba(127,216,230,.9)"; c.shadowBlur = 10;
+  c.beginPath(); c.arc(core.x, core.y, R * 0.92, 0, 7); c.stroke(); c.restore();
+  c.drawImage(img(ASSET + "expanded/core.png"), core.x - R, core.y - R, R * 2, R * 2);
+  if (selected === "CORE") {
+    c.save(); c.strokeStyle = "#e8fff6"; c.lineWidth = 2.5; c.shadowColor = "rgba(232,255,246,.9)"; c.shadowBlur = 10;
+    c.beginPath(); c.arc(core.x, core.y, R * 0.98 + 6, 0, 7); c.stroke(); c.restore();
+  }
+  const skill = SKILLS[equipped];
+  if (!detailed) {                              // compact medallion keeps the start ring visible
+    if (!skill) return;
+    const m = {x: core.x, y: core.y + R * 0.78};
+    c.save(); c.fillStyle = "#0a1822"; c.strokeStyle = "#d9b46c"; c.lineWidth = 1.6; c.shadowColor = "rgba(0,0,0,.8)"; c.shadowBlur = 4;
+    c.beginPath(); c.arc(m.x, m.y, 11, 0, 7); c.fill(); c.stroke(); c.restore();
+    c.drawImage(img(IMG + "core_abilities/" + skill.icon + ".png"), m.x - 8, m.y - 8, 16, 16);
+    return;
+  }
+  const h = 32, icon = skill ? h - 6 : 0, name = skill ? skill.name : "스킬 선택";
+  c.font = "800 14px NotoKR";
+  const w = c.measureText(name).width + icon + (skill ? 34 : 32);
+  const x = core.x - w / 2, y = core.y + Math.max(R * 0.7, 18);
+  plate(c, x, y, w, h);
+  if (skill) c.drawImage(img(IMG + "core_abilities/" + skill.icon + ".png"), x + 14, y + 3, icon, icon);
+  c.font = "800 14px NotoKR"; c.textAlign = "left"; c.fillStyle = "#f4e6c8"; c.textBaseline = "middle";
+  c.fillText(name, x + (skill ? 18 + icon : 16), y + h / 2 + 1); c.textBaseline = "alphabetic";
+}
+
+function plate(c, x, y, w, h) {                 // same 3x3 slicing as LobbyCore._nameplate
+  const t = img(ASSET + "skill_nameplate_v1.png"), sx = [0, 32, 364, 396], sy = [0, 8, 47, 55];
+  const tx = [0, 16, w - 16, w], ty = [0, 4, h - 4, h];
+  for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++)
+    c.drawImage(t, sx[i], sy[j], sx[i + 1] - sx[i], sy[j + 1] - sy[j], x + tx[i], y + ty[j], tx[i + 1] - tx[i], ty[j + 1] - ty[j]);
+}
+
+function drawNode(c, n, at, scale, open, hint, detailed) {
+  const p = at || S(n), z = scale || zoom;
+  open = open || openSet(draft); hint = hint || [];
+  const rank = draft[n.id] || 0, applied = Math.min(actual[n.id] || 0, rank);
+  const unlocked = rank > 0 || open.has(n.id);
+  const R = n.diameter / 2 * z;
+  if (n.type === "keystone" && !at) {
+    const a = c.createRadialGradient(p.x, p.y, R * 0.6, p.x, p.y, R * 2.1);
+    a.addColorStop(0, rgba(n.color, unlocked ? 0.45 : 0.3)); a.addColorStop(1, rgba(n.color, 0));
+    c.fillStyle = a; c.beginPath(); c.arc(p.x, p.y, R * 2.1, 0, 7); c.fill();
+  }
+  c.fillStyle = "#07131e"; c.beginPath(); c.arc(p.x, p.y, R * 0.79, 0, 7); c.fill();
+  c.save();
+  if (!unlocked) c.filter = at ? "grayscale(0.9) brightness(0.7)" : "grayscale(0.9) brightness(0.55)";
+  const is = n.iconSize * z;
+  c.drawImage(img(ASSET + "expanded/" + n.icon + ".png"), p.x - is / 2, p.y - is / 2, is, is);
+  c.drawImage(img(ASSET + "expanded/" + n.frame + ".png"), p.x - R, p.y - R, R * 2, R * 2);
+  c.restore();
+  if (at) return;
+  const kk = Math.max(z / 0.46, 0.45);
+  const gr = R + 5 * kk + 1.5, gw = Math.max(2.8, 4.2 * kk);
+  if (applied === n.maxRank) {
+    c.save(); c.strokeStyle = "#f6d891"; c.lineWidth = gw + 0.6; c.shadowColor = "rgba(246,216,145,1)"; c.shadowBlur = 12;
+    c.beginPath(); c.arc(p.x, p.y, gr, 0, 7); c.stroke();
+    c.lineWidth = 1; c.strokeStyle = "rgba(255,244,214,.9)"; c.shadowBlur = 0;
+    c.beginPath(); c.arc(p.x, p.y, gr + gw / 2 + 2.5, 0, 7); c.stroke(); c.restore();
+  } else if (rank > 0) {
+    const gap = n.maxRank > 1 ? 0.22 : 0, seg = (Math.PI * 2 - gap * n.maxRank) / n.maxRank;
+    for (let i = 0; i < n.maxRank; i++) {
+      const s = -Math.PI / 2 + gap / 2 + i * (seg + gap);
+      c.save(); c.lineWidth = gw; c.lineCap = "butt";
+      if (i < applied) { c.strokeStyle = "#edc785"; c.shadowColor = "rgba(237,199,133,.9)"; c.shadowBlur = 6; }
+      else if (i < rank) { c.strokeStyle = "#9bd89b"; c.setLineDash([3 * kk + 1, 2 * kk + 1]); }
+      else c.strokeStyle = "rgba(40,58,70,.95)";
+      c.beginPath(); c.arc(p.x, p.y, gr, s, s + seg); c.stroke(); c.restore();
+    }
+  } else if (unlocked) {
+    c.save(); c.strokeStyle = "rgba(243,226,179,.85)"; c.lineWidth = Math.max(1.1, 2 * kk); c.shadowColor = "rgba(243,226,179,.9)"; c.shadowBlur = 7;
+    c.beginPath(); c.arc(p.x, p.y, gr, 0, 7); c.stroke(); c.restore();
+  }
+  if (hint.includes(n.id)) {
+    const a = c.createRadialGradient(p.x, p.y, gr, p.x, p.y, gr + 16);
+    a.addColorStop(0, "rgba(243,226,179,.55)"); a.addColorStop(1, "rgba(243,226,179,0)");
+    c.fillStyle = a; c.beginPath(); c.arc(p.x, p.y, gr + 16, 0, 7); c.fill();
+  }
+  if (selected === n.id) {
+    c.save(); c.strokeStyle = "#e8fff6"; c.lineWidth = 2.5; c.shadowColor = "rgba(232,255,246,.9)"; c.shadowBlur = 10;
+    c.beginPath(); c.arc(p.x, p.y, gr + 9, 0, 7); c.stroke(); c.restore();
+  }
+  if (detailed) {
+    const size = Math.max(n.labelSize * z, 11.5);
+    const col = rank > 0 ? "#f3e6c4" : (unlocked || hint.includes(n.id) ? n.color : "#7f8f96");
+    text(c, n.name, ox + n.label[0] * z, oy + n.label[1] * z, size, col, 800);
+    if (rank > 0) {
+      const below = oy + n.label[1] * z < p.y;
+      text(c, `${rank}/${n.maxRank}`, p.x, below ? p.y + gr + 15 : p.y - gr - 6, 12, "#f1f5f4", 800);
+    }
+  }
+}
+
+function legendGlyph(kind) {
+  const cv = document.createElement("canvas"); cv.width = 32; cv.height = 32; cv.style.width = "14px"; cv.style.height = "14px";
+  const c = cv.getContext("2d"); c.scale(2, 2); const p = 8;
+  c.fillStyle = "#07131e"; c.beginPath(); c.arc(p, p, 4.5, 0, 7); c.fill();
+  c.lineWidth = 1.8;
+  if (kind === "locked") { c.strokeStyle = "#55656c"; c.beginPath(); c.arc(p, p, 5.5, 0, 7); c.stroke(); }
+  if (kind === "open") { c.strokeStyle = "#f3e2b3"; c.shadowColor = "#f3e2b3"; c.shadowBlur = 4; c.beginPath(); c.arc(p, p, 6, 0, 7); c.stroke(); }
+  if (kind === "max") { c.strokeStyle = "#f6d891"; c.shadowColor = "#f6d891"; c.shadowBlur = 4; c.lineWidth = 2.4; c.beginPath(); c.arc(p, p, 6, 0, 7); c.stroke(); }
+  if (kind === "applied" || kind === "plan") {
+    c.lineWidth = 2.2;
+    for (let i = 0; i < 3; i++) { const s = -Math.PI / 2 + i * 2.09 + 0.15; c.strokeStyle = kind === "applied" ? "#edc785" : "#9bd89b"; c.beginPath(); c.arc(p, p, 6, s, s + 1.8); c.stroke(); }
+  }
+  return cv;
+}
+
+// ---- overlay (DOM) ----
+function effectRows(n, rank) {
+  return n.effects.map(line => {
+    const split = line.split(": "), values = split.length === 2 ? split[1].split(" / ") : [];
+    if (values.length !== n.maxRank || n.maxRank === 1)
+      return `<div class="effect"><div class="k">${line}</div></div>`;
+    const applied = Math.min(actual[n.id] || 0, rank);
+    const cur = rank > 0 ? `<b class="${rank === applied ? "applied" : ""}">${values[rank - 1]}</b>` : `<b class="none">—</b>`;
+    const next = rank < n.maxRank ? `<span>${SVG.arrow}</span><b class="next">${values[rank]}</b>` : "";
+    return `<div class="effect"><div class="k">${split[0]}</div><div class="v">${cur}${next}</div></div>`;
+  }).join("");
+}
+
+function overlay(detailed) {
+  const o = document.getElementById("overlay");
+  const delta = spent(draft) - spent(actual), drafting = !same(draft, actual);
+  let h = `<div id="points" class="framed panel">${SVG.hub}
+    <div class="num"><small>남은 코어 포인트</small><b>${TOTAL - spent(actual)}<span>· 획득 ${TOTAL}</span></b></div><div class="grow"></div>`;
+  h += drafting
+    ? `<span class="chip">${delta >= 0 ? `−${delta}P 예정` : `+${-delta}P 반환`}</span><div class="btn framed" data-act="revert">되돌리기</div><div class="btn framed primary ${valid(draft) ? "" : "disabled"}" data-act="apply">적용</div>`
+    : `<div class="btn framed" style="width:44px;padding:0" data-act="menu">${SVG.more}</div>`;
+  h += `</div>`;
+  if (menu && !drafting) h += `<div id="menu" class="framed panel"><div class="btn framed danger ${spent(actual) ? "" : "disabled"}" style="width:100%" data-act="reset">전체 초기화</div></div>`;
+  if (!detailed) {
+    for (const r of REGIONS) {
+      const p = spent(Object.fromEntries(Object.entries(actual).filter(([id]) => r.cats.includes(byId[id].category))));
+      const all = T.nodes.filter(n => r.cats.includes(n.category)).reduce((s, n) => s + costOf(n.id, n.maxRank), 0);
+      h += `<div class="badge passive" style="${r.badge}"><i style="background:${r.color}"></i>${r.name}<span class="meter"><b style="width:${p / all * 100}%"></b></span><em class="${p ? "on" : ""}">${p}/${all}</em></div>`;
+    }
+    if (!sheet) h += `<div id="hint" class="passive">눌러서 확대 · 끌어서 이동</div><div id="legend" class="passive"></div>`;
+  }
+  if (!sheet) h += `<div id="zoom" class="framed group"><div data-act="out">${SVG.minus}</div><div class="wide" data-act="fit">전체</div><div data-act="in">${SVG.plus}</div></div>`;
+  let marks = [];
+  if (sheet === "node") {
+    const n = byId[selected], rank = draft[n.id] || 0, applied = Math.min(actual[n.id] || 0, rank);
+    marks = opensFrom(n.id);
+    let pips = "";
+    for (let i = 0; i < n.maxRank; i++) pips += `<span class="${i < applied ? "on" : (i < rank ? "plan" : "")}"></span>`;
+    if (marks.length) pips += `<canvas class="mile" id="opens" width="${2 * (28 + 14 * (marks.length - 1))}" height="56" style="width:${28 + 14 * (marks.length - 1)}px;height:28px"></canvas>`;
+    const region = regionOf(n.category);
+    h += `<div class="sheet framed panel">
+      <div class="s-head"><canvas id="sicon" width="112" height="112" style="width:56px;height:56px"></canvas>
+        <div class="s-title"><h2>${n.name}</h2><p><span class="cat" style="background:${n.color}">${n.category}</span>${region.name}</p></div>
+        <div class="close" data-act="close"><img src="${IMG}ui/components/close_button.png"></div></div>
+      <div class="rank"><div class="bar ${marks.length && n.maxRank === 3 ? "end" : ""}">${pips}</div><b>${rank}/${n.maxRank}</b></div>
+      ${effectRows(n, rank)}
+      <div class="acts"><div class="lvl down framed ${canRefund(n.id) ? "" : "disabled"}" data-act="refund" title="등급 내리기">${SVG.minus.replace(/width="14" height="14"/, 'width="18" height="18"')}</div>
+        <div class="lvl framed ${canBuy(n.id) ? "" : "disabled"}" data-act="buy">${rank >= n.maxRank ? "최대 등급"
+        : `강화<span class="cost framed">${SVG.hub.replace(/width="22" height="22"/, 'width="15" height="15"')}${n.costs[rank]}</span>`}</div></div>
+      <div class="foot">변경은 다음 스테이지부터 적용됩니다.</div></div>`;
+  }
+  if (sheet === "skill") {
+    h += `<div class="sheet framed panel"><div class="s-head"><div class="s-title"><h2>코어 스킬</h2></div>
+      <div class="close" data-act="close"><img src="${IMG}ui/components/close_button.png"></div></div>`;
+    for (const [id, s] of Object.entries(SKILLS)) {
+      const on = id === equipped;
+      h += `<div class="skill framed row ${on ? "on" : ""}"><div class="sock"><img src="${IMG}core_abilities/${s.icon}.png"></div>
+        <div class="txt"><h3>${s.name}${on ? "<small>장착 중</small>" : ""}</h3><p>${s.text}</p></div>
+        <div class="btn framed ${on ? "" : "primary"}" data-act="${on ? "unequip" : "equip"}" data-id="${id}">${on ? "해제" : "장착"}</div></div>`;
+    }
+    h += `<div class="foot">변경은 다음 스테이지부터 적용됩니다.</div></div>`;
+  }
+  o.innerHTML = h;
+  const lg = document.getElementById("legend");
+  if (lg) for (const [kd, t] of [["locked", "잠김"], ["open", "투자 가능"], ["applied", "투자 중"], ["max", "최대"], ["plan", "계획"]]) {
+    const s = document.createElement("span"); s.append(legendGlyph(kd), t); lg.append(s);
+  }
+  if (sheet === "node") {
+    const n = byId[selected], c = document.getElementById("sicon").getContext("2d"); c.scale(2, 2);
+    drawNode(c, n, {x: 28, y: 28}, 56 / n.diameter * 0.98);
+    const cv = document.getElementById("opens");
+    if (cv) {                                    // milestone sits on the rank-3 boundary of the bar
+      const third = cv.parentElement.querySelectorAll("span")[2];
+      cv.style.left = (third.offsetLeft + third.offsetWidth + 2) + "px";
+      const reachedThree = (draft[n.id] || 0) >= 3, t = cv.getContext("2d"); t.scale(2, 2);
+      [...marks].reverse().forEach((id, i) => {
+        const x = 14 + 14 * (marks.length - 1 - i);
+        t.save(); t.fillStyle = "#07131e"; t.beginPath(); t.arc(x, 14, 13, 0, 7); t.fill();
+        t.strokeStyle = reachedThree ? "#edc785" : "rgba(243,226,179,.75)"; t.lineWidth = 1.8;
+        if (reachedThree) { t.shadowColor = "rgba(237,199,133,.9)"; t.shadowBlur = 5; }
+        t.beginPath(); t.arc(x, 14, 12.5, 0, 7); t.stroke(); t.restore();
+        drawNode(t, byId[id], {x, y: 14}, 22 / byId[id].diameter);
+      });
+    }
+  }
+  if (pendingFocus) {                           // centre the selection in the area above its sheet
+    const n = byId[pendingFocus], vh = visibleH(); pendingFocus = "";
+    animateTo(destination(() => { ox = W / 2 - n.x * zoom; oy = (64 + vh) / 2 - n.y * zoom; clampView(); }));
+  } else if (!cam) { const t = destination(clampView); if (t[1] !== ox || t[2] !== oy) animateTo(t, 260); }
+  document.body.dataset.ready = "1";
+}
+
+// ---- input ----
+document.getElementById("overlay").addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act;
+  if (act === "revert") draft = {...actual};
+  if (act === "apply" && valid(draft)) actual = {...draft};
+  if (act === "menu") menu = !menu;
+  if (act === "reset") { draft = {}; menu = false; }
+  if (act === "close") { sheet = ""; selected = ""; }
+  if (act === "buy" && canBuy(selected)) draft = withRank(selected, (draft[selected] || 0) + 1);
+  if (act === "refund" && canRefund(selected)) draft = withRank(selected, draft[selected] - 1);
+  if (act === "equip") equipped = el.dataset.id;
+  if (act === "unequip") equipped = "";
+  if (act === "in") animateTo(destination(() => scaleAt(1.4, W / 2, H / 2)));
+  if (act === "out") animateTo(destination(() => scaleAt(1 / 1.4, W / 2, H / 2)));
+  if (act === "fit") animateTo(destination(fit), 420);
+  render();
+});
+
+function tapAt(x, y) {
+  menu = false;
+  if (zoom < DETAIL) { animateTo(destination(() => scaleAt(DETAIL / zoom, x, y)), 380); return; }
+  const wx = (x - ox) / zoom, wy = (y - oy) / zoom;
+  if (Math.hypot(wx - CORE.x, wy - CORE.y) <= 150) { sheet = "skill"; selected = "CORE"; render(); return; }
+  let best = "", dist = Infinity;
+  for (const n of T.nodes) {
+    const p = S(n), half = Math.max(n.diameter * zoom, 44) / 2;
+    if (Math.abs(x - p.x) > half || Math.abs(y - p.y) > half) continue;
+    const d = Math.hypot(x - p.x, y - p.y);
+    if (d < dist) { dist = d; best = n.id; }
+  }
+  if (best) {
+    selected = best; sheet = "node";
+    pendingFocus = best;                          // positioned once the sheet height is known
+  } else { selected = ""; sheet = ""; }
+  render();
+}
+
+const canvas = document.getElementById("tree"), pointers = new Map();
+let gesture = null;
+const local = e => { const r = canvas.getBoundingClientRect(); return {x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height}; };
+canvas.addEventListener("pointerdown", e => {
+  cam = null;
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  pointers.set(e.pointerId, local(e));
+  const pts = [...pointers.values()];
+  gesture = pts.length === 1 ? {start: pts[0], last: pts[0], moved: false}
+    : {pinch: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), moved: true};
+});
+canvas.addEventListener("pointermove", e => {
+  if (!pointers.has(e.pointerId) || !gesture) return;
+  pointers.set(e.pointerId, local(e));
+  const pts = [...pointers.values()];
+  if (pts.length >= 2 && gesture.pinch) {
+    const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    scaleAt(d / gesture.pinch, (pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2); gesture.pinch = d; render(); return;
+  }
+  const p = pts[0];
+  if (!gesture.moved && Math.hypot(p.x - gesture.start.x, p.y - gesture.start.y) > 6) { gesture.moved = true; canvas.classList.add("dragging"); }
+  if (gesture.moved && gesture.last) { ox += p.x - gesture.last.x; oy += p.y - gesture.last.y; clampView(); render(); }
+  gesture.last = p;
+});
+const end = e => {
+  if (!pointers.has(e.pointerId)) return;
+  const p = pointers.get(e.pointerId); pointers.delete(e.pointerId);
+  if (gesture && !gesture.moved && pointers.size === 0 && e.type === "pointerup") tapAt(p.x, p.y);
+  if (pointers.size === 0) { gesture = null; canvas.classList.remove("dragging"); }
+  else { const q = [...pointers.values()][0]; gesture = {start: q, last: q, moved: true}; }
+};
+canvas.addEventListener("pointerup", end);
+canvas.addEventListener("pointercancel", end);
+canvas.addEventListener("wheel", e => { e.preventDefault(); cam = null; const p = local(e); scaleAt(Math.exp(-e.deltaY * 0.0015), p.x, p.y); render(); }, {passive: false});
+
+function start() {
+  fit();
+  // Presets reproduce the review captures: #planning, #detail, #skill.
+  if (preset === "planning" || preset === "detail") draft = {...actual, C02: 2, B02: 1};
+  if (preset === "planning") focus(720, 1080, W / 2, H / 2, 0.46);
+  if (preset === "detail") { focus(byId.C02.x, byId.C02.y, W / 2, 222, 0.46); selected = "C02"; sheet = "node"; }
+  if (preset === "skill") { focus(CORE.x, CORE.y, W / 2, 196, 0.46); selected = "CORE"; sheet = "skill"; }
+  draw();
+}
+</script>
+</body>
+</html>

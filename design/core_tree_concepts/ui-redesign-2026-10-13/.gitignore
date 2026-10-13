@@ -1,0 +1,4 @@
+# 재생성 가능한 캡처와 비교 보드 원본은 로컬에만 둔다(mockup.html의 #preset으로 다시 찍는다).
+proposal-*.png
+current-detail-440.png
+board.html
