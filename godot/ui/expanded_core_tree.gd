@@ -12,9 +12,17 @@ const DETAIL_ZOOM := 0.40
 ## Node bounds including frames; the overview fits these, not the 2800-unit art square.
 const NODE_EXTENT := 2470.0
 const GROW_SECONDS_PER_RANK := 0.33
+## Apply feedback: light leaves the core and runs through every allocated link at
+## this world speed; each raised rank takes effect as the front reaches it.
+const WAVE_SPEED := 1100.0
+const WAVE_MIN_SECONDS := 0.7
+const WAVE_MAX_SECONDS := 1.6
+const WAVE_BURST_MS := 450.0
+const WAVE_TAIL := 160.0
 const GOLD := Color("edc785")
 const MAX_GOLD := Color("f6d891")
-const MINT := Color("9bd89b")
+## Planned (not yet applied) ranks glow bright white, like a PoE path preview.
+const PLANNED := Color("f4faff")
 const CREAM := Color("f3e2b3")
 const SELECT := Color("e8fff6")
 const MUTED := Color("8ea4ab")
@@ -34,6 +42,7 @@ const SKILL_LOCKED_TEXT := "챕터 2 해금 · 스테이지 1-10을 클리어하
 var visuals: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://ui/core_tree_visuals.json"))
 var grow := {}
 var camera := {}
+var wave := {}
 var shade: GradientTexture2D
 var aura: GradientTexture2D
 var point_bar: PanelContainer
@@ -70,12 +79,12 @@ class RankBar extends Control:
 			if i < applied:
 				fill = GOLD; border = Color("f7e2b6")
 			elif i < rank:
-				fill = MINT; border = Color("b9e8b9")
+				fill = PLANNED; border = Color.WHITE
 			draw_rect(cell,fill)
 			if i >= applied and i < rank:
 				var x := cell.position.x+2
 				while x < cell.end.x:
-					draw_rect(Rect2(x,top,minf(3,cell.end.x-x),8),Color("6fae76"))
+					draw_rect(Rect2(x,top,minf(3,cell.end.x-x),8),Color("b9c9d2"))
 					x += 7
 			draw_rect(cell,border,false,1)
 
@@ -287,11 +296,11 @@ func build_overlay(owner) -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	draft_chip = _plain("",12,MINT,800)
+	draft_chip = _plain("",12,PLANNED,800)
 	draft_chip.name = "CoreDraftDelta"
 	var chip_style := StyleBoxFlat.new()
-	chip_style.bg_color = Color(MINT,0.08)
-	chip_style.border_color = Color(MINT,0.6)
+	chip_style.bg_color = Color(PLANNED,0.08)
+	chip_style.border_color = Color(PLANNED,0.6)
 	chip_style.set_border_width_all(1)
 	chip_style.set_corner_radius_all(12)
 	chip_style.content_margin_left = 9
@@ -491,7 +500,7 @@ func _effect_rows(owner, body: VBoxContainer, d: Dictionary, id: String, rank: i
 			line.add_theme_constant_override("separation",10)
 			column.add_child(line)
 			var applied := applied_rank(owner,id)
-			var current := _plain(values[rank-1] if rank > 0 else "—",22,(Color("f3e6c4") if rank == applied else MINT) if rank > 0 else MUTED,900)
+			var current := _plain(values[rank-1] if rank > 0 else "—",22,(Color("f3e6c4") if rank == applied else PLANNED) if rank > 0 else MUTED,900)
 			if first: current.name = "CoreCurrentEffect"
 			line.add_child(current)
 			if rank < maximum:
@@ -752,10 +761,10 @@ func _grow_line(canvas: CanvasItem, owner, from: String, a: Vector2, to: String,
 	var length: float = grow.get(from,minf(int(owner.lobby.core_draft.get(from,0)),3)/3.0)
 	var applied := minf(length,minf(applied_rank(owner,from),3)/3.0)
 	if applied > 0: _glow_line(canvas,a,a.lerp(b,applied),GOLD,3*k)
-	if length > applied: _glow_line(canvas,a.lerp(b,applied),a.lerp(b,length),MINT,3*k)
+	if length > applied: _glow_line(canvas,a.lerp(b,applied),a.lerp(b,length),PLANNED,3*k)
 	if length > 0 and length < 1:
 		var tip := a.lerp(b,length)
-		var color := MINT if length > applied else GOLD
+		var color := PLANNED if length > applied else GOLD
 		canvas.draw_circle(tip,2.6*k+3,Color(color,0.25))
 		canvas.draw_circle(tip,2.6*k,color)
 
@@ -785,18 +794,13 @@ func draw_tree(owner, canvas: Control) -> void:
 		var planned := not lit and rank_a > 0 and rank_b > 0
 		canvas.draw_line(start,end,Color(0.008,0.031,0.051,0.85),(7.0 if lit or planned else 5.0)*k,true)
 		if lit: _glow_line(canvas,start,end,GOLD,3.6*k)
-		elif planned: canvas.draw_line(start,end,MINT,3.4*k,true)
+		elif planned: _glow_line(canvas,start,end,PLANNED,3.2*k)
 		elif a == "CORE": canvas.draw_line(start,end,Color("b8ccd3"),2.2*k,true)
 		else: canvas.draw_line(start,end,Color(0.43,0.53,0.58,0.75),1.6*k,true)
 		if not lit and not planned:
 			_grow_line(canvas,owner,a,start,b,end,k)
 			_grow_line(canvas,owner,b,end,a,start,k)
-	# Allocation feedback follows the exact same straight segments as the map.
-	for step in owner.allocation_steps:
-		var elapsed: float = owner.allocation_elapsed-float(step.wave)*200
-		if not step.lightsConnection or elapsed<0 or elapsed>500: continue
-		var from := screen(owner,owner.center() if str(step.source).is_empty() else owner.point(step.source))
-		canvas.draw_line(from,from.lerp(screen(owner,owner.point(step.id)),clampf(elapsed/340,0,1)),Color("a3edee"),4*k,true)
+	if owner.allocating and not wave.is_empty(): _draw_wave_links(owner,canvas,k)
 	if detailed:
 		for region in REGIONS:
 			var at := screen(owner,region.title)
@@ -804,6 +808,7 @@ func draw_tree(owner, canvas: Control) -> void:
 	for id in owner.node_ids():
 		_draw_node(owner,canvas,id,available,hint,detailed)
 	_draw_core(owner,canvas,core,detailed)
+	if owner.allocating and not wave.is_empty(): _draw_wave_bursts(owner,canvas,core,k)
 	if not detailed: _draw_overview(owner,canvas)
 
 func _draw_node(owner, canvas: Control, id: String, available: Array, hint: Array, detailed: bool) -> void:
@@ -838,7 +843,7 @@ func _draw_node(owner, canvas: Control, id: String, available: Array, hint: Arra
 				var pause := (2*kk+1)/gauge
 				var t := from
 				while t < from+seg:
-					canvas.draw_arc(at,gauge,t,minf(t+dash,from+seg),6,MINT,width,true)
+					canvas.draw_arc(at,gauge,t,minf(t+dash,from+seg),6,PLANNED,width,true)
 					t += dash+pause
 			else: canvas.draw_arc(at,gauge,from,from+seg,24,Color(0.16,0.23,0.27,0.95),width,true)
 	elif unlocked:
@@ -939,6 +944,117 @@ func _draw_overview(owner, canvas: Control) -> void:
 			_:
 				for i in 3:
 					var from := -PI/2+i*2.09+0.15
-					canvas.draw_arc(at,6,from,from+1.8,8,GOLD if entry[0] == "applied" else MINT,2.2,true)
+					canvas.draw_arc(at,6,from,from+1.8,8,GOLD if entry[0] == "applied" else PLANNED,2.2,true)
 		canvas.draw_string(small,Vector2(x+16,y+4),entry[1],HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("b7cbcf"))
 		x += 16+small.get_string_size(entry[1],HORIZONTAL_ALIGNMENT_LEFT,-1,10).x+9
+
+# ---- apply feedback ----
+## Path of Exile style: light runs along real links (shortest world distance) from
+## where the tree is already lit — the core and every kept allocation — out to the
+## new ranks. Returns the animation length in ms.
+func begin_wave(owner, base: Dictionary, target: Dictionary) -> float:
+	wave = {}
+	var distance := {"CORE":0.0}
+	for id in base:
+		if int(base[id]) > 0 and int(target.get(id,0)) > 0: distance[id] = 0.0
+	var adjacency := {}
+	var links := []
+	var origins := []
+	for edge in owner.data().edges:
+		var a: String = edge[0]
+		var b: String = edge[1]
+		if not (a == "CORE" or int(target.get(a,0)) > 0) or int(target.get(b,0)) <= 0: continue
+		var length: float = owner.point(a).distance_to(owner.point(b))
+		if not adjacency.has(a): adjacency[a] = []
+		if not adjacency.has(b): adjacency[b] = []
+		adjacency[a].append([b,length])
+		adjacency[b].append([a,length])
+		# Links between two already-lit ends stay as they are; light only leaves them.
+		if distance.has(a) and distance.has(b): continue
+		links.append([a,b,length])
+		for end in [a,b]:
+			if distance.has(end) and not end in origins: origins.append(end)
+	var settled := {}
+	while true:
+		var nearest := ""
+		var best := INF
+		for id in distance:
+			if not settled.has(id) and float(distance[id]) < best:
+				nearest = id
+				best = distance[id]
+		if nearest.is_empty(): break
+		settled[nearest] = true
+		for pair in adjacency.get(nearest,[]):
+			if best+float(pair[1]) < float(distance.get(pair[0],INF)): distance[pair[0]] = best+float(pair[1])
+	var raised := []
+	var farthest := 0.0
+	for id in target:
+		if not distance.has(id) or int(target[id]) <= int(base.get(id,0)): continue
+		raised.append(id)
+		farthest = maxf(farthest,float(distance[id]))
+	if raised.is_empty(): return 0.0
+	# Raising only kept nodes travels nowhere: they flash in place.
+	var seconds := clampf(farthest/WAVE_SPEED,WAVE_MIN_SECONDS,WAVE_MAX_SECONDS) if farthest > 0 else 0.0
+	wave = {"distance":distance,"links":links,"origins":origins,"raised":raised,"speed":farthest/seconds if seconds > 0 else 1.0,"base":base.duplicate(),"target":target.duplicate()}
+	return seconds*1000.0+WAVE_BURST_MS
+
+func wave_front(owner) -> float:
+	return float(owner.allocation_elapsed)/1000.0*float(wave.get("speed",0.0))
+
+## Lowered ranks change at once; raised ranks wait for the light to arrive.
+func wave_rank(owner, id: String) -> int:
+	var target := int(wave.target.get(id,0))
+	var before := int(wave.base.get(id,0))
+	if target <= before: return target
+	return target if float(wave.distance.get(id,INF)) <= wave_front(owner) else before
+
+func _draw_wave_links(owner, canvas: Control, k: float) -> void:
+	var front := wave_front(owner)
+	var distance: Dictionary = wave.distance
+	for link in wave.links:
+		var a: String = link[0]
+		var b: String = link[1]
+		var length: float = link[2]
+		var near := a if float(distance.get(a,INF)) <= float(distance.get(b,INF)) else b
+		var far := b if near == a else a
+		var progress := (front-float(distance[near]))/length
+		if progress <= 0: continue
+		var from := screen(owner,owner.point(near))
+		var to := screen(owner,owner.point(far))
+		var reach := minf(progress,1.0)
+		_glow_line(canvas,from,from.lerp(to,reach),GOLD,3.6*k)
+		# A bright streak rides the front and fades once it leaves the link.
+		var tail := WAVE_TAIL/length
+		if progress > 1.0+tail: continue
+		var fade := 1.0 if progress <= 1.0 else 1.0-(progress-1.0)/tail
+		for i in 3:
+			var t0 := maxf(0.0,reach-tail*(3-i)/3.0)
+			var color := Color(1,0.97,0.86,fade*(0.25+0.25*i))
+			canvas.draw_line(from.lerp(to,t0),from.lerp(to,reach),color,(2.0+i)*k,true)
+		if progress < 1.0:
+			var head := from.lerp(to,reach)
+			canvas.draw_circle(head,6*k,Color(1,0.95,0.8,0.25))
+			canvas.draw_circle(head,3*k,Color(1,0.98,0.92))
+
+func _draw_wave_bursts(owner, canvas: Control, core: Vector2, k: float) -> void:
+	var elapsed: float = owner.allocation_elapsed
+	if elapsed < WAVE_BURST_MS:
+		# The light departs from each lit end it leaves: the core or kept nodes.
+		var e := elapsed/WAVE_BURST_MS
+		for origin in wave.origins:
+			if origin == "CORE":
+				canvas.draw_arc(core,150*owner.zoom*(0.95+0.35*e),0,TAU,48,Color(0.75,0.95,1,1-e),3*k,true)
+				continue
+			var at := screen(owner,owner.point(origin))
+			var radius: float = diameter(origin)/2*owner.zoom+5*maxf(owner.zoom/0.46,0.45)+1.5
+			canvas.draw_arc(at,radius*(1.0+0.35*e),0,TAU,40,Color(1,0.96,0.84,1-e),2.5*k,true)
+	var front := wave_front(owner)
+	for id in wave.raised:
+		var age := (front-float(wave.distance[id]))/float(wave.speed)*1000.0
+		if age < 0 or age > WAVE_BURST_MS: continue
+		var e := age/WAVE_BURST_MS
+		var at := screen(owner,owner.point(id))
+		var radius: float = diameter(id)/2*owner.zoom+5*maxf(owner.zoom/0.46,0.45)+1.5
+		var flash: float = radius*(1.4+0.6*e)
+		canvas.draw_texture_rect(aura,Rect2(at-Vector2.ONE*flash,Vector2.ONE*flash*2),false,Color(1,0.95,0.78,0.55*(1-e)))
+		canvas.draw_arc(at,radius+28*k*e,0,TAU,40,Color(GOLD,1-e),3*k*(1-e)+1,true)

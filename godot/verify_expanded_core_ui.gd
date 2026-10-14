@@ -146,6 +146,27 @@ func run() -> void:
 	check(core.view==apply_view,"apply updates the existing viewport even when the app refreshes inside the command")
 	check(core.actual()==lobby.core_draft,"draft apply persists through real lobby command")
 	check(core.zoom==apply_zoom and core.offset==apply_offset,"apply keeps the current viewport immediately")
+	# Light leaves the core and reaches each allocated node in path order.
+	var wave: Dictionary = core.expanded_tree.wave
+	check(not wave.is_empty() and core.allocating,"apply starts the core light wave")
+	var path_order := ["S6","A01","B01","C02","K2"]
+	for i in path_order.size()-1:
+		check(float(wave.distance[path_order[i]])<float(wave.distance[path_order[i+1]]),"wave reaches %s before %s" % [path_order[i],path_order[i+1]])
+	check(core.rendered_rank("K2")==0,"keystone stays unlit before the wave arrives")
+	core.allocation_elapsed = (float(wave.distance.C02)+1)/float(wave.speed)*1000.0
+	check(core.rendered_rank("C02")==3 and core.rendered_rank("K2")==0,"ranks light exactly as the front passes")
+	core.allocation_elapsed = 0
+	# Extending a kept allocation starts from those nodes, not from the core.
+	var kept := {"S6":3,"A01":3,"B01":3}
+	var extended := {"S6":3,"A01":3,"B01":3,"B02":1}
+	var saved_wave: Dictionary = core.expanded_tree.wave
+	core.expanded_tree.begin_wave(core,kept,extended)
+	var branch: Dictionary = core.expanded_tree.wave
+	check(branch.origins==["B01"] and float(branch.distance.B01)==0.0,"extension light leaves the kept node")
+	check(is_equal_approx(float(branch.distance.B02),core.point("B01").distance_to(core.point("B02"))),"extension travels only the new link")
+	check(branch.links.size()==1,"kept links do not replay")
+	check(core.expanded_tree.begin_wave(core,kept,{"S6":5,"A01":3,"B01":3})==core.expanded_tree.WAVE_BURST_MS,"raising a kept node flashes in place")
+	core.expanded_tree.wave = saved_wave
 	for i in 120:
 		await process_frame
 		if not is_equal_approx(core.zoom,apply_zoom) or not core.offset.is_equal_approx(apply_offset):

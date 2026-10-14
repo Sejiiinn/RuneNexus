@@ -6,7 +6,7 @@
 <title>코어 스킬트리 시안</title>
 <style>
 @font-face { font-family: "NotoKR"; src: url("../../../assets/fonts/NotoSansKR-VF.ttf"); font-weight: 100 900; }
-:root { --ink: #e8f8ff; --muted: #8ea4ab; --gold: #edc785; --mint: #9bd89b; }
+:root { --ink: #e8f8ff; --muted: #8ea4ab; --gold: #edc785; --mint: #f4faff; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { background: #0b1620; }
 body { width: 440px; height: 900px; margin: 0; background: #04111b; font-family: "NotoKR", sans-serif; color: var(--ink); overflow: hidden; position: relative; user-select: none; -webkit-user-select: none; }
@@ -44,7 +44,7 @@ body { width: 440px; height: 900px; margin: 0; background: #04111b; font-family:
 #points .num small { font-size: 10px; color: var(--muted); font-weight: 700; }
 #points .num b { font-size: 21px; font-weight: 900; }
 #points .num b span { font-size: 12px; color: var(--muted); font-weight: 700; margin-left: 3px; }
-.chip { font-size: 12px; font-weight: 800; color: var(--mint); border: 1px dashed rgba(155,216,155,.6); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.chip { font-size: 12px; font-weight: 800; color: var(--mint); border: 1px dashed rgba(244,250,255,.6); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
 .grow { flex: 1; }
 #menu { position: absolute; right: 12px; top: 140px; padding: 10px; width: 160px; }
 
@@ -76,7 +76,7 @@ body { width: 440px; height: 900px; margin: 0; background: #04111b; font-family:
 .rank { display: flex; align-items: center; gap: 8px; margin: 12px 0 10px; }
 .rank .bar { flex: 1; display: flex; gap: 4px; align-items: center; }
 .rank .bar span { flex: 1; height: 8px; border-radius: 2px; background: #1d2d37; border: 1px solid #2f4552; }
-.rank .bar span.plan { background: repeating-linear-gradient(-45deg,#9bd89b 0 4px,#6fae76 4px 7px); border-color: #b9e8b9; }
+.rank .bar span.plan { background: repeating-linear-gradient(-45deg,#f4faff 0 4px,#b9c9d2 4px 7px); border-color: #ffffff; }
 .rank .bar span.on { background: var(--gold); border-color: #f7e2b6; }
 .rank b { font-size: 15px; font-weight: 900; min-width: 38px; text-align: right; }
 .effect { background: rgba(255,255,255,.035); border: 1px solid #22394a; border-radius: 8px; padding: 9px 12px; }
@@ -276,7 +276,7 @@ function draw() {
     c.beginPath(); c.moveTo(pa.x, pa.y); c.lineTo(pb.x, pb.y); c.stroke();
     c.save();
     if (lit) { c.strokeStyle = "#edc785"; c.lineWidth = 3.6 * k; c.shadowColor = "rgba(237,199,133,.8)"; c.shadowBlur = 8; }
-    else if (planned) { c.strokeStyle = "#9bd89b"; c.lineWidth = 3.4 * k; }
+    else if (planned) { c.strokeStyle = "#f4faff"; c.lineWidth = 3.4 * k; }
     else if (route) { c.strokeStyle = "#b8ccd3"; c.lineWidth = 2.2 * k; }
     else { c.strokeStyle = "rgba(110,135,148,0.75)"; c.lineWidth = 1.6 * k; }
     c.beginPath(); c.moveTo(pa.x, pa.y); c.lineTo(pb.x, pb.y); c.stroke();
@@ -304,9 +304,9 @@ function growLine(c, from, pf, to, pt, k) {
     c.beginPath(); c.moveTo(p0.x, p0.y); c.lineTo(p1.x, p1.y); c.stroke(); c.restore();
   };
   seg(0, applied, "#edc785", "rgba(237,199,133,.85)");
-  seg(applied, f, "#9bd89b", "rgba(155,216,155,.8)");
+  seg(applied, f, "#f4faff", "rgba(244,250,255,.8)");
   if (f > 0 && f < 1) {                           // glowing tip shows the line is still growing
-    const tip = at(f), col = f > applied ? "155,216,155" : "237,199,133";
+    const tip = at(f), col = f > applied ? "244,250,255" : "237,199,133";
     c.save(); c.fillStyle = `rgba(${col},1)`; c.shadowColor = `rgba(${col},1)`; c.shadowBlur = 10;
     c.beginPath(); c.arc(tip.x, tip.y, 2.6 * k, 0, 7); c.fill(); c.restore();
   }
@@ -385,7 +385,7 @@ function drawNode(c, n, at, scale, open, hint, detailed) {
       const s = -Math.PI / 2 + gap / 2 + i * (seg + gap);
       c.save(); c.lineWidth = gw; c.lineCap = "butt";
       if (i < applied) { c.strokeStyle = "#edc785"; c.shadowColor = "rgba(237,199,133,.9)"; c.shadowBlur = 6; }
-      else if (i < rank) { c.strokeStyle = "#9bd89b"; c.setLineDash([3 * kk + 1, 2 * kk + 1]); }
+      else if (i < rank) { c.strokeStyle = "#f4faff"; c.setLineDash([3 * kk + 1, 2 * kk + 1]); }
       else c.strokeStyle = "rgba(40,58,70,.95)";
       c.beginPath(); c.arc(p.x, p.y, gr, s, s + seg); c.stroke(); c.restore();
     }
@@ -423,7 +423,7 @@ function legendGlyph(kind) {
   if (kind === "max") { c.strokeStyle = "#f6d891"; c.shadowColor = "#f6d891"; c.shadowBlur = 4; c.lineWidth = 2.4; c.beginPath(); c.arc(p, p, 6, 0, 7); c.stroke(); }
   if (kind === "applied" || kind === "plan") {
     c.lineWidth = 2.2;
-    for (let i = 0; i < 3; i++) { const s = -Math.PI / 2 + i * 2.09 + 0.15; c.strokeStyle = kind === "applied" ? "#edc785" : "#9bd89b"; c.beginPath(); c.arc(p, p, 6, s, s + 1.8); c.stroke(); }
+    for (let i = 0; i < 3; i++) { const s = -Math.PI / 2 + i * 2.09 + 0.15; c.strokeStyle = kind === "applied" ? "#edc785" : "#f4faff"; c.beginPath(); c.arc(p, p, 6, s, s + 1.8); c.stroke(); }
   }
   return cv;
 }

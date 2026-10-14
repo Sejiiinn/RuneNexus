@@ -391,9 +391,13 @@ func apply() -> void:
 	if expanded(): expanded_tree.interrupt()
 	allocation_base = actual().duplicate()
 	allocation_target = lobby.core_draft.duplicate()
-	allocation_steps = build_allocation_steps(allocation_base,allocation_target)
 	allocation_elapsed = 0
-	allocation_duration = 0 if allocation_steps.is_empty() else float(allocation_steps.back().wave)*200+700
+	if expanded():
+		allocation_steps.clear()
+		allocation_duration = expanded_tree.begin_wave(self,allocation_base,allocation_target)
+	else:
+		allocation_steps = build_allocation_steps(allocation_base,allocation_target)
+		allocation_duration = 0 if allocation_steps.is_empty() else float(allocation_steps.back().wave)*200+700
 	allocating = true
 	# This command only changes core points/ranks, which update_state refreshes.
 	# Rebuilding the page would briefly resize the viewport and fit the tree again.
@@ -447,11 +451,13 @@ func _advance_allocation(ms: float) -> void:
 func _finish_allocation() -> void:
 	allocating = false
 	allocation_steps.clear()
+	expanded_tree.wave = {}
 	update_state()
 	if not selected.is_empty() and is_instance_valid(view): node_details(selected)
 
 func rendered_rank(id: String) -> int:
 	if not allocating: return int(actual().get(id,0))
+	if expanded() and not expanded_tree.wave.is_empty(): return expanded_tree.wave_rank(self,id)
 	for step in allocation_steps:
 		if step.id == id and allocation_elapsed >= int(step.wave)*200+280:
 			return int(allocation_target.get(id,0))
