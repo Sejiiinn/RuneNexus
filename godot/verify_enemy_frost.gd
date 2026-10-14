@@ -24,6 +24,7 @@ func unit(id: int, kind: String, slowed: bool) -> Array:
 func original_surfaces(entry: Dictionary) -> Array:
 	var result: Array = []
 	for node: MeshInstance3D in entry["root"].find_children("*", "MeshInstance3D", true, false):
+		if node.has_meta("exclude_enemy_status"): continue
 		if node.get_parent().name in ["EnemyBurn", "EnemyFrost"]:
 			continue
 		for surface in range(node.mesh.get_surface_count()):
@@ -36,8 +37,10 @@ func check_surfaces(entry: Dictionary, originals: Array, active: bool) -> void:
 	var body_meshes := {}
 	for record: Array in originals:
 		body_meshes[record[0]] = true
-	var status_mesh_count := 2 if bool(entry.get("guardian_preview", false)) and entry.has("frost") else 0
-	check(entry["root"].find_children("*", "MeshInstance3D", true, false).size() == body_meshes.size() + status_mesh_count, "성에 때문에 예상 밖 몸체 메시를 추가함")
+	var moving := bool(entry.get("guardian_preview", false)) or bool(entry.get("shielded_presentation", false))
+	var status_mesh_count := 2 if moving and entry.has("frost") else 0
+	var actual: Array = entry["root"].find_children("*", "MeshInstance3D", true, false).filter(func(node): return node.name != "ShieldShell")
+	check(actual.size() == body_meshes.size() + status_mesh_count, "성에 때문에 예상 밖 몸체 메시를 추가함")
 	var body_count := 0
 	var core_count := 0
 	for record: Array in originals:
@@ -51,7 +54,10 @@ func check_surfaces(entry: Dictionary, originals: Array, active: bool) -> void:
 			check(current == original, "서리가 적의 원래 코어 재질을 변경함")
 		elif active and (original is StandardMaterial3D or original.has_meta("frost_source_material")):
 			body_count += 1
-			check(current != original and current.next_pass == (Frost._skinned_coats[original] if bool(entry.get("guardian_preview", false)) else Frost._coat), "몸체에 공통 성에 next_pass가 적용되지 않음")
+			if bool(entry.get("shielded_presentation", false)):
+				check(current != original and current.next_pass.shader == Frost.COAT_SHADER and current.next_pass.get_shader_parameter("preserve_emission_core"), "보호막형은 원본 발광 룬을 보호하는 공통 성에 사용")
+			else:
+				check(current != original and current.next_pass == (Frost._skinned_coats[original] if bool(entry.get("guardian_preview", false)) else Frost._coat), "몸체에 공통 성에 next_pass가 적용되지 않음")
 			if original is StandardMaterial3D:
 				check(current.albedo_texture == original.albedo_texture and current.normal_texture == original.normal_texture, "원본 몸체 텍스처가 변경됨")
 			else:
@@ -66,7 +72,7 @@ func check_surfaces(entry: Dictionary, originals: Array, active: bool) -> void:
 			for record: Array in originals:
 				if Frost._skinned_coats.has(record[3]):
 					check(bool(Frost._skinned_coats[record[3]].get_shader_parameter("preserve_colored_core")), "움직이는 적의 공통 텍스처 코어 보존 누락")
-	else:
+	elif not bool(entry.get("shielded_presentation", false)):
 		check(core_count > 0, "코어 보존 검사 대상 누락")
 	if active:
 		check(body_count > 0, "성에 코팅 검사 대상 누락")
@@ -104,6 +110,13 @@ func _verify() -> void:
 	for i in range(kinds.size()):
 		var entry: Dictionary = scene.enemies[i]
 		var frost: Node3D = entry["frost"]
+		if bool(entry.get("shielded_presentation", false)):
+			var meshes := frost.find_children("*", "MeshInstance3D", true, false)
+			check(frost.visible and meshes.size() == 2, "보호막형 공통 결정은 두 배치 유지")
+			for effect: MeshInstance3D in meshes:
+				check(effect.skin.get_bind_count() == 6 and effect.get_node(effect.skeleton) == entry.status_skeleton, "보호막형 결정이 여섯 실제 부품 자세를 공유함")
+			check_surfaces(entry, originals[i], true)
+			continue
 		if bool(entry.get("guardian_preview", false)):
 			check(frost.visible and entry["root"].is_ancestor_of(frost), "움직이는 적에 서리가 붙지 않음")
 			var meshes := frost.find_children("*", "MeshInstance3D", true, false)
@@ -130,7 +143,7 @@ func _verify() -> void:
 		check(frost.find_children("*", "AnimationPlayer", true, false).is_empty(), "감속과 무관한 서리 자체 시계 추가")
 	var first: Node3D = scene.enemies[1]["frost"]
 	var first_meshes := first.find_children("*", "MultiMeshInstance3D", true, false)
-	check(Frost._multimeshes.size() == 2 and Frost._multimeshes.has("armored") and Frost._multimeshes.has("shielded"), "강체 적만 부착 배치를 만들고 스킨 적은 공유 원본 메시를 사용함")
+	check(Frost._multimeshes.size() == 1 and Frost._multimeshes.has("armored"), "고정 장갑형만 기존 부착 배치를 만들고 움직이는 적은 공유 스킨 메시를 사용함")
 	var boss_meshes: Array = scene.enemies[5]["frost"].find_children("*", "MeshInstance3D", true, false)
 	for index in [6, 7]:
 		var variant_meshes: Array = scene.enemies[index]["frost"].find_children("*", "MeshInstance3D", true, false)

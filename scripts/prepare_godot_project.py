@@ -395,6 +395,11 @@ def prepare() -> Path:
     shutil.copy2(SOURCE_ASSETS / "effects/placement_dust.json", ASSETS / "effects/placement_dust.json")
     texture_manifest = externalize_textures(ASSETS)
     _prepare_tank_imports()
+    (ASSETS / "enemies/shielded.glb.import").write_text(
+        '[remap]\nimporter="scene"\ntype="PackedScene"\n\n'
+        '[params]\nanimation/fps=24\n'
+        '_subresources={"nodes":{"PATH:AnimationPlayer":{"optimizer/enabled":false}}}\n'
+    )
     (PROJECT.parent / "shared_texture_manifest.json").write_text(
         json.dumps(texture_manifest, ensure_ascii=False, indent=2) + "\n"
     )
@@ -421,7 +426,7 @@ def prepare() -> Path:
     _prepare_boss_imports()
     for name in ENEMY_TYPES + ("normal_death", "fast_death", "tank_death"):
         if name != "boss":  # Already handled with its animation import policy.
-            limit = 1024 if name in ("fast", "fast_death", "tank", "tank_death") else 0
+            limit = 1024 if name in ("fast", "fast_death", "tank", "tank_death", "shielded") else 0
             _prepare_compressed_model_textures(ASSETS / "enemies" / f"{name}.glb", limit)
     for name in TURRET_TYPES:
         _prepare_compressed_model_textures(ASSETS / "turrets" / f"{name}.glb",

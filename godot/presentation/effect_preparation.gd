@@ -12,6 +12,8 @@ const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const Ricochet = preload("res://effects/machinegun_ricochet.gd")
 const EFFECT_CACHES := [
 	Fire, Frost, Burn, Lightning, GuardianStatus,
+	preload("res://effects/shielded_status.gd"),
+	preload("res://presentation/shielded_presentation.gd"),
 	preload("res://effects/enemy_frost.gd"),
 	preload("res://effects/boss_death.gd"),
 	preload("res://effects/hound_death.gd"),
@@ -165,8 +167,10 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 				_dispose(scene, units, projectiles, viewport)
 				return false
 	for kind: String in enemy_types:
-		units._sync_enemies([[10, 4.0, 5.0, 0.0, 0.0, 1.0, 0.0, kind,
-			"magic" in tower_types, "frost" in tower_types]])
+		var enemy := [10, 4.0, 5.0, 0.0, 0.0, 1.0, 0.0, kind,
+			"magic" in tower_types, "frost" in tower_types]
+		if kind == "shielded": enemy.append_array([false, false, null, null, {"shield":100.0,"maxShield":100.0}])
+		units._sync_enemies([enemy])
 		# Prepare all possible stage targets while loading, not at first aim/fire.
 		# Reuse the real model path, including skinned walkers and boss variants.
 		# Each family yields to the loading UI; no posed hit points survive it.

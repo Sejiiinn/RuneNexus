@@ -10,6 +10,7 @@ uniform float intensity = 1.0;
 uniform bool skinned_status = false;
 uniform float coordinate_scale = 1.0;
 instance uniform float phase_offset = 0.0;
+instance uniform bool world_up_motion = false;
 varying float atlas_frame;
 
 void vertex() {
@@ -24,6 +25,10 @@ void vertex() {
 	vec3 offset = vec3(motion.w * age + 0.024 * sin(age * 7.0 + seed),
 		shape.x * age, -0.018 * sin(age * 5.0 + seed));
 	vec3 center = (MODELVIEW_MATRIX * vec4(skinned_status ? VERTEX + offset / coordinate_scale : offset, 1.0)).xyz;
+	if (world_up_motion) {
+		center = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz
+			+ (VIEW_MATRIX * vec4(offset * length(MODEL_MATRIX[0].xyz), 0.0)).xyz;
+	}
 	float body_scale = length(MODEL_MATRIX[0].xyz) / (skinned_status ? coordinate_scale : 1.0);
 	vec2 scale = vec2(1.0 - 0.35 * age, 1.0 + 0.55 * age);
 	// 1.25 includes the atlas padding around the source volume carrier.

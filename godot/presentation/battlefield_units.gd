@@ -19,6 +19,7 @@ const LightningCollar = preload("res://effects/lightning_collar.gdshader")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
 const GuardianPreview = preload("res://presentation/guardian_preview.gd")
+const ShieldedPresentation = preload("res://presentation/shielded_presentation.gd")
 const FrameRows = preload("res://presentation/frame_rows.gd")
 const TURRET_MODELS := {
 	"arrow": "res://assets/turrets/arrow.glb",
@@ -152,6 +153,9 @@ func enemy_label_tops() -> Dictionary:
 	var tops := {}
 	for id in enemies:
 		var entry: Dictionary = enemies[id]
+		if bool(entry.get("shielded_presentation", false)):
+			tops[id] = ShieldedPresentation.label_top(entry, camera)
+			continue
 		if not entry.has("label_bounds"): continue
 		var skeleton: Skeleton3D = entry.label_skeleton
 		var pose := skeleton.global_transform * skeleton.get_bone_global_pose(int(entry.label_bone))
@@ -439,6 +443,8 @@ func _sync_enemies(units: Array) -> void:
 				var entry: Dictionary = _guardian_preview.new_walker(type)
 				if entry.is_empty(): continue
 				enemies[id] = entry
+			elif type == "shielded":
+				enemies[id] = ShieldedPresentation.create(world)
 			else:
 				var model: Node3D = (StageResources.load_resource(ENEMY_MODELS[type]) as PackedScene).instantiate()
 				_prepare_vertex_colors(model)
@@ -455,6 +461,14 @@ func _sync_enemies(units: Array) -> void:
 			EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
 			continue
 		# 전투 판정의 기존 slowed 필드를 사용하며 부유·회전·크기는 원본 부모를 따른다.
+		if type == "shielded":
+			root.position = Vector3(row.x - columns / 2.0, 0.0, row.y - rows / 2.0)
+			root.rotation.y = PI / 2.0 - row.facing
+			root.scale = Vector3.ONE * row.scale * ShieldedPresentation.VISUAL_SCALE
+			ShieldedPresentation.update(enemies[id], row, time)
+			EnemyFrost.apply(enemies[id], row.slowed)
+			EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
+			continue
 		EnemyFrost.apply(enemies[id], row.slowed)
 		# Diagnostic A/B switch: visual only; incoming combat burn state stays intact.
 		EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)

@@ -1315,6 +1315,9 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		row.burning = burning; row.slowed = slowed; row.poisoned = poisoned; row.diamond = diamond
 		row.has_logical = true; row.logical_x = logical.x; row.logical_y = logical.y
 		row.teleport_serial = e.get("teleportSerial",0) if not e.get("teleportPairs", []).is_empty() else -1
+		row.has_shield = row.type == "shielded"
+		row.shield = e.shield if row.has_shield else 0.0
+		row.max_shield = e.maxShield if row.has_shield else 0.0
 		rows.append(row)
 		var size: Array = e.presentationSize if e.has("presentationSize") else [_radius(e)*2,_radius(e)*2]
 		if canvas_scaled: size = [float(size[0])*canvas_ratio,float(size[1])*canvas_ratio]

@@ -5,6 +5,7 @@ const StageResources = preload("res://presentation/stage_resources.gd")
 ## One immutable MultiMesh per enemy kind, one shared material/atlas/clock.
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
+const ShieldedStatus = preload("res://effects/shielded_status.gd")
 const SHADER = preload("res://effects/enemy_burn.gdshader")
 const ATLAS := "res://assets/effects/enemy_burn/flame_atlas.png"
 const DATA_PATH := "res://assets/effects/enemy_burn/attachments.json"
@@ -68,11 +69,17 @@ static func set_time(time: float) -> void:
 		return
 	_time = time
 	GuardianStatus.set_burn_time(time)
+	ShieldedStatus.set_time(time)
 	if _material != null:
 		_material.set_shader_parameter("burn_time", time)
 
 
 static func apply(entry: Dictionary, burning: bool, _combat_time: float) -> void:
+	if bool(entry.get("shielded_presentation", false)):
+		if burning or entry.has("burn"):
+			_ensure_shared()
+			ShieldedStatus.burn(entry, burning, _material, int(_row_offsets.shielded))
+		return
 	if not entry.has("burn"):
 		if not burning:
 			return

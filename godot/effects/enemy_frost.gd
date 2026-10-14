@@ -5,6 +5,7 @@ const StageResources = preload("res://presentation/stage_resources.gd")
 ## 적별 데이터는 결정 부착 변환뿐이며 모든 종이 같은 두 원형을 사용한다.
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
+const ShieldedStatus = preload("res://effects/shielded_status.gd")
 const CRYSTALS := "res://assets/effects/enemy_frost/crystals.glb"
 const COAT_SHADER = preload("res://effects/enemy_frost.gdshader")
 const CRYSTAL_SHADER = preload("res://effects/enemy_frost_crystals.gdshader")
@@ -111,6 +112,11 @@ static func _instances(kind: String) -> Array:
 
 
 static func apply(entry: Dictionary, slowed: bool) -> void:
+	if bool(entry.get("shielded_presentation", false)):
+		if slowed or entry.has("frost"):
+			_ensure_shared()
+			ShieldedStatus.frost(entry, slowed, _coat, [_shard_mesh, _grain_mesh], [_ice, _grain_material])
+		return
 	if not entry.has("frost"):
 		if not slowed:
 			return

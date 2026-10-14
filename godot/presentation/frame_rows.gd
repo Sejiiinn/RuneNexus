@@ -24,6 +24,10 @@ class Enemy extends RefCounted:
 	var logical_y := 0.0
 	## Increments on every teleport jump; -1 when the map has no teleports.
 	var teleport_serial := -1
+	## Optional visual shield state; older fixtures omit it and remain unshielded.
+	var has_shield := false
+	var shield := 0.0
+	var max_shield := 0.0
 
 	static func from_array(d: Array) -> Enemy:
 		var row := Enemy.new()
@@ -38,17 +42,26 @@ class Enemy extends RefCounted:
 		row.slowed = d.size() > 9 and bool(d[9])
 		row.poisoned = d.size() > 10 and bool(d[10])
 		row.diamond = d.size() > 11 and bool(d[11])
-		if d.size() > 13:
+		if d.size() > 13 and d[12] != null and d[13] != null:
 			row.has_logical = true
 			row.logical_x = float(d[12]); row.logical_y = float(d[13])
-		if d.size() > 14 and d[14] is Dictionary and d[14].has("teleportSerial"):
-			row.teleport_serial = int(d[14]["teleportSerial"])
+		if d.size() > 14 and d[14] is Dictionary:
+			if d[14].has("teleportSerial"): row.teleport_serial = int(d[14]["teleportSerial"])
+			if d[14].has("shield"):
+				row.has_shield = true
+				row.shield = float(d[14].shield)
+				row.max_shield = float(d[14].get("maxShield", 0.0))
 		return row
 
 	func to_array() -> Array:
 		var d := [id, x, y, facing, phase, scale, hit_flash, type, burning, slowed, poisoned, diamond]
-		if has_logical: d.append_array([logical_x, logical_y])
-		if teleport_serial >= 0: d.append({"teleportSerial": teleport_serial})
+		if has_logical or teleport_serial >= 0 or has_shield: d.append_array([logical_x, logical_y] if has_logical else [null, null])
+		var extra := {}
+		if teleport_serial >= 0: extra.teleportSerial = teleport_serial
+		if has_shield:
+			extra.shield = shield
+			extra.maxShield = max_shield
+		if not extra.is_empty(): d.append(extra)
 		return d
 
 class Turret extends RefCounted:

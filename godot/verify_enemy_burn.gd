@@ -24,6 +24,7 @@ func unit(id: int, kind: String, burning: bool, slowed := false) -> Array:
 func original_surfaces(entry: Dictionary) -> Array:
 	var result: Array = []
 	for node: MeshInstance3D in entry["root"].find_children("*", "MeshInstance3D", true, false):
+		if node.has_meta("exclude_enemy_status"): continue
 		if node.get_parent().name in ["EnemyBurn", "EnemyFrost"]:
 			continue
 		for surface in range(node.mesh.get_surface_count()):
@@ -72,6 +73,13 @@ func _verify() -> void:
 		if not entry.has("burn"):
 			continue
 		var burn: Node3D = entry["burn"]
+		if bool(entry.get("shielded_presentation", false)):
+			var effect: MeshInstance3D = burn.get_child(0)
+			check(burn.visible and burn.get_child_count() == 1, "보호막형 화상은 한 배치를 유지함")
+			check(effect.mesh.surface_get_array_len(0) == 52*4 and effect.skin.get_bind_count() == 6, "보호막형 52입자는 여섯 이동 부품을 따름")
+			check(effect.get_node(effect.skeleton) == entry.status_skeleton, "보호막형 화상이 실제 부품 자세를 공유함")
+			check_surfaces(originals[i])
+			continue
 		if bool(entry.get("guardian_preview", false)):
 			check(burn.visible and entry["root"].is_ancestor_of(burn), "움직이는 적에 화상이 붙지 않음")
 			var meshes := burn.find_children("*", "MeshInstance3D", true, false)

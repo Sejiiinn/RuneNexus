@@ -82,7 +82,7 @@ Python 실행 소비자는 [저장 형식 코덱](../../scripts/content_runtime_
 
 콘텐츠는 이를 bootstrap의 `{color,entranceIndex,exitIndex}` 배열로 변환한다. 적이 IN waypoint에 도착하면 같은색 OUT 중심으로 즉시 이동하고 다음 waypoint를 향한다. 프레임당 한 waypoint 이동과 초과 이동량 버림, 상태 효과 갱신 순서는 기존과 같다. 콘텐츠 배치는 통로 타일에 한정한다. 타일 종류를 받지 않는 내부 bootstrap 인덱스 실행기는 범용 경계 처리를 유지하지만 콘텐츠에서 스폰·코어 배치를 허용한다는 뜻은 아니다. 원본 경로의 OUT 누적거리로 `distanceTravelled`를 갱신하므로 기존 우선순위와 v2 저장·복원 계약을 사용하며 저장 필드를 추가하지 않는다. HP·상태·적 ID는 유지한다.
 
-전송 이벤트 `kind=teleport`의 `fromX/fromY/x/y`는 origin과 tileSize가 적용된 **logical board pixels**다. 적 presentation row의 기존 0~13 필드는 유지하고 전송 맵에서만 index 14에 `{teleportSerial:int}`를 추가한다. 이 일련번호는 렌더러의 이동·회전 보간 초기화 용도이며 저장하지 않는다. 투사체는 기존처럼 자신의 궤적과 이동 완료 후 적 중심을 검사하므로 IN~OUT 구간을 적의 충돌 궤적으로 취급하지 않는다.
+전송 이벤트 `kind=teleport`의 `fromX/fromY/x/y`는 origin과 tileSize가 적용된 **logical board pixels**다. 적 presentation row의 기존 0~13 필드는 유지하며 index 14는 선택 확장 Dictionary다. 전송 맵은 `{teleportSerial:int}`를, 보호막형(`shielded`)은 실제 전투 상태의 `{shield:float,maxShield:float}`를 전달하고 두 기능이 함께 있으면 같은 Dictionary에 넣는다. 이전 fixture에서 보호막 필드가 없거나 최대치가 0이면 3D 외피를 숨긴다. 논리 좌표가 없는 행의 확장 직렬화는 index 12~13을 `null`로 유지하므로 재해석할 때 논리 좌표를 새로 만들지 않는다. 전송 일련번호는 렌더러의 이동·회전 보간 초기화 용도이며 저장하지 않고, 보호막 선택 필드도 기존 저장 스키마를 바꾸지 않는 시각 투영이다. 투사체는 기존처럼 자신의 궤적과 이동 완료 후 적 중심을 검사하므로 IN~OUT 구간을 적의 충돌 궤적으로 취급하지 않는다.
 
 `verify_teleport_gimmick.gd`는 메모리 안의 격리 맵으로 입력 거부·양색 이동·상태 유지·큰 dt·정지/배속·충돌·v2 출구 복원을 검사한다. 선택 실행은 `python3 scripts/run_godot_native_regressions.py verify_teleport_gimmick.gd`를 사용한다.
 

@@ -5,6 +5,7 @@ uniform sampler3D rime_mask : filter_linear, repeat_disable;
 uniform sampler2D grain_texture : filter_linear_mipmap, repeat_enable;
 uniform float coordinate_scale = 1.0;
 uniform vec3 coordinate_offset = vec3(0.0);
+uniform mat4 coordinate_transform = mat4(1.0);
 uniform bool preserve_colored_core = false;
 // The boss chest seal is red pigment, separate from its emissive eyes/rune cuts.
 uniform bool preserve_red_core = false;
@@ -30,8 +31,10 @@ bool inside_uv_rect(vec2 uv, vec4 rect) {
 
 void vertex() {
 	// Original mesh coordinates, converted back to the Blender authoring axes.
-	object_position = vec3(VERTEX.x, -VERTEX.z, VERTEX.y) * coordinate_scale + coordinate_offset;
-	object_normal = vec3(NORMAL.x, -NORMAL.z, NORMAL.y);
+	vec3 source = (coordinate_transform * vec4(VERTEX, 1.0)).xyz;
+	vec3 source_normal = mat3(coordinate_transform) * NORMAL;
+	object_position = vec3(source.x, -source.z, source.y) * coordinate_scale + coordinate_offset;
+	object_normal = vec3(source_normal.x, -source_normal.z, source_normal.y);
 	object_scale = length(MODEL_MATRIX[0].xyz);
 	VERTEX += NORMAL * 0.004;
 }

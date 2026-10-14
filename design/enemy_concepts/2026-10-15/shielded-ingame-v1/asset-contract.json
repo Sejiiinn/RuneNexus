@@ -1,0 +1,111 @@
+{
+  "source": {
+    "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-idle-emission-v1.blend",
+    "sha256": "3587c22c027d8268b46ea5d6043031d90d19955b5ffaccbe98b2491282a0a6cb"
+  },
+  "native": {
+    "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-ingame-v1.blend",
+    "sha256": "4169f877f58ac93031310d5d4c10ef275df0b7bbb90ed328719140f4b4104e7d"
+  },
+  "glb": {
+    "path": "/Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/enemies/shielded.glb",
+    "sha256": "f4cae40b1281d96a17cb19c3dbe76ef15becb7f9199af08fd419c46517f7567f"
+  },
+  "emission_bake": {
+    "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/textures/shielded-01-single-view-emission2048-v1.png",
+    "sha256": "a6b102e674f7c989ee2044af09465b3dab9b23b29625a072b079f12661ba3a22",
+    "size": [
+      2048,
+      2048
+    ],
+    "method": "Blender Cycles EMIT, original UV, normalized source emission color; glTF emissive strength3.8"
+  },
+  "source_triangles": 9757,
+  "axis": "glTF Y-up; source coordinates already Y-up; export_yup=False",
+  "bounds_y_up": {
+    "min": [
+      -0.376177877,
+      -0.499604106,
+      -0.324245393
+    ],
+    "max": [
+      0.374659181,
+      0.41573149,
+      0.323511064
+    ]
+  },
+  "animation": {
+    "name": "Idle",
+    "seconds": 24,
+    "fps": 24,
+    "time_start_seconds": 0,
+    "end_frame": 577,
+    "stone_turns": {
+      "StoneLowerLeft": 1,
+      "StoneUpperRight": -2,
+      "StoneLowerRight": 3,
+      "StoneUpperLeft": -4
+    },
+    "runtime": "seek Idle using authoritative combat clock; 4 stones are baked at distinct speeds",
+    "time_end_seconds": 24,
+    "time_origin_normalization": "glTF input accessor shifted from Blender frame1/fps to0; all curve output/mesh/image bytes unchanged"
+  },
+  "node_names": {
+    "hover": "HoverRoot",
+    "meshes": [
+      "Body",
+      "Ring",
+      "StoneLowerLeft",
+      "StoneUpperRight",
+      "StoneLowerRight",
+      "StoneUpperLeft"
+    ],
+    "pivots": [
+      "BodyPivot",
+      "RingPivot",
+      "StoneLowerLeftPivot",
+      "StoneUpperRightPivot",
+      "StoneLowerRightPivot",
+      "StoneUpperLeftPivot"
+    ]
+  },
+  "rune_light_anchors": [
+    {
+      "name": "RuneFront",
+      "parent": "BodyPivot",
+      "position_y_up": [
+        0.01744842529296875,
+        0.036936308145523074,
+        0.29638855397701264
+      ],
+      "source_energy_watts": 1.25
+    },
+    {
+      "name": "RuneBack",
+      "parent": "BodyPivot",
+      "position_y_up": [
+        0.01744842529296875,
+        0.036936308145523074,
+        -0.2936114460229874
+      ],
+      "source_energy_watts": 0.65
+    }
+  ],
+  "pbr": {
+    "metallic": 0,
+    "roughness": 0.8,
+    "emission_strength": 3.8,
+    "original_albedo_normal_bytes_unchanged": true,
+    "authoring_texture_resolution": 2048,
+    "game_import_size_limit": 1024
+  },
+  "game_shield_shell": "Runtime state effect, not part of the original9757 triangles",
+  "validation": "Producer PASS: original oriented position0, UV3e-8, normal export encoding6.43e-5, original PNG exact; final577frames no intersections; actual GLB reimport geometry/bounds/PBR/pivots/loop passed. Final Godot visual is separate.",
+  "producer_validation_paths": [
+    "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/previews/sv-ingame-v1/export-validation.json",
+    "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/previews/sv-ingame-v1/actual-glb-reimport.json",
+    "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/previews/sv-ingame-v1/pbr-baked-frame1.png",
+    "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/previews/sv-ingame-v1/time-normalization-check.json"
+  ],
+  "producer_normal_limit": "Blender glTF exporter normal encoding max component difference6.43e-5, accepted by parent; native unchanged, no binary normal patch"
+}
