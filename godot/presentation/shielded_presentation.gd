@@ -8,6 +8,9 @@ const VISUAL_SCALE := 1.5
 # The accepted mesh has this measured lower-to-upper tip axis baked into its
 # vertices (centroids within 4 cm of each Y extremum), despite identity pivots.
 const BODY_LONG_AXIS := Vector3(.02246770748806868, .8929408223784795, .44961304457308127)
+# The upright mesh's central front rune face still points 12.37 degrees left
+# of +Z (emissive triangle area-weighted normal), unlike its light anchor.
+const BODY_FRONT_YAW := -0.2159037182763129
 const MODEL_LIFT := .61
 const PART_NAMES := ["Body", "Ring", "StoneLowerLeft", "StoneUpperRight", "StoneLowerRight", "StoneUpperLeft"]
 static var _shell_mesh: SphereMesh
@@ -20,6 +23,9 @@ static func create(world: Node3D) -> Dictionary:
 	root.add_child(model)
 	# Source is centered. Keep the approved size and lift it above the path.
 	model.position.y = MODEL_LIFT
+	# Calibrate the complete authored assembly to the actual rune-face front;
+	# rotating parts separately would consume the original moving clearances.
+	model.basis = model_heading_correction()
 	world.add_child(root)
 	var player: AnimationPlayer = model.find_child("AnimationPlayer", true, false)
 	var parts: Array[MeshInstance3D] = []
@@ -83,10 +89,13 @@ static func update(entry: Dictionary, row, time: float) -> void:
 	RigidStatus.update(entry)
 
 static func _upright_body(pivot: Node3D) -> void:
-	# Keep the approved ring/stone channels, yaw and bob; only the central body
-	# cancels HoverRoot rocking and aligns its intrinsic long axis with gravity.
+	# Only the central body cancels HoverRoot rocking and stands upright. The
+	# assembly's model parent supplies front calibration to every authored part.
 	var hover := pivot.get_parent() as Node3D
 	pivot.basis = hover.basis.orthonormalized().inverse() * Basis(Quaternion(BODY_LONG_AXIS, Vector3.UP))
+
+static func model_heading_correction() -> Basis:
+	return Basis(Vector3.UP, -BODY_FRONT_YAW)
 
 static func label_top(entry: Dictionary, camera: Camera3D) -> float:
 	var top := INF

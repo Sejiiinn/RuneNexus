@@ -52,6 +52,8 @@ static func resource_paths(enemy_types: Array, tower_types: Array) -> Array[Stri
 	if "lightning" in tower_types:
 		for path: String in Lightning.CHARGE_MESHES + Lightning.BEAM_MESHES + Lightning.FEED_MESHES + [Lightning.IMPACT_MESH]:
 			unique[path] = true
+	if "shielded" in enemy_types:
+		for path: String in [ShieldedDeath.ARC_MESH, ShieldedDeath.CONTACT_MESH]: unique[path] = true
 	if not enemy_types.is_empty():
 		if "magic" in tower_types: unique["res://assets/effects/enemy_burn/flame_atlas.png"] = true
 		if "frost" in tower_types:

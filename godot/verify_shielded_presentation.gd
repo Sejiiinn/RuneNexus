@@ -6,6 +6,9 @@ const Enemy = preload("res://combat/native_enemy_state.gd")
 const Surface = preload("res://effects/sniper_target_surface.gd")
 const Status = preload("res://effects/shielded_status.gd")
 const Shielded = preload("res://presentation/shielded_presentation.gd")
+# Measured central emissive front-face normal in the adopted mesh coordinates;
+# the light anchor's +Z position does not identify this authored surface plane.
+const RUNE_FRONT_NORMAL := Vector3(-.21980593, -.4528548, .86406475)
 class OfflineApp extends "res://app/app_lifecycle.gd":
 	func _detached_debug_lifecycle() -> bool: return true
 var failures: Array[String] = []
@@ -25,6 +28,9 @@ func same_poses(a: Array, b: Array) -> bool:
 	for index in range(a.size()):
 		if not a[index].is_equal_approx(b[index]): return false
 	return true
+func rune_forward(entry: Dictionary) -> Vector3:
+	var normal: Vector3 = entry.parts[0].global_basis * RUNE_FRONT_NORMAL
+	return Vector3(normal.x, 0.0, normal.z).normalized()
 func run() -> void:
 	var legacy := Rows.Enemy.from_array([1,3.0,4.0,0,0,.59,0,"shielded"])
 	check(not legacy.has_shield and not legacy.has_logical, "legacy row has no shield or logical position")
@@ -60,6 +66,10 @@ func run() -> void:
 	for light: OmniLight3D in entry.rune_lights: check(light.light_energy > 0 and is_equal_approx(light.omni_range,.4*Shielded.VISUAL_SCALE) and not light.shadow_enabled, "rune light coverage follows visual size without additional lights")
 	var row: Rows.Enemy = runtime.decorate_frame({}).enemies[0]
 	var start := poses(entry)
+	var authored: Node3D = load(Shielded.MODEL).instantiate(); world.add_child(authored)
+	var authored_player: AnimationPlayer = authored.find_child("AnimationPlayer",true,false)
+	authored_player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	authored_player.play("Idle")
 	for time in [1.0, 3.5, 7.0]:
 		units.configure(time,Vector2i(8,10),{})
 		units._sync_enemies([row])
@@ -68,11 +78,24 @@ func run() -> void:
 		check(body_axis.dot(Vector3.UP) > .99999, "central body stays upright while the original ring/stones animate "+str(time))
 		check((entry.parts[0].global_transform*entry.parts[0].mesh.get_aabb()).position.y > 0.0, "upright body keeps floating clearance "+str(time))
 		check(not same_poses(start,pose), "Idle animates on combat clock "+str(time))
+		authored_player.seek(time,true)
+		Shielded._upright_body(authored.find_child("BodyPivot",true,false))
+		for part in range(6):
+			var calibrated_local: Transform3D = entry.model.global_transform.affine_inverse() * entry.parts[part].global_transform
+			var original: MeshInstance3D = authored.find_child(Shielded.PART_NAMES[part],true,false)
+			check(calibrated_local.is_equal_approx(authored.global_transform.affine_inverse()*original.global_transform), "common front calibration preserves original Idle assembly relation "+str(part)+"/"+str(time))
 		units._sync_enemies([row])
 		check(same_poses(pose,poses(entry)), "pause resampling never accumulates "+str(time))
 	units.configure(0.0,Vector2i(8,10),{})
 	units._sync_enemies([row])
 	check(same_poses(start,poses(entry)), "rewind restores exact body/ring/stone poses")
+	authored.free()
+	for facing in [0.0, PI / 2.0, PI, -PI / 2.0, .8]:
+		row.facing = facing
+		for time in [0.0, 3.5, 12.0, 23.9]:
+			units.configure(time, Vector2i(8,10), {})
+			units._sync_enemies([row])
+			check(rune_forward(entry).dot(Vector3(cos(facing),0,sin(facing))) > .99999, "actual front rune faces native travel at heading/time "+str(facing)+"/"+str(time))
 	for ratio in [1.0,.5,.05,0.0]:
 		runtime.enemies["1"].shield = ratio*100.0
 		units._sync_enemies(runtime.decorate_frame({}).enemies)
@@ -204,6 +227,8 @@ func visual_app() -> void:
 	var last_turn := -INF
 	var min_dot := 1.0
 	var captured_facings := {}
+	var shielded_facings := {}
+	var min_shielded_dot := 1.0
 	var ring_start: Quaternion = scene.enemies[int(first.id)].parts[1].get_parent().quaternion
 	for frame in range(200 if facing_review else (80 if upright_only else 240)):
 		if not upright_only and frame < 80 and first.shield > 0.0:
@@ -236,12 +261,19 @@ func visual_app() -> void:
 				spins.append([q.x,q.y,q.z,q.w])
 			check(is_equal_approx(shielded.player.current_animation_position,fposmod(runtime.effect_time,24.0)), "shield Idle samples the same progressing native clock")
 			check((shielded.parts[0].global_basis*Shielded.BODY_LONG_AXIS).normalized().dot(Vector3.UP) > .99999,"shielded stays upright during actual movement and yaw")
-			motion_trace.append({"frame":frame,"clock":runtime.clock,"effectTime":runtime.effect_time,"normalId":normal_id,"normalPosition":[normal.x,normal.y],"normalFacing":facing,"normalYaw":walker.root.rotation.y,"normalForward":[forward.x,forward.y,forward.z],"settled":runtime.effect_time-last_turn>=.16,"forwardDot":dot,"walkPhase":walker.player.current_animation_position,"shieldedId":first.id,"shieldIdle":shielded.player.current_animation_position,"stoneQuaternions":spins})
+			var shielded_forward := rune_forward(shielded)
+			var shielded_facing: float = first.facingAngle
+			var shielded_dot := shielded_forward.dot(Vector3(cos(shielded_facing),0,sin(shielded_facing)))
+			min_shielded_dot = minf(min_shielded_dot,shielded_dot)
+			shielded_facings[str(snappedf(shielded_facing,.001))] = true
+			check(shielded_dot > .99999, "shielded actual front rune faces native travel while moving and turning")
+			motion_trace.append({"frame":frame,"clock":runtime.clock,"effectTime":runtime.effect_time,"normalId":normal_id,"normalPosition":[normal.x,normal.y],"normalFacing":facing,"normalYaw":walker.root.rotation.y,"normalForward":[forward.x,forward.y,forward.z],"settled":runtime.effect_time-last_turn>=.16,"forwardDot":dot,"walkPhase":walker.player.current_animation_position,"shieldedId":first.id,"shieldedFacing":shielded_facing,"shieldedForward":[shielded_forward.x,shielded_forward.y,shielded_forward.z],"shieldedForwardDot":shielded_dot,"shieldIdle":shielded.player.current_animation_position,"stoneQuaternions":spins})
 	if facing_review:
 		check(turn_count >= 2,"actual Stage10 normal passes at least two corners in the final video")
+		check(shielded_facings.size() >= 3,"actual Stage10 shielded passes at least two corners in the final video")
 		var ring_end: Quaternion = scene.enemies[int(first.id)].parts[1].get_parent().quaternion
 		check(absf(ring_start.dot(ring_end)) < .99,"shield ring rotates on the official session clock")
-		var record := {"entrypoint":"NativeCombatRuntime.advance_session","turns":turn_count,"minimumSettledForwardDot":min_dot,"samples":motion_trace}
+		var record := {"entrypoint":"NativeCombatRuntime.advance_session","turns":turn_count,"shieldedHeadings":shielded_facings.size(),"minimumShieldedForwardDot":min_shielded_dot,"minimumSettledForwardDot":min_dot,"samples":motion_trace}
 		var output := FileAccess.open(directory.path_join("facing-trace.json"),FileAccess.WRITE)
 		output.store_string(JSON.stringify(record)); output.close()
 		print("FACING_REVIEW turns=",turn_count," settledDot=",min_dot," clock=",scene.combat_runtime.clock," effectTime=",scene.combat_runtime.effect_time)

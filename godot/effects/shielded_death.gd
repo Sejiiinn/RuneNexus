@@ -1,7 +1,8 @@
 extends RefCounted
 ## Accepted shielded model's authored Death clip (failing hover stagger, then the
 ## rigid fall baked in Blender) on the combat clock. Rune power flickers and dies,
-## spark bursts follow the authored jolts and impact. No physics, process or tweens.
+## spatial electrical failures follow the authored jolts and impact.
+## No physics, process or tweens.
 const StageResources = preload("res://presentation/stage_resources.gd")
 const Presentation = preload("res://presentation/shielded_presentation.gd")
 const CLIP := "Death"
@@ -10,9 +11,17 @@ const CLIP_SECONDS := 47.0 / 24.0
 const HANDOFF_SECONDS := 0.12
 const FADE_START := CLIP_SECONDS + 0.25
 const LIFETIME := FADE_START + 0.35
-# Spark bursts coincide with the hover jolts; the last one is the ground impact.
+# Electrical failures coincide with hover jolts; the last one is ground impact.
 const BURSTS := [0.083, 0.292, 0.5, 0.667, 1.458]
-const SPARKS_PER_BURST := 14
+const ELECTRIC_WINDOW := .18
+const ARC_MESH := "res://effects/lightning_attack_meshes/beam04.res"
+const CONTACT_MESH := "res://effects/lightning_attack_meshes/impact.res"
+const ARC_LINKS := 3
+const CONTACT_FORKS := 2
+# Central front emissive triangle centroid / outward normal in the mesh's
+# authored coordinates. Other contacts are selected from actual vertices once.
+const RUNE_CONTACT := Vector3(-.03822179, -.00511456, .17157987)
+const RUNE_NORMAL := Vector3(-.21980593, -.4528548, .86406475)
 const FLICKER := "####.###+##.#+#..##.+#..#.+...#..+...."
 const LIGHT_ENERGY := {"RuneFront": .16, "RuneBack": .09}
 const ANIMATED_NODES := ["HoverRoot", "BodyPivot", "RingPivot", "StoneLowerLeftPivot",
@@ -20,6 +29,10 @@ const ANIMATED_NODES := ["HoverRoot", "BodyPivot", "RingPivot", "StoneLowerLeftP
 static var _materials := {}
 static var _sparks: MultiMesh
 static var _spark_material: ShaderMaterial
+static var _contacts: MultiMesh
+static var _contact_material: ShaderMaterial
+static var _contact_points := PackedVector3Array()
+static var _body_center := Vector3.ZERO
 
 
 static func create(world: Node3D, live_time: float) -> Dictionary:
@@ -27,6 +40,7 @@ static func create(world: Node3D, live_time: float) -> Dictionary:
 	root.name = "ShieldedDeath"
 	var model: Node3D = (StageResources.load_resource(Presentation.MODEL) as PackedScene).instantiate()
 	model.position.y = Presentation.MODEL_LIFT
+	model.basis = Presentation.model_heading_correction()
 	root.add_child(model)
 	world.add_child(root)
 	var player: AnimationPlayer = model.find_child("AnimationPlayer", true, false)
@@ -44,6 +58,8 @@ static func create(world: Node3D, live_time: float) -> Dictionary:
 		if node != null: start[node] = node.transform
 	player.play(CLIP)
 	player.seek(0.0, true)
+	var authored := {}
+	for node: Node3D in start: authored[node] = node.transform
 	var bodies: Array[MeshInstance3D] = []
 	for label: String in Presentation.PART_NAMES:
 		var body := model.find_child(label, true, false) as MeshInstance3D
@@ -64,15 +80,13 @@ static func create(world: Node3D, live_time: float) -> Dictionary:
 		light.set_meta("base_energy", LIGHT_ENERGY[anchor_name])
 		anchor.add_child(light)
 		lights.append(light)
-	var sparks := MultiMeshInstance3D.new()
-	sparks.name = "DeathSparks"
-	sparks.multimesh = _spark_mesh()
-	sparks.material_override = _spark_material
-	sparks.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	sparks.custom_aabb = AABB(Vector3(-1.4, -.8, -1.4), Vector3(2.8, 2.2, 2.8))
-	model.add_child(sparks)
+	_prepare_electricity(bodies)
+	var sparks := _electric_node(model, "FailureArcs", _sparks, _spark_material)
+	var contacts := _electric_node(model, "ContactCorona", _contacts, _contact_material)
 	var entry := {"root": root, "type": "shielded", "player": player, "death_bodies": bodies,
-		"death_lights": lights, "death_sparks": sparks, "death_start": start,
+		"death_lights": lights, "death_sparks": sparks, "death_contacts": contacts,
+		"death_model": model, "death_start": start,
+		"death_authored_pose": authored,
 		"death_pose_time": -INF}
 	sample(entry, 0.0)
 	return entry
@@ -96,7 +110,11 @@ static func power(age: float) -> float:
 static func sample(entry: Dictionary, age: float) -> void:
 	var pose_time := clampf(age, 0.0, CLIP_SECONDS)
 	# Settled/paused frames keep the last pose; rewinds resample the clip.
-	if pose_time != float(entry.death_pose_time) or age < HANDOFF_SECONDS:
+	if pose_time != float(entry.death_pose_time):
+		# Animation tracks omit unchanged scales. Restore the immutable clip-zero
+		# pose so transform decomposition never feeds its tiny floating-point
+		# scale error into the next sample (or a rewind).
+		for node: Node3D in entry.death_authored_pose: node.transform = entry.death_authored_pose[node]
 		entry.player.seek(pose_time, true)
 		entry.death_pose_time = pose_time
 		var blend := smoothstep(0.0, HANDOFF_SECONDS, age)
@@ -109,10 +127,48 @@ static func sample(entry: Dictionary, age: float) -> void:
 		body.set_instance_shader_parameter("death_light", light)
 		body.set_instance_shader_parameter("death_opacity", opacity)
 	for rune: OmniLight3D in entry.death_lights:
-		rune.light_energy = float(rune.get_meta("base_energy")) * light
-		rune.visible = light > 0.0
-	entry.death_sparks.set_instance_shader_parameter("death_age", age)
-	entry.death_sparks.visible = age < BURSTS[-1] + 0.4
+		# Reuse the two short-range rune lights for a tiny electrical contact
+		# response, including impact after the rune's own power has gone dark.
+		var contact := contact_flash(age) * (1.0 if rune.get_parent().name == "RuneFront" else .45)
+		rune.light_energy = float(rune.get_meta("base_energy")) * light + contact
+		rune.visible = rune.light_energy > 0.0
+	_sample_electricity(entry, age)
+
+
+static func active_burst(age: float) -> int:
+	for index in range(BURSTS.size() - 1, -1, -1):
+		if age >= BURSTS[index] and age < BURSTS[index] + ELECTRIC_WINDOW: return index
+	return -1
+
+
+static func contact_flash(age: float) -> float:
+	var burst := active_burst(age)
+	if burst < 0: return 0.0
+	var t := age - float(BURSTS[burst])
+	var strike := 1.0 - smoothstep(.004, .04, t)
+	if t >= .047: strike = maxf(strike, .55 * (1.0 - smoothstep(.003, .027, t - .047)))
+	return strike * (.32 if burst == BURSTS.size() - 1 else .15)
+
+
+static func _sample_electricity(entry: Dictionary, age: float) -> void:
+	var burst := active_burst(age)
+	var nodes := [entry.death_sparks, entry.death_contacts]
+	for node: MultiMeshInstance3D in nodes:
+		node.visible = burst >= 0
+		node.set_instance_shader_parameter("death_age", age)
+		if burst >= 0: node.set_instance_shader_parameter("burst_index", burst)
+	if burst < 0: return
+	# Shared mesh-local landmarks follow the current sampled rigid transforms.
+	# No vertex search, mesh rebuild or independent particle clock in this path.
+	var model_inverse: Transform3D = entry.death_model.global_transform.affine_inverse()
+	var anchors := PackedVector3Array()
+	for index in range(entry.death_bodies.size()):
+		var body: MeshInstance3D = entry.death_bodies[index]
+		anchors.append(model_inverse * body.global_transform * _contact_points[index])
+	var body_center: Vector3 = model_inverse * entry.death_bodies[0].global_transform * _body_center
+	anchors.append(Vector3(body_center.x, -Presentation.MODEL_LIFT + .006, body_center.z))
+	for index in range(anchors.size()):
+		for node: MultiMeshInstance3D in nodes: node.set_instance_shader_parameter("anchor_%d" % index, anchors[index])
 
 
 static func _material(original: Material) -> Material:
@@ -136,28 +192,55 @@ static func _material(original: Material) -> Material:
 	return _materials[standard]
 
 
-static func _spark_mesh() -> MultiMesh:
-	if _sparks != null: return _sparks
-	var streak := BoxMesh.new()
-	streak.size = Vector3.ONE
-	_sparks = MultiMesh.new()
-	_sparks.transform_format = MultiMesh.TRANSFORM_3D
-	_sparks.use_custom_data = true
-	_sparks.mesh = streak
-	_sparks.instance_count = BURSTS.size() * SPARKS_PER_BURST
-	for burst in range(BURSTS.size()):
-		var impact := burst == BURSTS.size() - 1
-		for i in range(SPARKS_PER_BURST):
-			var index := burst * SPARKS_PER_BURST + i
-			var azimuth := float(index) * 2.399963 + float(burst) * .7
-			# Jolt sparks spray up/outward; impact sparks skim low along the ground.
-			var elevation := lerpf(.08, .45, float(i % 4) / 3.0) if impact else lerpf(.25, 1.15, float(i % 5) / 4.0)
-			var speed := (1.8 if impact else 1.45) + .45 * float((i * 7) % 5) / 4.0
-			_sparks.set_instance_transform(index, Transform3D.IDENTITY)
-			_sparks.set_instance_custom_data(index, Color(float(burst), azimuth, elevation, speed))
+static func _prepare_electricity(bodies: Array[MeshInstance3D]) -> void:
+	if _sparks != null: return
+	# The accepted Blender-authored sparse discharge and seven spatial contact
+	# forks are immutable resources. Only two shared batches/materials are used.
+	_sparks = _electric_batch(StageResources.load_resource(ARC_MESH) as Mesh, ARC_LINKS)
+	_contacts = _electric_batch(StageResources.load_resource(CONTACT_MESH) as Mesh, CONTACT_FORKS)
 	_spark_material = ShaderMaterial.new()
 	_spark_material.shader = preload("res://effects/shielded_death_sparks.gdshader")
-	return _sparks
+	_contact_material = ShaderMaterial.new()
+	_contact_material.shader = _spark_material.shader
+	_contact_material.set_shader_parameter("contact_forks", true)
+	_body_center = bodies[0].mesh.get_aabb().get_center()
+	_contact_points.append(RUNE_CONTACT + RUNE_NORMAL * .005)
+	for index in range(1, bodies.size()):
+		var body := bodies[index]
+		var target := Vector3(.17, -.12, .27) if index == 1 else Vector3(0.0, 0.0, .12)
+		var point := Vector3.ZERO
+		var best := INF
+		var vertices: PackedVector3Array = body.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		for vertex in vertices:
+			var distance := vertex.distance_squared_to(target)
+			if distance < best: best = distance; point = vertex
+		_contact_points.append(point)
+
+
+static func _electric_batch(mesh: Mesh, count: int) -> MultiMesh:
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_3D
+	batch.use_custom_data = true
+	batch.mesh = mesh
+	batch.instance_count = count
+	for index in range(count):
+		batch.set_instance_transform(index, Transform3D.IDENTITY)
+		batch.set_instance_custom_data(index, Color(float(index), float(index) * 2.399963, 0.0, 0.0))
+	return batch
+
+
+static func _electric_node(model: Node3D, label: String, batch: MultiMesh, material: Material) -> MultiMeshInstance3D:
+	var node := MultiMeshInstance3D.new()
+	node.name = label
+	node.multimesh = batch
+	node.material_override = material
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	# Bounds include live attachments, the falling rigid body and the brief
+	# ground corona. GPU longitudinal stretching never relies on source bounds.
+	node.custom_aabb = AABB(Vector3(-1.0, -.75, -1.0), Vector3(2.0, 1.59, 2.0))
+	model.add_child(node)
+	return node
 
 
 static func retain_stage(enemy_types: Array, _tower_types: Array) -> void:
@@ -165,3 +248,6 @@ static func retain_stage(enemy_types: Array, _tower_types: Array) -> void:
 	_materials.clear()
 	_sparks = null
 	_spark_material = null
+	_contacts = null
+	_contact_material = null
+	_contact_points.clear()
