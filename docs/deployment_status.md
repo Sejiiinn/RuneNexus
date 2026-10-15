@@ -8,7 +8,17 @@
 
 ## 현재 미배포 변경
 
-확인 기준: 2026-10-15 KST. 최신 공개 APK는 6051(`1bd39c2d`)이며 API `b4e848a3`와 DB17까지 운영 반영했다. 이후 앱의 스킬트리 적용 시 카메라 유지·연결 예정 노드 표시 제거, 경로를 따라 퍼지는 적용 빛·흰빛 계획 표시, 보호막형 적의 새 모델·부유·사망 모션은 `d633ca1a`까지 main에 반영됐으나 APK에는 미배포다. 보호막형 적 중앙 룬 면의 진행 방향과 사망 동작을 함께 정렬하는 수정, 사망 스파크를 부품 표면에 붙는 전기 아크·착지 방전으로 다듬은 후속 변경도 다음 APK 대상이다. 이 변경에 따른 서버·DB 추가 배포는 없다. 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이, Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
+확인 기준: 2026-10-15 KST. 앱 `764e0bfc`까지의 확정된 변경을 6052 공개본에 포함했다. API `b4e848a3`와 DB17은 기존 운영본을 유지하며 이번 앱 변경에 따른 서버·DB 추가 배포는 없다. 현재 확정된 앱 변경 중 남은 미배포 항목은 없다. 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이, Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
+
+## 2026-10-15 Android 0.2.23 / code 6052 — 공개 완료
+
+- APK 대상 `764e0bfc80c3e3aa4c5a79b6da5da5ddcd11f547`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38685335668), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6052), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6052/rune-nexus.apk). 검수한 build-only 산출물 5개를 그대로 2026-10-15 05:36:55 UTC(14:36:55 KST)에 공개·최신 지정했다. **선택 업데이트·최소 지원 코드 6051**을 유지한다.
+- 스킬트리 적용 후 카메라 유지·연결 예정 노드 표시 제거, 할당 경로를 따라 퍼지는 빛과 흰빛 투자 계획 표시를 포함한다. 보호막형 적의 새 석재·금속 고리·부유석 모델과 보호막·부유·사망 모션, 실제 룬 면의 진행 방향 정렬, 부품 표면에 붙는 전기 아크·착지 방전도 반영했다. 서버·DB·운영 설정은 변경하지 않았다.
+- 최초 [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/38685000884)는 기존 준비 검사에서 보호막 텍스처의 채택된 1K import 제한을 기대 목록에 넣지 않아 Python 검사 1개가 실패했다. `764e0bfc`에서 검사 목록 한 줄만 수정했고 제품 코드·에셋·import 정책은 유지했다. 별도 검증자가 실제 정책·에셋 계약·반복 prepare 회귀를 직접 대조했다.
+- 최종 CI의 Python180개·Godot 네이티브87개·prepared session/lifecycle7개(NOT_RUN0)·계정/AppServices·서명 빌드·Android 패치 디코더·6049/6050/6051 서명 일치와 Python/Kotlin 차등 복원이 통과했다. 별도 검증자는 실제 APK 신원·서명·설정·패치37조건과 소스 override 없는 compiled PCK5사례를 통과했다. 보호막 최종 실제 화면·모션·접점·정지/되감기·렌더 경계 근거는 최종 런타임 입력과 일치하며, 트리 후속 빛 전파·흰빛 계획·완료 금색·카메라 보존은 Metal Mobile 실제 화면26조건으로 추가 확인했다. 부모도 최종 대표 화면을 직접 확인했다.
+- API37 arm64 read-only AVD의 host GPU에서 6051→6052 업데이트·동일 appId/최초 설치 시각, 설치 직후 primary/backup 저장 바이트 동일을 확인했다. 실제 로그인 gate·뒤로가기·Home 복귀·강제 재시작 뒤 진행 중 activeRun 전체·설정·모듈·트리 투자·포인트는 동일하며 변경은 날짜 필드3개와 저장 시각뿐이다. 부모10조건과 별도 검증자의 원자료19조건을 통과했다. 원본 AVD 디스크 크기/mtime는 동일하며 소유 검수 에뮬레이터를 정상 종료했다. **실제 Google 로그인·계정 동기화·운영 서버 연결 앱 젬 덱 플레이·Android 본게임·실기기 터치/글자·모바일 GPU/지속 성능은 미검증**이다.
+- APK **425,363,166 bytes**, SHA-256 `b41866da01829994b27dc48428a2266ea822f5616574128877eb1af31c567a75`. 6051 대비 **+4,773,052 bytes(+1.13%)**로 PCK 증가분과 같다. PCK197,138,860 bytes·1312항목이며 신규 ASTC 텍스처3개(각1,398,180 bytes)와 보호막 imported scene545,765 bytes가 증가 대부분이다. ABI3종·네이티브6개 바이트는 동일하고 제작 원본은 포함하지 않았다. 기존22개 중복군2,707,494 bytes는 hash·크기·경로까지 동일하여 신규 중복은 없다. 6051→6052 패치는108,136,704 bytes다.
+- 공개 tag의 대상 커밋, latest/버전별 manifest 바이트, 자산5개의 크기·GitHub SHA-256과 검수본 일치를 확인했다. 익명 공개 URL의 APK·패치 다운로드와 내장 clientBuild 대조도 통과했다. 상세 CI·팩 감사·후보/공개 대조·Android 저장/화면·독립 검증 근거는 로컬 `build/release-verification/apk-6052/`에 보관한다.
 
 ## 2026-10-14 Android 0.2.22 / code 6051 — 공개 완료
 
