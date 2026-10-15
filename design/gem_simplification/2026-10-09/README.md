@@ -3,7 +3,7 @@
 - 기준 체크아웃: `23958fe961c9d838ddfed4bb7b9b9646b3923c4e`.
 - 기존 외곽선·비율·색상·젬별 모티프를 유지하고 내부의 작은 균열과 파편만 큰 면으로 합친 ImageGen 원본이다. 기존 입체 광택과 결정 깊이를 유지한다.
 - `source/`는 생성 원본이다. 가속(`attackSpeed`)은 최초 승인안, 증폭(`damageAmplifier`)은 최신 형태 보존 승인안을 유지한다.
-- `assets/images/gems/*.png`의 기존 원본 14개는 변경하지 않는다. 런타임 후보는 `assets/images/gems/simplified/*.png`에 별도로 보관한다.
+- 실제 런타임은 `assets/images/gems/simplified/*.png` 14개를 사용한다. 단순화 전 원본은 픽셀을 유지한 채 2026-10-15에 [`design/legacy/assets/images/gems/`](../../legacy/assets/images/gems/)로 분리했다. 현재 제작 원본인 `source/`와 재생성 도구는 이 폴더에 유지한다.
 - 준비·회귀·패키지 입력 해시가 동일한 `app_ui_source()`를 사용한다. 기존 게임 ID 및 `res://assets/app/gems/{id}.png` 경로를 바꾸지 않으며, 패키지에는 선택된 최종 이미지 하나만 들어간다.
 - 기존 UI 무손실 import·mipmap 비활성·256 상한과 관련 없는 ASTC 설정은 그대로 유지한다. 최종 PNG가 128×128이므로 실제 텍스처도 128×128이다.
 - 14개 RGBA8 텍스처의 비압축 픽셀 합계는 917,504바이트(0.875 MiB)다. 256×256 기준 3.5 MiB 대비 75% 감소이며 전체 GPU/앱 메모리 감소를 뜻하지 않는다.

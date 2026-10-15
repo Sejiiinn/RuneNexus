@@ -1,52 +1,23 @@
-# 기능별 젬 아이콘
+# 현재 젬 이미지 기준
 
-2026-09-09 승인된 14종의 원석형 젬 시안과 게임 에셋 대응 기록.
-각 젬은 공통 보석 안의 문양 대신 기능별 실루엣·재질·색으로 구분한다.
+현재 적용되는 14종은 **형태와 입체 광택을 유지하면서 작은 균열·파편을 큰 면으로 정리한 단순화 버전**이다. 보존용 초기 원본을 새 시안의 디테일 기준으로 사용하지 않는다.
 
-| 게임 에셋 이름 | 승인 원본 | 위치 |
-| --- | --- | --- |
-| multipleProjectiles | functional-gems-v1.png | 왼쪽 |
-| explosion | functional-gems-v1.png | 오른쪽 |
-| attackSpeed | functional-gems-set2-v1.png | 왼쪽 |
-| armorPiercing | functional-gems-set2-v1.png | 가운데 |
-| criticalChance | functional-gems-set2-v1.png | 오른쪽 |
-| range | functional-gems-set3-v1.png | 왼쪽 |
-| aimSpeed | functional-gems-set3-v1.png | 가운데 |
-| chain | functional-gems-set3-v1.png | 오른쪽 |
-| elementalDamage | functional-gems-set4-v1.png | 가운데 |
-| damageAmplifier | functional-gems-set4-v1.png | 오른쪽 |
-| heavyWeapon | [heavyWeapon-four-columns-source.png](production/heavyWeapon-four-columns-source.png) | 굵은 주황색 기둥 네 개가 엇물린 원석 |
-| damageOverTime | functional-gems-set5-v1.png | 오른쪽 |
-| lightWeapon | light-physical-v2.png | 왼쪽 |
-| physicalDamage | light-physical-v2.png | 오른쪽 |
+| 용도 | 경로 |
+| --- | --- |
+| 실제 게임 적용본 | [`assets/images/gems/simplified/`](../../assets/images/gems/simplified/) — 128×128 RGBA PNG 14종 |
+| 현재 제작 원본·재생성 방법 | [단순화 작업 폴더](../gem_simplification/2026-10-09/README.md), [고해상도 원본](../gem_simplification/2026-10-09/source/) |
+| 관통 젬 시안 | [piercing-p3](piercing-20261015/piercing-p3.png)(금 테두리 보석 + 화살), [piercing-i](piercing-20261015/piercing-i.png)(크리스탈이 돌 고리를 꿰뚫음), [프롬프트](piercing-20261015/prompt.txt) — Codex 생성, 게임 미적용 |
+| 젬 개편 시안 | [물리 피해 증폭 Y1](revamp-20261015/physical-y1.png), [설계 규칙](revamp-20261015/README.md) — 게임 미적용 |
+| 재사용 가능한 미채택 형태 후보 | [중화기 A–G](heavy-weapon-alternatives/README.md), [H–P](heavy-weapon-round3/README.md), [보조 젬 참고 후보](heavy-weapon-poe/README.md), [기둥 결합 후보](heavy-weapon-columns/README.md) — 현행 적용·디테일 기준과 구분 |
+| 재사용 가능한 배경 제거 도구 | [prepare_transparency.py](production/prepare_transparency.py)와 같은 폴더의 5개 `*-opaque.png` 입력 |
+| 보존 전용 초기 원본·대체 시안 | [레거시 안내](../legacy/README.md), [당시 제작 기록](../legacy/design/gem_concepts/README.md) |
 
-최초 연쇄 시안과 set4의 물리 피해, set5의 경량화기·중화기는 대체된 역사 자료다.
-시안의 제목·작은 크기 샘플·배경은 게임 에셋에 포함하지 않는다.
+## 게임 연결
 
-- 최종 게임 경로: `assets/images/gems/<이름>.png`
-- 생성 프롬프트·중간 결과: `production/`
-- 게임 파일 규격: 512×512 RGBA PNG, 464px 원본 축소 영역과 투명 안전 여백
-- 공용 표시: `lib/ui/game/game_icons.dart`의 `GemIcon`
-- 시작 로딩: `lib/ui/game/game_image_assets.dart`의 공용 이미지 목록
+[`app_ui_source()`](../../scripts/prepare_godot_project.py)는 기존 `gems/{id}.png` 식별자를 실제 `simplified/` 파일에 연결한다. 게임 내 `res://assets/app/gems/{id}.png` 경로와 보상·인벤토리·소켓 공용 에셋 사용은 유지한다.
 
-표시 크기는 기존 UI 기준을 유지하며 128px 디코딩 캐시를 공유한다.
-이름·효과·수량·비용 표기와 젬 저장 식별자는 에셋 교체로 변경하지 않는다.
+보존용 최상위 PNG 14개는 `design/legacy/assets/images/gems/`로 이동했다. 현재 적용본과 이를 만드는 제작 원본의 픽셀은 변경하지 않았다. 최초 젬뿐 아니라 대체된 중간 시안도 보존 전용이면 레거시에 둔다. 미채택이라도 다른 젬에 활용할 수 있는 독립적인 형태 후보는 활성 작업 경로에 유지한다.
 
-ImageGen으로 승인 시안의 개별 젬을 추출했다. 실제 알파가 없는 결과는
-외부 체크무늬 영역을 분리해 투명화하며, 게임용 축소·여백·PNG 내보내기는 GIMP로 처리한다.
-고해상도 투명 원본은 `production/<이름>-transparent.png`에 보존한다.
+## 재사용 도구
 
-중화기 증폭은 2026-09-10 승인된 네 기둥 시안으로 교체했다.
-[생성 프롬프트](production/heavyWeapon-four-columns-prompt.txt)와
-[고해상도 투명 원본](production/heavyWeapon-four-columns-transparent.png)을 보존한다.
-승인 그림을 재생성하지 않고 GIMP에서 외부 연결 배경을 선택해 지우고,
-미세 잔여 픽셀 정리와 자동 크롭 후 464px 이내로 축소하여 512px 투명 캔버스로 내보냈다.
-
-## 적용 검증
-
-- [공용 GemIcon 14·24·40px 비교](implemented-icons-test.png): 실제 Flutter 위젯의 오프라인 테스트 렌더.
-- [360px 보상 화면](../ux-previews/multiple-projectiles/reward.png): 실제 보상 위젯의 오프라인 테스트 렌더.
-- `test/game_image_assets_test.dart`에서 14종 디코딩·투명 모서리·시작 로딩 확인.
-- [중화기 네 기둥 적용 화면](production/heavyWeapon-four-columns-reward.png): 320px 보상 위젯의 오프라인 테스트 렌더.
-
-Mac 잠금으로 인앱 캡처는 수행하지 못했다. 위 이미지는 실제 앱 스크린샷이 아니다.
+`production/prepare_transparency.py`는 외부 연결 무채색 배경을 분리하는 도구다. 기존 입력 5개(`aimSpeed`, `chain`, `explosion`, `multipleProjectiles`, `physicalDamage`)를 함께 유지한다. 이 입력은 도구 재사용을 위한 자료이며 현재 젬의 스타일 기준은 위 단순화 원본이다. 과거 추출 결과와 비교 화면은 레거시 제작 기록에 보존한다.
