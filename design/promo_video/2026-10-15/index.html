@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rune Nexus 광고 시안</title>
+<style>
+  @font-face { font-family: RN; src: url(../../../assets/fonts/NotoSansKR-VF.ttf); font-weight: 100 900; }
+  :root { --bg: #05070c; --fg: #cfeff7; --line: #1d3440; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: RN, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  canvas { height: calc(100vh - 80px); max-width: calc(100vw - 32px); aspect-ratio: 9 / 16; background: #000; }
+  .bar { display: flex; gap: 8px; align-items: center; width: min(100%, 640px); font-size: 14px; }
+  .bar input { flex: 1; }
+  button { font: inherit; color: var(--fg); background: #0d1b24; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; }
+  #time { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div class="bar">
+  <button id="play">재생</button>
+  <input id="seek" type="range" min="0" max="20" step="0.01" value="0">
+  <span id="time">0.00</span>
+  <button id="rec">MP4 저장</button>
+  <span id="status"></span>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
+<script>
+'use strict';
+const W = 1080, H = 1920, DUR = 20, SESSION = '2026-10-15';
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+
+// ── 소재 ──────────────────────────────────────────────
+const A = '../../../assets/images/';
+const SRC = {
+  nebula: A + 'backgrounds/combat_space_nebula.png',
+  field: '../../shielded_enemy_concepts/2026-10-07/shielded-01-ingame-composition.png',
+  device: A + 'lobby_rune_device.png',
+  logo: A + 'rune_nexus_logo.png',
+  tArrow: A + 'ui/hud/turrets_3d/arrow.png',
+  tCannon: A + 'ui/hud/turrets_3d/cannon.png',
+  tMagic: A + 'ui/hud/turrets_3d/magic.png',
+  eNormal: A + 'ui/hud/enemies/normal.png',
+  eFast: A + 'ui/hud/enemies/fast.png',
+  eShielded: A + 'ui/hud/enemies/shielded.png',
+  gChain: A + 'gems/chain.png',
+  gExplosion: A + 'gems/explosion.png',
+  gDot: A + 'gems/damageOverTime.png',
+};
+const IMG = {};
+const loadImages = () => Promise.all(Object.entries(SRC).map(([k, s]) => new Promise((res, rej) => {
+  const i = new Image(); i.onload = () => { IMG[k] = i; res(); }; i.onerror = () => rej(new Error(s)); i.src = s;
+})));
+
+// ── 보조 함수 ─────────────────────────────────────────
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eOut = t => 1 - Math.pow(1 - t, 3);
+const eIn = t => t * t * t;
+const eIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const eBack = t => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const rnd = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const window01 = (t, a, b, fi = .3, fo = .3) => Math.min(seg(t, a, a + fi), 1 - seg(t, b - fo, b));
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function drawCentered(img, x, y, w, alpha = 1, rot = 0) {
+  if (alpha <= 0) return;
+  const h = w * img.height / img.width;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); if (rot) ctx.rotate(rot);
+  ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore();
+}
+function drawCover(img, scale, alpha, ox = 0, oy = 0) {
+  const s = Math.max(W / img.width, H / img.height) * scale;
+  const w = img.width * s, h = img.height * s;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.drawImage(img, (W - w) / 2 + ox, (H - h) / 2 + oy, w, h); ctx.restore();
+}
+function glow(x, y, r, color, a) {
+  if (a <= 0) return;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, hexA(color, a)); g.addColorStop(1, hexA(color, 0));
+  ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+function ring(x, y, r, color, a, width, sy = 1) {
+  if (a <= 0 || r <= 0) return;
+  ctx.save(); ctx.strokeStyle = hexA(color, a); ctx.lineWidth = width;
+  ctx.shadowColor = hexA(color, a); ctx.shadowBlur = 20;
+  ctx.beginPath(); ctx.ellipse(x, y, r, r * sy, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+}
+function caption(text, x, y, size, alpha, fill = '#f4fdff', glowColor = '#28c8ff') {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.font = `900 ${size}px RN`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  ctx.letterSpacing = `${Math.round(size * .02)}px`;
+  ctx.shadowColor = hexA(glowColor, .85); ctx.shadowBlur = size * .4;
+  ctx.lineWidth = size * .15; ctx.strokeStyle = '#03101a'; ctx.strokeText(text, x, y);
+  ctx.shadowBlur = 0; ctx.fillStyle = fill; ctx.fillText(text, x, y);
+  ctx.restore();
+}
+function boltPath(x1, y1, x2, y2, seed, amp) {
+  const pts = [[x1, y1]], n = 9, dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len;
+  for (let i = 1; i < n; i++) {
+    const k = i / n, off = (rnd(seed + i * 7.3) - .5) * amp * Math.sin(k * Math.PI);
+    pts.push([x1 + dx * k + nx * off, y1 + dy * k + ny * off]);
+  }
+  pts.push([x2, y2]); return pts;
+}
+function strokePts(pts, color, a, width) {
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+  ctx.strokeStyle = hexA(color, a * .35); ctx.lineWidth = width * 4; ctx.stroke();
+  ctx.strokeStyle = hexA(color, a); ctx.lineWidth = width; ctx.stroke();
+  ctx.strokeStyle = `rgba(255,255,255,${a})`; ctx.lineWidth = width * .4; ctx.stroke();
+  ctx.restore();
+}
+
+// ── 전장 좌표 (원본 인게임 캡처 기준) ─────────────────
+const FC = { x: 40, y: 380, w: 800, h: 860 };
+const FS = 1.25, FX = (W - FC.w * FS) / 2, FY = 410;
+const fp = (x, y) => [FX + x * FS, FY + y * FS];
+const FIELD_CENTER = [W / 2, FY + FC.h * FS / 2];
+const COL = [133, 215, 296, 378, 460, 541, 623, 705], ROW = [70, 145, 220, 295, 370, 445, 520, 595, 670, 745];
+const PATH = [[0, 0], [2, 0], [2, 2], [1, 2], [1, 4], [3, 4], [3, 6], [5, 6], [5, 8], [7, 8], [7, 9]].map(([c, r]) => fp(COL[c], ROW[r]));
+const CUM = [0];
+for (let i = 1; i < PATH.length; i++) CUM.push(CUM[i - 1] + Math.hypot(PATH[i][0] - PATH[i - 1][0], PATH[i][1] - PATH[i - 1][1]));
+const TOTAL = CUM[CUM.length - 1];
+function pointAt(d) {
+  d = clamp(d, 0, TOTAL);
+  let i = 1; while (i < CUM.length - 1 && CUM[i] < d) i++;
+  const k = (d - CUM[i - 1]) / (CUM[i] - CUM[i - 1]);
+  const [ax, ay] = PATH[i - 1], [bx, by] = PATH[i];
+  return [lerp(ax, bx, k), lerp(ay, by, k), Math.atan2(by - ay, bx - ax)];
+}
+
+const TURRETS = [
+  { key: 'tCannon', c: 2, r: 3, drop: 7.85, color: '#ffb347', rate: .5, dmg: 2, kind: 'cannon' },
+  { key: 'tArrow', c: 4, r: 5, drop: 8.25, color: '#9ff6ff', rate: .2, dmg: 1, kind: 'arrow' },
+  { key: 'tMagic', c: 6, r: 7, drop: 8.65, color: '#ff6a3d', rate: .36, dmg: 1, kind: 'magic' },
+].map(t => ({ ...t, pos: fp(COL[t.c], ROW[t.r]) }));
+const RANGE = 260;
+const ENEMY_TYPES = [
+  { key: 'eNormal', speed: 230, hp: 3 }, { key: 'eFast', speed: 300, hp: 2 },
+  { key: 'eShielded', speed: 200, hp: 5 }, { key: 'eNormal', speed: 230, hp: 3 },
+];
+const ENEMIES = Array.from({ length: 13 }, (_, i) => ({ id: i, spawn: 4.35 + i * .42, ...ENEMY_TYPES[i % 4], death: Infinity }));
+const enemyPos = (e, t) => pointAt((t - e.spawn) * e.speed);
+const enemyAlive = (e, t) => t >= e.spawn && t < e.death && (t - e.spawn) * e.speed < TOTAL;
+
+// 결정적 전투 시뮬레이션: 사격 기록과 처치 시각을 미리 계산한다.
+const SHOTS = [];
+(function simulate() {
+  const hp = ENEMIES.map(e => e.hp), next = TURRETS.map(t => t.drop + .4);
+  for (let t = 7.8; t < 11.4; t += 1 / 60) {
+    TURRETS.forEach((tu, ti) => {
+      if (t < next[ti]) return;
+      let best = null, bestD = -1;
+      for (const e of ENEMIES) {
+        if (!enemyAlive(e, t) || hp[e.id] <= 0) continue;
+        const [x, y] = enemyPos(e, t);
+        if (Math.hypot(x - tu.pos[0], y - tu.pos[1]) > RANGE) continue;
+        const d = (t - e.spawn) * e.speed; if (d > bestD) { bestD = d; best = e; }
+      }
+      if (!best) return;
+      const [x, y] = enemyPos(best, t);
+      SHOTS.push({ t, ti, ei: best.id, x, y });
+      hp[best.id] -= tu.dmg; next[ti] = t + tu.rate;
+      if (hp[best.id] <= 0) best.death = t + .04;
+    });
+  }
+})();
+
+// ── 장면 ──────────────────────────────────────────────
+function vignette(a = .75) {
+  const g = ctx.createRadialGradient(W / 2, H / 2, H * .25, W / 2, H / 2, H * .75);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${a})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function stars(t, a, seedBase = 0) {
+  ctx.save();
+  for (let i = 0; i < 90; i++) {
+    const x = rnd(i + seedBase) * W, y = (rnd(i * 3.1 + seedBase) * H + t * (10 + rnd(i * 5.7) * 30)) % H;
+    const tw = .5 + .5 * Math.sin(t * 3 + i);
+    ctx.fillStyle = `rgba(200,240,255,${a * (.25 + .5 * tw) * rnd(i * 9.1)})`;
+    ctx.fillRect(x, y, 2.5, 2.5);
+  }
+  ctx.restore();
+}
+
+// S1: 넥서스 점화 (0–3.2)
+function sceneIntro(t) {
+  const out = seg(t, 2.7, 3.25);
+  const a = 1 - out;
+  drawCover(IMG.nebula, 1.18 - .1 * eOut(seg(t, 0, 3)), .9 * eOut(seg(t, 0, .9)) * a);
+  stars(t, a);
+  const C = [W / 2, 820];
+  // 모여드는 빛줄기 → 점화
+  if (t < .95) {
+    const k = seg(t, .1, .95);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 46; i++) {
+      const ang = rnd(i) * Math.PI * 2, r0 = 900 * (1 - eIn(clamp(k + rnd(i * 2.3) * .3)));
+      const r1 = r0 + 60 + 120 * k;
+      ctx.strokeStyle = `rgba(110,220,255,${.55 * k})`; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(C[0] + Math.cos(ang) * r0, C[1] + Math.sin(ang) * r0);
+      ctx.lineTo(C[0] + Math.cos(ang) * r1, C[1] + Math.sin(ang) * r1); ctx.stroke();
+    }
+    glow(C[0], C[1], 120 + 200 * k, '#5fd8ff', .7 * k);
+    ctx.restore();
+  }
+  const ig = seg(t, .9, 1.5);
+  if (t >= .9) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    glow(C[0], C[1], 520, '#3cc8ff', .55 * a * (1 - .4 * ig));
+    ring(C[0], C[1], 120 + 900 * eOut(ig), '#8ff0ff', .9 * (1 - ig), 10);
+    ring(C[0], C[1], 80 + 600 * eOut(seg(t, 1.0, 1.7)), '#ffffff', .6 * (1 - seg(t, 1.0, 1.7)), 4);
+    for (let i = 0; i < 40; i++) {
+      const ang = rnd(i + 50) * Math.PI * 2, sp = 300 + rnd(i * 4.4) * 900;
+      const r = sp * eOut(ig), pa = 1 - ig;
+      ctx.fillStyle = `rgba(170,240,255,${pa})`;
+      ctx.beginPath(); ctx.arc(C[0] + Math.cos(ang) * r, C[1] + Math.sin(ang) * r, 4 + rnd(i) * 5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    const s = eBack(seg(t, .9, 1.45));
+    drawCentered(IMG.device, C[0], C[1] + 40 * out, 600 * s * (1 - .35 * eIn(out)), a, Math.sin(t * 1.3) * .05);
+  }
+  const ca = eOut(seg(t, 1.3, 1.75)) * (1 - seg(t, 2.55, 2.9));
+  caption('넥서스를 지켜라', W / 2, 1290 + 40 * (1 - eOut(seg(t, 1.3, 1.75))), 128, ca);
+  // 점화 섬광
+  const fl = 1 - seg(t, .9, 1.25);
+  if (t >= .9 && fl > 0) { ctx.fillStyle = `rgba(220,250,255,${.7 * fl})`; ctx.fillRect(0, 0, W, H); }
+}
+
+function drawPath(t, traced) {
+  if (traced <= 0) return;
+  const pts = [];
+  for (let i = 0; i < PATH.length && CUM[i] <= traced; i++) pts.push(PATH[i]);
+  const head = pointAt(traced); pts.push([head[0], head[1]]);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  strokePts(pts, '#38d8ff', .75, 9);
+  glow(head[0], head[1], 70, '#9ff6ff', traced < TOTAL ? .9 : 0);
+  // 진행 방향 화살표
+  if (traced >= TOTAL) {
+    const fa = seg(t, 5.4, 5.9);
+    for (let k = 0; k < Math.floor(TOTAL / 95); k++) {
+      const [x, y, ang] = pointAt((k * 95 + t * 140) % TOTAL);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+      ctx.strokeStyle = `rgba(230,255,255,${.75 * fa})`; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-10, -13); ctx.lineTo(4, 0); ctx.lineTo(-10, 13); ctx.stroke(); ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
+function drawEnemies(t) {
+  for (const e of ENEMIES) {
+    if (enemyAlive(e, t)) {
+      const [x, y] = enemyPos(e, t);
+      const spawnK = eOut(seg(t, e.spawn, e.spawn + .25));
+      const hit = SHOTS.some(s => s.ei === e.id && t >= s.t && t < s.t + .08);
+      glow(x, y + 8, 60, '#ff3b5c', .55 * spawnK);
+      const size = (e.key === 'eShielded' ? 82 : e.key === 'eFast' ? 64 : 72) * spawnK;
+      drawCentered(IMG[e.key], x, y - 6, size, 1);
+      if (hit) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(x, y, 50, '#ffffff', .9); ctx.restore(); }
+    } else if (t >= e.death && t < e.death + .5) {
+      const [x, y] = enemyPos(e, e.death), k = seg(t, e.death, e.death + .5);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      glow(x, y, 110 * (1 - k * .5), '#ffb06a', 1 - k);
+      ring(x, y, 20 + 90 * eOut(k), '#ffd59a', 1 - k, 5);
+      for (let i = 0; i < 12; i++) {
+        const ang = rnd(e.id * 31 + i) * Math.PI * 2, r = (40 + rnd(i + e.id) * 90) * eOut(k);
+        ctx.fillStyle = `rgba(255,${180 + 60 * rnd(i)},120,${1 - k})`;
+        ctx.fillRect(x + Math.cos(ang) * r - 3, y + Math.sin(ang) * r - 3, 7, 7);
+      }
+      ctx.restore();
+    }
+  }
+}
+
+function drawTurrets(t) {
+  TURRETS.forEach((tu, ti) => {
+    if (t < tu.drop) return;
+    const [x, y] = tu.pos, fall = seg(t, tu.drop, tu.drop + .22), land = seg(t, tu.drop + .22, tu.drop + .7);
+    const dy = -520 * (1 - eIn(fall)), squash = 1 + .18 * Math.sin(land * Math.PI) * (1 - land);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    if (fall >= 1) {
+      ring(x, y + 10, 30 + 130 * eOut(land), '#9ff6ff', .9 * (1 - land), 6, .5);
+      ring(x, y, RANGE, tu.color, .55 * window01(t, tu.drop + .22, tu.drop + 1.4, .2, .5), 4);
+    }
+    glow(x, y, 90, tu.color, .35 * fall);
+    ctx.restore();
+    ctx.save(); ctx.translate(x, y + dy - 18); ctx.scale(1 / squash, squash);
+    drawCentered(IMG[tu.key], 0, 0, 132, clamp(fall * 2)); ctx.restore();
+  });
+}
+
+function drawShots(t) {
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const s of SHOTS) {
+    if (t < s.t || t > s.t + .12) continue;
+    const k = seg(t, s.t, s.t + .12), tu = TURRETS[s.ti];
+    const [mx, my] = [tu.pos[0], tu.pos[1] - 34];
+    strokePts([[mx, my], [s.x, s.y]], tu.color, 1 - k, tu.kind === 'cannon' ? 9 : 5);
+    glow(mx, my, 50, tu.color, .9 * (1 - k));
+    if (tu.kind === 'cannon') ring(s.x, s.y, 20 + 70 * eOut(k), '#ffb347', 1 - k, 6);
+  }
+  ctx.restore();
+}
+
+// S2–S3: 전장 (3.0–11.9)
+function sceneField(t) {
+  const enter = eOut(seg(t, 2.95, 3.9));
+  const zoomOut = eIn(seg(t, 11.0, 11.85));
+  const fade = enter * (1 - seg(t, 11.45, 11.85));
+  if (fade <= 0) return;
+  const push = 1 + .05 * eIO(seg(t, 7.5, 11.0));
+  const tgt = TURRETS[1].pos;
+  const s = lerp(1.32, 1, enter) * push * lerp(1, 3.4, zoomOut);
+  const cx = lerp(FIELD_CENTER[0], tgt[0], zoomOut), cy = lerp(FIELD_CENTER[1], tgt[1] - 20, zoomOut);
+  ctx.save(); ctx.globalAlpha = fade;
+  drawCover(IMG.nebula, 1.05 + .05 * seg(t, 3, 12), .85 * fade);
+  stars(t, .8 * fade, 7);
+  ctx.translate(W / 2, H / 2); ctx.scale(s, s); ctx.translate(-cx, -cy);
+  ctx.drawImage(IMG.field, FC.x, FC.y, FC.w, FC.h, FX, FY, FC.w * FS, FC.h * FS);
+  drawPath(t, TOTAL * eIO(seg(t, 3.9, 5.4)));
+  const portal = PATH[0], pk = seg(t, 4.1, 4.9);
+  if (pk > 0 && pk < 1) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ring(portal[0], portal[1], 30 + 110 * eOut(pk), '#c77dff', 1 - pk, 7); ctx.restore(); }
+  drawEnemies(t);
+  drawShots(t);
+  drawTurrets(t);
+  ctx.restore();
+  // 화면 고정 문구
+  const c1 = eOut(seg(t, 3.6, 4.0)) * (1 - seg(t, 7.3, 7.6));
+  caption('경로를 읽고', W / 2 - 60 * (1 - eOut(seg(t, 3.6, 4.0))), 245, 116, c1 * fade);
+  const c2 = eOut(seg(t, 7.6, 8.0)) * (1 - seg(t, 10.9, 11.3));
+  caption('포탑을 세우고', W / 2 - 60 * (1 - eOut(seg(t, 7.6, 8.0))), 245, 116, c2 * fade);
+  // 장면 경계 페이드
+  const top = ctx.createLinearGradient(0, 0, 0, 420);
+  top.addColorStop(0, `rgba(2,6,12,${.85 * fade})`); top.addColorStop(1, 'rgba(2,6,12,0)');
+  ctx.fillStyle = top; ctx.fillRect(0, 0, W, 420);
+}
+
+// S4: 젬 (11.5–16.7)
+const GEMS = [
+  { key: 'gChain', name: '연쇄', color: '#b98cff', t: 12.55 },
+  { key: 'gExplosion', name: '폭발', color: '#ff9a3c', t: 13.9 },
+  { key: 'gDot', name: '지속 피해', color: '#8dff4f', t: 15.25 },
+];
+const SOCKETS = [[280, 1395], [540, 1395], [800, 1395]];
+const TARGETS = [[270, 610, 'eNormal', 104], [540, 565, 'eShielded', 120], [810, 610, 'eFast', 96]];
+const TUR = [540, 975], MUZZLE = [540, 845];
+
+function gemColorAt(t) {
+  let c = '#38d8ff';
+  for (const g of GEMS) if (t >= g.t) c = g.color;
+  return c;
+}
+function sceneGems(t) {
+  const a = eOut(seg(t, 11.5, 11.95)) * (1 - seg(t, 16.55, 16.75));
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.fillStyle = '#03070d'; ctx.fillRect(0, 0, W, H);
+  drawCover(IMG.nebula, 1.25, .4);
+  stars(t, .7, 21);
+  const col = gemColorAt(t);
+  const shake = (() => {
+    const k = seg(t, GEMS[1].t + .35, GEMS[1].t + .65);
+    return k > 0 && k < 1 ? (1 - k) * 16 : 0;
+  })();
+  ctx.translate((rnd(Math.floor(t * 60)) - .5) * shake, (rnd(Math.floor(t * 60) + 3) - .5) * shake);
+
+  // 룬 원반
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  glow(TUR[0], TUR[1], 460, col, .4);
+  for (let i = 0; i < 3; i++) ring(TUR[0], TUR[1] + 150, 300 - i * 55, i === 1 ? col : '#38d8ff', .55 - i * .12, 4, .32);
+  ctx.save(); ctx.translate(TUR[0], TUR[1] + 150); ctx.scale(1, .32);
+  for (let i = 0; i < 36; i++) {
+    const ang = i / 36 * Math.PI * 2 + t * .35;
+    ctx.strokeStyle = hexA(col, .7); ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(Math.cos(ang) * 262, Math.sin(ang) * 262); ctx.lineTo(Math.cos(ang) * (i % 3 ? 280 : 300), Math.sin(ang) * (i % 3 ? 280 : 300)); ctx.stroke();
+  }
+  ctx.restore(); ctx.restore();
+
+  // 포탑
+  const enter = eBack(seg(t, 11.5, 12.0));
+  drawCentered(IMG.tArrow, TUR[0], TUR[1] + Math.sin(t * 2) * 6, 520 * lerp(.55, 1, enter));
+
+  // 표적
+  TARGETS.forEach(([x, y, key, size], i) => {
+    const k = eOut(seg(t, 11.9 + i * .1, 12.3 + i * .1));
+    let flash = 0;
+    if (t >= GEMS[0].t + .2 && t < GEMS[0].t + .7) flash = Math.max(flash, window01(t, GEMS[0].t + .2 + i * .15, GEMS[0].t + .55 + i * .15, .02, .2));
+    if (t >= GEMS[1].t + .35) flash = Math.max(flash, window01(t, GEMS[1].t + .35, GEMS[1].t + .8, .02, .35));
+    if (t >= GEMS[2].t + .35) flash = Math.max(flash, .28 * window01(t, GEMS[2].t + .4 + i * .1, 16.6, .05, .2) * (.6 + .4 * Math.sin(t * 18 + i)));
+    const jx = flash > .5 ? (rnd(Math.floor(t * 40) + i) - .5) * 14 : 0;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(x, y + 10, 90, '#ff3b5c', .45 * k); ctx.restore();
+    drawCentered(IMG[key], x + jx, y - 40 * (1 - k), size, k);
+    if (flash > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(x, y, 110, gemColorAt(t), flash); ctx.restore(); }
+  });
+
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  // 연쇄: 첫 표적 명중 후 번개가 옆 표적으로 이어진다
+  const g0 = GEMS[0].t + .2, flick = Math.floor(t * 24);
+  const T = TARGETS;
+  if (t >= g0 && t < g0 + .9) {
+    const segs = [[MUZZLE, T[1], 0], [T[1], T[0], .15], [T[0], T[2], .3]];
+    segs.forEach(([p, q, d], i) => {
+      const w = window01(t, g0 + d, g0 + d + .55, .02, .3);
+      if (w > 0) strokePts(boltPath(p[0], p[1], q[0], q[1], flick * 13 + i * 97, i === 2 ? 70 : 50), GEMS[0].color, w, 6);
+    });
+  }
+  // 폭발: 포탄이 중앙 표적에 닿아 주변까지 휩쓴다
+  const g1 = GEMS[1].t + .2;
+  if (t >= g1 && t < g1 + 1.1) {
+    const fly = seg(t, g1, g1 + .15);
+    if (fly < 1) { const x = lerp(MUZZLE[0], T[1][0], fly), y = lerp(MUZZLE[1], T[1][1], fly); glow(x, y, 50, '#ffb347', 1); }
+    const bk = seg(t, g1 + .15, g1 + .85);
+    if (bk > 0 && bk < 1) {
+      glow(T[1][0], T[1][1], 360 * eOut(bk), '#ff7a2a', .9 * (1 - bk));
+      ring(T[1][0], T[1][1], 40 + 380 * eOut(bk), '#ffd08a', 1 - bk, 12);
+      ring(T[1][0], T[1][1], 20 + 250 * eOut(bk), '#ff9a3c', 1 - bk, 6);
+    }
+  }
+  // 지속 피해: 세 표적에 불씨가 붙어 계속 타오른다
+  const g2 = GEMS[2].t + .2;
+  if (t >= g2) {
+    T.forEach(([x, y], i) => {
+      const st = g2 + i * .1, fly = seg(t, st, st + .14);
+      if (fly > 0 && fly < 1) glow(lerp(MUZZLE[0], x, fly), lerp(MUZZLE[1], y, fly), 40, '#8dff4f', 1);
+      const burn = seg(t, st + .14, st + .4) * (1 - seg(t, 16.4, 16.65));
+      if (burn <= 0) return;
+      for (let p = 0; p < 14; p++) {
+        const ph = (t * 1.4 + rnd(p + i * 20)) % 1, px = x + (rnd(p * 3.3 + i) - .5) * 80, py = y + 30 - ph * 130;
+        ctx.fillStyle = hexA(p % 3 ? '#8dff4f' : '#e9ff9a', burn * (1 - ph));
+        ctx.beginPath(); ctx.arc(px, py, (1 - ph) * 13 + 2, 0, Math.PI * 2); ctx.fill();
+      }
+      const tick = (t - st) % .35;
+      ring(x, y, 50 + 60 * eOut(tick / .35), '#8dff4f', burn * (1 - tick / .35) * .7, 4);
+    });
+  }
+  ctx.restore();
+
+  // 소켓과 젬
+  SOCKETS.forEach(([x, y], i) => {
+    const k = eOut(seg(t, 12.0 + i * .1, 12.4 + i * .1));
+    ctx.save(); ctx.globalAlpha *= k;
+    ctx.fillStyle = 'rgba(6,16,24,.92)'; ctx.beginPath(); ctx.arc(x, y, 98, 0, Math.PI * 2); ctx.fill();
+    ring(x, y, 98, '#7d93a0', .9, 6); ring(x, y, 84, '#38d8ff', .45, 3);
+    ctx.restore();
+    const g = GEMS[i], fly = seg(t, g.t - .38, g.t);
+    if (fly <= 0) return;
+    const start = [W + 160, 760 + i * 60];
+    const x0 = lerp(start[0], x, eIO(fly)), y0 = lerp(start[1], y, eIO(fly)) - Math.sin(fly * Math.PI) * 260;
+    const land = seg(t, g.t, g.t + .5);
+    if (fly >= 1) {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      glow(x, y, 190, g.color, .55 + .45 * (1 - land));
+      ring(x, y, 98 + 140 * eOut(land), g.color, 1 - land, 8);
+      ctx.restore();
+    }
+    drawCentered(IMG[g.key], x0, y0, (fly < 1 ? 230 : lerp(230, 168, eOut(land))), 1, (1 - fly) * 2.2);
+    caption(g.name, x, y + 150, 54, eOut(land), '#ffffff', g.color);
+  });
+  ctx.restore();
+
+  const ca = eOut(seg(t, 11.85, 12.25));
+  caption('젬 하나로', W / 2, 205, 104, ca * a);
+  caption('전투가 바뀐다', W / 2, 335, 116, eOut(seg(t, 12.0, 12.4)) * a, '#ffffff');
+  // 로고 전환 직전 밝아짐
+  const pre = seg(t, 16.15, 16.6);
+  if (pre > 0) { ctx.fillStyle = `rgba(210,248,255,${eIn(pre) * .95})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// S5: 로고 (16.6–20)
+const logoBuf = document.createElement('canvas');
+function sceneLogo(t) {
+  if (t < 16.55) return;
+  const fadeOut = 1 - seg(t, 19.45, 20);
+  ctx.save(); ctx.globalAlpha = fadeOut;
+  ctx.fillStyle = '#03070d'; ctx.fillRect(0, 0, W, H);
+  drawCover(IMG.nebula, 1.12 - .06 * seg(t, 16.6, 20), .8);
+  stars(t, .9, 33);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  glow(W / 2, 860, 640, '#2bb8ff', .35 + .1 * Math.sin(t * 3));
+  ring(W / 2, 860, 200 + 900 * eOut(seg(t, 16.6, 17.4)), '#9ff6ff', 1 - seg(t, 16.6, 17.4), 10);
+  ctx.restore();
+  // 로고 + 광택
+  const ls = lerp(1.18, 1, eOut(seg(t, 16.6, 17.2))), lw = 940 * ls, lh = lw * IMG.logo.height / IMG.logo.width;
+  logoBuf.width = Math.ceil(lw); logoBuf.height = Math.ceil(lh);
+  const b = logoBuf.getContext('2d');
+  b.clearRect(0, 0, logoBuf.width, logoBuf.height); b.drawImage(IMG.logo, 0, 0, lw, lh);
+  const sk = seg(t, 17.35, 18.0);
+  if (sk > 0 && sk < 1) {
+    b.globalCompositeOperation = 'source-atop';
+    const sx = lerp(-300, lw + 300, eIO(sk));
+    const gr = b.createLinearGradient(sx - 160, 0, sx + 160, lh);
+    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.5, 'rgba(255,255,255,.85)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    b.fillStyle = gr; b.fillRect(0, 0, lw, lh); b.globalCompositeOperation = 'source-over';
+  }
+  ctx.drawImage(logoBuf, (W - lw) / 2, 860 - lh / 2);
+  caption('같은 포탑, 다른 빌드', W / 2, 1120 + 30 * (1 - eOut(seg(t, 17.5, 17.9))), 76, eOut(seg(t, 17.5, 17.9)));
+  caption('모바일 로그라이트 타워 디펜스', W / 2, 1235, 46, eOut(seg(t, 17.85, 18.3)), '#bfefff');
+  ctx.restore();
+  const fl = 1 - seg(t, 16.6, 17.1);
+  if (fl > 0) { ctx.fillStyle = `rgba(220,250,255,${.95 * fl})`; ctx.fillRect(0, 0, W, H); }
+}
+
+function render(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  if (t < 3.3) sceneIntro(t);
+  if (t >= 2.9 && t < 11.9) sceneField(t);
+  if (t >= 11.45 && t < 16.8) sceneGems(t);
+  sceneLogo(t);
+  vignette(.6);
+  if (t > 19.45) { ctx.fillStyle = `rgba(0,0,0,${seg(t, 19.45, 20)})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// ── 효과음·배경음 (Web Audio 합성) ─────────────────────
+// AC/OUT은 실시간 미리보기와 오프라인 내보내기가 번갈아 사용한다.
+let AC = null, OUT = null, NOISE = null, LIVE_AC = null, LIVE_OUT = null;
+function buildGraph(ac) {
+  const comp = ac.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .2;
+  // 최종 리미터와 여유 헤드룸으로 AAC 인코딩 후에도 클리핑이 생기지 않게 한다.
+  const limiter = ac.createDynamicsCompressor();
+  limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = .001; limiter.release.value = .1;
+  const trim = ac.createGain(); trim.gain.value = .95;
+  const out = ac.createGain(); out.gain.value = .75; out.connect(comp); comp.connect(limiter); limiter.connect(trim); trim.connect(ac.destination);
+  return out;
+}
+function makeNoise(ac) {
+  const b = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = b.getChannelData(0);
+  let s = 1; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 1073741823.5 - 1; }
+  return b;
+}
+function initAudio() {
+  if (!LIVE_AC) { LIVE_AC = new AudioContext({ sampleRate: 48000 }); LIVE_OUT = buildGraph(LIVE_AC); }
+  AC = LIVE_AC; OUT = LIVE_OUT; NOISE = makeNoise(AC);
+}
+const live = [];
+function track(node) { live.push(node); return node; }
+function env(at, peak, attack, decay, dest = OUT, shape = 'exp') {
+  const g = AC.createGain(); g.gain.setValueAtTime(0.0001, at);
+  g.gain.linearRampToValueAtTime(peak, at + attack);
+  if (shape === 'exp') g.gain.exponentialRampToValueAtTime(0.0001, at + attack + decay);
+  else g.gain.linearRampToValueAtTime(0.0001, at + attack + decay);
+  g.connect(dest); return g;
+}
+function noise(at, dur, dest) { const s = track(AC.createBufferSource()); s.buffer = NOISE; s.loop = true; s.connect(dest); s.start(at); s.stop(at + dur); return s; }
+function osc(at, dur, type, f0, f1, dest, glide = dur) {
+  const o = track(AC.createOscillator()); o.type = type; o.frequency.setValueAtTime(f0, at);
+  if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, at + glide);
+  o.connect(dest); o.start(at); o.stop(at + dur); return o;
+}
+function filter(type, f, q, dest) { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; b.connect(dest); return b; }
+function pan(p, dest) { const s = AC.createStereoPanner(); s.pan.value = p; s.connect(dest); return s; }
+
+const SFX = {
+  whoosh(at, dur = .6, g = .5, dir = 1) {
+    const e = env(at, g, dur * .55, dur * .45, OUT, 'lin');
+    const p = AC.createStereoPanner(); p.pan.setValueAtTime(-.7 * dir, at); p.pan.linearRampToValueAtTime(.7 * dir, at + dur); p.connect(e);
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4; bp.connect(p);
+    bp.frequency.setValueAtTime(300, at); bp.frequency.exponentialRampToValueAtTime(2800, at + dur * .55); bp.frequency.exponentialRampToValueAtTime(500, at + dur);
+    noise(at, dur + .05, bp);
+  },
+  impact(at, g = 1) {
+    osc(at, 1.1, 'sine', 160, 34, env(at, g, .005, 1.0), .6);
+    noise(at, .5, filter('lowpass', 1400, .7, env(at, g * .7, .002, .4)));
+    osc(at, .2, 'triangle', 900, 120, env(at, g * .25, .001, .15));
+  },
+  riser(at, dur, g = .35) {
+    const e = env(at, g, dur, .08, OUT, 'lin');
+    const hp = AC.createBiquadFilter(); hp.type = 'bandpass'; hp.Q.value = 2; hp.connect(e);
+    hp.frequency.setValueAtTime(400, at); hp.frequency.exponentialRampToValueAtTime(6000, at + dur);
+    noise(at, dur + .1, hp);
+    const lp = filter('lowpass', 2400, 1, env(at, g * .5, dur, .08, OUT, 'lin'));
+    osc(at, dur + .1, 'sawtooth', 110, 880, lp);
+  },
+  pop(at, f = 700, g = .4) { osc(at, .15, 'sine', f, f * .35, env(at, g, .002, .12), .1); },
+  thud(at, g = .7) { osc(at, .35, 'sine', 120, 42, env(at, g, .003, .3), .25); noise(at, .12, filter('lowpass', 600, .7, env(at, g * .4, .002, .1))); },
+  shot(at, kind, p) {
+    const dest = pan(p, OUT);
+    if (kind === 'cannon') { osc(at, .2, 'sine', 140, 55, env(at, .35, .002, .18, dest), .15); noise(at, .14, filter('lowpass', 1100, .7, env(at, .22, .001, .12, dest))); }
+    else if (kind === 'arrow') { noise(at, .04, filter('highpass', 2800, .7, env(at, .1, .001, .03, dest))); osc(at, .05, 'square', 1700, 700, filter('lowpass', 3000, .7, env(at, .03, .001, .04, dest))); }
+    else { noise(at, .16, filter('bandpass', 900, 1.2, env(at, .18, .01, .14, dest))); }
+  },
+  burst(at, p) { const dest = pan(p, OUT); noise(at, .25, filter('bandpass', 1800, .8, env(at, .16, .001, .2, dest))); osc(at, .12, 'triangle', 520, 180, env(at, .1, .001, .1, dest)); },
+  chime(at, f, g = .3) {
+    [[1, 1], [2.76, .5], [5.4, .25], [8.9, .12]].forEach(([m, a]) => osc(at, 1.6, 'sine', f * m, f * m, env(at, g * a, .003, 1.4 / Math.sqrt(m))));
+  },
+  crackle(at, dur, g = .3) {
+    for (let i = 0; i < Math.floor(dur * 40); i++) {
+      const s = at + i / 40 + Math.random() * .012;
+      noise(s, .02, filter('highpass', 2500 + Math.random() * 3000, .8, env(s, g * (.4 + Math.random() * .6), .001, .015)));
+    }
+    osc(at, dur, 'sawtooth', 70, 60, filter('bandpass', 400, 3, env(at, g * .3, .01, dur)));
+  },
+  explosion(at, g = .9) {
+    SFX.impact(at, g);
+    const e = env(at, g * .8, .004, 1.1);
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = .8; lp.connect(e);
+    lp.frequency.setValueAtTime(4000, at); lp.frequency.exponentialRampToValueAtTime(180, at + 1.0);
+    noise(at, 1.2, lp);
+  },
+  sizzle(at, dur, g = .2) {
+    const e = env(at, g, .05, dur, OUT, 'lin');
+    const trem = AC.createGain(); trem.gain.value = .6; trem.connect(e);
+    const lfo = track(AC.createOscillator()); lfo.frequency.value = 11; const lg = AC.createGain(); lg.gain.value = .4; lfo.connect(lg); lg.connect(trem.gain); lfo.start(at); lfo.stop(at + dur + .1);
+    noise(at, dur + .1, filter('bandpass', 4200, 1.5, trem));
+    for (let k = .3; k < dur; k += .35) SFX.pop(at + k, 300, .12);
+  },
+  shimmer(at, g = .12) { [1318.5, 1760, 2093, 2637, 3136].forEach((f, i) => osc(at + i * .07, 1.4, 'sine', f, f, env(at + i * .07, g, .004, 1.2))); },
+};
+// 배경음: A단조 패드 + 킥/하이햇 펄스
+const CHORDS = [[220, 261.6, 329.6], [174.6, 220, 261.6], [130.8, 196, 261.6], [196, 246.9, 293.7]];
+function pad(at, dur, notes, g = .05) {
+  const lp = filter('lowpass', 1100, .6, env(at, g, .6, dur, OUT, 'lin'));
+  notes.forEach(f => { [-6, 6].forEach(c => { const o = osc(at, dur + .7, 'sawtooth', f, f, lp); o.detune.value = c; }); });
+  osc(at, dur + .7, 'sine', notes[0] / 2, notes[0] / 2, env(at, g * 1.6, .4, dur, OUT, 'lin'));
+}
+function kick(at, g = .55) { osc(at, .3, 'sine', 150, 44, env(at, g, .002, .26), .12); }
+function hat(at, g = .05) { noise(at, .04, filter('highpass', 7000, .7, env(at, g, .001, .03))); }
+
+const EVENTS = [];
+(function buildEvents() {
+  const ev = (t, fn) => EVENTS.push({ t, fn });
+  // S1
+  ev(0, at => SFX.riser(at, .9, .3));
+  ev(.9, at => { SFX.impact(at, 1); SFX.shimmer(at + .05, .1); });
+  ev(.9, at => pad(at, 2.0, CHORDS[0], .045));
+  ev(1.3, at => SFX.whoosh(at, .45, .18));
+  ev(2.85, at => SFX.whoosh(at, .55, .45));
+  // S2–S3 펄스 (120BPM)
+  for (let b = 3.0; b < 16.1; b += .5) ev(b, at => kick(at, b < 7.5 ? .4 : .55));
+  for (let b = 7.75; b < 16.1; b += .5) ev(b, at => hat(at));
+  for (let i = 0; i < 7; i++) ev(3 + i * 2, at => pad(at, 1.95, CHORDS[i % 4]));
+  ev(3.9, at => { const lp = filter('lowpass', 1800, 1, env(at, .12, 1.2, .3, OUT, 'lin')); osc(at, 1.5, 'triangle', 330, 990, lp); });
+  ev(4.1, at => SFX.pop(at, 260, .3));
+  ENEMIES.forEach(e => ev(e.spawn, at => SFX.pop(at, 900, .06)));
+  ev(7.35, at => SFX.whoosh(at, .5, .3, -1));
+  TURRETS.forEach(tu => { ev(tu.drop - .02, at => SFX.whoosh(at, .22, .18)); ev(tu.drop + .22, at => { SFX.thud(at, .75); SFX.pop(at + .02, 1200, .15); }); });
+  SHOTS.forEach(s => ev(s.t, at => SFX.shot(at, TURRETS[s.ti].kind, (s.x / W - .5) * 1.2)));
+  ENEMIES.forEach(e => { if (e.death < 12) ev(e.death, at => SFX.burst(at, (enemyPos(e, e.death)[0] / W - .5) * 1.2)); });
+  ev(11.0, at => SFX.riser(at, .5, .2));
+  ev(11.5, at => { SFX.whoosh(at, .5, .45, -1); SFX.thud(at + .1, .8); });
+  // S4
+  const notes = [659.3, 784, 987.8];
+  GEMS.forEach((g, i) => {
+    ev(g.t - .4, at => SFX.whoosh(at, .4, .25));
+    ev(g.t, at => { SFX.chime(at, notes[i], .28); SFX.thud(at, .45); });
+  });
+  ev(GEMS[0].t + .2, at => SFX.crackle(at, .8, .35));
+  ev(GEMS[1].t + .35, at => SFX.explosion(at, .95));
+  ev(GEMS[2].t + .2, at => SFX.sizzle(at, 1.0, .22));
+  ev(15.75, at => SFX.riser(at, .85, .4));
+  // S5
+  ev(16.6, at => { SFX.impact(at, 1.1); SFX.shimmer(at + .05, .14); pad(at, 3.0, [220, 329.6, 493.9, 659.3], .05); });
+  ev(17.35, at => SFX.shimmer(at, .08));
+  ev(17.5, at => SFX.whoosh(at, .4, .15));
+})();
+
+// ── 재생·녹화 ─────────────────────────────────────────
+const playBtn = document.getElementById('play'), seek = document.getElementById('seek'), timeEl = document.getElementById('time');
+const recBtn = document.getElementById('rec'), statusEl = document.getElementById('status');
+let playing = false, t0 = 0, acStart = 0, cur = 0, onEnd = null;
+function stopAudio() { while (live.length) { try { live.pop().stop(); } catch (e) {} } }
+async function play(from) {
+  initAudio(); await AC.resume();
+  stopAudio();
+  t0 = from; acStart = AC.currentTime + .08;
+  for (const e of EVENTS) if (e.t >= from) e.fn(acStart + e.t - from);
+  playing = true; playBtn.textContent = '정지'; tick();
+}
+function pause() { playing = false; stopAudio(); playBtn.textContent = '재생'; }
+function setTime(t) { cur = clamp(t, 0, DUR); seek.value = cur; timeEl.textContent = cur.toFixed(2); render(cur); }
+function tick() {
+  if (!playing) return;
+  const t = t0 + Math.max(0, AC.currentTime - acStart);
+  setTime(t);
+  if (t >= DUR) { pause(); if (onEnd) { const f = onEnd; onEnd = null; f(); } return; }
+  requestAnimationFrame(tick);
+}
+playBtn.onclick = () => playing ? pause() : play(cur >= DUR ? 0 : cur);
+seek.oninput = () => { if (playing) pause(); setTime(+seek.value); };
+window.renderAt = setTime;
+
+// 프레임 단위 오프라인 내보내기: 실시간 재생·탭 표시 여부와 무관하게 정확한 30fps MP4를 만든다.
+const FPS = 30;
+async function renderAudioOffline() {
+  const prev = [AC, OUT, NOISE];
+  const off = new OfflineAudioContext(2, 48000 * DUR, 48000);
+  AC = off; OUT = buildGraph(off); NOISE = makeNoise(off);
+  for (const e of EVENTS) e.fn(e.t + .001);
+  live.length = 0;
+  [AC, OUT, NOISE] = prev;
+  return off.startRendering();
+}
+async function exportMp4(name = 'rune-nexus-promo-v1.mp4') {
+  if (playing) pause();
+  statusEl.textContent = '소리 합성 중…';
+  const audio = await renderAudioOffline();
+  const muxer = new Mp4Muxer.Muxer({
+    target: new Mp4Muxer.ArrayBufferTarget(), fastStart: 'in-memory',
+    video: { codec: 'avc', width: W, height: H, frameRate: FPS },
+    audio: { codec: 'aac', numberOfChannels: 2, sampleRate: 48000 },
+  });
+  let failure = null;
+  const venc = new VideoEncoder({ output: (c, m) => muxer.addVideoChunk(c, m), error: e => failure = e });
+  venc.configure({ codec: 'avc1.640033', width: W, height: H, bitrate: 14e6, framerate: FPS });
+  const aenc = new AudioEncoder({ output: (c, m) => muxer.addAudioChunk(c, m), error: e => failure = e });
+  aenc.configure({ codec: 'mp4a.40.2', numberOfChannels: 2, sampleRate: 48000, bitrate: 192000 });
+  const L = audio.getChannelData(0), R = audio.getChannelData(1), BLOCK = 1024;
+  for (let i = 0; i < L.length; i += BLOCK) {
+    const n = Math.min(BLOCK, L.length - i), data = new Float32Array(n * 2);
+    data.set(L.subarray(i, i + n), 0); data.set(R.subarray(i, i + n), n);
+    const ad = new AudioData({ format: 'f32-planar', sampleRate: 48000, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(i / 48000 * 1e6), data });
+    aenc.encode(ad); ad.close();
+  }
+  const frames = DUR * FPS;
+  for (let i = 0; i < frames; i++) {
+    if (failure) throw failure;
+    setTime(i / FPS);
+    const vf = new VideoFrame(cv, { timestamp: Math.round(i * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
+    venc.encode(vf, { keyFrame: i % (FPS * 2) === 0 }); vf.close();
+    if (venc.encodeQueueSize > 6) await new Promise(r => venc.addEventListener('dequeue', r, { once: true }));
+    if (i % 15 === 0) { statusEl.textContent = `렌더링 ${i}/${frames}`; await new Promise(r => setTimeout(r, 0)); }
+  }
+  await venc.flush(); await aenc.flush(); muxer.finalize();
+  if (failure) throw failure;
+  const buf = muxer.target.buffer;
+  const res = await fetch(`/save/${SESSION}/${name}`, { method: 'POST', body: buf });
+  statusEl.textContent = `${name} ${await res.text()}`;
+  return { name, size: buf.byteLength };
+}
+recBtn.onclick = () => exportMp4().catch(e => statusEl.textContent = '내보내기 실패: ' + e.message);
+window.exportMp4 = exportMp4;
+
+(async () => {
+  await document.fonts.load('900 100px RN');
+  await loadImages();
+  setTime(0);
+  statusEl.textContent = '준비됨';
+})().catch(e => { statusEl.textContent = '로딩 실패: ' + e.message; });
+</script>
+</body>
+</html>

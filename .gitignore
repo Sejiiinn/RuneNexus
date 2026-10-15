@@ -845,3 +845,6 @@ __pycache__/
 /design/gem_reroll/flip-440-opening.png
 /design/gem_reroll/flip-440-final.png
 /design/gem_reroll/gem-reroll-flip-440.gif
+
+# 광고 영상 시안 렌더 출력
+/design/promo_video/*/out/
