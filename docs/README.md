@@ -17,6 +17,7 @@
 | 성능 개선·대량 표시·CPU/GPU 작업 분배 | [최적화 지침](performance_optimization_guidelines.md) | 해당 기능의 코드·측정 기록, [인앱 검증](../.agents/in_app_test_guide.md), [APK 용량 점검](android_apk_distribution.md#용량-점검) |
 | 전투 수치·피해 효과 | [데미지 계층 규칙](damage_calculation_rules.md), [밸런스 기준](gameplay_balance_reference.md) | 해당 데이터 정의·테스트 |
 | 추가 스테이지 맵·라운드 설계 | [챕터 1 추가 맵](../design/chapter1_map_expansion/README.md), [챕터 2 추가 맵](../design/chapter2_map_expansion/README.md), [챕터 3 추가 맵](../design/chapter3_map_expansion/README.md) | 각 설계의 rounds/ 원본, [성장·해금 배분](../design/stage_expansion_progression/README.md), [전송 기믹 계약](../godot/content/README.md#선택적-전송-기믹) |
+| 세계관·스토리 문구 | [세계관](worldview.md) | 신규 적·포탑·젬 컨셉은 [DESIGNS.md](../DESIGNS.md)와 해당 챕터 설계 |
 | 코어·성장 | [코어 트리 현행 기준](core_passive_tree_implementation_plan.md) | [장기 코어 방향](nexus_core_design.md), [모듈](turret_module_design.md), [성장 후보](long_term_progression_direction.md) |
 | 계정·인증·온라인 저장 | [백엔드 구조](backend_architecture.md) | [저장 동기화](multi_device_save_sync_design.md), [닉네임](account_nickname_policy.md) |
 | 서버 경제 | [서버 권위 경제 계약](server_authoritative_economy_design.md) | [저장 동기화](multi_device_save_sync_design.md) |
