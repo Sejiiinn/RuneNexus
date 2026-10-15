@@ -10,6 +10,7 @@ const GuardianStatus = preload("res://effects/guardian_status.gd")
 const TargetSurface = preload("res://effects/sniper_target_surface.gd")
 const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const Ricochet = preload("res://effects/machinegun_ricochet.gd")
+const ShieldedDeath = preload("res://effects/shielded_death.gd")
 const EFFECT_CACHES := [
 	Fire, Frost, Burn, Lightning, GuardianStatus,
 	preload("res://effects/shielded_status.gd"),
@@ -18,6 +19,7 @@ const EFFECT_CACHES := [
 	preload("res://effects/boss_death.gd"),
 	preload("res://effects/hound_death.gd"),
 	preload("res://effects/tank_death.gd"),
+	ShieldedDeath,
 	preload("res://effects/machinegun_muzzle.gd"),
 	Ricochet,
 	preload("res://effects/cannon_flight.gd"),
@@ -178,7 +180,14 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 			var target: Dictionary = units.enemies.get(10, {})
 			if target.is_empty(): _failed = true
 			else: TargetSurface.prewarm(target.root, kind)
+		# Compile the dying-rune body and spark shaders before the first kill.
+		var wreck := ShieldedDeath.create(world, 0.0) if kind == "shielded" else {}
+		if kind == "shielded" and wreck.is_empty(): _failed = true
+		if not wreck.is_empty():
+			wreck.root.position = Vector3(1.0, 0.0, 0.0)
+			ShieldedDeath.sample(wreck, ShieldedDeath.BURSTS[0] + .05)
 		await _draw()
+		if not wreck.is_empty(): wreck.root.free()
 		if not _is_current(scene):
 			_dispose(scene, units, projectiles, viewport)
 			return false

@@ -17,6 +17,8 @@ const TANK_DEATH_PATH := "res://assets/enemies/tank_death.glb"
 const TankDeath = preload("res://effects/tank_death.gd")
 const HoundDeath = preload("res://effects/hound_death.gd")
 const NormalDeath = preload("res://effects/normal_death.gd")
+const ShieldedDeath = preload("res://effects/shielded_death.gd")
+const ShieldedPresentation = preload("res://presentation/shielded_presentation.gd")
 const FAST_DEATH_PATH := "res://assets/enemies/fast_death.glb"
 const FAST_DEATH_SECONDS := 0.55
 const DEATH_PATH := "res://assets/enemies/normal_death.glb"
@@ -357,7 +359,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		var enemy: Dictionary = event.get("enemyPresentation", runtime.enemies.get(str(id), {}))
 		if enemy.is_empty(): continue
 		var kind: String = enemy.get("type", "normal")
-		if kind not in ["normal", "fast", "tank"] and kind not in BOSS_KINDS: continue
+		if kind not in ["normal", "fast", "tank", "shielded"] and kind not in BOSS_KINDS: continue
 		if kind == "normal" and not prepare(): continue
 		if kind in BOSS_KINDS and _boss_scene == null:
 			_boss_scene = StageResources.load_resource(BOSS_PATH) as PackedScene
@@ -374,12 +376,25 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 			if _fast_death_scene == null:
 				failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
 				continue
+		var offset: Vector2 = event.visualOffset if event.has("visualOffset") else runtime._visual_enemy_offset(enemy)
+		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + offset) / runtime.tile_size
+		if kind == "shielded":
+			# The live shielded body is not a guardian walker; its corpse starts from
+			# the same combat-clock Idle pose and plays the authored Death clip.
+			var wreck := ShieldedDeath.create(_world, time)
+			if wreck.is_empty():
+				failure.emit("보호막 적 사망 애니메이션을 불러오지 못했습니다.")
+				continue
+			wreck.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
+			wreck.root.rotation.y = PI / 2.0 - float(enemy.facingAngle)
+			wreck.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.55)) * ShieldedPresentation.VISUAL_SCALE
+			wreck.born = time
+			deaths[id] = wreck
+			continue
 		var corpse := _tank_death_scene if kind == "tank" else (_fast_death_scene if kind == "fast" else _death_scene)
 		if kind in BOSS_KINDS: corpse = _boss_scene
 		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else ("Death" if kind in ["normal", "tank"] else ""))
 		if entry.is_empty(): continue
-		var offset: Vector2 = event.visualOffset if event.has("visualOffset") else runtime._visual_enemy_offset(enemy)
-		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + offset) / runtime.tile_size
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
 		# Keep the last visible body direction if death interrupts a turn.
 		var walker: Dictionary = walkers.get(id, {})
@@ -413,12 +428,15 @@ func update_deaths(time: float) -> void:
 		var age := time - float(entry.born)
 		var duration := TankDeath.LIFETIME if entry.type == "tank" else (FAST_DEATH_SECONDS if entry.type == "fast" else NormalDeath.LIFETIME)
 		if entry.type in BOSS_KINDS: duration = BossDeath.LIFETIME
+		if entry.type == "shielded": duration = ShieldedDeath.LIFETIME
 		if age < 0.0 or age >= duration:
 			entry.root.free()
 			deaths.erase(id)
 			continue
 		if entry.type in BOSS_KINDS:
 			BossDeath.sample(entry, age)
+		elif entry.type == "shielded":
+			ShieldedDeath.sample(entry, age)
 		elif entry.type == "normal":
 			# Keep the approved final pose throughout settle/fade, including 4x
 			# updates that cross the collapse boundary. Rewinds resample the clip.

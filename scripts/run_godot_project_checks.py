@@ -105,6 +105,7 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_shared_textures.gd": ("Shared textures verification: 0 failures", {"args": ["{build}/shared_texture_manifest.json"]}),
     "verify_skinned_enemy_presentation.gd": ("SKINNED_ENEMY_PRESENTATION PASS failures=0", {}),
     "verify_shielded_presentation.gd": ("failures=[]", {}),
+    "verify_shielded_death.gd": ("SHIELDED_DEATH failures=[]", {}),
     "verify_sniper_model.gd": ("SNIPER_MODEL failures=[]", {}),
     "verify_sniper_vfx.gd": ("failures=[]", {}),
     "verify_stage_effect_cache.gd": ("STAGE_EFFECT_CACHE failures=[]", {}),

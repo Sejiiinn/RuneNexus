@@ -1,6 +1,6 @@
 # 방어막 적 게임용 에셋
 
-채택한 단일뷰 9,757삼각형·청회색 석재/금동·하늘색 룬 원본을 게임용 GLB로 옮긴 결과다. 원본 Blender·2K 텍스처는 외장 SSD에 보존하며 경로와 SHA는 `asset-contract.json`에서 관리한다.
+채택한 단일뷰 9,757삼각형·청회색 석재/금동·하늘색 룬 원본을 게임용 GLB로 옮긴 결과다. 현재 GLB는 같은 형상·재질·Idle에 `Death` 클립을 더한 [사망 모션](../shielded-death-v1/README.md) 출력이며, 아래 SHA·검증 수치는 Idle만 있던 v1 기준이다. 원본 Blender·2K 텍스처는 외장 SSD에 보존하며 경로와 SHA는 `asset-contract.json`에서 관리한다.
 
 - 게임 파일: `assets/images/stage1_3d/enemies/shielded.glb` → `res://assets/enemies/shielded.glb`.
 - Y-up, 원점 `(0,0,0)`, 높이 약 `0.915336`. +Z가 원본 정면이다. 게임 표시 크기는 기존 표시 책임에서 정규화한다.

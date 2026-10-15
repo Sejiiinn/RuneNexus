@@ -1061,13 +1061,18 @@
     },
     "shielded-single-view-idle": {
       "source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-idle-emission-v1.blend",
-      "accepted_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-ingame-v1.blend",
+      "accepted_source": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-ingame-death-v1.blend",
       "guide": "design/enemy_concepts/2026-10-15/shielded-ingame-v1/README.md",
       "steps": [
         {
           "script": "design/enemy_concepts/2026-10-15/shielded-ingame-v1/export_shielded.py",
           "entrypoint": "Blender MCP / module body",
           "context": "SSD 채택 원본을 보존한 새 게임용 원본·표준 PBR emission과 24초 Idle을 내보낸다."
+        },
+        {
+          "script": "design/enemy_concepts/2026-10-15/shielded-death-v1/author_death.py",
+          "entrypoint": "Blender -b <ingame-v1.blend> --python",
+          "context": "채택 게임용 원본에 휘청임 키와 강체 추락을 구운 Death 클립을 추가하고 Idle·형상·텍스처를 보존해 다시 내보낸다."
         }
       ],
       "outputs": [
@@ -1075,7 +1080,9 @@
       ],
       "checks": [
         "design/enemy_concepts/2026-10-15/shielded-ingame-v1/verify_export.py",
-        "godot/verify_shielded_presentation.gd"
+        "design/enemy_concepts/2026-10-15/shielded-death-v1/compare_glb.py",
+        "godot/verify_shielded_presentation.gd",
+        "godot/verify_shielded_death.gd"
       ],
       "record_links": [
         {
@@ -1092,7 +1099,13 @@
                 "source",
                 "path"
               ]
-            },
+            }
+          ]
+        },
+        {
+          "path": "design/enemy_concepts/2026-10-15/shielded-death-v1/asset-contract.json",
+          "kind": "producer",
+          "bindings": [
             {
               "target": "accepted",
               "sha256_field": [
@@ -1123,6 +1136,11 @@
           "path": "godot/presentation/shielded_presentation.gd",
           "output": "assets/images/stage1_3d/enemies/shielded.glb",
           "token": "res://assets/enemies/shielded.glb"
+        },
+        {
+          "path": "godot/effects/shielded_death.gd",
+          "output": "assets/images/stage1_3d/enemies/shielded.glb",
+          "token": "Presentation.MODEL"
         }
       ],
       "limitation": "편집 가능한 원본·2K 텍스처는 SSD에 보관한다. 이 보고서는 파일/SHA/경로 대응이며 게임 외형·Android·성능 PASS를 대신하지 않는다.",

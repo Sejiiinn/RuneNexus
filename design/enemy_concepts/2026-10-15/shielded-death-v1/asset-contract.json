@@ -1,0 +1,116 @@
+{
+  "source": {
+    "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-ingame-v1.blend",
+    "sha256": "4169f877f58ac93031310d5d4c10ef275df0b7bbb90ed328719140f4b4104e7d"
+  },
+  "native": {
+    "path": "/Volumes/KIOXIA_MAC/AI-3D/projects/RuneNexus/shielded-01-20261014/blender/shielded-01-single-view-ingame-death-v1.blend",
+    "sha256": "715bf159dce3e406cb73012ee4813faa9a20e8b43d4003bf81292c08a7fab115"
+  },
+  "glb": {
+    "path": "/Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/enemies/shielded.glb",
+    "sha256": "9350b7604ea5e50e05ae5f1056d5d45b91fc251403869bd20a3b71cf5fba7659",
+    "bytes": 8756248
+  },
+  "fps": 24,
+  "stagger_end_frame": 17,
+  "impact_frame": 36,
+  "death_end_frame": 48,
+  "rest_frame": 158,
+  "rest_motion": 0.003098054428759346,
+  "death_seconds": 1.9583333333333333,
+  "ground_y": -0.61,
+  "collisions": {},
+  "below_ground": [],
+  "ring_lift_max": 0.002266182899475111,
+  "final_bounds": {
+    "Body": {
+      "min": [
+        -0.3459,
+        -0.6081,
+        0.171
+      ],
+      "max": [
+        0.6407,
+        -0.2472,
+        0.6035
+      ]
+    },
+    "Ring": {
+      "min": [
+        -0.5227,
+        -0.598,
+        -0.5297
+      ],
+      "max": [
+        0.2439,
+        -0.4911,
+        0.1807
+      ]
+    },
+    "StoneLowerLeft": {
+      "min": [
+        -0.2751,
+        -0.608,
+        -0.286
+      ],
+      "max": [
+        -0.1637,
+        -0.4997,
+        -0.1503
+      ]
+    },
+    "StoneUpperRight": {
+      "min": [
+        0.2796,
+        -0.608,
+        -0.098
+      ],
+      "max": [
+        0.4199,
+        -0.5149,
+        0.0088
+      ]
+    },
+    "StoneLowerRight": {
+      "min": [
+        -0.0067,
+        -0.608,
+        -0.1079
+      ],
+      "max": [
+        0.107,
+        -0.4897,
+        0.0112
+      ]
+    },
+    "StoneUpperLeft": {
+      "min": [
+        -0.4339,
+        -0.608,
+        -0.1058
+      ],
+      "max": [
+        -0.2796,
+        -0.5222,
+        -0.0175
+      ]
+    }
+  },
+  "animations": {
+    "Idle": [
+      24.0
+    ],
+    "Death": [
+      1.9583333730697632
+    ]
+  },
+  "clip": {
+    "name": "Death",
+    "stagger": "keyed jolts frames 1-17",
+    "fall": "Bullet rigid bodies from frame 17, impact frame 36",
+    "settle": "ease into simulated rest frame 158 over frames 37-48",
+    "time_origin_normalization": "per-animation input shift to 0 s"
+  },
+  "idle": "Re-exported from the adopted Idle actions via NLA track; BodyPivot rest rotation kept identity"
+}

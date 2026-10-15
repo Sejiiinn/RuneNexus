@@ -4,7 +4,7 @@ extends SceneTree
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Units = preload("res://presentation/battlefield_units.gd")
 const Catalog = preload("res://content/content_catalog.gd")
-const KINDS := ["normal", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]
+const KINDS := ["normal", "fast", "tank", "shielded", "boss", "shieldBoss", "forgeBoss"]
 var checks := 0
 var failures: Array[String] = []
 var catalog = Catalog.new()
