@@ -1,7 +1,13 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-09-09 (장기 응답 유실 후 인증 복구 반영)
+마지막 갱신: 2026-09-09 (장기 응답 유실 후 인증 복구 반영). 클라이언트 범위 대조: 2026-10-16 KST.
+
+> 서버 API·DB·인증·저장 계약은 현행이다. 클라이언트는 2026-09-24부터 Godot 단일 앱이며
+> 웹 배포는 폐기했다. 아래에서 `Flutter`·`Web`으로 적힌 클라이언트 구현·테스트·체크리스트는
+> 전환 전 기록이다. 현재 클라이언트 대응은 [Godot 앱·저장 계약](../godot/app/README.md),
+> [앱 서비스](../godot/services/), 전환 상태는 [Godot 전환 상태](godot_unified_app_roadmap.md)를 따른다.
+> 서버의 `/v1/auth/web/*` 경로는 남아 있지만 현재 앱은 `/v1/auth/native/*`만 사용한다.
 
 ## 목적
 
@@ -11,10 +17,10 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 
 현재 구현된 기반은 다음과 같다.
 
-- Flutter + Flame 게임 클라이언트
+- Godot 단일 앱 게임 클라이언트(전환 전 Flutter + Flame)
 - `GameSaveData` v2 통파일 직렬화
 - `preferences`, `progression`, `turretModules`, `activeRun` 최상위 영역 분리
-- 로컬 파일 또는 Web Local Storage 기반 저장
+- 로컬 파일 기반 저장(전환 전 Web은 Local Storage)
 - 라운드 체크포인트의 `OnlineSaveRepository` 확장 지점
 - Docker Compose 기반 PostgreSQL 18
 - Go `net/http` API 서버 기반
@@ -26,18 +32,18 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - access Bearer 인증 미들웨어와 DB 기반 account/session 결정
 - Google 로그인·토큰 갱신의 클라이언트별 token bucket 요청 제한
 - 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션
-- Flutter 영속 인증 세션 복원·자동 갱신·single-flight·401 1회 재시도
-- Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker
-- 계정별 Flutter 영속 save outbox와 재시작 복구
+- 클라이언트 영속 인증 세션 복원·자동 갱신·single-flight·401 1회 재시도
+- 클라이언트 원격 저장 API와 단일 in-flight 전송 worker
+- 계정별 클라이언트 영속 save outbox와 재시작 복구
 - 최초 로그인 기존 Outbox 우선 복구와 원격 account 우선 자동 bootstrap
 - 자동 연결 account 슬롯의 중요 체크포인트와 온라인 저장 coordinator 연결
 - writer 획득·저장 PUT 공통 client compatibility gate와 업데이트 필요 UX
 
-Web은 GIS, Android는 Credential Manager로 Google 로그인을 지원한다. 현재 앱은
-`/v1/auth/web/*`, `/v1/auth/native/*` 영속 세션 API를 사용한다. PGS 인증과 다른 provider의
+Android 앱은 Credential Manager로 Google 로그인하고 `/v1/auth/native/*` 영속 세션 API를
+사용한다. 폐기한 Web 클라이언트의 GIS·`/v1/auth/web/*` 경로는 서버에 남아 있다. PGS 인증과 다른 provider의
 identity 연결은 아직 구현되지 않았다. 운영 적용에는 OAuth 설정뿐 아니라 007 마이그레이션,
-고정 영수증 암호화 키와 Web same-site 구성이 필요하다. 실제 배포 절차는
-[자체 운영 API 배포](self_hosted_api_deployment.md)를 따른다. 로그인 필수화는 아직 적용하지 않았다.
+고정 영수증 암호화 키가 필요하다. 실제 배포 절차는
+[자체 운영 API 배포](self_hosted_api_deployment.md)를 따른다. 정식 Godot 앱에는 게스트 플레이가 없다.
 
 다중 기기 충돌의 최종 정책과 구현 계약은
 `docs/multi_device_save_sync_design.md`를 따른다. 기존 사용자 선택형 충돌 해결 방향은
@@ -67,7 +73,7 @@ identity 연결은 아직 구현되지 않았다. 운영 적용에는 OAuth 설�
 
 | 영역 | 채택 기술 | 역할 |
 | --- | --- | --- |
-| 게임 클라이언트 | Flutter/Dart | Android·iOS 공용 게임과 로컬 저장 |
+| 게임 클라이언트 | Godot 4 (GDScript) | Android 게임과 로컬 저장. 전환 전에는 Flutter/Dart |
 | Android 플랫폼 인증 | Kotlin + Credential Manager / GoogleID | Google ID token 획득; PGS v2는 후속 계획 |
 | API 서버 | Go 표준 `net/http` | 인증, 계정, 세션, 저장 API |
 | Google 토큰 검증 | `google.golang.org/api/idtoken` | 서명, audience, 만료 검증 |
@@ -100,7 +106,7 @@ PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Red
 클라이언트 스냅샷의 다이아 값을 잔액 원본으로 사용하지 않는다. 서버 잔액을
 클라이언트에 내려 주고 클라이언트는 이를 로컬 캐시로만 저장한다.
 
-### Flutter 클라이언트 책임
+### 클라이언트 책임
 
 - 게임 상태 생성과 `GameSaveData` 직렬화
 - 로컬 저장과 복구

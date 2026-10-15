@@ -4,6 +4,8 @@
 마지막 갱신: 2026-08-27. 정식 앱 인증·젬 offer 경계 대조: 2026-10-12 KST.
 상위 문서: `docs/backend_architecture.md`
 
+> 서버 writer·revision·Outbox 계약은 현행이다. 클라이언트는 Godot 단일 Android 앱이며 웹 배포는 폐기했다. 아래 Web 다중 탭·Local Storage·GitHub Pages·Flutter 클라이언트 서술은 전환 전 기록이며 현재 배포 대상이 아니다. 현재 클라이언트 구현은 [Godot 앱·저장 계약](../godot/app/README.md)과 [앱 서비스](../godot/services/)를 따른다.
+
 ## 1. 결정
 
 Rune Nexus 계정은 여러 기기에서 로그인할 수 있다. 다만 계정 저장을 동시에 쓰는

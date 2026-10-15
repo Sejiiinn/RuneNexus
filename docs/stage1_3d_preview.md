@@ -101,4 +101,4 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 ### 3D 전장의 화염·냉각 명중 표시
 
-Godot 3D 전장에서는 기존 2D `flame`·`frost` 명중 도형을 생성하지 않는다. 포탑의 3D 효과와 적 본체에 붙는 화상·냉각 표현을 사용하며 피해·지속시간 판정은 Godot 전투 런타임이 처리한다. Flutter의 2D 렌더 분기와 Flame 명중 컴포넌트는 제거했다. 당시 중복 도형 억제 배경은 [명중 도형 재생성 병목 조사](../design/fire_tower_concepts/enemy_burn/integration/performance/render-path-followup.md)에 남긴다.
+Godot 3D 전장에서는 기존 2D `flame`·`frost` 명중 도형을 생성하지 않는다. 포탑의 3D 효과와 적 본체에 붙는 화상·냉각 표현을 사용하며 피해·지속시간 판정은 Godot 전투 런타임이 처리한다. Flutter의 2D 렌더 분기와 Flame 명중 컴포넌트는 제거했다. 당시 중복 도형 억제 배경은 로컬 보관 기록 `design/fire_tower_concepts/enemy_burn/integration/performance/render-path-followup.md`에 남긴다(저장소 미추적).

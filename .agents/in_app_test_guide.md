@@ -40,7 +40,7 @@ adb shell am start -S -n com.example.rune_nexus.godotonly/com.example.rune_nexus
 
 정식 변형 `com.example.rune_nexus`는 [Android 호스트](../android-godot-only/README.md)의 `productionRelease`와 [APK 배포 절차](../docs/android_apk_distribution.md)를 따른다. 기존 설치·저장·계정 인계는 같은 패키지와 실제 서명 키를 확인한 뒤 별도 기기 검증으로 수행한다. 배포 키 없는 로컬 production APK는 미서명이며 정식 설치 후보가 아니다.
 
-스테이지 1~15에서 관련 로비·HUD·건설 입력·시점·전장, 챕터 전환의 경로·건설칸·포탈·코어 위치를 변경 영향에 맞게 확인한다. Android 직접 화면에서 확인할 항목은 데스크톱 캡처로 완료 처리하지 않는다. [전투·저장 책임](../docs/godot_combat_migration_boundaries.md)과 [UI 복원 기준](../docs/godot_ui_restoration_baseline.md)을 따른다.
+스테이지 1~30(챕터 1~3)에서 관련 로비·HUD·건설 입력·시점·전장, 챕터 전환의 경로·건설칸·포탈·코어 위치를 변경 영향에 맞게 확인한다. Android 직접 화면에서 확인할 항목은 데스크톱 캡처로 완료 처리하지 않는다. [전투·저장 책임](../docs/godot_combat_migration_boundaries.md)과 [UI 복원 기준](../docs/godot_ui_restoration_baseline.md)을 따른다.
 
 ## 반복 작업 원칙
 

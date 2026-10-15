@@ -21,19 +21,18 @@ docker compose up -d --build api
 위 명령은 PostgreSQL을 시작하고, `tern` 마이그레이션을 적용한 뒤 Go API 서버를 시작합니다. 데이터베이스만 먼저 실행하려면 `docker compose up -d db`를 사용합니다.
 
 Google 인증은 실제 OAuth Client ID 없이도 로컬 서버가 실행되도록 기본적으로
-비활성화되어 있습니다. 웹 로그인을 시험할 때만 Google Cloud에서 발급한 Web OAuth
-Client ID와 정확한 웹 origin을 주입합니다.
+비활성화되어 있습니다. 로그인을 시험할 때만 Google Cloud에서 발급한 Web OAuth
+Client ID(Android 앱의 server client ID)를 주입합니다. `CORS_ALLOWED_ORIGINS`는
+웹 클라이언트 폐기 후에도 서버 설정 항목으로 남아 있으며, Godot Android 앱의 요청에는
+필요하지 않습니다.
 
 ```bash
 GOOGLE_AUTH_ENABLED=true \
 GOOGLE_WEB_CLIENT_ID='<web-oauth-client-id>' \
 AUTH_SESSION_RECEIPT_KEY='<base64-encoded-32-byte-key>' \
-CORS_ALLOWED_ORIGINS='http://127.0.0.1:53000,https://sejiiinn.github.io' \
 docker compose up -d --build api
 ```
 
-GitHub Pages 주소의 `/RuneNexus/`는 경로이므로 CORS origin과 Google OAuth의
-Authorized JavaScript origins에는 `https://sejiiinn.github.io`까지만 등록합니다.
 Google ID token 원문은 서버 로그와 DB에 저장하지 않습니다. 자체 token은 `sessions`와
 `refresh_tokens`에 SHA-256 해시로만 저장하고, 갱신 응답 복구용 `refresh_receipts`에만
 최신 access/refresh 응답을 AES-GCM 암호문으로 다음 갱신 성공·세션 종료까지 보관합니다. 007까지 마이그레이션하고
@@ -41,23 +40,18 @@ Google ID token 원문은 서버 로그와 DB에 저장하지 않습니다. 자�
 로그인/갱신이 활성화됩니다. 위 값은 placeholder이며 실제 키는 안전하게 생성·보관하고
 Git에 커밋하지 않습니다. 키가 없으면 신규 로그인/갱신 API는 503을 반환합니다.
 
-Flutter Web 개발 서버도 같은 값으로 빌드합니다.
+Godot 클라이언트는 `scripts/prepare_godot_project.py`가 같은 환경값으로
+`build/godot/project/app_config.json`을 만들어 사용합니다.
 
 ```bash
-flutter run -d web-server --web-port 53000 \
-  --dart-define=GOOGLE_WEB_CLIENT_ID='<web-oauth-client-id>' \
-  --dart-define=RUNE_NEXUS_API_BASE_URL='http://127.0.0.1:8080'
+RUNE_NEXUS_API_BASE_URL='http://127.0.0.1:8080' \
+GOOGLE_WEB_CLIENT_ID='<web-oauth-client-id>' \
+python3 scripts/prepare_godot_project.py
 ```
 
-GitHub Pages 배포에는 저장소의 Actions Variables에 `GOOGLE_WEB_CLIENT_ID`와
-`RUNE_NEXUS_API_BASE_URL`을 등록합니다. API 주소는 실제 배포 환경에서 HTTPS여야
-하며, 둘 중 하나라도 없거나 잘못되면 계정 화면의 Google 연결 버튼은 표시하지
-않습니다.
-
-현재 Web 자동 로그인은 Secure·HttpOnly·SameSite=Lax 쿠키를 사용합니다. loopback 개발
-주소의 브라우저 동작만으로 운영 검증을 대체하지 않습니다. 운영에서는 Web과 API를
-same-site HTTPS로 배치해야 하며, 기본 GitHub Pages와 DuckDNS API 조합은 CORS 허용만으로
-동작하지 않습니다. 최종 도메인과 OAuth/CORS 조건은
+APK 배포 값은 [APK 배포 설정](android_apk_distribution.md)과 `.github/workflows/deploy-apk.yml`의
+Actions Variables를 따릅니다. 실제 배포 API 주소는 HTTPS여야 합니다. 웹 배포와
+Flutter Web 개발 서버는 폐기했습니다. 최종 도메인과 OAuth 조건은
 [자체 운영 API 배포](self_hosted_api_deployment.md)를 확인합니다.
 
 ## 상태와 접속 확인

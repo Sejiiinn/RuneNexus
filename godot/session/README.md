@@ -25,7 +25,7 @@
 
 ## 정식 로컬 앱 경로
 
-`Godot --path build/godot/project -- --app`으로 자동 저장·시작 복원과 Godot HUD·로비를 사용한다. 복원한 전투는 로비에서 이어하기로 재개한다. 신규 사용자의 무런 성장 저장, 저장 실패 정지/재시도와 백그라운드·정상 종료 저장을 제공한다. [구현·검증·남은 서비스 경계](../../docs/analysis/godot_app_ui_20260921/README.md)를 따른다. 아래 `--session`은 기존 개발 검사용 수동 경로다.
+정식 앱은 인자 없이 `Godot --path build/godot/project`로 `app/boot.tscn`에서 시작하며 자동 저장·시작 복원과 Godot HUD·로비를 사용한다. 복원한 전투는 로비에서 이어하기로 재개한다. 신규 사용자의 무런 성장 저장, 저장 실패 정지/재시도와 백그라운드·정상 종료 저장을 제공한다. 2026-09-21 구현·검증 기록은 로컬 보관본 `docs/analysis/godot_app_ui_20260921/`에 있다(저장소 미추적). 아래 `--session`은 기존 개발 검사용 수동 경로다.
 
 ## Flutter 없는 실행
 
@@ -37,7 +37,7 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --editor --p
 build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/project -- --session
 ```
 
-`Stage`로 1~15 순환 진입, 건설칸 클릭→`Build`로 배치, `Start`로 실제 다음 웨이브를 시작한다. `Tower`로 6종 포탑 선택, `Wave +`로 비전투 중 검증할 웨이브를 선택한다. `Pause`, `1x/4x`, `Camera`, `Exit`와 네이티브 드래그·핀치·휠 조작은 유지한다. 마지막 웨이브 뒤에는 새 전투를 만들지 않는다.
+`Stage`로 진행 순번의 다음 스테이지에 진입(현재 30개, 마지막 3-10 이후는 이동 없음), 건설칸 클릭→`Build`로 배치, `Start`로 실제 다음 웨이브를 시작한다. `Tower`로 6종 포탑 선택, `Wave +`로 비전투 중 검증할 웨이브를 선택한다. `Pause`, `1x/4x`, `Camera`, `Exit`와 네이티브 드래그·핀치·휠 조작은 유지한다. 마지막 웨이브 뒤에는 새 전투를 만들지 않는다.
 
 기본 `--session`은 [실제 콘텐츠 로더](../content/README.md)와 [Godot 런·성장 명령](../app/run_commands_README.md)을 사용한다. 건설·강화·판매·링크·젬·특성·런 업그레이드는 실제 비용·해금·재고 규칙을 적용한다. 하단 개발 조작으로 명령을 실행하고 골드·조각·비용을 확인할 수 있다. 5웨이브 보상/젬 선택 구매에서는 전투가 멈추며 선택 후 원래 단계로 돌아간다.
 
@@ -47,9 +47,9 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/proj
 
 런 종료 v2 체크포인트와 영속 보상 Outbox를 먼저 기록한 뒤 Stage/재시도로 이동한다. 쓰기 실패 시 전환을 차단한다. 게스트 큐는 로컬에 격리하고 계정으로 자동 재바인딩하지 않으며, 서버 다이아·모듈권을 로컬에서 확정하지 않는다. `Exit` 저장 실패 시 현재 전투를 유지한다. 기본 1타일·원점 0 좌표를 저장하며 잘못된 맵·수치·지원하지 않는 설정은 거절한다.
 
-계정 정산은 실제 HTTP 요청 경로·동일 key/본문 바이트 재시도·writer/revision 동기화 선행·snapshot 적용과 저장·단조 증가 캐시를 구현했다. 인증된 context와 실제 저장 업로드 성공을 반환하는 `sync_save`를 `app.settle_pending_rewards(context, sync_save, transport)`에 주입해야 한다. 전체 로그인·온라인 저장 업로더·자동 계정 스케줄링과 실계정 E2E는 미완료이며 운영 서버는 호출하지 않았다. 독립 `--app`에는 자동 저장·시작 시 정지 복원과 Godot HUD·로비를 연결했다. 인증·온라인 저장 업로더·서비스 전용 메뉴, 기존 설치 데이터 인계·정식 패키징·본게임 진입 전환은 남아 있다. [정산·퀘스트 구현 기록](../../docs/analysis/godot_rewards_quests_20260921/README.md)을 따른다.
+계정 정산은 실제 HTTP 요청 경로·동일 key/본문 바이트 재시도·writer/revision 동기화 선행·snapshot 적용과 저장·단조 증가 캐시를 구현했다. 인증된 context와 실제 저장 업로드 성공을 반환하는 `sync_save`를 `app.settle_pending_rewards(context, sync_save, transport)`에 주입한다. 인증·온라인 저장·로비 서비스·패키징의 현재 구현/미검증 상태는 [Godot 전환 상태](../../docs/godot_unified_app_roadmap.md#3-단계와-의존-관계)를 따른다. 2026-09-21 당시 정산·퀘스트 구현 기록은 로컬 보관본 `docs/analysis/godot_rewards_quests_20260921/`에 있다(저장소 미추적).
 
-이미 등장한 적의 상태와 포탑 쿨다운·피해 통계는 복원한다. 기존 v2에 없는 탄환·코어 사이클 시계는 새로 저장하지 않으며, 대기 중인 적의 무작위 값은 콘텐츠 규칙에 따라 재생성한다. [실제 런 저장 검증](../../docs/analysis/godot_content_save_20260921/README.md)을 참고한다.
+이미 등장한 적의 상태와 포탑 쿨다운·피해 통계는 복원한다. 기존 v2에 없는 탄환·코어 사이클 시계는 새로 저장하지 않으며, 대기 중인 적의 무작위 값은 콘텐츠 규칙에 따라 재생성한다. 당시 실제 런 저장 검증은 로컬 보관본 `docs/analysis/godot_content_save_20260921/`에 있다(저장소 미추적).
 
 기존 저장 회귀는 `--session --session-fixture` 또는 검사 스크립트의 `content_enabled=false`에서 유지한다. 이 모드에서만 기본 화살포탑/고정 일반 적 설정을 복원하고 다른 설정은 거절한다. `Save`는 v2, `Load`는 정지 상태 복원(`Pause`로 재개)이다. 저장 경로는 `user://standalone-session/saves/guest/`이며 실제 사용자 슬롯을 자동으로 읽지 않는다. [저장 기반 API](../app/README.md)를 참고한다.
 

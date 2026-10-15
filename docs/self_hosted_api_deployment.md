@@ -14,7 +14,7 @@ Rune Nexus 운영 API는 기존 개발용 Compose에 `compose.production.yaml`�
 적용하지 않았으며, 기존 HTTPS/CORS 확인만으로 자동 로그인 검증이 끝난 것은 아닙니다.
 
 ```text
-GitHub Pages / 모바일 앱
+Godot Android 앱
           | HTTPS :443
           v
         Caddy
@@ -62,10 +62,11 @@ chmod 600 .env.production
 - `DUCKDNS_SUBDOMAIN`: DuckDNS에서 선점한 label. `.duckdns.org`는 붙이지 않음
 - `API_HOST`: `<DUCKDNS_SUBDOMAIN>.duckdns.org` 형식의 공개 API 호스트명
 - `ACME_EMAIL`: 인증서 계정 알림을 받을 이메일
-- `GOOGLE_WEB_CLIENT_ID`: Google Identity Services Web OAuth Client ID
+- `GOOGLE_WEB_CLIENT_ID`: Google Web OAuth Client ID. Android 앱의 server client ID로 사용
 - `AUTH_SESSION_RECEIPT_KEY`: base64 인코딩한 32-byte 영수증 암호화 키. 서버 재시작과
   모든 API 인스턴스에서 동일하게 유지하며 `.env.production` 같은 비공개 설정에만 보관
-- `CORS_ALLOWED_ORIGINS`: GitHub Pages를 포함한 정확한 허용 origin 목록
+- `CORS_ALLOWED_ORIGINS`: 운영 override가 요구하는 허용 origin 목록. 폐기한 웹 클라이언트의
+  `/v1/auth/web/*` 경로에만 쓰이며 Android 앱의 `/v1/auth/native/*` 요청은 사용하지 않음
 
 DuckDNS 계정 token은 환경 변수가 아니라 Docker secret 파일로 전달합니다. 계정
 페이지에서 token을 확인한 뒤 다음 파일에 token 한 줄만 기록합니다.
@@ -124,15 +125,10 @@ PostgreSQL 비밀번호는 개발 환경과 동일하게 `.secrets/postgres_pass
    키 원문·token·인증 응답을 로그나 공유 터미널 출력에 남기지 않는다. 키 미설정 시
    영속 로그인/갱신은 `SESSION_PERSISTENCE_UNAVAILABLE` 503이며 기존 API는 유지된다.
    임의 재생성·인스턴스별 다른 키는 미완료 갱신 응답 복구를 깨뜨린다.
-3. Web과 API를 HTTPS **같은 사이트(same-site)**로 배치한다. 예를 들어 소유한
-   `game.example.com`과 `api.example.com`, 또는 같은 origin의 reverse proxy 구성이 가능하다.
-   `*.github.io` 기본 주소와 `*.duckdns.org` API 조합은 서로 다른 사이트이므로 현재의
-   `SameSite=Lax` 쿠키 기반 인증에 사용할 수 없다. CORS 허용만으로 해결되지 않는다.
-   기존 Caddy/Pages 설정이 이 도메인 구성을 자동으로 만들어 주지는 않는다.
-4. 최종 게임 origin을 Google Authorized JavaScript origins와 `CORS_ALLOWED_ORIGINS`에
-   정확히 등록한다. Web 인증 API는 `Origin`, JSON 본문을 검사하고 credentials를 포함한
-   요청을 사용한다. `SameSite=None`이나 token Local Storage 저장으로 우회하지 않는다.
-5. 서버 설정·마이그레이션·HTTPS 구성을 먼저 반영한 뒤 해당 주소로 클라이언트를 빌드한다.
+3. 웹 클라이언트와 GitHub Pages 배포는 폐기했다. same-site HTTPS 배치, Authorized JavaScript
+   origins, `SameSite=Lax` 쿠키 조건은 남아 있는 `/v1/auth/web/*` 경로에만 해당하며 Android 앱
+   배포 조건이 아니다.
+4. 서버 설정·마이그레이션·HTTPS 구성을 먼저 반영한 뒤 해당 주소로 클라이언트를 빌드한다.
    - 챕터3 후반(ID26–30) 클라이언트는 먼저013 마이그레이션과 경로 저장 호환 세대5를 처리하는 서버가 필요하다. 기존012는 그대로 두며 [확장 스테이지 적용 기준](../server/db/migrations/README.md#확장-스테이지)을 따른다.
    영속 인증 배포가 준비되지 않은 서버에 새 클라이언트만 배포하지 않는다.
 
@@ -268,21 +264,18 @@ docker compose \
 
 ## 클라이언트 전환
 
-same-site HTTPS 검증이 끝난 뒤 GitHub Actions Variables의 `RUNE_NEXUS_API_BASE_URL`을
-최종 API 주소로 변경합니다. Pages를 계속 사용한다면 커스텀 도메인과 최종 게임 origin의
-OAuth/CORS 등록도 함께 확인합니다. 이전 `github.io` origin을 등록한 것만으로 충분하지 않습니다.
-
-Web과 Android 모두 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` dart-define을
-사용합니다. Android의 `GOOGLE_WEB_CLIENT_ID`도 **Web OAuth client ID(server client ID)**입니다.
-별도로 Google Cloud의 Android OAuth client에 실제 applicationId와 사용 서명의 SHA 인증서
-지문을 등록해야 합니다. 현재 applicationId는 `com.example.rune_nexus`이고 release도 debug
-signing이므로 출시 식별자·서명 확정은 남아 있습니다. Credential Manager Google 로그인은
-구현됐지만 PGS v2·Play Games Player ID 연동과는 별개입니다.
+API HTTPS 검증이 끝난 뒤 GitHub Actions Variables의 `RUNE_NEXUS_API_BASE_URL`을
+최종 API 주소로 변경합니다. Godot 팩 빌드는 `RUNE_NEXUS_API_BASE_URL`, `GOOGLE_WEB_CLIENT_ID`를
+`app_config.json`에 담습니다(`scripts/prepare_godot_project.py`). `GOOGLE_WEB_CLIENT_ID`는
+**Web OAuth client ID(server client ID)**입니다.
+별도로 Google Cloud의 Android OAuth client에 실제 applicationId와 배포 서명의 SHA 인증서
+지문을 등록해야 합니다. applicationId는 기존 `com.example.rune_nexus`를 유지하며 release 서명은
+[APK 배포](android_apk_distribution.md)의 배포 서명 환경변수를 사용합니다. Credential Manager Google
+로그인은 구현됐지만 PGS v2·Play Games Player ID 연동과는 별개입니다.
 
 ### 실제 환경 확인 체크리스트 (미완료)
 
-- [ ] Web Google 로그인 후 HttpOnly 쿠키가 전송되어 로그인 직후 refresh가 성공하는지 확인
-- [ ] 새로고침·브라우저 재시작·Android 앱 종료/재시작 후 같은 account 저장 복원
+- [ ] Android 앱 종료/재시작 후 같은 account 저장 복원
 - [ ] Android 실제 Google 계정 선택, Keystore 저장과 명시적 로그아웃 뒤 재진입 확인
 - [ ] 응답 유실·장기 종료·API 재시작 후 같은 요청 복구, 만료 access 재갱신 및 로그아웃·옛 응답 거부 확인
 - [ ] 일시적인 네트워크/저장소 실패에서 guest 진입 없이 재시도하고 원본 저장 보존
@@ -290,5 +283,5 @@ signing이므로 출시 식별자·서명 확정은 남아 있습니다. Credent
 - [ ] 카카오 이전 링크의 대상 account 확인 후에만 consume 발생
 - [ ] 실제 다중 기기 writer 교체·저장·경제 명령 E2E 확인
 
-로컬 자동 테스트와 Web/APK 빌드는 통과했지만 실제 Google 로그인·실기기 검증을 대체하지
-않습니다. 현재 게스트 플레이는 유지되며 로그인 필수화는 별도 후속 작업입니다.
+2026-09-05 당시 로컬 자동 테스트와 Web/APK 빌드는 통과했지만 실제 Google 로그인·실기기
+검증을 대체하지 않습니다. 현재 정식 Godot 앱에는 게스트 플레이가 없습니다([런·성장 명령](../godot/app/run_commands_README.md)).

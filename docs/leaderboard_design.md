@@ -1,6 +1,6 @@
 # 리더보드 현행 규칙
 
-역할: 채택된 리더보드 계약. 2026-09-09 정리: 진행 중 저장 집계를 본문에 통합했다. 기존 저장 JSON 형식은 유지한다. 배포 여부와 검증 이력은 [배포 인계](deployment_status.md)를 따른다.
+역할: 채택된 리더보드 계약. 2026-09-09 정리: 진행 중 저장 집계를 본문에 통합했다. 2026-10-16: 확장 맵의 진행 순번 정렬(migration 012·013)과 Godot 클라이언트 경로를 대조했다. 기존 저장 JSON 형식은 유지한다. 배포 여부와 검증 이력은 [배포 인계](deployment_status.md)를 따른다.
 
 ## 목적과 범위
 
@@ -11,18 +11,18 @@
 | 항목 | 현행 규칙 |
 |---|---|
 | 대상 | 활성 계정, 닉네임 설정 완료, 서버가 승인한 유효한 저장 또는 정산 기록 보유 |
-| 1순위 | 최고 기록의 스테이지 번호 내림차순 |
+| 1순위 | 최고 기록 스테이지의 진행 순번 내림차순(고정 ID가 아님) |
 | 2순위 | 해당 스테이지의 완료 라운드 내림차순 |
 | 3순위 | 같은 스테이지·완료 라운드이면 최고 기록의 서버 확정 시각 오름차순 |
 | 완전히 같은 기록·시각 | 공동 순위 허용; 목록 내 순서는 내부 계정 ID로 고정 |
-| 화면 표시 | 순위 / 닉네임#태그 / 스테이지 / 완료 라운드 |
+| 화면 표시 | 순위 / 닉네임#태그 / 챕터-단계 표기(`stage_progression.gd`) / 완료 라운드 |
 | 갱신 | 승인된 저장·정산의 새 기록이 기존 기록보다 좋을 때만 교체 |
 | 시작만 한 전투 | 완료 라운드 0은 순위 등록 제외 |
 | 판정 시점 | 전투 종료 정산 또는 진행 중 런 저장을 서버에서 승인한 시점 |
 
-예: 스테이지 4의 1라운드 완료는 스테이지 3의 40라운드 완료보다 높다. 진입 중인 라운드 번호와 완료 라운드를 혼동하지 않는다. 동일 기록이면 서버 확정 시각이 빠른 사람이 높은 순위다. 예를 들어 같은 스테이지 14·38라운드를 10:00에 확정한 계정은 10:05에 확정한 계정보다 높다. 시각까지 정확히 같은 경우에만 공동 순위를 적용하고 내부 계정 ID는 목록 순서만 고정한다. `success`도 별도 가산점으로 사용하지 않는다.
+예: 1-4의 1라운드 완료는 1-3의 40라운드 완료보다 높다. 고정 ID 16(1-6)은 고정 ID 6(2-1)보다 진행 순번이 앞서므로 낮다. 진입 중인 라운드 번호와 완료 라운드를 혼동하지 않는다. 동일 기록이면 서버 확정 시각이 빠른 사람이 높은 순위다. 예를 들어 같은 스테이지 14·38라운드를 10:00에 확정한 계정은 10:05에 확정한 계정보다 높다. 시각까지 정확히 같은 경우에만 공동 순위를 적용하고 내부 계정 ID는 목록 순서만 고정한다. `success`도 별도 가산점으로 사용하지 않는다.
 
-집계 가능한 진행 범위는 스테이지 1~15, 완료 라운드 0~40이다. 마지막 스테이지까지 같은 기록을 달성해도 먼저 서버에서 확정한 기록이 위에 온다. 클리어에 걸린 시간이 짧은 순서가 아니라, 해당 기록을 먼저 확정한 순서다. 플레이 시간·재화는 정렬에 사용하지 않는다.
+집계 가능한 진행 범위는 고정 ID 1~30(`gamesave.CurrentStageCount`), 완료 라운드 0~40이다. 고정 ID와 진행 순번의 대응은 [콘텐츠 확장 진행표](../godot/content/README.md#확장-진행과-고정-id)를 따르며, DB는 같은 대응을 `stage_progression_ordinal()`로 계산한다. 마지막 스테이지까지 같은 기록을 달성해도 먼저 서버에서 확정한 기록이 위에 온다. 클리어에 걸린 시간이 짧은 순서가 아니라, 해당 기록을 먼저 확정한 순서다. 플레이 시간·재화는 정렬에 사용하지 않는다.
 
 ## 화면과 상태
 
@@ -55,16 +55,16 @@
 | 필드 | 의미 |
 |---|---|
 | board_key, rules_version, account_id | 계정별 최고 기록의 복합 키 |
-| stage_number, completed_rounds | 정렬 기준 |
+| stage_number, completed_rounds | 저장된 고정 ID와 완료 라운드. 정렬은 `stage_progression_ordinal(stage_number)` 사용 |
 | source_command_id | 원본 서버 정산 연결, 저장 출처이면 null |
 | source_save_revision | 원본 승인 저장 revision, 정산 출처이면 null. 두 출처 중 하나만 설정 |
 | achieved_at | 해당 최고 기록의 저장 또는 정산을 처음 서버에서 승인한 시각. 서버 DB 시계로 생성하며 동점 판정에 사용 |
 
-`board_key=progression`, `rules_version=1`로 시작한다. 버전은 시즌이 아니라 비교 규칙·스테이지 구성 변경을 구분하기 위한 값이다. 동일/낮은 기록은 시각과 원본 연결까지 덮어쓰지 않는다. 동시 정산은 조건부 upsert로 더 좋은 기록만 보존한다. 정렬용 인덱스를 추가하고 sqlc 생성 파일은 기존 생성 경로로 갱신한다.
+`board_key=progression`, `rules_version=1`로 시작한다. 버전은 시즌이 아니라 비교 규칙·스테이지 구성 변경을 구분하기 위한 값이다. 맵 확장(migration 012·013)은 저장된 고정 ID·달성 시각을 바꾸지 않고 정렬 순서만 진행 순번으로 바꿨으며 rules_version은 유지했다. 동일/낮은 기록은 시각과 원본 연결까지 덮어쓰지 않는다. 동시 정산은 조건부 upsert로 더 좋은 기록만 보존한다. 정렬용 인덱스를 추가하고 sqlc 생성 파일은 기존 생성 경로로 갱신한다.
 
 `GET /v1/leaderboards/progression`을 기존 인증 미들웨어 아래 추가한다. 응답은 `rulesVersion`, `asOf`, `entries`(상위 100명), `myEntry`(없으면 null)다. 각 행은 `rank`, `displayName`, `stageNumber`, `completedRounds`, `achievedAt`(UTC), `isMe`를 담는다. 내부 계정 UUID·이메일·Google 식별자는 반환하지 않는다. 표시명은 기존 닉네임·4자리 태그 규칙을 재사용한다.
 
-순위는 활성·닉네임 설정 계정만 먼저 필터링한 전체 집합에서 `RANK() OVER (ORDER BY stage_number DESC, completed_rounds DESC, achieved_at ASC)`로 계산한 뒤 상위 목록과 내 행을 선택한다. 목록 100명 밖에서도 내 실제 순위를 반환한다. 공동 순위가 100명 경계를 걸쳐도 목록은 최대 100행만 보여준다. 첫 버전은 페이지 이동 없이 상위 100명으로 제한한다. 조회 내 목록과 내 순위는 하나의 일관된 DB 스냅샷을 사용한다.
+순위는 활성·닉네임 설정 계정만 먼저 필터링한 전체 집합에서 `RANK() OVER (ORDER BY stage_progression_ordinal(stage_number) DESC, completed_rounds DESC, achieved_at ASC)`로 계산한 뒤 상위 목록과 내 행을 선택한다. 목록 100명 밖에서도 내 실제 순위를 반환한다. 공동 순위가 100명 경계를 걸쳐도 목록은 최대 100행만 보여준다. 첫 버전은 페이지 이동 없이 상위 100명으로 제한한다. 조회 내 목록과 내 순위는 하나의 일관된 DB 스냅샷을 사용한다.
 
 ## 기록 이관과 신뢰도
 
@@ -81,20 +81,20 @@
 1. 위 순위·범위·기존 기록 등록 정책을 기준으로 DB migration, query, leaderboard 서비스 구현.
 2. 기존 정산 트랜잭션에서 조건부 최고 기록 갱신. 영수증 재시도·동시 요청·롤백 검증.
 3. 인증 조회 API와 상위 100명·내 순위 조회 구현. 비활성 계정 제외 및 표시명 노출 검증.
-4. Flutter API/model과 기존 인증 갱신 경로 연결. 로비 버튼의 안내 팝업을 실제 화면으로 교체.
+4. 클라이언트 API/model과 기존 인증 갱신 경로 연결. 로비 버튼의 안내 팝업을 실제 화면으로 교체. (도입 당시 Flutter 클라이언트, 현재는 [기존 구조와 연결](#기존-구조와-연결)의 Godot 경로)
 5. 초기 빈 상태, 게스트, 로그인 만료, 네트워크 오류, 계정 전환, 작은 화면·글자 확대, 실기 렌더 검증.
 
 핵심 테스트: 스테이지 우선 비교, 동일 스테이지 라운드 비교, 동일 진행도에서 먼저 확정한 기록 우선, 기록·시각까지 같은 경우 공동 순위, 재도전·재시도로 최초 시각 보존, 더 높은 기록 갱신 시 새 시각 사용, 0라운드 제외, 낮은 기록으로 퇴행 방지, 동일 run 재요청, 동시 최고 기록 갱신, 정산 실패 시 집계 미반영, 100위 밖 내 순위, 과거 영수증 등록 제외. 기존 계정·저장·경제 정산 회귀 테스트를 함께 수행한다.
 
-변경 후보: 기존 `server/internal/economy/run_rewards.go`, `server/internal/httpapi/handler.go`, `server/cmd/api/main.go`, `lib/app/rune_nexus_app.dart`, `lib/ui/menu/main_menu_lobby.dart`. 신규 leaderboard SQL migration/query, 서버 service/handler, Flutter API/model/화면. 기존 경제 서비스를 광범위하게 재구성하거나 외부 랭킹 서비스를 추가하지 않는다.
+도입 당시 변경 후보(제거된 Flutter 클라이언트 경로 포함): 기존 `server/internal/economy/run_rewards.go`, `server/internal/httpapi/handler.go`, `server/cmd/api/main.go`, `lib/app/rune_nexus_app.dart`, `lib/ui/menu/main_menu_lobby.dart`. 신규 leaderboard SQL migration/query, 서버 service/handler, Flutter API/model/화면. 기존 경제 서비스를 광범위하게 재구성하거나 외부 랭킹 서비스를 추가하지 않는다.
 
 ## 초기 도입 이력 (migration 009)
 
 아래는 초기 정산 출처 구현의 기록이다. 현행 저장 출처·시각·010 조건은 위 데이터 표와 아래 집계 계약을 따른다.
 
 - 새 테이블은 migration 적용 시 비어 있다. 이미 완료된 정산은 기존 영수증 경로에서 반환하므로 소급 등록하지 않는다. 서버 코드 활성화 이후 새로 완료되는 정산부터 집계한다.
-- Flutter 조회는 기존 `OnlineAccountSessionController`의 인증 갱신을 재사용한다. 열린 모달은 서버 정산 성공 알림으로 다시 조회하고 계정이 바뀌면 이전 응답을 폐기한다.
-- 운영 화면에는 예시 데이터가 없다. 디자인 검증 데이터는 `test/leaderboard_dialog_test.dart`에만 있으며 `design/leaderboard/implemented_preview.png`는 그 예시를 실제 위젯으로 렌더한 이미지다.
+- 당시 Flutter 조회는 기존 `OnlineAccountSessionController`의 인증 갱신을 재사용한다. 열린 모달은 서버 정산 성공 알림으로 다시 조회하고 계정이 바뀌면 이전 응답을 폐기한다.
+- 운영 화면에는 예시 데이터가 없다. 당시 디자인 검증 데이터는 제거된 Flutter 테스트 `test/leaderboard_dialog_test.dart`에만 있었으며 `design/leaderboard/implemented_preview.png`는 그 예시를 당시 위젯으로 렌더한 이미지다. 현재 Godot 화면 검사는 `godot/verify_leaderboard_ui.gd`다.
 - 초기 구현 시에는 운영 배포를 수행하지 않았다. 이후 배포 상태와 필요한 후속 migration은 [배포 인계](deployment_status.md)에서 관리한다. 신규 정산 코드는 migration `009_leaderboard_records.sql`을 서버 코드보다 먼저 적용한다. 기존 저장·경제 데이터를 재작성하지 않는다.
 - 서버 테스트는 격리 PostgreSQL에서 migration 001~009, 정산 원자성·재시도·순위 비교를 검증한다. 클라이언트는 API 오류·인증 만료·응답 경합·계정 전환·반응형·로비 연결을 검증한다.
 
@@ -102,7 +102,7 @@
 
 진행 중 집계에는 migration 010이 필요하며 적용 상태는 배포 인계에서 확인한다. 저장 JSON과 조회 응답 형식은 유지한다.
 
-전투 종료 정산뿐 아니라 기존 `PUT /v1/save`가 승인한 진행 중 런도 집계한다. `activeRun.stageNumber`(1~15)와 `activeRun.completedRounds`(1~40)만 사용한다. 진입 중인 `roundIndex`와 과거 최고 `progression.bestRoundsByStage`는 사용하지 않는다. 누락·비정수·범위 밖 값은 기존 저장 호환성을 유지하면서 랭킹 집계에서 제외한다.
+전투 종료 정산뿐 아니라 기존 `PUT /v1/save`가 승인한 진행 중 런도 집계한다. `activeRun.stageNumber`(고정 ID 1~30)와 `activeRun.completedRounds`(1~40)만 사용한다. 진입 중인 `roundIndex`와 과거 최고 `progression.bestRoundsByStage`는 사용하지 않는다. 누락·비정수·범위 밖 값은 기존 저장 호환성을 유지하면서 랭킹 집계에서 제외한다.
 
 저장의 writer·revision·영수증 검사를 통과한 뒤 같은 트랜잭션에서 최고 기록을 갱신한다. 저장 본문·revision·영수증·랭킹 기록은 함께 커밋 또는 롤백된다. 리더보드 진입과 새로고침은 최신 저장 flush 완료를 기다린 뒤 조회한다. GET은 계속 읽기 전용이며 과거 저장 JSON에서 기록을 소급 생성하지 않는다.
 
