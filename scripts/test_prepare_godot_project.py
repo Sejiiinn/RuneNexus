@@ -399,7 +399,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                     self.assertIn("compress/normal_map=2", policy)
                     self.assertIn("mipmaps/generate=true", policy)
                     self.assertIn("detect_3d/compress_to=0", policy)
-                    capped = original.stem in ("fast", "fast_death", "tank", "tank_death", "frost")
+                    capped = original.stem in ("fast", "fast_death", "tank", "tank_death", "shielded", "frost")
                     if capped:
                         self.assertIn("process/size_limit=1024", policy)
                     else:
