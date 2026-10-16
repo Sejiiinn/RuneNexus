@@ -1,92 +1,70 @@
-# Codex Git 커밋 가이드
+# Git 커밋 절차
 
-실행 권한은 [현재 권한 가이드](../.agents/sandbox_command_guide.md)를 따른다. 아래는 커밋 범위·검증 절차이며 별도 승인 정책을 만들지 않는다.
-
-## 반복 문제
-
-Codex 샌드박스 환경에서는 `git add` 또는 `git commit`이 아래 오류로 실패할 수 있다.
-
-```text
-fatal: Unable to create '.git/index.lock': Permission denied
-```
-
-이 문제는 실제 `.git/index.lock` 파일이 남아 있어서만 발생하는 문제가 아니다. 현재 실행 권한 경계에서 `.git` 메타데이터 쓰기가 막혀 생길 수 있다.
+역할: 커밋 범위 선정·스테이징 검증·푸시 확인 절차. 정리: 2026-10-16 KST. 메시지 형식·추적 대상 기준은 [AGENTS.md 커밋](../AGENTS.md#커밋), 실행 권한은 [권한 기준](../.agents/sandbox_command_guide.md)을 따른다. 별도 승인 정책을 만들지 않는다.
 
 ## 원칙
 
-- 작업 범위가 섞여 있으면 `git add -A`를 사용하지 않는다.
-- 커밋 대상 파일을 명시한다.
-- 서버 로그, PID 파일, 일회성 검증 스크린샷, 플랫폼 generated 줄바꿈 변경은 별도 요청 없이는 커밋하지 않는다.
-- 실제 권한 오류가 나면 원인을 확인하고 현재 세션 정책이 허용하는 경우에만 필요한 실행 권한을 요청한다.
-- 명령 이름이나 예상 오류만으로 사전 승인을 요청하지 않는다. 승인 요청이 금지된 세션에서는 확대 요청·우회를 하지 않는다.
+- 작업 범위가 섞여 있으면 `git add -A`·`git add .`를 쓰지 않고 커밋 대상 경로를 명시한다.
+- 성격이 다른 변경은 커밋을 나눈다. 같은 파일에 두 성격이 섞이면 부분 스테이징한다.
+- 파일 이동·이름 변경은 `git mv`로 기록하고, 이동 전후 내용이 같은지(`R100`) 확인한다.
+- 이미 추적 중인 파일은 `.gitignore`만으로 제외되지 않는다. 추적 해제는 승인 범위 안에서 로컬 파일을 보존하며 별도로 수행한다.
+- 커밋·푸시는 요청이나 기존 승인 범위에 있을 때만 수행한다.
 
 ## 표준 절차
 
-1. 상태 확인
+1. 상태와 기존 스테이징 확인. 다른 작업이 미리 스테이징한 파일이 섞이지 않게 한다.
 
-```powershell
+```bash
 git status --short --branch
+git diff --cached --name-only
 git log --oneline --decorate -5
 ```
 
-2. 커밋 대상 diff 확인
+2. 대상 diff 확인 후 명시 스테이징
 
-```powershell
+```bash
 git diff -- <파일1> <파일2>
-```
-
-3. 명시 스테이징
-
-```powershell
 git add -- <파일1> <파일2>
 ```
 
-권한 오류 시 현재 권한 가이드에 따라 처리한다.
+3. 스테이징 검증. 파일 목록·추가/삭제 줄 수로 대량 산출물이 섞였는지 본다.
 
-4. 스테이징 검증
-
-```powershell
-git diff --cached --name-only
+```bash
 git diff --cached --stat
-git diff --cached
 git diff --cached --check
-git status --short --branch
+git diff --cached
 ```
 
-5. 커밋
+Markdown을 바꿨으면 스테이징 뒤 `python3 scripts/check_doc_links.py --changed`로 링크·앵커를 확인한다([문서 완료 확인](documentation_guide.md#완료-확인)).
 
-```powershell
+4. 커밋. 메시지는 한글, `feat:`·`fix:`·`refactor:`·`chore:` 중 하나로 시작한다.
+
+```bash
 git commit -m "<prefix>: <한글 메시지>"
-```
-
-실제 권한 오류 시 현재 권한 가이드에 따라 처리한다.
-
-6. 커밋 결과 확인
-
-```powershell
-git log --oneline --decorate -4
-git show --stat --oneline --name-status HEAD
+git show --stat --oneline HEAD
 git status --short --branch
 ```
 
-## 임시 산출물과 생성 파일 예시
+권한 오류(예: `.git/index.lock: Permission denied`)는 남은 lock 파일뿐 아니라 실행 환경의 쓰기 제한에서도 생긴다. 원인을 확인하고 [권한 기준](../.agents/sandbox_command_guide.md)에 따라 처리한다.
 
-다음 항목은 보통 임시 산출물이다. 요청과 직접 관련된 확정 디자인 원본·기준 캡처와 구분해 스테이징한다.
+## 커밋하지 않는 로컬 산출물
 
-- `flutter_web_server.err.log`
-- `flutter_web_server.out.log`
-- `flutter_web_server.pid`
-- `ui-candidate-screenshots/`
-- `linux/flutter/generated_*`
-- `macos/Flutter/GeneratedPluginRegistrant.swift`
-- `windows/flutter/generated_*`
+아래는 기본적으로 로컬 보관 대상이다. 대부분 `.gitignore`에 규칙이 있으며, 새 작업 폴더에서 같은 종류가 생기면 해당 경로 규칙을 추가한다. 요청과 직접 관련된 확정 원본·대표 검증 화면은 구분해 스테이징한다.
 
-## 푸시 주의
+- 실행·검사 로그(`*.log`), 원시 측정 덤프, 일회성 검사 스크립트
+- 인게임 검증의 격리 저장 폴더(`isolated-save-*/`)와 캡처 스크립트 출력(`captures/`, `turn-captures/`)
+- 원본에서 다시 렌더할 수 있는 미리보기 프레임(`frames/`, `tile-frames/`). 아틀라스·패킹 입력이면 추적 대상이다.
+- Blender 세션 보존본(`design/blender_sessions/`)과 자동 백업(`*.blend1` 등)
+- 생성 디렉터리(`build/`, `.godot/`, `__pycache__/`)
+- 제거한 Flutter 플랫폼 폴더(`ios/`, `linux/`, `macos/`, `windows/`, `android/`)에 남은 생성 파일
 
-현재 브랜치가 `origin/main`보다 여러 커밋 앞서 있을 수 있다. 푸시 전에는 반드시 아래를 확인한다.
+## 푸시 전 확인
 
-```powershell
+현재 브랜치가 `origin/main`보다 여러 커밋 앞서 있을 수 있다.
+
+```bash
+git fetch origin
 git log --oneline origin/main..HEAD
 ```
 
-푸시할 커밋이 기존 요청·승인 범위에 포함되는지 확인한다. 포함되면 재승인 없이 진행하고, 무관한 커밋이 섞여 있어 범위를 판단할 수 없을 때만 사용자에게 확인한다.
+푸시할 커밋이 모두 요청·승인 범위에 포함되면 재승인 없이 진행한다. 무관한 커밋이 섞여 범위를 판단할 수 없을 때만 사용자에게 확인한다. `main` 푸시는 APK 배포를 시작하지 않는다(`deploy-apk.yml`은 수동 실행).
