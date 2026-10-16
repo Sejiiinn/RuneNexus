@@ -8,8 +8,10 @@ build/
 # Local in-app server artifacts
 flutter_web_server.*
 
-# Local agent/tool artifacts
-.claude/
+# Local agent/tool artifacts (Claude 지침·스킬만 추적, launch.json·개인 설정은 로컬)
+/.claude/*
+!/.claude/CLAUDE.md
+!/.claude/skills/
 .codegraph/
 artifacts/
 
