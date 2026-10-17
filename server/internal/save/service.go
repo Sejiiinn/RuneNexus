@@ -235,6 +235,18 @@ func (service *Service) ClaimWriter(
 		return ClaimWriterResult{}, ErrClientUpdateRequired
 	}
 
+	if request.ClientCompatibilityVersion < PiercingClientCompatibilityVersion {
+		active, activeErr := txQueries.GetActiveEconomyRunForUpdate(ctx, databaseAccountID)
+		if activeErr != nil && !errors.Is(activeErr, pgx.ErrNoRows) {
+			return ClaimWriterResult{}, activeErr
+		}
+		if activeErr == nil {
+			if err := ValidateGemContentClient(active.GemDeck, request.ClientCompatibilityVersion); err != nil {
+				return ClaimWriterResult{}, err
+			}
+		}
+	}
+
 	snapshot, snapshotErr := txQueries.GetSaveSnapshot(ctx, databaseAccountID)
 	if snapshotErr == nil {
 		if err := ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, request.ClientCompatibilityVersion); err != nil {
@@ -386,6 +398,18 @@ func (service *Service) Update(
 	if header.Revision != request.ExpectedRevision {
 		return UpdateResult{}, &RevisionConflictError{
 			CurrentRevision: header.Revision,
+		}
+	}
+
+	if request.ClientCompatibilityVersion < PiercingClientCompatibilityVersion {
+		active, activeErr := txQueries.GetActiveEconomyRunForUpdate(ctx, databaseAccountID)
+		if activeErr != nil && !errors.Is(activeErr, pgx.ErrNoRows) {
+			return UpdateResult{}, activeErr
+		}
+		if activeErr == nil {
+			if err := ValidateGemContentClient(active.GemDeck, request.ClientCompatibilityVersion); err != nil {
+				return UpdateResult{}, err
+			}
 		}
 	}
 

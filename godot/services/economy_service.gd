@@ -4,7 +4,7 @@ const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
 const GemResult = preload("res://app/gem_command_result.gd")
 const GemDeck = preload("res://app/gem_deck.gd")
-const COMPATIBILITY := 10
+const COMPATIBILITY := 11
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed

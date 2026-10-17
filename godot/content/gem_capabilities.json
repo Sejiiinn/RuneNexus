@@ -1,0 +1,10 @@
+{
+  "labels": {
+    "projectile": "투사체"
+  },
+  "gemRequirements": {
+    "piercing": [
+      "projectile"
+    ]
+  }
+}

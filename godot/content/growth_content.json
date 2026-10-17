@@ -6019,7 +6019,8 @@
     "aimSpeed",
     "damageAmplifier",
     "armorPiercing",
-    "multipleProjectiles"
+    "multipleProjectiles",
+    "piercing"
   ],
   "roundShardRewards": [
     0,
@@ -6147,6 +6148,9 @@
         "damageAmplifier",
         "armorPiercing",
         "multipleProjectiles"
+      ],
+      "attackCapabilities": [
+        "projectile"
       ]
     },
     "cannon": {
@@ -6197,6 +6201,9 @@
         "damageAmplifier",
         "armorPiercing",
         "multipleProjectiles"
+      ],
+      "attackCapabilities": [
+        "projectile"
       ]
     },
     "magic": {
@@ -6246,6 +6253,9 @@
         "damageAmplifier",
         "armorPiercing",
         "multipleProjectiles"
+      ],
+      "attackCapabilities": [
+        "projectile"
       ]
     },
     "frost": {
@@ -6293,7 +6303,8 @@
         "criticalChance",
         "damageAmplifier",
         "armorPiercing"
-      ]
+      ],
+      "attackCapabilities": []
     },
     "sniper": {
       "buildCost": 120,
@@ -6341,7 +6352,8 @@
         "aimSpeed",
         "damageAmplifier",
         "armorPiercing"
-      ]
+      ],
+      "attackCapabilities": []
     },
     "lightning": {
       "buildCost": 140,
@@ -6390,7 +6402,8 @@
         "criticalChance",
         "damageAmplifier",
         "armorPiercing"
-      ]
+      ],
+      "attackCapabilities": []
     }
   },
   "coreConfig": {

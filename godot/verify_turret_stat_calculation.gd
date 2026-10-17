@@ -14,6 +14,13 @@ func _initialize() -> void:
 			continue
 		cases += fixtures.size()
 		for fixture: Dictionary in fixtures:
-			compare.matches(Calculation.resolve(fixture.input), fixture.expected, fixture.name)
+			var actual := Calculation.resolve(fixture.input)
+			compare.matches(actual, fixture.expected, fixture.name)
+			# Frozen migration fixtures predate piercing. Explicitly verify the new
+			# default rather than changing captured expectations or silently skipping it.
+			if not fixture.expected.has("pierceCount"):
+				compare.matches(actual.get("pierceCount", -1), 0, fixture.name + "/pierceCount extension")
+			if not fixture.expected.snapshot.has("pierceCount"):
+				compare.matches(actual.snapshot.get("pierceCount", -1), 0, fixture.name + "/snapshot/pierceCount extension")
 	print(JSON.stringify({"cases": cases, "checks": compare.checks, "failures": compare.failures}))
 	quit(0 if compare.failures.is_empty() else 1)

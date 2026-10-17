@@ -106,7 +106,7 @@ func run() -> void:
 	check(not result.ok and app._pending_gem_reroll(), "failed canonical choice save stays pending")
 	check(host.receipts.size() == 4 and app.run_domain.state.turrets[0].equippedGemSlots[0] == "range", "failed reward persistence does not equip or emit cue")
 	var posts: Array = http.sent.filter(func(item): return item.url.ends_with("/gems/choose"))
-	check(posts.size() == 4 and posts.all(func(item): return JSON.parse_string(item.body).clientCompatibilityVersion == 10 and item.headers.Authorization == "Bearer fixture-access"), "all reward choices use authenticated generation10 server transport")
+	check(posts.size() == 4 and posts.all(func(item): return JSON.parse_string(item.body).clientCompatibilityVersion == 11 and item.headers.Authorization == "Bearer fixture-access"), "all reward choices use authenticated generation11 server transport")
 	# Effect rendering, fade and lifetime are covered by the actual-renderer visual check.
 	check(host.combat_runtime.clock == 0.0, "feedback does not advance combat")
 	check(fixture.failures.is_empty() and gems.failures.is_empty(), "shared account/offer fixture setup")

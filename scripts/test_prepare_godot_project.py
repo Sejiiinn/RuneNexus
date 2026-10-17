@@ -226,7 +226,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
 
     def test_app_ui_limits_are_exact_and_exclude_cropped_or_fullscreen_art(self):
         self.assertEqual(len(preparation._CORE_FRAME_NAMES), 8)
-        self.assertEqual(len(preparation._GEM_NAMES), 14)
+        self.assertEqual(len(preparation._GEM_NAMES), 15)
         for relative in preparation._CORE_FRAME_NAMES:
             self.assertEqual(preparation._app_texture_size_limit(relative), 512)
         for name in preparation._GEM_NAMES:
@@ -432,7 +432,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
                     patch.object(preparation, "check_generated") as content_check, \
                     patch.object(preparation, "load_compiled_content", return_value=catalog) as content_load, \
                     patch.object(preparation, "compile_progression") as progression_check, \
-                    patch.object(preparation, "compile_core_tree") as core_check:
+                    patch.object(preparation, "compile_core_tree") as core_check, \
+                    patch.object(preparation, "compile_capabilities") as capability_check:
                 write(source / "content/source/authoring.json", b"source must not be packaged")
                 write(project / "content/source/old.json", b"old staged source")
                 preparation.prepare()
@@ -441,6 +442,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 content_load.assert_called_with(source / "content/game_content.json")
                 progression_check.assert_called_with(root, check=True)
                 core_check.assert_called_with(root, check=True)
+                capability_check.assert_called_with(root, check=True)
                 self.assertFalse((project / "content/source").exists())
                 self.assertEqual(len(json.loads((project.parent / "chapter_one_frames.json").read_text())), 5)
                 self.assertEqual(len(json.loads((project.parent / "chapter_two_frames.json").read_text())), 5)

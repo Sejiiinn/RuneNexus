@@ -1,4 +1,5 @@
 extends RefCounted
+const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Adapts the native run owner to the existing selection renderer's tile units.
 ## Call after selection/run commands; no simulation or per-frame stat calculation.
 const GemPalette = preload("res://ui/battle_rewards.gd")
@@ -61,7 +62,7 @@ func _build_state(app) -> void:
 		if rewarding:
 			var gem: String = rewards.pending_gem
 			var rules: Dictionary = app.run_domain.growth.data.turretRules.get(turret.type, {})
-			if gem in rules.get("compatibleGems", []) and gem not in turret.equippedGemSlots:
+			if GemSlots.is_compatible(gem,rules) and gem not in turret.equippedGemSlots:
 				selection.rewardTargets.append({"position":entry.position,"requiresReplacement":not null in turret.equippedGemSlots})
 	if rewarding: return
 	if selected_id >= 0: return

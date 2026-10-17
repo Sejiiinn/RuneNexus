@@ -121,6 +121,11 @@
       "name": "다중 투사체",
       "description": "투사체 +2\n피해 50% 감폭",
       "value": 2.0
+    },
+    "piercing": {
+      "name": "관통",
+      "description": "적 2명 관통\n피해 감소 없음",
+      "value": 2
     }
   }
 }

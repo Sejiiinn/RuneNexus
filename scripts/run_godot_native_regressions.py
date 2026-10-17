@@ -18,6 +18,8 @@ from prepare_godot_project import app_ui_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_projectile_piercing.gd": "PROJECTILE_PIERCING checks=",
+    "verify_piercing_content.gd": "PASS projectile gem content:",
     "verify_expanded_tree_combat.gd": "EXPANDED_TREE_COMBAT checks=",
     "verify_stockpile_firing.gd": None,
     "verify_expanded_tree_integration.gd": "EXPANDED_TREE_INTEGRATION checks=",

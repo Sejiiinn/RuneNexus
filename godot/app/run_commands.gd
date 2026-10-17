@@ -192,7 +192,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 				if kind == "equipGem":
 					var gem := str(command.get("type",""))
 					if int(next.gemInventory.get(gem,0)) <= 0: return _reject(state,"inventory")
-					if not GemSlots.can_equip(t, gem, _rule(t.type).get("compatibleGems",[])): return _reject(state,"gem")
+					if not GemSlots.can_equip(t, gem, _rule(t.type)): return _reject(state,"gem")
 					next.gemInventory[gem] -= 1
 					if next.gemInventory[gem] == 0: next.gemInventory.erase(gem)
 					GemSlots.replace_owned(t, slot, gem, next.gemInventory)
@@ -284,7 +284,7 @@ func _choose_reward(state: Dictionary, _command: Dictionary) -> Dictionary:
 func validate_reward_equip(state: Dictionary, command: Dictionary) -> bool:
 	if state.get("phase") != "reward" or command.get("type") not in state.get("rewardOptions", []): return false
 	var target := turret(state, int(command.get("id", -1)))
-	if target.is_empty() or not GemSlots.can_equip(target, str(command.type), _rule(target.type).get("compatibleGems", [])): return false
+	if target.is_empty() or not GemSlots.can_equip(target, str(command.type), _rule(target.type)): return false
 	var slot := int(command.get("slot", -1))
 	if command.get("buySlot", false):
 		var cost := int(quotes(state, int(target.id)).get("link", 0))

@@ -118,3 +118,12 @@ GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py
 ```
 
 최종 화면은 Android 앱에서 별도로 확인한다. 이 모듈은 콘텐츠 설정 경로다. 런·성장 명령은 [앱 도메인](../app/run_commands_README.md), 저장·서비스 연결은 [앱 저장 안내](../app/README.md)를 따른다. headless 검사는 기기 인증·저장 인계·배포 검증을 대체하지 않는다.
+
+## 관통 젬과 공격 기능 태그
+
+- `piercing`(관통)은 `armorPiercing`(장갑 관통)과 별개다. 관통 횟수 +2는 최초 명중을 포함해 최대 3명에게 직접 명중하며, 관통 자체의 피해 감폭은 없다. 각 직접 명중에 기존 상태이상을 적용한다.
+- 포탑 정의의 `attackCapabilities`와 `growth_content.json`의 같은 기능 태그를 사용한다. `gem_capabilities.json`의 `gemRequirements`를 공통 장착 규칙이 평가하므로 관통 젬을 포탑별 `compatibleGems`에 나열하지 않는다. 태그의 한국어 표시도 이 메타데이터를 공유한다. 포탑 원본 태그를 수정한 뒤 `python scripts/compile_gem_capabilities.py`를 실행하면 성장 장착 규칙의 태그 사본과 서버 표가 함께 갱신된다.
+- 관통 수치는 전투의 공통 투사체 효과 계산에 합산된다. 포탑 기본 `pierceCount`, 젬 효과, `attackModifiers`를 같은 경로로 처리한다.
+- 폭발은 남은 관통 횟수가 0인 충돌에서만 발생한다. 이미 관통한 적도 마지막 폭발의 범위 피해를 받을 수 있다. 직접 충돌의 중복 명중만 방지한다. 대상 부족으로 비행이 끝나면 폭발하지 않는다.
+- 연쇄는 관통 소진 뒤 기존 피해·범위 감폭 규칙으로 진행하며, 관통 횟수를 재충전하지 않는다. 투사체 각각이 독립된 관통 예산과 직접 명중 이력을 가진다.
+- 신규 클라이언트 호환 세대 11의 새 후보부터 관통을 제공한다. 기존 발급 덱은 변경하지 않는다. 클라이언트보다 서버·DB 변경을 먼저 배포해야 한다.
