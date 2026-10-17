@@ -533,6 +533,19 @@ func _area() -> void:
 	near(r.turrets["1"].stats.splashRadius,0,"frost does not gain duplicate explosion")
 	near(r.enemies["1"].hp,996,"frost expanded area includes near outside-base-range enemy")
 	near(r.enemies["2"].hp,1000,"frost outside expanded area excluded")
+	# Presentation routing only: explosion sniper hits use the 3D blast.
+	i=_input("sniper")
+	i.gems=["explosion"]
+	r=_runtime(i,[_raw(1,20),_raw(2,40)])
+	r._impact(r.turrets["1"],_attack(r),r.enemies["1"],Vector2(20,0))
+	var sniper_visual: Dictionary = r.visual_effects.filter(func(v): return v.kind != "damage")[-1]
+	check(sniper_visual.kind=="blast" and is_equal_approx(float(sniper_visual.radius),42.5) and sniper_visual.get("variant")=="sniperEnergy" and is_equal_approx(float(sniper_visual.duration),0.6),"explosion sniper hit uses its energy blast at splash radius")
+	near(r.enemies["2"].hp,980,"explosion sniper splash damage unchanged by blast routing")
+	i.gems=[]
+	r=_runtime(i,[_raw(1,20)])
+	r._impact(r.turrets["1"],_attack(r),r.enemies["1"],Vector2(20,0))
+	sniper_visual = r.visual_effects.filter(func(v): return v.kind != "damage")[-1]
+	check(sniper_visual.kind=="impact" and sniper_visual.style=="spark","plain sniper hit keeps flat spark")
 	for type in ["arrow","cannon","magic","frost","sniper","lightning"]:
 		i=_input(type)
 		i.gems=["chain"]

@@ -1,5 +1,7 @@
 extends SceneTree
 const FrameRows = preload("res://presentation/frame_rows.gd")
+const Projectiles = preload("res://presentation/battlefield_projectiles.gd")
+const SniperBlast = preload("res://effects/sniper_energy_blast.gd")
 
 var failures := 0
 
@@ -82,20 +84,47 @@ func _verify() -> void:
 	frame["presentation"]["effects"]["events"] = [second]
 	scene.apply_frame(frame)
 	_check(scene.impacts[102] == impact and impact._sparks.multimesh == sparks, "new blast must reuse the existing pool")
+	# Explosion sniper blasts use their own pooled node and need no field cache.
+	var energy := second.duplicate(true)
+	energy["id"] = 103
+	energy["variant"] = "sniperEnergy"
+	energy["duration"] = 0.6
+	energy["born"] = 6.6
+	energy["radius"] = 42.5
 	frame["seq"] = 6
+	frame["presentation"]["effects"]["events"] = [energy]
+	scene.apply_frame(frame)
+	var energy_blast: Node3D = scene.impacts.get(103)
+	_check(energy_blast is SniperBlast and scene.impacts[102] == impact, "energy blast must use its own renderer beside the cannon blast")
+	if energy_blast is SniperBlast:
+		_check(energy_blast.scale.is_equal_approx(Vector3.ONE * 42.5 / 48.0), "energy blast shockwave must scale to the splash radius in tiles")
+		_check(energy_blast.position.is_equal_approx(Vector3(4.0 - scene.columns / 2.0, 0, 5.0 - scene.rows / 2.0)), "energy blast anchor moved")
+		_check(is_equal_approx(energy_blast._materials[0].get_shader_parameter("u_age"), 0.1), "energy blast age must follow its own duration")
+		var spark_transforms: MultiMesh = energy_blast._sparks.multimesh
+		_check(range(spark_transforms.instance_count).all(func(i): return spark_transforms.get_instance_transform(i) == Transform3D.IDENTITY), "energy sparks need identity transforms or their shader positions collapse")
+	_check(scene.impact_lights.any(func(light): return light.visible and light.light_color.is_equal_approx(Projectiles.IMPACT_LIGHT_COLORS["sniperEnergy"])), "energy blast light must use the teal color")
+	_check(scene.impact_lights.any(func(light): return light.visible and light.light_color.is_equal_approx(Projectiles.IMPACT_LIGHT_COLORS[""])), "cannon blast light must keep its color")
+	_check(FrameRows.serialized(scene.last_frame).impacts.any(func(row): return row.size() == 6 and row[5] == "sniperEnergy"), "energy variant must survive row serialization")
+	_check(FrameRows.serialized(scene.last_frame).impacts.any(func(row): return row.size() == 5 and int(row[0]) == 102), "cannon rows must keep the five-value format")
+	frame["seq"] = 7
 	frame["presentation"]["effects"] = {"generation": 1, "clock": 6.8, "events": []}
 	scene.apply_frame(frame)
 	_check(scene.impacts.is_empty(), "combat cancellation must clear native 3D blasts")
-	frame["seq"] = 7
+	frame["seq"] = 8
 	frame["presentation"]["effects"] = {"generation": 0, "clock": 6.8, "events": [second]}
 	scene.apply_frame(frame)
 	_check(scene.impacts.is_empty(), "stale generation must not revive cancelled blasts")
 	# No effects payload preserves the full-array legacy/preview protocol.
-	frame["seq"] = 8
+	frame["seq"] = 9
 	frame.erase("presentation")
 	frame["impacts"] = [[200, 4, 5, 1.2, .3]]
 	scene.apply_frame(frame)
 	_check(scene.impacts.has(200) and is_equal_approx(scene.impacts[200]._volume_material.get_shader_parameter("u_progress"), .3), "legacy full impacts preview regressed")
+	# Cannon blasts keep their lights ahead of explosion-sniper blasts.
+	scene._update_impacts([[300, 1, 1, .9, .1, "sniperEnergy"], [301, 2, 1, .9, .1, "sniperEnergy"],
+		[302, 3, 1, .9, .1, "sniperEnergy"], [303, 4, 1, .9, .1, "sniperEnergy"], [304, 5, 5, 1.2, .3]])
+	_check(scene.impact_lights.any(func(light): return light.visible and light.light_color.is_equal_approx(Projectiles.IMPACT_LIGHT_COLORS[""])), "sniper blasts must not take the cannon blast light")
+	scene._update_impacts([])
 	scene.queue_free()
 	await process_frame
 	print("Blast lifecycle integration: %s (%d failures)" % ["PASS" if failures == 0 else "FAIL", failures])

@@ -11,6 +11,8 @@ const EffectFormat = preload("res://combat/effect_presentation.gd")
 const FrameRows = preload("res://presentation/frame_rows.gd")
 # Match the authored 1.1-second cannon impact; generic hits last only 0.28s.
 const BLAST_DURATION: float = 1.1
+## Matches effects/sniper_energy_blast.gd DURATION.
+const SNIPER_BLAST_DURATION: float = 0.6
 const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
 # Extend fired shots without changing turret or chain target acquisition ranges.
 const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
@@ -1051,6 +1053,12 @@ func _lightning_complete(t: Dictionary, a: Dictionary, used: int) -> void:
 func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false, direction: Vector2 = Vector2.ZERO) -> void:
 	var style: String = {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning"}.get(a.definition.type, "spark")
 	var extra := {"style":style,"radius":maxf(10.0 * board_scale, a.splashRadius * (0.5 if chained else 1.0))}
+	if a.definition.type == "sniper" and a.splashRadius > 0:
+		# Explosion sniper hits get their own 3D energy blast whose shockwave stops
+		# at the real splash radius, instead of a stretched flat spark.
+		# Presentation only: damage routing is unchanged.
+		style = "blast"
+		extra.merge({"variant":"sniperEnergy", "duration":SNIPER_BLAST_DURATION})
 	if a.definition.type == "arrow" and direction != Vector2.ZERO:
 		# Presentation routing only: the 3D ricochet uses the incoming flight and
 		# the struck body's lane offset. Damage and collision stay unchanged.
@@ -1384,6 +1392,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 			if reuse_static: impact_rows[v.id] = impact
 			impact.id = v.id; impact.x = v.x; impact.y = v.y
 			impact.radius = float(v.radius)/tile_size; impact.progress = clampf((clock-float(v.born))/float(v.duration),0,1)
+			impact.variant = str(v.get("variant", ""))
 			frame.impacts.append(impact)
 	for p in projectiles:
 		var at: Vector2 = (p.position - origin) / tile_size

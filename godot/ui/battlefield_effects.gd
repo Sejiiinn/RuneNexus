@@ -231,9 +231,11 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 		elif event.get("kind") == "diamond":
 			event["screenOffset"] = [0.0, -24.0 * age]
 		if event.get("kind") == "blast":
-			blast_impacts.append([id, float(event.get("x", 0)), float(event.get("y", 0)),
+			var row := [id, float(event.get("x", 0)), float(event.get("y", 0)),
 				float(event.get("radius", 0)) / maxf(0.001, float(event.get("tileSize", 48))),
-				clampf(age / maxf(0.001, float(event["duration"])), 0, 1)])
+				clampf(age / maxf(0.001, float(event["duration"])), 0, 1)]
+			if not str(event.get("variant", "")).is_empty(): row.append(str(event.variant))
+			blast_impacts.append(row)
 		else:
 			items.append(event)
 	# Compare scalars without assembling a second ID list every frame. Missing

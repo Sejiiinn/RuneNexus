@@ -206,8 +206,13 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 		units._sync_turrets(_turrets(tower_types, 1))
 		projectiles.configure(time, Vector2i(8, 10), options)
 		projectiles._sync_projectiles(_projectiles(tower_types), {})
+		var blasts := []
 		if "cannon" in tower_types:
-			projectiles._update_impacts([[30,3.0,5.0,.8,.08 + time],[31,5.0,5.0,.8,.08 + time]])
+			blasts.append_array([[30,3.0,5.0,.8,.08 + time],[31,5.0,5.0,.8,.08 + time]])
+		if "sniper" in tower_types:
+			# Explosion-gem sniper blast: flash, shards, streaks and shockwave shaders.
+			blasts.append([32,4.0,4.0,.9,.05 + time,Projectiles.SNIPER_VARIANT])
+		if not blasts.is_empty(): projectiles._update_impacts(blasts)
 		await _draw()
 		if not _is_current(scene):
 			_dispose(scene, units, projectiles, viewport)

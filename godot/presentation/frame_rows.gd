@@ -148,15 +148,18 @@ class Impact extends RefCounted:
 	var radius := 0.0
 	## Normalized lifetime 0..1.
 	var progress := 0.0
+	## Blast renderer; empty is the cannon shell blast, "sniperEnergy" the explosion-gem sniper blast.
+	var variant := ""
 
 	static func from_array(d: Array) -> Impact:
 		var row := Impact.new()
 		row.id = int(d[0]); row.x = float(d[1]); row.y = float(d[2])
 		row.radius = float(d[3]); row.progress = float(d[4])
+		if d.size() > 5: row.variant = str(d[5])
 		return row
 
 	func to_array() -> Array:
-		return [id, x, y, radius, progress]
+		return [id, x, y, radius, progress] if variant.is_empty() else [id, x, y, radius, progress, variant]
 
 class BuildPreview extends RefCounted:
 	var x := 0.0
