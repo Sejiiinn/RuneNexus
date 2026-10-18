@@ -192,14 +192,30 @@ func _show_gems() -> void:
 	hud.app.refresh_selection(); hud.refresh()
 
 func _sell_confirm(turret: Dictionary,q: Dictionary) -> void:
-	var box = hud.open_modal("포탑 판매")
-	var detail: Label = UiWidgets.label(box,"%s Lv.%d 포탑을 판매할까요?\n%s 골드를 돌려받고 장착 젬은 보관함으로 돌아갑니다." % [hud.TOWERS.get(turret.type,turret.type),turret.level,HudNumber.compact_price(q.sell)],13)
-	detail.tooltip_text = "판매 환급 · %d 골드" % q.sell
-	box.tooltip_text = detail.tooltip_text
-	var confirm: Button = UiWidgets.button(box,"판매 · +%s 골드" % HudNumber.compact_price(q.sell),func(): _confirm_sale(int(turret.id),int(q.sell)))
-	confirm.tooltip_text = "판매 환급 · %d 골드" % q.sell
-	hud.Components.apply(confirm,"danger")
-	UiWidgets.button(box,"취소",hud.close_modal)
+	# Mirrors the approved end-battle confirmation: one question, the refund as
+	# the single central result, and both actions on one row.
+	var box = hud.open_modal("포탑을 판매할까요?",390)
+	var exact := "판매 환급 · %d 골드" % q.sell
+	box.tooltip_text = exact
+	var summary := VBoxContainer.new(); summary.name = "SaleSummary"; summary.add_theme_constant_override("separation",6); box.add_child(summary)
+	var identity := HBoxContainer.new(); identity.alignment = BoxContainer.ALIGNMENT_CENTER; identity.add_theme_constant_override("separation",8); summary.add_child(identity)
+	UiWidgets.icon(identity,"ui/hud/turrets_3d/"+str(turret.type)+".png",32)
+	var title := UiWidgets.label(identity,"%s Lv.%d" % [hud.TOWERS.get(turret.type,turret.type),turret.level],14)
+	title.name = "SaleTurret"; title.autowrap_mode = TextServer.AUTOWRAP_OFF; title.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var refund := HBoxContainer.new(); refund.name = "SaleRefund"; refund.alignment = BoxContainer.ALIGNMENT_CENTER; refund.add_theme_constant_override("separation",8); summary.add_child(refund)
+	UiWidgets.icon(refund,"ui/hud/icons/gold.png",28).size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var amount := UiWidgets.label(refund,"+"+HudNumber.compact_price(q.sell),26)
+	amount.name = "SaleRefundAmount"; amount.tooltip_text = exact; amount.modulate = Color("ffd166")
+	amount.autowrap_mode = TextServer.AUTOWRAP_OFF; amount.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var gems: int = turret.get("equippedGemSlots",[]).filter(func(gem): return gem != null).size()
+	if gems > 0:
+		var note := UiWidgets.label(summary,"장착 젬 %d개는 보관함으로 돌아갑니다." % gems,12)
+		note.name = "SaleGemReturn"; note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; note.modulate = Color("b7d5e3")
+	var gap := Control.new(); gap.custom_minimum_size.y = 4; box.add_child(gap)
+	var actions := HBoxContainer.new(); actions.name = "SaleActions"; actions.add_theme_constant_override("separation",8); box.add_child(actions)
+	hud.menu_panel._action(actions,"취소",hud.close_modal,"secondary")
+	var confirm: Button = hud.menu_panel._action(actions,"판매",func(): _confirm_sale(int(turret.id),int(q.sell)),"danger")
+	confirm.name = "TurretSaleConfirm"; confirm.tooltip_text = exact
 
 func _confirm_sale(id: int,quoted_refund: int) -> void:
 	var state: Dictionary = hud.app.run_domain.state

@@ -257,8 +257,30 @@ func run() -> void:
 	(hud.body.find_child("TurretSellAction",true,false) as Button).pressed.emit()
 	assert(hud.modal_active() and app.scene.combat_runtime.session.paused)
 	assert(hud.modal_panel.get_theme_stylebox("panel") is StyleBoxTexture)
-	var sale := find_button(hud.modal_body,"판매 · ")
-	assert(sale.text == "판매 · +%s 골드" % HudNumber.compact_price(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).sell))
+	var sale: Button = hud.modal_body.find_child("TurretSaleConfirm",true,false)
+	assert(sale.text == "판매")
+	var refund: Label = hud.modal_body.find_child("SaleRefundAmount",true,false)
+	assert(refund.text == "+%s" % HudNumber.compact_price(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).sell))
+	# The refund is stated once: no other label or action repeats the amount.
+	assert(sale_amount_mentions(hud.modal_body,refund.text.trim_prefix("+")) == [refund])
+	var sale_turret: Dictionary = app.run_domain.state.turrets[0]
+	var equipped: int = sale_turret.equippedGemSlots.filter(func(gem): return gem != null).size()
+	assert(sale_gem_note(hud) == ("" if equipped == 0 else "장착 젬 %d개는 보관함으로 돌아갑니다." % equipped))
+	# Both actions share one row: cancel first, the danger sale second.
+	var sale_actions: Node = hud.modal_body.find_child("SaleActions",true,false)
+	assert(sale_actions is HBoxContainer and sale_actions.get_child_count() == 2 and sale_actions.get_child(1) == sale)
+	await process_frame; await process_frame
+	assert(is_equal_approx((sale_actions.get_child(0) as Button).get_global_rect().position.y,sale.get_global_rect().position.y))
+	# The gem return line follows the actual equipped count, including none.
+	var sale_quote: Dictionary = app.run_domain.service.quotes(app.run_domain.state,int(sale_turret.id))
+	for slots in [[],["haste"],["haste",null,"range"]]:
+		var variant: Dictionary = sale_turret.duplicate(true)
+		variant.equippedGemSlots = slots
+		hud.turret_panel._sell_confirm(variant,sale_quote)
+		var count: int = slots.filter(func(gem): return gem != null).size()
+		assert(sale_gem_note(hud) == ("" if count == 0 else "장착 젬 %d개는 보관함으로 돌아갑니다." % count))
+	hud.turret_panel._sell_confirm(sale_turret,sale_quote)
+	sale = hud.modal_body.find_child("TurretSaleConfirm",true,false)
 	assert(sale.get_theme_stylebox("normal") is StyleBoxTexture)
 	assert(sale.get_theme_stylebox("disabled").texture.resource_path.ends_with("native/disabled.png"))
 	assert(sale.get_theme_stylebox("normal").texture_margin_left == 11)
@@ -620,8 +642,8 @@ func run() -> void:
 	app.run_domain.state.turrets[0].investedGold = ceili(999999.0*100.0/float(derived.turretRefundPercent))
 	hud.main_tab = "turrets"; hud.refresh()
 	(hud.body.find_child("TurretSellAction",true,false) as Button).pressed.emit()
-	var exact_sale := find_button(hud.modal_body,"판매 · ")
-	assert(exact_sale.text == "판매 · +1M 골드")
+	var exact_sale: Button = hud.modal_body.find_child("TurretSaleConfirm",true,false)
+	assert((hud.modal_body.find_child("SaleRefundAmount",true,false) as Label).text == "+1M")
 	assert(exact_sale.tooltip_text == "판매 환급 · 999999 골드")
 	exact_sale.pressed.emit()
 	assert(app.run_domain.state.gold == 999999 and app.run_domain.state.turrets.is_empty())
@@ -637,6 +659,18 @@ func buttons(node: Node) -> Array[Button]:
 		if child is Button: found.append(child)
 		found.append_array(buttons(child))
 	return found
+
+func sale_amount_mentions(node: Node,amount: String) -> Array:
+	# Whole-number match only, so "10" never matches inside "Lv.100" or "1,000".
+	var pattern := RegEx.create_from_string("(?<![0-9.,])"+amount.replace(".","\\.")+"(?![0-9.,KM])")
+	var found: Array = []
+	for child in node.find_children("*","",true,false):
+		if (child is Label or child is Button) and pattern.search(child.text) != null: found.append(child)
+	return found
+
+func sale_gem_note(hud) -> String:
+	var note: Label = hud.modal_body.find_child("SaleGemReturn",true,false)
+	return "" if note == null else note.text
 
 func find_button(node: Node,prefix: String) -> Button:
 	for button in buttons(node):
