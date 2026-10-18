@@ -77,10 +77,49 @@ func _init() -> void:
 	var effect := growth.module_effect(equip.state, "arrow")
 	check(effect.damageIncreaseRate == float(growth.data.module.ranges.damageIncrease.normal.max)/100.0, "module valid pool clamp")
 	check(growth.execute(equip.state, {"type":"unequipTurretModule", "id":"m1"}).ok, "module unequip")
+	_boss_damage_training(growth)
 	_core_runtime(growth)
 	print(JSON.stringify({"assertions":assertions,"failures":failures}))
 	if failures.is_empty(): print("PASS growth rules")
 	quit(0 if failures.is_empty() else 1)
+
+func _boss_damage_training(growth) -> void:
+	var p: Dictionary = growth.data.defaultProgression.duplicate(true)
+	p.runes = 67576
+	p.clearedStageNumbers = [23] # 2-8 is not the 2-9 fixed ID24 gate.
+	var buy := {"kind":"upgradePermanent", "id":"bossDamageTraining"}
+	var locked: Dictionary = growth.execute(p, buy)
+	check(not locked.ok and locked.state == p, "boss training locked purchase is atomic")
+	var forged := p.duplicate(true)
+	forged.bossDamageTrainingUpgradeLevel = 40
+	check(near(growth.derive(forged).bossDamageBonusRate, 0.0), "boss training has no effect before its stage gate")
+	var legacy := p.duplicate(true)
+	legacy.erase("progressionVersion")
+	check(not growth.execute(legacy, buy).ok, "new boss training has no legacy default entitlement")
+	p.clearedStageNumbers.append(24)
+	var base: Dictionary = growth.derive(p)
+	check(near(base.bossDamageBonusRate, 0.0), "missing boss training field means level zero")
+	var short := p.duplicate(true)
+	short.runes = 199
+	var rejected: Dictionary = growth.execute(short, buy)
+	check(not rejected.ok and rejected.state == short, "boss training insufficient runes is atomic")
+	var costs: Array = growth.data.permanentUpgrades.bossDamageTraining.costs
+	check(costs[0] == 200 and costs[9] == 434 and costs[19] == 1028 and costs[29] == 2434 and costs[39] == 5763, "approved boss training cost milestones")
+	for level in range(1, 41):
+		var before: int = p.runes
+		var purchased: Dictionary = growth.execute(p, buy)
+		check(purchased.ok, "boss training purchase " + str(level))
+		if not purchased.ok: return
+		p = purchased.state
+		check(p.bossDamageTrainingUpgradeLevel == level and before - int(p.runes) == int(costs[level-1]), "boss training one purchase one level and debit " + str(level))
+	check(p.runes == 0 and near(growth.derive(p).bossDamageBonusRate, 0.2), "boss training 40 levels cost 67576 and grant additive 20 percent")
+	p.runes = 100000
+	var capped: Dictionary = growth.execute(p, buy)
+	check(not capped.ok and capped.state == p, "boss training level 40 purchase is blocked without debit")
+	var trained: Dictionary = growth.derive(p)
+	base.erase("bossDamageBonusRate")
+	trained.erase("bossDamageBonusRate")
+	check(near(base, trained), "boss training leaves generic turret damage and all other growth unchanged")
 
 func _core_runtime(growth) -> void:
 	var catalog := Catalog.new()

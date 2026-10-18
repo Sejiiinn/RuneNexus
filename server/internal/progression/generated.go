@@ -27,6 +27,7 @@ var requirements = map[string]map[string]int{
 		"elementalDamageTraining":   17,
 		"linkCostOptimization":      9,
 		"turretLevelUpOptimization": 10,
+		"bossDamageTraining":        24,
 	},
 	"research": {
 		"researchEfficiency":         0,

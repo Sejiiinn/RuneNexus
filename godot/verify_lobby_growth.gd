@@ -49,6 +49,7 @@ func verify() -> void:
 	host.theme = preload("res://ui/app_theme.gd").create()
 	var ui := GrowthUI.new()
 	ui.setup(host)
+	_boss_training_card(host, ui)
 	assert(ui.TITLES.nexusHp == "넥서스 체력" and ui.TITLES.turretTargetPriority == "전술 명령")
 	assert(ui.TITLES.linkMaintenance == "기초 연결 공학")
 	assert(ui.upgrade_requirement("criticalDamage") == 4)
@@ -92,7 +93,7 @@ func verify() -> void:
 	host.close_modal()
 	ui._submit("cancelResearch","researchEfficiency")
 	host.clear()
-	host.state.clearedStageNumbers = range(1,16)
+	host.state.clearedStageNumbers = range(1,31)
 	for width in [320, 440]:
 		host.size = Vector2(width, 900)
 		host.body.size = Vector2(width - 28, 900)
@@ -111,6 +112,45 @@ func verify() -> void:
 	print("PASS growth pages: 320/440 layout, prerequisites, effects, detail-only selection, start/cancel confirmation")
 	host.free()
 	quit()
+
+func _boss_training_card(host, ui) -> void:
+	var original: Dictionary = host.state.duplicate(true)
+	ui.category = "전투"
+	ui.upgrades()
+	assert(not _texts(host.body).contains("대형 표적 훈련"), "Boss training is hidden before its fixed stage gate")
+	host.clear()
+	host.state.clearedStageNumbers = [24]
+	host.state.runes = 200
+	ui.upgrades()
+	assert(ui.upgrade_requirement("bossDamageTraining") == 24)
+	assert(_texts(host.body).contains("대형 표적 훈련"))
+	assert(ui.effect_value("bossDamageTraining", 1) == "+0.5%")
+	assert(ui.effect_value("bossDamageTraining", 40) == "+20%")
+	var card: Control = host.body.get_child(0).get_child(host.body.get_child(0).get_child_count()-1)
+	assert(_texts(card).contains("다음 +0.5%") and _texts(card).contains("200"))
+	var buttons: Array = _buttons(card)
+	assert(buttons.size() == 1 and not buttons[0].disabled)
+	buttons[0].pressed.emit()
+	assert(host.state.bossDamageTrainingUpgradeLevel == 1 and host.state.runes == 0, "Boss training card purchases the correct upgrade")
+	host.clear()
+	ui.upgrades()
+	card = host.body.get_child(0).get_child(host.body.get_child(0).get_child_count()-1)
+	assert(_texts(card).contains("현재 +0.5%") and _texts(card).contains("다음 +1%") and _buttons(card)[0].disabled)
+	host.state.bossDamageTrainingUpgradeLevel = 40
+	host.state.runes = 100000
+	host.clear()
+	ui.upgrades()
+	card = host.body.get_child(0).get_child(host.body.get_child(0).get_child_count()-1)
+	assert(_texts(card).contains("현재 +20%") and _texts(card).contains("최대 레벨") and not _texts(card).contains("다음"))
+	assert(_buttons(card)[0].disabled)
+	host.clear()
+	host.state = original
+	host.commands.clear()
+
+func _buttons(node: Node) -> Array:
+	var values: Array = [node] if node is Button else []
+	for child in node.get_children(): values.append_array(_buttons(child))
+	return values
 
 func _texts(node: Node) -> String:
 	var value: String = node.text if node is Label or node is Button else ""

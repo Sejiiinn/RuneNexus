@@ -28,6 +28,7 @@ const ORDERS = {
 		"nexusHpUpgradeLevel",
 		"supplyUpgradeLevel",
 		"fireTrainingUpgradeLevel",
+		"bossDamageTrainingUpgradeLevel",
 		"physicalDamageTrainingUpgradeLevel",
 		"elementalDamageTrainingUpgradeLevel",
 		"criticalChanceUpgradeLevel",

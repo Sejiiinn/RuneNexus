@@ -1,5 +1,6 @@
 extends SceneTree
 const Runtime = preload("res://combat/native_combat_runtime.gd")
+const Enemy = preload("res://combat/native_enemy_state.gd")
 var failures: Array = []
 func _initialize() -> void:
 	var fixtures = JSON.parse_string(FileAccess.get_file_as_string("res://../test/fixtures/turret_stat_calculation.json"))
@@ -36,6 +37,7 @@ func _initialize() -> void:
 	b.process_command({"epoch":4,"sequence":1,"dt":0.6})
 	b.process_command({"epoch":4,"sequence":2,"dt":0.2})
 	_check(JSON.stringify(a.snapshot().enemies) == JSON.stringify(b.snapshot().enemies), "batched original timestep equivalence")
+	_boss_damage_checks(fixtures)
 	_exact_checks(fixtures)
 	_response_mode_checks()
 	_path_revision_checks()
@@ -272,3 +274,94 @@ func _path_revision_checks() -> void:
 	r.process_command({"epoch":71,"sequence":0,"dt":0.0,"bootstrap":{"path":route,"enemies":[saved],"turrets":[]}})
 	r.process_command({"epoch":71,"sequence":1,"dt":0.1})
 	_check(r.enemies["1"].path == r._path(custom), "new epoch restores saved custom route")
+
+# The target bonus is live at impact/tick time and never changes attack/DoT inputs.
+func _boss_damage_checks(fixtures: Array) -> void:
+	var input: Dictionary = fixtures[0].input.duplicate(true)
+	input.definition.damage = 100.0
+	input.definition.criticalChance = 0.0
+	var r = Runtime.new()
+	var rows: Array = []
+	for type in ["boss", "shieldBoss", "forgeBoss", "normal"]:
+		rows.append({"id":rows.size()+1,"type":type,"hp":10000.0,"maxHp":10000.0,"x":50.0,"y":float(rows.size()),"speed":0.0})
+	r.process_command({"epoch":91,"sequence":0,"bootstrap":{"combatConfig":{"bossDamageBonusRate":0.2},"enemies":rows,"turrets":[{"id":1,"position":[0,0],"statInput":input,"state":{"x":0,"y":0}}]}})
+	var t: Dictionary = r.turrets["1"]
+	var attack: Dictionary = preload("res://combat/turret_stat_calculation.gd").firing_stats(t.statInput,t.stats,1.0)
+	attack.definition = input.definition
+	attack.damage = 100.0
+	for e in r.enemies.values():
+		r._hit(t,attack,e,1.0,"direct",true)
+		_check(is_equal_approx(10000.0-float(e.hp),100.0 if e.type == "normal" else 120.0),str(e.type)+" target bonus once")
+	# Target multipliers stay separate from resistance, hit increases and rift.
+	var boss: Dictionary = r.enemies["1"]
+	boss.familyResistances = {input.definition.damageFamily:0.2}
+	Enemy.add_rift_mark(boss,0.125,10.0)
+	attack.directDamageIncrease = 0.3
+	var before: float = boss.hp
+	r._hit(t,attack,boss,1.0,"direct",true)
+	_check(is_equal_approx(before-float(boss.hp),100.0*1.3*0.8*1.2*1.125),"boss target layer follows hit increase/resistance before rift")
+	boss.familyResistances = {}
+	boss.riftMarkRemaining = 0.0
+	attack.directDamageIncrease = 0.0
+	attack.splashRadius = 20.0
+	before = boss.hp
+	var normal_before: float = r.enemies["4"].hp
+	r._impact(t,attack,boss,r._pos(boss),0.5,true)
+	_check(is_equal_approx(before-float(boss.hp),60.0),"chain direct boss coefficient once")
+	_check(is_equal_approx(normal_before-float(r.enemies["4"].hp),25.0),"chain splash normal has no boss bonus")
+	before = r.enemies["2"].hp
+	r._impact(t,attack,r.enemies["4"],r._pos(r.enemies["4"]))
+	_check(is_equal_approx(before-float(r.enemies["2"].hp),60.0),"normal primary splash evaluates boss recipient")
+	# A newly inflicted burn stores the raw post-resistance DPS, without boss bonus.
+	attack.hasDamageOverTime = true
+	attack.burnDamagePerSecondScale = 0.5
+	attack.burnDurationSeconds = 2.0
+	r._hit(t,attack,boss,1.0,"direct",true)
+	_check(is_equal_approx(float(boss.burnInstances[0].damagePerSecond),50.0*float(attack.damageOverTimeDamageMultiplier)),"new boss burn stores raw DPS")
+	boss.burnInstances.clear()
+	attack.hasDamageOverTime = false
+	# Existing DoT, including legacy poison, uses the latest setting each tick.
+	r.running = false
+	Enemy.add_burn(boss,{"damagePerSecond":50.0,"duration":5.0,"sourceX":0,"sourceY":0})
+	Enemy.add_poison(boss,10.0,5.0,1)
+	r.process_command({"epoch":91,"sequence":1,"commands":[{"kind":"combatConfig","config":{"bossDamageBonusRate":0.1}}]})
+	before = boss.hp
+	r._step(0.1)
+	_check(is_equal_approx(before-float(boss.hp),6.6),"already attached burn and poison read changed growth")
+	var stored: Dictionary = r.snapshot().enemies[0]
+	_check(stored.burnInstances[0].damagePerSecond == 50.0 and stored.poisonDamagePerSecond == 10.0 and not stored.has("bossDamageBonusRate"),"snapshot preserves raw DPS without target config")
+	# Transfer keeps raw DPS and evaluates the new recipient, in either direction.
+	var transfer: Dictionary = Enemy.burn_transfer(boss,{"x":0,"y":0})
+	var normal: Dictionary = r.enemies["4"]
+	Enemy.add_burn(normal,transfer)
+	before = normal.hp
+	r._step(0.1)
+	_check(is_equal_approx(before-float(normal.hp),5.0),"boss to normal burn transfer loses target bonus")
+	var other: Dictionary = r.enemies["2"]
+	Enemy.add_burn(other,Enemy.burn_transfer(normal,{"x":0,"y":0}))
+	before = other.hp
+	r._step(0.1)
+	_check(is_equal_approx(before-float(other.hp),5.5),"normal to boss burn transfer gains target bonus once")
+	# Ignition burst consumes unscaled saved DPS; only the resulting hit scales.
+	attack.appliesIgnitionBurst = true
+	before = boss.hp
+	r._hit(t,attack,boss,1.0,"direct",true)
+	_check(is_equal_approx(before-float(boss.hp),(100.0+50.0*2.0*float(attack.damageOverTimeDurationMultiplier)*0.3)*1.1),"ignition burst applies target bonus once")
+	before = boss.hp
+	r._command({"kind":"coreDamage","enemyId":1,"damage":100.0})
+	_check(is_equal_approx(before-float(boss.hp),100.0),"core damage command excludes target bonus")
+	for e in r.enemies.values(): e.distanceTravelled = 0.0
+	boss.distanceTravelled = 1000.0
+	before = boss.hp
+	r._core_beam_tick(10.0)
+	_check(is_equal_approx(before-float(boss.hp),10.0),"core beam excludes target bonus")
+	# In-flight projectile uses the setting at impact, not the firing snapshot.
+	var flight = _projectile_test_runtime(input,1.0,50.0)
+	flight.enemies["1"].type = "boss"
+	_check(flight.projectiles.size() == 1,"boss live growth fixture fired projectile")
+	flight._command({"kind":"combatConfig","config":{"bossDamageBonusRate":0.2}})
+	_move_test_projectiles(flight,60.0)
+	_check(is_equal_approx(1000.0-float(flight.enemies["1"].hp),120.0),"in-flight shot receives newly purchased bonus")
+	var core_before: float = r._core_base_damage()
+	r._configure_combat({"bossDamageBonusRate":0.0})
+	_check(t.stats.damage == 100.0 and is_equal_approx(core_before,r._core_base_damage()),"conditional bonus leaves base stats and core DPS input unchanged")

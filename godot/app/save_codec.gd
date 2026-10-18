@@ -685,7 +685,7 @@ static func _skill(v: Dictionary, key: String, fallback: Variant) -> Variant:
 	return null if v[key] == null else _enum("CoreCombatSkill", v[key], "guardianBeam")
 
 static func is_canonical_v2(v: Variant) -> bool:
-	return _is_map(v) and _int(v.get("version")) == 2 and _is_map(v.get("preferences")) and _is_map(v.get("progression")) and _is_map(v.get("turretModules")) and v.has("activeRun") and (v.activeRun == null or _is_map(v.activeRun)) and _valid_core_wire(v)
+	return _is_map(v) and _int(v.get("version")) == 2 and _is_map(v.get("preferences")) and _is_map(v.get("progression")) and _is_map(v.get("turretModules")) and v.has("activeRun") and (v.activeRun == null or _is_map(v.activeRun)) and _valid_core_wire(v) and _valid_boss_damage_training(v.progression)
 
 # Legacy readers intentionally retain their historical normalization. The new
 # schema must fail closed instead of deleting unknown allocations on reload.
@@ -738,6 +738,7 @@ static func _same_typed_value(a: Variant, b: Variant) -> bool:
 static func decode(v: Variant) -> Variant:
 	if not _is_map(v): return null
 	if not _valid_core_revision(_map(v.get("progression")), "corePassiveTreeRevision"): return null
+	if not _valid_boss_damage_training(_map(v.get("progression"))): return null
 	var legacy: bool = _int(v.get("version")) == 1
 	if not legacy and not is_canonical_v2(v): return null
 	var progression := _progression(_map(v.get("progression")))
@@ -750,6 +751,8 @@ static func decode(v: Variant) -> Variant:
 
 static func _progression(v: Dictionary) -> Dictionary:
 	var out := _fields("SavedProgression", v)
+	# Preserve absence in old saves: adding a synthetic zero changes durable hashes.
+	if v.has("bossDamageTrainingUpgradeLevel"): out.bossDamageTrainingUpgradeLevel = v.bossDamageTrainingUpgradeLevel
 	if v.has("gemResetTickets"): out.gemResetTickets = maxi(0, _int(v.get("gemResetTickets")))
 	if v.has("progressionVersion"):
 		out.progressionVersion = maxi(0, _int(v.get("progressionVersion")))
@@ -778,6 +781,11 @@ static func _progression(v: Dictionary) -> Dictionary:
 		out.erase("criticalChanceUpgradeLevel")
 		out.erase("emergencySaleUpgradeLevel")
 	return out
+
+static func _valid_boss_damage_training(p: Dictionary) -> bool:
+	if not p.has("bossDamageTrainingUpgradeLevel"): return true
+	var level: Variant = p.bossDamageTrainingUpgradeLevel
+	return level is int and level >= 0 and level <= 40
 
 static func _core_ranks(v: Variant, revision: int = 4) -> Dictionary:
 	var out := {}

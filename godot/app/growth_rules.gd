@@ -142,6 +142,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"waveClearGoldBonus": int(_level(p, "supply") * _c("supplyGoldPerUpgradeLevel")),
 		"killGoldBonusRate": rewards.killGoldBonusRate,
 		"bossBountyBonusRate": rewards.bossBountyBonusRate,
+		"bossDamageBonusRate": _level(p, "bossDamageTraining") * _c("bossDamageTrainingBonusPerUpgradeLevel"),
 		"bossKillGemShardBonus": rewards.bossKillGemShardBonus,
 		"runeResonanceBonusRate": _research(p, "runeResonance") * _c("runeResonanceBonusPerLevel"),
 		"roundClearGoldMultiplier": core.roundClearGoldMultiplier,

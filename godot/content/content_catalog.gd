@@ -254,7 +254,7 @@ func world_path(stage_index: int, inputs: Dictionary = {}) -> Array:
 # deliberately avoid world paths, enemy dictionaries and randomized spawn rows.
 func _bootstrap_layout(stage_index: int, inputs: Dictionary) -> Dictionary:
 	if not _valid_stage(stage_index): return {}
-	for key in ["defenseConfig", "coreConfig"]:
+	for key in ["defenseConfig", "coreConfig", "combatConfig"]:
 		if inputs.has(key) and not inputs[key] is Dictionary:
 			error = "Configuration must be a dictionary: " + key
 			return {}
@@ -288,6 +288,7 @@ func bootstrap(stage_index: int, inputs: Dictionary = {}) -> Dictionary:
 	result.defense = {"config": _data.defenseConfig.duplicate(true)}
 	if inputs.has("defenseConfig"): result.defense.config.merge(inputs.defenseConfig, true)
 	if inputs.has("coreConfig"): result.coreConfig = inputs.coreConfig.duplicate(true)
+	if inputs.has("combatConfig"): result.combatConfig = inputs.combatConfig.duplicate(true)
 	return result
 
 func _enemy_layout(stage_index: int, round_index: int, type: String, inputs: Dictionary) -> Dictionary:

@@ -66,6 +66,8 @@ var _target_bounds: Array = []
 var _sync_stats_ready := false
 var _sync_stats_damage := 1.0
 var _sync_stats_rate := 1.0
+# Account growth is read at each hit/tick; it is never checkpoint state.
+var _boss_damage_bonus_rate := 0.0
 var visual_id: int = 1000000000
 var damage_number_index: int = 0
 var event_id: int = 0
@@ -317,6 +319,7 @@ func _reset(packet: Dictionary) -> void:
 	origin = _vec(b.get("origin", [0, 0]))
 	tile_size = maxf(0.001, b.get("tileSize", 1.0))
 	board_scale = b.get("boardDistanceScale", 1.0)
+	_configure_combat(b.get("combatConfig", {}))
 	for e in b.get("enemies", []):
 		_spawn(e)
 	if b.has("coreConfig"):
@@ -407,6 +410,12 @@ func _core_base_damage() -> float:
 		if "damageOverTime" in definition.attackTags:
 			dps += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
 	return maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))
+
+func _configure_combat(config: Dictionary) -> void:
+	_boss_damage_bonus_rate = clampf(float(config.get("bossDamageBonusRate", 0.0)), 0.0, 0.2)
+
+func _target_damage_multiplier(e: Dictionary) -> float:
+	return 1.0 + _boss_damage_bonus_rate if _boss_damage_bonus_rate > 0.0 and _boss(e) else 1.0
 
 func _boss(e: Dictionary) -> bool:
 	return bool(e.get("isBoss",false)) or e.get("type","") in ["boss","shieldBoss","forgeBoss"]
@@ -601,6 +610,8 @@ func _turret(raw: Dictionary) -> void:
 
 func _command(c: Dictionary) -> void:
 	match c.get("kind", ""):
+		"combatConfig":
+			_configure_combat(c.config)
 		"waveStart":
 			_start_wave(c.wave, true)
 		"waveCancel":
@@ -713,7 +724,7 @@ func _step(dt: float) -> void:
 	var burn_sources: Dictionary = {}
 	for e in enemies.values():
 		if _alive(e):
-			_collect(Enemy.step(e, dt), burn_sources)
+			_collect(Enemy.step(e, dt, [], -1, _target_damage_multiplier(e)), burn_sources)
 			if terminal: return
 	_finish_step(dt)
 
@@ -1142,13 +1153,13 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 				effect.sourceY = source.y
 				Enemy.add_burn(e, effect)
 	var transfer := Enemy.burn_transfer(e, source) if a.spreadsChainIgnition else {}
-	var result: Dictionary = Enemy.apply_hit(e, {"damage": resolved.damage, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer})
+	var result: Dictionary = Enemy.apply_hit(e, {"damage": resolved.damage, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer}, _target_damage_multiplier(e))
 	_visual("damage", _pos(e), t, {"text":str(roundi(float(result.get("actualDamage", 0)))), "duration":0.65})
 	t[kind + "DamageDealt"] += float(result.get("actualDamage", 0))
 	_add_core_bonus_damage(float(result.get("bonusDamage", 0)))
 	_collect(result.get("events", []))
 	if burst > 0 and _alive(e):
-		result = Enemy.apply_hit(e, {"damage": burst, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer})
+		result = Enemy.apply_hit(e, {"damage": burst, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer}, _target_damage_multiplier(e))
 		t.directDamageDealt += float(result.get("actualDamage", 0))
 		_add_core_bonus_damage(float(result.get("bonusDamage", 0)))
 		_collect(result.get("events", []))

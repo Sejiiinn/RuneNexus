@@ -111,6 +111,7 @@ func _initialize() -> void:
 	check(is_equal_approx(restored.enemies["100000"].x,runtime.enemies["99999"].x) and is_equal_approx(restored.enemies["100000"].y,runtime.enemies["99999"].y),"position reconstructed from distance")
 	check(restored.turrets["1000"].stats.damage == runtime.turrets["1000"].stats.damage,"growth and gems rebuilt combat stats")
 	check(restored.wave.queue[0].delay == runtime.wave.snapshot().spawnQueue[0].delay,"remaining spawn delay no added gap")
+	_boss_bonus_restore_cases(adapter,saved)
 	_light_weapon_legacy_cases(adapter,service,saved)
 	_gem_slot_restore_cases(adapter,saved)
 	var before := saved.duplicate(true)
@@ -450,3 +451,24 @@ func _ordinal_durability_save_cases(current, growth) -> void:
 			for field in ["maxHp","maxShield","maxArmor"]: check(pending.enemy[field] == expected[field],"next latest "+field)
 		var core: Dictionary = growth.core_config(prepared.state,stage,round_index,current)
 		check(core.normalMaxHp == current.wave_durability(stage,round_index,"normal").maxHp,"core current normal reference")
+
+func _boss_bonus_restore_cases(adapter, saved: Dictionary) -> void:
+	var upgraded := saved.duplicate(true)
+	upgraded.progression.bossDamageTrainingUpgradeLevel = 40
+	upgraded.progression.clearedStageNumbers.append(24)
+	var prepared: Dictionary = adapter.prepare(upgraded)
+	check(not prepared.is_empty(),"boss growth save prepares: "+adapter.error)
+	if prepared.is_empty(): return
+	check(is_equal_approx(float(prepared.bootstrap.combatConfig.bossDamageBonusRate),0.2),"resume recomputes boss target config from progression")
+	var resumed = Runtime.new()
+	resumed.process_command({"epoch":92,"sequence":0,"session":prepared.session,"bootstrap":prepared.bootstrap})
+	var e: Dictionary = resumed.enemies["100000"]
+	check(e.burnInstances[0].damagePerSecond == 0.5,"resume preserves raw burn DPS")
+	# Recipient policy is tested separately for each real boss definition; here
+	# retain the existing checkpoint's status and assert a resumed boss tick once.
+	e.type = "boss"
+	resumed.running = false
+	var before: float = e.hp
+	resumed._step(0.1)
+	check(is_equal_approx(before-float(e.hp),0.06),"resumed burn receives boss bonus once")
+	check(not resumed.snapshot().has("combatConfig") and not resumed.snapshot().enemies[0].has("bossDamageBonusRate"),"derived combat bonus never leaks into checkpoint snapshot")

@@ -15,6 +15,7 @@ func enemy(extra: Dictionary={}) -> Dictionary:
 	raw.merge(extra,true)
 	return Enemy.create(raw)
 func _initialize() -> void:
+	_target_multiplier_checks()
 	_path_revision_checks()
 	_vulnerability_timer_checks()
 	_dot_armor_checks()
@@ -422,3 +423,15 @@ func _dot_expiry_event_checks() -> void:
 	check(damages.size()==2,"equal-DPS expiry has both attributed intervals")
 	if damages.size()==2:
 		check(damages[0].sourceX==2 and damages[1].sourceX==1,"equal-DPS latest-instance tie break holds across expiry")
+
+func _target_multiplier_checks() -> void:
+	var e := enemy({"speed":0.0,"maxShield":20.0,"shield":20.0,"maxArmor":100.0,"armor":100.0})
+	Enemy.add_rift_mark(e,0.25,2.0)
+	var result := Enemy.apply_hit(e,{"damage":40.0},1.2)
+	# Target 1.2 and mark 1.25 apply before shield/armor; only remaining 40
+	# enters armor reduction, with pressure sqrt(100)*3 = 30.
+	var armor_loss := 40.0*(0.12+0.88*40.0/70.0)
+	close(result.actualDamage,20.0+armor_loss,"target bonus precedes shield and armor")
+	close(e.armor,100.0-armor_loss,"target bonus does not bypass armor")
+	var plain := Enemy.apply_hit(enemy(),{"damage":40.0})
+	close(plain.actualDamage,40.0,"neutral target multiplier preserves existing API")

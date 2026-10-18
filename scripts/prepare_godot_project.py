@@ -189,7 +189,7 @@ def app_ui_source(root: Path, relative: str) -> Path:
 def _app_texture_size_limit(relative: str) -> int:
     if relative in _CORE_FRAME_NAMES:
         return 512
-    if relative in {"ui/hud/icons/home_button.png", "turret_modules/icons/unique_backglow.png"}:
+    if relative in {"ui/hud/icons/home_button.png", "turret_modules/icons/unique_backglow.png", "upgrades/boss_damage_training.png"}:
         return 256
     if relative in {f"gems/{name}.png" for name in _GEM_NAMES}:
         return 256

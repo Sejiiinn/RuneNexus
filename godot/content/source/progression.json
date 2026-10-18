@@ -198,7 +198,8 @@
       "physicalDamageTraining": 17,
       "elementalDamageTraining": 17,
       "linkCostOptimization": 9,
-      "turretLevelUpOptimization": 10
+      "turretLevelUpOptimization": 10,
+      "bossDamageTraining": 24
     },
     "research": {
       "researchEfficiency": 0,
@@ -289,6 +290,13 @@
     }
   },
   "unlockDisplay": [
+    {
+      "kind": "upgrade",
+      "key": "bossDamageTraining",
+      "title": "대형 표적 훈련",
+      "icon": "upgrades/boss_damage_training.png",
+      "category": "강화"
+    },
     {
       "kind": "upgrade",
       "key": "killGold",

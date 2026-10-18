@@ -9,7 +9,7 @@ func _initialize() -> void:
 		push_error("Missing save codec fixtures")
 		quit(1)
 		return
-	var failures := _integer_boundaries()
+	var failures := _integer_boundaries() + _boss_damage_training()
 	for i in inputs.size():
 		# Historical synthetic scalar fixtures used 7.8, negative and nonnumeric
 		# revisions. Since v5, revision is a discriminant, not a lossy scalar:
@@ -76,6 +76,28 @@ func _integer_boundaries() -> int:
 		failures += 1
 		print("SAVE_CODEC_INT_RULE_MISMATCH expected=", expected, " actual=", actual)
 	print("SAVE_CODEC_INT_BOUNDARIES count=",cases.size()," failures=",failures)
+	return failures
+
+func _boss_damage_training() -> int:
+	var failures := 0
+	var legacy := {"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":null}
+	if Codec.decode(legacy).progression.has("bossDamageTrainingUpgradeLevel"):
+		failures += 1
+		print("SAVE_CODEC_TRAINING_SYNTHETIC_ZERO")
+	for level in [0, 1, 40]:
+		var input: Dictionary = legacy.duplicate(true)
+		input.progression.bossDamageTrainingUpgradeLevel = level
+		var decoded: Variant = Codec.decode(input)
+		if decoded == null or decoded.progression.bossDamageTrainingUpgradeLevel != level or not Codec.is_normalized_v2(decoded) or Codec.decode(decoded) != decoded:
+			failures += 1
+			print("SAVE_CODEC_TRAINING_ROUNDTRIP ",level)
+	for invalid in [-1, 41, 1.0, 1.5, "1", true, null]:
+		var input: Dictionary = legacy.duplicate(true)
+		input.progression.bossDamageTrainingUpgradeLevel = invalid
+		if Codec.is_canonical_v2(input) or Codec.decode(input) != null:
+			failures += 1
+			print("SAVE_CODEC_TRAINING_INVALID ",invalid)
+	print("SAVE_CODEC_BOSS_DAMAGE_TRAINING failures=",failures)
 	return failures
 
 # Godot JSON parses every number as float; compare values recursively without

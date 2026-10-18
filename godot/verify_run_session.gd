@@ -70,6 +70,14 @@ func run() -> void:
 	var grown_hp: float = app.run_domain.growth.derive(grown).maxNexusHp
 	check(grown_hp > runtime.defense.max_hp and app.commit_progression(grown) and is_equal_approx(runtime.defense.max_hp, grown_hp)
 		and app.progression_inputs == grown, "committed growth updates the running stage's nexus HP")
+	var trained: Dictionary = app.run_domain.state.progression.duplicate(true)
+	trained.bossDamageTrainingUpgradeLevel = 40
+	var cleared: Array = trained.get("clearedStageNumbers", []).duplicate()
+	if not 24 in cleared: cleared.append(24)
+	trained.clearedStageNumbers = cleared
+	var unchanged_damage: float = runtime.turrets[str(id)].stats.damage
+	check(app.commit_progression(trained) and is_equal_approx(runtime._target_damage_multiplier({"type":"shieldBoss"}),1.2)
+		and runtime.turrets[str(id)].stats.damage == unchanged_damage,"committed boss growth reaches active combat without changing base damage")
 	# The loadout (core skill, core passive ranks, equipped modules) is fixed at
 	# stage start: changing it during a run is saved for the next stage only.
 	var start_ranks: Dictionary = app.run_domain.state.runCorePassiveNodeRanks.duplicate(true)
@@ -118,6 +126,7 @@ func run() -> void:
 	check(app.checkpoint.load_session(app)==OK, "actual run checkpoint restored")
 	check(app.run_domain.state.runCorePassiveNodeRanks == start_ranks and app.run_domain.state.runTurretModules == start_modules
 		and scene.combat_runtime.core.skill == skill_fixed, "restored run keeps the stage-start loadout")
+	check(is_equal_approx(scene.combat_runtime._target_damage_multiplier({"type":"forgeBoss"}),1.2),"checkpoint restore rebuilds boss growth config")
 	var older: Variant = app.checkpoint.store.load_save()
 	older.activeRun.erase("runCorePassiveNodeRanks")
 	older.activeRun.erase("runTurretModules")
@@ -125,6 +134,7 @@ func run() -> void:
 		and app.run_domain.state.runCorePassiveNodeRanks == loadout.corePassiveNodeRanks and app.run_domain.state.runTurretModules.size() == 1,
 		"a save without a recorded loadout fixes the current one at restore")
 	check(app.enter_stage(0) and scene.combat_runtime.core.skill == null and app.run_domain.state.runTurretModules.size() == 1, "next stage starts with the changed loadout")
+	check(is_equal_approx(scene.combat_runtime._target_damage_multiplier({"type":"boss"}),1.2),"new stage receives boss growth bootstrap")
 	app.exit_stage()
 	app.checkpoint.store.clear()
 	scene.queue_free()

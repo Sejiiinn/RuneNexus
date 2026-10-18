@@ -88,6 +88,7 @@ func _run():
 	await _save_tests()
 	await _checkpoint_sync_tests()
 	await _legacy_writer_claim_tests()
+	await _boss_damage_training_tests()
 	_hash_tests()
 	var local_url := OS.get_environment("RUNE_ACCOUNT_HTTP_FIXTURE")
 	if not local_url.is_empty():
@@ -202,7 +203,11 @@ func _save_tests():
 	check(online.state.dirty and online.state.localGeneration == local_generation and online._record.writes == record_writes, "Identical dirty payload preserves pending progress")
 	await online.sync(payload(101))
 	check(not online.state.dirty and online.state.inFlight == journal and online.store.load_save() == payload(101), "Requested payload is restored when actual local save differs from journal")
-	online.state.inFlight.encodedRequestBody = "  " + online.state.inFlight.encodedRequestBody + "  "
+	# A persisted generation-ten upload must still replay byte for byte after
+	# this client adds optional training fields and moves to generation eleven.
+	var old_body: Dictionary = SaveJson.parse(online.state.inFlight.encodedRequestBody)
+	old_body.clientCompatibilityVersion = 10
+	online.state.inFlight.encodedRequestBody = "  " + JSON.stringify(old_body, "", false, true) + "  "
 	online._commit()
 	var exact: String = online.state.inFlight.encodedRequestBody
 	var key: String = online.state.inFlight.idempotencyKey
@@ -302,8 +307,44 @@ func _legacy_writer_claim_tests():
 	remote.responses = [response(426, {}, "CLIENT_UPDATE_REQUIRED"), response(200, {"writerGeneration":8,"claimedAt":"2026-01-01T00:00:01Z"})]
 	var result: Dictionary = await online._claim_writer()
 	check(result.ok and remote.calls[-2].body == old_raw and remote.calls[-2].headers["Idempotency-Key"] == "52345678-1234-4234-8234-123456789abc","Upgraded client resolves old writer request exactly first")
-	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == 11 and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh gen11 writer claim")
+	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == Online.COMPATIBILITY and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh current writer claim")
 	check(online.store.load_save() == payload(100) and remote.credentials.accountId == ACCOUNT,"Writer upgrade keeps local progress and account binding")
+	online.dispose()
+	online.queue_free()
+	await process_frame
+
+func _boss_damage_training_tests():
+	var legacy := payload(300)
+	var legacy_hash := Hash.hash_payload(legacy)
+	check(not legacy.progression.has("bossDamageTrainingUpgradeLevel") and Hash.hash_payload(Codec.decode(legacy)) == legacy_hash, "Absent training keeps legacy payload hash through decoding")
+	var trained: Dictionary = legacy.duplicate(true)
+	trained.progression.bossDamageTrainingUpgradeLevel = 1
+	check(Hash.hash_payload(trained) != legacy_hash, "Training level participates in payload hash")
+	var trained_max: Dictionary = trained.duplicate(true)
+	trained_max.progression.bossDamageTrainingUpgradeLevel = 40
+	check(Hash.hash_payload(trained_max) != Hash.hash_payload(trained), "Distinct training levels have distinct payload hashes")
+	var remote := SessionFixture.new()
+	remote.tree = self
+	remote.responses = [response(200, {"revision":4,"serverSavedAt":"2026-01-01T00:00:00Z","data":legacy}), response(200, {"writerGeneration":7,"claimedAt":"2026-01-01T00:00:00Z"}), response(304)]
+	var online = make_online("boss-damage-training", remote)
+	check((await online.bootstrap({}, false)).ok, "Training fixture bootstraps an old account")
+	# Resume a journal written by a reader which did not know the new key.
+	var target := payload(301)
+	online.state.rebase = {"targetRevision":5,"targetPayloadHash":Hash.hash_payload(target),"targetServerSavedAt":"2026-01-01T00:00:01Z","sourcePayloadHash":legacy_hash,"stage":"prepared"}
+	check(online._commit(), "Legacy rebase journal stays valid")
+	var persisted: Dictionary = online._record.load_record()
+	check(persisted.ok and persisted.value.rebase.targetPayloadHash == Hash.hash_payload(target), "Legacy rebase journal reload preserves its target hash")
+	online.state = persisted.value
+	remote.responses = [response(200, {"revision":5,"serverSavedAt":"2026-01-01T00:00:01Z","data":target}), response(200, {"revision":5,"serverSavedAt":"2026-01-01T00:00:01Z","data":target})]
+	var rebased: Dictionary = await online._resume_rebase()
+	check(rebased.ok and online.state.rebase == null and online.store.load_save() == target, "Legacy rebase target hash survives optional training introduction")
+	online.acknowledge_reload()
+	trained.savedAtMillis = 301
+	remote.responses = [response(200, {"revision":6,"serverSavedAt":"2026-01-01T00:00:02Z"})]
+	var saved: Dictionary = await online.sync(trained)
+	check(saved.ok and online.store.load_save().progression.bossDamageTrainingUpgradeLevel == 1, "Purchased training persists in account save")
+	var request: Dictionary = SaveJson.parse(remote.calls[-1].body)
+	check(request.clientCompatibilityVersion == 11 and request.data.progression.bossDamageTrainingUpgradeLevel == 1, "Training upload uses generation eleven")
 	online.dispose()
 	online.queue_free()
 	await process_frame

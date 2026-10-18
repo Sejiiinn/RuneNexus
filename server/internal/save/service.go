@@ -19,7 +19,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = CoreTreeClientCompatibilityVersion
+	CurrentClientCompatibilityVersion       = BossDamageTrainingClientCompatibilityVersion
 )
 
 var (

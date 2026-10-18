@@ -9,16 +9,17 @@ import (
 // Growth progression is stored in schema v2. Version 1 requires generation 3
 // clients; generation 2 remains usable until this account first migrates.
 const (
-	EconomyClientCompatibilityVersion       = 2
-	GrowthClientCompatibilityVersion        = 3
-	CurrentGrowthVersion                    = 1
-	ProgressionClientCompatibilityVersion   = 4
-	RoutedContentClientCompatibilityVersion = 5
-	FifthLinkClientCompatibilityVersion     = 6
-	GemRerollClientCompatibilityVersion     = 7
-	GemOfferClientCompatibilityVersion      = 8
-	CurrentProgressionVersion               = progression.Version
-	CurrentStageCount                       = progression.StageCount
+	EconomyClientCompatibilityVersion            = 2
+	GrowthClientCompatibilityVersion             = 3
+	CurrentGrowthVersion                         = 1
+	ProgressionClientCompatibilityVersion        = 4
+	RoutedContentClientCompatibilityVersion      = 5
+	FifthLinkClientCompatibilityVersion          = 6
+	GemRerollClientCompatibilityVersion          = 7
+	GemOfferClientCompatibilityVersion           = 8
+	BossDamageTrainingClientCompatibilityVersion = 11
+	CurrentProgressionVersion                    = progression.Version
+	CurrentStageCount                            = progression.StageCount
 )
 
 func GrowthVersion(progression []byte) int {
@@ -42,6 +43,10 @@ func ClientCompatibilityFromBody(raw []byte) int {
 }
 
 func ValidateGrowthClient(progression []byte, clientVersion int) error {
+	level, valid := bossDamageTrainingLevel(progression)
+	if !valid || (level > 0 && clientVersion < BossDamageTrainingClientCompatibilityVersion) {
+		return ErrClientUpdateRequired
+	}
 	if hasFifthLinkResearch(progression) && clientVersion < FifthLinkClientCompatibilityVersion {
 		return ErrClientUpdateRequired
 	}
@@ -64,6 +69,13 @@ func ValidateGrowthUpdate(current, incoming []byte, clientVersion int) error {
 	}
 	if err := ValidateGrowthClient(incoming, clientVersion); err != nil {
 		return err
+	}
+	// Permanent upgrades have no reset command. Neither an old exact payload nor
+	// a newly wrapped stale outbox may erase already purchased training.
+	beforeTraining, _ := bossDamageTrainingLevel(current)
+	afterTraining, _ := bossDamageTrainingLevel(incoming)
+	if afterTraining < beforeTraining {
+		return ErrClientUpdateRequired
 	}
 	if GrowthVersion(incoming) < GrowthVersion(current) || GrowthVersion(incoming) > CurrentGrowthVersion {
 		return ErrClientUpdateRequired
@@ -88,6 +100,27 @@ func ValidateGrowthUpdate(current, incoming []byte, clientVersion int) error {
 		}
 	}
 	return nil
+}
+
+// Absence is level zero and remains absent on the wire. A RawMessage rejects
+// null/fractional/string values instead of silently treating them as zero.
+func bossDamageTrainingLevel(raw []byte) (int, bool) {
+	if len(raw) == 0 {
+		return 0, true
+	}
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(raw, &fields) != nil {
+		return 0, false
+	}
+	value, present := fields["bossDamageTrainingUpgradeLevel"]
+	if !present {
+		return 0, true
+	}
+	var level *int
+	if json.Unmarshal(value, &level) != nil || level == nil || *level < 0 || *level > 40 {
+		return 0, false
+	}
+	return *level, true
 }
 
 type progressionRights struct {

@@ -140,9 +140,11 @@ static func _apply_layers(e: Dictionary,damage: float,ignore: bool) -> float:
 		actual+=taken
 	return actual
 
-static func apply_hit(e: Dictionary,attack: Dictionary) -> Dictionary:
+static func apply_hit(e: Dictionary,attack: Dictionary,target_multiplier: float=1.0) -> Dictionary:
 	var result := {"actualDamage":0.0,"bonusDamage":0.0,"killed":false,"events":[]}
-	var damage := float(attack.get("damage",0.0))
+	# Target bonuses are applied once at impact/tick time, never baked into saved
+	# DoT DPS. Core callers keep the neutral default.
+	var damage := float(attack.get("damage",0.0)) * target_multiplier
 	if damage<=0 or e.hp<=0 or e.arrived: return result
 	var ignore := bool(attack.get("ignoreArmorReduction",false))
 	var amp: float = float(e.riftMarkDamageAmplification) if e.riftMarkRemaining>0 else 0.0
@@ -227,11 +229,11 @@ static func add_rift_mark(e: Dictionary,amplification: float,duration: float) ->
 	e.riftMarkDamageAmplification=maxf(e.riftMarkDamageAmplification,amplification)
 	e.riftMarkRemaining=maxf(e.riftMarkRemaining,duration)
 
-static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array,burn_step_dt: float=0.0) -> float:
+static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array,burn_step_dt: float=0.0,target_multiplier: float=1.0) -> float:
 	# Continuous damage ignores armor reduction, but still consumes shield/armor
 	# before HP. Saved burn flags remain compatible and do not gate this rule.
 	attack["ignoreArmorReduction"] = true
-	var result := apply_hit(e,attack)
+	var result := apply_hit(e,attack,target_multiplier)
 	if result.killed and kind == "burn":
 		# Burn lifetimes advance after all active intervals have been resolved.
 		# Retain the existing end-of-step transfer lifetime and independent copy.
@@ -284,7 +286,7 @@ static func _teleport_at(e: Dictionary,index: int,events: Array) -> bool:
 		return true
 	return false
 
-static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -> Array:
+static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,target_multiplier: float=1.0) -> Array:
 	var events: Array=[]
 	if dt<0 or not is_finite(dt) or e.arrived: return events
 	# 런타임은 경로 변경 번호를 전달한다. 기존 외부 호출은 내용 비교를 유지한다.
@@ -312,7 +314,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 				"ignoreArmorReduction":strongest.ignoreArmorReduction,
 				"sourceX":strongest.sourceX,"sourceY":strongest.sourceY,
 				"burnTransfer":strongest}
-			e.burnNumberDamage+=_dot_hit(e,attack,"burn",events,dt)
+			e.burnNumberDamage+=_dot_hit(e,attack,"burn",events,dt,target_multiplier)
 			elapsed = interval_end
 		for b in e.burnInstances: b.remaining=maxf(0,b.remaining-dt)
 		e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
@@ -324,7 +326,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -
 		var poison_tick := minf(dt,float(e.poisonRemaining))
 		e.poisonRemaining=maxf(0,e.poisonRemaining-dt)
 		e.poisonNumberTimer+=dt
-		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*e.poisonStacks*poison_tick},"poison",events)
+		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*e.poisonStacks*poison_tick},"poison",events,0.0,target_multiplier)
 		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonRemaining==0):
 			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":e.poisonDamageMultiplier}))
 			e.poisonNumberDamage=0.0
