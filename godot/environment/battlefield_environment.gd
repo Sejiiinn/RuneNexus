@@ -9,6 +9,7 @@ const ReflectionSky = "res://materials/battlefield_reflection_sky.tres"
 const ForgeReflectionSky = "res://materials/forge_reflection_sky.tres"
 const FoliageWind = preload("res://environment/foliage_wind.gdshader")
 const ChapterThreeProps = preload("res://environment/chapter_three_props.gd")
+const ChapterThreeDebris = preload("res://environment/chapter_three_debris.gd")
 const ChapterThreeTiles = preload("res://environment/chapter_three_tiles.gd")
 const ChapterTwoEnvironment = preload("res://environment/chapter_two_environment.gd")
 const BattlefieldCamera = preload("res://session/battlefield_camera.gd")
@@ -31,6 +32,8 @@ var columns := 8
 var rows := 10
 var _terrain_library: Node3D
 var _chapter_three_props_library: Node3D
+var _chapter_three_debris_library: Node3D
+var _floating_debris: Array[Dictionary] = []
 var _chapter_three_terrain_library: Node3D
 var _chapter_two_terrain_library: Node3D
 var _chapter_two_paving_library: Node3D
@@ -210,7 +213,7 @@ func resource_paths(map: Dictionary) -> Array[String]:
 	var theme := str(map.get("theme", "chapterOne"))
 	var paths: Array[String] = [LANDMARKS_PATH, ForgeReflectionSky if theme == "chapterThreeForge" else ReflectionSky]
 	if theme == "chapterThreeForge":
-		paths.append_array(["res://assets/environment/chapter3_tiles.glb", "res://assets/environment/chapter3_props.glb"])
+		paths.append_array(["res://assets/environment/chapter3_tiles.glb", "res://assets/environment/chapter3_props.glb", ChapterThreeDebris.MODEL_PATH])
 	elif theme == "chapterTwoRift":
 		if not _load_environment_manifests():
 			return []
@@ -283,6 +286,7 @@ func prepare_for_map(map: Dictionary) -> bool:
 	if theme != "chapterThreeForge":
 		_free_library("_chapter_three_terrain_library")
 		_free_library("_chapter_three_props_library")
+		_free_library("_chapter_three_debris_library")
 	var manifest := _chapter_environment_for_map(map)
 	if theme != "chapterTwoRift":
 		_free_library("_chapter_two_terrain_library")
@@ -325,7 +329,7 @@ func resource_snapshot() -> Dictionary:
 	for property in ["_terrain_library", "_landmark_library", "_dressing_library",
 			"_chapter_two_terrain_library", "_chapter_two_props_library", "_chapter_two_paving_library",
 			"_chapter_two_expansion_library", "_chapter_three_terrain_library", "_chapter_three_props_library",
-			"_environment_geology_library", "_environment_props_library"]:
+			"_chapter_three_debris_library", "_environment_geology_library", "_environment_props_library"]:
 		var library := get(property) as Node3D
 		if is_instance_valid(library):
 			libraries.append(library.scene_file_path)
@@ -414,7 +418,7 @@ func build_terrain(map: Dictionary) -> bool:
 	if not prepare_for_map(map) or not _prepare_landmarks():
 		return false
 	var chapter_three := theme == "chapterThreeForge"
-	if chapter_three and (not _prepare_chapter_three() or not _prepare_chapter_three_props()):
+	if chapter_three and (not _prepare_chapter_three() or not _prepare_chapter_three_props() or not _prepare_chapter_three_debris()):
 		return false
 	var chapter_two := theme == "chapterTwoRift"
 	var matched_manifest := _chapter_environment_for_map(map)
@@ -536,6 +540,11 @@ func build_terrain(map: Dictionary) -> bool:
 	if chapter_three and not ChapterThreeProps.populate(terrain, _chapter_three_props_library, map):
 		_fail("챕터 3 외곽 소품의 안전한 배치를 확인하지 못했습니다.")
 		return false
+	if chapter_three:
+		_floating_debris = ChapterThreeDebris.populate(terrain, _chapter_three_debris_library, map)
+		if _floating_debris.size() < ChapterThreeDebris.MIN_COUNT:
+			_fail("챕터 3 부유 철골의 안전한 배치를 확인하지 못했습니다.")
+			return false
 	if chapter_two and not _using_chapter_environment and not ChapterTwoEnvironment.populate(terrain, _chapter_two_props_library, map):
 		_fail("챕터 2 환경 소품의 배치 계약을 확인하지 못했습니다.")
 		return false
@@ -590,6 +599,25 @@ func _prepare_chapter_three_props() -> bool:
 			return false
 	prepare_vertex_colors(_chapter_three_props_library)
 	for mesh: MeshInstance3D in _chapter_three_props_library.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+	return true
+
+
+func _prepare_chapter_three_debris() -> bool:
+	if is_instance_valid(_chapter_three_debris_library):
+		return true
+	var packed := _load_scene(ChapterThreeDebris.MODEL_PATH)
+	if packed == null:
+		_fail("챕터 3 부유 철골 GLB를 불러오지 못했습니다.")
+		return false
+	_chapter_three_debris_library = packed.instantiate()
+	for kind in ChapterThreeDebris.KINDS:
+		if not _chapter_three_debris_library.find_child(kind, true, false) is MeshInstance3D:
+			_fail("챕터 3 부유 철골 GLB 노드 누락: " + kind)
+			_chapter_three_debris_library.free()
+			_chapter_three_debris_library = null
+			return false
+	for mesh: MeshInstance3D in _chapter_three_debris_library.find_children("*", "MeshInstance3D", true, false):
 		mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
 	return true
 
@@ -887,6 +915,7 @@ func update_frame(frame: Dictionary) -> void:
 	if _portal_material != null:
 		_portal_material.set_shader_parameter("battle_time", time)
 		_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
+	ChapterThreeDebris.animate(_floating_debris, time)
 	var core_hit := clampf(float(frame.get("nexusHit", 0.0)), 0.0, 1.0)
 	for core: Dictionary in _cores:
 		var crystal: Node3D = core["crystal"]
@@ -902,6 +931,7 @@ func _clear_instances() -> void:
 	_portals.clear()
 	_cores.clear()
 	_teleport_devices.clear()
+	_floating_debris.clear()
 	_teleport_cut_report.clear()
 	_current_map = {}
 	_build_tile_slots.clear()
@@ -922,7 +952,7 @@ func clear() -> void:
 
 func dispose() -> void:
 	clear()
-	for property in ["_terrain_library", "_chapter_three_props_library", "_chapter_three_terrain_library",
+	for property in ["_terrain_library", "_chapter_three_props_library", "_chapter_three_debris_library", "_chapter_three_terrain_library",
 			"_chapter_two_terrain_library", "_chapter_two_props_library", "_dressing_library"]:
 		_free_library(property)
 	_release_paving()

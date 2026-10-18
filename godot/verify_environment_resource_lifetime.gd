@@ -23,7 +23,7 @@ func _sources(battlefield: RefCounted) -> Dictionary:
 	for property in ["_terrain_library", "_landmark_library", "_dressing_library",
 			"_chapter_two_terrain_library", "_chapter_two_props_library", "_chapter_two_paving_library",
 			"_chapter_two_expansion_library", "_chapter_three_terrain_library", "_chapter_three_props_library",
-			"_environment_geology_library", "_environment_props_library"]:
+			"_chapter_three_debris_library", "_environment_geology_library", "_environment_props_library"]:
 		var node := battlefield.get(property) as Node3D
 		if is_instance_valid(node):
 			sources[node.scene_file_path] = weakref(node)

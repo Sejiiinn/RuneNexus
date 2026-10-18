@@ -65,6 +65,53 @@ func _check_props(scene: Node3D, map: Dictionary) -> void:
 				var material: Material = instance.get_active_material(surface)
 				_check(material is StandardMaterial3D and material == source.get_active_material(surface), "소품 native PBR 원본 미공유")
 
+func _check_debris(scene: Node3D, map: Dictionary) -> void:
+	var Debris = scene._environment.ChapterThreeDebris
+	var library: Node3D = scene._environment._chapter_three_debris_library
+	var group: Node3D = scene.terrain.get_node("chapter_three_debris")
+	var avoid: Array[Rect2] = []
+	for prop: Node3D in scene.terrain.get_node("chapter_three_props").get_children():
+		avoid.append(scene.ChapterThreeProps.footprint(scene.ChapterThreeProps.mesh_bounds(prop)))
+	var entries: Array = Debris.layout(library, map, avoid)
+	_check(entries == Debris.layout(library, map.duplicate(true), avoid), "부유 철골 배치 불안정")
+	_check(entries.size() == Debris.target_count(map) and group.get_child_count() == entries.size(), "부유 철골 배치 수 오류: %d/%d" % [entries.size(), Debris.target_count(map)])
+	var columns := int(map["columns"])
+	var rows := int(map["rows"])
+	var kinds := {}
+	for slot in range(entries.size()):
+		var entry: Dictionary = entries[slot]
+		kinds[entry["kind"]] = true
+		var area: Rect2 = scene.ChapterThreeProps.footprint(entry["bounds"])
+		for index in range(map["tiles"].size()):
+			if map["tiles"][index] != "blocked":
+				var tile := Rect2(Vector2(index % columns - columns / 2.0, floori(float(index) / columns) - rows / 2.0), Vector2.ONE)
+				_check(not tile.grow(.1).intersects(area), "부유 철골이 플레이 칸에 닿음: %s" % entry["cell"])
+		for rect in avoid:
+			_check(not rect.intersects(area), "부유 철골이 벽 소품과 겹침")
+		for other in range(slot + 1, entries.size()):
+			_check(not area.intersects(scene.ChapterThreeProps.footprint(entries[other]["bounds"])), "부유 철골끼리 겹침")
+		var instance := group.get_child(slot) as MeshInstance3D
+		var source := library.find_child(entry["kind"], true, false) as MeshInstance3D
+		_check(instance != null and source != null and instance.mesh == source.mesh, "부유 철골 원본 메시 미공유")
+		if instance != null and source != null:
+			for surface in range(instance.mesh.get_surface_count()):
+				_check(instance.get_active_material(surface) is StandardMaterial3D and instance.get_active_material(surface) == source.get_active_material(surface), "부유 철골 native PBR 원본 미공유")
+	_check(kinds.size() == mini(3, entries.size()), "부유 철골 종류 누락")
+	# 같은 전투 시간은 같은 자세, 부유 높이는 제한 범위 안.
+	var floating: Array[Dictionary] = scene._environment._floating_debris
+	_check(floating.size() == entries.size(), "부유 철골 움직임 대상 누락")
+	for time: float in [0.0, 7.3, 31.9]:
+		Debris.animate(floating, time)
+		var first: Array[Transform3D] = []
+		for item in floating:
+			first.append((item["node"] as Node3D).transform)
+			var rest: Transform3D = item["rest"]
+			_check(absf((item["node"] as Node3D).position.y - rest.origin.y) <= Debris.BOB_HEIGHT + .0001, "부유 높이 범위 초과")
+		Debris.animate(floating, time)
+		for index in range(floating.size()):
+			_check((floating[index]["node"] as Node3D).transform.is_equal_approx(first[index]), "부유 자세가 전투 시간에 결정되지 않음")
+	print("Forge debris: %d girders %s" % [entries.size(), entries.map(func(entry: Dictionary) -> String: return "%s@%s" % [entry["kind"], entry["cell"]])])
+
 func _projected_active_bounds(scene: Node3D, map: Dictionary) -> Rect2:
 	var low := Vector2(INF, INF)
 	var high := Vector2(-INF, -INF)
@@ -148,7 +195,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 		var point := Vector3(index % columns + .5 - columns / 2.0, 0, floori(float(index) / columns) + .5 - rows / 2.0)
 		var at_tile: Array[Node3D] = []
 		for node: Node3D in scene.terrain.get_children():
-			if node.name in ["chapter_three_panels", "chapter_three_props"] or node.name.begins_with("Teleport_"):
+			if node.name in ["chapter_three_panels", "chapter_three_props", "chapter_three_debris"] or node.name.begins_with("Teleport_"):
 				continue
 			if node.position.is_equal_approx(point):
 				at_tile.append(node)
@@ -218,12 +265,15 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 	_check(scene._portals.size() == tiles.count("spawn") and scene._cores.size() == tiles.count("core"), "포탈·코어 누락")
 	_check(scene.turrets.size() == frame["turrets"].size() and scene.enemies.size() == frame["enemies"].size(), "공용 전투 표시 누락")
 	_check_props(scene, frame["map"])
+	_check_debris(scene, frame["map"])
 	var props_id: int = scene.terrain.get_node("chapter_three_props").get_instance_id()
+	var debris_id: int = scene.terrain.get_node("chapter_three_debris").get_instance_id()
 	var first_id: int = scene.terrain.get_child(0).get_instance_id()
 	frame["seq"] = 1
 	scene.apply_frame(frame)
 	_check(scene.terrain.get_child(0).get_instance_id() == first_id, "동일 맵 재생성")
 	_check(scene.terrain.get_node("chapter_three_props").get_instance_id() == props_id, "동일 맵 소품 재생성")
+	_check(scene.terrain.get_node("chapter_three_debris").get_instance_id() == debris_id, "동일 맵 부유 철골 재생성")
 	var path: Array = frame["verificationPath"]
 	for step in range(path.size()):
 		var point := Vector2(float(path[step][0]), float(path[step][1]))
@@ -271,6 +321,7 @@ func _verify() -> void:
 		epoch += 1
 		scene.apply_frame(other)
 		_check(scene.terrain.find_child("chapter_three_props", true, false) == null, "다른 장에 용광로 소품 잔류")
+		_check(scene.terrain.find_child("chapter_three_debris", true, false) == null and scene._environment._floating_debris.is_empty(), "다른 장에 부유 철골 잔류")
 		_check(scene._current_map == other["map"], "다른 장 전환 실패")
 		var chapter_light := 1.20 if scene._environment._using_chapter_environment else 1.50
 		_check(scene._world_environment.sky == load(scene.ReflectionSky) and is_equal_approx(scene.sun.light_energy, chapter_light), "장 전환 후 공용 조명 복원 실패")

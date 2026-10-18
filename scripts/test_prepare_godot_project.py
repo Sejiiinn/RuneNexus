@@ -293,7 +293,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
             write(preset, b'[gd_resource type="StandardMaterial3D" format=3]\n')
             for kind, names in (
                 ("environment", ("dressing", "landmarks", "fern_shadow",
-                                 "chapter2_tiles", "chapter2_tiles_optimized", "chapter2_props", "chapter3_tiles", "chapter3_props")
+                                 "chapter2_tiles", "chapter2_tiles_optimized", "chapter2_props", "chapter3_tiles", "chapter3_props",
+                                 "chapter3_floating_girders")
                  + tuple(f"chapter2_stage{stage}_props" for stage in range(6, 11))),
                 ("projectiles", ("cannonball",)),
                 ("turrets", preparation.TURRET_TYPES),

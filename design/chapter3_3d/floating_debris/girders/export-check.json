@@ -1,0 +1,91 @@
+{
+  "source": "design/chapter3_3d/floating_debris/girders/floating-girders-game.blend",
+  "source_sha256": "1918c6699b646f6756d4d4a91b863df480cf76c4fb68ddfbf18b1b58a806835e",
+  "source_unchanged": true,
+  "girders": {
+    "girder_long_torn": {
+      "source_parts": 18,
+      "triangles": 1936,
+      "max_position_error": 3.766966827356555e-08,
+      "bounds": [
+        [
+          -0.4859999418258667,
+          0.46471720933914185
+        ],
+        [
+          -0.07000000029802322,
+          0.07000000029802322
+        ],
+        [
+          -0.10218048095703125,
+          0.10807755589485168
+        ]
+      ]
+    },
+    "girder_bent_ripped": {
+      "source_parts": 9,
+      "triangles": 1640,
+      "max_position_error": 3.094458378427589e-08,
+      "bounds": [
+        [
+          -0.33516359329223633,
+          0.3121917247772217
+        ],
+        [
+          -0.0560000017285347,
+          0.056000005453825
+        ],
+        [
+          -0.08499999344348907,
+          0.13186503946781158
+        ]
+      ]
+    },
+    "girder_twisted_stub": {
+      "source_parts": 7,
+      "triangles": 1324,
+      "max_position_error": 3.0719530030864917e-08,
+      "bounds": [
+        [
+          -0.21142379939556122,
+          0.21758460998535156
+        ],
+        [
+          -0.0780167430639267,
+          0.07295636087656021
+        ],
+        [
+          -0.11176358163356781,
+          0.1146661788225174
+        ]
+      ]
+    }
+  },
+  "reimport": {
+    "girder_long_torn": {
+      "max_position_error": 0.0,
+      "surfaces": 1,
+      "triangles": 1936
+    },
+    "girder_bent_ripped": {
+      "max_position_error": 0.0,
+      "surfaces": 1,
+      "triangles": 1640
+    },
+    "girder_twisted_stub": {
+      "max_position_error": 0.0,
+      "surfaces": 1,
+      "triangles": 1324
+    }
+  },
+  "atlas_size": 512,
+  "channels": [
+    "basecolor",
+    "roughness",
+    "normal",
+    "metallic",
+    "emission"
+  ],
+  "glb_bytes": 1334588,
+  "glb_sha256": "abc3ef49d07f7430815af5def3a198cf37f55d6541899fa64ba6769c5137e26e"
+}

@@ -124,7 +124,7 @@ def _prepare_compressed_model_textures(model: Path, size_limit: int = 0) -> None
 # Explicit authored families, resolved through staged content-hash references.
 # Keep albedo/emission limits from the accepted 1K terrain/tile policy.
 _ENVIRONMENT_MODELS = ("terrain", "chapter2_tiles", "chapter2_props",
-                       "chapter3_tiles", "chapter3_props")
+                       "chapter3_tiles", "chapter3_props", "chapter3_floating_girders")
 _ENVIRONMENT_512_NAMES = {
     "terrain": frozenset({
         "C1_natural_rock_faces_normal",
@@ -341,7 +341,7 @@ def prepare() -> Path:
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
     required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb", "landmarks.glb")]
     required += [SOURCE_ASSETS / "environment" / f"dressing_stage{stage}.glb" for stage in range(2, 6)]
-    required += [SOURCE_ASSETS / "environment" / name for name in ("chapter2_tiles.glb", "chapter2_tiles_optimized.glb", "chapter2_props.glb", "chapter3_tiles.glb", "chapter3_props.glb")]
+    required += [SOURCE_ASSETS / "environment" / name for name in ("chapter2_tiles.glb", "chapter2_tiles_optimized.glb", "chapter2_props.glb", "chapter3_tiles.glb", "chapter3_props.glb", "chapter3_floating_girders.glb")]
     required += [SOURCE_ASSETS / "environment" / f"chapter2_stage{stage}_{kind}.glb"
                  for stage in _environment_stage_ids("chapterTwoRift") for kind in ("geology", "props")]
     if any(stage >= 21 for stage in _environment_stage_ids("chapterTwoRift")):
