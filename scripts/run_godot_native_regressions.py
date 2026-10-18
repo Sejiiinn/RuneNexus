@@ -146,6 +146,10 @@ TIMEOUTS = {
     "verify_chapter_three_normal_combat.gd": 120, "verify_run_transition.gd": 120,
     "verify_result_settlement.gd": 60, "verify_fixed_combat_clock.gd": 60,
     "verify_gem_reroll_flip.gd": 60, "verify_gem_reroll.gd": 60,
+    # These repeatedly create real app/save repositories; the checkpoint case
+    # also drains real worker threads. Both exceed the short-case 20s budget on
+    # CI under parallel load, so keep them in the bounded integration lane.
+    "verify_server_run_lifecycle.gd": 60, "verify_async_checkpoint.gd": 60,
 }
 SERIAL = frozenset(TIMEOUTS)
 # Scripts and data load directly; only these need no editor import when changed.

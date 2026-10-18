@@ -109,7 +109,7 @@ func _all_definitions() -> void:
 		if assembled.definition == source.definition:
 			growth_matches += 1
 			_compare(assembled, source, "growth stat input")
-			_compare_legacy_stats(Stats.resolve(assembled), case.expected, "Dart growth stats")
+			_compare_legacy_stats(Stats.resolve(assembled), case.expected, source, "Dart growth stats")
 	_check(growth_matches > 0, "Dart growth fixtures matched current definitions")
 
 # Historical Dart inputs remain immutable. Projectile capability tags and attack
@@ -123,7 +123,7 @@ func _adapt_legacy_turret_input(actual: Dictionary, label: String) -> void:
 	definition.erase("attackCapabilities")
 	actual.erase("attackModifiers")
 
-func _compare_legacy_stats(actual: Dictionary, expected: Dictionary, label: String) -> void:
+func _compare_legacy_stats(actual: Dictionary, expected: Dictionary, input: Dictionary, label: String) -> void:
 	# Preserve the historical calculator fixture and its strict field comparison.
 	# New core passives must be neutral when those old inputs omit coreEffects.
 	var defaults := {"directDamageIncrease":0.0,"splashDamageIncrease":0.0,"chainDamageIncrease":0.0,"chainJumpRangeMultiplier":1.0,"firstControlDurationMultiplier":1.0,"controlDurationMultiplier":1.0}
@@ -138,6 +138,14 @@ func _compare_legacy_stats(actual: Dictionary, expected: Dictionary, label: Stri
 		if not expected.snapshot.has(key):
 			_compare(actual.snapshot.get(key), defaults[key], label + "/new neutral snapshot/" + key)
 			actual.snapshot.erase(key)
+	# New DoT checkpoints retain the original additive layer separately. Verify
+	# that field from the fixture input before comparing every historical field.
+	var dot_increase := 1.0 + (0.25 if input.primaryTrait == "highHeatBurn" else 0.0) + float(input.moduleEffect.damageOverTimeIncreaseRate) + float(input.get("coreEffects", {}).get("damageOverTimeIncrease", 0.0))
+	if "damageOverTime" in input.definition.attackTags and dot_increase != 1.0:
+		_compare(actual.snapshot.get("damageOverTimeIncreaseMultiplier"), dot_increase, label + "/original DoT increase layer")
+	else:
+		_check(not actual.snapshot.has("damageOverTimeIncreaseMultiplier"), label + "/neutral DoT metadata remains absent")
+	actual.snapshot.erase("damageOverTimeIncreaseMultiplier")
 	_compare(actual, expected, label)
 
 func _dart_cases() -> void:
@@ -170,7 +178,7 @@ func _dart_cases() -> void:
 		var actual: Dictionary = catalog.turret(case.type, inputs)
 		_adapt_legacy_turret_input(actual, "actual Dart turret input")
 		_compare(actual, case.input, "actual Dart turret input")
-		_compare_legacy_stats(Stats.resolve(actual), case.expected, "actual Dart turret stats")
+		_compare_legacy_stats(Stats.resolve(actual), case.expected, case.input, "actual Dart turret stats")
 
 func _runtime_cases() -> void:
 	# Existing chapter endpoints plus both expansion endpoints, final boss round.
