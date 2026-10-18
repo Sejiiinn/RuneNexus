@@ -16,6 +16,18 @@ from pathlib import Path
 MODEL = "gpt-6-astra"  # 사용자 지정. 다른 모델로 바꾸지 않는다.
 EFFORT = "high"
 
+# 샌드박스는 WindowServer 접근을 막는다. 창 모드 Godot은 NSApplication 초기화에서
+# abort되어 macOS '예기치 않게 종료됨' 대화상자를 남기므로 모든 요청 앞에 붙인다.
+SANDBOX_NOTICE = """\
+# 실행 환경 제약 (항상 적용)
+
+- 이 세션은 macOS 샌드박스 안에서 실행되어 화면(WindowServer)에 접근할 수 없다.
+- Godot은 반드시 `--headless`로만 실행한다. 창 모드 실행(`--resolution`만 주거나 `--headless` 없이 장면·캡처 스크립트 실행)은 시작 즉시 강제 종료되어 사용자 화면에 충돌 대화상자를 남긴다. GIMP·Blender 등 다른 GUI 앱도 실행하지 않는다.
+- 실제 렌더 화면이 필요한 항목은 요청에 첨부된 캡처 경로로 판단하고, 첨부가 없으면 미확인으로 보고한다.
+- 샌드박스 때문에 나오는 `get_system_ca_certificates` 오류는 검사 실패로 보지 않는다.
+
+"""
+
 
 def git(root, *args):
     return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, check=True).stdout
@@ -45,7 +57,7 @@ def main():
     args = parser.parse_args()
 
     root = Path(git(Path.cwd(), "rev-parse", "--show-toplevel").strip())
-    prompt = Path(args.prompt_file).read_text(encoding="utf-8")
+    prompt = SANDBOX_NOTICE + Path(args.prompt_file).read_text(encoding="utf-8")
     before_head = git(root, "rev-parse", "HEAD").strip()
     before = tree_state(root)
 
