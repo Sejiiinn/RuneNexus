@@ -179,19 +179,19 @@ func run() -> void:
 	hud.overlay_body.find_child("GemRewardShards",true,false).pressed.emit(); await frames()
 	var confirm: Button
 	for button in hud.overlay_body.find_children("*","Button",true,false):
-		if button.text == "파편 받기": confirm = button
+		if button.text == "젬 파편 받기": confirm = button
 	var confirm_rect := confirm.get_global_rect()
 	var frame_rect: Rect2 = hud.overlay.get_global_rect()
 	hit().pressed.emit(); await frames(); commit(NEW); available(); complete()
 	hud.rewards.gem_flip.set_process(false); await frames()
 	for button in hud.overlay_body.find_children("*","Button",true,false):
-		if button.text == "파편 받기": confirm = button
+		if button.text == "젬 파편 받기": confirm = button
 	confirm.pressed.emit()
 	check(hud.rewards.shard_selected and app.run_domain.state.phase == "reward" and confirm.disabled,"open shard confirmation is preserved but locked")
 	check(confirm.get_global_rect().is_equal_approx(confirm_rect) and hud.overlay.get_global_rect().is_equal_approx(frame_rect),"open shard confirmation geometry stays fixed")
 	hud.rewards.gem_flip._apply(0.6); await frames()
 	for button in hud.overlay_body.find_children("*","Button",true,false):
-		if button.text == "파편 받기": confirm = button
+		if button.text == "젬 파편 받기": confirm = button
 	check(hud.rewards.shard_selected and not confirm.disabled and confirm.get_global_rect().is_equal_approx(confirm_rect),"completed flip preserves open shard confirmation")
 	await destroy()
 	# Recovery completing during the initial entrance must wait, not compete.

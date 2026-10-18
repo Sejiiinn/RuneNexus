@@ -37,8 +37,7 @@ var auto_start: Button
 var auto_start_popup: PopupMenu
 var target_priority_popup: PopupPanel
 const AUTO_MODES := ["pauseEachRound", "skipBossRounds", "fullAuto"]
-const AUTO_LABELS := ["웨이브마다 정지", "보스 제외 자동", "전부 자동"]
-const AUTO_CAPTIONS := ["수동", "보스 대기", "자동"]
+const AUTO_LABELS := ["수동", "보스 대기", "자동"]
 var bottom: VBoxContainer
 var detail_panel: PanelContainer
 var _dock_layout_pending := false
@@ -195,7 +194,7 @@ func _ready() -> void:
 	auto_start_popup.theme = theme; auto_start_popup.theme_type_variation = "HudPopup"
 	auto_start_popup.add_theme_font_size_override("font_size",13)
 	auto_start_popup.add_theme_constant_override("v_separation",16)
-	auto_start_popup.about_to_popup.connect(func(): auto_start.text = AUTO_CAPTIONS[maxi(0,AUTO_MODES.find(app.auto_start_mode))]+" ▴")
+	auto_start_popup.about_to_popup.connect(func(): auto_start.text = AUTO_LABELS[maxi(0,AUTO_MODES.find(app.auto_start_mode))]+" ▴")
 	auto_start_popup.popup_hide.connect(func(): if is_inside_tree(): refresh())
 	for index in AUTO_MODES.size(): auto_start_popup.add_radio_check_item(AUTO_LABELS[index],index)
 	auto_start_popup.id_pressed.connect(func(index: int): app.set_auto_start_mode(AUTO_MODES[index]); refresh())
@@ -286,7 +285,7 @@ func refresh(polled := false) -> void:
 	# Compact numeric presentation only; all balances, quotes and arithmetic stay exact.
 	gold_label.text = HudNumber.compact(int(state.gold),0); gold_label.tooltip_text = str(state.gold)
 	shard_label.text = HudNumber.compact(int(state.gemShards),0); shard_label.tooltip_text = str(state.gemShards)
-	resources.text = "전투력 "+HudNumber.compact(total_dps); resources.tooltip_text = "전투력 %.1f" % total_dps
+	resources.text = "전투력 "+HudNumber.compact(total_dps,0); resources.tooltip_text = "전투력 %.1f" % total_dps
 	for label in [gold_label,shard_label,resources]: label.get_parent().tooltip_text = label.tooltip_text
 	var wave_count: int = app.catalog.wave_count(app.stage)
 	_refresh_intel(state,wave_count)
@@ -317,7 +316,7 @@ func refresh(polled := false) -> void:
 	_position_camera_button()
 	home.disabled = phase == "reward"
 	var auto_index: int = maxi(0,AUTO_MODES.find(app.auto_start_mode))
-	auto_start.text = AUTO_CAPTIONS[auto_index]+(" ▴" if auto_start_popup.visible else " ▾")
+	auto_start.text = AUTO_LABELS[auto_index]+(" ▴" if auto_start_popup.visible else " ▾")
 	auto_start.tooltip_text = AUTO_LABELS[auto_index]
 	auto_start.disabled = phase not in ["preparation","wave"]
 	message.text = _error(str(app.checkpoint.message)); retry_save.visible = app.get("save_failed") == true
@@ -369,7 +368,7 @@ func refresh(polled := false) -> void:
 		if live.has(str(chosen.get("id"))):
 			damage = 0
 			for field in ["directDamageDealt","splashDamageDealt","chainDamageDealt","burnDamageDealt"]: damage += float(live[str(chosen.id)].get(field,0))
-		damage_label.text = HudNumber.compact(damage)
+		damage_label.text = HudNumber.compact(damage,0)
 		damage_label.tooltip_text = "누적 피해 %.1f" % damage
 		damage_label.get_parent().tooltip_text = damage_label.tooltip_text
 	menu_panel._refresh_core()
@@ -573,7 +572,7 @@ func run_selected_command(kind: String, values: Dictionary = {}) -> void:
 func _error(error: String) -> String:
 	if error.begins_with("Saved "): return ""
 	if error.begins_with("Loaded "): return "저장한 전투를 불러왔습니다."
-	return str({"gold":"골드가 부족합니다.","gemShards":"젬 조각이 부족합니다.","tile":"건설 가능한 칸을 선택하세요.","occupied":"이미 포탑이 있는 칸입니다.","locked":"연구로 해금해야 합니다.","phase":"현재 단계에서는 사용할 수 없습니다.","gem":"이 포탑에 장착할 수 없는 젬입니다.","research":"연구가 필요합니다.","trait":"특성 선택 조건을 확인하세요.","inventory":"보유 젬이 없습니다.","requirement":"강화 조건을 확인하세요.","turret":"포탑을 선택하세요."}.get(error,error))
+	return str({"gold":"골드가 부족합니다.","gemShards":"젬 파편이 부족합니다.","tile":"건설 가능한 칸을 선택하세요.","occupied":"이미 포탑이 있는 칸입니다.","locked":"연구로 해금해야 합니다.","phase":"현재 단계에서는 사용할 수 없습니다.","gem":"이 포탑에 장착할 수 없는 젬입니다.","research":"연구가 필요합니다.","trait":"특성 선택 조건을 확인하세요.","inventory":"보유 젬이 없습니다.","requirement":"강화 조건을 확인하세요.","turret":"포탑을 선택하세요."}.get(error,error))
 
 func selected_tile_type() -> String:
 	var map: Dictionary = _stage_map()
@@ -621,8 +620,8 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 	var shard_rewards: Array = app.run_domain.growth.data.get("roundShardRewards",[])
 	var shards := int(shard_rewards[index+1]) if index+1 < shard_rewards.size() else 0
 	enemy_caption.text = "다음 적" if state.phase == "preparation" else "등장 적"
-	reward_label.text = "+%s G · 파편 %s" % [HudNumber.compact_integer(gold),HudNumber.compact_integer(shards)]
-	reward_label.tooltip_text = "+%d G · 파편 %d" % [gold,shards]
+	reward_label.text = "+%s G · 젬 파편 %s" % [HudNumber.compact_integer(gold),HudNumber.compact_integer(shards)]
+	reward_label.tooltip_text = "+%d G · 젬 파편 %d" % [gold,shards]
 	var types: Array = wave.enemyCounts.keys()
 	for type in types.slice(0,3):
 		var button := UiWidgets.button(enemy_intel,"",func():

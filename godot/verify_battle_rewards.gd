@@ -335,7 +335,7 @@ func _assert_reward_selection_layout(hud,app) -> void:
 			if not purchased:
 				_button_text(hud.overlay_body,"젬 대신").pressed.emit(); await _record_reward_rects(hud)
 				var shards: int = state.gemShards
-				_button_text(hud.overlay_body,"파편 받기").pressed.emit()
+				_button_text(hud.overlay_body,"젬 파편 받기").pressed.emit()
 				assert(app.run_domain.state.phase == "preparation")
 				assert(int(app.run_domain.state.gemShards) == shards+int(app.run_domain.growth.data.constants.gemShardRewardFallbackAmount))
 			else:

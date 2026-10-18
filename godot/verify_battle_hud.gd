@@ -210,7 +210,7 @@ func run() -> void:
 		assert(not (hud.body.find_child("TurretTargetPriority",true,false) as Button).visible,"Target action remains research gated")
 	app.scene.combat_runtime.turrets = {str(app.run_domain.state.turrets[0].id): {"directDamageDealt":123.0,"splashDamageDealt":7.0}}
 	hud.refresh()
-	assert(hud.damage_label.text.ends_with("130.0"))
+	assert(hud.damage_label.text.ends_with("130"))
 	assert(hud.status.autowrap_mode == TextServer.AUTOWRAP_OFF)
 	assert(hud.wave_label.autowrap_mode == TextServer.AUTOWRAP_OFF)
 	var turret_nodes := node_identities(hud.body)
@@ -568,7 +568,7 @@ func run() -> void:
 		exact_total += float(stats.damage)*float(stats.attackRate)*float(stats.projectileCount if turret.type in ["arrow","cannon"] else 1)
 		if turret.type == "magic": exact_total += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
 	assert(is_equal_approx(hud.total_dps,exact_total))
-	assert(hud.resources.text == "전투력 "+HudNumber.compact(exact_total))
+	assert(hud.resources.text == "전투력 "+HudNumber.compact(exact_total,0))
 	assert(hud.resources.tooltip_text == "전투력 %.1f" % exact_total)
 	assert(not hud.turret_stats(app.run_domain.state,app.run_domain.state.turrets[0]).has("dps"),"HUD decorations must not mutate cached raw stats")
 	app.run_domain.state.gold = 10000000; hud.refresh()

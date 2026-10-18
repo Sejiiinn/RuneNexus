@@ -43,7 +43,7 @@ LABELS = {
     'roundClearGoldMultiplier':'웨이브 골드', 'criticalChanceBonus':'치명타 확률', 'projectileSpeedIncrease':'투사체 속도',
     'splashDamageIncrease':'범위 피해', 'lightningChainDamageIncrease':'연쇄 피해', 'rangeIncrease':'사거리',
     'threatWeakeningRate':'위협 약화', 'turretLevelDamageIncrease':'레벨당 피해 증가량', 'startingGoldMultiplier':'시작 골드',
-    'traitShardCostMultiplier':'특성 파편 비용', 'criticalDamageBonus':'치명타 피해', 'lightningChainRangeIncrease':'연쇄 거리',
+    'traitShardCostMultiplier':'특성 젬 파편 비용', 'criticalDamageBonus':'치명타 피해', 'lightningChainRangeIncrease':'연쇄 거리',
     'attackRateIncrease':'공격 속도', 'damageRestorationRate':'피해 후 회복', 'turretRefundBonusRate':'철거 환급률',
     'nexusAdditionalHpRate':'회복 불가 추가 체력',
 }

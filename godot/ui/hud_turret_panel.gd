@@ -44,7 +44,7 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	total.add_theme_constant_override("separation",6); category_row.add_child(total)
 	var caption: Label = UiWidgets.label(total,"누적 피해",11); caption.modulate = Color("a6bcc8")
 	caption.size_flags_horizontal = Control.SIZE_SHRINK_END; caption.autowrap_mode = TextServer.AUTOWRAP_OFF
-	hud.damage_label = UiWidgets.label(total,"0.0",12); hud.damage_label.name = "TurretTotalDamageValue"
+	hud.damage_label = UiWidgets.label(total,"0",12); hud.damage_label.name = "TurretTotalDamageValue"
 	hud.damage_label.size_flags_horizontal = Control.SIZE_SHRINK_END
 	hud.damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; hud.damage_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var stat_scroll = ScrollContainer.new(); stat_scroll.name = "TurretStatsScroll"; stat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; stat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; hud.body.add_child(stat_scroll)
@@ -232,12 +232,12 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	var wallet := HBoxContainer.new(); wallet.name = "TraitWallet"; wallet.custom_minimum_size.y = 28
 	wallet.add_theme_constant_override("separation",7); box.add_child(wallet)
 	UiWidgets.icon(wallet,"ui/hud/icons/shard.png",22)
-	var wallet_title: Label = UiWidgets.label(wallet,"보유 파편",12)
+	var wallet_title: Label = UiWidgets.label(wallet,"보유 젬 파편",12)
 	wallet_title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	wallet_title.custom_minimum_size.x = 55; wallet_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	wallet_title.modulate = Color("b7d5e3")
 	var wallet_amount: Label = UiWidgets.label(wallet,HudNumber.compact(int(hud.app.run_domain.state.gemShards),0),15)
-	wallet.tooltip_text = "%d 파편" % int(hud.app.run_domain.state.gemShards)
+	wallet.tooltip_text = "젬 파편 %d" % int(hud.app.run_domain.state.gemShards)
 	wallet_amount.name = "TraitWalletAmount"; wallet_amount.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	wallet_amount.autowrap_mode = TextServer.AUTOWRAP_OFF
 	wallet_amount.add_theme_font_override("font",hud.AppTheme.font(900))
@@ -292,7 +292,7 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0, refresh_panel: Pane
 	confirm_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	confirm_row.add_child(confirm_icon)
 	var confirm_cost: Label = UiWidgets.label(confirm_row,HudNumber.compact_price(cost),16)
-	confirm.tooltip_text = "선택 확정 · %d 파편" % cost
+	confirm.tooltip_text = "선택 확정 · 젬 파편 %d" % cost
 	confirm_cost.name = "TraitConfirmCost"; confirm_cost.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	confirm_cost.autowrap_mode = TextServer.AUTOWRAP_OFF
 	confirm_cost.add_theme_font_override("font",hud.AppTheme.font(900))

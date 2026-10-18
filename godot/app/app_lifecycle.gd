@@ -901,7 +901,7 @@ func _perform_gem_command(action: String, values: Dictionary) -> Dictionary:
 	if not result.get("ok", false):
 		var code := str(result.get("code", "REQUEST_FAILED"))
 		if code in ["INSUFFICIENT_GEM_RESET_TICKETS", "INSUFFICIENT_GEM_TICKETS"]: _gem_reroll_note = "젬 리셋권이 없습니다."
-		elif code == "INSUFFICIENT_GEM_SHARDS": _gem_reroll_note = "젬 조각이 부족합니다."
+		elif code == "INSUFFICIENT_GEM_SHARDS": _gem_reroll_note = "젬 파편이 부족합니다."
 		elif code == "GEM_REROLL_LIMIT_REACHED": _gem_reroll_note = "이번 도전의 리롤을 모두 사용했습니다."
 		else: _gem_reroll_note = "서버 보상을 확인하지 못했습니다. 다시 시도해 주세요."
 	if result.get("ok", false) and action == "choose_gem" and values.has("equipIntent") and run_domain.state.get("economyRunId") == values.get("runId"):

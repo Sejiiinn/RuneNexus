@@ -615,7 +615,7 @@ func _radio(title: String, key: String, values: Array, labels: Array, fallback: 
 		flow.add_child(b)
 
 func core_effect_text(definition: Dictionary, rank: int) -> String:
-	var names := {"cooldownRecoveryRate":"재사용 대기시간 회복 속도", "turretAttackRateAmplification":"스킬 후 포탑 공격 속도", "turretDamageAmplification":"스킬 후 포탑 피해", "coreSkillPowerMultiplier":"코어 스킬 위력", "thirdCoreSkillPowerMultiplier":"세 번째 코어 스킬 위력", "nexusMaxHpMultiplier":"코어 최대 체력", "roundRecoveryRate":"라운드 체력 회복", "damageRestorationRate":"손상 복원", "impactDispersionRate":"충격 분산", "threatWeakeningRate":"위협 약화", "emergencyRecoveryRate":"비상 회복", "hasFinalDefense":"최종 방위선", "hasCombinedFront":"통합 전선", "buildCostMultiplier":"건설 비용", "combinedFrontMultiplier":"통합 전선 비용", "roundClearGoldMultiplier":"라운드 보상", "traitShardCostMultiplier":"특성 파편 비용", "diversityDiscountPerType":"포탑 종류별 할인", "gemSpectrumPerType":"젬 종류별 효과", "linkCostMultiplier":"링크 비용"}
+	var names := {"cooldownRecoveryRate":"재사용 대기시간 회복 속도", "turretAttackRateAmplification":"스킬 후 포탑 공격 속도", "turretDamageAmplification":"스킬 후 포탑 피해", "coreSkillPowerMultiplier":"코어 스킬 위력", "thirdCoreSkillPowerMultiplier":"세 번째 코어 스킬 위력", "nexusMaxHpMultiplier":"코어 최대 체력", "roundRecoveryRate":"라운드 체력 회복", "damageRestorationRate":"손상 복원", "impactDispersionRate":"충격 분산", "threatWeakeningRate":"위협 약화", "emergencyRecoveryRate":"비상 회복", "hasFinalDefense":"최종 방위선", "hasCombinedFront":"통합 전선", "buildCostMultiplier":"건설 비용", "combinedFrontMultiplier":"통합 전선 비용", "roundClearGoldMultiplier":"라운드 보상", "traitShardCostMultiplier":"특성 젬 파편 비용", "diversityDiscountPerType":"포탑 종류별 할인", "gemSpectrumPerType":"젬 종류별 효과", "linkCostMultiplier":"링크 비용"}
 	var text := "다음 등급 효과"
 	var effect: Dictionary = definition.effects[rank]
 	var base: Dictionary = definition.effects[0]

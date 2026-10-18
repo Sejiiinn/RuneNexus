@@ -365,7 +365,7 @@ func _inventory(state: Dictionary) -> void:
 	for type in hud.app.run_domain.growth.data.gems:
 		if int(state.gemInventory.get(type,0))>0: owned.append(type)
 	if owned.is_empty():
-		UiWidgets.label(hud.body,"보유한 젬이 없습니다. 5라운드 보상 또는 파편 구매로 젬을 획득하세요.",11)
+		UiWidgets.label(hud.body,"보유한 젬이 없습니다. 5라운드 보상 또는 젬 파편 구매로 젬을 획득하세요.",11)
 		return
 	var grid := GridContainer.new()
 	grid.name = "GemInventoryGrid"
@@ -416,9 +416,9 @@ func _empty_inventory_slot(parent: Node, minimum: Vector2, index: int) -> void:
 
 func _purchase(parent: Node,state: Dictionary) -> void:
 	var cost: int = hud.app.run_domain.growth.data.constants.gemChoicePurchaseCost
-	var b = UiWidgets.button(parent,"젬 구매 · %s 조각" % HudNumber.compact_price(cost),_request_purchase)
+	var b = UiWidgets.button(parent,"젬 구매 · 젬 파편 %s" % HudNumber.compact_price(cost),_request_purchase)
 	hud.track_purchase_button(b,"gemShards",cost,state.phase not in ["preparation","wave"])
-	b.tooltip_text = "젬 구매 · %d 조각" % cost
+	b.tooltip_text = "젬 구매 · 젬 파편 %d" % cost
 
 func _request_purchase() -> void:
 	if not hud.app.has_method("purchase_reward_gems"): return

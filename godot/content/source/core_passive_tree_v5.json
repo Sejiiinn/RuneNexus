@@ -2022,7 +2022,7 @@
         }
       ],
       "implementation_status": "existing_hook",
-      "effect_summary": "특성 젬 조각 비용 배율: -1.5% / -2.5% / -4% / -5.5% / -6.5%",
+      "effect_summary": "특성 젬 파편 비용 배율: -1.5% / -2.5% / -4% / -5.5% / -6.5%",
       "neighbors": [
         "A12",
         "B15",
@@ -2042,7 +2042,7 @@
       },
       "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
       "display_effects": [
-        "특성 젬 조각 비용 배율: -1.5% / -2.5% / -4% / -5.5% / -6.5%"
+        "특성 젬 파편 비용 배율: -1.5% / -2.5% / -4% / -5.5% / -6.5%"
       ],
       "balance_revision": {
         "change_type": "same_effect_bonus_two_thirds",
@@ -2967,7 +2967,7 @@
         }
       ],
       "implementation_status": "existing_hook",
-      "effect_summary": "특성 젬 조각 비용 배율: -1.5% / -3% / -4.5% / -6% / -7.5%",
+      "effect_summary": "특성 젬 파편 비용 배율: -1.5% / -3% / -4.5% / -6% / -7.5%",
       "neighbors": [
         "B14",
         "B15"
@@ -2983,7 +2983,7 @@
       },
       "mechanic_availability": "Does not unlock any turret, gem, skill, research, trait, or link slot. Effects apply only to mechanics already unlocked and actually present.",
       "display_effects": [
-        "특성 젬 조각 비용 배율: -1.5% / -3% / -4.5% / -6% / -7.5%"
+        "특성 젬 파편 비용 배율: -1.5% / -3% / -4.5% / -6% / -7.5%"
       ],
       "balance_revision": {
         "change_type": "same_effect_bonus_two_thirds",
@@ -3936,7 +3936,7 @@
       "new_catalog_entries_required": true
     },
     "trait_mult": {
-      "name": "특성 젬 조각 비용 배율",
+      "name": "특성 젬 파편 비용 배율",
       "implementation_status": "existing_hook",
       "aggregation": "product",
       "target_field": "traitShardCostMultiplier",

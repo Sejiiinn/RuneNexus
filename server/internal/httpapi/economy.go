@@ -486,7 +486,7 @@ func (handler economyHandler) writeEconomyError(response http.ResponseWriter, re
 	case errors.Is(err, economy.ErrSaveRevisionConflict):
 		status, code, message = http.StatusConflict, "SAVE_SYNC_REQUIRED", "최신 계정 진행을 저장한 뒤 다시 시도해 주세요."
 	case errors.Is(err, economy.ErrInsufficientGemShards):
-		status, code, message = http.StatusUnprocessableEntity, "INSUFFICIENT_GEM_SHARDS", "젬 조각이 부족합니다."
+		status, code, message = http.StatusUnprocessableEntity, "INSUFFICIENT_GEM_SHARDS", "젬 파편이 부족합니다."
 	case errors.Is(err, economy.ErrInsufficientDiamonds):
 		status, code, message = http.StatusUnprocessableEntity, "INSUFFICIENT_DIAMONDS", "다이아가 부족합니다."
 	case errors.Is(err, economy.ErrGemOfferConflict):

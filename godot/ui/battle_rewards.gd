@@ -412,12 +412,12 @@ func _cards(state: Dictionary, width: float) -> void:
 		_reward_details(body,state,width)
 	if not state.get("isPurchasedGemReward",false):
 		var amount := int(hud.app.run_domain.growth.data.constants.gemShardRewardFallbackAmount)
-		var shard: Button = UiWidgets.button(body,"젬 대신 파편 획득\n파편 +%s · 현재 보유 %s" % [HudNumber.compact_integer(amount),HudNumber.compact_integer(int(state.gemShards))],func():
+		var shard: Button = UiWidgets.button(body,"젬 대신 젬 파편 획득\n젬 파편 +%s · 현재 보유 %s" % [HudNumber.compact_integer(amount),HudNumber.compact_integer(int(state.gemShards))],func():
 			if revision != _layout_revision or gem_entrance.active or _reroll_locked(): return
 			shard_selected = true; key = ""; hud.refresh())
 		shard.name = "GemRewardShards"
 		shard.disabled = locked
-		shard.tooltip_text = "파편 +%d · 현재 보유 %d" % [amount,state.gemShards]
+		shard.tooltip_text = "젬 파편 +%d · 현재 보유 %d" % [amount,state.gemShards]
 		shard.icon = Art.texture("res://assets/app/ui/hud/icons/shard.png")
 		shard.expand_icon = true
 		shard.add_theme_constant_override("icon_max_width",24)
@@ -432,7 +432,7 @@ func _cards(state: Dictionary, width: float) -> void:
 		shard.add_theme_stylebox_override("normal",bar)
 		shard.add_theme_stylebox_override("disabled",bar)
 		if shard_selected:
-			var confirm: Button = UiWidgets.button(body,"파편 받기",func():
+			var confirm: Button = UiWidgets.button(body,"젬 파편 받기",func():
 				if revision == _layout_revision: _settle({"kind":"chooseRewardShards"}))
 			confirm.disabled = locked
 	if not collection.is_empty():
