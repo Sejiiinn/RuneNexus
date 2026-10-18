@@ -1,6 +1,6 @@
 ---
 name: codex-verify
-description: Claude가 구현을 마친 변경을 Codex CLI(gpt-6-astra, reasoning high)에게 독립 검증받는다. RuneNexus에서 UI·시각 작업, 저장·전투·API 계약 변경, 여러 시스템에 걸친 변경, 복잡한 버그 수정을 끝낸 뒤 완료 보고·커밋 전에 사용한다. 단순 문구·문서 정리나 자동 대조로 판정되는 기계적 변경에는 쓰지 않는다.
+description: Claude가 구현을 마친 변경을 Codex CLI(gpt-6-astra, reasoning high)에게 독립 검증받는다. 사용자가 Codex·Astra 검증을 요청했을 때에만 사용한다. 변경 종류만 보고 스스로 실행하지 않는다.
 ---
 
 # Codex 독립 검증
@@ -11,9 +11,9 @@ description: Claude가 구현을 마친 변경을 Codex CLI(gpt-6-astra, reasoni
 
 ## 언제
 
-- 대상: AGENTS.md 「독립 검증 적용」 기준과 같다. UI·시각, 저장·전투·API 계약, 여러 시스템, 복잡한 버그 수정.
-- 생략: 단순 문구·문서 정리, 자동 대조로 완료를 명확히 판정할 수 있는 기계적 변경. 사용자 요청이나 프로젝트 필수 검증은 생략하지 않는다.
-- 시점: Claude가 구현·관련 기본 검사·발견 결함 수정을 끝낸 뒤, 완료 보고·커밋 전.
+- 조건: 사용자가 이번 작업에 Codex·Astra 검증을 요청했을 때에만 실행한다. UI·저장·전투 등 변경 종류나 AGENTS.md 「독립 검증 적용」만으로는 실행하지 않는다(`.claude/CLAUDE.md`).
+- 요청이 없으면 Claude의 관련 자동 검사·실제 화면 확인으로 마무리하고, 독립 검증을 하지 않았다고 완료 보고에 밝힌다.
+- 시점: 요청을 받으면 Claude가 구현·관련 기본 검사·발견 결함 수정을 끝낸 뒤, 완료 보고·커밋 전에 실행한다.
 
 ## 검증 요청 작성
 
