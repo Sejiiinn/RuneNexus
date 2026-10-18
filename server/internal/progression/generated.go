@@ -62,8 +62,7 @@ var requirements = map[string]map[string]int{
 		"riftMark":     20,
 	},
 	"feature": {
-		"researchSlotTwo":        25,
-		"researchSlotTwoPreview": 23,
+		"researchSlotTwo": 25,
 	},
 }
 
@@ -110,8 +109,7 @@ var legacyRequirements = map[string]map[string]int{
 		"armorPiercing": 10,
 	},
 	"feature": {
-		"researchSlotTwo":        10,
-		"researchSlotTwoPreview": 8,
+		"researchSlotTwo": 10,
 	},
 }
 

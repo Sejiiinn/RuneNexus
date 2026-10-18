@@ -38,8 +38,7 @@ static func _legacy_unlock(p: Dictionary, kind: String, key: String) -> bool:
 		if int(p.get("researchLevels",{}).get(key,0)) > 0 or int(p.get("researchElapsedMillis",{}).get(key,0)) > 0: return true
 		for active in p.get("activeResearches",[]):
 			if active.get("type") == key: return true
-	if kind == "feature" and key == "researchSlotTwoPreview" and 10 in cleared: return true
-	if kind == "feature" and key.begins_with("researchSlotTwo") and p.get("researchSlotTwoUnlocked",false): return true
+	if kind == "feature" and key == "researchSlotTwo" and p.get("researchSlotTwoUnlocked",false): return true
 	return false
 static func has_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	if kind == "upgrade" and key in ["criticalChance","emergencySale"]: return false

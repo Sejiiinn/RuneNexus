@@ -53,11 +53,20 @@ func _initialize() -> void:
 	var old := {"growthVersion":1,"unlockedStageCount":11,"clearedStageNumbers":[1,2,6,8,10],"researchLevels":{},"activeResearches":[],"runes":77,"researchSlotTwoUnlocked":false}
 	var migrated := Progress.migrate_progression(old)
 	check(migrated.runes == 77 and migrated.clearedStageNumbers == old.clearedStageNumbers,"migration no currency/clear creation")
-	for pair in [["upgrade","bossBounty"],["research","linkMaintenance"],["research","gemAttunement"],["turret","lightning"],["gem","armorPiercing"],["feature","researchSlotTwo"],["feature","researchSlotTwoPreview"],["core","riftMark"]]:
+	for pair in [["upgrade","bossBounty"],["research","linkMaintenance"],["research","gemAttunement"],["turret","lightning"],["gem","armorPiercing"],["feature","researchSlotTwo"],["core","riftMark"]]:
 		check(Progress.has_unlock(migrated,pair[0],pair[1]),"legacy zero-level right "+str(pair))
 	check(not migrated.researchSlotTwoUnlocked,"slot purchase not granted")
 	var old_ten := Progress.migrate_progression({"growthVersion":1,"clearedStageNumbers":[10],"researchSlotTwoUnlocked":false})
-	check(Progress.has_unlock(old_ten,"feature","researchSlotTwoPreview") and Progress.has_unlock(old_ten,"feature","researchSlotTwo") and not old_ten.researchSlotTwoUnlocked,"legacy ID10 only preview and purchase eligibility")
+	check(Progress.has_unlock(old_ten,"feature","researchSlotTwo") and not old_ten.researchSlotTwoUnlocked,"legacy ID10 retains purchase eligibility without granting ownership")
+	check(not "feature:researchSlotTwoPreview" in old_ten.grandfatherUnlocks,"legacy migration no longer generates retired preview rights")
+	# Retired strings already in saves remain opaque so server rights never regress.
+	var retired := Progress.migrate_progression({"growthVersion":1,"progressionVersion":1,"grandfatherUnlocks":["feature:researchSlotTwoPreview"],"researchSlotTwoUnlocked":false})
+	check("feature:researchSlotTwoPreview" in retired.grandfatherUnlocks and not Progress.has_unlock(retired,"feature","researchSlotTwo"),"retired saved right is preserved without granting purchase eligibility")
+	check(retired == Progress.migrate_progression(retired),"retired saved right migration stays idempotent")
+	var owned_slot := Progress.migrate_progression({"growthVersion":1,"researchSlotTwoUnlocked":true})
+	check(owned_slot.researchSlotTwoUnlocked and Progress.has_unlock(owned_slot,"feature","researchSlotTwo"),"legacy purchased slot remains owned")
+	for stage_id in [23,24,25]:
+		check(Progress.has_unlock({"progressionVersion":1,"clearedStageNumbers":[stage_id]},"feature","researchSlotTwo") == (stage_id == 25),"slot purchase remains gated at chapter two tenth: %d" % stage_id)
 	check(Progress.stage_unlocked(migrated,11) and not Progress.stage_unlocked(migrated,25),"old stage access, no inserted fake clear")
 	check(migrated == Progress.migrate_progression(migrated),"migration idempotent")
 	var ancient := Progress.migrate_progression({"growthVersion":0,"runes":100,"criticalChanceUpgradeLevel":5,"emergencySaleUpgradeLevel":2,"researchLevels":{"bossBounty":3},"researchElapsedMillis":{"bossBounty":500},"activeResearches":[{"type":"bossBounty","targetLevel":6},{"type":"gemAttunement","targetLevel":1,"durationMillis":100,"startedAtMillis":50}]})
