@@ -511,6 +511,13 @@ func toggle_speed() -> void:
 	super.toggle_speed()
 	request_checkpoint()
 
+func toggle_camera() -> void:
+	super.toggle_camera()
+	# The chosen view carries over to later stages and app restarts on this device.
+	var settings := DevicePreferences.read()
+	settings.camera = scene.options.camera
+	DevicePreferences.write(settings)
+
 func set_speed(value: float) -> void:
 	if services != null and services.blocks_play(): return
 	if value not in [1.0, 2.0, 4.0] or startup_blocked or in_lobby or _battle_preparation_pending(): return

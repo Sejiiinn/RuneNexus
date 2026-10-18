@@ -72,15 +72,32 @@ func check_modal_routes(wave: Dictionary) -> void:
 		check(not label.text.begins_with("묶음 "),"dispatch groups are not listed")
 	check(app.hud.modal_panel.size.x <= root.get_visible_rect().size.x,"modal fits viewport width")
 
+# The tile summary matches the top enemy strip, scoped to the tapped portal.
+func check_selected_portal_summary(wave: Dictionary) -> void:
+	var portal_id: String = app.hud.menu_panel._selected_portal_id()
+	var total := 0
+	var boss := false
+	for group: Dictionary in wave.get("routeGroups",[]):
+		if not portal_id.is_empty() and str(group.get("spawnPortalId","")) != portal_id: continue
+		total += int(group.count); boss = boss or str(group.enemyType).to_lower().contains("boss")
+	var count: int = app.catalog.wave_count(app.stage)
+	var index := int(app.run_domain.state.get("completedRounds",0))
+	var title := app.hud.body.find_child("PortalTitle",true,false) as Label
+	var summary := app.hud.body.find_child("PortalWaveSummary",true,false) as Label
+	var boss_label := app.hud.body.find_child("PortalWaveBoss",true,false) as Label
+	check(title != null and title.text == app.hud.menu_panel._portal_title() and not title.text.contains(" · "),"selected portal title names each portal once: %s" % (title.text if title != null else "missing"))
+	var expected := "웨이브 %d/%d · %s" % [index+1,count,"%d기" % total if total > 0 else "출현 없음"]
+	check(summary != null and summary.text == expected,"selected portal summary shows portal total: %s" % (summary.text if summary != null else "missing"))
+	check((boss_label != null) == boss,"selected portal summary marks a boss only on its portal")
+	check(app.hud.body.find_children("*","Button",true,false).filter(func(button: Button): return button.text.contains("웨이브")).is_empty(),"portal wave info is not framed as a button")
+
 func press_selected_portal_summary() -> bool:
-	var title: String = app.hud.menu_panel._portal_title()
-	for button: Button in app.hud.body.find_children("*","Button",true,false):
-		if button.text.begins_with(title + "\n"):
-			check(not button.disabled,"selected portal summary enabled before wave")
-			button.pressed.emit()
-			return true
-	check(false,"selected portal summary button exists")
-	return false
+	var details := app.hud.body.find_child("PortalWaveDetails",true,false) as Button
+	check(details != null,"selected portal composition control exists")
+	if details == null: return false
+	check(not details.disabled,"selected portal summary enabled before wave")
+	details.pressed.emit()
+	return true
 
 func check_selected_portal_modal() -> Button:
 	var header: HBoxContainer = app.hud.modal_body.get_child(0)
@@ -105,6 +122,7 @@ func exercise_selected_portals(map: Dictionary,wave: Dictionary,stage_id: int) -
 		portal_number += 1
 		app.board_tap(Vector2i(tile_index % int(map.columns),tile_index / int(map.columns)))
 		await process_frame
+		check_selected_portal_summary(wave)
 		if not press_selected_portal_summary(): continue
 		await check_modal_routes(wave)
 		var close := check_selected_portal_modal()

@@ -95,43 +95,75 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 		var bar = preload("res://ui/core_health_bar.gd").new(); CoreHealthText.update_bar(bar,defense); bar.custom_minimum_size.y = 10; hud.body.add_child(bar); hud.core_bar = bar
 		hud.core_metric = UiWidgets.label(hud.body,"",12)
 		return
-	var preparing: bool = state.phase == "preparation"
 	var count: int = hud.app.catalog.wave_count(hud.app.stage)
 	var index = int(state.get("completedRounds",0))
 	if index >= count: UiWidgets.label(hud.body,"모든 웨이브를 완료했습니다.",12); return
 	var wave: Dictionary = hud.app.catalog.wave_summary(hud.app.stage,index)
-	var summary = UiWidgets.button(hud.body,(_portal_title() if preparing else "전투 진행 중")+"\n"+(str(wave.get("previewText",""))+" · %d/%d" % [index+1,count] if preparing else "진행 상태 확인"),func(): _portal_details(wave,index))
-	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	summary.disabled = not preparing
+	# Same total-and-boss summary as the top enemy strip, scoped to this portal
+	# on multi-entrance stages; the composition lives in the wave modal.
+	var counts: Dictionary = wave.get("enemyCounts",{})
+	var selected := _selected_portal_id()
+	for section: Dictionary in _portal_sections(wave):
+		if not selected.is_empty() and section.id == selected: counts = section.counts
+	var total := 0
+	var boss := false
+	for type in counts:
+		total += int(counts[type]); boss = boss or str(type).to_lower().contains("boss")
+	# Read-only info like the core tile; only the composition link is a control.
+	var title := UiWidgets.label(hud.body,_portal_title(),16); title.name = "PortalTitle"
+	var row := HBoxContainer.new(); row.name = "PortalWaveRow"; row.add_theme_constant_override("separation",0); hud.body.add_child(row)
+	var info := UiWidgets.label(row,"웨이브 %d/%d · %s" % [index+1,count,"%s기" % HudNumber.compact_integer(total) if total > 0 else "출현 없음"],13)
+	info.name = "PortalWaveSummary"; info.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; info.autowrap_mode = TextServer.AUTOWRAP_OFF
+	info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; info.add_theme_color_override("font_color",Color("b7d5e3"))
+	if boss:
+		var boss_label := UiWidgets.label(row," · 보스",13); boss_label.name = "PortalWaveBoss"
+		boss_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; boss_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		boss_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; boss_label.add_theme_color_override("font_color",Color("ff6b6b"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE; row.add_child(spacer)
+	var details := UiWidgets.button(row,"구성 보기 ›",func(): _portal_details(wave,index))
+	details.name = "PortalWaveDetails"; details.custom_minimum_size.y = 28
+	UiWidgets.style_hud_button(details,"quiet",false,Vector2(8,2))
+	details.disabled = not str(state.phase) in ["preparation","wave"]
+
+func _selected_portal_id() -> String:
+	var portals: Array = hud.app.catalog.spawn_portals(hud.app.stage)
+	if portals.size() < 2: return ""
+	for portal: Dictionary in portals:
+		var cell: Array = portal.cell
+		if Vector2i(int(cell[0]),int(cell[1])) == hud.app.selected: return str(portal.id)
+	return ""
 
 func _portal_title() -> String:
 	for portal: Dictionary in hud.app.catalog.spawn_portals(hud.app.stage):
 		var cell: Array = portal.cell
 		if Vector2i(int(cell[0]),int(cell[1])) == hud.app.selected:
 			var label := str(portal.get("label",""))
-			return "포탈 " + str(portal.id) + (" · " + label if not label.is_empty() else "") if portal.id != "default" else "포탈 1"
+			# Authored labels already lead with the portal id ("A·서쪽"), as in the wave modal.
+			return "포탈 " + (label if not label.is_empty() else str(portal.id)) if portal.id != "default" else "포탈 1"
 	return "출현 경로" if hud.app.catalog.stage_map(hud.app.stage).has("spawnPortals") else "포탈 1"
+
+# Multi-entrance stages split the composition per portal; a single entrance is
+# one unnamed section. Counts come from the compiled dispatch groups.
+func _portal_sections(wave: Dictionary) -> Array:
+	var stage_portals: Array = hud.app.catalog.spawn_portals(hud.app.stage)
+	if stage_portals.size() < 2: return [{"id":"","label":"","counts":wave.get("enemyCounts",{})}]
+	var sections: Array = []
+	for portal: Dictionary in stage_portals:
+		sections.append({"id":str(portal.id),"label":str(portal.get("label","")),"counts":{}})
+	for group: Dictionary in wave.get("routeGroups",[]):
+		var id := str(group.get("spawnPortalId",""))
+		var section: Dictionary = sections[0]
+		for candidate: Dictionary in sections:
+			if candidate.id == id: section = candidate
+		section.counts[str(group.enemyType)] = int(section.counts.get(str(group.enemyType),0))+int(group.count)
+	return sections
 
 func _portal_details(wave: Dictionary,index: int) -> void:
 	var box = hud.open_modal("웨이브 %d/%d" % [index+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
 	var header: HBoxContainer = box.get_child(0)
 	var icon = UiWidgets.material_icon(header,0xe283,20); icon.modulate = Color("e3b7ff"); header.move_child(icon,0)
-	# Multi-entrance stages group the composition under each portal; a single
-	# entrance needs no heading. Counts come from the compiled dispatch groups.
-	var counts: Dictionary = wave.get("enemyCounts",{})
-	var stage_portals: Array = hud.app.catalog.spawn_portals(hud.app.stage)
-	var sections: Array = [{"id":"","label":"","counts":counts}]
-	if stage_portals.size() > 1:
-		sections = []
-		for portal: Dictionary in stage_portals:
-			sections.append({"id":str(portal.id),"label":str(portal.get("label","")),"counts":{}})
-		for group: Dictionary in wave.get("routeGroups",[]):
-			var id := str(group.get("spawnPortalId",""))
-			var section: Dictionary = sections[0]
-			for candidate: Dictionary in sections:
-				if candidate.id == id: section = candidate
-			section.counts[str(group.enemyType)] = int(section.counts.get(str(group.enemyType),0))+int(group.count)
-	for section: Dictionary in sections:
+	# A single entrance needs no portal heading.
+	for section: Dictionary in _portal_sections(wave):
 		if section.counts.is_empty(): continue
 		if not str(section.id).is_empty():
 			if box.get_child_count() > 2:
