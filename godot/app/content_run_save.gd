@@ -82,7 +82,7 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 	if stage < 0: return _reject("Unknown stage")
 	var map: Dictionary = catalog.stage_map(stage)
 	var count: int = catalog.wave_count(stage)
-	if run.mapSignature != CombatProjection.map_signature(map, map.path): return _reject("Map signature mismatch")
+	if not CombatProjection.map_signature_accepts(str(run.mapSignature), map, map.path): return _reject("Map signature mismatch")
 	var phase: String = run.phase
 	if phase == "restored": phase = "preparation"
 	if phase == "coreDestruction": phase = "failure"

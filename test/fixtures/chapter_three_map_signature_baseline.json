@@ -111,7 +111,7 @@
     },
     {
       "stageId": 28,
-      "signatureSha256": "f6c7546662f864f806bd01ac27c178b64cb2e033a0d20eff522ad8526b5fcc82"
+      "signatureSha256": "2fff6276cc23a3586005b3d3cbb7ec48e4c162a1331310c54cb36909453d49d2"
     },
     {
       "stageId": 29,
@@ -120,6 +120,19 @@
     {
       "stageId": 30,
       "signatureSha256": "b7c5d9b9fbc39ef8fdd6b9c7a8d5624c82de91844fe81c02d85e9598753761f0"
+    }
+  ],
+  "acceptedLegacy": [
+    {
+      "stageId": 28,
+      "signatureSha256": "f6c7546662f864f806bd01ac27c178b64cb2e033a0d20eff522ad8526b5fcc82",
+      "openedBuildTiles": [
+        54,
+        58,
+        59,
+        68
+      ],
+      "note": "b4463ec9 opened four blocked tiles for building; saves with the shipped signature still load"
     }
   ]
 }

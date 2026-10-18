@@ -21,6 +21,26 @@ static func map_signature(map: Dictionary, path: Array) -> String:
 		value += JSON.stringify(route.get("teleportPairs", []))
 	return value
 
+## Content may later open blocked tiles for building. A saved run stays valid
+## when its signature differs only by such openings: same size, path and routes,
+## and every other tile unchanged, so each saved placement remains legal.
+static func map_signature_accepts(saved: String, map: Dictionary, path: Array) -> bool:
+	var current := map_signature(map, path)
+	if saved == current: return true
+	var before := saved.split("|", true, 2)
+	var after := current.split("|", true, 2)
+	if before.size() != 3 or after.size() != 3 or before[0] != after[0] or before[2] != after[2]: return false
+	var before_rows := before[1].split("/")
+	var after_rows := after[1].split("/")
+	if before_rows.size() != after_rows.size(): return false
+	for row in before_rows.size():
+		var before_tiles := before_rows[row].split(",")
+		var after_tiles := after_rows[row].split(",")
+		if before_tiles.size() != after_tiles.size(): return false
+		for column in before_tiles.size():
+			if before_tiles[column] != after_tiles[column] and not (before_tiles[column] == "blocked" and after_tiles[column] == "build"): return false
+	return true
+
 static func capture(envelope: Dictionary, snapshot: Dictionary, turret_templates: Dictionary, saved_at: int) -> Variant:
 	if not snapshot.get("events", []).is_empty(): return null
 	return _capture_owned_normalized(Codec.decode(envelope), snapshot, turret_templates, saved_at)

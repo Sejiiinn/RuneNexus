@@ -67,6 +67,26 @@ func _signature_compatibility(catalog) -> void:
 	for row in baseline.stages:
 		var map: Dictionary = catalog.stage_map(catalog.stage_index(int(row.stageId)))
 		check(SaveProjection.map_signature(map,map.path).sha256_text() == row.signatureSha256,"geometric save signature unchanged stage " + str(row.stageId))
+	# Content that only opens blocked tiles for building keeps older saves
+	# loadable; any other geometric difference is still rejected.
+	for row in baseline.get("acceptedLegacy",[]):
+		var map: Dictionary = catalog.stage_map(catalog.stage_index(int(row.stageId)))
+		var shipped: Dictionary = map.duplicate(true)
+		for index in row.openedBuildTiles:
+			check(str(map.tiles[int(index)]) == "build","opened tile is buildable stage " + str(row.stageId))
+			shipped.tiles[int(index)] = "blocked"
+		var old_signature: String = SaveProjection.map_signature(shipped,shipped.path)
+		check(old_signature.sha256_text() == row.signatureSha256,"reconstructed shipped signature stage " + str(row.stageId))
+		check(SaveProjection.map_signature_accepts(old_signature,map,map.path),"shipped save signature still loads stage " + str(row.stageId))
+		var closed: Dictionary = map.duplicate(true)
+		closed.tiles[closed.tiles.find("blocked")] = "build"
+		check(not SaveProjection.map_signature_accepts(SaveProjection.map_signature(closed,closed.path),map,map.path),"save with a now-blocked build tile is rejected")
+		var rerouted: Dictionary = shipped.duplicate(true)
+		rerouted.path = rerouted.path.slice(0,rerouted.path.size()-1)
+		check(not SaveProjection.map_signature_accepts(SaveProjection.map_signature(rerouted,rerouted.path),map,map.path),"save with a different path is rejected")
+		var retyped: Dictionary = shipped.duplicate(true)
+		retyped.tiles[retyped.tiles.find("path")] = "build"
+		check(not SaveProjection.map_signature_accepts(SaveProjection.map_signature(retyped,retyped.path),map,map.path),"save with other tile changes is rejected")
 		var portals: Array = catalog.spawn_portals(catalog.stage_index(int(row.stageId)))
 		var original: Array = portals.duplicate(true)
 		portals[0].cell[0] = -99

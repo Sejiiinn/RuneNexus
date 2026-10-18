@@ -117,6 +117,19 @@ func _initialize() -> void:
 	var bad := saved.duplicate(true)
 	bad.activeRun.mapSignature = "different-map"
 	check(adapter.prepare(bad).is_empty(),"wrong map rejected")
+	var current_map: Dictionary = catalog.stage_map(0).duplicate(true)
+	var opened: int = current_map.tiles.rfind("build")
+	var closed: int = current_map.tiles.find("blocked")
+	check(opened >= 0 and opened != cell and closed >= 0,"stage 0 has spare build and blocked tiles")
+	var legacy_map := current_map.duplicate(true)
+	legacy_map.tiles[opened] = "blocked"
+	bad = saved.duplicate(true)
+	bad.activeRun.mapSignature = Adapter.CombatProjection.map_signature(legacy_map,legacy_map.path)
+	check(not adapter.prepare(bad).is_empty(),"save from before a blocked tile opened still restores: " + adapter.error)
+	var widened_map := current_map.duplicate(true)
+	widened_map.tiles[closed] = "build"
+	bad.activeRun.mapSignature = Adapter.CombatProjection.map_signature(widened_map,widened_map.path)
+	check(adapter.prepare(bad).is_empty(),"save expecting a build tile the current map blocks is rejected")
 	bad = saved.duplicate(true)
 	bad.activeRun.roundIndex = 999
 	check(adapter.prepare(bad).is_empty(),"unknown round rejected")
