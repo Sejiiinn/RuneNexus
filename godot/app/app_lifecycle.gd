@@ -62,6 +62,13 @@ func _ready() -> void:
 		hud.app = self
 		layer.add_child(hud)
 		RuntimeProfile.tag_canvas(hud, "hud")
+		if services != null:
+			var overlay_layer := CanvasLayer.new()
+			overlay_layer.layer = 20
+			add_child(overlay_layer)
+			var overlay = load("res://ui/reconnect_overlay.gd").new()
+			overlay.services = services
+			overlay_layer.add_child(overlay)
 	refresh_ui()
 
 func refresh_ui() -> void:
@@ -635,6 +642,8 @@ func request_quit() -> bool:
 func _notification(what: int) -> void:
 	if scene == null: return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		# The reconnect overlay owns the screen until it resolves or opens the gate.
+		if services != null and services.get("reconnecting") == true: return
 		if _stage_entry_pending:
 			cancel_stage_entry()
 			return
@@ -664,7 +673,7 @@ func _resume_services() -> void:
 		# foreground recheck. Server-required updates still open that gate.
 		if services.updates.blocked: await services.updates.check()
 		if services.updates.blocked: return
-	if services.account != null and not services.busy: await services.retry()
+	if services.account != null and not services.busy: await services.reconnect()
 
 func _process(delta: float) -> void:
 	_poll_checkpoint_completions()

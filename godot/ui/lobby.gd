@@ -510,12 +510,16 @@ func _layout_modal() -> void:
 	modal_asset.position = Vector2.ZERO
 	modal_asset.size = modal_frame.size
 
+## Account/update gates stay open until their requirement is resolved.
+func modal_dismissible() -> bool:
+	if app.get("services") == null: return true
+	var service = app.services
+	if service.needs_profile() or (service.updates != null and service.updates.blocked): return false
+	return not (service.has_method("authentication_required") and service.authentication_required())
+
 func close_modal(replacing: bool = false) -> bool:
 	if not is_instance_valid(modal): return false
-	if not replacing and app.get("services") != null:
-		var service = app.services
-		if service.needs_profile() or (service.updates != null and service.updates.blocked): return true
-		if service.has_method("authentication_required") and service.authentication_required(): return true
+	if not replacing and not modal_dismissible(): return true
 	if replacing:
 		modal.hide()
 		modal.queue_free()

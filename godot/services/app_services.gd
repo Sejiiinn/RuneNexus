@@ -45,6 +45,11 @@ var _mailbox_generation := 0
 var _mailbox_pending := false
 var _mailbox_refresh_queued := false
 var _mailbox_refresh_at := 0
+# A foreground return retries transient failures quietly behind a dim overlay;
+# only the final failure opens the account gate.
+var reconnect_delays: Array = [1.0, 2.0, 4.0]
+const TRANSIENT_CODES := ["NETWORK_UNAVAILABLE", "AUTH_RETRY_PENDING", "AUTH_REQUEST_FAILED", "BUSY"]
+var reconnecting := false
 
 func setup(application, native_platform: Object = null, settings: Dictionary = {}) -> void:
 	app = application
@@ -162,7 +167,7 @@ func _handle_session_end() -> void:
 	changed.emit()
 
 func _show_auth_gate() -> void:
-	if busy or _startup_pending or not authentication_required() or (updates != null and updates.blocked): return
+	if busy or reconnecting or _startup_pending or not authentication_required() or (updates != null and updates.blocked): return
 	app.in_lobby = true
 	app.refresh_ui()
 	if app.lobby == null: return
@@ -421,6 +426,30 @@ func retry() -> Dictionary:
 	_show_auth_gate()
 	changed.emit()
 	return result
+
+func reconnect() -> Dictionary:
+	if reconnecting: return {"ok":false,"code":"BUSY"}
+	reconnecting = true
+	changed.emit()
+	var result: Dictionary = await retry()
+	for delay in reconnect_delays:
+		if result.get("ok",false) or not _transient(result) or not is_inside_tree(): break
+		await get_tree().create_timer(delay).timeout
+		if updates != null and updates.blocked: break
+		result = await retry()
+	reconnecting = false
+	# An account view left open before backgrounding shows the new state.
+	var lobby = app.get("lobby")
+	var view = lobby.get("_services") if lobby != null else null
+	if view != null and view.page == "계정 및 저장" and view._active_view(view.view_epoch): view._render()
+	_show_auth_gate()
+	changed.emit()
+	return result
+
+func _transient(result: Dictionary) -> bool:
+	# A signed-out or replaced account needs the user; network loss does not.
+	if account == null or account.account_id_hint.is_empty(): return false
+	return str(result.get("code","")) in TRANSIENT_CODES or result.get("retryable",false)
 
 func perform(action: String, values: Dictionary = {}) -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}

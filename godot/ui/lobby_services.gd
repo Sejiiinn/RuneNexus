@@ -65,6 +65,9 @@ func _render(opening := false) -> void:
 		for child in body.get_children():
 			body.remove_child(child)
 			child.queue_free()
+	# A gate that cannot be dismissed shows no inert close control.
+	var close: Control = lobby.modal_frame.find_child("CloseModal", true, false)
+	if close != null: close.visible = lobby.modal_dismissible()
 	if page == "우편함":
 		mailbox.render(opening)
 		return

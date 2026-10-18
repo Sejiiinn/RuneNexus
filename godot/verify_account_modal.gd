@@ -94,6 +94,7 @@ func run() -> void:
 	service.profile = {"nickname":"긴닉네임여덟글자","tag":"0012"}
 	lobby.open_service("계정 및 저장"); await settle()
 	assert(button(lobby.modal_body,"닉네임 확정")==null and texts(lobby.modal_body).contains("긴닉네임여덟글자#0012"))
+	assert(lobby.modal_frame.find_child("CloseModal",true,false).visible,"Established account modal keeps its close control")
 	service.busy = true; lobby._services._render(); await settle()
 	assert(button(lobby.modal_body,"동기화 다시 시도").disabled and button(lobby.modal_body,"로그아웃").disabled)
 	service.busy = false; service.issue = "SAVE_SYNC_REQUIRED"; lobby._services._render(); await settle()
@@ -106,6 +107,7 @@ func run() -> void:
 	assert(texts(lobby.modal_body).contains("인증 연결을 확인해 주세요") and button(lobby.modal_body,"Google 계정 연결")!=null)
 	assert(button(lobby.modal_body,"동기화 다시 시도")!=null and button(lobby.modal_body,"로그아웃")!=null)
 	lobby.close_modal(); assert(lobby.modal!=null,"Unverified auth gate cannot be dismissed")
+	assert(not lobby.modal_frame.find_child("CloseModal",true,false).visible,"Undismissible auth gate hides its close control")
 	await capture("account-offline-320")
 	button(lobby.modal_body,"로그아웃").pressed.emit(); await settle(); assert(service.calls.back()=={"action":"logout"}); service.released.emit(); await settle()
 	service.account.account_id_hint = ""; service.enabled = false; lobby.open_service("계정 및 저장"); await settle()

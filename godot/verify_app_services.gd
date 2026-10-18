@@ -565,4 +565,19 @@ func _auth_gate_checks() -> void:
 	wire.offline=false
 	result=await gated.retry()
 	check(result.ok and gated.connected() and gated.play_ready and not gated.blocks_play(),"Explicit retry reauthenticates and completes recovery after network failure")
+	# Foreground return retries quietly; only exhausted transient failures open the gate.
+	auth_lobby.close_modal(true);gated.reconnect_delays=[0.0,0.0];wire.offline=true
+	gated.reconnect()
+	check(gated.reconnecting and not is_instance_valid(auth_lobby.modal),"Foreground reconnect retries without opening the account gate")
+	while gated.reconnecting: await process_frame
+	await process_frame
+	check(not gated.connected() and is_instance_valid(auth_lobby.modal) and auth_lobby.modal.get_meta("service_page","")=="계정 및 저장","Exhausted transient reconnect opens the account gate")
+	check(not auth_lobby.modal_frame.find_child("CloseModal",true,false).visible,"Undismissible account gate hides its inert close control")
+	auth_lobby.close_modal(true);gated.reconnect_delays=[0.2]
+	gated.reconnect()
+	while gated.busy: await process_frame
+	wire.offline=false
+	while gated.reconnecting: await process_frame
+	await process_frame
+	check(gated.connected() and gated.play_ready and not gated.blocks_play() and not is_instance_valid(auth_lobby.modal),"Reconnect recovers on a later attempt without showing the gate")
 	auth_lobby.queue_free();gated.online.dispose();gated.queue_free();native.queue_free();await process_frame
