@@ -204,8 +204,8 @@
     "research": {
       "researchEfficiency": 0,
       "researchCostEfficiency": 0,
-      "emergencySale": 1,
-      "turretTargetPriority": 2,
+      "emergencySale": 0,
+      "turretTargetPriority": 0,
       "criticalChance": 4,
       "gemAttunement": 16,
       "linkMaintenance": 18,
@@ -303,20 +303,6 @@
       "title": "처치 보상",
       "icon": "upgrades/kill_gold.png",
       "category": "강화"
-    },
-    {
-      "kind": "research",
-      "key": "emergencySale",
-      "title": "긴급 매각",
-      "icon": "upgrades/turret_refund.png",
-      "category": "연구"
-    },
-    {
-      "kind": "research",
-      "key": "turretTargetPriority",
-      "title": "전술 명령",
-      "icon": "research/turret_target_priority.png",
-      "category": "연구"
     },
     {
       "kind": "turret",

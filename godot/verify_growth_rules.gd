@@ -77,11 +77,32 @@ func _init() -> void:
 	var effect := growth.module_effect(equip.state, "arrow")
 	check(effect.damageIncreaseRate == float(growth.data.module.ranges.damageIncrease.normal.max)/100.0, "module valid pool clamp")
 	check(growth.execute(equip.state, {"type":"unequipTurretModule", "id":"m1"}).ok, "module unequip")
+	_initial_research(growth)
 	_boss_damage_training(growth)
 	_core_runtime(growth)
 	print(JSON.stringify({"assertions":assertions,"failures":failures}))
 	if failures.is_empty(): print("PASS growth rules")
 	quit(0 if failures.is_empty() else 1)
+
+func _initial_research(growth) -> void:
+	for revision in [4, 5]:
+		var fresh: Dictionary = growth.data.defaultProgression.duplicate(true)
+		fresh.corePassiveTreeRevision = revision
+		fresh.runes = 100000
+		fresh.clearedStageNumbers = []
+		check(not growth.derive(fresh).canSetTurretTargetPriority and near(growth.derive(fresh).turretRefundPercent, 75), "initial research effects require completion revision %d" % revision)
+		for id in ["emergencySale", "turretTargetPriority"]:
+			var quote: Dictionary = growth.research_quote(fresh, id)
+			var started: Dictionary = growth.execute(fresh, {"kind":"startResearch", "id":id, "nowMillis":100})
+			check(started.ok and started.state.runes == fresh.runes - quote.cost and int(started.state.researchLevels.get(id, 0)) == 0, "initial research starts with normal cost and time: %s revision %d" % [id, revision])
+			if not started.ok: continue
+			var finished: Dictionary = growth.execute(started.state, {"kind":"completeFinishedResearches", "nowMillis":100 + quote.durationMillis})
+			check(finished.ok and finished.state.researchLevels.get(id) == 1 and finished.state.clearedStageNumbers.is_empty(), "initial research completes without stage clears: %s revision %d" % [id, revision])
+			if not finished.ok: continue
+			var effects: Dictionary = growth.derive(finished.state)
+			check(near(effects.turretRefundPercent, 76) if id == "emergencySale" else effects.canSetTurretTargetPriority, "initial research effect applies before 1-1: %s revision %d" % [id, revision])
+		check(not growth.execute(fresh, {"kind":"startResearch", "id":"criticalChance", "nowMillis":100}).ok, "other research stage gates remain revision %d" % revision)
+		check(not growth.execute(fresh, {"kind":"upgradePermanent", "id":"killGold"}).ok, "kill gold remains gated at 1-1 revision %d" % revision)
 
 func _boss_damage_training(growth) -> void:
 	var p: Dictionary = growth.data.defaultProgression.duplicate(true)

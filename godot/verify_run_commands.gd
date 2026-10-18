@@ -28,6 +28,7 @@ func _initialize() -> void:
 	check(catalog.load_catalog(),"content")
 	check(growth.load_catalog(),"growth")
 	var service = Commands.new(catalog,growth)
+	_initial_research_commands(catalog, growth, service)
 	_build_price_cache_checks(catalog,growth)
 	_upgrade_quote_cache_checks(catalog,growth)
 	var path := ProjectSettings.globalize_path("res://../test/fixtures/growth_cases.json")
@@ -502,6 +503,34 @@ func _light_weapon_equip_cases(service, built: Dictionary) -> void:
 					check(result.state.gemInventory.lightWeapon == (1 if kind == "equipGem" else 2),label+": inventory charged exactly once")
 				else:
 					check(result.state == before and result.commands.is_empty(),label+": rejection preserves inventory, reward, slots and gold")
+
+func _initial_research_commands(catalog, growth, service) -> void:
+	for version in [0, 1]:
+		var p: Dictionary = growth.data.defaultProgression.duplicate(true)
+		p.progressionVersion = version
+		p.clearedStageNumbers = []
+		var state: Dictionary = service.initial_state(p)
+		var map: Dictionary = catalog.stage_map(0)
+		var tile: int = map.tiles.find("build")
+		var built: Dictionary = service.apply(state, {"kind":"build", "type":"arrow", "x":tile % int(map.columns), "y":tile / int(map.columns)})
+		check(built.ok, "initial research fixture builds a turret before first clear")
+		if not built.ok: continue
+		state = built.state
+		var id: int = state.turrets[0].id
+		# A round fixture with exactly 1,000 invested gold exposes 1% refund changes.
+		state.turrets[0].investedGold = 1000
+		var cache := ConfigurationCache.new()
+		cache.sync(state, growth.data)
+		check(not cache.derived(state, service).canSetTurretTargetPriority and service.quotes(state, id).sell == 750, "unfinished early research keeps normal actions")
+		check(not service.apply(state, {"kind":"targetPriority", "id":id, "type":"strongest"}).ok, "target command still requires research completion")
+		state.progression.researchLevels = {"emergencySale":1, "turretTargetPriority":1}
+		cache.sync(state, growth.data)
+		var d: Dictionary = cache.derived(state, service)
+		check(d.canSetTurretTargetPriority and service.quotes_from_derived(state, id, d).sell == 760, "HUD cache refreshes early research command and refund availability")
+		var changed: Dictionary = service.apply(state, {"kind":"targetPriority", "id":id, "type":"strongest"})
+		check(changed.ok and changed.state.turrets[0].targetPriority == "strongest" and changed.commands[0].turret.state.targetPriority == "strongest", "early target command reaches native runtime inputs")
+		var sold: Dictionary = service.apply(state, {"kind":"sell", "id":id})
+		check(sold.ok and sold.state.gold == state.gold + 760 and sold.state.turrets.is_empty(), "early emergency sale pays the displayed refund")
 
 # Deterministic authority fixture: pure validation runs before a separately
 # supplied server grant; run commands only allocate already-owned inventory.

@@ -8,6 +8,36 @@ import (
 	"time"
 )
 
+func TestInitialResearchUnlockedWithoutStageClears(t *testing.T) {
+	for _, version := range []int{0, 1} {
+		p := researchProgression{GrowthVersion: 1, ProgressionVersion: version}
+		for _, kind := range []string{"emergencySale", "turretTargetPriority"} {
+			if !researchUnlocked(p, kind) {
+				t.Fatalf("%s locked without stage clears at progression version %d", kind, version)
+			}
+			pending := p
+			pending.ActiveResearches = []activeResearch{{Type: kind, TargetLevel: 1, StartedAtMillis: 1000, DurationMillis: 60000}}
+			raw, _ := json.Marshal(pending)
+			active, cost, err := researchCompletionCost(raw, kind, time.UnixMilli(1000))
+			if err != nil || cost != 1 || active.Type != kind {
+				t.Fatalf("early completion %s version %d: cost=%d err=%v", kind, version, cost, err)
+			}
+			completed := p
+			completed.ResearchLevels = map[string]int{kind: 1}
+			raw, _ = json.Marshal(completed)
+			effect, _ := json.Marshal(map[string]any{"researchType": kind, "targetLevel": 1})
+			if !effectAppliedToProgression(effect, raw) {
+				t.Fatalf("early completion receipt rejected for %s version %d", kind, version)
+			}
+		}
+		for _, kind := range []string{"criticalChance", "gemAttunement", "unknown"} {
+			if researchUnlocked(p, kind) {
+				t.Fatalf("unrelated research %s unlocked at progression version %d", kind, version)
+			}
+		}
+	}
+}
+
 func TestResearchCompletionCostAfterRestart(t *testing.T) {
 	const start = int64(5000000)
 	progression, _ := json.Marshal(researchProgression{ActiveResearches: []activeResearch{{Type: "gemAttunement", TargetLevel: 1, StartedAtMillis: start, DurationMillis: 45 * 60000, InitialElapsedMillis: 15 * 60000}}})

@@ -32,8 +32,8 @@ var requirements = map[string]map[string]int{
 	"research": {
 		"researchEfficiency":         0,
 		"researchCostEfficiency":     0,
-		"emergencySale":              1,
-		"turretTargetPriority":       2,
+		"emergencySale":              0,
+		"turretTargetPriority":       0,
 		"criticalChance":             4,
 		"gemAttunement":              16,
 		"linkMaintenance":            18,

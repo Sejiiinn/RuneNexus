@@ -57,6 +57,8 @@ func verify() -> void:
 	assert(ui.effect_value("criticalDamage", 1) == "+1%p")
 	assert(ui.effect_value("linkCostOptimization", 1) == "−1%")
 	assert(ui.effect_value("emergencySale", 1) == "76%")
+	for id in ["emergencySale", "turretTargetPriority"]:
+		assert(ui.research_status(id) == "연구 가능", "Initial research is available in a fresh lobby: " + id)
 	assert(ui.research_status("linkExpansionOne").begins_with("스테이지"))
 	ui._details("researchEfficiency")
 	assert(ui.RESEARCH_DESCRIPTIONS.researchEfficiency.contains("2배 빠르게"))

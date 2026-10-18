@@ -45,6 +45,9 @@ func _initialize() -> void:
 			var required := Progress.requirement(kind,key)
 			check(Progress.has_unlock(fresh,kind,key) == (required == 0),"fresh gate %s:%s" % [kind,key])
 	var rich := fresh.duplicate(true)
+	check(Progress.requirement("research", "emergencySale") == 0 and Progress.requirement("research", "turretTargetPriority") == 0, "initial research has no stage requirement")
+	for item in Progress.unlock_items(1) + Progress.unlock_items(2):
+		check(not item[0] in ["긴급 매각", "전술 명령"], "initial research is not advertised as a stage clear reward")
 	rich.runes = 100000
 	check(not growth.execute(rich,{"kind":"upgradePermanent","id":"bossBounty"}).ok,"new account command cannot bypass boss bounty gate")
 	check(not growth.execute(rich,{"kind":"startResearch","id":"linkMaintenance","nowMillis":100}).ok,"new account command cannot bypass research gate")

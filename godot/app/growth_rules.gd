@@ -120,7 +120,6 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	var count := int(context.get("distinctTurretTypeCount", 0))
 	var gems := int(context.get("distinctEquippedGemTypeCount", 0))
 	var combined: float = core.combinedFrontMultiplier if count >= 4 else 1.0
-	var economy_unlocked: bool = StageProgression.has_unlock(p,"upgrade","killGold")
 	var run_levels: Dictionary = context.get("runUpgradeLevels", {})
 	var rewards := kill_rewards(p, run_levels)
 	var result := {
@@ -129,7 +128,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"startingGemShards": int(_research(p, "gemAttunement") * _c("gemShardsPerGemAttunementLevel")),
 		"maxTurretLinkSlots": max_link_slots(p),
 		"canSetTurretTargetPriority": _research(p, "turretTargetPriority") > 0,
-		"turretRefundPercent": minf(82.0, _c("baseTurretRefundPercent") + (_research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") if economy_unlocked else 0) + float(core.get("turretRefundBonusRate", 0.0)) * 100.0) if int(p.get("corePassiveTreeRevision", 4)) >= 5 else int(_c("baseTurretRefundPercent") + (_research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") if economy_unlocked else 0)),
+		"turretRefundPercent": minf(82.0, _c("baseTurretRefundPercent") + _research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel") + float(core.get("turretRefundBonusRate", 0.0)) * 100.0) if int(p.get("corePassiveTreeRevision", 4)) >= 5 else int(_c("baseTurretRefundPercent") + _research(p, "emergencySale") * _c("emergencySaleRefundPercentPerLevel")),
 		"permanentLinkCostMultiplier": 1.0 - _level(p, "linkCostOptimization") * _c("permanentCostReductionPerUpgradeLevel"),
 		"permanentTurretLevelUpCostMultiplier": 1.0 - _level(p, "turretLevelUpOptimization") * _c("permanentCostReductionPerUpgradeLevel"),
 		"firstLinkUpgradeDiscountRate": _research(p, "linkMaintenance") * _c("linkMaintenanceDiscountPerLevel"),
