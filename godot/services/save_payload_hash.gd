@@ -29,6 +29,9 @@ const ORDERS = {
 		"supplyUpgradeLevel",
 		"fireTrainingUpgradeLevel",
 		"bossDamageTrainingUpgradeLevel",
+		"directDamageTrainingUpgradeLevel",
+		"splashDamageTrainingUpgradeLevel",
+		"damageOverTimeTrainingUpgradeLevel",
 		"physicalDamageTrainingUpgradeLevel",
 		"elementalDamageTrainingUpgradeLevel",
 		"criticalChanceUpgradeLevel",
@@ -86,6 +89,7 @@ const ORDERS = {
 		"stockpileCharges"
 	],
 	"SavedBurnInstance": [
+		"damageOverTimeIncreaseMultiplier",
 		"remaining",
 		"damagePerSecond",
 		"damageMultiplier",
@@ -122,6 +126,7 @@ const ORDERS = {
 		"poisonRemaining",
 		"poisonDamagePerSecond",
 		"poisonDamageMultiplier",
+		"poisonDamageOverTimeIncreaseMultiplier",
 		"poisonStacks",
 		"slowInstances",
 		"physicalVulnerabilityRemaining",

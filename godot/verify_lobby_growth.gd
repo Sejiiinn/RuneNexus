@@ -50,6 +50,7 @@ func verify() -> void:
 	var ui := GrowthUI.new()
 	ui.setup(host)
 	_boss_training_card(host, ui)
+	_damage_training_cards(host, ui)
 	assert(ui.TITLES.nexusHp == "넥서스 체력" and ui.TITLES.turretTargetPriority == "전술 명령")
 	assert(ui.TITLES.linkMaintenance == "기초 연결 공학")
 	assert(ui.upgrade_requirement("criticalDamage") == 4)
@@ -148,6 +149,56 @@ func _boss_training_card(host, ui) -> void:
 	host.clear()
 	host.state = original
 	host.commands.clear()
+
+func _damage_training_cards(host, ui) -> void:
+	var original: Dictionary = host.state.duplicate(true)
+	var ids := ["directDamageTraining", "splashDamageTraining", "damageOverTimeTraining"]
+	host.state.progressionVersion = 1
+	host.state.clearedStageNumbers = [15] # 3-5 is not the 3-6 fixed ID26 gate.
+	host.state.runes = 10000
+	ui.category = "전투"
+	ui.upgrades()
+	for id in ids:
+		assert(not _texts(host.body).contains(ui.TITLES[id]), "Damage training stays hidden before 3-6: " + id)
+	host.clear()
+	host.state.clearedStageNumbers.append(26)
+	for id in ids:
+		ui.upgrades()
+		var card := _card_with_title(host.body, ui.TITLES[id])
+		assert(card != null and ui.upgrade_requirement(id) == 26)
+		assert(_texts(card).contains("Lv.0/80") and _texts(card).contains("다음 +0.5%"))
+		assert(ui.effect_value(id, 80) == "+40%")
+		var before: int = host.state.runes
+		var cost: int = host.app.run_domain.growth.data.permanentUpgrades[id].costs[0]
+		_buttons(card)[0].pressed.emit()
+		assert(host.state[id + "UpgradeLevel"] == 1 and host.state.runes == before - cost, "Damage training card purchases the right field: " + id)
+		host.clear()
+		host.state.runes = 0
+		ui.upgrades()
+		card = _card_with_title(host.body, ui.TITLES[id])
+		assert(_texts(card).contains("현재 +0.5%") and _texts(card).contains("다음 +1%") and _buttons(card)[0].disabled)
+		host.clear()
+		host.state[id + "UpgradeLevel"] = 79
+		host.state.runes = 100000
+		ui.upgrades()
+		card = _card_with_title(host.body, ui.TITLES[id])
+		assert(_texts(card).contains("Lv.79/80") and _texts(card).contains("현재 +39.5%") and _texts(card).contains("다음 +40%"))
+		cost = host.app.run_domain.growth.data.permanentUpgrades[id].costs[79]
+		_buttons(card)[0].pressed.emit()
+		assert(host.state[id + "UpgradeLevel"] == 80 and host.state.runes == 100000 - cost, "Last damage training purchase reaches80 with correct debit: " + id)
+		host.clear()
+		ui.upgrades()
+		card = _card_with_title(host.body, ui.TITLES[id])
+		assert(_texts(card).contains("Lv.80/80") and _texts(card).contains("현재 +40%") and _texts(card).contains("최대 레벨") and not _texts(card).contains("다음"))
+		assert(_buttons(card)[0].disabled)
+		host.clear()
+	host.state = original
+	host.commands.clear()
+
+func _card_with_title(body: Node, title: String) -> Control:
+	for child in body.get_child(0).get_children():
+		if _texts(child).contains(title): return child
+	return null
 
 func _buttons(node: Node) -> Array:
 	var values: Array = [node] if node is Button else []

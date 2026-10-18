@@ -155,7 +155,7 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 	if float(run.get("nexusInvulnerableRemaining", 0.0)) > 0.0 and (not bool(run.get("indomitableUsedThisStage", false)) or not bool(derived.coreEffects.get("hasIndomitableFortress", false))): return _reject("Untriggered nexus invulnerability")
 	var inputs := battle_inputs.duplicate(true)
 	inputs.defenseConfig = derived.defenseConfig
-	inputs.combatConfig = {"bossDamageBonusRate":derived.get("bossDamageBonusRate", 0.0)}
+	inputs.combatConfig = growth.combat_config(derived)
 	# Only the frozen skill changes; growth reads the other nested fields.
 	var core_state := state.duplicate()
 	core_state.progression = state.progression.duplicate()

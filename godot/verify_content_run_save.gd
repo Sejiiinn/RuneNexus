@@ -472,3 +472,37 @@ func _boss_bonus_restore_cases(adapter, saved: Dictionary) -> void:
 	resumed._step(0.1)
 	check(is_equal_approx(before-float(e.hp),0.06),"resumed burn receives boss bonus once")
 	check(not resumed.snapshot().has("combatConfig") and not resumed.snapshot().enemies[0].has("bossDamageBonusRate"),"derived combat bonus never leaks into checkpoint snapshot")
+
+	# The same real adapter path recomputes each training and preserves optional
+	# raw-DPS layer metadata through Codec -> prepared bootstrap -> runtime.
+	for key in ["directDamageTraining","splashDamageTraining","damageOverTimeTraining"]:
+		upgraded.progression[key+"UpgradeLevel"] = 80
+	upgraded.progression.clearedStageNumbers.append(26)
+	upgraded.activeRun.enemies[0].burnInstances[0].damageOverTimeIncreaseMultiplier = 2.0
+	var candidate: Dictionary = upgraded.activeRun.enemies[0].burnInstances[0].duplicate(true)
+	candidate.erase("damageOverTimeIncreaseMultiplier")
+	candidate.damagePerSecond = 0.475
+	upgraded.activeRun.enemies[0].burnInstances.append(candidate)
+	upgraded.activeRun.enemies[0].poisonRemaining = 0.2
+	upgraded.activeRun.enemies[0].poisonDamagePerSecond = 2.0
+	upgraded.activeRun.enemies[0].poisonStacks = 2
+	upgraded.activeRun.enemies[0].poisonDamageOverTimeIncreaseMultiplier = 2.0
+	var roundtrip: Variant = Codec.decode(upgraded)
+	check(roundtrip is Dictionary,"trained DoT metadata codec roundtrip")
+	if not roundtrip is Dictionary: return
+	prepared = adapter.prepare(roundtrip)
+	check(not prepared.is_empty(),"damage type training save prepares: "+adapter.error)
+	if prepared.is_empty(): return
+	for key in ["directDamageTrainingBonusRate","splashDamageTrainingBonusRate","damageOverTimeTrainingBonusRate"]:
+		check(is_equal_approx(float(prepared.bootstrap.combatConfig[key]),0.4),"resume recomputes "+key)
+	resumed = Runtime.new()
+	resumed.process_command({"epoch":93,"sequence":0,"session":prepared.session,"bootstrap":prepared.bootstrap})
+	e = resumed.enemies["100000"]
+	e.type = "boss"
+	resumed.running = false
+	check(e.burnInstances[0].damagePerSecond == 0.5 and e.burnInstances[0].damageOverTimeIncreaseMultiplier == 2.0,"adapter resume preserves raw burn DPS and original layer")
+	check(e.burnInstances.size()==2 and e.burnInstances[1].damagePerSecond==0.475 and not e.burnInstances[1].has("damageOverTimeIncreaseMultiplier"),"codec adapter resume preserves same-source candidate with neutral optional metadata")
+	check(e.poisonDamagePerSecond == 2.0 and e.poisonDamageOverTimeIncreaseMultiplier == 2.0,"adapter resume preserves raw poison DPS and original layer")
+	before = e.hp
+	resumed._step(0.1)
+	check(is_equal_approx(before-float(e.hp),(0.475*1.4+2.0*2.0*(1.0+0.4/2.0))*0.1*1.2),"adapter resume applies training additively then boss multiplier once")

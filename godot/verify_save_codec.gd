@@ -9,7 +9,7 @@ func _initialize() -> void:
 		push_error("Missing save codec fixtures")
 		quit(1)
 		return
-	var failures := _integer_boundaries() + _boss_damage_training()
+	var failures := _integer_boundaries() + _boss_damage_training() + _damage_training() + _dot_metadata()
 	for i in inputs.size():
 		# Historical synthetic scalar fixtures used 7.8, negative and nonnumeric
 		# revisions. Since v5, revision is a discriminant, not a lossy scalar:
@@ -98,6 +98,45 @@ func _boss_damage_training() -> int:
 			failures += 1
 			print("SAVE_CODEC_TRAINING_INVALID ",invalid)
 	print("SAVE_CODEC_BOSS_DAMAGE_TRAINING failures=",failures)
+	return failures
+
+func _damage_training() -> int:
+	var failures := 0
+	var legacy := {"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":null}
+	for key in ["directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel"]:
+		if Codec.decode(legacy).progression.has(key): failures += 1
+		for level in [0, 1, 60, 80]:
+			var input: Dictionary = legacy.duplicate(true)
+			input.progression[key] = level
+			var decoded: Variant = Codec.decode(input)
+			if decoded == null or decoded.progression[key] != level or not Codec.is_normalized_v2(decoded) or Codec.decode(decoded) != decoded: failures += 1
+		for invalid in [-1, 81, 1.0, 1.5, "1", true, null]:
+			var input: Dictionary = legacy.duplicate(true)
+			input.progression[key] = invalid
+			if Codec.is_canonical_v2(input) or Codec.decode(input) != null: failures += 1
+	print("SAVE_CODEC_DAMAGE_TRAINING failures=", failures)
+	return failures
+
+func _dot_metadata() -> int:
+	var failures := 0
+	var base := {"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":{"phase":"wave","enemies":[{"type":"normal","burnInstances":[{"remaining":3.0,"damagePerSecond":5.0}]}]}}
+	for key in ["damageOverTimeIncreaseMultiplier", "poisonDamageOverTimeIncreaseMultiplier"]:
+		for value in [1.0, 1.5, 4.0]:
+			var input: Dictionary = base.duplicate(true)
+			var record: Dictionary = input.activeRun.enemies[0].burnInstances[0] if key == "damageOverTimeIncreaseMultiplier" else input.activeRun.enemies[0]
+			record[key] = value
+			var decoded: Variant = Codec.decode(input)
+			if decoded == null:
+				failures += 1
+				continue
+			var actual: Dictionary = decoded.activeRun.enemies[0].burnInstances[0] if key == "damageOverTimeIncreaseMultiplier" else decoded.activeRun.enemies[0]
+			if (actual.has(key) if value == 1.0 else actual.get(key) != value) or not Codec.is_normalized_v2(decoded): failures += 1
+		for value in [0, -1, 0.9, 4.01, INF, NAN, "1", true, null]:
+			var input: Dictionary = base.duplicate(true)
+			var record: Dictionary = input.activeRun.enemies[0].burnInstances[0] if key == "damageOverTimeIncreaseMultiplier" else input.activeRun.enemies[0]
+			record[key] = value
+			if Codec.is_canonical_v2(input) or Codec.decode(input) != null: failures += 1
+	print("SAVE_CODEC_DOT_METADATA failures=", failures)
 	return failures
 
 # Godot JSON parses every number as float; compare values recursively without

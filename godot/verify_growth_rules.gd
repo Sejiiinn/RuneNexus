@@ -79,6 +79,7 @@ func _init() -> void:
 	check(growth.execute(equip.state, {"type":"unequipTurretModule", "id":"m1"}).ok, "module unequip")
 	_initial_research(growth)
 	_boss_damage_training(growth)
+	_damage_type_training(growth)
 	_core_runtime(growth)
 	print(JSON.stringify({"assertions":assertions,"failures":failures}))
 	if failures.is_empty(): print("PASS growth rules")
@@ -179,3 +180,57 @@ func _core_runtime(growth) -> void:
 	var off: Dictionary = growth.core_config({"progression":unequipped.state}, 0, 1, catalog)
 	runtime.process_command({"epoch":1,"sequence":5,"dt":interval,"commands":[{"kind":"coreConfig","config":off}]})
 	check(runtime.core.skill == null and runtime.core.activation_count == 3, "unequip stops runtime activations")
+
+func _damage_type_training(growth) -> void:
+	var keys := ["directDamageTraining", "splashDamageTraining", "damageOverTimeTraining"]
+	var p: Dictionary = growth.data.defaultProgression.duplicate(true)
+	p.clearedStageNumbers = [25]
+	p.runes = 1000000
+	var neutral: Dictionary = growth.derive(p)
+	for key in keys:
+		var buy := {"kind":"upgradePermanent", "id":key}
+		var rejected: Dictionary = growth.execute(p,buy)
+		check(not rejected.ok and rejected.state == p,key+" locked buy is atomic before fixed ID26")
+		var forged := p.duplicate(true)
+		forged[key+"UpgradeLevel"] = 80
+		check(near(growth.derive(forged)[key+"BonusRate"],0.0),key+" locked forged level has no effect")
+		forged.erase("progressionVersion")
+		check(not growth.execute(forged,buy).ok,key+" has no legacy default entitlement")
+		for type in neutral.turretStatInputs:
+			check(not neutral.turretStatInputs[type].has("damageOverTimeTrainingBonusRate"),"neutral optional stat input absent "+type)
+	p.clearedStageNumbers.append(26)
+	for key in keys:
+		var costs: Array = growth.data.permanentUpgrades[key].costs
+		check(int(growth.data.permanentUpgrades[key].maxLevel) == 80,key+" level cap80")
+		var base := 300 if key == "directDamageTraining" else 200
+		check(costs.size() == 81 and int(costs[0]) == base,key+" preserves starting cost")
+		check(near(growth.data.constants[key+"UpgradeCostMultiplier"],1.055),key+" gentler cost curve")
+		for index in range(80):
+			check(int(costs[index]) == int(round(base*pow(1.055,index))),key+" rounded cost at "+str(index))
+		var poor := p.duplicate(true)
+		poor.runes = int(costs[0])-1
+		var rejected: Dictionary = growth.execute(poor,{"kind":"upgradePermanent", "id":key})
+		check(not rejected.ok and rejected.state == poor,key+" insufficient rune buy is atomic")
+		for level in range(1,81):
+			var before: int = p.runes
+			var purchased: Dictionary = growth.execute(p,{"kind":"upgradePermanent", "id":key})
+			check(purchased.ok,key+" buy level "+str(level))
+			if not purchased.ok: return
+			p = purchased.state
+			check(int(p[key+"UpgradeLevel"]) == level and before-int(p.runes) == int(costs[level-1]),key+" one debit per level "+str(level))
+			check(near(growth.derive(p)[key+"BonusRate"],level*0.005),key+" additive 0.5 percent per level "+str(level))
+		var capped: Dictionary = growth.execute(p,{"kind":"upgradePermanent", "id":key})
+		check(not capped.ok and capped.state == p,key+" buy beyond80 has no debit")
+	var trained: Dictionary = growth.derive(p)
+	var config: Dictionary = growth.combat_config(trained)
+	for key in keys: check(near(config[key+"BonusRate"],0.4),key+" latest config40 percent")
+	for type in trained.turretStatInputs:
+		var actual: Dictionary = trained.turretStatInputs[type].duplicate(true)
+		check(near(actual.damageOverTimeTrainingBonusRate,0.4),type+" exposes trained DoT stat")
+		actual.erase("damageOverTimeTrainingBonusRate")
+		check(near(actual,neutral.turretStatInputs[type]),type+" training preserves base damage and other layers")
+	var catalog := Catalog.new()
+	check(catalog.load_catalog(),"damage training catalog load")
+	var trained_input: Dictionary = catalog.turret("magic",{"statInput":trained.turretStatInputs.magic})
+	check(not trained_input.is_empty() and near(trained_input.get("damageOverTimeTrainingBonusRate"),0.4),"catalog accepts optional trained DoT scalar")
+	check(catalog.turret("magic",{"statInput":{"damageOverTimeTrainingBonusRate":0.41}}).is_empty(),"catalog rejects excessive training stat scalar")

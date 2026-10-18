@@ -18,6 +18,7 @@ const (
 	GemRerollClientCompatibilityVersion          = 7
 	GemOfferClientCompatibilityVersion           = 8
 	BossDamageTrainingClientCompatibilityVersion = 11
+	DamageTrainingClientCompatibilityVersion     = 12
 	CurrentProgressionVersion                    = progression.Version
 	CurrentStageCount                            = progression.StageCount
 )
@@ -43,6 +44,12 @@ func ClientCompatibilityFromBody(raw []byte) int {
 }
 
 func ValidateGrowthClient(progression []byte, clientVersion int) error {
+	for _, key := range damageTrainingFields {
+		level, valid := optionalTrainingLevel(progression, key, 80)
+		if !valid || (level > 0 && clientVersion < DamageTrainingClientCompatibilityVersion) {
+			return ErrClientUpdateRequired
+		}
+	}
 	level, valid := bossDamageTrainingLevel(progression)
 	if !valid || (level > 0 && clientVersion < BossDamageTrainingClientCompatibilityVersion) {
 		return ErrClientUpdateRequired
@@ -72,6 +79,13 @@ func ValidateGrowthUpdate(current, incoming []byte, clientVersion int) error {
 	}
 	// Permanent upgrades have no reset command. Neither an old exact payload nor
 	// a newly wrapped stale outbox may erase already purchased training.
+	for _, key := range damageTrainingFields {
+		before, _ := optionalTrainingLevel(current, key, 80)
+		after, _ := optionalTrainingLevel(incoming, key, 80)
+		if after < before {
+			return ErrClientUpdateRequired
+		}
+	}
 	beforeTraining, _ := bossDamageTrainingLevel(current)
 	afterTraining, _ := bossDamageTrainingLevel(incoming)
 	if afterTraining < beforeTraining {
@@ -104,7 +118,17 @@ func ValidateGrowthUpdate(current, incoming []byte, clientVersion int) error {
 
 // Absence is level zero and remains absent on the wire. A RawMessage rejects
 // null/fractional/string values instead of silently treating them as zero.
+var damageTrainingFields = [...]string{
+	"directDamageTrainingUpgradeLevel",
+	"splashDamageTrainingUpgradeLevel",
+	"damageOverTimeTrainingUpgradeLevel",
+}
+
 func bossDamageTrainingLevel(raw []byte) (int, bool) {
+	return optionalTrainingLevel(raw, "bossDamageTrainingUpgradeLevel", 40)
+}
+
+func optionalTrainingLevel(raw []byte, key string, maximum int) (int, bool) {
 	if len(raw) == 0 {
 		return 0, true
 	}
@@ -112,12 +136,12 @@ func bossDamageTrainingLevel(raw []byte) (int, bool) {
 	if json.Unmarshal(raw, &fields) != nil {
 		return 0, false
 	}
-	value, present := fields["bossDamageTrainingUpgradeLevel"]
+	value, present := fields[key]
 	if !present {
 		return 0, true
 	}
 	var level *int
-	if json.Unmarshal(value, &level) != nil || level == nil || *level < 0 || *level > 40 {
+	if json.Unmarshal(value, &level) != nil || level == nil || *level < 0 || *level > maximum {
 		return 0, false
 	}
 	return *level, true
@@ -149,6 +173,9 @@ func containsValue[T comparable](values []T, expected T) bool {
 // Old codecs do not preserve route IDs. Gate only saves which use the new content,
 // keeping generation four clients compatible with their existing 25-stage saves.
 func ValidateContentClient(progression, activeRun []byte, clientVersion int) error {
+	if err := validateDamageOverTimeMetadata(activeRun, clientVersion); err != nil {
+		return err
+	}
 	if err := ValidateGemContentClient(activeRun, clientVersion); err != nil {
 		return err
 	}

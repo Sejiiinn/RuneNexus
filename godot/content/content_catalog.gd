@@ -389,6 +389,13 @@ func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 	result.lightningChainJumpRange *= layout.boardDistanceScale
 	# Only known, explicitly supplied stat inputs cross the app/runtime boundary.
 	for key in inputs.get("statInput", {}):
+		if key == "damageOverTimeTrainingBonusRate":
+			var rate := float(inputs.statInput[key])
+			if not is_finite(rate) or rate < 0.0 or rate > 0.4:
+				error = "Invalid damage over time training bonus"
+				return {}
+			if rate > 0.0: result[key] = rate
+			continue
 		if key == "coreEffects" and inputs.statInput[key] is Dictionary:
 			result[key] = inputs.statInput[key].duplicate(true)
 			continue

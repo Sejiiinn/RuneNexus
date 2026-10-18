@@ -204,7 +204,7 @@ func _save_tests():
 	await online.sync(payload(101))
 	check(not online.state.dirty and online.state.inFlight == journal and online.store.load_save() == payload(101), "Requested payload is restored when actual local save differs from journal")
 	# A persisted generation-ten upload must still replay byte for byte after
-	# this client adds optional training fields and moves to generation eleven.
+	# this client adds optional training fields and moves to generation twelve.
 	var old_body: Dictionary = SaveJson.parse(online.state.inFlight.encodedRequestBody)
 	old_body.clientCompatibilityVersion = 10
 	online.state.inFlight.encodedRequestBody = "  " + JSON.stringify(old_body, "", false, true) + "  "
@@ -294,6 +294,19 @@ func _hash_tests():
 		var normalized: Variant = payloads[fixture.index].decoded
 		check(Hash.hash_payload(normalized) == fixture.hash, "Existing Dart payload hash: " + str(fixture.index))
 
+	var run: Dictionary = Codec.decode({"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":{"phase":"wave","enemies":[{"type":"normal","burnInstances":[{"remaining":3.0,"damagePerSecond":5.0}]}]}})
+	var baseline: String = Hash.hash_payload(run)
+	for field in ["damageOverTimeIncreaseMultiplier", "poisonDamageOverTimeIncreaseMultiplier"]:
+		var candidate: Dictionary = run.duplicate(true)
+		var record: Dictionary = candidate.activeRun.enemies[0].burnInstances[0] if field == "damageOverTimeIncreaseMultiplier" else candidate.activeRun.enemies[0]
+		record[field] = 1.0
+		check(Hash.hash_payload(Codec.decode(candidate)) == baseline, "Neutral DoT metadata preserves old hash: " + field)
+		record[field] = 1.5
+		var changed: String = Hash.hash_payload(Codec.decode(candidate))
+		check(changed != baseline, "DoT metadata participates in hash: " + field)
+		record[field] = 2.0
+		check(Hash.hash_payload(Codec.decode(candidate)) != changed, "DoT coefficient changes hash: " + field)
+
 func _legacy_writer_claim_tests():
 	var remote := SessionFixture.new()
 	remote.tree = self
@@ -317,8 +330,20 @@ func _boss_damage_training_tests():
 	var legacy := payload(300)
 	var legacy_hash := Hash.hash_payload(legacy)
 	check(not legacy.progression.has("bossDamageTrainingUpgradeLevel") and Hash.hash_payload(Codec.decode(legacy)) == legacy_hash, "Absent training keeps legacy payload hash through decoding")
+	for field in ["directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel"]:
+		check(not Codec.decode(legacy).progression.has(field), "Absent new training remains absent: " + field)
+		var single: Dictionary = legacy.duplicate(true)
+		single.progression[field] = 1
+		check(Hash.hash_payload(single) != legacy_hash, "New training participates in hash: " + field)
+		var maximum: Dictionary = single.duplicate(true)
+		maximum.progression[field] = 60
+		check(Hash.hash_payload(maximum) != Hash.hash_payload(single), "New training level changes hash: " + field)
+		check(Codec.decode(maximum) == maximum, "New training survives typed decoding: " + field)
 	var trained: Dictionary = legacy.duplicate(true)
 	trained.progression.bossDamageTrainingUpgradeLevel = 1
+	trained.progression.directDamageTrainingUpgradeLevel = 1
+	trained.progression.splashDamageTrainingUpgradeLevel = 60
+	trained.progression.damageOverTimeTrainingUpgradeLevel = 30
 	check(Hash.hash_payload(trained) != legacy_hash, "Training level participates in payload hash")
 	var trained_max: Dictionary = trained.duplicate(true)
 	trained_max.progression.bossDamageTrainingUpgradeLevel = 40
@@ -344,7 +369,8 @@ func _boss_damage_training_tests():
 	var saved: Dictionary = await online.sync(trained)
 	check(saved.ok and online.store.load_save().progression.bossDamageTrainingUpgradeLevel == 1, "Purchased training persists in account save")
 	var request: Dictionary = SaveJson.parse(remote.calls[-1].body)
-	check(request.clientCompatibilityVersion == 11 and request.data.progression.bossDamageTrainingUpgradeLevel == 1, "Training upload uses generation eleven")
+	check(request.clientCompatibilityVersion == 12 and request.data.progression.bossDamageTrainingUpgradeLevel == 1, "Training upload uses generation twelve")
+	check(request.data.progression.directDamageTrainingUpgradeLevel == 1 and request.data.progression.splashDamageTrainingUpgradeLevel == 60 and request.data.progression.damageOverTimeTrainingUpgradeLevel == 30, "Generation twelve uploads all training fields")
 	online.dispose()
 	online.queue_free()
 	await process_frame

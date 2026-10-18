@@ -233,6 +233,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
             self.assertEqual(preparation._app_texture_size_limit("gems/" + name + ".png"), 256)
         self.assertEqual(preparation._app_texture_size_limit("turret_modules/icons/unique_backglow.png"), 256)
         self.assertEqual(preparation._app_texture_size_limit("upgrades/boss_damage_training.png"), 256)
+        for icon in ("direct_damage_training", "splash_damage_training", "damage_over_time_training"):
+            self.assertEqual(preparation._app_texture_size_limit("upgrades/" + icon + ".png"), 256)
         for relative in ("core_passive_tree/connection_segment_v1.png",
                          "core_passive_tree/connection_junction_v1.png",
                          "core_passive_tree/connection_segment_inactive_v1.png",

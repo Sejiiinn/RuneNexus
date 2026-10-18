@@ -113,7 +113,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		if p == "highHeatBurn":
 			bonus += 0.25
 		bonus += m.damageOverTimeIncreaseRate + float(core.get("damageOverTimeIncrease", 0.0))
-		dot_damage = 1.0 + bonus
+		dot_damage = 1.0 + bonus + float(i.get("damageOverTimeTrainingBonusRate", 0.0))
 		if "damageOverTime" in gems:
 			dot_damage *= 1.0 + 0.3 * gem
 		bonus = 0.0
@@ -179,10 +179,26 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		"aimDuration": aim,
 	}
 
+# Only this additive layer is needed to apply live training to frozen DoT DPS.
+# Gem amplification, burn criticals, speed and resistance remain in the raw DPS.
+static func damage_over_time_increase_multiplier(i: Dictionary) -> float:
+	var bonus := 0.25 if i.primaryTrait == "highHeatBurn" else 0.0
+	bonus += i.moduleEffect.damageOverTimeIncreaseRate + float(i.get("coreEffects", {}).get("damageOverTimeIncrease", 0.0))
+	return 1.0 + bonus
+
+static func damage_over_time_training_multiplier(i: Dictionary) -> float:
+	if not "damageOverTime" in i.definition.attackTags: return 1.0
+	return 1.0 + float(i.get("damageOverTimeTrainingBonusRate", 0.0)) / damage_over_time_increase_multiplier(i)
+
 static func firing_stats(i: Dictionary, stats: Dictionary, critical_multiplier: float) -> Dictionary:
 	var out := {}
 	for key in ["damage", "range", "effectAreaMultiplier", "centeredAreaRadius", "pierceCount", "chainCount", "splashRadius", "splashSecondaryDamageMultiplier", "projectileSpeed", "physicalResistanceReduction", "ignoresArmorReduction", "damageOverTimeDamageMultiplier", "damageOverTimeDurationMultiplier", "slowDuration", "slowMultiplier", "appliesFrostCrack", "appliesIgnitionBurst", "spreadsChainIgnition", "lightningChainMaxJumps", "lightningChainDamageMultiplier"]:
 		out[key] = stats[key]
+	if "damageOverTime" in i.definition.attackTags:
+		if float(i.get("damageOverTimeTrainingBonusRate", 0.0)) > 0.0:
+			out.damageOverTimeDamageMultiplier /= damage_over_time_training_multiplier(i)
+		var increase := damage_over_time_increase_multiplier(i)
+		if increase != 1.0: out.damageOverTimeIncreaseMultiplier = increase
 	out.criticalMultiplier = critical_multiplier
 	var core: Dictionary = i.get("coreEffects", {})
 	out.directDamageIncrease = float(core.get("directDamageIncrease", 0.0))

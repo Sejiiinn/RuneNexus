@@ -142,6 +142,9 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"killGoldBonusRate": rewards.killGoldBonusRate,
 		"bossBountyBonusRate": rewards.bossBountyBonusRate,
 		"bossDamageBonusRate": _level(p, "bossDamageTraining") * _c("bossDamageTrainingBonusPerUpgradeLevel"),
+		"directDamageTrainingBonusRate": _level(p, "directDamageTraining") * _c("directDamageTrainingBonusPerUpgradeLevel"),
+		"splashDamageTrainingBonusRate": _level(p, "splashDamageTraining") * _c("splashDamageTrainingBonusPerUpgradeLevel"),
+		"damageOverTimeTrainingBonusRate": _level(p, "damageOverTimeTraining") * _c("damageOverTimeTrainingBonusPerUpgradeLevel"),
 		"bossKillGemShardBonus": rewards.bossKillGemShardBonus,
 		"runeResonanceBonusRate": _research(p, "runeResonance") * _c("runeResonanceBonusPerLevel"),
 		"roundClearGoldMultiplier": core.roundClearGoldMultiplier,
@@ -179,6 +182,16 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 			"corePassiveTurretDamageMultiplier": 1.0 + (core.turretDamageAmplification if context.get("attackSyncActive", false) else 0.0),
 			"corePassiveTurretAttackRateMultiplier": 1.0 + (core.turretAttackRateAmplification if context.get("attackSyncActive", false) else 0.0),
 		}
+		# Keep neutral legacy stat inputs byte-for-byte unchanged. The public DoT
+		# statistic includes training; firing strips it before storing raw DPS.
+		if result.damageOverTimeTrainingBonusRate > 0.0:
+			result.turretStatInputs[type].damageOverTimeTrainingBonusRate = result.damageOverTimeTrainingBonusRate
+	return result
+
+func combat_config(effects: Dictionary) -> Dictionary:
+	var result := {}
+	for key in ["bossDamageBonusRate", "directDamageTrainingBonusRate", "splashDamageTrainingBonusRate", "damageOverTimeTrainingBonusRate"]:
+		result[key] = effects.get(key, 0.0)
 	return result
 
 func research_quote(p: Dictionary, type: String) -> Dictionary:

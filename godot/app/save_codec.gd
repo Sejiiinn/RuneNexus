@@ -685,7 +685,7 @@ static func _skill(v: Dictionary, key: String, fallback: Variant) -> Variant:
 	return null if v[key] == null else _enum("CoreCombatSkill", v[key], "guardianBeam")
 
 static func is_canonical_v2(v: Variant) -> bool:
-	return _is_map(v) and _int(v.get("version")) == 2 and _is_map(v.get("preferences")) and _is_map(v.get("progression")) and _is_map(v.get("turretModules")) and v.has("activeRun") and (v.activeRun == null or _is_map(v.activeRun)) and _valid_core_wire(v) and _valid_boss_damage_training(v.progression)
+	return _is_map(v) and _int(v.get("version")) == 2 and _is_map(v.get("preferences")) and _is_map(v.get("progression")) and _is_map(v.get("turretModules")) and v.has("activeRun") and (v.activeRun == null or _is_map(v.activeRun)) and _valid_core_wire(v) and _valid_damage_training(v.progression) and _valid_dot_metadata(v.activeRun)
 
 # Legacy readers intentionally retain their historical normalization. The new
 # schema must fail closed instead of deleting unknown allocations on reload.
@@ -738,8 +738,9 @@ static func _same_typed_value(a: Variant, b: Variant) -> bool:
 static func decode(v: Variant) -> Variant:
 	if not _is_map(v): return null
 	if not _valid_core_revision(_map(v.get("progression")), "corePassiveTreeRevision"): return null
-	if not _valid_boss_damage_training(_map(v.get("progression"))): return null
+	if not _valid_damage_training(_map(v.get("progression"))): return null
 	var legacy: bool = _int(v.get("version")) == 1
+	if not _valid_dot_metadata(v if legacy else v.get("activeRun")): return null
 	if not legacy and not is_canonical_v2(v): return null
 	var progression := _progression(_map(v.get("progression")))
 	var prefs: Dictionary = {"selectedStageNumber": v.get("stageNumber"), "autoStartMode": v.get("autoStartMode")} if legacy else v.preferences
@@ -752,7 +753,8 @@ static func decode(v: Variant) -> Variant:
 static func _progression(v: Dictionary) -> Dictionary:
 	var out := _fields("SavedProgression", v)
 	# Preserve absence in old saves: adding a synthetic zero changes durable hashes.
-	if v.has("bossDamageTrainingUpgradeLevel"): out.bossDamageTrainingUpgradeLevel = v.bossDamageTrainingUpgradeLevel
+	for key in ["bossDamageTrainingUpgradeLevel", "directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel"]:
+		if v.has(key): out[key] = v[key]
 	if v.has("gemResetTickets"): out.gemResetTickets = maxi(0, _int(v.get("gemResetTickets")))
 	if v.has("progressionVersion"):
 		out.progressionVersion = maxi(0, _int(v.get("progressionVersion")))
@@ -782,10 +784,34 @@ static func _progression(v: Dictionary) -> Dictionary:
 		out.erase("emergencySaleUpgradeLevel")
 	return out
 
-static func _valid_boss_damage_training(p: Dictionary) -> bool:
-	if not p.has("bossDamageTrainingUpgradeLevel"): return true
-	var level: Variant = p.bossDamageTrainingUpgradeLevel
-	return level is int and level >= 0 and level <= 40
+static func _valid_damage_training(p: Dictionary) -> bool:
+	for key in ["bossDamageTrainingUpgradeLevel", "directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel"]:
+		if not p.has(key): continue
+		var level: Variant = p[key]
+		var maximum := 40 if key == "bossDamageTrainingUpgradeLevel" else 80
+		if not level is int or level < 0 or level > maximum: return false
+	return true
+
+static func _valid_dot_multiplier(value: Dictionary, key: String) -> bool:
+	if not value.has(key): return true
+	var multiplier: Variant = value[key]
+	return (multiplier is int or multiplier is float) and is_finite(float(multiplier)) and float(multiplier) >= 1.0 and float(multiplier) <= 4.0
+
+static func _valid_dot_metadata(run: Variant) -> bool:
+	if not run is Dictionary: return true
+	var enemies: Variant = run.get("enemies", [])
+	if not enemies is Array: return true
+	for enemy in enemies:
+		if not enemy is Dictionary: continue
+		if not _valid_dot_multiplier(enemy, "poisonDamageOverTimeIncreaseMultiplier"): return false
+		var burns: Variant = enemy.get("burnInstances", [])
+		if not burns is Array: continue
+		for burn in burns:
+			if burn is Dictionary and not _valid_dot_multiplier(burn, "damageOverTimeIncreaseMultiplier"): return false
+	return true
+
+static func _optional_dot_multiplier(out: Dictionary, value: Dictionary, key: String) -> void:
+	if value.has(key) and float(value[key]) != 1.0: out[key] = float(value[key])
 
 static func _core_ranks(v: Variant, revision: int = 4) -> Dictionary:
 	var out := {}
@@ -894,10 +920,12 @@ static func _object(name: String, v: Variant) -> Variant:
 			out.primaryTrait = _enum("TurretTraitType", v.get("primaryTrait"))
 			out.secondaryTrait = _enum("TurretTraitType", v.get("secondaryTrait"))
 		"SavedBurnInstance":
+			_optional_dot_multiplier(out, v, "damageOverTimeIncreaseMultiplier")
 			if out.remaining <= 0 or out.damagePerSecond <= 0: return null
 		"SavedSlowInstance":
 			if not is_finite(out.multiplier) or out.multiplier < 0 or out.multiplier >= 1 or not is_finite(out.remaining) or out.remaining <= 0: return null
 		"SavedEnemy":
+			_optional_dot_multiplier(out, v, "poisonDamageOverTimeIncreaseMultiplier")
 			_optional_bool(out, v, "firstControlApplied")
 			_optional_float(out, v, "stunRemaining")
 			_optional_float(out, v, "freezeRemaining")

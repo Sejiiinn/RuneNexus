@@ -68,6 +68,9 @@ var _sync_stats_damage := 1.0
 var _sync_stats_rate := 1.0
 # Account growth is read at each hit/tick; it is never checkpoint state.
 var _boss_damage_bonus_rate := 0.0
+var _direct_damage_training_bonus_rate := 0.0
+var _splash_damage_training_bonus_rate := 0.0
+var _damage_over_time_training_bonus_rate := 0.0
 var visual_id: int = 1000000000
 var damage_number_index: int = 0
 var event_id: int = 0
@@ -408,11 +411,18 @@ func _core_base_damage() -> float:
 		var rate: float = stats.attackRate / (1.4 if t.statInput.chainCleanupActive else 1.0) * (1.4 if t.cleanup>0 else 1.0)
 		dps += float(stats.damage)*(1.0 + float(t.statInput.get("coreEffects", {}).get("directDamageIncrease", 0.0)))*maxf(0,rate)*(int(stats.projectileCount) if projectile else 1)
 		if "damageOverTime" in definition.attackTags:
-			dps += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
+			dps += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) / Stats.damage_over_time_training_multiplier(t.statInput)
 	return maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))
 
 func _configure_combat(config: Dictionary) -> void:
 	_boss_damage_bonus_rate = clampf(float(config.get("bossDamageBonusRate", 0.0)), 0.0, 0.2)
+	_direct_damage_training_bonus_rate = _training_rate(config.get("directDamageTrainingBonusRate", 0.0))
+	_splash_damage_training_bonus_rate = _training_rate(config.get("splashDamageTrainingBonusRate", 0.0))
+	_damage_over_time_training_bonus_rate = _training_rate(config.get("damageOverTimeTrainingBonusRate", 0.0))
+
+func _training_rate(value: Variant) -> float:
+	var rate := float(value)
+	return clampf(rate, 0.0, 0.4) if is_finite(rate) else 0.0
 
 func _target_damage_multiplier(e: Dictionary) -> float:
 	return 1.0 + _boss_damage_bonus_rate if _boss_damage_bonus_rate > 0.0 and _boss(e) else 1.0
@@ -724,7 +734,7 @@ func _step(dt: float) -> void:
 	var burn_sources: Dictionary = {}
 	for e in enemies.values():
 		if _alive(e):
-			_collect(Enemy.step(e, dt, [], -1, _target_damage_multiplier(e)), burn_sources)
+			_collect(Enemy.step(e, dt, [], -1, _target_damage_multiplier(e), _damage_over_time_training_bonus_rate), burn_sources)
 			if terminal: return
 	_finish_step(dt)
 
@@ -1132,16 +1142,16 @@ func _traits(t: Dictionary, a: Dictionary, e: Dictionary) -> float:
 func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: String, direct: bool, chained: bool = false) -> void:
 	e.hitFlashTimer = 0.1
 	var source := {"x": int(t.state.get("x", 0)), "y": int(t.state.get("y", 0))}
-	var burn: Dictionary = Enemy.burn_transfer(e, source) if direct and a.appliesIgnitionBurst else {}
-	var burst: float = float(burn.get("damagePerSecond", 0)) * 2.0 * float(a.damageOverTimeDurationMultiplier) * 0.3 if direct and a.appliesIgnitionBurst else 0.0
+	var burn: Dictionary = Enemy.burn_transfer(e, source, _damage_over_time_training_bonus_rate) if direct and a.appliesIgnitionBurst else {}
+	var burst: float = Enemy.burn_damage_per_second(burn, _damage_over_time_training_bonus_rate) * 2.0 * float(a.damageOverTimeDurationMultiplier) * 0.3 if direct and a.appliesIgnitionBurst else 0.0
 	var trait_multiplier := _traits(t, a, e) if direct else 1.0
 	var family: String = a.definition.damageFamily
 	var resistance := {"family": family, "familyResistance": e.get("familyResistances", {}).get(family, 0.0), "tags": a.definition.attackTags, "tagResistances": e.get("tagResistances", {}), "attackPhysicalReduction": a.physicalResistanceReduction, "enemyPhysicalReduction": e.get("physicalVulnerabilityBonus", 0.0) if float(e.get("physicalVulnerabilityRemaining", 0)) > 0 else 0.0, "enemyElementalReduction": e.get("elementalVulnerabilityBonus", 0.0) if float(e.get("elementalVulnerabilityRemaining", 0)) > 0 else 0.0}
 	var status := a.duplicate()
 	status.damageScale = scale
 	# Same-layer hit increases add before multiplication. They do not leak into DoT.
-	var hit_increase := float(a.get("directDamageIncrease", 0.0))
-	if kind == "splash": hit_increase += float(a.get("splashDamageIncrease", 0.0))
+	var hit_increase := float(a.get("directDamageIncrease", 0.0)) + _direct_damage_training_bonus_rate
+	if kind == "splash": hit_increase += float(a.get("splashDamageIncrease", 0.0)) + _splash_damage_training_bonus_rate
 	elif kind == "chain": hit_increase += float(a.get("chainDamageIncrease", 0.0))
 	var resolved := Attack.resolve({"baseDamage": float(a.damage) * float(a.criticalMultiplier) * scale * (1.0 + hit_increase), "traitMultiplier": trait_multiplier, "resistance": resistance, "status": status})
 	for effect in resolved.effects:
@@ -1151,8 +1161,9 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 			"burn":
 				effect.sourceX = source.x
 				effect.sourceY = source.y
+				if a.has("damageOverTimeIncreaseMultiplier"): effect.damageOverTimeIncreaseMultiplier = a.damageOverTimeIncreaseMultiplier
 				Enemy.add_burn(e, effect)
-	var transfer := Enemy.burn_transfer(e, source) if a.spreadsChainIgnition else {}
+	var transfer := Enemy.burn_transfer(e, source, _damage_over_time_training_bonus_rate) if a.spreadsChainIgnition else {}
 	var result: Dictionary = Enemy.apply_hit(e, {"damage": resolved.damage, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer}, _target_damage_multiplier(e))
 	_visual("damage", _pos(e), t, {"text":str(roundi(float(result.get("actualDamage", 0)))), "duration":0.65})
 	t[kind + "DamageDealt"] += float(result.get("actualDamage", 0))

@@ -134,7 +134,7 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 		var inputs := battle_inputs.duplicate(true)
 		var effects: Dictionary = run_domain.growth.derive(run_domain.growth.run_effect_progression(run_domain.state))
 		inputs.defenseConfig = effects.defenseConfig
-		inputs.combatConfig = {"bossDamageBonusRate":effects.get("bossDamageBonusRate", 0.0)}
+		inputs.combatConfig = run_domain.growth.combat_config(effects)
 		inputs.coreConfig = run_domain.growth.core_config(run_domain.state, stage, 0, catalog)
 		initial = catalog.bootstrap(stage, inputs)
 		if initial.is_empty():
@@ -229,7 +229,7 @@ func apply_growth_command(request: Dictionary) -> bool:
 func progression_commands(refresh: Dictionary) -> Array:
 	var updates: Array = refresh.get("commands", []).duplicate()
 	var effects: Dictionary = run_domain.growth.derive(run_domain.growth.run_effect_progression(run_domain.state))
-	updates.append({"kind":"combatConfig","config":{"bossDamageBonusRate":effects.get("bossDamageBonusRate", 0.0)}})
+	updates.append({"kind":"combatConfig","config":run_domain.growth.combat_config(effects)})
 	updates.append({"kind":"defenseConfig","config":effects.defenseConfig})
 	updates.append({"kind":"coreConfig","config":run_domain.growth.core_config(run_domain.state, stage, int(run_domain.state.roundIndex), catalog)})
 	return updates

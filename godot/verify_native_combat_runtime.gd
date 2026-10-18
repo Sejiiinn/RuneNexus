@@ -37,6 +37,7 @@ func _initialize() -> void:
 	b.process_command({"epoch":4,"sequence":1,"dt":0.6})
 	b.process_command({"epoch":4,"sequence":2,"dt":0.2})
 	_check(JSON.stringify(a.snapshot().enemies) == JSON.stringify(b.snapshot().enemies), "batched original timestep equivalence")
+	_damage_training_checks(fixtures)
 	_boss_damage_checks(fixtures)
 	_exact_checks(fixtures)
 	_response_mode_checks()
@@ -365,3 +366,131 @@ func _boss_damage_checks(fixtures: Array) -> void:
 	var core_before: float = r._core_base_damage()
 	r._configure_combat({"bossDamageBonusRate":0.0})
 	_check(t.stats.damage == 100.0 and is_equal_approx(core_before,r._core_base_damage()),"conditional bonus leaves base stats and core DPS input unchanged")
+
+func _training_input(fixtures: Array,type: String) -> Dictionary:
+	for fixture in fixtures:
+		if fixture.input.definition.type == type and fixture.input.level == 1 and fixture.input.gems.is_empty():
+			var input: Dictionary = fixture.input.duplicate(true)
+			input.definition.damage = 100.0
+			input.definition.criticalChance = 0.0
+			return input
+	return {}
+
+func _training_runtime(input: Dictionary,config: Dictionary = {}):
+	var r = Runtime.new()
+	r.start(100,{"combatConfig":config,"enemies":[{"id":1,"hp":10000.0,"maxHp":10000.0,"x":50.0,"y":0.0,"speed":0.0},{"id":2,"hp":10000.0,"maxHp":10000.0,"x":55.0,"y":1.0,"speed":0.0}],"turrets":[{"id":1,"position":[0,0],"statInput":input,"state":{"x":0,"y":0}}]},{"clock":"godot","phase":"wave","running":true})
+	return r
+
+func _training_attack(t: Dictionary,crit: float = 1.0) -> Dictionary:
+	var attack: Dictionary = preload("res://combat/turret_stat_calculation.gd").firing_stats(t.statInput,t.stats,crit)
+	attack.definition = t.statInput.definition
+	attack.burnDamagePerSecondScale = 0.5
+	attack.burnDurationSeconds = 2.0
+	return attack
+
+func _training_near(actual: float,expected: float,label: String) -> void:
+	_check(absf(actual-expected)<1e-8*maxf(1.0,absf(expected)),label+" actual="+str(actual)+" expected="+str(expected))
+
+func _damage_training_checks(fixtures: Array) -> void:
+	const Stats = preload("res://combat/turret_stat_calculation.gd")
+	var config := {"directDamageTrainingBonusRate":0.3,"splashDamageTrainingBonusRate":0.3,"damageOverTimeTrainingBonusRate":0.3}
+	var input := _training_input(fixtures,"arrow")
+	var r = _training_runtime(input,config)
+	var t: Dictionary = r.turrets["1"]
+	var attack := _training_attack(t)
+	var e: Dictionary = r.enemies["1"]
+	for kind in ["direct","splash","chain"]:
+		var before: float = e.hp
+		r._hit(t,attack,e,1.0,kind,kind=="direct",kind=="chain")
+		_training_near(before-e.hp,160.0 if kind=="splash" else 130.0,kind+" hit training adds once; area30+hit30 is60 percent")
+	var maximum = _training_runtime(input,{"directDamageTrainingBonusRate":0.4,"splashDamageTrainingBonusRate":0.4,"damageOverTimeTrainingBonusRate":0.4})
+	var maximum_turret: Dictionary = maximum.turrets["1"]
+	var maximum_attack: Dictionary = _training_attack(maximum_turret)
+	for kind in ["direct","splash"]:
+		var maximum_before: float = maximum.enemies["1"].hp
+		maximum._hit(maximum_turret,maximum_attack,maximum.enemies["1"],1.0,kind,kind=="direct",false)
+		_training_near(maximum_before-maximum.enemies["1"].hp,180.0 if kind=="splash" else 140.0,kind+" level80 uses full40 percent per training")
+	attack.directDamageIncrease = 0.2
+	attack.splashDamageIncrease = 0.1
+	attack.chainDamageIncrease = 0.4
+	for kind in ["direct","splash","chain"]:
+		var before: float = e.hp
+		r._hit(t,attack,e,1.0,kind,kind=="direct",kind=="chain")
+		_training_near(before-e.hp,100.0*({"direct":1.5,"splash":1.9,"chain":1.9}[kind]),kind+" training joins existing core increase layer")
+	attack.directDamageIncrease = 0.0
+	attack.splashDamageIncrease = 0.0
+	attack.chainDamageIncrease = 0.0
+	attack.splashRadius = 20.0
+	var before: float = e.hp
+	var second_before: float = r.enemies["2"].hp
+	r._impact(t,attack,e,r._pos(e),0.5,true)
+	_training_near(before-e.hp,65.0,"chain direct uses hit training without area")
+	_training_near(second_before-r.enemies["2"].hp,40.0,"chain explosion includes hit+area training and original coefficient")
+	var frost = _training_runtime(_training_input(fixtures,"frost"),config)
+	var ft: Dictionary = frost.turrets["1"]
+	frost._tick_turret(ft,0.0)
+	_training_near(10000.0-frost.enemies["1"].hp,160.0,"centered frost attack receives hit+area training")
+	# Actual in-flight attacks see later growth, without rewriting their damage.
+	var flight = _projectile_test_runtime(input,1.0,50.0)
+	_check(flight.projectiles.size()==1,"training live-growth fixture fired projectile")
+	flight._command({"kind":"combatConfig","config":config})
+	_move_test_projectiles(flight,60.0)
+	_training_near(1000.0-flight.enemies["1"].hp,130.0,"in-flight projectile reads newly bought hit training")
+	# The DoT display includes the same additive layer, while raw fired/stored
+	# DPS excludes training and preserves gems, acceleration, crit and resistance.
+	input = _training_input(fixtures,"magic")
+	input.primaryTrait = "highHeatBurn"
+	input.moduleEffect.damageOverTimeIncreaseRate = 0.25
+	input.coreEffects = {"damageOverTimeIncrease":0.153,"damageOverTimeSpeedMultiplier":1.5}
+	input.gems = ["damageOverTime"]
+	var plain: Dictionary = Stats.shared_stats_at(input,1)
+	input.damageOverTimeTrainingBonusRate = 0.3
+	var shown: Dictionary = Stats.shared_stats_at(input,1)
+	_training_near(shown.damageOverTimeDamageMultiplier,(1.0+0.25+0.25+0.153+0.3)*1.3*1.5,"DoT HUD adds training before gem amplification and speed")
+	_training_near(shown.damage,plain.damage,"training never inflates base turret damage")
+	r = _training_runtime(input,{})
+	t = r.turrets["1"]
+	e = r.enemies["1"]
+	e.familyResistances = {"elemental":0.2}
+	attack = _training_attack(t,2.0)
+	_training_near(attack.damageOverTimeDamageMultiplier,plain.damageOverTimeDamageMultiplier,"firing snapshot removes display training")
+	_training_near(attack.damageOverTimeIncreaseMultiplier,1.653,"firing snapshot carries original additive layer only")
+	r._hit(t,attack,e,1.0,"direct",true)
+	var raw_dps: float = 100.0*0.5*1.653*1.3*1.5*1.5*0.8
+	_training_near(e.burnInstances[0].damagePerSecond,raw_dps,"stored burn excludes training and retains critical/resistance/amplification")
+	var core_before: float = r._core_base_damage()
+	r._command({"kind":"combatConfig","config":config})
+	r.running = false
+	before = e.hp
+	r._step(0.1)
+	_training_near(before-e.hp,raw_dps*(1.0+0.3/1.653)*0.1,"already attached burn gets same-layer training on next tick")
+	_training_near(e.burnInstances[0].damagePerSecond,raw_dps,"live training never rewrites stored burn DPS")
+	var transfer: Dictionary = Enemy.burn_transfer(e,{"x":0,"y":0},0.3)
+	Enemy.add_burn(r.enemies["2"],transfer)
+	second_before = r.enemies["2"].hp
+	r._step(0.1)
+	_training_near(second_before-r.enemies["2"].hp,raw_dps*(1.0+0.3/1.653)*0.1,"transferred burn preserves original layer and applies training once")
+	# Ignition consumes the trained effective DPS but remains a DoT effect:
+	# neither hit nor splash training applies to its burst a second time.
+	attack.hasDamageOverTime = false
+	attack.appliesIgnitionBurst = true
+	before = e.hp
+	r._hit(t,attack,e,1.0,"direct",true)
+	var burst: float = raw_dps*(1.0+0.3/1.653)*2.0*float(attack.damageOverTimeDurationMultiplier)*0.3
+	_training_near(before-e.hp,100.0*2.0*1.3*0.8+burst,"ignition burst uses current DoT training exactly once")
+	# Saving and resuming adopts current account config, never a frozen bonus.
+	var saved := r.snapshot()
+	var restored = Runtime.new()
+	restored.start(101,{"combatConfig":config,"enemies":saved.enemies,"turrets":[]},{"clock":"godot","phase":"preparation","running":false})
+	before = restored.enemies["1"].hp
+	restored._step(0.1)
+	_training_near(before-restored.enemies["1"].hp,raw_dps*(1.0+0.3/1.653)*0.1,"resumed new burn reads saved additive layer and latest training")
+	# Direct core commands and guardian base DPS exclude all three trainings,
+	# including the public stat's trained DoT multiplier.
+	before = e.hp
+	r._command({"kind":"coreDamage","enemyId":1,"damage":100.0})
+	_training_near(before-e.hp,100.0,"core direct command excludes damage trainings")
+	_training_near(core_before,r._core_base_damage(),"live damage training leaves core base DPS unchanged")
+	t.statInput.erase("damageOverTimeTrainingBonusRate")
+	t.stats = Stats.shared_stats_at(t.statInput,1)
+	_training_near(core_before,r._core_base_damage(),"removing displayed DoT training leaves core base DPS unchanged")

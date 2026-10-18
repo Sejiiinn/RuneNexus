@@ -24,8 +24,16 @@ static func create(raw: Dictionary) -> Dictionary:
 		burn["ignoreArmorReduction"] = burn.get("ignoreArmorReduction",false)
 		burn["sourceX"] = burn.get("sourceX")
 		burn["sourceY"] = burn.get("sourceY")
+		if burn.has("damageOverTimeIncreaseMultiplier"):
+			var increase := dot_increase_multiplier(burn.damageOverTimeIncreaseMultiplier)
+			if increase == 1.0: burn.erase("damageOverTimeIncreaseMultiplier")
+			else: burn.damageOverTimeIncreaseMultiplier = increase
 	if e.burnInstances.is_empty() and float(e.get("burnRemaining",0)) > 0 and float(e.get("burnDamagePerSecond",0)) > 0:
 		add_burn(e,{"remaining":e.burnRemaining,"damagePerSecond":e.burnDamagePerSecond,"damageMultiplier":e.get("burnDamageMultiplier",1.0)})
+	if e.has("poisonDamageOverTimeIncreaseMultiplier"):
+		var increase := dot_increase_multiplier(e.poisonDamageOverTimeIncreaseMultiplier)
+		if increase == 1.0: e.erase("poisonDamageOverTimeIncreaseMultiplier")
+		else: e.poisonDamageOverTimeIncreaseMultiplier = increase
 	_rebuild_path(e,e.path)
 	_place_at_distance(e,e.distanceTravelled)
 	if raw.has("x") and raw.has("y"): _set_position(e,float(raw.x),float(raw.y))
@@ -184,24 +192,50 @@ static func add_control(e: Dictionary, kind: String, duration: float, options: D
 	else: e[kind + "Remaining"] = maxf(float(e.get(kind + "Remaining", 0.0)), duration)
 	return true
 
+# Metadata is optional. Legacy baked DPS has no recoverable additive source
+# layer, so it deliberately uses neutral1 rather than guessing from live gear.
+static func dot_increase_multiplier(value: Variant) -> float:
+	var multiplier := float(value)
+	return multiplier if is_finite(multiplier) and multiplier >= 1.0 and multiplier <= 4.0 else 1.0
+
+static func burn_damage_per_second(burn: Dictionary,training_rate: float=0.0) -> float:
+	var dps := float(burn.get("damagePerSecond", 0.0))
+	if training_rate <= 0.0: return dps
+	return dps * (1.0 + training_rate / dot_increase_multiplier(burn.get("damageOverTimeIncreaseMultiplier", 1.0)))
+
 static func add_burn(e: Dictionary,burn: Dictionary) -> void:
 	var dps := float(burn.get("damagePerSecond",0))
 	var duration := float(burn.get("duration",burn.get("remaining",0)))
 	if dps<=0 or duration<=0: return
 	var value := {"remaining":duration,"damagePerSecond":dps,"damageMultiplier":float(burn.get("damageMultiplier",1)),"sourceX":burn.get("sourceX"),"sourceY":burn.get("sourceY"),"ignoreArmorReduction":burn.get("ignoreArmorReduction",false)}
+	var increase := dot_increase_multiplier(burn.get("damageOverTimeIncreaseMultiplier", 1.0))
+	if increase != 1.0: value.damageOverTimeIncreaseMultiplier = increase
 	if value.sourceX!=null and value.sourceY!=null:
+		var source_burns: Array = []
+		var same_layer: Dictionary = {}
 		for b in e.burnInstances:
-			if b.sourceX==value.sourceX and b.sourceY==value.sourceY:
-				for key in ["remaining","damagePerSecond","damageMultiplier"]: b[key]=maxf(b[key],value[key])
-				b.ignoreArmorReduction=b.ignoreArmorReduction or value.ignoreArmorReduction
-				return
+			if b.sourceX!=value.sourceX or b.sourceY!=value.sourceY: continue
+			source_burns.append(b)
+			value.remaining = maxf(value.remaining,b.remaining)
+			value.damageMultiplier = maxf(value.damageMultiplier,b.damageMultiplier)
+			value.ignoreArmorReduction = value.ignoreArmorReduction or b.ignoreArmorReduction
+			if dot_increase_multiplier(b.get("damageOverTimeIncreaseMultiplier",1.0)) == increase:
+				same_layer = b
+		# A changed additive layer can reverse strength after a later purchase.
+		# Retain those candidates but refresh the source's existing max lifetime,
+		# display and armor flags together. Only one strongest candidate ticks.
+		for b in source_burns:
+			for key in ["remaining","damageMultiplier","ignoreArmorReduction"]: b[key] = value[key]
+		if not same_layer.is_empty():
+			same_layer.damagePerSecond = maxf(same_layer.damagePerSecond,value.damagePerSecond)
+			return
 	e.burnInstances.append(value)
 
-static func burn_transfer(e: Dictionary,source: Dictionary) -> Dictionary:
+static func burn_transfer(e: Dictionary,source: Dictionary,training_rate: float=0.0) -> Dictionary:
 	var strongest: Dictionary={}
 	for b in e.burnInstances:
 		if b.sourceX!=source.get("x") or b.sourceY!=source.get("y") or b.remaining<=0: continue
-		if strongest.is_empty() or b.damagePerSecond>strongest.damagePerSecond or (b.damagePerSecond==strongest.damagePerSecond and b.remaining>strongest.remaining): strongest=b
+		if strongest.is_empty() or burn_damage_per_second(b,training_rate)>burn_damage_per_second(strongest,training_rate) or (burn_damage_per_second(b,training_rate)==burn_damage_per_second(strongest,training_rate) and b.remaining>strongest.remaining): strongest=b
 	return strongest.duplicate(true)
 
 static func clear_burn_source(e: Dictionary,source: Dictionary) -> void:
@@ -210,11 +244,14 @@ static func clear_burn_source(e: Dictionary,source: Dictionary) -> void:
 			b.sourceX=null
 			b.sourceY=null
 
-static func add_poison(e: Dictionary,dps: float,duration: float,max_stacks: int,multiplier: float=1,speed_multiplier: float=1) -> void:
+static func add_poison(e: Dictionary,dps: float,duration: float,max_stacks: int,multiplier: float=1,speed_multiplier: float=1,increase_multiplier: float=1) -> void:
 	# Optional speed applies to existing poison only, never grants a new attack.
 	speed_multiplier = maxf(0.000001, speed_multiplier)
 	e.poisonDamagePerSecond=dps*speed_multiplier
 	e.poisonDamageMultiplier=multiplier
+	e.erase("poisonDamageOverTimeIncreaseMultiplier")
+	var increase := dot_increase_multiplier(increase_multiplier)
+	if increase != 1.0: e.poisonDamageOverTimeIncreaseMultiplier = increase
 	e.poisonStacks=mini(max_stacks,int(e.poisonStacks)+1)
 	e.poisonRemaining=duration/speed_multiplier
 
@@ -286,7 +323,7 @@ static func _teleport_at(e: Dictionary,index: int,events: Array) -> bool:
 		return true
 	return false
 
-static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,target_multiplier: float=1.0) -> Array:
+static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,target_multiplier: float=1.0,training_rate: float=0.0) -> Array:
 	var events: Array=[]
 	if dt<0 or not is_finite(dt) or e.arrived: return events
 	# 런타임은 경로 변경 번호를 전달한다. 기존 외부 호출은 내용 비교를 유지한다.
@@ -306,11 +343,11 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 			# split when the strongest expires; hidden weaker expiries add no DPS.
 			for i in range(e.burnInstances.size()-1,-1,-1):
 				var b: Dictionary = e.burnInstances[i]
-				if b.remaining > elapsed and (strongest.is_empty() or b.damagePerSecond > strongest.damagePerSecond):
+				if b.remaining > elapsed and (strongest.is_empty() or burn_damage_per_second(b,training_rate) > burn_damage_per_second(strongest,training_rate)):
 					strongest = b
 			if strongest.is_empty(): break
 			var interval_end := minf(dt,float(strongest.remaining))
-			var attack := {"damage":strongest.damagePerSecond*(interval_end-elapsed),
+			var attack := {"damage":burn_damage_per_second(strongest,training_rate)*(interval_end-elapsed),
 				"ignoreArmorReduction":strongest.ignoreArmorReduction,
 				"sourceX":strongest.sourceX,"sourceY":strongest.sourceY,
 				"burnTransfer":strongest}
@@ -326,7 +363,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 		var poison_tick := minf(dt,float(e.poisonRemaining))
 		e.poisonRemaining=maxf(0,e.poisonRemaining-dt)
 		e.poisonNumberTimer+=dt
-		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*e.poisonStacks*poison_tick},"poison",events,0.0,target_multiplier)
+		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*(1.0 + training_rate / dot_increase_multiplier(e.get("poisonDamageOverTimeIncreaseMultiplier", 1.0)))*e.poisonStacks*poison_tick},"poison",events,0.0,target_multiplier)
 		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonRemaining==0):
 			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":e.poisonDamageMultiplier}))
 			e.poisonNumberDamage=0.0
@@ -334,6 +371,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 		if e.poisonRemaining==0:
 			e.poisonStacks=0
 			e.poisonDamagePerSecond=0.0
+			e.erase("poisonDamageOverTimeIncreaseMultiplier")
 			e.poisonNumberDamage=0.0
 			e.poisonNumberTimer=0.0
 	var hard_controlled_time := minf(dt, maxf(float(e.stunRemaining), float(e.freezeRemaining)))
