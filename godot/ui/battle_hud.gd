@@ -89,6 +89,7 @@ var turret_panel = preload("res://ui/hud_turret_panel.gd").new(self)
 var gem_panel = preload("res://ui/hud_gem_panel.gd").new(self)
 var build_panel = preload("res://ui/hud_build_panel.gd").new(self)
 var menu_panel = preload("res://ui/hud_menu_panel.gd").new(self)
+var gem_shortcut = preload("res://ui/hud_gem_shortcut.gd").new(self)
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(func(): _insets_valid = false)
@@ -162,6 +163,8 @@ func _ready() -> void:
 	camera_button.custom_minimum_size = Vector2(68,32); camera_button.size = Vector2(68,32)
 	UiWidgets.style_hud_button(camera_button,"quiet",false,Vector2(5,2))
 	top.resized.connect(_position_camera_button)
+	gem_shortcut.build()
+	top.resized.connect(gem_shortcut.place)
 	message = UiWidgets.label(top,"",11)
 	retry_save = UiWidgets.button(top,"저장 다시 시도",func(): app.persist_progression(); refresh())
 	dock = PanelContainer.new()
@@ -314,6 +317,7 @@ func refresh(polled := false) -> void:
 	pause_button.visible = phase == "wave" and not paused
 	camera_button.text = ("드론" if app.scene.options.get("camera","angled") == "drone" else "고정")+" ↔"
 	_position_camera_button()
+	gem_shortcut.refresh(state)
 	home.disabled = phase == "reward"
 	var auto_index: int = maxi(0,AUTO_MODES.find(app.auto_start_mode))
 	auto_start.text = AUTO_LABELS[auto_index]+(" ▴" if auto_start_popup.visible else " ▾")
