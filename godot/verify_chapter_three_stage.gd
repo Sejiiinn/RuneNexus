@@ -16,7 +16,8 @@ func _check_props(scene: Node3D, map: Dictionary) -> void:
 	var entries: Array = scene.ChapterThreeProps.layout(library, map)
 	_check(entries == scene.ChapterThreeProps.layout(library, map.duplicate(true)), "외곽 소품 배치 불안정")
 	var group: Node3D = scene.terrain.get_node("chapter_three_props")
-	_check(group.get_child_count() == entries.size() and entries.size() >= 5 and entries.size() <= 6, "외곽 소품 5~6개 배치 오류")
+	var target: int = scene.ChapterThreeProps.target_count(map)
+	_check(group.get_child_count() == entries.size() and entries.size() == target, "외곽 소품 배치 수 오류: %d/%d" % [entries.size(), target])
 	var vents := {}
 	for panel: Dictionary in scene.ChapterThreeTiles.panel_layout(map):
 		if panel["kind"] == "panel_vent":
@@ -33,8 +34,19 @@ func _check_props(scene: Node3D, map: Dictionary) -> void:
 		print("Forge prop: %s cell=%s side=%d origin=%s" % [kind, entry["cell"], entry["side"], entry["pose"].origin])
 	_check(entries.any(func(entry: Dictionary) -> bool: return entry["kind"] == "exhaust_vent" and entry["side"] == 0), "배기구 전면 방향 누락")
 	_check(visible_kinds.size() == 3, "기본 시점에서 보이는 소품 종류 누락")
+	# 소품 종류는 번갈아 배치해 한 종류만 반복되지 않게 한다.
 	for kind in scene.ChapterThreeProps.KINDS:
-		_check(counts.get(kind, 0) >= 1 and counts.get(kind, 0) <= 2, "소품별 배치 수 변경: " + kind)
+		_check(absi(int(counts.get(kind, 0)) - ceili(entries.size() / 3.0)) <= 1 and counts.get(kind, 0) >= 1, "소품별 배치 수 변경: " + kind)
+	var teleports: Array[Vector2i] = []
+	for pair: Dictionary in map.get("teleportPairs", []):
+		for role in ["entrance", "exit"]:
+			teleports.append(Vector2i(int(pair[role][0]), int(pair[role][1])))
+	for slot in range(scene.ChapterThreeProps.BASE_COUNT, entries.size()):
+		var cell: Vector2i = entries[slot]["cell"]
+		_check(not teleports.any(func(point: Vector2i) -> bool: return point.distance_squared_to(cell) <= 2), "추가 소품이 전송 장치를 가림")
+	for first in range(entries.size()):
+		for second in range(first + 1, entries.size()):
+			_check(not scene.ChapterThreeProps.footprint(entries[first]["bounds"]).intersects(scene.ChapterThreeProps.footprint(entries[second]["bounds"])), "소품끼리 겹침")
 	for instance: Node3D in group.get_children():
 		var kind: String = instance.get_meta("prop_kind")
 		var source: Node3D = library.find_child(kind, true, false)

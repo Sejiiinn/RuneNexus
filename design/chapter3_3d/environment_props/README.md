@@ -13,4 +13,6 @@
 
 모든 루트는 **타일 측벽 상단 기준점**으로 통일했다. Blender Y=0이 벽, -Y가 바깥, Z=0이 상판, Z=-.50이 타일 바닥이다. 세 형상의 최대 Y는 정확히 0이다. Godot 루트는 tilecenter + outward × .45, 높이 0에 놓는다. 별도 높이/깊이 보정은 없다.
 
+배치는 [`chapter_three_props.gd`](../../../godot/environment/chapter_three_props.gd)가 맵 데이터로 정한다. 3-1~3-5는 바깥 외벽의 5개를 유지한다. 2026-10-18부터 타일 채움 비율이 0.56 미만인 3-6~3-10은 같은 5개 위치를 그대로 두고, 노출 벽면 8면당 1개(최대 12개)가 되도록 두 칸 이상 빈 안쪽 공간에 면한 외벽까지 같은 세 소품을 번갈아 추가한다. 추가분은 카메라 쪽 +Z·+X 면을 우선하고 포탈·코어·전송 장치 주변과 환기 패널은 비운다.
+
 [형상 검사](geometry-check.json)는 manifold·루트 identity·중공 ray 검사 PASS를 기록한다. GLB 재임포트의 정점 오차와 AABB 검사는 [export/geometry-check.json](export/geometry-check.json)에 기록한다. 실제 Android 최종 검수는 [스테이지 11 적용 기록](../stage11/integrated-mounts/README.md)을 따른다.
