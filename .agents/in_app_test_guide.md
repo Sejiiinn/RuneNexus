@@ -6,7 +6,7 @@
 
 - 사용자 플레이 저장을 기본 검수 대상으로 사용하지 않는다. Android 검수 앱 `com.example.rune_nexus.godotonly` 또는 임시 Godot 프로젝트를 사용해 정식 `com.example.rune_nexus` 저장 영역과 분리한다. 실제 저장 인계 검증에는 원본을 지우거나 덮어쓰지 않고 복사본과 명시된 절차를 사용한다.
 - 개발·검사·패키징이 같은 생성 디렉터리를 동시에 변경하지 않게 한다. `scripts/prepare_godot_project.py`는 `build/godot/project/assets`를 재생성하므로 그 프로젝트의 편집·실행·패키징과 순차 실행한다. 검사 병렬화는 해당 사례의 절대 `/tmp`·프로젝트 내부 fixture·캡처 등 쓰기 경로와 자식 프로세스까지 확인한 경우에만 검토하며 HOME·worktree 분리만으로 안전하다고 보지 않는다. 편집 프로젝트의 소스 링크·열린 원본은 [Godot 가이드](godot_mcp_guide.md)를 따른다.
-- `scripts/run_godot_native_regressions.py`는 임시 프로젝트·fixture를 만들고 종료 후 정리한다. Godot 실행 파일이 없으면 실패하며 skip을 통과로 처리하지 않는다.
+- `scripts/run_godot_native_regressions.py`는 `build/godot-native-regressions/`에 검사용 프로젝트·fixture를 유지하고 실행마다 원본과 다른 파일만 동기화한다. 에셋 가져오기는 스크립트·JSON·셰이더 외 입력, `class_name` 목록, Godot 실행 파일이 바뀔 때만 다시 하며 `--fresh`는 전체를 다시 만든다. 같은 작업 폴더에서는 잠금으로 한 번에 하나만 실행한다. 사례마다 별도 HOME·TMPDIR을 쓰고 `--jobs`(기본: 코어 수의 절반, 최대 8)로 병렬 실행하며, 시간 민감 사례(실행기의 `TIMEOUTS`)는 서로 겹치지 않게 별도 한 줄에서 순서대로 실행한다. 실패해도 나머지 사례를 끝까지 실행해 사례별 시간·실패 내용을 마지막에 모으고, `--output`은 JSON으로 남긴다. 2026-10-18 병렬화 때 모든 사례의 쓰기 경로(절대 `/tmp`·프로젝트 내부 fixture·캡처·자식 프로세스)를 점검했다. 새 사례는 TMPDIR·`user://` 아래나 고유 이름 경로에만 쓰고, 절대·공유 경로를 쓰는 사례는 병렬 목록에 넣지 않는다. Godot 실행 파일이 없으면 실패하며 skip을 통과로 처리하지 않는다.
 - `scripts/run_godot_project_checks.py`는 준비된 `build/godot/project`에서 사례마다 별도 HOME·TMPDIR을 쓴다. 복사된 실행 입력(설정·스크립트·셰이더·바이너리 리소스 등)이 `godot/` 원본과 다르면 실행하지 않는다. 편집기 캐시·authoring 원본·문서와 재생성 대상인 assets/app_config는 이 바이트 대조에서 제외한다. `--headless-only`로 건너뛴 렌더러 사례는 `NOT RUN`이다. 종료 코드가 0이어도 필요한 완료 조건이 미실행이면 미확인으로 남긴다.
 - 같은 실행기의 `--preset session`은 명령·전투 세션·저장 재시작·표현 결정론, `--preset lifecycle`은 앱 수명주기·복귀 검사만 선택한다. 검사 이름과 함께 지정할 수 있으며 중복 사례는 한 번 실행한다. `--require-complete`는 선택한 사례가 미실행이면 종료 코드 2, 실패면 1을 반환한다. `--output build/ignored/project-checks.json`은 소스 커밋·수정 여부, 엔진 버전, 사례별 결과와 실패 내용을 보관한다. 배포 CI는 팩 준비 뒤 두 preset을 실행하고 결과를 artifact로 남긴다. 렌더러 사례·실제 화면·기기 검증을 이 결과로 대체하지 않는다.
 
@@ -26,7 +26,7 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --editor --p
 build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/project --resolution 440x900 -- --app
 ```
 
-`GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py`는 임시 프로젝트에서 전투·런·저장·UI 회귀를 실행한다. 에셋·주 장면·렌더러가 필요한 나머지 `godot/verify_*.gd`는 프로젝트 준비 후 `python3 scripts/run_godot_project_checks.py`로 실행한다. 어느 실행기에도 속하지 않은 검사 스크립트가 있으면 이 실행기가 실패한다. 콘텐츠 JSON은 `python3 scripts/verify_godot_content.py`로 확인한다. 헤드리스 통과는 실제 화면·터치나 기기 인증·저장 인계의 완료가 아니다.
+`GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py`는 검사용 프로젝트에서 전투·런·저장·UI 회귀를 실행한다. 에셋·주 장면·렌더러가 필요한 나머지 `godot/verify_*.gd`는 프로젝트 준비 후 `python3 scripts/run_godot_project_checks.py`로 실행한다. 어느 실행기에도 속하지 않은 검사 스크립트가 있으면 이 실행기가 실패한다. 콘텐츠 JSON은 `python3 scripts/verify_godot_content.py`로 확인한다. 헤드리스 통과는 실제 화면·터치나 기기 인증·저장 인계의 완료가 아니다.
 
 ## Android 검수 앱과 정식 앱
 

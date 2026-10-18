@@ -36,7 +36,7 @@ func _initialize() -> void:
 		app.run_domain = fixture.domain
 		app.scene = Host.new()
 		app.scene.combat_runtime = runtime
-		var checkpoint = Checkpoint.new("/tmp/ch3-combat-checkpoint-%d" % spec[0])
+		var checkpoint = Checkpoint.new(OS.get_environment("TMPDIR").path_join("ch3-combat-checkpoint-%d" % spec[0]))
 		var result: Error = checkpoint.persist_state(app,state)
 		if result != OK:
 			push_error(str(spec)+": "+checkpoint.message)

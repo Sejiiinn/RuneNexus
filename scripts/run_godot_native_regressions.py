@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -11,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from content_compiler import check_generated
 from compile_progression import compile_progression
 from compile_core_passive_tree import compile_core_tree
@@ -135,16 +138,25 @@ def godot_executable() -> str:
     raise RuntimeError("Godot executable unavailable; set GODOT_BIN")
 
 
-def copy_files(source: Path, target: Path, suffixes: set[str]) -> None:
-    target.mkdir(parents=True, exist_ok=True)
-    for path in source.iterdir():
-        if path.is_file() and path.suffix in suffixes:
-            shutil.copy2(path, target / path.name)
+CACHE = ROOT / "build/godot-native-regressions"
+# Timing-sensitive cases (process restarts, fixed-clock replay, delayed HTTP and
+# repeated UI layout) never overlap each other: they run one by one in a single
+# lane beside the parallel pool, which leaves spare cores at the default jobs.
+TIMEOUTS = {
+    "verify_chapter_three_normal_combat.gd": 120, "verify_run_transition.gd": 120,
+    "verify_result_settlement.gd": 60, "verify_fixed_combat_clock.gd": 60,
+    "verify_gem_reroll_flip.gd": 60, "verify_gem_reroll.gd": 60,
+}
+SERIAL = frozenset(TIMEOUTS)
+# Scripts and data load directly; only these need no editor import when changed.
+UNIMPORTED = {".gd", ".json", ".gdshader"}
+CLASS_NAME = re.compile(r"^class_name\s+(\w+)", re.M)
 
 
 def isolated_environment(home: Path, temporary: Path) -> dict[str, str]:
     # Linux honors XDG paths before HOME. Override inherited app paths too so
     # every check (and import) stays in its own disposable save/cache directory.
+    temporary.mkdir(parents=True, exist_ok=True)
     environment = dict(os.environ, HOME=str(home), TMPDIR=str(temporary))
     for key, suffix in (("XDG_DATA_HOME", "data"), ("XDG_CACHE_HOME", "cache"),
                         ("XDG_CONFIG_HOME", "config")):
@@ -154,71 +166,139 @@ def isolated_environment(home: Path, temporary: Path) -> dict[str, str]:
     return environment
 
 
-def prepare(directory: Path, executable: str) -> Path:
-    check_generated(ROOT)
-    compile_progression(ROOT, check=True)
-    compile_core_tree(ROOT, check=True)
-    project = directory / "godot"
-    for folder in ("combat", "app", "fixtures", "content", "session", "ui", "services"):
-        (project / folder).mkdir(parents=True, exist_ok=True)
-    for folder in ("session", "ui", "content", "services"):
-        copy_files(ROOT / "godot" / folder, project / folder, {".gd", ".gdshader", ".json"})
-    copy_files(ROOT / "godot/app", project / "app", {".gd"})
-    copy_files(ROOT / "godot/combat", project / "combat", {".gd"})
-    (project / "environment").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / "godot/environment/chapter_three_tiles.gd", project / "environment/chapter_three_tiles.gd")
-    (project / "presentation").mkdir(parents=True, exist_ok=True)
+def manifest() -> dict[str, Path | bytes]:
+    """Every file of the regression project, keyed by its path below the cache root."""
+    files: dict[str, Path | bytes] = {}
+    def folder(source: Path, target: str, suffixes: set[str]) -> None:
+        for path in sorted(source.iterdir()):
+            if path.is_file() and path.suffix in suffixes:
+                files[f"{target}/{path.name}"] = path
+    for name in ("session", "ui", "content", "services"):
+        folder(ROOT / "godot" / name, f"godot/{name}", {".gd", ".gdshader", ".json"})
+    folder(ROOT / "godot/app", "godot/app", {".gd"})
+    folder(ROOT / "godot/combat", "godot/combat", {".gd"})
+    files["godot/environment/chapter_three_tiles.gd"] = ROOT / "godot/environment/chapter_three_tiles.gd"
     for name in ("turret_placement.gd", "battlefield_path.gd", "battlefield_path.gdshader", "stage_resources.gd", "frame_rows.gd"):
-        shutil.copy2(ROOT / "godot/presentation" / name, project / "presentation" / name)
+        files[f"godot/presentation/{name}"] = ROOT / "godot/presentation" / name
     for name in ("inputs", "expected"):
-        path = f"godot_save_codec_{name}.json"
-        shutil.copy2(ROOT / "test/fixtures" / path, project / "fixtures" / path)
-    (directory / "test/fixtures").mkdir(parents=True)
+        files[f"godot/fixtures/godot_save_codec_{name}.json"] = ROOT / "test/fixtures" / f"godot_save_codec_{name}.json"
     for name in FIXTURES:
-        shutil.copy2(ROOT / "test/fixtures" / name, directory / "test/fixtures" / name)
+        files[f"test/fixtures/{name}"] = ROOT / "test/fixtures" / name
     for name in (*SCRIPTS, *HELPERS):
-        shutil.copy2(ROOT / "godot" / name, project / name)
-    app_assets = project / "assets/app"
+        files[f"godot/{name}"] = ROOT / "godot" / name
     for relative in json.loads((ROOT / "godot/ui/assets.json").read_text()):
         path = Path(relative)
         if path.is_absolute() or ".." in path.parts:
             raise ValueError(f"Invalid UI asset path: {relative}")
-        destination = app_assets / path
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(app_ui_source(ROOT, relative), destination)
-    shutil.copytree(ROOT / "assets/images/stage1_3d/ui", project / "assets/ui", dirs_exist_ok=True)
+        files[f"godot/assets/app/{path.as_posix()}"] = app_ui_source(ROOT, relative)
+    shared = ROOT / "assets/images/stage1_3d/ui"
+    for path in sorted(shared.rglob("*")):
+        if path.is_file():
+            files[f"godot/assets/ui/{path.relative_to(shared).as_posix()}"] = path
     for source, target in (("assets/images/diamond_currency.png", "diamond_currency.png"),
                            ("assets/fonts/NotoSansKR-VF.ttf", "NotoSansKR-VF.ttf"),
                            ("assets/fonts/MaterialIcons-Regular.otf", "MaterialIcons-Regular.otf")):
-        shutil.copy2(ROOT / source, project / "assets/ui" / target)
-    (project / "project.godot").write_text(
-        '[application]\nconfig/name="Native regression tests"\n'
-        '[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
+        files[f"godot/assets/ui/{target}"] = ROOT / source
+    files["godot/project.godot"] = (b'[application]\nconfig/name="Native regression tests"\n'
+                                    b'[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
+    return files
+
+
+def synchronize(directory: Path, files: dict[str, Path | bytes]) -> set[str]:
+    """Copies changed inputs, removes stale ones and returns the added or changed paths.
+
+    Removals are not reported: nothing loads a removed input, and a removed
+    class_name script changes the import signature on its own."""
+    changed: set[str] = set()
+    for relative, source in files.items():
+        target = directory / relative
+        existing = target.stat() if target.is_file() else None
+        if isinstance(source, bytes):
+            if existing and existing.st_size == len(source) and target.read_bytes() == source:
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source)
+            changed.add(relative)
+            continue
+        origin = source.stat()
+        # Copies keep the source mtime, so unchanged inputs are never read.
+        if existing and existing.st_size == origin.st_size:
+            if existing.st_mtime_ns == origin.st_mtime_ns:
+                continue
+            if target.read_bytes() == source.read_bytes():
+                os.utime(target, ns=(origin.st_atime_ns, origin.st_mtime_ns))
+                continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+        changed.add(relative)
+    # Godot keeps its import data in .godot and in sidecars next to inputs.
+    for root in (directory / "godot", directory / "test"):
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*"), reverse=True):
+            relative = path.relative_to(directory).as_posix()
+            if relative.startswith("godot/.godot"):
+                continue
+            if path.is_dir():
+                if not any(path.iterdir()):
+                    path.rmdir()
+                continue
+            owner = relative.removesuffix(".import").removesuffix(".uid")
+            if relative not in files and owner not in files:
+                path.unlink()
+    return changed
+
+
+def import_signature(directory: Path, executable: str) -> dict:
+    classes = sorted(f"{path.relative_to(directory).as_posix()}:{name}"
+                     for path in (directory / "godot").rglob("*.gd") if ".godot" not in path.parts
+                     for name in CLASS_NAME.findall(path.read_text(encoding="utf-8", errors="replace")))
+    return {"executable": str(Path(executable).resolve()), "classes": classes}
+
+
+def prepare(directory: Path, executable: str) -> Path:
+    return prepare_project(directory, executable)[0]
+
+
+def prepare_project(directory: Path, executable: str) -> tuple[Path, bool]:
+    """Builds or refreshes the project; the editor import only reruns when it can matter."""
+    check_generated(ROOT)
+    compile_progression(ROOT, check=True)
+    compile_core_tree(ROOT, check=True)
+    project = directory / "godot"
+    state_path = directory / "import-state.json"
+    changed = synchronize(directory, manifest())
+    signature = import_signature(directory, executable)
+    try:
+        previous = json.loads(state_path.read_text())
+    except (OSError, ValueError):
+        previous = None
+    if (previous == signature and (project / ".godot").is_dir()
+            and all(Path(path).suffix in UNIMPORTED for path in changed)):
+        return project, False
+    state_path.unlink(missing_ok=True)
     imported = subprocess.run([executable, "--headless", "--editor", "--import",
                                "--path", str(project), "--quit"],
-                              env=isolated_environment(directory / "import-home", directory),
-                              text=True, capture_output=True, timeout=120)
+                              env=isolated_environment(directory / "import-home", directory / "import-tmp"),
+                              text=True, capture_output=True, timeout=300)
     if imported.returncode:
         raise RuntimeError(f"Godot import failed:\n{imported.stdout}\n{imported.stderr}")
-    return project
+    state_path.write_text(json.dumps(signature, indent=2) + "\n")
+    return project, True
 
 
 def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
-    # Transition cases restart processes; fixed-clock replay covers 120 seeded
-    # scenarios across render cadences/speeds. The flip regression covers repeated
-    # native UI setup/layout/lifecycle at two sizes. Server gem recovery adds
-    # repeated app restarts, corrupt-backup restores, and delayed HTTP checks.
-    timeout = 120 if name in {"verify_chapter_three_normal_combat.gd", "verify_run_transition.gd"} else 60 if name in {"verify_result_settlement.gd", "verify_fixed_combat_clock.gd", "verify_gem_reroll_flip.gd", "verify_gem_reroll.gd"} else 20
-    # user:// resolves under HOME; a per-case HOME keeps saves/settings from
-    # leaking between runs and cases, and is removed with the temporary project.
+    timeout = TIMEOUTS.get(name, 20)
+    # user:// resolves under HOME; a per-case HOME and TMPDIR keep saves,
+    # settings and temporary files apart, including while cases run in parallel.
     home = temporary / "home" / name.removesuffix(".gd")
     home.mkdir(parents=True, exist_ok=True)
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
                                   "--script", f"res://{name}"],
-                                 env=isolated_environment(home, temporary),
-                                 text=True, capture_output=True, timeout=timeout)
+                                 env=isolated_environment(home, temporary / "tmp" / name.removesuffix(".gd")),
+                                 text=True, errors="replace", capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise RuntimeError(f"{name} timed out after {timeout}s: {error.stdout} {error.stderr}") from error
     output = f"{process.stdout}\n{process.stderr}"
@@ -244,26 +324,93 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
             raise RuntimeError(f"{name} checks failed:\n{output}")
 
 
-def main() -> None:
+def run_case(executable: str, project: Path, name: str, temporary: Path) -> dict:
+    started = time.monotonic()
+    try:
+        run_script(executable, project, name, SCRIPTS[name], temporary)
+        result = {"name": name, "status": "PASS"}
+    except (OSError, RuntimeError, ValueError) as error:
+        result = {"name": name, "status": "FAIL", "detail": str(error)[-4000:]}
+    result["seconds"] = round(time.monotonic() - started, 3)
+    print(f"{result['status']} {name} ({result['seconds']:.1f}s)", flush=True)
+    return result
+
+
+def execute(selected: list[str], jobs: int, fresh: bool) -> dict:
+    """Runs every selected case; a failure never hides the cases after it."""
+    report: dict = {"operation": "godot_native_regressions", "jobs": jobs, "errors": [],
+                    "cases": {name: {"name": name, "status": "NOT_RUN"} for name in selected}}
+    started = time.monotonic()
+    try:
+        executable = godot_executable()
+        CACHE.mkdir(parents=True, exist_ok=True)
+        with open(CACHE / ".lock", "w") as lock:
+            # One run per checkout at a time: runs share the prepared project.
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if fresh:
+                shutil.rmtree(CACHE / "godot", ignore_errors=True)
+                (CACHE / "import-state.json").unlink(missing_ok=True)
+            prepare_started = time.monotonic()
+            project, report["imported"] = prepare_project(CACHE, executable)
+            report["prepareSeconds"] = round(time.monotonic() - prepare_started, 3)
+            print(f"Prepared regression project ({report['prepareSeconds']:.1f}s, "
+                  f"{'imported' if report['imported'] else 'reused import'})", flush=True)
+            with tempfile.TemporaryDirectory(prefix="native-regressions-") as directory:
+                temporary = Path(directory)
+                run = lambda name: run_case(executable, project, name, temporary)
+                def serial_lane() -> list[dict]:
+                    return [run(name) for name in selected if name in SERIAL]
+                # The serial lane runs its cases one by one beside the parallel pool.
+                with ThreadPoolExecutor(max_workers=1) as lane, ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
+                    serial = lane.submit(serial_lane)
+                    for result in pool.map(run, [name for name in selected if name not in SERIAL]):
+                        report["cases"][result["name"]] = result
+                    for result in serial.result():
+                        report["cases"][result["name"]] = result
+    except KeyboardInterrupt:
+        report["errors"].append("interrupted")
+    except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
+        report["errors"].append(str(error))
+    report["seconds"] = round(time.monotonic() - started, 3)
+    report["cases"] = list(report["cases"].values())
+    counts = {status: sum(case["status"] == status for case in report["cases"]) for status in ("PASS", "FAIL", "NOT_RUN")}
+    report["counts"] = counts
+    report["status"] = "PASS" if counts["PASS"] == len(selected) and not report["errors"] else "FAIL"
+    return report
+
+
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("scripts", nargs="*", help="Run only named cases (default: all)")
+    parser.add_argument("--jobs", type=int, default=max(1, min(8, (os.cpu_count() or 2) // 2)),
+                        help="Parallel cases at once; the timing-sensitive group adds one serial lane")
+    parser.add_argument("--fresh", action="store_true", help="Rebuild and reimport the cached project")
+    parser.add_argument("--output", type=Path, help="Write case results, timings and failure details as JSON")
     args = parser.parse_args()
-    selected = args.scripts or list(SCRIPTS)
+    selected = list(dict.fromkeys(args.scripts)) or list(SCRIPTS)
     unknown = set(selected) - SCRIPTS.keys()
     if unknown:
         parser.error("Unknown regression scripts: " + ", ".join(sorted(unknown)))
-    executable = godot_executable()
-    with tempfile.TemporaryDirectory(prefix="native-regressions-") as directory:
-        temporary = Path(directory)
-        project = prepare(temporary, executable)
-        for name in selected:
-            run_script(executable, project, name, SCRIPTS[name], temporary)
-            print(f"PASS {name}")
-    print(f"PASS {len(selected)} Godot native regressions")
+    report = execute(selected, args.jobs, args.fresh)
+    failures = [case for case in report["cases"] if case["status"] == "FAIL"]
+    for case in failures:
+        print(f"\n=== FAIL {case['name']} ===\n{case['detail']}", file=sys.stderr)
+    for error in report["errors"]:
+        print(f"\n=== ERROR ===\n{error}", file=sys.stderr)
+    slowest = sorted((case for case in report["cases"] if "seconds" in case), key=lambda case: -case["seconds"])[:5]
+    if slowest:
+        print("Slowest: " + ", ".join(f"{case['name']} {case['seconds']:.1f}s" for case in slowest))
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    counts = report["counts"]
+    if report["status"] == "PASS":
+        print(f"PASS {len(selected)} Godot native regressions ({report['seconds']:.1f}s)")
+        return 0
+    print(f"FAIL Godot native regressions: {counts['PASS']} passed, {counts['FAIL']} failed, "
+          f"{counts['NOT_RUN']} not run ({report['seconds']:.1f}s)")
+    return 1
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as error:
-        sys.exit(str(error))
+    sys.exit(main())
