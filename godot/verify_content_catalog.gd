@@ -95,6 +95,7 @@ func _all_definitions() -> void:
 	print("Content coverage: ", catalog.stage_count(), " stages, ", waves, " waves, ", spawns, " spawns, ", catalog.enemy_types().size(), " enemy types, ", catalog.turret_types().size(), " turret types")
 	# Original Dart calculator fixtures exercise growth, equipment, traits and module effects.
 	var cases: Variant = TypedJson.parse(FileAccess.get_file_as_string("res://../test/fixtures/turret_stat_calculation.json"))
+	var growth_matches := 0
 	for case in cases:
 		var source: Dictionary = case.input
 		var overrides := source.duplicate(true)
@@ -102,16 +103,37 @@ func _all_definitions() -> void:
 		overrides.erase("boardDistanceScale")
 		var inputs := {"tileSize": source.boardDistanceScale * 48.0, "statInput": overrides}
 		var assembled: Dictionary = catalog.turret(source.definition.type, inputs)
+		_adapt_legacy_turret_input(assembled, "growth stat input")
 		# Fixtures include deliberately modified definitions: keep real catalog definitions
 		# and compare only fixtures with the exact current source definition.
 		if assembled.definition == source.definition:
+			growth_matches += 1
 			_compare(assembled, source, "growth stat input")
 			_compare_legacy_stats(Stats.resolve(assembled), case.expected, "Dart growth stats")
+	_check(growth_matches > 0, "Dart growth fixtures matched current definitions")
+
+# Historical Dart inputs remain immutable. Projectile capability tags and attack
+# modifiers postdate them: verify their neutral values, then drop them so the
+# strict field comparison still covers every recorded Dart field.
+func _adapt_legacy_turret_input(actual: Dictionary, label: String) -> void:
+	var definition: Dictionary = actual.definition
+	var projectile: bool = not definition.instantHit and not definition.centeredAreaAttack and definition.type != "lightning"
+	_compare(definition.get("attackCapabilities"), ["projectile"] if projectile else [], label + "/new attackCapabilities")
+	_compare(actual.get("attackModifiers"), [], label + "/new attackModifiers")
+	definition.erase("attackCapabilities")
+	actual.erase("attackModifiers")
 
 func _compare_legacy_stats(actual: Dictionary, expected: Dictionary, label: String) -> void:
 	# Preserve the historical calculator fixture and its strict field comparison.
 	# New core passives must be neutral when those old inputs omit coreEffects.
 	var defaults := {"directDamageIncrease":0.0,"splashDamageIncrease":0.0,"chainDamageIncrease":0.0,"chainJumpRangeMultiplier":1.0,"firstControlDurationMultiplier":1.0,"controlDurationMultiplier":1.0}
+	# Projectile pierce postdates the Dart calculator; old inputs never pierce.
+	if not expected.has("pierceCount"):
+		_compare(actual.get("pierceCount"), 0, label + "/new neutral pierceCount")
+		actual.erase("pierceCount")
+	if not expected.snapshot.has("pierceCount"):
+		_compare(actual.snapshot.get("pierceCount"), 0, label + "/new neutral snapshot/pierceCount")
+		actual.snapshot.erase("pierceCount")
 	for key in defaults:
 		if not expected.snapshot.has(key):
 			_compare(actual.snapshot.get(key), defaults[key], label + "/new neutral snapshot/" + key)
@@ -146,6 +168,7 @@ func _dart_cases() -> void:
 		overrides.erase("boardDistanceScale")
 		var inputs := {"tileSize": case.input.boardDistanceScale * 48.0, "statInput": overrides}
 		var actual: Dictionary = catalog.turret(case.type, inputs)
+		_adapt_legacy_turret_input(actual, "actual Dart turret input")
 		_compare(actual, case.input, "actual Dart turret input")
 		_compare_legacy_stats(Stats.resolve(actual), case.expected, "actual Dart turret stats")
 
