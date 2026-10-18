@@ -175,7 +175,7 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 			return CommandResult{}, err
 		}
 		if gamesave.ClientCompatibilityFromBody(request.RawBody) >= GemDeckClientCompatibilityVersion {
-			if deck, err = issueGemDeck(ctx, q, account, id, source.Progression); err != nil {
+			if deck, err = issueGemDeck(ctx, q, account, id, source.Progression, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
 				return CommandResult{}, err
 			}
 		}
@@ -216,6 +216,15 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 				return CommandResult{}, e
 			}
 			return CommandResult{Run: runView(row), GemReceipt: newGemReceipt(wallet, system), SaveRevision: source.Revision, ServerSavedAt: source.UpdatedAt.Time.UTC()}, nil
+		}
+		// A still-valid older writer must not discard content it cannot decode.
+		// The already-cleared recovery above remains read-only and compatible.
+		clientVersion := gamesave.ClientCompatibilityFromBody(request.RawBody)
+		if err := gamesave.ValidateContentClient(source.Progression, source.ActiveRun, clientVersion); err != nil {
+			return CommandResult{}, err
+		}
+		if err := gamesave.ValidateGemContentClient(row.GemDeck, clientVersion); err != nil {
+			return CommandResult{}, err
 		}
 		if row.Status == "active" {
 			closingDeck = row.GemDeck
@@ -264,8 +273,8 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 
 // Decks are drawn from the unlocks of the checkpoint the run starts from. Clear
 // progression only changes after settlement, so they stay valid for the run.
-func issueGemDeck(ctx context.Context, q *dbgen.Queries, account, runID pgtype.UUID, progression []byte) (*GemDeck, error) {
-	available, err := availableGems(progression)
+func issueGemDeck(ctx context.Context, q *dbgen.Queries, account, runID pgtype.UUID, progression []byte, clientVersion int) (*GemDeck, error) {
+	available, err := availableGemsForClient(progression, clientVersion)
 	if err != nil {
 		return nil, err
 	}

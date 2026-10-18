@@ -1,4 +1,5 @@
 extends RefCounted
+const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Turret stats, level preview, traits and target-priority presentation.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const GemPalette = preload("res://ui/battle_rewards.gd")
@@ -39,6 +40,7 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	var definition: Dictionary = hud.app.catalog.turret_definition(turret.type)
 	_category_tag(category_row,str(definition.damageFamily))
 	for tag in definition.get("attackTags",[]): _category_tag(category_row,str(tag))
+	for tag in definition.get("attackCapabilities",[]): _category_tag(category_row,str(tag))
 	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_row.add_child(category_spacer)
 	var total := HBoxContainer.new(); total.name = "TurretTotalDamage"; total.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	total.add_theme_constant_override("separation",6); category_row.add_child(total)
@@ -149,7 +151,8 @@ func _open_current_sale() -> void:
 	if not turret.is_empty(): _sell_confirm(turret,hud.app.run_domain.service.quotes(hud.app.run_domain.state,int(turret.id)))
 
 func _category_tag(parent: Node,key: String) -> void:
-	if not CATEGORY_NAMES.has(key): return
+	var name: String = str(CATEGORY_NAMES.get(key,GemSlots.capability_label(key)))
+	if name == key: return
 	var color := Color(str(GemPalette.GEM_COLORS.get(CATEGORY_GEMS.get(key,""),"7FD8FF")))
 	var chip := PanelContainer.new(); chip.name = "Category_"+key; chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -157,7 +160,7 @@ func _category_tag(parent: Node,key: String) -> void:
 	style.set_border_width_all(1); style.set_corner_radius_all(3); style.content_margin_left = 7; style.content_margin_right = 7
 	style.content_margin_top = 3; style.content_margin_bottom = 3; chip.add_theme_stylebox_override("panel",style)
 	parent.add_child(chip)
-	var label: Label = UiWidgets.label(chip,CATEGORY_NAMES[key],11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var label: Label = UiWidgets.label(chip,name,11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.add_theme_color_override("font_color",color)
 
 func _stat_value(stats: Dictionary,key: String,exact := false) -> String:

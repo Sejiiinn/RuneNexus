@@ -1,4 +1,5 @@
 extends RefCounted
+const GemSlots = preload("res://app/gem_slot_rules.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 ## Reward preview is presentation state. Settlement and equip are one domain transaction.
@@ -8,8 +9,8 @@ const ResultEntrance = preload("res://ui/battle_result_entrance.gd")
 const GemEntrance = preload("res://ui/gem_reward_entrance.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const GemFlip = preload("res://ui/gem_reward_flip.gd")
-const GEM_COLORS := {"attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
-const RULES := {"chain":"연쇄된 투사체는 피해 및 효과 범위가 50% 감폭됩니다.","explosion":"폭발은 직접 명중한 대상을 제외한 주변 적에게 명중 피해의 50%를 줍니다."}
+const GEM_COLORS := {"piercing":"F27DDB","attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
+const RULES := {"piercing":"관통한 적에게도 상태이상을 적용하며, 폭발은 마지막 대상에서 발생합니다.","chain":"연쇄된 투사체는 피해 및 효과 범위가 50% 감폭됩니다.","explosion":"폭발은 직접 명중한 대상을 제외한 주변 적에게 명중 피해의 50%를 줍니다."}
 # The approved compact cycle glyph is code-native, like the reward entrance rune.
 class RerollGlyph extends Control:
 	func _draw() -> void:
@@ -531,7 +532,7 @@ func _target(state: Dictionary, viewport: Vector2) -> void:
 	var compatible := HFlowContainer.new()
 	body.add_child(compatible)
 	for type in hud.app.run_domain.service.derived(state).get("availableTurretTypes",[]):
-		var allowed: bool = pending_gem in hud.app.run_domain.growth.data.turretRules[type].compatibleGems
+		var allowed: bool = GemSlots.is_compatible(pending_gem,hud.app.run_domain.growth.data.turretRules[type])
 		var label := _text(compatible,str(hud.TOWERS.get(type,type))+(" ✓" if allowed else " ×"),11)
 		label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		label.modulate = Color("a6e9bc") if allowed else Color("77838d")
@@ -550,7 +551,7 @@ func board_tap(tile: Vector2i) -> bool:
 	var state: Dictionary = hud.app.run_domain.state
 	for turret in state.get("turrets",[]):
 		if int(turret.x) != tile.x or int(turret.y) != tile.y: continue
-		if pending_gem not in hud.app.run_domain.growth.data.turretRules[turret.type].compatibleGems:
+		if not GemSlots.is_compatible(pending_gem,hud.app.run_domain.growth.data.turretRules[turret.type]):
 			target_hint = "경량화기 포탑에만 장착할 수 있습니다" if pending_gem == "lightWeapon" else "이 포탑에는 장착할 수 없습니다"
 		elif pending_gem in turret.equippedGemSlots:
 			target_hint = "이미 같은 젬이 장착되어 있습니다"

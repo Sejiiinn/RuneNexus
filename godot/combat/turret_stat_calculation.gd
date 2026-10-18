@@ -1,4 +1,6 @@
 extends RefCounted
+const Capabilities = preload("res://combat/attack_capabilities.gd")
+const ProjectileEffects = preload("res://combat/projectile_effects.gd")
 ## Pure stat calculation. App progression, timers and RNG are inputs.
 # Shared content-addressed neutral results: combat, HUD and selection only differ
 # in distances and transient core/cleanup multipliers. No session/save state lives
@@ -152,10 +154,11 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		var trait_aim: float = -0.2 if p == "deadeyeFocus" else (0.4 if p == "quickScope" else 0.0)
 		var aim_speed: float = 1.0 + (target_level - 1) * 0.08 + m.aimSpeedIncreaseRate + trait_aim
 		aim /= maxf(0.1, aim_speed) * gem_aim
-	var fires_projectile: bool = not d.instantHit and not d.centeredAreaAttack and d.type != "lightning"
+	var fires_projectile: bool = Capabilities.supports_projectile(d)
 	return {
 		"damage": damage, "range": range_value, "attackRate": rate,
 		"projectileSpeed": projectile_speed,
+		"pierceCount": ProjectileEffects.pierce_count(i),
 		"projectileCount": int(d.projectileCount) + (2 if "multipleProjectiles" in gems else 0),
 		"damageOverTimeDamageMultiplier": dot_damage,
 		"damageOverTimeDurationMultiplier": dot_duration,
@@ -178,7 +181,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 
 static func firing_stats(i: Dictionary, stats: Dictionary, critical_multiplier: float) -> Dictionary:
 	var out := {}
-	for key in ["damage", "range", "effectAreaMultiplier", "centeredAreaRadius", "chainCount", "splashRadius", "splashSecondaryDamageMultiplier", "projectileSpeed", "physicalResistanceReduction", "ignoresArmorReduction", "damageOverTimeDamageMultiplier", "damageOverTimeDurationMultiplier", "slowDuration", "slowMultiplier", "appliesFrostCrack", "appliesIgnitionBurst", "spreadsChainIgnition", "lightningChainMaxJumps", "lightningChainDamageMultiplier"]:
+	for key in ["damage", "range", "effectAreaMultiplier", "centeredAreaRadius", "pierceCount", "chainCount", "splashRadius", "splashSecondaryDamageMultiplier", "projectileSpeed", "physicalResistanceReduction", "ignoresArmorReduction", "damageOverTimeDamageMultiplier", "damageOverTimeDurationMultiplier", "slowDuration", "slowMultiplier", "appliesFrostCrack", "appliesIgnitionBurst", "spreadsChainIgnition", "lightningChainMaxJumps", "lightningChainDamageMultiplier"]:
 		out[key] = stats[key]
 	out.criticalMultiplier = critical_multiplier
 	var core: Dictionary = i.get("coreEffects", {})

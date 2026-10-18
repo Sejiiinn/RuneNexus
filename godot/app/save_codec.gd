@@ -168,7 +168,8 @@ const ENUMS = {
 		"aimSpeed",
 		"damageAmplifier",
 		"armorPiercing",
-		"multipleProjectiles"
+		"multipleProjectiles",
+		"piercing"
 	]
 }
 const SCALARS = {

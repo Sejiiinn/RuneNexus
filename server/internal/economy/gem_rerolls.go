@@ -18,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var gemTypes = []string{"attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles"}
+var gemTypes = []string{"attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing"}
 
 type gemRewardRun struct {
 	RunID           string           `json:"economyRunId"`
@@ -34,13 +34,23 @@ type gemRewardRun struct {
 	ReturnPhase     string           `json:"rewardReturnPhase"`
 }
 
+// Generation eleven understands capability-based projectile gems.
+const PiercingClientCompatibilityVersion = gamesave.PiercingClientCompatibilityVersion
+
 func availableGems(raw []byte) ([]string, error) {
+	return availableGemsForClient(raw, PiercingClientCompatibilityVersion)
+}
+
+func availableGemsForClient(raw []byte, clientVersion int) ([]string, error) {
 	var progression progressionUnlocks
 	if json.Unmarshal(raw, &progression) != nil {
 		return nil, ErrInvalidCommand
 	}
 	result := make([]string, 0, len(gemTypes))
 	for _, gem := range gemTypes {
+		if gem == "piercing" && clientVersion < PiercingClientCompatibilityVersion {
+			continue
+		}
 		if !stageprogression.HasRequirement("gem", gem, false) ||
 			contains(progression.GrandfatherUnlocks, "gem:"+gem) ||
 			intContains(progression.ClearedStageNumbers, stageprogression.Requirement("gem", gem, false)) ||
@@ -281,6 +291,9 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 	if err != nil {
 		return CommandResult{}, ErrGemOfferConflict
 	}
+	if err := gamesave.ValidateGemContentClient(authority.GemDeck, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
+	}
 	if len(authority.GemDeck) > 0 {
 		// Deck runs present candidates locally and are reconciled at close.
 		if gamesave.ClientCompatibilityFromBody(request.RawBody) < GemDeckClientCompatibilityVersion {
@@ -396,7 +409,7 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 		} else if !errors.Is(latestErr, pgx.ErrNoRows) {
 			return CommandResult{}, latestErr
 		}
-		available, e := availableGems(source.Progression)
+		available, e := availableGemsForClient(source.Progression, gamesave.ClientCompatibilityFromBody(request.RawBody))
 		if e != nil {
 			return CommandResult{}, e
 		}
@@ -451,7 +464,7 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 			if wallet.GemResetTickets < cost {
 				return CommandResult{}, ErrInsufficientGemResetTickets
 			}
-			available, e := availableGems(source.Progression)
+			available, e := availableGemsForClient(source.Progression, gamesave.ClientCompatibilityFromBody(request.RawBody))
 			if e != nil {
 				return CommandResult{}, e
 			}

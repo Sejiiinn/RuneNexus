@@ -16,6 +16,7 @@ from content_compiler import check_generated
 from content_runtime_format import load_compiled_content
 from compile_progression import compile_progression
 from compile_core_passive_tree import compile_core_tree
+from compile_gem_capabilities import compile_capabilities
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -171,7 +172,7 @@ _CORE_FRAME_NAMES = frozenset(
 _GEM_NAMES = frozenset({
     "damageAmplifier", "attackSpeed", "armorPiercing", "damageOverTime", "chain",
     "elementalDamage", "range", "criticalChance", "aimSpeed", "lightWeapon",
-    "heavyWeapon", "multipleProjectiles", "explosion", "physicalDamage",
+    "heavyWeapon", "multipleProjectiles", "explosion", "physicalDamage", "piercing",
 })
 
 
@@ -335,6 +336,7 @@ def prepare() -> Path:
     check_generated(ROOT)
     compile_progression(ROOT, check=True)
     compile_core_tree(ROOT, check=True)
+    compile_capabilities(ROOT, check=True)
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
     required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb", "landmarks.glb")]

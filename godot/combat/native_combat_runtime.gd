@@ -2,6 +2,7 @@ extends RefCounted
 ## Persistent combat authority. Commands, simulation time and events are ACKed once.
 const Teleports = preload("res://combat/teleport_pairs.gd")
 const Enemy = preload("res://combat/native_enemy_state.gd")
+const Capabilities = preload("res://combat/attack_capabilities.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const Wave = preload("res://combat/native_wave_state.gd")
 const Defense = preload("res://combat/native_core_defense_state.gd")
@@ -400,7 +401,7 @@ func _core_base_damage() -> float:
 	for t in turrets.values():
 		var stats: Dictionary = t.stats
 		var definition: Dictionary = t.statInput.definition
-		var projectile: bool = not definition.instantHit and not definition.centeredAreaAttack and definition.type != "lightning"
+		var projectile: bool = Capabilities.supports_projectile(definition)
 		var rate: float = stats.attackRate / (1.4 if t.statInput.chainCleanupActive else 1.0) * (1.4 if t.cleanup>0 else 1.0)
 		dps += float(stats.damage)*(1.0 + float(t.statInput.get("coreEffects", {}).get("directDamageIncrease", 0.0)))*maxf(0,rate)*(int(stats.projectileCount) if projectile else 1)
 		if "damageOverTime" in definition.attackTags:
@@ -918,9 +919,9 @@ func _target(from: Vector2, radius: float, priority: String, excluded: Array = [
 			tie = current_tie
 	return selected
 
-func _projectile(t: Dictionary, a: Dictionary, from: Vector2, direction: Vector2, chains: int, excluded: Array, chained: bool, distance: float) -> void:
+func _projectile(t: Dictionary, a: Dictionary, from: Vector2, direction: Vector2, chains: int, excluded: Array, chained: bool, distance: float, pierces: int = -1) -> void:
 	projectile_id += 1
-	projectiles.append({"id": projectile_id, "owner": str(t.id), "attack": a, "position": from, "origin": from, "direction": direction.normalized(), "remaining": distance, "chains": chains, "excluded": excluded.duplicate(), "chained": chained, "shot": t.shotSequence})
+	projectiles.append({"id": projectile_id, "owner": str(t.id), "attack": a, "position": from, "origin": from, "direction": direction.normalized(), "remaining": distance, "chains": chains, "pierces": maxi(0, int(a.get("pierceCount", 0))) if pierces < 0 else pierces, "excluded": excluded.duplicate(), "chained": chained, "shot": t.shotSequence})
 
 # A center occupies one cell, so candidates need no deduplication. The maximum
 # enemy radius expands the swept segment bounds; the exact circle test below is
@@ -968,19 +969,13 @@ func _projectile_candidates(from: Vector2, movement: Vector2, radius: float, bro
 	for index in indices: candidates.append(ordered[index])
 	return candidates
 
-func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> void:
-	var t: Dictionary = turrets.get(p.owner, {})
-	if t.is_empty():
-		return
-	var step := minf(p.remaining, float(p.attack.projectileSpeed) * dt)
-	var from: Vector2 = p.position
-	var movement: Vector2 = p.direction * step
+func _first_projectile_collision(from: Vector2, movement: Vector2, attack: Dictionary, excluded: Array, broadphase: Dictionary) -> Dictionary:
 	var first := INF
 	var hit: Dictionary = {}
-	var projectile_radius: float = float(PROJECTILE_RADII.get(p.attack.definition.type, 3.5)) * board_scale
+	var projectile_radius: float = float(PROJECTILE_RADII.get(attack.definition.type, 3.5)) * board_scale
 	var length_squared := movement.length_squared()
 	for e in _projectile_candidates(from, movement, projectile_radius, broadphase):
-		if not _alive(e) or str(e.id) in p.excluded:
+		if not _alive(e) or str(e.id) in excluded:
 			continue
 		var offset := from - _pos(e)
 		var radius: float = _radius(e) + projectile_radius
@@ -999,19 +994,39 @@ func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> 
 		if fraction < first:
 			first = fraction
 			hit = e
-	p.position = from + movement * (first if not hit.is_empty() else 1.0)
-	p.remaining -= step
-	if hit.is_empty():
-		if p.remaining > 0:
-			projectiles.append(p)
+	return {"target":hit, "fraction":first}
+
+func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> void:
+	var t: Dictionary = turrets.get(p.owner, {})
+	if t.is_empty(): return
+	var step := minf(p.remaining, float(p.attack.projectileSpeed) * dt)
+	while true:
+		var from: Vector2 = p.position
+		var movement: Vector2 = p.direction * step
+		var collision := _first_projectile_collision(from, movement, p.attack, p.excluded, broadphase)
+		var hit: Dictionary = collision.target
+		var traveled := step * (float(collision.fraction) if not hit.is_empty() else 1.0)
+		p.position = from + p.direction * traveled
+		p.remaining = maxf(0.0, p.remaining - traveled)
+		step = maxf(0.0, step - traveled)
+		if hit.is_empty():
+			if p.remaining > 0: projectiles.append(p)
+			return
+		p.excluded.append(str(hit.id))
+		var terminal_impact := int(p.get("pierces", 0)) <= 0
+		_impact(t, p.attack, hit, p.position, 0.5 if p.chained else 1.0, p.chained, p.direction, terminal_impact)
+		if not terminal_impact:
+			p.pierces -= 1
+			# Keep traversing this same swept segment. Exclusion guarantees overlap
+			# progress without skipping nearby targets with an artificial offset.
+			if p.remaining <= 0: return
+			continue
+		if p.chains > 0:
+			var chain_range := 110.0 * board_scale * float(p.attack.get("chainJumpRangeMultiplier", 1.0))
+			var next := _target(p.position, chain_range, "nearest", p.excluded)
+			if not next.is_empty():
+				_projectile(t, p.attack, p.position, _pos(next) - p.position, int(p.chains) - 1, p.excluded, true, chain_range * PROJECTILE_TRAVEL_MULTIPLIER, 0)
 		return
-	p.excluded.append(str(hit.id))
-	_impact(t, p.attack, hit, p.position, 0.5 if p.chained else 1.0, p.chained, p.direction)
-	if p.chains > 0:
-		var chain_range := 110.0 * board_scale * float(p.attack.get("chainJumpRangeMultiplier", 1.0))
-		var next := _target(p.position, chain_range, "nearest", p.excluded)
-		if not next.is_empty():
-			_projectile(t, p.attack, p.position, _pos(next) - p.position, int(p.chains) - 1, p.excluded, true, chain_range * PROJECTILE_TRAVEL_MULTIPLIER)
 
 func _release(d: Dictionary) -> void:
 	var t: Dictionary = turrets.get(d.owner, {})
@@ -1050,22 +1065,23 @@ func _lightning_complete(t: Dictionary, a: Dictionary, used: int) -> void:
 		var unused := maxi(0, int(a.lightningChainMaxJumps) - used)
 		t.cooldown = minf(t.cooldown, maxf(0, float(t.lastBaseCooldown) / (1 + unused * 0.15) - float(t.lightningElapsed)))
 
-func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false, direction: Vector2 = Vector2.ZERO) -> void:
+func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false, direction: Vector2 = Vector2.ZERO, terminal_impact: bool = true) -> void:
 	var style: String = {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning"}.get(a.definition.type, "spark")
-	var extra := {"style":style,"radius":maxf(10.0 * board_scale, a.splashRadius * (0.5 if chained else 1.0))}
-	if a.definition.type == "sniper" and a.splashRadius > 0:
+	if not terminal_impact and style == "blast": style = "spark"
+	var radius: float = a.splashRadius * (0.5 if chained else 1.0) if terminal_impact else 0.0
+	var extra := {"style":style,"radius":maxf(10.0 * board_scale, radius)}
+	if terminal_impact and a.definition.type == "sniper" and a.splashRadius > 0:
 		# Explosion sniper hits get their own 3D energy blast whose shockwave stops
 		# at the real splash radius, instead of a stretched flat spark.
 		# Presentation only: damage routing is unchanged.
 		style = "blast"
 		extra.merge({"variant":"sniperEnergy", "duration":SNIPER_BLAST_DURATION})
-	if a.definition.type == "arrow" and direction != Vector2.ZERO:
+	if terminal_impact and a.definition.type == "arrow" and direction != Vector2.ZERO:
 		# Presentation routing only: the 3D ricochet uses the incoming flight and
 		# the struck body's lane offset. Damage and collision stay unchanged.
 		extra.merge({"turretType":"arrow", "targetId":int(target.id), "direction":[direction.x, direction.y]})
 	_visual("blast" if style == "blast" else "impact", at, t, extra)
 	var impacted: Array = [target]
-	var radius: float = a.splashRadius * (0.5 if chained else 1.0)
 	if radius > 0:
 		# Targets are live enemy entries; identity avoids deep Dictionary compares.
 		for candidate: Array in _target_candidate_view():

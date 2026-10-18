@@ -49,11 +49,11 @@ func TestGemRerollUnlocksAndInvalidCandidates(t *testing.T) {
 		count      int
 		aim, armor bool
 	}{
-		{`{}`, 12, false, false},
-		{`{"progressionVersion":1,"clearedStageNumbers":[3,21]}`, 14, true, true},
-		{`{"progressionVersion":1,"clearedStageNumbers":[10]}`, 12, false, false},
-		{`{"clearedStageNumbers":[3,10]}`, 14, true, true},
-		{`{"progressionVersion":1,"grandfatherUnlocks":["gem:armorPiercing"]}`, 13, false, true},
+		{`{}`, 13, false, false},
+		{`{"progressionVersion":1,"clearedStageNumbers":[3,21]}`, 15, true, true},
+		{`{"progressionVersion":1,"clearedStageNumbers":[10]}`, 13, false, false},
+		{`{"clearedStageNumbers":[3,10]}`, 15, true, true},
+		{`{"progressionVersion":1,"grandfatherUnlocks":["gem:armorPiercing"]}`, 14, false, true},
 	} {
 		available, err := availableGems([]byte(test.raw))
 		if err != nil || len(available) != test.count || slices.Contains(available, "aimSpeed") != test.aim || slices.Contains(available, "armorPiercing") != test.armor {

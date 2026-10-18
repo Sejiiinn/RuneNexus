@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
+
+	"github.com/Sejiiinn/RuneNexus/server/internal/gemcapabilities"
 )
 
 var ErrConflict = errors.New("server-owned run must be restored")
@@ -77,6 +79,9 @@ func ReadOwnedGems(raw []byte) (map[string]int64, error) {
 				if json.Unmarshal(slot, &gem) != nil || !ValidGem(gem) || seen[gem] || owned[gem] == math.MaxInt64 {
 					return nil, ErrConflict
 				}
+				if applies, allowed := gemcapabilities.Allows(kind, gem); applies && !allowed {
+					return nil, ErrConflict
+				}
 				seen[gem] = true
 				owned[gem]++
 			}
@@ -117,7 +122,7 @@ func nonnegativeInteger(raw []byte) (int64, error) {
 
 func ValidGem(gem string) bool {
 	switch gem {
-	case "attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles":
+	case "attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing":
 		return true
 	default:
 		return false

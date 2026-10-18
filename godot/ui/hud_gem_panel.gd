@@ -1,4 +1,5 @@
 extends RefCounted
+const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Equipped sockets and inventory presentation; commands route through the HUD.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const Frame = preload("res://ui/lobby_frame.gd")
@@ -124,10 +125,18 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			detail.add_theme_constant_override("separation",0)
 			row.add_child(detail)
-			UiWidgets.label(detail,gem_name(chosen)+" · "+gem_effect(chosen,turret),12)
+			var requirement := GemSlots.requirement_text(chosen)
+			var effect := gem_effect(chosen,turret)
+			if not requirement.is_empty(): effect = effect.trim_suffix("\n"+requirement)
+			UiWidgets.label(detail,gem_name(chosen)+" · "+effect,12)
 			var reason := "" if equipped else _gem_block_reason(chosen,turret)
+			if not requirement.is_empty():
+				var condition := UiWidgets.label(detail,requirement,10)
+				condition.name = "GemRequirement"
+				var compatible := GemSlots.is_compatible(chosen,hud.app.run_domain.growth.data.turretRules[turret.type])
+				condition.modulate = Color("939aa4") if compatible else Color("ffa68a")
 			if reason.is_empty(): _gem_rule(detail,chosen,0)
-			else: UiWidgets.label(detail,reason,10).modulate = Color("ffa68a")
+			elif reason != requirement: UiWidgets.label(detail,reason,10).modulate = Color("ffa68a")
 			var action: Button = UiWidgets.button(row,"해제" if equipped else "장착",func():
 				hud.run_selected_command("removeGem" if equipped else "equipGem",{"type":chosen,"slot":hud.selected_slot})
 				hud.selected_gem = ""
@@ -430,7 +439,9 @@ func gem_name(type: String) -> String:
 
 func gem_description(type: String) -> String:
 	var gem: Dictionary = hud.labels.gems.get(type,{})
-	return str(gem.get("description",""))
+	var description := str(gem.get("description",""))
+	var requirement := GemSlots.requirement_text(type)
+	return description if requirement.is_empty() else description+"\n"+requirement
 
 func _gem_rule(parent: Node,type: String,minimum_width: float = 200) -> void:
 	if hud.rewards.RULES.has(type):
@@ -440,7 +451,9 @@ func _gem_rule(parent: Node,type: String,minimum_width: float = 200) -> void:
 func _gem_block_reason(type: String,turret: Dictionary) -> String:
 	if type in turret.equippedGemSlots: return "이미 이 포탑에 장착됨"
 	if hud.selected_slot<0 or hud.selected_slot>=int(turret.slotLimit): return "링크 홈을 선택하세요"
-	if type not in hud.app.run_domain.growth.data.turretRules[turret.type].compatibleGems:
+	if not GemSlots.is_compatible(type,hud.app.run_domain.growth.data.turretRules[turret.type]):
+		var requirement := GemSlots.requirement_text(type)
+		if not requirement.is_empty(): return requirement
 		return {"multipleProjectiles":"투사체 공격 포탑에만 장착 가능","chain":"투사체 공격 또는 기본 연쇄 포탑에만 장착 가능","lightWeapon":"경량화기 포탑에만 장착 가능","heavyWeapon":"중화기 포탑에만 장착 가능","aimSpeed":"조준 속도 적용 포탑에만 장착 가능"}.get(type,"이 포탑에는 장착할 수 없습니다")
 	return ""
 

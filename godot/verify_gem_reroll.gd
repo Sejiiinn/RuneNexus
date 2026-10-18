@@ -118,7 +118,7 @@ func acquire(app):
 func run():
 	fixture = Fixture.new()
 	fixture.directory = OS.get_cache_dir().path_join("server-gem-" + Settlement.uuid())
-	check(Settlement.COMPATIBILITY_VERSION == 10 and preload("res://services/economy_service.gd").COMPATIBILITY == 10 and preload("res://services/online_save.gd").COMPATIBILITY == 10,"all compatibility10")
+	check(Settlement.COMPATIBILITY_VERSION == 11 and preload("res://services/economy_service.gd").COMPATIBILITY == 11 and preload("res://services/online_save.gd").COMPATIBILITY == 11,"all compatibility11")
 	var app = await prepare("pending")
 	var service = app.services
 	var http = service.account.transport

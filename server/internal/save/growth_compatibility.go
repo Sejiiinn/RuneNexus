@@ -116,6 +116,9 @@ func containsValue[T comparable](values []T, expected T) bool {
 // Old codecs do not preserve route IDs. Gate only saves which use the new content,
 // keeping generation four clients compatible with their existing 25-stage saves.
 func ValidateContentClient(progression, activeRun []byte, clientVersion int) error {
+	if err := ValidateGemContentClient(activeRun, clientVersion); err != nil {
+		return err
+	}
 	if err := ValidateCoreTreeClient(progression, activeRun, clientVersion); err != nil {
 		return err
 	}

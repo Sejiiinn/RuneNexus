@@ -20,6 +20,10 @@ func run() -> void:
 	fixture.build_selected()
 	panel.main_tab = "turrets"; panel.tab = "gems"; panel.refresh()
 	await settle()
+	if "--piercing-only" in OS.get_cmdline_user_args():
+		await check_piercing_requirement()
+		print("PASS piercing gem UI: single condition, compatibility color, button state and 360/440 bounds")
+		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--light-only" in OS.get_cmdline_user_args():
 		await check_light_weapon_restriction()
 		print("PASS light gem UI: one allowed/five blocked, disabled equip, reward restriction and target feedback")
@@ -473,3 +477,26 @@ func capture_light_gem(label: String) -> void:
 	if folder.is_empty() or DisplayServer.get_name() == "headless": return
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(folder.path_join(label+".png"))
+
+func check_piercing_requirement() -> void:
+	fixture.run_domain.state.gemInventory = {"piercing":1}
+	for width in [440,360]:
+		root.size = Vector2i(width,880); root.content_scale_size = root.size
+		for type in ["arrow","sniper"]:
+			turret().type = type
+			panel.main_tab = "turrets"; panel.tab = "gems"
+			panel.selected_slot = 0; panel.selected_gem = "piercing"
+			panel.body_key = null; panel.configuration_cache._derived = {}
+			panel.refresh(); await settle(); await settle()
+			var condition: Label = panel.body.find_child("GemRequirement",true,false)
+			assert(condition != null and condition.text == "장착 조건: 투사체")
+			var count := 0
+			for node in descendants(panel.body):
+				if node is Label: count += node.text.count("장착 조건: 투사체")
+			assert(count == 1,"requirement is shown once")
+			var compatible: bool = type == "arrow"
+			assert(condition.modulate == (Color("939aa4") if compatible else Color("ffa68a")))
+			var action: Button = find_exact(panel.body,"장착")
+			assert(action != null and action.disabled != compatible)
+			for control in [condition,action]:
+				assert(control.get_global_rect().position.x >= 0 and control.get_global_rect().end.x <= width)

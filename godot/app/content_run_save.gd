@@ -130,7 +130,7 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 		for slot in range(t.equippedGemSlots.size()):
 			var gem = t.equippedGemSlots[slot]
 			if gem == null: continue
-			if not GemSlots.is_compatible(gem, rule.compatibleGems):
+			if not GemSlots.is_compatible(gem, rule):
 				# Older content allowed lightWeapon on every turret. Return that
 				# obsolete equipment once, using slots as the inventory authority.
 				# Only the copied runtime state changes; the source save stays intact.

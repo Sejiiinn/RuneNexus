@@ -302,7 +302,7 @@ func _legacy_writer_claim_tests():
 	remote.responses = [response(426, {}, "CLIENT_UPDATE_REQUIRED"), response(200, {"writerGeneration":8,"claimedAt":"2026-01-01T00:00:01Z"})]
 	var result: Dictionary = await online._claim_writer()
 	check(result.ok and remote.calls[-2].body == old_raw and remote.calls[-2].headers["Idempotency-Key"] == "52345678-1234-4234-8234-123456789abc","Upgraded client resolves old writer request exactly first")
-	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == 10 and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh gen10 writer claim")
+	check(SaveJson.parse(remote.calls[-1].body).clientCompatibilityVersion == 11 and remote.calls[-1].headers["Idempotency-Key"] != "52345678-1234-4234-8234-123456789abc","Definitive legacy426 creates fresh gen11 writer claim")
 	check(online.store.load_save() == payload(100) and remote.credentials.accountId == ACCOUNT,"Writer upgrade keeps local progress and account binding")
 	online.dispose()
 	online.queue_free()

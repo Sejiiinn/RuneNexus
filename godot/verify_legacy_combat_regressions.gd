@@ -555,6 +555,11 @@ func _area() -> void:
 	for fixture in fixtures:
 		var actual := Stats.stats_at(fixture.input,int(fixture.input.level))
 		for key in actual:
+			# Captured Dart fixtures predate this additive output. Assert its exact
+			# legacy default without rewriting fixtures or ignoring new behavior.
+			if key == "pierceCount" and not fixture.expected.has(key):
+				near(actual[key],0,"fixed Dart stat fixture "+fixture.name+"/pierceCount extension")
+				continue
 			if actual[key] is float or actual[key] is int:
 				near(actual[key],fixture.expected[key],"fixed Dart stat fixture "+fixture.name+"/"+key,0.00001)
 			else:
