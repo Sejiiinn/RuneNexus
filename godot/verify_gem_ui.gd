@@ -43,7 +43,7 @@ func run() -> void:
 	if "--strip-only" in OS.get_cmdline_user_args():
 		await check_responsive_strip()
 		await check_gem_inventory_actions()
-		print("PASS gem UI changed strip: responsive square tiles filling width, separate quantities, quick equip/remove/compatibility, 14 inventory images at 320/440")
+		print("PASS gem UI changed strip: responsive square tiles filling width, separate quantities, quick equip/remove/compatibility, every catalog gem image at 320/440")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	await check_popup_unlock()
 	assert(int(turret().slotLimit) == 1)
@@ -113,7 +113,7 @@ func run() -> void:
 			check_socket_count(capacity)
 			check_inline_bounds(width)
 	await check_gem_inventory_actions()
-	print("PASS gem UI: real costs, cancel, funds, level gate, duplicate input, sequential purchases, research capacity, 3-6 inline at 320/440, equip/remove/compatibility, 14 inventory images")
+	print("PASS gem UI: real costs, cancel, funds, level gate, duplicate input, sequential purchases, research capacity, 3-6 inline at 320/440, equip/remove/compatibility, every catalog gem image")
 	panel.queue_free(); fixture.queue_free(); await process_frame; quit()
 
 func check_gem_inventory_actions() -> void:
@@ -135,7 +135,7 @@ func check_gem_inventory_actions() -> void:
 	panel.selected_gem = "heavyWeapon"; panel.refresh()
 	assert(find_exact(panel.body,"장착").disabled)
 	assert(not panel.gem_panel._gem_block_reason("heavyWeapon",turret()).is_empty())
-	# Global inventory keeps all 14 original images, independent quantity labels, responsive columns.
+	# Global inventory keeps every catalog gem image, independent quantity labels, responsive columns.
 	for type in fixture.run_domain.growth.data.gems: fixture.run_domain.state.gemInventory[type] = 2
 	panel.main_tab = "gems"
 	for width in [440,320]:
@@ -422,8 +422,13 @@ func check_inventory(width: int) -> void:
 	for node in descendants(panel.body):
 		if node is TextureRect and node.texture != null and node.texture.resource_path.contains("/gems/"):
 			images.append(node)
-	assert(images.size() == 14,"Inventory must retain all 14 common gem images")
-	assert(panel.body.find_children("GemQuantity","Label",true,false).size() == 14,"Quantities must be separate from gem names")
+	# Callers stock every catalog gem; the count follows content (14 + piercing).
+	var catalog: Array = []
+	for type in fixture.run_domain.growth.data.gems: catalog.append(type)
+	assert(images.size() == catalog.size(),"Inventory must retain every catalog gem image")
+	var shown: Array = images.map(func(icon): return icon.texture.resource_path.get_file().get_basename())
+	for type in catalog: assert(str(type) in shown,"Missing gem image: "+str(type))
+	assert(panel.body.find_children("GemQuantity","Label",true,false).size() == catalog.size(),"Quantities must be separate from gem names")
 	var first_y: float = images[0].global_position.y
 	var first_row := 0
 	for icon in images:
