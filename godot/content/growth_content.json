@@ -6169,9 +6169,9 @@
       ],
       "linkUpgradeCosts": [
         90,
-        180,
-        180,
-        360
+        150,
+        210,
+        270
       ],
       "linkRequiredLevels": [
         1,
@@ -6222,9 +6222,9 @@
       ],
       "linkUpgradeCosts": [
         135,
-        270,
-        270,
-        540
+        225,
+        315,
+        405
       ],
       "linkRequiredLevels": [
         1,
@@ -6275,9 +6275,9 @@
       ],
       "linkUpgradeCosts": [
         120,
-        240,
-        240,
-        480
+        200,
+        280,
+        360
       ],
       "linkRequiredLevels": [
         1,
@@ -6327,9 +6327,9 @@
       ],
       "linkUpgradeCosts": [
         128,
-        255,
-        255,
-        510
+        213,
+        298,
+        383
       ],
       "linkRequiredLevels": [
         1,
@@ -6375,9 +6375,9 @@
       ],
       "linkUpgradeCosts": [
         180,
-        360,
-        360,
-        720
+        300,
+        420,
+        540
       ],
       "linkRequiredLevels": [
         1,
@@ -6424,9 +6424,9 @@
       ],
       "linkUpgradeCosts": [
         210,
-        420,
-        420,
-        840
+        350,
+        490,
+        630
       ],
       "linkRequiredLevels": [
         1,

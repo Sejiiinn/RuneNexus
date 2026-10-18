@@ -3160,7 +3160,7 @@
       },
       "ok": true,
       "after": {
-        "gold": 98380,
+        "gold": 98410,
         "gemShards": 1000,
         "gemInventory": {
           "attackSpeed": 2,
@@ -3191,7 +3191,7 @@
             null,
             null
           ],
-          "investedGold": 1680,
+          "investedGold": 1650,
           "damageDealt": 0.0,
           "directDamageDealt": 0.0,
           "splashDamageDealt": 0.0,
@@ -13634,7 +13634,7 @@
       },
       "ok": true,
       "after": {
-        "gold": 97568,
+        "gold": 97613,
         "gemShards": 1000,
         "gemInventory": {
           "attackSpeed": 2,
@@ -13665,7 +13665,7 @@
             null,
             null
           ],
-          "investedGold": 2522,
+          "investedGold": 2477,
           "damageDealt": 0.0,
           "directDamageDealt": 0.0,
           "splashDamageDealt": 0.0,
@@ -24108,7 +24108,7 @@
       },
       "ok": true,
       "after": {
-        "gold": 97840,
+        "gold": 97880,
         "gemShards": 1000,
         "gemInventory": {
           "attackSpeed": 2,
@@ -24139,7 +24139,7 @@
             null,
             null
           ],
-          "investedGold": 2240,
+          "investedGold": 2200,
           "damageDealt": 0.0,
           "directDamageDealt": 0.0,
           "splashDamageDealt": 0.0,
@@ -34582,7 +34582,7 @@
       },
       "ok": true,
       "after": {
-        "gold": 97703,
+        "gold": 97745,
         "gemShards": 1000,
         "gemInventory": {
           "attackSpeed": 2,
@@ -34613,7 +34613,7 @@
             null,
             null
           ],
-          "investedGold": 2382,
+          "investedGold": 2340,
           "damageDealt": 0.0,
           "directDamageDealt": 0.0,
           "splashDamageDealt": 0.0,
@@ -44994,7 +44994,7 @@
       },
       "ok": true,
       "after": {
-        "gold": 96760,
+        "gold": 96820,
         "gemShards": 1000,
         "gemInventory": {
           "attackSpeed": 2,
@@ -45025,7 +45025,7 @@
             null,
             null
           ],
-          "investedGold": 3360,
+          "investedGold": 3300,
           "damageDealt": 0.0,
           "directDamageDealt": 0.0,
           "splashDamageDealt": 0.0,
@@ -55332,7 +55332,7 @@
       },
       "ok": true,
       "after": {
-        "gold": 96220,
+        "gold": 96290,
         "gemShards": 1000,
         "gemInventory": {
           "attackSpeed": 2,
@@ -55363,7 +55363,7 @@
             null,
             null
           ],
-          "investedGold": 3920,
+          "investedGold": 3850,
           "damageDealt": 0.0,
           "directDamageDealt": 0.0,
           "splashDamageDealt": 0.0,
