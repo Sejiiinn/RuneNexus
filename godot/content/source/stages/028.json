@@ -62,12 +62,12 @@
       "blocked",
       "spawn",
       "path",
-      "blocked",
+      "build",
       "build",
       "build",
       "path",
-      "blocked",
-      "blocked",
+      "build",
+      "build",
       "blocked",
       "blocked",
       "blocked",
@@ -76,7 +76,7 @@
       "blocked",
       "path",
       "blocked",
-      "blocked",
+      "build",
       "build",
       "path",
       "path",
@@ -659,7 +659,11 @@
         "cells": [
           [3, 4],
           [4, 4],
-          [4, 5]
+          [4, 5],
+          [2, 4],
+          [3, 5],
+          [6, 4],
+          [7, 4]
         ],
         "label": "위 전용",
         "label_cell": [3.6, 2]
@@ -696,6 +700,6 @@
         "label_cell": [11, 4]
       }
     ],
-    "geometryRevision": "v4-immediate-fork"
+    "geometryRevision": "v7-central-battery-expansion"
   }
 }
