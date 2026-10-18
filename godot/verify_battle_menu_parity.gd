@@ -60,7 +60,10 @@ func run() -> void:
 	assert(hud.modal_bottom_sheet)
 	assert(hud.modal_panel.custom_minimum_size.x == 366)
 	var content := all_text(hud.modal_body)
-	for expected in ["포탈 1 · 1/", "체력", "속도", "넥서스 피해", "보상"]: assert(expected in content,expected)
+	for expected in ["웨이브 1/", "체력", "속도"]: assert(expected in content,expected)
+	# Composition rows only: no dispatch groups, preview prose or stat tags.
+	for removed in ["묶음 ", "넥서스 피해", "보상 +"]: assert(not removed in content,removed)
+	for type in app.catalog.wave_summary(0,0).enemyCounts: assert(hud.modal_body.find_child("WaveEnemy_"+str(type),true,false) != null)
 	hud.close_modal()
 	assert(hud.rewards._record_text({"lastRunWasNewBestRound":true,"lastRunPreviousBestRound":0,"completedRounds":3},{},3) == "3R 첫 기록")
 	assert(hud.rewards._record_text({}, {"clearedStageNumbers":[1]},3) == "클리어")

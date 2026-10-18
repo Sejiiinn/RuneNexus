@@ -29,16 +29,47 @@ func capture(label: String) -> void:
 
 func check_modal_routes(wave: Dictionary) -> void:
 	for frame in range(2): await process_frame
-	var expected := 0
-	# A group is labelled by its route, its dispatch portal, or both.
-	for group: Dictionary in wave.get("routeGroups",[]):
-		if not str(group.get("routeLabel", group.get("routeId", ""))).is_empty() or not str(group.get("spawnPortalLabel", "")).is_empty(): expected += 1
-	var actual := 0
+	# Multi-entrance stages group rows under each portal heading; a single
+	# entrance lists one row per type. Dispatch groups and routes are not listed.
+	var multi: bool = app.catalog.spawn_portals(app.stage).size() > 1
+	var totals := {}
+	var heading_seen := false
+	var section_has_normal := false
+	var tints := {}
+	for child in app.hud.modal_body.get_children():
+		if child.name.begins_with("WavePortal_"):
+			heading_seen = true; section_has_normal = false
+			check(multi,"portal headings only for multi-entrance stages")
+			# The heading mark repeats its route-guide tint: first origin cyan, others orange.
+			var id: String = str(child.name).trim_prefix("WavePortal_")
+			var mark: Label = child.find_child("PortalMark",true,false)
+			var primary := str(app.catalog.spawn_portal(app.stage).get("id",""))
+			var expected_tint: Color = preload("res://presentation/battlefield_path.gd").PRIMARY_COLOR if id == primary else preload("res://presentation/battlefield_path.gd").SECONDARY_COLOR
+			check(mark != null and mark.modulate == expected_tint,"portal mark uses its route-guide tint")
+			tints[id] = expected_tint
+		if not child.name.begins_with("WaveEnemy_"): continue
+		var title: Label = child.find_child("WaveEnemyName",true,false)
+		var parts: PackedStringArray = title.text.rsplit(" ×",true,1)
+		var type: String = str(child.name).get_slice("_",2 if multi else 1)
+		totals[type] = int(totals.get(type,0))+int(parts[1])
+		check(not "포탈" in title.text,"portal is shown by heading, not per row")
+		var enemy: Dictionary = app.catalog.enemy_template(type)
+		var modifiers := 0
+		for field in ["familyResistances","tagResistances"]:
+			for kind in enemy.get(field,{}): if float(enemy[field][kind]) != 0: modifiers += 1
+		var tags: Array = child.find_child("WaveEnemyHeading",true,false).get_children().filter(func(node): return node.name.begins_with("WaveEnemyDamageTaken"))
+		check(tags.size() == modifiers,"damage-taken modifiers are tags beside the name")
+		var boss_row: bool = type.to_lower().contains("boss")
+		check(not (boss_row and section_has_normal),"boss row comes first within its section")
+		if not boss_row: section_has_normal = true
+		check(child.get_global_rect().end.x <= app.hud.modal_panel.get_global_rect().end.x,"enemy row and its tags stay inside the modal")
+	check(heading_seen == multi,"multi-entrance stages show portal headings")
+	if multi: check(tints.size() >= 2 and tints.values().count(tints.values()[0]) < tints.size(),"portal sections are distinguishable by color")
+	var expected := {}
+	for type in wave.get("enemyCounts",{}): expected[str(type)] = int(wave.enemyCounts[type])
+	check(totals == expected,"portal sections add up to the wave composition")
 	for label: Label in app.hud.modal.find_children("*","Label",true,false):
-		if label.text.begins_with("묶음 "):
-			actual += 1
-			check(label.size.x <= root.get_visible_rect().size.x,"group route wraps within viewport")
-	check(actual == expected,"every group including boss has a route label")
+		check(not label.text.begins_with("묶음 "),"dispatch groups are not listed")
 	check(app.hud.modal_panel.size.x <= root.get_visible_rect().size.x,"modal fits viewport width")
 
 func press_selected_portal_summary() -> bool:
@@ -52,14 +83,13 @@ func press_selected_portal_summary() -> bool:
 	return false
 
 func check_selected_portal_modal() -> Button:
-	var title: String = app.hud.menu_panel._portal_title()
 	var header: HBoxContainer = app.hud.modal_body.get_child(0)
 	var title_seen := false
 	var close: Button
 	for child in header.get_children():
-		if child is Label and child.text.begins_with(title + " · "): title_seen = true
+		if child is Label and child.text.begins_with("웨이브 "): title_seen = true
 		if child is Button and child.text == "×": close = child
-	check(title_seen,"modal title identifies the selected actual spawn")
+	check(title_seen,"selected portal opens the wave composition")
 	check(close != null,"selected portal close button exists")
 	if close != null:
 		var bounds: Rect2 = close.get_global_rect()

@@ -413,8 +413,20 @@ func run() -> void:
 	app.run_domain.state.completedRounds = 9
 	hud.refresh(); await process_frame; await process_frame
 	assert(hud.top.size.y <= 100 and hud.top.size.x <= 304)
-	for child in hud.enemy_intel.get_children():
-		if child is Label: assert(child.get_line_count() == 1)
+	# The top row states the wave total and boss presence; no per-type icons.
+	var late_wave: Dictionary = app.catalog.wave_summary(app.stage,9)
+	var enemy_summary: Button = hud.enemy_intel.find_child("WaveEnemySummary",true,false)
+	assert(enemy_summary != null and hud.enemy_intel.get_child_count() == 1 and enemy_summary.icon == null)
+	var enemy_total: Label = enemy_summary.find_child("WaveEnemyTotal",true,false)
+	assert(enemy_total.text == "%d기" % int(late_wave.spawnCount) and enemy_total.get_line_count() == 1)
+	assert((enemy_summary.find_child("WaveEnemyBoss",true,false) != null) == bool(late_wave.boss))
+	assert(enemy_summary.get_global_rect().encloses(enemy_total.get_global_rect()))
+	var enemy_boss: Label = enemy_summary.find_child("WaveEnemyBoss",true,false)
+	if enemy_boss != null: assert(absf(enemy_boss.get_global_rect().position.x-enemy_total.get_global_rect().end.x) <= 1.0,"Boss marker follows the total without a gap")
+	# One tap opens the wave composition directly, in preparation and mid-wave.
+	enemy_summary.pressed.emit(); await process_frame
+	assert(hud.modal_active() and all_labels(hud.modal_body).has("웨이브 10/%d" % app.catalog.wave_count(app.stage)))
+	hud.close_modal()
 	app.run_domain.state.completedRounds = old_round
 	hud.refresh()
 	# Opening the mode menu must not cycle or persist a different mode.
@@ -659,6 +671,9 @@ func buttons(node: Node) -> Array[Button]:
 		if child is Button: found.append(child)
 		found.append_array(buttons(child))
 	return found
+
+func all_labels(node: Node) -> Array:
+	return node.find_children("*","Label",true,false).map(func(label): return label.text)
 
 func sale_amount_mentions(node: Node,amount: String) -> Array:
 	# Whole-number match only, so "10" never matches inside "Lv.100" or "1,000".

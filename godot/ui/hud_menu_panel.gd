@@ -3,6 +3,7 @@ const CoreHealthText = preload("res://ui/core_health_text.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
+const BattlefieldPath = preload("res://presentation/battlefield_path.gd")
 ## Stage menus and board details; modal lifetime remains HUD-owned.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 var hud: Control
@@ -112,54 +113,74 @@ func _portal_title() -> String:
 	return "출현 경로" if hud.app.catalog.stage_map(hud.app.stage).has("spawnPortals") else "포탈 1"
 
 func _portal_details(wave: Dictionary,index: int) -> void:
-	var box = hud.open_modal("%s · %d/%d 웨이브" % [_portal_title(),int(hud.app.run_domain.state.get("completedRounds",0))+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
+	var box = hud.open_modal("웨이브 %d/%d" % [index+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
 	var header: HBoxContainer = box.get_child(0)
 	var icon = UiWidgets.material_icon(header,0xe283,20); icon.modulate = Color("e3b7ff"); header.move_child(icon,0)
-	var preview_text := str(wave.get("previewText",""))
-	# Structured rows below use actual wave-start offsets. Do not repeat source
-	# prose that expresses the same groups relative to the first spawn instead.
-	if wave.get("routeGroups",[]).any(func(group): return not str(group.get("routeLabel","")).is_empty()):
-		preview_text = preview_text.get_slice(" | ",0)
-	UiWidgets.label(box,preview_text,13)
-	# Keep groups distinct: two groups of the same enemy may take different routes.
-	# Compiler metadata is already in actual chronological dispatch order.
-	var route_groups: Array = wave.get("routeGroups", [])
-	var primary_portal: Dictionary = hud.app.catalog.spawn_portal(hud.app.stage)
-	for group: Dictionary in route_groups:
-		var enemy: Dictionary = hud.app.catalog.enemy_template(str(group.enemyType))
-		var route_label := str(group.get("routeLabel", group.get("routeId", "")))
-		var portal_label := str(group.get("spawnPortalLabel",""))
-		if route_label.is_empty(): route_label = portal_label
-		elif not portal_label.is_empty(): route_label = portal_label + " / " + route_label
-		if route_label.is_empty(): continue
-		var start_time := float(group.get("spawnDelay",0.0)) + float(hud.app.catalog.initial_delay())
-		var label = UiWidgets.label(box,"묶음 %d · 시작 +%.1f초\n%s ×%d · %s" % [int(group.get("groupIndex",0))+1,start_time,enemy.get("name",group.enemyType),int(group.count),route_label],12)
-		label.name = "WaveRouteGroup"
-		label.modulate = Color("b9e9ff")
-		if str(group.get("spawnPortalId","default")) != str(primary_portal.get("id","default")):
-			label.modulate = Color("ffd0a8")
-	var counts: Dictionary = wave.enemyCounts
-	for type in counts:
+	# Multi-entrance stages group the composition under each portal; a single
+	# entrance needs no heading. Counts come from the compiled dispatch groups.
+	var counts: Dictionary = wave.get("enemyCounts",{})
+	var stage_portals: Array = hud.app.catalog.spawn_portals(hud.app.stage)
+	var sections: Array = [{"id":"","label":"","counts":counts}]
+	if stage_portals.size() > 1:
+		sections = []
+		for portal: Dictionary in stage_portals:
+			sections.append({"id":str(portal.id),"label":str(portal.get("label","")),"counts":{}})
+		for group: Dictionary in wave.get("routeGroups",[]):
+			var id := str(group.get("spawnPortalId",""))
+			var section: Dictionary = sections[0]
+			for candidate: Dictionary in sections:
+				if candidate.id == id: section = candidate
+			section.counts[str(group.enemyType)] = int(section.counts.get(str(group.enemyType),0))+int(group.count)
+	for section: Dictionary in sections:
+		if section.counts.is_empty(): continue
+		if not str(section.id).is_empty():
+			if box.get_child_count() > 2:
+				var gap := Control.new(); gap.custom_minimum_size.y = 8; gap.mouse_filter = Control.MOUSE_FILTER_IGNORE; box.add_child(gap)
+			# Same per-portal tint as the battlefield route guides (first origin cyan).
+			var primary := str(hud.app.catalog.spawn_portal(hud.app.stage).get("id",""))
+			var tint: Color = BattlefieldPath.PRIMARY_COLOR if str(section.id) == primary else BattlefieldPath.SECONDARY_COLOR
+			var heading := HBoxContainer.new(); heading.name = "WavePortal_"+str(section.id); heading.add_theme_constant_override("separation",5); box.add_child(heading)
+			var mark: Label = UiWidgets.material_icon(heading,0xe283,16); mark.name = "PortalMark"; mark.modulate = tint
+			mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			var portal_name: Label = UiWidgets.label(heading,"포탈 "+(str(section.label) if not str(section.label).is_empty() else str(section.id)),12)
+			portal_name.add_theme_font_override("font",hud.AppTheme.font(800)); portal_name.add_theme_color_override("font_color",tint)
+		_wave_enemy_rows(box,section.counts,index,str(section.id))
+
+func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: String) -> void:
+	var types: Array = counts.keys().filter(func(type): return str(type).to_lower().contains("boss"))
+	types.append_array(counts.keys().filter(func(type): return not str(type).to_lower().contains("boss")))
+	var names = {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
+	for position in types.size():
+		var type: String = types[position]
+		if position > 0:
+			var divider := HSeparator.new(); divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var line := StyleBoxLine.new(); line.color = Color("52708088"); line.thickness = 1
+			divider.add_theme_stylebox_override("separator",line); box.add_child(divider)
 		var enemy: Dictionary = hud.app.catalog.enemy_template(type)
 		var durability: Dictionary = hud.app.catalog.wave_durability(hud.app.stage,index,type)
-		var panel = PanelContainer.new(); box.add_child(panel)
-		var content = VBoxContainer.new(); panel.add_child(content)
-		var heading = HBoxContainer.new(); content.add_child(heading)
-		UiWidgets.icon(heading,"ui/hud/enemies/"+type+".png",28)
-		UiWidgets.label(heading,"%s x%d" % [enemy.get("name",type),counts[type]],12)
-		var pills = HFlowContainer.new(); content.add_child(pills)
-		UiWidgets.stat_pill(pills,"체력",HudNumber.compact_integer(roundi(float(durability.get("maxHp",enemy.get("maxHp",0))))))
+		var row := VBoxContainer.new(); row.name = "WaveEnemy_"+(portal+"_" if not portal.is_empty() else "")+type
+		row.add_theme_constant_override("separation",2); box.add_child(row)
+		# Damage-taken modifiers sit beside the name as compact tags.
+		var heading := HFlowContainer.new(); heading.name = "WaveEnemyHeading"; heading.add_theme_constant_override("h_separation",6); heading.add_theme_constant_override("v_separation",3); row.add_child(heading)
+		var name_label: Label = UiWidgets.label(heading,"%s ×%d" % [enemy.get("name",type),int(counts[type])],13)
+		name_label.name = "WaveEnemyName"; name_label.autowrap_mode = TextServer.AUTOWRAP_OFF; name_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		name_label.add_theme_font_override("font",hud.AppTheme.font(800))
+		if type.to_lower().contains("boss"): name_label.add_theme_color_override("font_color",Color("ff6b6b"))
+		var stats: PackedStringArray = ["체력 "+HudNumber.compact_integer(roundi(float(durability.get("maxHp",enemy.get("maxHp",0)))))]
 		for spec in [["방어구","maxArmor"],["보호막","maxShield"]]:
-			if float(durability.get(spec[1],0))>0: UiWidgets.stat_pill(pills,spec[0],HudNumber.compact_integer(roundi(float(durability[spec[1]]))))
-		UiWidgets.stat_pill(pills,"속도",str(roundi(float(enemy.get("speed",0)))))
-		UiWidgets.stat_pill(pills,"넥서스 피해","-"+HudNumber.compact_integer(int(enemy.get("coreDamage",0))))
-		UiWidgets.stat_pill(pills,"보상","+"+HudNumber.compact_integer(int(enemy.get("rewardGold",0))))
-		var resistances = HFlowContainer.new(); content.add_child(resistances)
-		var names = {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
+			if float(durability.get(spec[1],0))>0: stats.append(spec[0]+" "+HudNumber.compact_integer(roundi(float(durability[spec[1]]))))
+		stats.append("속도 "+str(roundi(float(enemy.get("speed",0)))))
+		# Resistance r scales damage by (1-r); each tag states the damage taken.
 		for field in ["familyResistances","tagResistances"]:
 			for kind in enemy.get(field,{}):
-				var value = float(enemy[field][kind])
-				if value != 0: UiWidgets.stat_pill(resistances,str(names.get(kind,kind))+" 저항",("+" if value>0 else "")+str(roundi(value*100))+"%",Color("ff8a8a") if value>0 else Color("9fffe8"))
+				var value := float(enemy[field][kind])
+				if value == 0: continue
+				var change := "%s%d%%" % ["-" if value>0 else "+",absi(roundi(value*100))]
+				UiWidgets.stat_pill(heading,str(names.get(kind,kind)),change,Color("ff8a8a") if value>0 else Color("9fffe8"))
+				var tag: Control = heading.get_child(heading.get_child_count()-1)
+				tag.name = "WaveEnemyDamageTaken"; tag.tooltip_text = "%s 받는 피해 %s" % [names.get(kind,kind),change]
+		UiWidgets.label(row," · ".join(stats),12).add_theme_color_override("font_color",Color("b7d5e3"))
 
 func _refresh_core() -> void:
 	if not is_instance_valid(hud.core_label): return

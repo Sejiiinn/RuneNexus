@@ -622,20 +622,24 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 	enemy_caption.text = "다음 적" if state.phase == "preparation" else "등장 적"
 	reward_label.text = "+%s G · 젬 파편 %s" % [HudNumber.compact_integer(gold),HudNumber.compact_integer(shards)]
 	reward_label.tooltip_text = "+%d G · 젬 파편 %d" % [gold,shards]
-	var types: Array = wave.enemyCounts.keys()
-	for type in types.slice(0,3):
-		var button := UiWidgets.button(enemy_intel,"",func():
-			app.selected = Vector2i(-1,-1)
-			var map: Dictionary = _stage_map()
-			var tile: int = map.tiles.find("spawn")
-			app.board_tap(Vector2i(tile % int(map.columns),tile / int(map.columns))))
-		button.custom_minimum_size = Vector2(20,24)
-		UiWidgets.style_hud_button(button,"quiet",false,Vector2.ZERO)
-		button.icon = AppTheme.texture("ui/hud/enemies/"+str(type)+".png"); button.expand_icon = true; button.add_theme_constant_override("icon_max_width",18)
-	if types.size()>3:
-		var remaining := UiWidgets.label(enemy_intel,"+%d" % (types.size()-3),10)
-		remaining.autowrap_mode = TextServer.AUTOWRAP_OFF
-		remaining.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# Total and boss presence only; the composition lives in the wave modal.
+	var summary := UiWidgets.button(enemy_intel,"",func():
+		if str(app.run_domain.state.get("phase","")) in ["preparation","wave"]: menu_panel._portal_details(wave,index))
+	summary.name = "WaveEnemySummary"; summary.custom_minimum_size.y = 24
+	UiWidgets.style_hud_button(summary,"quiet",false,Vector2(2,0))
+	var content := HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.add_theme_constant_override("separation",0)
+	summary.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var total := UiWidgets.label(content,"%s기" % HudNumber.compact_integer(int(wave.get("spawnCount",0))),11)
+	total.name = "WaveEnemyTotal"; total.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; total.autowrap_mode = TextServer.AUTOWRAP_OFF; total.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	total.add_theme_color_override("font_color",Color("e8f8ff"))
+	if bool(wave.get("boss",false)):
+		var boss := UiWidgets.label(content," · 보스",11)
+		boss.name = "WaveEnemyBoss"; boss.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; boss.autowrap_mode = TextServer.AUTOWRAP_OFF; boss.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		boss.add_theme_color_override("font_color",Color("ff6b6b"))
+	summary.custom_minimum_size.x = content.get_combined_minimum_size().x+4
+	var composition: PackedStringArray = []
+	for type in wave.enemyCounts: composition.append("%s ×%d" % [app.catalog.enemy_template(str(type)).get("name",type),int(wave.enemyCounts[type])])
+	summary.tooltip_text = " · ".join(composition)
 
 func _rune_icon(parent: Node,extent: float) -> void:
 	var socket := PanelContainer.new(); socket.custom_minimum_size = Vector2.ONE*extent; socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER
