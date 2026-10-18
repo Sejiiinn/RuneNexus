@@ -4,6 +4,11 @@ extends RefCounted
 const Props = preload("res://environment/chapter_three_props.gd")
 const MODEL_PATH := "res://assets/environment/chapter3_floating_girders.glb"
 const KINDS = ["girder_long_torn", "girder_bent_ripped", "girder_twisted_stub"]
+## 시안의 넓은 H형 토막·두꺼운 찢긴 철판은 맵마다 소량(1~2개)만 섞는다.
+const RARE_KINDS = ["girder_wide_flange_stub", "debris_torn_plate"]
+const ALL_KINDS = KINDS + RARE_KINDS
+## 넓은 철판은 기본 크기(약 0.85~1.1타일), 무거운 H형 토막은 조금 줄인다.
+const RARE_SCALE = {"girder_wide_flange_stub": .85, "debris_torn_plate": 1.0}
 const MIN_COUNT := 3
 const MAX_COUNT := 7
 ## 실제 타일·벽 소품과 띄우는 최소 간격(타일 단위).
@@ -35,6 +40,12 @@ static func target_count(map: Dictionary) -> int:
 			if map["tiles"][y * columns + x] == "blocked":
 				empty += 1
 	return clampi(roundi(empty / 12.0), MIN_COUNT, MAX_COUNT)
+
+static func rare_count(map: Dictionary) -> int:
+	return 1 if target_count(map) < 6 else 2
+
+static func total_count(map: Dictionary) -> int:
+	return target_count(map) + rare_count(map)
 
 static func _tile_rects(map: Dictionary) -> Array[Rect2]:
 	var columns := int(map["columns"])
@@ -91,10 +102,14 @@ static func layout(library: Node3D, map: Dictionary, avoid: Array[Rect2] = []) -
 			"tie": rng.randf(),
 		}
 	var target := target_count(map)
+	var total := target + rare_count(map)
+	var rare_start := posmod(JSON.stringify(tiles).hash(), RARE_KINDS.size())
 	var result: Array[Dictionary] = []
 	for minimum_spacing_squared: float in [6.25, 2.25]:
-		while result.size() < target:
-			var kind: String = KINDS[result.size() % KINDS.size()]
+		while result.size() < total:
+			var slot := result.size()
+			var rare := slot >= target
+			var kind: String = RARE_KINDS[(rare_start + slot - target) % RARE_KINDS.size()] if rare else KINDS[slot % KINDS.size()]
 			var source := library.find_child(kind, true, false) as Node3D
 			if source == null:
 				return []
@@ -111,7 +126,7 @@ static func layout(library: Node3D, map: Dictionary, avoid: Array[Rect2] = []) -
 					continue
 				var jitter: Vector2 = pose["jitter"]
 				var center := Vector2(cell.x + .5 - columns / 2.0, cell.y + .5 - rows / 2.0) + jitter
-				var basis := (Basis(Vector3.UP, float(pose["yaw"])) * Basis(Vector3.RIGHT, float(pose["pitch"])) * Basis(Vector3.FORWARD, float(pose["roll"]))).scaled(Vector3.ONE * float(pose["scale"]))
+				var basis := (Basis(Vector3.UP, float(pose["yaw"])) * Basis(Vector3.RIGHT, float(pose["pitch"])) * Basis(Vector3.FORWARD, float(pose["roll"]))).scaled(Vector3.ONE * float(pose["scale"]) * (float(RARE_SCALE[kind]) if rare else 1.0))
 				var transform := Transform3D(basis, Vector3(center.x, float(pose["height"]), center.y))
 				var bounds := transform * local_bounds
 				# 상하 부유 범위까지 포함해 타일·벽 소품과 겹치지 않게 한다.

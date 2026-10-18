@@ -74,7 +74,9 @@ func _check_debris(scene: Node3D, map: Dictionary) -> void:
 		avoid.append(scene.ChapterThreeProps.footprint(scene.ChapterThreeProps.mesh_bounds(prop)))
 	var entries: Array = Debris.layout(library, map, avoid)
 	_check(entries == Debris.layout(library, map.duplicate(true), avoid), "부유 철골 배치 불안정")
-	_check(entries.size() == Debris.target_count(map) and group.get_child_count() == entries.size(), "부유 철골 배치 수 오류: %d/%d" % [entries.size(), Debris.target_count(map)])
+	_check(entries.size() == Debris.total_count(map) and group.get_child_count() == entries.size(), "부유 철골 배치 수 오류: %d/%d" % [entries.size(), Debris.total_count(map)])
+	var rare := entries.filter(func(entry: Dictionary) -> bool: return entry["kind"] in Debris.RARE_KINDS)
+	_check(rare.size() == Debris.rare_count(map) and rare.size() <= 2, "H형 토막·찢긴 철판 소량 배치 오류")
 	var columns := int(map["columns"])
 	var rows := int(map["rows"])
 	var kinds := {}
@@ -96,7 +98,7 @@ func _check_debris(scene: Node3D, map: Dictionary) -> void:
 		if instance != null and source != null:
 			for surface in range(instance.mesh.get_surface_count()):
 				_check(instance.get_active_material(surface) is StandardMaterial3D and instance.get_active_material(surface) == source.get_active_material(surface), "부유 철골 native PBR 원본 미공유")
-	_check(kinds.size() == mini(3, entries.size()), "부유 철골 종류 누락")
+	_check(Debris.KINDS.all(func(kind: String) -> bool: return kinds.has(kind)), "부유 철골 기본 종류 누락")
 	# 같은 전투 시간은 같은 자세, 부유 높이는 제한 범위 안.
 	var floating: Array[Dictionary] = scene._environment._floating_debris
 	_check(floating.size() == entries.size(), "부유 철골 움직임 대상 누락")

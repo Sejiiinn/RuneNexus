@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[4]
 OUT = Path(__file__).resolve().parent
 SOURCE = OUT / 'floating-girders-game.blend'
 ASSET = OUT / 'chapter3-floating-girders.glb'
-NAMES = ('girder_long_torn', 'girder_bent_ripped', 'girder_twisted_stub')
+NAMES = ('girder_long_torn', 'girder_bent_ripped', 'girder_twisted_stub', 'girder_wide_flange_stub', 'debris_torn_plate')
 SIZE = 512
 
 

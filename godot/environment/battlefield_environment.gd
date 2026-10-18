@@ -611,7 +611,7 @@ func _prepare_chapter_three_debris() -> bool:
 		_fail("챕터 3 부유 철골 GLB를 불러오지 못했습니다.")
 		return false
 	_chapter_three_debris_library = packed.instantiate()
-	for kind in ChapterThreeDebris.KINDS:
+	for kind in ChapterThreeDebris.ALL_KINDS:
 		if not _chapter_three_debris_library.find_child(kind, true, false) is MeshInstance3D:
 			_fail("챕터 3 부유 철골 GLB 노드 누락: " + kind)
 			_chapter_three_debris_library.free()

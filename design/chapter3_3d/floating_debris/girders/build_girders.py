@@ -154,18 +154,40 @@ def end_plate(parent, x):
             cyl('end plate bolt', (x - .005, dy, dz), .012, .01, M['bolt'], parent, (-1, 0, 0), 6)
 
 
-def girder(name, length, seed, torn_both, tip_curl, bend, twist, hole_xs):
-    rng = random.Random(seed)
+DEFAULT_SECTION = (H, B, TF, TW)
+
+
+def set_section(section):
+    """Beam helpers read the module section; wide pieces swap it while they build."""
+    global H, B, TF, TW
+    H, B, TF, TW = section
+
+
+def new_root(name):
     root = bpy.data.objects.new(name, None); bpy.context.collection.objects.link(root)
     root['approved_reference'] = CONCEPT
     root['contract'] = 'floating_debris_v1: origin at beam centre, no mount, 1 unit = 1 tile'
+    return root
+
+
+def box(name, center, size, mat, parent, bev=.003):
+    bm = bmesh.new()
+    (cx, cy, cz), (sx, sy, sz) = center, [v / 2 for v in size]
+    vs = [bm.verts.new((cx + a * sx, cy + b * sy, cz + c * sz)) for a in (-1, 1) for b in (-1, 1) for c in (-1, 1)]
+    for f in [(0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)]:
+        bm.faces.new([vs[i] for i in f])
+    return bm_object(name, bm, mat, parent, bev)
+
+
+def beam(root, name, length, torn_both, tip_curl, slices, hole_xs, rng, tear_end=True):
+    """One I-section along X centred on the root. Returns the created objects."""
+    before = set(root.children)
     x0, x1 = -length / 2, length / 2
-    slices = [x0 + length * i / Q['slices'] for i in range(1, Q['slices'])] if (bend or twist) else []
     bottom_x0 = x0 + (rng.uniform(.01, .04) if torn_both else 0)
     parts = [
-        beam_part(name + ' web', 'web', x0 + .004, x1 - .03, torn_both, True, rng, root, 0, slices),
-        beam_part(name + ' top flange', 'top', x0, x1, torn_both, True, rng, root, tip_curl, slices),
-        beam_part(name + ' bottom flange', 'bottom', bottom_x0, x1 - .05, torn_both, True, rng, root, tip_curl * .7, slices),
+        beam_part(name + ' web', 'web', x0 + .004, x1 - (.03 if tear_end else .004), torn_both, tear_end, rng, root, 0, slices),
+        beam_part(name + ' top flange', 'top', x0, x1, torn_both, tear_end, rng, root, tip_curl, slices),
+        beam_part(name + ' bottom flange', 'bottom', bottom_x0, x1 - (.05 if tear_end else 0), torn_both, tear_end, rng, root, tip_curl * .7, slices),
     ]
     if hole_xs:
         holes(parts[0], hole_xs)
@@ -174,22 +196,98 @@ def girder(name, length, seed, torn_both, tip_curl, bend, twist, hole_xs):
     rx = x0 + .07
     while rx < x1 - .17:
         for side in (-1, 1):
-            cyl('flange rivet head', (rx, side * .032, H / 2 + .004), .011, .008, M['bolt'], root, (0, 0, 1), Q['rivet_vertices'])
+            cyl('flange rivet head', (rx, side * B * (.032 / .112), H / 2 + .004), .011, .008, M['bolt'], root, (0, 0, 1), Q['rivet_vertices'])
         rx += .15
-    # Impact damage baked into the editable meshes in root space (bevel stays live).
-    if bend or twist:
-        radius = length / bend if bend else 0
-        for o in [c for c in root.children if c.type == 'MESH']:
-            basis = o.matrix_basis.copy(); inv = basis.inverted()
-            for v in o.data.vertices:
-                q = basis @ v.co
-                if twist:
-                    q = Matrix.Rotation(twist * q.x / length, 3, 'X') @ q
-                if bend:
-                    t = q.x / radius
-                    q = Vector(((radius - q.z) * math.sin(t), q.y, radius - (radius - q.z) * math.cos(t)))
-                v.co = inv @ q
-            o.data.update()
+    return [c for c in root.children if c not in before]
+
+
+def damage(root, length, bend, twist):
+    """Impact damage baked into the editable meshes in root space (bevel stays live)."""
+    if not (bend or twist):
+        return
+    radius = length / bend if bend else 0
+    for o in [c for c in root.children if c.type == 'MESH']:
+        basis = o.matrix_basis.copy(); inv = basis.inverted()
+        for v in o.data.vertices:
+            q = basis @ v.co
+            if twist:
+                q = Matrix.Rotation(twist * q.x / length, 3, 'X') @ q
+            if bend:
+                t = q.x / radius
+                q = Vector(((radius - q.z) * math.sin(t), q.y, radius - (radius - q.z) * math.cos(t)))
+            v.co = inv @ q
+        o.data.update()
+
+
+def girder(name, length, seed, torn_both, tip_curl, bend, twist, hole_xs):
+    rng = random.Random(seed)
+    root = new_root(name)
+    slices = [-length / 2 + length * i / Q['slices'] for i in range(1, Q['slices'])] if (bend or twist) else []
+    beam(root, name, length, torn_both, tip_curl, slices, hole_xs, rng)
+    damage(root, length, bend, twist)
+    return root
+
+
+def wide_flange_stub(name, seed):
+    """Short heavy H-section, ripped at both ends, with web stiffener plates (concept's chunky end-on beam)."""
+    rng = random.Random(seed)
+    root = new_root(name)
+    length = .5
+    set_section((.24, .25, .032, .024))
+    try:
+        slices = [-length / 2 + length * i / Q['slices'] for i in range(1, Q['slices'])]
+        beam(root, name, length, True, 1.3, slices, [], rng)
+        for x in (-.09, .07):
+            for side in (-1, 1):
+                y = side * (TW / 2 + (B / 2 - TW / 2 - .012) / 2)
+                box(name + ' web stiffener', (x, y, 0), (.018, B / 2 - TW / 2 - .012, H - 2 * TF), M['beam'], root)
+        damage(root, length, 0.0, math.radians(10))
+    finally:
+        set_section(DEFAULT_SECTION)
+    return root
+
+
+def torn_plate(name, seed):
+    """Thick broken deck plate from the concept: irregular wide slab, stepped notch, two bolts,
+    ripped edges with thin heat seams."""
+    rng = random.Random(seed)
+    root = new_root(name)
+    t = .09
+    # Clockwise from the rear-left corner; (x, y, torn) - torn marks the ripped side starting at that point.
+    corners = [(-.30, .13, False), (-.06, .25, False), (.17, .21, True), (.19, .07, False), (.27, .03, True),
+               (.20, -.21, False), (-.14, -.23, True), (-.31, -.10, False)]
+    outline, ripped = [], []
+    for i, (x, y, torn) in enumerate(corners):
+        outline.append((x, y))
+        if torn:
+            nx, ny, _ = corners[(i + 1) % len(corners)]
+            first = len(outline) - 1
+            for k in range(1, 5):
+                f = k / 5
+                # Teeth perpendicular to the edge, pointing outward.
+                ex, ey = nx - x, ny - y; ln = math.hypot(ex, ey)
+                ox, oy = ey / ln, -ex / ln
+                d = (.022 if k % 2 else -.008) * rng.uniform(.4, 1.0)
+                outline.append((x + ex * f + ox * d, y + ey * f + oy * d))
+            ripped.append((first, len(outline)))
+    bm = prism(outline, 'xy', -t / 2, t / 2)
+    o = bm_object(name + ' slab', bm, M['cast'], root, .011)
+    o.data.materials.append(M['torn'])
+    n = len(outline)
+    torn_sides = {i for a, b in ripped for i in range(a, b)}
+    # prism faces: 0 bottom, 1 top, then side i joins outline[i] -> outline[i+1].
+    for side in torn_sides:
+        o.data.polygons[2 + side].material_index = 2
+    # Ripped edges sag slightly: lower the torn outline points a touch for an uneven break.
+    for side in torn_sides:
+        for v in (o.data.vertices[side], o.data.vertices[side + n]):
+            v.co.z -= rng.uniform(0, .012)
+    o.data.update()
+    for x, y in ((-.18, .11), (.02, .17)):
+        cyl(name + ' bolt washer', (x, y, t / 2 + .003), .026, .006, M['plate'], root, (0, 0, 1), Q['rivet_vertices'] + 4)
+        cyl(name + ' bolt head', (x, y, t / 2 + .012), .019, .014, M['bolt'], root, (0, 0, 1), 6)
+    # Thin lip of the next plate still welded under the rear edge.
+    box(name + ' welded lip', (-.2, .02, -t / 2 - .012), (.16, .3, .024), M['plate'], root)
     return root
 
 
@@ -203,6 +301,8 @@ def materials():
         'plate': mats['Flanges | dark forged iron'],
         'edge': mats['Exposed worn iron edges'],
         'bolt': mats['Forged steel fasteners'],
+        # Path-tile warm cast iron: the concept's broken deck plate reads lighter than the beams.
+        'cast': mats['Cast iron | silver graphite'],
     })
     m = bpy.data.materials.new('Torn steel | cooling heat'); m.use_nodes = True
     n = m.node_tree.nodes; l = m.node_tree.links; p = n.get('Principled BSDF')
@@ -228,6 +328,9 @@ def library():
         girder('girder_bent_ripped', .66, 21, True, 1.1, math.radians(24), 0.0, [.02]),
         # C: short stub ripped at both ends, twisted.
         girder('girder_twisted_stub', .42, 33, True, 2.0, 0.0, math.radians(28), []),
+        # Rare, wider/different forms from the concept (placed sparingly in game).
+        wide_flange_stub('girder_wide_flange_stub', 45),
+        torn_plate('debris_torn_plate', 57),
     ]
     for i, r in enumerate(roots):
         r.location = (12, (i - 1) * 1.1, 0)
@@ -282,7 +385,8 @@ def review_scene(roots, render):
         holder.parent = review; holder.location = (i - .5, 0, 0)
         copy_children(t, holder)
     # Floating poses around the tile pair at concept-like distances and tilts.
-    poses = [((-1.55, -.6, .25), (.25, .35, .9)), ((1.3, -1.05, .05), (-.35, .2, -.6)), ((.25, 1.2, .45), (.5, -.3, 2.1))]
+    poses = [((-1.55, -.6, .25), (.25, .35, .9)), ((1.3, -1.05, .05), (-.35, .2, -.6)), ((.25, 1.2, .45), (.5, -.3, 2.1)),
+             ((-1.35, 1.0, .1), (.3, .2, 2.6)), ((1.5, .55, .2), (-.2, .25, -1.2))]
     for r, (loc, rot) in zip(roots, poses):
         holder = bpy.data.objects.new(r.name + ' review pose', None); s.collection.objects.link(holder)
         holder.parent = review; holder.location = loc; holder.rotation_euler = rot
@@ -300,7 +404,7 @@ def review_scene(roots, render):
         suffix = '-game' if GAME else ''
         s.render.filepath = str(HERE / ('review-game-angle%s.png' % suffix)); bpy.ops.render.render(write_still=True)
         # Close 3/4 look at the library pieces themselves.
-        pose((12 + 3.0, -5.5, 4.2), Vector((12, 0, 0)), 2.9)
+        pose((12 + 3.0, -5.5 + 1.3, 4.6), Vector((12, 1.3, .15)), 5.0)
         s.render.resolution_x = 1600; s.render.resolution_y = 1000
         s.render.filepath = str(HERE / ('review-studio%s.png' % suffix)); bpy.ops.render.render(write_still=True)
 
