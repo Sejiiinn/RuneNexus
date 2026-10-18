@@ -12,8 +12,9 @@ class GroupDispatchCompilerTests(unittest.TestCase):
     def setUpClass(cls): cls.game=compile_content()
 
     def test_all_gameplay_values_remain_bit_exact(self):
+        # Approved snapshot includes projectile capabilities and the 3-8 battery expansion.
         self.assertEqual(typed_digest(without_dispatch_metadata(self.game)),
-                         'c164ac0e6172888d7fcbd12430bf0753ddcaaf3799cf5e9bb3bfec4b10a0228b')
+                         '9e8ac13b6460718d2228356079c17ef2f4004be9c2df5938501f61cca8a14b07')
         fixture=read_json(ROOT/'test/fixtures/content_source_baseline.json')
         old={str(s['id']):typed_digest(without_dispatch_metadata(s)) for s in self.game['stages'][:25]}
         self.assertEqual(old,fixture['stageDigests'])
