@@ -123,7 +123,7 @@ func run() -> void:
 	hud.rewards.board_tap(app.selected)
 	_assert_socket_assets(hud.overlay_body,2)
 	assert(_confirm_button(hud.overlay_body).disabled) # Third slot requires level 3.
-	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.3부터 추가 가능")
+	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.3 필요")
 	before_choice = app.run_domain.state.duplicate(true)
 	hud.rewards._select_replacement_slot(2)
 	assert(hud.rewards.replacement_slot == -1 and app.run_domain.state == before_choice)
@@ -172,7 +172,7 @@ func run() -> void:
 	hud.rewards.pending_gem = "criticalChance"; hud.rewards.replacement_id = int(app.run_domain.state.turrets[0].id)
 	hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
 	assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)
-	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.7부터 추가 가능")
+	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.7 필요")
 	var fifth_cost: int = app.run_domain.growth.data.turretRules.arrow.linkUpgradeCosts[3]
 	assert(hud.overlay_body.find_child("SlotPrice",true,false).get_node("Amount").text == HudNumber.compact_integer(fifth_cost))
 	app.run_domain.state.turrets[0].level = 7; hud.rewards.key = ""; hud.refresh()
@@ -216,9 +216,13 @@ func _asset_names(node: Node) -> Array[String]:
 func _assert_socket_assets(node: Node, occupied: int) -> void:
 	var sockets: Node = node.find_child("ReplacementSockets",true,false)
 	var names := _asset_names(sockets)
-	assert(names.count("gem_socket_empty.png") == occupied)
+	# The add-slot choice is the next socket of the same row, not a separate option.
+	var adding: Button = sockets.find_child("ReplacementAddSlot",true,false)
+	var total := occupied+(1 if adding != null else 0)
+	assert(names.count("gem_socket_empty.png") == total)
 	assert(names.count("gem_socket_locked.png") == 0)
-	assert(names.count("gem_link_active.png")+names.count("gem_link_locked.png") == occupied-int(ceil(occupied/3.0)))
+	assert(names.count("gem_link_active.png")+names.count("gem_link_locked.png") == total-int(ceil(total/3.0)))
+	if adding != null: assert(adding.find_child("AddSlotPlus",true,false) != null and node.find_child("OwnedGold",true,false) == null)
 	_assert_socket_targets(sockets)
 
 func _assert_socket_targets(node: Node) -> void:
@@ -369,7 +373,9 @@ func _assert_replacement_layout(hud,app) -> void:
 			var maximum: int = app.run_domain.service.derived(state).get("maxTurretLinkSlots",3)
 			assert(hud.overlay_body.find_child("ReplacementCapacity",true,false).text == "장착 %d개 · 최대 %d개" % [count,maximum])
 			assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false) != null if count < maximum else hud.overlay_body.find_child("ReplacementAddSlot",true,false) == null)
-			assert(_asset_names(hud.overlay_body).count("gold.png") == (2 if count < maximum else 0))
+			assert(_asset_names(hud.overlay_body).count("gold.png") == (1 if count < maximum else 0))
+			assert(hud.overlay_body.find_child("ReplacementGuide",true,false).text == ("교체할 젬이나 새 슬롯을 선택하세요." if count < maximum else "교체할 젬을 선택하세요."))
+			assert(_confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text == "장착")
 			for slot in count:
 				assert(hud.overlay_body.find_child("SlotEffect%d" % slot,true,false).text == hud.rewards._replacement_effect(str(turret.equippedGemSlots[slot]),turret))
 			for choice in [0,count-1,count]:
@@ -379,7 +385,17 @@ func _assert_replacement_layout(hud,app) -> void:
 				assert(hud.overlay.get_global_rect() == frame,"Replacement selection must keep modal height and position: width=%d count=%d choice=%d before=%s after=%s" % [width,count,choice,frame,hud.overlay.get_global_rect()])
 				assert(_confirm_button(hud.overlay_body).get_global_rect() == footer,"Replacement selection must keep footer stable")
 				_assert_replacement_content(hud.overlay_body,frame)
-				if choice < count: assert(hud.overlay_body.find_child("SelectedSocketCheck",true,false) != null)
+				var guide: String = hud.overlay_body.find_child("ReplacementGuide",true,false).text
+				var caption: String = _confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text
+				if choice < count:
+					var leaving: String = hud.gem_name(str(turret.equippedGemSlots[choice]))
+					var target: Button = hud.overlay_body.find_child("Slot%d" % choice,true,false)
+					assert(target.find_child("ReplacedGemBadge",true,false) != null and target.find_child("IncomingPreview",true,false).texture.resource_path.ends_with("/range.png"))
+					assert(hud.overlay_body.find_child("SlotName%d" % choice,true,false).text == "%s → %s" % [leaving,hud.gem_name("range")])
+					assert(guide.begins_with(leaving) and guide.ends_with(" 보관함으로 돌아갑니다.") and caption == "교체")
+				elif count < maximum:
+					var preview: TextureRect = hud.overlay_body.find_child("ReplacementAddSlot",true,false).find_child("IncomingPreview",true,false)
+					assert(preview != null and preview.modulate.a < 1.0 and guide == "기존 젬은 그대로 유지됩니다." and caption == "슬롯 추가 후 장착 ·")
 			print("PASS replacement layout width=",width," count=",count," frame=",frame," footer=",footer)
 	app.run_domain.state = before
 	root.size = original_size; root.content_scale_size = original_scale
@@ -418,6 +434,9 @@ func _assert_invalidated_purchase(hud,app) -> void:
 			"research": app.run_domain.state.progression.researchLevels = {}
 		hud.rewards.key = ""; hud.refresh()
 		assert(_confirm_button(hud.overlay_body).disabled,"Invalid purchase preview must disable confirm: "+reason)
+		if reason == "gold":
+			var add: Button = hud.overlay_body.find_child("ReplacementAddSlot",true,false)
+			assert(add.disabled and hud.overlay_body.find_child("AddSlotDescription",true,false).text == "골드 부족")
 		var invalid: Dictionary = app.run_domain.state.duplicate(true)
 		hud.rewards._confirm_replacement()
 		assert(app.run_domain.state == invalid,"Invalid confirmation must not mutate the reward: "+reason)

@@ -597,8 +597,15 @@ func _replacement(state: Dictionary) -> void:
 	var rows := VBoxContainer.new(); rows.name = "ReplacementSockets"; rows.add_theme_constant_override("separation",10); center.add_child(rows)
 	var column_width := clampf((modal_width-28-32)/3.0,68,96)
 	var extent := minf(82,column_width)
+	# The add-slot choice is the next socket in the same row, so replacing and
+	# adding are picked in one place. Selection only previews the result.
+	var can_add := opened < maximum
+	var add_ready := can_add and cost > 0 and int(state.gold) >= cost
+	var incoming_name: String = hud.gem_name(pending_gem)
+	var incoming_effect := _replacement_effect(pending_gem,turret)
 	var sockets: HBoxContainer
-	for slot in opened:
+	for slot in opened+(1 if can_add else 0):
+		var adding := slot == opened
 		if slot % 3 == 0:
 			sockets = HBoxContainer.new(); sockets.alignment = BoxContainer.ALIGNMENT_CENTER
 			sockets.add_theme_constant_override("separation",0); rows.add_child(sockets)
@@ -610,68 +617,74 @@ func _replacement(state: Dictionary) -> void:
 		var column := VBoxContainer.new(); column.custom_minimum_size.x = column_width
 		column.add_theme_constant_override("separation",3); sockets.add_child(column)
 		var socket: Button = UiWidgets.button(column,"",func(): _select_replacement_slot(slot))
-		socket.name = "Slot%d" % slot; socket.custom_minimum_size = Vector2(extent,extent)
+		socket.name = "ReplacementAddSlot" if adding else "Slot%d" % slot
+		socket.custom_minimum_size = Vector2(extent,extent)
 		socket.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		for style in ["normal","hover","pressed","disabled","focus"]: socket.add_theme_stylebox_override(style,StyleBoxEmpty.new())
-		var art := reward_icon(socket,"ui/components/"+("gem_socket_selected.png" if replacement_slot == slot else "gem_socket_empty.png"),0)
+		var selected := replacement_slot == slot
+		var art := reward_icon(socket,"ui/components/"+("gem_socket_selected.png" if selected else "gem_socket_empty.png"),0)
 		art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		var gem := str(turret.equippedGemSlots[slot])
-		var icon := reward_icon(socket,"gems/"+gem+".png",0)
-		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		icon.offset_left = extent*0.22; icon.offset_right = -extent*0.22; icon.offset_top = extent*0.22; icon.offset_bottom = -extent*0.22
-		if replacement_slot == slot:
-			var check := _text(socket,"✓",14,true)
-			check.name = "SelectedSocketCheck"; check.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-			check.offset_left = -22; check.offset_right = -2; check.offset_top = -23; check.offset_bottom = -2
-			check.add_theme_color_override("font_color",Color("8ee6ff"))
-		var gem_label := _text(column,hud.gem_name(gem),11 if narrow else 12,true)
-		gem_label.name = "SlotName%d" % slot; gem_label.custom_minimum_size.x = column_width
-		gem_label.add_theme_color_override("font_color",Color("e8f8ff"))
-		var effect := _text(column,_replacement_effect(gem,turret),10 if narrow else 11,true)
-		effect.autowrap_mode = TextServer.AUTOWRAP_WORD
-		effect.name = "SlotEffect%d" % slot; effect.custom_minimum_size.x = column_width
+		var gem := "" if adding else str(turret.equippedGemSlots[slot])
+		if selected or not adding:
+			var icon := reward_icon(socket,"gems/"+(pending_gem if selected else gem)+".png",0)
+			icon.name = "IncomingPreview" if selected else "EquippedGem"
+			icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			icon.offset_left = extent*0.22; icon.offset_right = -extent*0.22; icon.offset_top = extent*0.22; icon.offset_bottom = -extent*0.22
+			if selected and adding: icon.modulate.a = 0.72
+		if selected and not adding:
+			# The displaced gem stays visible as a small socket badge.
+			var badge_extent := roundf(extent*0.4)
+			var badge := Control.new(); badge.name = "ReplacedGemBadge"; badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			socket.add_child(badge); badge.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+			badge.offset_left = -badge_extent+2; badge.offset_top = -badge_extent+2; badge.offset_right = 2; badge.offset_bottom = 2
+			var badge_art := reward_icon(badge,"ui/components/gem_socket_empty.png",0); badge_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			var old := reward_icon(badge,"gems/"+gem+".png",0); old.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			old.offset_left = badge_extent*0.24; old.offset_right = -badge_extent*0.24; old.offset_top = badge_extent*0.24; old.offset_bottom = -badge_extent*0.24
+			old.modulate = Color(1,1,1,0.85)
+		if adding and not selected:
+			var plus := _text(socket,"+",24,true); plus.name = "AddSlotPlus"
+			plus.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			plus.add_theme_color_override("font_color",Color("e8f8ff"))
+		var current_name: String = "새 슬롯" if adding else hud.gem_name(gem)
+		var replaced_name: String = current_name if adding else "%s → %s" % [current_name,incoming_name]
+		var name_text: String = replaced_name if selected else current_name
+		var alternate_name: String = current_name if selected else replaced_name
+		var gem_label := _stacked_text(column,name_text,alternate_name,11 if narrow else 12,column_width)
+		gem_label.name = "SlotName%d" % slot
+		gem_label.add_theme_color_override("font_color",Color("8ee6ff") if selected else Color("e8f8ff"))
+		if adding:
+			var display_cost: int = cost if cost > 0 else hud.gem_panel._slot_price(state,replacement_id,opened)
+			_replacement_money(column,"",display_cost,"SlotPrice",11 if narrow else 12).size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			var reason := ""
+			if cost <= 0: reason = "포탑 Lv.%d 필요" % hud.gem_panel._slot_required_level(turret,opened)
+			elif int(state.gold) < cost: reason = "골드 부족"
+			var description := _text(column,reason,10 if narrow else 11,true)
+			description.name = "AddSlotDescription"; description.custom_minimum_size.x = column_width
+			description.add_theme_color_override("font_color",Color("ffa68a"))
+			description.visible = not reason.is_empty()
+			socket.disabled = not add_ready
+			socket.tooltip_text = reason if not reason.is_empty() else "새 슬롯에 %s 장착 · 기존 젬 유지" % incoming_name
+			if not add_ready: socket.modulate = Color("8a98a3")
+			continue
+		var effect_text := _replacement_effect(gem,turret)
+		var effect := _stacked_text(column,incoming_effect if selected else effect_text,effect_text if selected else incoming_effect,10 if narrow else 11,column_width)
+		effect.name = "SlotEffect%d" % slot
+		effect.add_theme_color_override("font_color",Color("cfe9f2"))
 		socket.tooltip_text = hud.gem_name(gem)+" · "+hud.gem_effect(gem,turret)
 	_replacement_rule(body)
-	var guide := _text(body,"선택한 젬은 보관함으로 돌아갑니다." if replacement_slot >= 0 and not buying else "장착 방법을 선택하세요.",11,true)
+	var guide_text := "교체할 젬이나 새 슬롯을 선택하세요." if can_add else "교체할 젬을 선택하세요."
+	if replacement_slot >= 0 and replacement_slot < opened:
+		var leaving: String = hud.gem_name(str(turret.equippedGemSlots[replacement_slot]))
+		guide_text = "%s%s 보관함으로 돌아갑니다." % [leaving,_topic_particle(leaving)]
+	elif buying: guide_text = "기존 젬은 그대로 유지됩니다."
+	var guide := _text(body,guide_text,11,true)
 	guide.name = "ReplacementGuide"; guide.custom_minimum_size.y = 34; guide.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	if opened < maximum:
-		var display_cost: int = cost if cost > 0 else hud.gem_panel._slot_price(state,replacement_id,opened)
-		var buy: Button = UiWidgets.button(body,"",func(): _select_replacement_slot(opened))
-		buy.name = "ReplacementAddSlot"; buy.custom_minimum_size.y = 84 if narrow else 68
-		hud.Components.apply(buy,"primary" if buying else "secondary")
-		buy.disabled = cost <= 0 or int(state.gold) < cost
-		var content := _replacement_button_body(buy,Vector2(8,6))
-		content.add_theme_constant_override("separation",5)
-		var mark := _text(content,"✓" if buying else "○",18,true)
-		mark.name = "AddSlotSelection"; mark.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; mark.custom_minimum_size.x = 18
-		mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		mark.add_theme_color_override("font_color",Color("8ee6ff") if buying else Color("90a9b6"))
-		var plus_area := Control.new(); plus_area.custom_minimum_size = Vector2(32,32)
-		plus_area.size_flags_vertical = Control.SIZE_SHRINK_CENTER; content.add_child(plus_area)
-		var plus_socket := reward_icon(plus_area,"ui/components/gem_socket_empty.png",0); plus_socket.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		var plus := _text(plus_area,"+",22,true); plus.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		var detail := VBoxContainer.new(); detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		detail.size_flags_vertical = Control.SIZE_SHRINK_CENTER; detail.add_theme_constant_override("separation",2); content.add_child(detail)
-		if narrow:
-			_text(detail,"새 슬롯 추가",12)
-			_replacement_money(detail,"",display_cost,"SlotPrice",11)
-		else:
-			_replacement_money(detail,"새 슬롯 추가 ·",display_cost,"SlotPrice",14)
-		var reason := "기존 젬 유지 · 새 슬롯에 장착"
-		if cost <= 0: reason = "포탑 Lv.%d부터 추가 가능" % hud.gem_panel._slot_required_level(turret,opened)
-		elif int(state.gold) < cost: reason = "골드 %s 부족" % HudNumber.compact_integer(cost-int(state.gold))
-		var description := _text(detail,reason,10 if narrow else 11)
-		description.name = "AddSlotDescription"
-		var owned := _replacement_money(content,"보유",int(state.gold),"OwnedGold",10 if narrow else 11)
-		owned.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		buy.tooltip_text = reason
-		if buy.disabled: content.modulate = Color("889ba7")
 	var confirm: Button = UiWidgets.button(body,"",_confirm_replacement)
 	confirm.name = "ReplacementConfirm"; confirm.custom_minimum_size.y = 44
 	hud.Components.apply(confirm,"primary")
 	confirm.disabled = replacement_slot < 0 or (buying and (opened >= maximum or cost <= 0 or int(state.gold) < cost))
 	var confirm_content := _replacement_button_body(confirm,Vector2(6,4)); confirm_content.alignment = BoxContainer.ALIGNMENT_CENTER
-	var caption := "장착 방법을 선택하세요" if replacement_slot < 0 else ("슬롯 추가 후 장착 ·" if buying else "선택한 젬과 교체")
+	var caption := "장착" if replacement_slot < 0 else ("슬롯 추가 후 장착 ·" if buying else "교체")
 	var confirm_label := _text(confirm_content,caption,14 if not narrow else 12,true)
 	confirm_label.name = "ConfirmCaption"; confirm_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	confirm_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -681,6 +694,21 @@ func _replacement(state: Dictionary) -> void:
 	var back: Button = UiWidgets.button(body,"포탑 다시 선택",func(): close_back())
 	back.name = "ReplacementBack"; back.custom_minimum_size.y = 34
 	UiWidgets.style_hud_button(back,"quiet",false,Vector2(8,6))
+
+# Both texts share one cell so choosing a socket never changes the row height.
+func _stacked_text(parent: Node, shown: String, alternate: String, size: int, width: float) -> Label:
+	var stack := MarginContainer.new(); stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.custom_minimum_size.x = width; parent.add_child(stack)
+	var reserve := _text(stack,alternate,size,true); reserve.modulate.a = 0
+	reserve.autowrap_mode = TextServer.AUTOWRAP_WORD; reserve.custom_minimum_size.x = width
+	var label := _text(stack,shown,size,true)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD; label.custom_minimum_size.x = width
+	return label
+
+func _topic_particle(word: String) -> String:
+	var code := word.unicode_at(word.length()-1)-0xAC00 if not word.is_empty() else -1
+	if code < 0 or code >= 11172: return "은(는)"
+	return "은" if code % 28 != 0 else "는"
 
 func _replacement_effect(gem: String, turret: Dictionary) -> String:
 	# Keep Korean words and the value/unit together at compact socket widths.
