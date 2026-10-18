@@ -150,6 +150,8 @@ TIMEOUTS = {
     # also drains real worker threads. Both exceed the short-case 20s budget on
     # CI under parallel load, so keep them in the bounded integration lane.
     "verify_server_run_lifecycle.gd": 60, "verify_async_checkpoint.gd": 60,
+    # Enumerates every authored spawn and simulates all chapter endpoints.
+    "verify_content_catalog.gd": 60,
 }
 SERIAL = frozenset(TIMEOUTS)
 # Scripts and data load directly; only these need no editor import when changed.
