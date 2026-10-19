@@ -334,6 +334,9 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 	e.statusEffectTime+=dt
 	if e.hp>0 and e.maxShield>0 and not e.shieldBroken and e.shield<e.maxShield and e.shieldRegenRate>0:
 		e.shield=minf(e.maxShield,e.shield+e.maxShield*e.shieldRegenRate*dt)
+	# Regenerating affix; absent on ordinary enemies, so no per-step key lookup cost there.
+	if e.has("hpRegenRate") and e.hp>0 and e.hp<e.maxHp:
+		e.hp=minf(e.maxHp,e.hp+e.maxHp*float(e.hpRegenRate)*dt)
 	if not e.burnInstances.is_empty():
 		e.burnNumberTimer+=dt
 		var elapsed := 0.0
@@ -403,6 +406,8 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 	if distance>0.001: e.facingAngle=atan2(dy,dx)
 	var multiplier := 1.0
 	for slow in e.slowInstances: multiplier=minf(multiplier,slow.multiplier)
+	# Steadfast affix reduces only the slowed share; stun/freeze stay intact.
+	if multiplier<1.0 and e.has("slowResistance"): multiplier=1.0-(1.0-multiplier)*(1.0-float(e.slowResistance))
 	var movement: float=e.speed*e.boardDistanceScale*multiplier*maxf(0.0,dt-hard_controlled_time)
 	if distance<=movement:
 		e.distanceTravelled+=distance

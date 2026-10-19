@@ -9,6 +9,7 @@ const HudChrome = preload("res://ui/hud_chrome.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const TargetPriorityPopup = preload("res://ui/target_priority_popup.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
+const HudMenuPanel = preload("res://ui/hud_menu_panel.gd")
 const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}
 const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다."}
 const UPGRADES := {"towerDamage":"포탑 화력", "killGold":"처치 보너스", "waveGold":"정비 보급"}
@@ -640,9 +641,18 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 		var boss := UiWidgets.label(content," · 보스",11)
 		boss.name = "WaveEnemyBoss"; boss.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; boss.autowrap_mode = TextServer.AUTOWRAP_OFF; boss.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		boss.add_theme_color_override("font_color",Color("ff6b6b"))
+	var tier: String = HudMenuPanel.top_rarity(wave.get("eliteCounts",{}))
+	if not tier.is_empty():
+		var rarity := UiWidgets.label(content," · "+HudMenuPanel.RARITY_NAMES[tier],11)
+		rarity.name = "WaveEnemyRarity"; rarity.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; rarity.autowrap_mode = TextServer.AUTOWRAP_OFF; rarity.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		rarity.add_theme_color_override("font_color",HudMenuPanel.RARITY_COLORS[tier])
 	summary.custom_minimum_size.x = content.get_combined_minimum_size().x+4
 	var composition: PackedStringArray = []
 	for type in wave.enemyCounts: composition.append("%s ×%d" % [app.catalog.enemy_template(str(type)).get("name",type),int(wave.enemyCounts[type])])
+	for type in wave.get("eliteCounts",{}):
+		for tier_name in ["magic","rare"]:
+			var elite_count := int(wave.eliteCounts[type].get(tier_name,0))
+			if elite_count > 0: composition.append("%s %s ×%d" % [HudMenuPanel.RARITY_NAMES[tier_name],app.catalog.enemy_template(str(type)).get("name",type),elite_count])
 	summary.tooltip_text = " · ".join(composition)
 
 func _rune_icon(parent: Node,extent: float) -> void:

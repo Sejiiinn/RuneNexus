@@ -213,6 +213,8 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 	for saved in run.enemies:
 		var enemy_inputs := inputs.duplicate()
 		enemy_inputs.routeId = saved.get("routeId", "")
+		# Rebuild affix maxima (armor/shield/speed are not saved), then saved values win.
+		if saved.has("rarity"): enemy_inputs.enemyValues = {"rarity":saved.rarity,"affixes":saved.get("affixes", [])}
 		var enemy: Dictionary = catalog.enemy(stage,round_index,saved.type,next_enemy_id,enemy_inputs)
 		if enemy.is_empty(): return _reject(catalog.error)
 		enemy.merge(saved,true)

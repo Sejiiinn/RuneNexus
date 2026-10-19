@@ -16,7 +16,8 @@ import struct
 import sys
 
 from stage_progression import stage_ordinals
-from content_runtime_format import encode_runtime, runtime_text, typed_digest
+from content_runtime_format import (RARITIES, encode_runtime, runtime_text, typed_digest,
+                                    validate_authored_affixes, validate_rarity_rules)
 
 ROOT = Path(__file__).resolve().parents[1]
 FIELDS = ("maxHp", "maxShield", "maxArmor")
@@ -360,6 +361,40 @@ def validate_wave_routes(map_data: dict, groups: list, queue: list | None = None
             raise ValueError("routeId requires map routes")
 
 
+def elite_spawns_for(elites, wave, group_indices, rules):
+    """Authored `elites` fill each group's last members in authored order.
+
+    Every entry fixes rarity and affixes; nothing is rolled at runtime.
+    """
+    if rules is None:
+        raise ValueError("Wave elites require enemyRarity rules")
+    if not isinstance(elites, list) or not elites:
+        raise ValueError("Invalid wave elites")
+    ids = [group.get("id", f"g{index + 1:02}") for index, group in enumerate(wave["groups"])]
+    by_group = {}
+    for elite in elites:
+        if (not isinstance(elite, dict) or set(elite) != {"groupId", "rarity", "count", "affixes"}
+                or elite["groupId"] not in ids or elite["rarity"] not in RARITIES
+                or type(elite["count"]) is not int or elite["count"] <= 0):
+            raise ValueError("Invalid wave elite entry")
+        validate_authored_affixes(rules, elite["rarity"], elite["affixes"])
+        by_group.setdefault(elite["groupId"], []).append(elite)
+    result = []
+    for group_index, group_id in enumerate(ids):
+        entries = by_group.get(group_id, [])
+        if not entries:
+            continue
+        members = group_indices[group_index]
+        total = sum(entry["count"] for entry in entries)
+        if wave["groups"][group_index]["enemyType"] in rules["excludedTypes"] or total > len(members):
+            raise ValueError("Wave elites exceed eligible group members")
+        tail = iter(members[len(members) - total:])
+        for entry in entries:
+            result.extend({"spawnIndex": next(tail), "rarity": entry["rarity"], "affixes": list(entry["affixes"])}
+                          for _ in range(entry["count"]))
+    return sorted(result, key=lambda row: row["spawnIndex"])
+
+
 def validate_preview(text: str, groups: list, stage_id: int, round_number: int):
     """Reject explicit composition claims that the validated spawn groups cannot meet.
 
@@ -396,6 +431,12 @@ def compile_content(root: Path = ROOT) -> dict:
     game["schedulingPolicy"] = copy.deepcopy(SCHEDULING_POLICY)
     game["enemyDefinitions"] = copy.deepcopy(definitions["enemyDefinitions"])
     game["enemies"] = copy.deepcopy(definitions["enemies"])
+    if set(definitions) - {"enemyDefinitions", "enemies", "enemyRarity"}:
+        raise ValueError("Unknown enemy source sections")
+    rarity_rules = copy.deepcopy(definitions.get("enemyRarity"))
+    if rarity_rules is not None:
+        validate_rarity_rules(rarity_rules, set(game["enemies"]))
+        game["enemyRarity"] = rarity_rules
     game["turrets"] = copy.deepcopy(turrets)
     enemy_kinds = set(game["enemies"])
     if enemy_kinds != set(game["enemyDefinitions"]) or not enemy_kinds:
@@ -421,7 +462,7 @@ def compile_content(root: Path = ROOT) -> dict:
         for source_wave in source["waves"]:
             if not {"round", "previewText", "clearRewardGold", "groups"} <= source_wave.keys():
                 raise ValueError("Incomplete wave source")
-            if set(source_wave) - {"round", "previewText", "clearRewardGold", "groups", "queuePrecision", "durabilityOrder", "compatibility", "design"}:
+            if set(source_wave) - {"round", "previewText", "clearRewardGold", "groups", "elites", "queuePrecision", "durabilityOrder", "compatibility", "design"}:
                 raise ValueError("Unknown/derived fields must not be stored in wave source")
             wave = {key: copy.deepcopy(source_wave[key]) for key in ("round", "previewText", "clearRewardGold", "groups")}
             if (type(wave["clearRewardGold"]) is not int or wave["clearRewardGold"] < 0
@@ -461,6 +502,8 @@ def compile_content(root: Path = ROOT) -> dict:
                 raise ValueError("Spawn compatibility breaks normalized queue order")
             wave["groupDispatch"] = group_dispatch_for(wave, stage["map"], group_indices, requested_starts)
             validate_group_dispatch(wave, stage["map"])
+            if "elites" in source_wave:
+                wave["eliteSpawns"] = elite_spawns_for(source_wave["elites"], wave, group_indices, rarity_rules)
             wave["enemyDurability"] = {}
             order = source_wave.get("durabilityOrder", "factor-first")
             overrides = compatibility.get("durabilityUlps", {})

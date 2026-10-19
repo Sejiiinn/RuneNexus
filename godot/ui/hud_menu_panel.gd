@@ -4,6 +4,9 @@ const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const BattlefieldPath = preload("res://presentation/battlefield_path.gd")
+const RARITY_NAMES := {"magic": "마법", "rare": "희귀"}
+## Same tier hues as the battlefield bar frame and model rim.
+const RARITY_COLORS := {"magic": Color("6f95ff"), "rare": Color("ffcc47")}
 ## Stage menus and board details; modal lifetime remains HUD-owned.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 var hud: Control
@@ -102,9 +105,10 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 	# Same total-and-boss summary as the top enemy strip, scoped to this portal
 	# on multi-entrance stages; the composition lives in the wave modal.
 	var counts: Dictionary = wave.get("enemyCounts",{})
+	var elites: Dictionary = wave.get("eliteCounts",{})
 	var selected := _selected_portal_id()
 	for section: Dictionary in _portal_sections(wave):
-		if not selected.is_empty() and section.id == selected: counts = section.counts
+		if not selected.is_empty() and section.id == selected: counts = section.counts; elites = section.elites
 	var total := 0
 	var boss := false
 	for type in counts:
@@ -119,6 +123,11 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 		var boss_label := UiWidgets.label(row," · 보스",13); boss_label.name = "PortalWaveBoss"
 		boss_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; boss_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		boss_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; boss_label.add_theme_color_override("font_color",Color("ff6b6b"))
+	var tier := top_rarity(elites)
+	if not tier.is_empty():
+		var tier_label := UiWidgets.label(row," · "+RARITY_NAMES[tier],13); tier_label.name = "PortalWaveRarity"
+		tier_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN; tier_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		tier_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; tier_label.add_theme_color_override("font_color",RARITY_COLORS[tier])
 	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE; row.add_child(spacer)
 	var details := UiWidgets.button(row,"구성 보기 ›",func(): _portal_details(wave,index))
 	details.name = "PortalWaveDetails"; details.custom_minimum_size.y = 28
@@ -146,17 +155,58 @@ func _portal_title() -> String:
 # one unnamed section. Counts come from the compiled dispatch groups.
 func _portal_sections(wave: Dictionary) -> Array:
 	var stage_portals: Array = hud.app.catalog.spawn_portals(hud.app.stage)
-	if stage_portals.size() < 2: return [{"id":"","label":"","counts":wave.get("enemyCounts",{})}]
+	var single := stage_portals.size() < 2
 	var sections: Array = []
-	for portal: Dictionary in stage_portals:
-		sections.append({"id":str(portal.id),"label":str(portal.get("label","")),"counts":{}})
+	if single: sections.append({"id":"","label":"","counts":wave.get("enemyCounts",{}).duplicate(),"elites":{},"variants":{}})
+	else:
+		for portal: Dictionary in stage_portals:
+			sections.append({"id":str(portal.id),"label":str(portal.get("label","")),"counts":{},"elites":{},"variants":{}})
+	# Magic/rare members and their authored affixes follow the owning group's portal.
+	var elite_spawns: Dictionary = wave.get("eliteSpawns",{})
 	for group: Dictionary in wave.get("routeGroups",[]):
-		var id := str(group.get("spawnPortalId",""))
 		var section: Dictionary = sections[0]
 		for candidate: Dictionary in sections:
-			if candidate.id == id: section = candidate
-		section.counts[str(group.enemyType)] = int(section.counts.get(str(group.enemyType),0))+int(group.count)
+			if candidate.id == str(group.get("spawnPortalId","")): section = candidate
+		var type := str(group.enemyType)
+		if not single: section.counts[type] = int(section.counts.get(type,0))+int(group.count)
+		for spawn_index in group.spawnIndices:
+			if not elite_spawns.has(int(spawn_index)): continue
+			var elite: Dictionary = elite_spawns[int(spawn_index)]
+			if not section.elites.has(type): section.elites[type] = {}
+			section.elites[type][elite.rarity] = int(section.elites[type].get(elite.rarity,0))+1
+			if not section.variants.has(type): section.variants[type] = []
+			var merged := false
+			for variant: Dictionary in section.variants[type]:
+				if variant.rarity == elite.rarity and variant.affixes == elite.affixes: variant.count += 1; merged = true
+			if not merged: section.variants[type].append({"rarity":elite.rarity,"affixes":elite.affixes,"count":1})
 	return sections
+
+func _rarity_tooltip(rarity: String) -> String:
+	var rules: Dictionary = hud.app.catalog.enemy_rarity_rules().get("rarities",{}).get(rarity,{})
+	if rules.is_empty(): return RARITY_NAMES[rarity]
+	var count: Array = rules.affixCount
+	var options := "옵션 %d개" % int(count[0]) if int(count[0]) == int(count[1]) else "옵션 %d~%d개" % [int(count[0]),int(count[1])]
+	return "%s 몬스터 · 체력 ×%s · %s · 처치 골드 ×%d" % [RARITY_NAMES[rarity],str(snappedf(float(rules.maxHpMultiplier),0.01)),options,int(rules.rewardGoldMultiplier)]
+
+static func _rarity_pips(rarity: String) -> Control:
+	var pips := Control.new(); pips.name = "RarityPips"; pips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var count := 2 if rarity == "rare" else 1
+	pips.custom_minimum_size = Vector2(6.0 + (count - 1) * 7.0, 12.0)
+	pips.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var color: Color = RARITY_COLORS[rarity]
+	pips.draw.connect(func():
+		for pip in range(count):
+			var c := Vector2(3.0 + pip * 7.0, 6.0)
+			pips.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -4), c + Vector2(3, 0), c + Vector2(0, 4), c + Vector2(-3, 0)]), color))
+	return pips
+
+## Highest magic/rare tier in a {type: {rarity: count}} map, or "".
+static func top_rarity(elites: Dictionary) -> String:
+	var result := ""
+	for type in elites:
+		if elites[type].has("rare"): return "rare"
+		if elites[type].has("magic"): result = "magic"
+	return result
 
 func _portal_details(wave: Dictionary,index: int) -> void:
 	var box = hud.open_modal("웨이브 %d/%d" % [index+1,hud.app.catalog.wave_count(hud.app.stage)],720,true,true,Color("b16dff"))
@@ -176,9 +226,9 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 			mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			var portal_name: Label = UiWidgets.label(heading,"포탈 "+(str(section.label) if not str(section.label).is_empty() else str(section.id)),12)
 			portal_name.add_theme_font_override("font",hud.AppTheme.font(800)); portal_name.add_theme_color_override("font_color",tint)
-		_wave_enemy_rows(box,section.counts,index,str(section.id))
+		_wave_enemy_rows(box,section.counts,index,str(section.id),section.variants)
 
-func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: String) -> void:
+func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: String,variants: Dictionary = {}) -> void:
 	var types: Array = counts.keys().filter(func(type): return str(type).to_lower().contains("boss"))
 	types.append_array(counts.keys().filter(func(type): return not str(type).to_lower().contains("boss")))
 	var names = {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
@@ -213,6 +263,19 @@ func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: S
 				var tag: Control = heading.get_child(heading.get_child_count()-1)
 				tag.name = "WaveEnemyDamageTaken"; tag.tooltip_text = "%s 받는 피해 %s" % [names.get(kind,kind),change]
 		UiWidgets.label(row," · ".join(stats),12).add_theme_color_override("font_color",Color("b7d5e3"))
+		# Magic/rare members sit below the stats, apart from the damage-taken tags,
+		# with the battlefield bar's pip shape (1 magic, 2 rare) before the tier.
+		var affix_rules: Dictionary = hud.app.catalog.enemy_rarity_rules().get("affixes",{})
+		for variant: Dictionary in variants.get(type,[]):
+			var affix_names: PackedStringArray = []
+			for affix in variant.affixes: affix_names.append(str(affix_rules.get(affix,{}).get("name",affix)))
+			var line := HBoxContainer.new(); line.name = "WaveEnemyRarity_"+str(variant.rarity)
+			line.add_theme_constant_override("separation",5); line.tooltip_text = _rarity_tooltip(variant.rarity); row.add_child(line)
+			line.add_child(_rarity_pips(variant.rarity))
+			var text := "%s%s · %s" % [RARITY_NAMES[variant.rarity]," ×%d" % int(variant.count) if int(variant.count) > 1 else "","·".join(affix_names)]
+			var variant_label: Label = UiWidgets.label(line,text,12)
+			variant_label.name = "WaveEnemyAffixes"; variant_label.mouse_filter = Control.MOUSE_FILTER_PASS
+			variant_label.add_theme_color_override("font_color",RARITY_COLORS[variant.rarity])
 
 func _refresh_core() -> void:
 	if not is_instance_valid(hud.core_label): return

@@ -141,6 +141,7 @@ func present(camera: Camera3D, map_size: Vector2, world: Node3D, actor_tops: Dic
 
 
 class EnemyLabel extends Node2D:
+	const RARITY_COLORS := {"magic": Color("6f95ff"), "rare": Color("ffcc47")}
 	var data := {}
 	var textures := {}
 
@@ -181,7 +182,7 @@ class EnemyLabel extends Node2D:
 		data = value
 		var dimensions: Array = data["size"]
 		var size := Vector2(float(dimensions[0]), float(dimensions[1]))
-		var bar_key := [size, data.get("hp"), data.get("maxHp"), data.get("armor"), data.get("maxArmor"), data.get("shield"), data.get("maxShield")]
+		var bar_key := [size, data.get("hp"), data.get("maxHp"), data.get("armor"), data.get("maxArmor"), data.get("shield"), data.get("maxShield"), data.get("rarity", "")]
 		if bar_key != _bar_key: dirty = true; _bar_key = bar_key
 		var static_key := [size, data.get("diamondCarrier", false), data.get("poisoned", false)]
 		if static_key != _static_key: static_dirty = true; _static_key = static_key
@@ -255,7 +256,19 @@ class EnemyLabel extends Node2D:
 		draw_set_transform(Vector2(-size.x / 2.0, -size.y / 2.0 + bar_offset))
 		var segments := durability_segments(data)
 		var bar_width := w - 2.0
-		if float(data["maxShield"]) > 0 and float(data["shield"]) > 0:
+		var shielded := float(data["maxShield"]) > 0 and float(data["shield"]) > 0
+		var rarity: String = data.get("rarity", "")
+		if RARITY_COLORS.has(rarity):
+			# Tier frame around the bars, plus 1 (magic) or 2 (rare) pips so the
+			# tier never depends on hue alone.
+			var color: Color = RARITY_COLORS[rarity]
+			var top := -11.0 if shielded else -7.0
+			draw_rect(Rect2(0, top, w, -top), Color(0, 0, 0, 0.55))
+			draw_rect(Rect2(0, top, w, -top), color, false, 1.0)
+			for pip in range(2 if rarity == "rare" else 1):
+				var c := Vector2(3.5 + pip * 6.0, top - 4.0)
+				draw_colored_polygon(PackedVector2Array([c + Vector2(0, -3), c + Vector2(2.6, 0), c + Vector2(0, 3), c + Vector2(-2.6, 0)]), color)
+		if shielded:
 			draw_rect(Rect2(1, -9, bar_width, 3), Color("102b3a"))
 			draw_rect(Rect2(1, -9, bar_width * segments.z, 3), Color("62d9ff"))
 		draw_rect(Rect2(1, -5, bar_width, 3), Color("321118"))

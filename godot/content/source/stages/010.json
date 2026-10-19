@@ -199,7 +199,8 @@
         {"enemyType": "fast", "count": 7, "interval": 0.8049999999999999, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 6.58, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "normal", "count": 6, "interval": 1.04, "startDelay": 8.51, "startAfterPrevious": false, "followDelay": 0.7}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "magic", "count": 1, "affixes": ["warded"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["steadfast"]}]
     },
     {
       "round": 16,
@@ -309,7 +310,8 @@
         {"enemyType": "shielded", "count": 5, "interval": 1.3199999999999998, "startDelay": 7.949999999999999, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "normal", "count": 8, "interval": 1.04, "startDelay": 10.909999999999998, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "tank", "count": 1, "interval": 1.5, "startDelay": 13.579999999999998, "startAfterPrevious": false, "followDelay": 0.7}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "magic", "count": 1, "affixes": ["warded", "steadfast"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["sturdy", "steadfast"]}, {"groupId": "g04", "rarity": "magic", "count": 1, "affixes": ["sturdy", "steadfast"]}]
     },
     {
       "round": 26,
@@ -420,7 +422,8 @@
         {"enemyType": "shielded", "count": 6, "interval": 1.2799999999999998, "startDelay": 9.2, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "normal", "count": 10, "interval": 1.04, "startDelay": 13.149999999999997, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "tank", "count": 2, "interval": 1.5, "startDelay": 15.949999999999998, "startAfterPrevious": false, "followDelay": 0.7}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "rare", "count": 1, "affixes": ["warded", "regenerating", "steadfast"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["sturdy", "steadfast"]}, {"groupId": "g04", "rarity": "magic", "count": 1, "affixes": ["sturdy", "steadfast"]}]
     },
     {
       "round": 36,

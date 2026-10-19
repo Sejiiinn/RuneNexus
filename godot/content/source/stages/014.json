@@ -196,7 +196,8 @@
         {"enemyType": "armored", "count": 7, "interval": 1.202, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "tank", "count": 1, "interval": 1.45, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "shielded", "count": 3, "interval": 1.3599999999999999, "startDelay": 7.561999999999999, "startAfterPrevious": false, "followDelay": 0.7}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "magic", "count": 1, "affixes": ["sturdy"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["plated"]}, {"groupId": "g03", "rarity": "magic", "count": 1, "affixes": ["warded"]}]
     },
     {
       "round": 16,
@@ -297,7 +298,8 @@
         {"enemyType": "armored", "count": 9, "interval": 1.166, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "tank", "count": 2, "interval": 1.45, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "shielded", "count": 4, "interval": 1.3199999999999998, "startDelay": 9.677999999999999, "startAfterPrevious": false, "followDelay": 0.7}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "rare", "count": 1, "affixes": ["sturdy", "plated", "regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["plated", "steadfast"]}, {"groupId": "g03", "rarity": "magic", "count": 1, "affixes": ["warded", "steadfast"]}]
     },
     {
       "round": 26,
@@ -399,7 +401,8 @@
         {"enemyType": "tank", "count": 2, "interval": 1.45, "startDelay": 1.4, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "shielded", "count": 5, "interval": 1.2799999999999998, "startDelay": 11.649999999999999, "startAfterPrevious": false, "followDelay": 0.7},
         {"enemyType": "fast", "count": 6, "interval": 0.745, "startDelay": 3.1999999999999997, "startAfterPrevious": false, "followDelay": 0.7}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "rare", "count": 1, "affixes": ["sturdy", "plated", "regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["sturdy", "regenerating"]}, {"groupId": "g03", "rarity": "magic", "count": 1, "affixes": ["regenerating", "steadfast"]}, {"groupId": "g04", "rarity": "magic", "count": 1, "affixes": ["swift", "sturdy"]}]
     },
     {
       "round": 36,

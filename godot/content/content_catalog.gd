@@ -5,6 +5,7 @@ const TypedJson = preload("res://app/save_json.gd")
 const Teleports = preload("res://combat/teleport_pairs.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const RuntimeFormat = preload("res://content/runtime_content_format.gd")
+const Rarity = preload("res://combat/enemy_rarity.gd")
 var _data: Dictionary = {}
 var _revision := 0
 var error: String = ""
@@ -53,6 +54,10 @@ func initial_delay() -> float:
 func randomization() -> Dictionary:
 	return _data.randomization.duplicate(true) if is_loaded() else {}
 
+## Empty for older fixture documents that predate magic/rare enemies.
+func enemy_rarity_rules() -> Dictionary:
+	return _data.get("enemyRarity", {})
+
 func enemy_types() -> Array:
 	return _data.get("enemies", {}).keys()
 
@@ -95,6 +100,12 @@ func wave_summary(stage_index: int, round_index: int) -> Dictionary:
 	var counts := {}
 	for row in _schedule(stage_index, round_index):
 		counts[row[0]] = int(counts.get(row[0], 0)) + 1
+	var elite_counts := {}
+	var schedule := _schedule(stage_index, round_index)
+	for elite in source.get("eliteSpawns", []):
+		var type: String = schedule[int(elite.spawnIndex)][0]
+		if not elite_counts.has(type): elite_counts[type] = {}
+		elite_counts[type][elite.rarity] = int(elite_counts[type].get(elite.rarity, 0)) + 1
 	# Compiler owns group membership, timeline and chronological order. Summaries
 	# only add presentation labels; they never reconstruct dispatch scheduling.
 	var route_groups: Array = source.get("groupDispatch", []).duplicate(true)
@@ -106,7 +117,8 @@ func wave_summary(stage_index: int, round_index: int) -> Dictionary:
 		group.spawnDelay = group.firstDispatch
 	return {"routeGroups":route_groups,"round": source.round, "previewText": source.get("previewText", ""),
 		"clearRewardGold": source.get("clearRewardGold", 0), "spawnCount": _schedule(stage_index, round_index).size(),
-		"boss": wave_has_boss(stage_index, round_index), "enemyCounts": counts}
+		"boss": wave_has_boss(stage_index, round_index), "enemyCounts": counts, "eliteCounts": elite_counts,
+		"eliteSpawns": elite_spawns(stage_index, round_index)}
 
 func stage_count() -> int:
 	return _data.get("stages", []).size()
@@ -175,6 +187,14 @@ func _valid_enemy_values(value: Variant) -> bool:
 		elif key == "diamondReward":
 			if not value[key] is int or value[key] < 0:
 				error = "Diamond reward must be a nonnegative integer"
+				return false
+		elif key == "rarity":
+			if enemy_rarity_rules().is_empty() or not Rarity.valid_values(value[key], value.get("affixes", [])):
+				error = "Invalid enemy rarity/affixes"
+				return false
+		elif key == "affixes":
+			if not value.has("rarity"):
+				error = "Enemy affixes require a rarity"
 				return false
 		else:
 			error = "Unknown enemy value: " + str(key)
@@ -297,6 +317,9 @@ func _enemy_layout(stage_index: int, round_index: int, type: String, inputs: Dic
 		error = "Unknown enemy type"
 		return {}
 	if not _valid_enemy_values(inputs.get("enemyValues", {})): return {}
+	if inputs.get("enemyValues", {}).has("rarity") and not Rarity.eligible(enemy_rarity_rules(), type):
+		error = "Enemy type cannot have a rarity: " + type
+		return {}
 	if route_map(stage_index,str(inputs.get("routeId", ""))).is_empty(): return {}
 	var layout := _layout(inputs)
 	if layout.is_empty() or _data.stages[stage_index].map.path.is_empty(): return {}
@@ -324,6 +347,8 @@ func enemy(stage_index: int, round_index: int, type: String, id: int = 100000, i
 	result.id = id
 	for key in ["laneOffsetRatio", "visualPhase", "diamondReward"]:
 		if inputs.get("enemyValues", {}).has(key): result[key] = inputs.enemyValues[key]
+	if inputs.get("enemyValues", {}).has("rarity"):
+		Rarity.apply(result, enemy_rarity_rules(), inputs.enemyValues.rarity, inputs.enemyValues.get("affixes", []))
 	result.path = world_path(stage_index, inputs)
 	if result.path.is_empty(): return {}
 	var route_id := str(inputs.get("routeId", ""))
@@ -367,6 +392,8 @@ func wave(stage_index: int, round_index: int, first_enemy_id: int = 100000, inpu
 		var entry: Array = schedule[index]
 		var spawn_inputs := inputs.duplicate()
 		if entry.size() > 2: spawn_inputs.routeId = entry[2]
+		# Spawn values carry rarity/affixes, which change maxima at construction.
+		if inputs.has("spawnValues"): spawn_inputs.enemyValues = inputs.spawnValues[index]
 		var prepared := enemy(stage_index, round_index, entry[0], first_enemy_id + index, spawn_inputs)
 		if prepared.is_empty(): return {}
 		if inputs.has("spawnValues"):
@@ -428,4 +455,17 @@ func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGe
 			elif roll < boundary + rules.carrierChance * rules.twoDiamondChanceGivenCarrier: reward = 2
 			elif roll < boundary + rules.carrierChance * (rules.twoDiamondChanceGivenCarrier + rules.threeDiamondChanceGivenCarrier): reward = 3
 		values.append({"laneOffsetRatio": lane, "visualPhase": phase, "diamondReward": reward})
+	# Authored magic/rare identity consumes no draws, so ordinary values are unchanged.
+	for elite in _data.stages[stage_index].waves[round_index].get("eliteSpawns", []):
+		var spawn: Dictionary = values[int(elite.spawnIndex)]
+		spawn.rarity = elite.rarity
+		spawn.affixes = elite.affixes.duplicate()
 	return values
+
+## {spawnIndex: {rarity, affixes}}; both are fixed by the round design.
+func elite_spawns(stage_index: int, round_index: int) -> Dictionary:
+	if not _valid_wave(stage_index, round_index): return {}
+	var result := {}
+	for elite in _data.stages[stage_index].waves[round_index].get("eliteSpawns", []):
+		result[int(elite.spawnIndex)] = {"rarity": elite.rarity, "affixes": elite.affixes.duplicate()}
+	return result

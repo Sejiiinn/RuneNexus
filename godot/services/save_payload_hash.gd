@@ -139,7 +139,9 @@ const ORDERS = {
 		"riftMarkDamageAmplification",
 		"firstControlApplied",
 		"stunRemaining",
-		"freezeRemaining"
+		"freezeRemaining",
+		"rarity",
+		"affixes"
 	],
 	"SavedSpawnRequest": [
 		"routeId",

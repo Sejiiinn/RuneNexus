@@ -2,6 +2,7 @@ extends RefCounted
 ## Pure run transactions. Callers commit state and submit commands together.
 ## Never reads/writes player saves or authoritative account currencies.
 const GemSlots = preload("res://app/gem_slot_rules.gd")
+const Rarity = preload("res://combat/enemy_rarity.gd")
 var catalog
 var growth
 
@@ -237,6 +238,8 @@ func award_kill_owned(state: Dictionary, enemy: Dictionary, d: Dictionary) -> Di
 	var boss := bool(definition.get("isBoss",false))
 	var base := int(definition.get("rewardGold",0))
 	if base < 0: return _reject(state,"reward")
+	# Magic/rare multiply the base before kill-gold bonuses, which then scale it too.
+	if enemy.has("rarity") and not boss: base *= Rarity.reward_gold_multiplier(catalog.enemy_rarity_rules(), enemy.rarity)
 	var next := state
 	var bonus := base * (float(d.get("killGoldBonusRate",0)) + (float(d.get("bossBountyBonusRate",0)) if boss else 0.0))
 	var whole := floori(bonus)

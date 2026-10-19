@@ -387,7 +387,8 @@
         {"enemyType": "armored", "count": 8, "interval": 1.02, "startDelay": 5.852, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g01"},
         {"enemyType": "shielded", "count": 4, "interval": 1.14, "startDelay": 0.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
         {"enemyType": "fast", "count": 5, "interval": 0.81, "startDelay": 16.709, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "magic", "count": 1, "affixes": ["sturdy"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["regenerating"]}, {"groupId": "g03", "rarity": "magic", "count": 1, "affixes": ["swift"]}]
     },
     {
       "round": 16,
@@ -488,7 +489,8 @@
         {"enemyType": "shielded", "count": 5, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g02"},
         {"enemyType": "fast", "count": 6, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g03"},
         {"enemyType": "shielded", "count": 3, "interval": 1.14, "startDelay": 8.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g04"}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "rare", "count": 1, "affixes": ["sturdy", "plated", "regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["regenerating", "steadfast"]}, {"groupId": "g03", "rarity": "magic", "count": 1, "affixes": ["swift", "sturdy"]}]
     },
     {
       "round": 26,
@@ -593,7 +595,8 @@
         {"enemyType": "shielded", "count": 6, "interval": 1.14, "startDelay": 3.5, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g02"},
         {"enemyType": "fast", "count": 7, "interval": 0.81, "startDelay": 7.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "north", "id": "g03"},
         {"enemyType": "fast", "count": 4, "interval": 0.85, "startDelay": 12.0, "startAfterPrevious": false, "followDelay": 0.7, "routeId": "south", "id": "g04"}
-      ]
+      ],
+      "elites": [{"groupId": "g01", "rarity": "rare", "count": 1, "affixes": ["sturdy", "plated", "regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["regenerating", "steadfast"]}, {"groupId": "g03", "rarity": "magic", "count": 1, "affixes": ["swift", "sturdy"]}, {"groupId": "g04", "rarity": "magic", "count": 1, "affixes": ["swift", "plated"]}]
     },
     {
       "round": 36,

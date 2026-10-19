@@ -22,6 +22,11 @@ ROOT_FIELDS = {"schemaVersion", "units", "defaults", "randomization", "defenseCo
                "enemyDefinitions", "enemies", "turrets", "stages"}
 STAGE_FIELDS = {"id", "name", "firstClearCorePointReward", "firstClearTurretModuleTicketReward", "map", "waves"}
 WAVE_FIELDS = {"round", "previewText", "clearRewardGold", "groups", "spawnQueue", "enemyDurability"}
+# Magic/rare IDs are a code/save contract shared with godot/combat/enemy_rarity.gd.
+RARITIES = ("magic", "rare")
+AFFIX_FIELDS = {"swift": ("speedMultiplier",), "sturdy": ("maxHpMultiplier",), "plated": ("armorRatio",),
+                "warded": ("shieldRatio", "shieldRegenRate"), "regenerating": ("hpRegenRate",),
+                "steadfast": ("slowResistance",)}
 SCHEDULING_POLICY = {"version": 1, "scope": "global", "minimumInterval": 0.18,
                      "tieBreak": "source-group-member-order", "dispatchTimeBasis": "spawn-queue-seconds"}
 
@@ -29,7 +34,8 @@ SCHEDULING_POLICY = {"version": 1, "scope": "global", "minimumInterval": 0.18,
 def _dispatch_fields(game, base_fields, label):
     """Old fixture documents remain readable; the policy opts into a complete contract."""
     annotated = isinstance(game, dict) and "schedulingPolicy" in game
-    _fields(game, base_fields | ({"schedulingPolicy"} if annotated else set()), label)
+    rarity = isinstance(game, dict) and "enemyRarity" in game
+    _fields(game, base_fields | ({"schedulingPolicy"} if annotated else set()) | ({"enemyRarity"} if rarity else set()), label)
     if annotated:
         policy = game["schedulingPolicy"]
         _fields(policy, set(SCHEDULING_POLICY), "scheduling policy")
@@ -133,6 +139,62 @@ def _queue(queue, enemies):
         previous = entry["delay"]
 
 
+def _positive(value):
+    return type(value) is float and math.isfinite(value) and value > 0.0
+
+
+def validate_rarity_rules(rules, enemies):
+    _fields(rules, {"rarities", "affixes", "excludedTypes"}, "enemy rarity")
+    _fields(rules["rarities"], set(RARITIES), "enemy rarity inventory")
+    for rarity in RARITIES:
+        entry = rules["rarities"][rarity]
+        _fields(entry, {"name", "maxHpMultiplier", "rewardGoldMultiplier", "affixCount"}, "enemy rarity " + rarity)
+        count = entry["affixCount"]
+        if (type(entry["name"]) is not str or not entry["name"] or not _positive(entry["maxHpMultiplier"])
+                or type(entry["rewardGoldMultiplier"]) is not int or entry["rewardGoldMultiplier"] < 1
+                or not isinstance(count, list) or len(count) != 2 or any(type(v) is not int for v in count)
+                or count[0] < 0 or count[1] < count[0] or count[1] > len(AFFIX_FIELDS)):
+            raise ValueError("Invalid enemy rarity values: " + rarity)
+    _fields(rules["affixes"], set(AFFIX_FIELDS), "enemy affix inventory")
+    for affix, fields in AFFIX_FIELDS.items():
+        entry = rules["affixes"][affix]
+        _fields(entry, {"name", *fields}, "enemy affix " + affix)
+        if type(entry["name"]) is not str or not entry["name"] or not all(_positive(entry[field]) for field in fields):
+            raise ValueError("Invalid enemy affix values: " + affix)
+    if rules["affixes"]["steadfast"]["slowResistance"] > 1.0:
+        raise ValueError("Slow resistance exceeds 1")
+    if (not isinstance(rules["excludedTypes"], list)
+            or any(type(kind) is not str or kind not in enemies for kind in rules["excludedTypes"])):
+        raise ValueError("Invalid enemy rarity exclusions")
+
+
+def validate_authored_affixes(rules, rarity, affixes):
+    """Authored affixes use the rarity's count range and the fixed code order."""
+    order = list(AFFIX_FIELDS)
+    low, high = rules["rarities"][rarity]["affixCount"]
+    if (not isinstance(affixes, list) or any(affix not in AFFIX_FIELDS for affix in affixes)
+            or len(set(affixes)) != len(affixes) or affixes != sorted(affixes, key=order.index)
+            or not low <= len(affixes) <= high):
+        raise ValueError(f"Invalid {rarity} affixes: {affixes}")
+
+
+def validate_elite_spawns(elites, queue, rules):
+    if rules is None:
+        raise ValueError("eliteSpawns require enemyRarity rules")
+    if not isinstance(elites, list) or not elites:
+        raise ValueError("Invalid eliteSpawns")
+    previous = -1
+    for elite in elites:
+        _fields(elite, {"spawnIndex", "rarity", "affixes"}, "eliteSpawns row")
+        index = elite["spawnIndex"]
+        if type(index) is not int or index <= previous or index >= len(queue) or elite["rarity"] not in RARITIES:
+            raise ValueError("Invalid eliteSpawns row")
+        validate_authored_affixes(rules, elite["rarity"], elite["affixes"])
+        if queue[index]["enemyType"] in rules["excludedTypes"]:
+            raise ValueError("Elite spawn type cannot have a rarity")
+        previous = index
+
+
 def _metadata(game):
     _json_values(game)
     for field in ("units", "defaults", "randomization", "defenseConfig", "enemyDefinitions", "enemies", "turrets"):
@@ -143,6 +205,8 @@ def _metadata(game):
         raise ValueError("Enemy template/base definition inventory differs")
     if not isinstance(game["stages"], list) or not game["stages"]:
         raise ValueError("Invalid runtime stages")
+    if "enemyRarity" in game:
+        validate_rarity_rules(game["enemyRarity"], enemies)
     return enemies
 
 
@@ -216,10 +280,13 @@ def encode_runtime(game: dict) -> dict:
     for stage in result["stages"]:
         _stage(stage)
         for wave in stage["waves"]:
-            _fields(wave, WAVE_FIELDS | ({"groupDispatch"} if annotated else set()), "expanded wave")
+            _fields(wave, WAVE_FIELDS | ({"groupDispatch"} if annotated else set())
+                    | ({"eliteSpawns"} if "eliteSpawns" in wave else set()), "expanded wave")
             _wave(wave, enemies, stage["map"])
             queue = wave["spawnQueue"]
             _queue(queue, enemies)
+            if "eliteSpawns" in wave:
+                validate_elite_spawns(wave["eliteSpawns"], queue, game.get("enemyRarity"))
             from content_compiler import validate_wave_routes
             validate_wave_routes(stage["map"], wave["groups"], queue)
             if annotated:
@@ -274,13 +341,16 @@ def decode_runtime(document: dict) -> dict:
     for stage in result["stages"]:
         _stage(stage)
         for wave in stage["waves"]:
-            _fields(wave, WAVE_FIELDS - {"spawnQueue"} | {"spawnSchedule"} | ({"groupDispatch"} if annotated else set()), "runtime wave")
+            _fields(wave, WAVE_FIELDS - {"spawnQueue"} | {"spawnSchedule"} | ({"groupDispatch"} if annotated else set())
+                    | ({"eliteSpawns"} if "eliteSpawns" in wave else set()), "runtime wave")
             _wave(wave, enemies, stage["map"])
             identifier = wave.pop("spawnSchedule")
             if type(identifier) is not str or identifier not in queues:
                 raise ValueError("Missing/invalid spawn schedule reference")
             used.add(identifier)
             wave["spawnQueue"] = copy.deepcopy(queues[identifier])
+            if "eliteSpawns" in wave:
+                validate_elite_spawns(wave["eliteSpawns"], wave["spawnQueue"], document.get("enemyRarity"))
             from content_compiler import validate_wave_routes
             validate_wave_routes(stage["map"], wave["groups"], wave["spawnQueue"])
             if annotated:

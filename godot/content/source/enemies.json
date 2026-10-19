@@ -490,5 +490,20 @@
       "color": 4284672214,
       "rewardGold": 58
     }
+  },
+  "enemyRarity": {
+    "rarities": {
+      "magic": {"name": "마법", "maxHpMultiplier": 1.5, "rewardGoldMultiplier": 2, "affixCount": [1, 2]},
+      "rare": {"name": "희귀", "maxHpMultiplier": 2.0, "rewardGoldMultiplier": 4, "affixCount": [3, 3]}
+    },
+    "affixes": {
+      "swift": {"name": "신속", "speedMultiplier": 1.25},
+      "sturdy": {"name": "강건", "maxHpMultiplier": 1.5},
+      "plated": {"name": "장갑", "armorRatio": 0.5},
+      "warded": {"name": "보호막", "shieldRatio": 0.5, "shieldRegenRate": 0.04},
+      "regenerating": {"name": "재생", "hpRegenRate": 0.02},
+      "steadfast": {"name": "둔화 저항", "slowResistance": 0.5}
+    },
+    "excludedTypes": ["boss", "shieldBoss", "forgeBoss"]
   }
 }

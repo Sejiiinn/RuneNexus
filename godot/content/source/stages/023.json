@@ -229,6 +229,7 @@
         {"enemyType": "shielded", "count": 4, "interval": 1.3599999999999999, "startDelay": 6.58},
         {"enemyType": "normal", "count": 6, "interval": 1.04, "startDelay": 8.51}
       ],
+      "elites": [{"groupId": "g01", "rarity": "magic", "count": 1, "affixes": ["regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["swift"]}],
       "design": {"pattern": "0", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
     },
     {
@@ -353,6 +354,7 @@
         {"enemyType": "normal", "count": 8, "interval": 1.04, "startDelay": 10.909999999999998},
         {"enemyType": "tank", "count": 1, "interval": 1.5, "startDelay": 13.579999999999998}
       ],
+      "elites": [{"groupId": "g01", "rarity": "magic", "count": 1, "affixes": ["swift", "regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["swift", "sturdy"]}, {"groupId": "g04", "rarity": "magic", "count": 1, "affixes": ["swift", "plated"]}],
       "design": {"pattern": "0", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
     },
     {
@@ -478,6 +480,7 @@
         {"enemyType": "normal", "count": 10, "interval": 1.04, "startDelay": 13.149999999999997},
         {"enemyType": "tank", "count": 2, "interval": 1.5, "startDelay": 15.949999999999998}
       ],
+      "elites": [{"groupId": "g01", "rarity": "rare", "count": 1, "affixes": ["swift", "warded", "regenerating"]}, {"groupId": "g02", "rarity": "magic", "count": 1, "affixes": ["swift", "sturdy"]}, {"groupId": "g04", "rarity": "magic", "count": 1, "affixes": ["swift", "plated"]}],
       "design": {"pattern": "0", "queueSource": "existing-id10-spawnQueue", "designNote": "기존 ID 10의 그룹 수량·간격·출현 시각을 유지."}
     },
     {

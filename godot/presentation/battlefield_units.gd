@@ -18,6 +18,7 @@ const FrostTower = preload("res://effects/frost_tower.gd")
 const LightningCollar = preload("res://effects/lightning_collar.gdshader")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
+const EnemyRarityGlow = preload("res://effects/enemy_rarity_glow.gd")
 const GuardianPreview = preload("res://presentation/guardian_preview.gd")
 const ShieldedPresentation = preload("res://presentation/shielded_presentation.gd")
 const FrameRows = preload("res://presentation/frame_rows.gd")
@@ -451,6 +452,7 @@ func _sync_enemies(units: Array) -> void:
 				world.add_child(model)
 				enemies[id] = {"root": model, "type": type}
 		var root: Node3D = enemies[id]["root"]
+		EnemyRarityGlow.apply(root, row.rarity)
 		if preview:
 			# The authored rig supplies grounded motion and body-only turning.
 			root.position = Vector3(row.x - columns / 2.0, 0.0, row.y - rows / 2.0)

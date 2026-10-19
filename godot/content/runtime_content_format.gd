@@ -2,6 +2,7 @@ extends RefCounted
 ## The sole runtime wire boundary. Shared schedules stay compact until requested.
 const TypedJson = preload("res://app/save_json.gd")
 const Teleports = preload("res://combat/teleport_pairs.gd")
+const Rarity = preload("res://combat/enemy_rarity.gd")
 const SPAWN_COLUMNS = ["enemyType", "delay"]
 const ROUTE_SPAWN_COLUMNS = ["enemyType", "delay", "routeId"]
 const DURABILITY_COLUMNS = ["maxHp", "maxShield", "maxArmor"]
@@ -18,7 +19,9 @@ static func validate(candidate: Variant) -> String:
 	# Legacy fixture documents remain readable. New generated catalogs opt into
 	# the complete metadata contract through their root schedulingPolicy.
 	var annotated: bool = candidate.has("schedulingPolicy")
-	if not _fields(candidate, ROOT_FIELDS + (["schedulingPolicy"] if annotated else [])): return "Invalid runtime root fields"
+	# Magic/rare rules are optional so pre-rarity fixture documents stay readable.
+	var rarity: bool = candidate is Dictionary and candidate.has("enemyRarity")
+	if not _fields(candidate, ROOT_FIELDS + (["schedulingPolicy"] if annotated else []) + (["enemyRarity"] if rarity else [])): return "Invalid runtime root fields"
 	if annotated:
 		var policy: Variant = candidate.schedulingPolicy
 		if not policy is Dictionary or not _fields(policy, SCHEDULING_POLICY.keys()) or not policy.version is int or not _float(policy.minimumInterval) or policy != SCHEDULING_POLICY: return "Unsupported scheduling policy"
@@ -40,6 +43,9 @@ static func validate(candidate: Variant) -> String:
 		for field in ["collisionRadius", "targetingRadius", "maxHp", "speed"]:
 			if not _float(template[field]): return "Invalid enemy numeric type: " + str(type)
 	if candidate.enemyDefinitions.size() != candidate.enemies.size(): return "Enemy definition inventory differs"
+	if rarity:
+		var rarity_error := Rarity.validate_rules(candidate.enemyRarity, candidate.enemies.keys())
+		if not rarity_error.is_empty(): return rarity_error
 	for type in candidate.turrets:
 		var template: Variant = candidate.turrets[type]
 		if not type is String or not template is Dictionary or not template.get("configuration") is Dictionary or not template.configuration.get("statInput") is Dictionary or not template.configuration.statInput.get("definition") is Dictionary: return "Invalid turret template: " + str(type)
@@ -82,7 +88,7 @@ static func validate(candidate: Variant) -> String:
 		var rounds := {}
 		var expected_round := 1
 		for wave in source.waves:
-			if not wave is Dictionary or not _fields(wave, WAVE_FIELDS + (["groupDispatch"] if annotated else [])) or not wave.get("round") is int or wave.round != expected_round or rounds.has(wave.round): return "Invalid/duplicate wave ID"
+			if not wave is Dictionary or not _fields(wave, WAVE_FIELDS + (["groupDispatch"] if annotated else []) + (["eliteSpawns"] if wave.has("eliteSpawns") else [])) or not wave.get("round") is int or wave.round != expected_round or rounds.has(wave.round): return "Invalid/duplicate wave ID"
 			rounds[wave.round] = true
 			expected_round += 1
 			if not wave.previewText is String or not wave.clearRewardGold is int or wave.clearRewardGold < 0: return "Invalid wave metadata"
@@ -109,6 +115,9 @@ static func validate(candidate: Variant) -> String:
 			if annotated:
 				var dispatch_error := _validate_group_dispatch(wave, map, candidate.spawnSchedules[wave.spawnSchedule])
 				if not dispatch_error.is_empty(): return dispatch_error
+			if wave.has("eliteSpawns"):
+				var elite_error := _validate_elite_spawns(wave.eliteSpawns, candidate.spawnSchedules[wave.spawnSchedule], candidate.get("enemyRarity", {}))
+				if not elite_error.is_empty(): return elite_error
 			if not wave.get("enemyDurability") is Dictionary or wave.enemyDurability.size() != candidate.enemies.size(): return "Invalid durability enemy columns"
 			for type in candidate.enemies:
 				var values: Variant = wave.enemyDurability.get(type)
@@ -116,6 +125,17 @@ static func validate(candidate: Variant) -> String:
 				for value in values:
 					if not _float(value) or value < 0.0: return "Invalid durability numeric type: " + str(type)
 	if used.size() != candidate.spawnSchedules.size(): return "Unreferenced spawn schedule"
+	return ""
+
+static func _validate_elite_spawns(elites: Variant, queue: Array, rules: Dictionary) -> String:
+	if rules.is_empty(): return "eliteSpawns require enemyRarity rules"
+	if not elites is Array or elites.is_empty(): return "Invalid eliteSpawns"
+	var previous := -1
+	for elite in elites:
+		if not elite is Dictionary or not _fields(elite, ["spawnIndex", "rarity", "affixes"]) or not elite.spawnIndex is int or elite.spawnIndex <= previous or elite.spawnIndex >= queue.size() or not elite.rarity in Rarity.RARITIES: return "Invalid eliteSpawns row"
+		if not Rarity.authored_affixes_valid(rules, elite.rarity, elite.affixes): return "Invalid eliteSpawns affixes"
+		if not Rarity.eligible(rules, queue[elite.spawnIndex][0]): return "Elite spawn type cannot have a rarity"
+		previous = elite.spawnIndex
 	return ""
 
 static func _fields(value: Dictionary, fields: Array) -> bool:

@@ -1,4 +1,4 @@
-"""Explicit comparison projection for additive dispatch/portal authoring metadata.
+"""Explicit comparison projection for additive dispatch/portal/rarity authoring metadata.
 
 Only these new fields are removed. Gameplay maps, groups, exact queue bytes and
 numeric types remain subject to the unchanged historical baseline oracle.
@@ -11,6 +11,9 @@ def without_dispatch_metadata(value):
     if isinstance(result, dict):
         result.pop('schedulingPolicy', None)
         result.pop('groupDispatch', None)
+        # Magic/rare placement and rules are additive; spawn queues stay unchanged.
+        result.pop('enemyRarity', None)
+        result.pop('eliteSpawns', None)
         if 'stages' in result:
             result['stages'] = [without_dispatch_metadata(s) for s in result['stages']]
         if 'waves' in result:

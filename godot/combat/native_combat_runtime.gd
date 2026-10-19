@@ -1364,6 +1364,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		row.has_shield = row.type == "shielded"
 		row.shield = e.shield if row.has_shield else 0.0
 		row.max_shield = e.maxShield if row.has_shield else 0.0
+		row.rarity = e.rarity if e.has("rarity") else ""
 		rows.append(row)
 		var size: Array = e.presentationSize if e.has("presentationSize") else [_radius(e)*2,_radius(e)*2]
 		if canvas_scaled: size = [float(size[0])*canvas_ratio,float(size[1])*canvas_ratio]
@@ -1376,6 +1377,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		label.shield = e.shield; label.maxShield = e.maxShield; label.effectTime = e.statusEffectTime
 		label.enemyCount = enemies.size(); label.burning = burning; label.slowed = slowed; label.poisoned = poisoned
 		label.riftMarked = e.riftMarkRemaining>0; label.diamondCarrier = diamond
+		label.rarity = e.rarity if e.has("rarity") else ""
 		labels.append(label)
 	frame.enemies = rows
 	frame.turrets = []

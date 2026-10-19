@@ -28,6 +28,8 @@ class Enemy extends RefCounted:
 	var has_shield := false
 	var shield := 0.0
 	var max_shield := 0.0
+	## Optional magic/rare tier for presentation; "" for ordinary enemies.
+	var rarity := ""
 
 	static func from_array(d: Array) -> Enemy:
 		var row := Enemy.new()
@@ -51,16 +53,18 @@ class Enemy extends RefCounted:
 				row.has_shield = true
 				row.shield = float(d[14].shield)
 				row.max_shield = float(d[14].get("maxShield", 0.0))
+			if d[14].has("rarity"): row.rarity = str(d[14].rarity)
 		return row
 
 	func to_array() -> Array:
 		var d := [id, x, y, facing, phase, scale, hit_flash, type, burning, slowed, poisoned, diamond]
-		if has_logical or teleport_serial >= 0 or has_shield: d.append_array([logical_x, logical_y] if has_logical else [null, null])
+		if has_logical or teleport_serial >= 0 or has_shield or not rarity.is_empty(): d.append_array([logical_x, logical_y] if has_logical else [null, null])
 		var extra := {}
 		if teleport_serial >= 0: extra.teleportSerial = teleport_serial
 		if has_shield:
 			extra.shield = shield
 			extra.maxShield = max_shield
+		if not rarity.is_empty(): extra.rarity = rarity
 		if not extra.is_empty(): d.append(extra)
 		return d
 

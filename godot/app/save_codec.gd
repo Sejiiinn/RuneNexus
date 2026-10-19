@@ -2,6 +2,7 @@ extends RefCounted
 ## Existing Dart GameSaveData v2 wire contract, including v1 migration.
 ## Enum IDs and scalar field rules mirror lib/data/save/game_save*.dart.
 const CoreTree = preload("res://content/generated_core_tree.gd")
+const Rarity = preload("res://combat/enemy_rarity.gd")
 const ENUMS = {
 	"ResearchType": [
 		"researchEfficiency",
@@ -936,4 +937,8 @@ static func _object(name: String, v: Variant) -> Variant:
 				out.burnInstances.append({"remaining": out.burnRemaining, "damagePerSecond": out.burnDamagePerSecond, "damageMultiplier": out.burnDamageMultiplier, "sourceX": null, "sourceY": null, "ignoreArmorReduction": false})
 			out.slowInstances = _objects(v.get("slowInstances"), "SavedSlowInstance")
 			out.diamondReward = 0 if out.type in ["boss", "shieldBoss", "forgeBoss"] else clampi(_int(v.get("diamondReward")), 0, 3)
+			# Optional magic/rare identity; invalid or boss values restore an ordinary enemy.
+			if v.has("rarity") and not out.type in ["boss", "shieldBoss", "forgeBoss"] and Rarity.valid_values(v.rarity, v.get("affixes", [])):
+				out.rarity = v.rarity
+				out.affixes = v.get("affixes", []).duplicate()
 	return out

@@ -231,5 +231,54 @@ class ContentCompilerTests(unittest.TestCase):
         self.assertEqual(after['walkingEdges'], len(stage['map']['path']) - 1)
 
 
+    def test_wave_elites_compile_fixed_affixes_and_reject_invalid_authoring(self):
+        content = check_generated()
+        wave = content['stages'][5]['waves'][34]
+        dispatch = {row['groupId']: row['spawnIndices'] for row in wave['groupDispatch']}
+        authored = read_json(ROOT / 'godot/content/source/stages/006.json')['waves'][34]['elites']
+        compiled = {row['spawnIndex']: row for row in wave['eliteSpawns']}
+        expected = {}
+        for group_id in dispatch:
+            entries = [entry for entry in authored if entry['groupId'] == group_id]
+            members = dispatch[group_id][len(dispatch[group_id]) - sum(e['count'] for e in entries):]
+            flat = [entry for entry in entries for _ in range(entry['count'])]
+            for index, entry in zip(members, flat):
+                expected[index] = {'spawnIndex': index, 'rarity': entry['rarity'], 'affixes': entry['affixes']}
+        self.assertEqual(compiled, expected)
+        self.assertFalse(any('eliteSpawns' in w for w in content['stages'][0]['waves']))
+        magic = {'groupId': 'g01', 'rarity': 'magic', 'count': 1, 'affixes': ['swift']}
+        cases = [([dict(magic, groupId='g99')], 'Invalid wave elite entry'),
+                 ([dict(magic, rarity='unique')], 'Invalid wave elite entry'),
+                 ([dict(magic, count=99)], 'exceed eligible'),
+                 ([{k: v for k, v in magic.items() if k != 'affixes'}], 'Invalid wave elite entry'),
+                 ([dict(magic, affixes=[])], 'Invalid magic affixes'),
+                 ([dict(magic, affixes=['swift', 'sturdy', 'plated'])], 'Invalid magic affixes'),
+                 ([dict(magic, affixes=['sturdy', 'swift'])], 'Invalid magic affixes'),
+                 ([dict(magic, affixes=['swift', 'swift'])], 'Invalid magic affixes'),
+                 ([dict(magic, affixes=['flying'])], 'Invalid magic affixes'),
+                 ([dict(magic, rarity='rare', affixes=['swift'])], 'Invalid rare affixes'),
+                 ([], 'Invalid wave elites')]
+        for elites, message in cases:
+            with self.subTest(elites=elites), tempfile.TemporaryDirectory() as directory:
+                root = self.clone(directory)
+                self.mutate_stage(root, 6, lambda stage: stage['waves'][2].update(elites=elites))
+                with self.assertRaisesRegex(ValueError, message):
+                    compile_content(root)
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.clone(directory)
+            # Round 10 holds the shield boss in its third group.
+            self.mutate_stage(root, 6, lambda stage: stage['waves'][9].update(
+                elites=[dict(magic, groupId='g03')]))
+            with self.assertRaisesRegex(ValueError, 'exceed eligible'):
+                compile_content(root)
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.clone(directory)
+            path = root / 'godot/content/source/enemies.json'
+            definitions = read_json(path)
+            del definitions['enemyRarity']
+            path.write_text(record_json(definitions))
+            with self.assertRaisesRegex(ValueError, 'require enemyRarity'):
+                compile_content(root)
+
 if __name__ == '__main__':
     unittest.main()
