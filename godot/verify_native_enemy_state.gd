@@ -44,9 +44,9 @@ func _initialize() -> void:
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":2})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":2.0,"sourceX":2,"sourceY":3})
 	Enemy.step(e,0.5)
-	close(e.hp,970,"strongest burn expires into weaker remainder")
+	close(e.hp,965,"different source burns stack within their lifetimes")
 	Enemy.step(e,0.5)
-	close(e.hp,945,"weaker burn remains independently")
+	close(e.hp,940,"remaining source burns independently")
 	Enemy.add_burn(e,{"damagePerSecond":25.0,"duration":4.0,"damageMultiplier":2.0,"sourceX":2,"sourceY":3,"ignoreArmorReduction":true})
 	var transfer := Enemy.burn_transfer(e,{"x":2,"y":3})
 	close(transfer.damagePerSecond,50,"same source retains strongest dps")
@@ -116,7 +116,7 @@ func _initialize() -> void:
 	Enemy.add_burn(e,{"damagePerSecond":10.0,"duration":3,"sourceX":2,"sourceY":2})
 	events=Enemy.step(e,0.5)
 	var kill: Dictionary=events.filter(func(event): return event.type=="killed")[0]
-	check(kill.burnTransfer.sourceX==2,"equal burn dps chooses last instance")
+	check(kill.burnTransfer.sourceX==2,"latest source burn ticks first")
 	close(kill.burnTransfer.remaining,2.5,"kill transfer uses decremented lifetime")
 	e=enemy({"maxArmor":100,"armor":100,"riftMarkRemaining":2,"riftMarkDamageAmplification":0.25})
 	result=Enemy.apply_hit(e,{"damage":20})
@@ -155,21 +155,36 @@ func _vulnerability_timer_checks() -> void:
 
 
 func _dot_armor_checks() -> void:
+	# Poison passes armor fully. Burn without armor piercing enters armor at a
+	# fixed 50%; neither uses the size-based hit formula.
+	var e := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
+	Enemy.add_poison(e,40.0,2.0,1)
+	Enemy.step(e,0.5)
+	close(e.shield,0,"poison: shield consumed first")
+	check(e.shieldBroken,"poison: shield break latched")
+	close(e.armor,15,"poison: overflow consumes armor without reduction")
+	close(e.hp,1000,"poison: armor protects HP")
+	Enemy.step(e,0.5)
+	close(e.armor,0,"poison: armor consumed before HP")
+	close(e.hp,995,"poison: only armor overflow reaches HP")
+	e = enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
+	Enemy.add_burn(e,{"damagePerSecond":40.0,"duration":2.0,"ignoreArmorReduction":false})
+	Enemy.step(e,0.5)
+	close(e.shield,0,"burn: shield consumed first at full damage")
+	check(e.shieldBroken,"burn: shield break latched")
+	close(e.armor,17.5,"burn: overflow enters armor at fixed half")
+	close(e.hp,1000,"burn: armor protects HP")
+	Enemy.step(e,0.5)
+	close(e.armor,7.5,"burn: half rate continues on armor")
+	Enemy.step(e,0.5)
+	close(e.armor,0,"burn: armor consumed before HP")
+	close(e.hp,997.5,"burn: only reduced armor overflow reaches HP")
+	e = enemy({"speed":0.0,"maxArmor":100.0,"armor":100.0})
+	Enemy.add_burn(e,{"damagePerSecond":40.0,"duration":2.0,"ignoreArmorReduction":true})
+	Enemy.step(e,0.5)
+	close(e.armor,80,"armor-piercing burn passes armor fully")
+	# Same game time, different frame intervals and 4x at 60 FPS.
 	for kind in ["burn","poison"]:
-		var e := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
-		if kind == "burn":
-			Enemy.add_burn(e,{"damagePerSecond":40.0,"duration":2.0,"ignoreArmorReduction":false})
-		else:
-			Enemy.add_poison(e,40.0,2.0,1)
-		Enemy.step(e,0.5)
-		close(e.shield,0,kind+": shield consumed first")
-		check(e.shieldBroken,kind+": shield break latched")
-		close(e.armor,15,kind+": overflow consumes armor without reduction")
-		close(e.hp,1000,kind+": armor protects HP")
-		Enemy.step(e,0.5)
-		close(e.armor,0,kind+": armor consumed before HP")
-		close(e.hp,995,kind+": only armor overflow reaches HP")
-		# Same game time, different frame intervals and 4x at 60 FPS.
 		for dt in [1.0/120.0,1.0/60.0,1.0/30.0,4.0/60.0]:
 			e = enemy({"speed":0.0,"maxArmor":120.0,"armor":120.0})
 			if kind == "burn":
@@ -177,34 +192,37 @@ func _dot_armor_checks() -> void:
 			else:
 				Enemy.add_poison(e,100.0,2.0,1)
 			for tick in range(roundi(1.0/dt)): Enemy.step(e,dt)
-			close(e.armor,20,kind+": armor damage independent of dt "+str(dt))
+			close(e.armor,70 if kind == "burn" else 20,kind+": armor damage independent of dt "+str(dt))
 			close(e.hp,1000,kind+": no premature HP damage "+str(dt))
-	# Old saves with a false or missing per-burn flag use the new tick rule too.
+	# Old saves with a false or missing per-burn flag use the fixed armor factor.
 	for burn in [{"remaining":2.0,"damagePerSecond":40.0,"ignoreArmorReduction":false},{"remaining":2.0,"damagePerSecond":40.0}]:
 		var restored := Enemy.create(Enemy.snapshot(enemy({"speed":0.0,"maxArmor":100.0,"armor":100.0,"burnInstances":[burn]})))
 		Enemy.step(restored,0.5)
-		close(restored.armor,80,"restored burn ignores historical armor flag")
+		close(restored.armor,90,"restored burn without piercing uses fixed armor factor")
 	var legacy := enemy({"speed":0.0,"maxArmor":100.0,"armor":100.0,"burnRemaining":2.0,"burnDamagePerSecond":40.0})
 	Enemy.step(legacy,0.5)
-	close(legacy.armor,80,"legacy scalar burn ignores armor reduction")
+	close(legacy.armor,90,"legacy scalar burn uses fixed armor factor")
 	var marked := enemy({"speed":0.0,"maxArmor":20.0,"armor":20.0})
 	Enemy.add_rift_mark(marked,0.25,2.0)
 	Enemy.add_burn(marked,{"damagePerSecond":100.0,"duration":2.0,"sourceX":1,"sourceY":2})
 	var events := Enemy.step(marked,0.5)
-	close(marked.hp,957.5,"rift amplifies armor-bypassing burn")
+	# 62.5 marked damage enters armor at half: 20 armor, 11.25 overflow.
+	close(marked.hp,988.75,"rift amplifies burn before armor factor")
 	var damage: Dictionary = events.filter(func(event): return event.type=="damage" and event.kind=="burn")[0]
-	close(damage.damage,62.5,"burn event includes armor and HP damage")
-	close(damage.bonusDamage,12.5,"burn event retains rift contribution")
+	close(damage.damage,31.25,"burn event includes armor and HP damage")
+	close(damage.bonusDamage,6.25,"burn event retains rift contribution")
 	check(damage.sourceX==1 and damage.sourceY==2,"burn event retains source attribution")
 	var dying := enemy({"speed":0.0,"hp":5.0,"maxArmor":10.0,"armor":10.0})
-	Enemy.add_burn(dying,{"damagePerSecond":20.0,"duration":3.0,"sourceX":1,"sourceY":2,"ignoreArmorReduction":false})
+	Enemy.add_burn(dying,{"damagePerSecond":40.0,"duration":3.0,"sourceX":1,"sourceY":2,"ignoreArmorReduction":false})
 	events = Enemy.step(dying,1.0)
-	check(count(events,"killed")==1,"armor-bypassing burn reports kill once")
-	var transfer: Dictionary = events.filter(func(event): return event.type=="killed")[0].burnTransfer
+	check(count(events,"killed")==1,"armored burn reports kill once")
+	var kills := events.filter(func(event): return event.type=="killed")
+	if kills.is_empty(): return
+	var transfer: Dictionary = kills[0].burnTransfer
 	var recipient := enemy({"speed":0.0,"maxArmor":20.0,"armor":20.0})
 	Enemy.add_burn(recipient,transfer)
 	Enemy.step(recipient,1.0)
-	close(recipient.armor,0,"transferred burn ignores old false armor flag")
+	close(recipient.armor,0,"transferred burn keeps fixed armor factor")
 	close(recipient.hp,1000,"transferred burn still consumes armor")
 
 
@@ -259,7 +277,8 @@ func _damage_total(events: Array,kind: String) -> float:
 
 func _dot_expiry_checks() -> void:
 	# The oracle is the continuous active interval, independent of caller dt.
-	# The maximum active burn is 100*.1 + 50*.27 + 25*.43 = 34.25.
+	# Each source burns for its own lifetime: 100*.1 + 50*.37 + 25*.8 = 48.5.
+	# The shield takes 15, the other 33.5 enters armor at half (16.75).
 	for dt in [1.0/120.0,1.0/60.0,1.0/30.0,4.0/60.0,0.1,0.5,1.0]:
 		var suffix := " dt="+str(dt)
 		var poisoned := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
@@ -277,9 +296,9 @@ func _dot_expiry_checks() -> void:
 		Enemy.add_burn(burning,{"damagePerSecond":50.0,"duration":0.37,"sourceX":2,"sourceY":2})
 		Enemy.add_burn(burning,{"damagePerSecond":25.0,"duration":0.8,"sourceX":3,"sourceY":3})
 		events = _advance_dot(burning,1.0,dt)
-		close(_damage_total(events,"burn"),34.25,"burn integrates each strongest-active interval"+suffix)
+		close(_damage_total(events,"burn"),31.75,"burn integrates each source's active interval"+suffix)
 		close(burning.shield,0,"burn expiry shield layer"+suffix)
-		close(burning.armor,0.75,"burn expiry armor remainder"+suffix)
+		close(burning.armor,3.25,"burn expiry armor remainder"+suffix)
 		close(burning.hp,1000,"burn expiry armor protects HP"+suffix)
 		check(burning.burnInstances.is_empty(),"all burn expiries removed"+suffix)
 		close(burning.burnNumberDamage,0,"burn expiry flushes damage number"+suffix)
@@ -293,11 +312,16 @@ func _dot_expiry_checks() -> void:
 		close(_damage_total(Enemy.step(e,0.125),kind),8,kind+" exact boundary has one active interval")
 		close(_damage_total(Enemy.step(e,0.5),kind),0,kind+" expired effect cannot tick again")
 		close(e.hp,992,kind+" exact lifetime damage")
-	# A weaker effect that ends under a stronger effect contributes no damage.
+	# Within one source, a weaker effect that ends under a stronger one adds nothing.
 	var hidden := enemy({"speed":0.0})
-	Enemy.add_burn(hidden,{"damagePerSecond":20.0,"duration":0.1,"sourceX":1,"sourceY":1})
-	Enemy.add_burn(hidden,{"damagePerSecond":50.0,"duration":0.2,"sourceX":2,"sourceY":2})
+	Enemy.add_burn(hidden,{"damagePerSecond":20.0,"duration":0.1})
+	Enemy.add_burn(hidden,{"damagePerSecond":50.0,"duration":0.2})
 	close(_damage_total(Enemy.step(hidden,0.5),"burn"),10,"expired weaker burn does not reappear")
+	# Different sources each tick for their own lifetime.
+	var stacked := enemy({"speed":0.0})
+	Enemy.add_burn(stacked,{"damagePerSecond":20.0,"duration":0.1,"sourceX":1,"sourceY":1})
+	Enemy.add_burn(stacked,{"damagePerSecond":50.0,"duration":0.2,"sourceX":2,"sourceY":2})
+	close(_damage_total(Enemy.step(stacked,0.5),"burn"),12,"different source burns add their lifetimes")
 	# Restoring mid-effect preserves the same remaining-time integral.
 	var saved := enemy({"speed":0.0,"burnInstances":[{"remaining":0.1,"damagePerSecond":100.0},{"remaining":0.5,"damagePerSecond":50.0}],"poisonRemaining":0.05,"poisonDamagePerSecond":20.0,"poisonStacks":2})
 	var restored := Enemy.create(Enemy.snapshot(saved))
@@ -346,29 +370,30 @@ func _dot_expiry_event_checks() -> void:
 	Enemy.add_poison(e,20.0,0.1,1)
 	var events := Enemy.step(e,0.5)
 	var damages := events.filter(func(event): return event.type=="damage")
-	check(damages.size()==3,"two burn intervals precede the poison tick")
+	check(damages.size()==3,"two source burns precede the poison tick")
 	if damages.size()==3:
-		check(damages[0].kind=="burn" and damages[0].sourceX==1,"strongest interval retains first burn source")
-		check(damages[1].kind=="burn" and damages[1].sourceX==2,"weaker remainder retains second burn source")
+		check(damages[0].kind=="burn" and damages[0].sourceX==2,"latest source burns first")
+		check(damages[1].kind=="burn" and damages[1].sourceX==1,"earlier source keeps its own attribution")
 		check(damages[2].kind=="poison","burn intervals remain before poison")
-		close(damages[0].damage,10,"strong burn interval event damage")
-		close(damages[1].damage,20,"weak burn remainder event damage")
+		close(damages[0].damage,25,"latest source burn event damage")
+		close(damages[1].damage,10,"earlier source clips to its lifetime")
 		close(damages[2].damage,2,"poison event clips duration")
 	var numbers := events.filter(func(event): return event.type=="damageNumber")
 	check(numbers.size()==2,"expiry keeps one aggregate number per DoT kind")
 	if numbers.size()==2:
-		close(numbers[0].damage,30,"burn number aggregates both intervals")
+		close(numbers[0].damage,35,"burn number aggregates both sources")
 		close(numbers[1].damage,2,"poison number uses clipped interval")
 		check(numbers[0].kind=="burn" and numbers[1].kind=="poison","damage-number order stays burn then poison")
 	# Full-step regeneration still precedes every burn interval; breaking is final.
-	e = enemy({"speed":0.0,"maxShield":100.0,"shield":5.0,"shieldRegenRate":0.1,"maxArmor":10.0,"armor":10.0})
+	# 30 burn: 10 breaks the regenerated shield, 20 enters 5 armor at half.
+	e = enemy({"speed":0.0,"maxShield":100.0,"shield":5.0,"shieldRegenRate":0.1,"maxArmor":5.0,"armor":5.0})
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5})
 	Enemy.step(e,0.5)
 	close(e.shield,0,"regen occurs once before piecewise burn")
 	check(e.shieldBroken,"piecewise burn latches shield break")
 	close(e.armor,0,"burn remainder crosses broken shield into armor")
-	close(e.hp,990,"burn remainder reaches HP after armor")
+	close(e.hp,995,"burn remainder reaches HP after armor")
 	Enemy.step(e,0.5)
 	close(e.shield,0,"piecewise-broken shield never regenerates")
 	e = enemy({"speed":0.0,"maxShield":100.0,"shield":5.0,"shieldRegenRate":0.1})
@@ -378,27 +403,27 @@ func _dot_expiry_event_checks() -> void:
 	check(not e.shieldBroken,"short poison does not falsely latch shield break")
 	Enemy.step(e,1.0)
 	close(e.shield,16,"unbroken shield regenerates after poison expiry")
-	# A kill in the weaker remainder belongs to that source, once only.
+	# A kill by the source that ticks second belongs to that source, once only.
 	e = enemy({"hp":12.0})
-	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":2,"sourceY":2})
+	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
 	Enemy.add_poison(e,100.0,0.5,1)
 	events = Enemy.step(e,0.3)
-	check(count(events,"killed")==1,"weaker remainder kills exactly once before poison")
+	check(count(events,"killed")==1,"second source kills exactly once before poison")
 	var kills := events.filter(func(event): return event.type=="killed")
 	if kills.size()==1:
 		var transfer: Dictionary = kills[0].burnTransfer
-		check(not transfer.is_empty(),"burn remainder kill retains a burn transfer")
+		check(not transfer.is_empty(),"second source kill retains a burn transfer")
 		if not transfer.is_empty():
-			check(transfer.sourceX==2,"weaker remainder kill uses the weaker source")
+			check(transfer.sourceX==2,"second source kill uses that source")
 			close(transfer.remaining,0.2,"kill transfer retains end-of-step lifetime")
 			Enemy.step(e,0.1)
 			close(transfer.remaining,0.2,"kill transfer remains an independent snapshot")
 	check(events.size()==3 and events[0].type=="damage" and events[1].type=="killed" and events[2].type=="damage","kill is emitted before its lethal damage event")
 	close(_damage_total(events,"burn"),12,"burn damage events clamp to actual HP on death")
 	close(_damage_total(events,"poison"),0,"poison after burn death does not deal damage")
-	close(e.x,0,"death in a burn remainder prevents movement")
-	check(count(Enemy.step(e,0.5),"killed")==0,"repeated dead step never repeats remainder kill")
+	close(e.x,0,"death by a burn prevents movement")
+	check(count(Enemy.step(e,0.5),"killed")==0,"repeated dead step never repeats burn kill")
 
 	# A short poison must not kill using damage from its inactive remainder.
 	e = enemy({"hp":0.5})
@@ -414,16 +439,22 @@ func _dot_expiry_event_checks() -> void:
 	close(e.x,5,"poison death prevents movement")
 	check(events.size()==2 and events[0].type=="killed" and events[1].type=="damage","poison kill precedes its damage event")
 	check(count(Enemy.step(e,0.5),"killed")==0,"dead poison does not kill twice")
-	# Equal-DPS attribution changes only when the last instance expires.
+	# Equal-DPS sources both burn; the latest source still ticks first.
 	e = enemy({"speed":0.0})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":1,"sourceY":1})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.1,"sourceX":2,"sourceY":2})
 	events = Enemy.step(e,0.5)
 	damages = events.filter(func(event): return event.type=="damage")
-	close(e.hp,975,"equal-DPS burn continues after selected instance expires")
-	check(damages.size()==2,"equal-DPS expiry has both attributed intervals")
+	close(e.hp,970,"equal-DPS sources each burn for their lifetime")
+	check(damages.size()==2,"equal-DPS sources have separate attributed intervals")
 	if damages.size()==2:
-		check(damages[0].sourceX==2 and damages[1].sourceX==1,"equal-DPS latest-instance tie break holds across expiry")
+		check(damages[0].sourceX==2 and damages[1].sourceX==1,"latest source tick order holds for equal DPS")
+	# Equal-DPS candidates of one source keep the latest-instance tie break.
+	e = enemy({"speed":0.0})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5})
+	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.1})
+	events = Enemy.step(e,0.5)
+	close(e.hp,975,"same-source equal-DPS burn continues after selected instance expires")
 
 func _target_multiplier_checks() -> void:
 	var e := enemy({"speed":0.0,"maxShield":20.0,"shield":20.0,"maxArmor":100.0,"armor":100.0})
@@ -442,15 +473,16 @@ func _training_dot_checks() -> void:
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.2,"sourceX":0,"sourceY":0,"damageOverTimeIncreaseMultiplier":2.0})
 	Enemy.add_burn(e,{"damagePerSecond":95.0,"duration":0.5,"sourceX":1,"sourceY":0})
 	Enemy.step(e,0.1,[],-1,1.0,0.0)
-	close(e.hp,990.0,"training0 chooses raw strongest burn")
+	close(e.hp,980.5,"training0 burns each source at raw DPS")
+	# 100*(1+.3/2) + 95*1.3: each source divides training by its own layer.
 	Enemy.step(e,0.1,[],-1,1.0,0.3)
-	close(e.hp,977.65,"training purchase reorders active burns before choosing strongest")
+	close(e.hp,956.65,"training purchase applies per source original layer")
 	var transfer := Enemy.burn_transfer(e,{"x":1,"y":0},0.3)
 	close(transfer.damagePerSecond,95.0,"transfer keeps untrained raw DPS")
 	check(not transfer.has("damageOverTimeIncreaseMultiplier"),"neutral burn metadata remains absent")
 	var restored := Enemy.create(Enemy.snapshot(e))
 	Enemy.step(restored,0.1,[],-1,1.2,0.3)
-	close(restored.hp,962.83,"restored raw burn uses current training and target layer once")
+	close(restored.hp,941.83,"restored raw burn uses current training and target layer once")
 	# Same-source different additive layers can reverse strength after purchase.
 	e = enemy({"speed":0.0})
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.2,"sourceX":0,"sourceY":0,"damageOverTimeIncreaseMultiplier":2.0,"damageMultiplier":1.2})
@@ -475,6 +507,14 @@ func _training_dot_checks() -> void:
 	close(candidate_restore.hp,975.04,"restored same-source candidates choose current training strongest")
 	Enemy.clear_burn_source(e,{"x":0,"y":0})
 	for burn in e.burnInstances: check(burn.sourceX==null and burn.sourceY==null,"removing source clears all candidate attribution")
+	# Detached candidates of a removed turret still never stack with each other.
+	e = enemy({"speed":0.0})
+	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":1.0,"sourceX":5,"sourceY":5,"damageOverTimeIncreaseMultiplier":2.0})
+	Enemy.add_burn(e,{"damagePerSecond":95.0,"duration":1.0,"sourceX":5,"sourceY":5})
+	Enemy.add_burn(e,{"damagePerSecond":40.0,"duration":1.0,"sourceX":6,"sourceY":6})
+	Enemy.clear_burn_source(e,{"x":5,"y":5})
+	Enemy.step(e,0.1)
+	close(e.hp,986.0,"detached candidates keep one strongest beside other sources")
 	# Poison supports the same optional original layer; legacy DPS uses neutral1.
 	for increase in [1.0,2.0]:
 		e = enemy({"speed":0.0})

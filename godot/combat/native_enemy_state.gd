@@ -3,6 +3,9 @@ extends RefCounted
 ## Preserve discrete update order and discarded waypoint overshoot.
 ## Continuous damage integrates only the interval where each effect is active.
 
+## Share of non-poison damage over time that enters the armor layer.
+const DOT_ARMOR_FACTOR := 0.5
+
 static func create(raw: Dictionary) -> Dictionary:
 	var e: Dictionary = raw.duplicate(true)
 	var defaults := {"id":0,"maxHp":1.0,"maxShield":0.0,"maxArmor":0.0,"speed":0.0,"shieldRegenRate":0.0,"boardDistanceScale":1.0,"distanceTravelled":0.0,"targetIndex":1,"facingAngle":0.0,"shieldBroken":false,"arrived":false,"killReported":false,"burnInstances":[],"slowInstances":[],"firstControlApplied":false,"stunRemaining":0.0,"freezeRemaining":0.0,"poisonRemaining":0.0,"poisonDamagePerSecond":0.0,"poisonDamageMultiplier":1.0,"poisonStacks":0,"physicalVulnerabilityRemaining":0.0,"physicalVulnerabilityBonus":0.0,"elementalVulnerabilityRemaining":0.0,"elementalVulnerabilityBonus":0.0,"riftMarkRemaining":0.0,"riftMarkDamageAmplification":0.0,"burnNumberDamage":0.0,"burnNumberTimer":0.0,"poisonNumberDamage":0.0,"poisonNumberTimer":0.0,"hitFlashTimer":0.0,"statusEffectTime":0.0,"laneOffsetRatio":0.0,"visualPhase":0.0,"diamondReward":0,"path":[]}
@@ -126,7 +129,9 @@ static func _event(e: Dictionary,kind: String,details: Dictionary={}) -> Diction
 	result.merge(details,true)
 	return result
 
-static func _apply_layers(e: Dictionary,damage: float,ignore: bool) -> float:
+## A negative armor factor selects the size-based hit formula. Ticks pass a
+## fixed factor so small frame slices are never crushed by that formula.
+static func _apply_layers(e: Dictionary,damage: float,ignore: bool,armor_factor: float=-1.0) -> float:
 	var actual := 0.0
 	if e.shield>0:
 		var taken := minf(e.shield,damage)
@@ -135,7 +140,9 @@ static func _apply_layers(e: Dictionary,damage: float,ignore: bool) -> float:
 		damage-=taken
 		if e.shield==0: e.shieldBroken=true
 	if damage>0 and e.armor>0:
-		if not ignore:
+		if not ignore and armor_factor >= 0.0:
+			damage *= armor_factor
+		elif not ignore:
 			var pressure := sqrt(float(e.maxArmor))*3.0
 			damage *= 0.12+0.88*damage/(damage+pressure)
 		var taken := minf(e.armor,damage)
@@ -155,10 +162,11 @@ static func apply_hit(e: Dictionary,attack: Dictionary,target_multiplier: float=
 	var damage := float(attack.get("damage",0.0)) * target_multiplier
 	if damage<=0 or e.hp<=0 or e.arrived: return result
 	var ignore := bool(attack.get("ignoreArmorReduction",false))
+	var armor_factor := float(attack.get("armorFactor",-1.0))
 	var amp: float = float(e.riftMarkDamageAmplification) if e.riftMarkRemaining>0 else 0.0
 	var base := 0.0
-	if amp>0: base=_apply_layers(e.duplicate(),damage,ignore)
-	result.actualDamage=_apply_layers(e,damage*(1+amp),ignore)
+	if amp>0: base=_apply_layers(e.duplicate(),damage,ignore,armor_factor)
+	result.actualDamage=_apply_layers(e,damage*(1+amp),ignore,armor_factor)
 	result.bonusDamage=maxf(0,result.actualDamage-base) if amp>0 else 0.0
 	if e.hp<=0 and not e.killReported:
 		e.killReported=true
@@ -267,9 +275,11 @@ static func add_rift_mark(e: Dictionary,amplification: float,duration: float) ->
 	e.riftMarkRemaining=maxf(e.riftMarkRemaining,duration)
 
 static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array,burn_step_dt: float=0.0,target_multiplier: float=1.0) -> float:
-	# Continuous damage ignores armor reduction, but still consumes shield/armor
-	# before HP. Saved burn flags remain compatible and do not gate this rule.
-	attack["ignoreArmorReduction"] = true
+	# Continuous damage never uses the size-based hit formula and still consumes
+	# shield/armor before HP. Poison passes armor fully; every other DoT enters
+	# armor at a fixed factor unless its saved armor-piercing flag is set.
+	if kind == "poison": attack["ignoreArmorReduction"] = true
+	else: attack["armorFactor"] = DOT_ARMOR_FACTOR
 	var result := apply_hit(e,attack,target_multiplier)
 	if result.killed and kind == "burn":
 		# Burn lifetimes advance after all active intervals have been resolved.
@@ -281,6 +291,54 @@ static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array
 	if result.actualDamage>0:
 		events.append(_event(e,"damage",{"kind":kind,"damage":result.actualDamage,"bonusDamage":result.bonusDamage,"sourceX":attack.get("sourceX"),"sourceY":attack.get("sourceY")}))
 	return result.actualDamage
+
+static func _same_burn_source(a: Dictionary,b: Dictionary) -> bool:
+	return a.sourceX==b.sourceX and a.sourceY==b.sourceY
+
+# Each source turret contributes its own strongest burn, so different turrets
+# stack while one turret's candidates never do. Burns detached by turret removal
+# share the null source and keep the strongest-only rule among themselves.
+# The latest source ticks first, matching the previous latest-instance tie break.
+static func _tick_burns(e: Dictionary,dt: float,training_rate: float,target_multiplier: float,events: Array) -> void:
+	var count: int = e.burnInstances.size()
+	var single := true
+	for i in range(1,count):
+		if not _same_burn_source(e.burnInstances[0],e.burnInstances[i]):
+			single = false
+			break
+	if single:
+		_tick_burn_source(e,e.burnInstances,dt,training_rate,target_multiplier,events)
+		return
+	var handled := PackedByteArray()
+	handled.resize(count)
+	for start in range(count-1,-1,-1):
+		if handled[start] == 1: continue
+		if e.hp <= 0: return
+		var group: Array = []
+		for i in range(start+1):
+			if handled[i] == 0 and _same_burn_source(e.burnInstances[start],e.burnInstances[i]):
+				handled[i] = 1
+				group.append(e.burnInstances[i])
+		_tick_burn_source(e,group,dt,training_rate,target_multiplier,events)
+
+static func _tick_burn_source(e: Dictionary,burns: Array,dt: float,training_rate: float,target_multiplier: float,events: Array) -> void:
+	var elapsed := 0.0
+	while elapsed < dt and e.hp > 0:
+		var strongest: Dictionary = {}
+		# Reverse traversal preserves the latest-instance tie break. We only
+		# split when the strongest expires; hidden weaker expiries add no DPS.
+		for i in range(burns.size()-1,-1,-1):
+			var b: Dictionary = burns[i]
+			if b.remaining > elapsed and (strongest.is_empty() or burn_damage_per_second(b,training_rate) > burn_damage_per_second(strongest,training_rate)):
+				strongest = b
+		if strongest.is_empty(): break
+		var interval_end := minf(dt,float(strongest.remaining))
+		var attack := {"damage":burn_damage_per_second(strongest,training_rate)*(interval_end-elapsed),
+			"ignoreArmorReduction":strongest.ignoreArmorReduction,
+			"sourceX":strongest.sourceX,"sourceY":strongest.sourceY,
+			"burnTransfer":strongest}
+		e.burnNumberDamage+=_dot_hit(e,attack,"burn",events,dt,target_multiplier)
+		elapsed = interval_end
 
 static func _max_burn_multiplier(e: Dictionary) -> float:
 	var value := 1.0 if e.burnInstances.is_empty() else 0.0
@@ -339,23 +397,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 		e.hp=minf(e.maxHp,e.hp+e.maxHp*float(e.hpRegenRate)*dt)
 	if not e.burnInstances.is_empty():
 		e.burnNumberTimer+=dt
-		var elapsed := 0.0
-		while elapsed < dt and e.hp > 0:
-			var strongest: Dictionary = {}
-			# Reverse traversal preserves the latest-instance tie break. We only
-			# split when the strongest expires; hidden weaker expiries add no DPS.
-			for i in range(e.burnInstances.size()-1,-1,-1):
-				var b: Dictionary = e.burnInstances[i]
-				if b.remaining > elapsed and (strongest.is_empty() or burn_damage_per_second(b,training_rate) > burn_damage_per_second(strongest,training_rate)):
-					strongest = b
-			if strongest.is_empty(): break
-			var interval_end := minf(dt,float(strongest.remaining))
-			var attack := {"damage":burn_damage_per_second(strongest,training_rate)*(interval_end-elapsed),
-				"ignoreArmorReduction":strongest.ignoreArmorReduction,
-				"sourceX":strongest.sourceX,"sourceY":strongest.sourceY,
-				"burnTransfer":strongest}
-			e.burnNumberDamage+=_dot_hit(e,attack,"burn",events,dt,target_multiplier)
-			elapsed = interval_end
+		_tick_burns(e,dt,training_rate,target_multiplier,events)
 		for b in e.burnInstances: b.remaining=maxf(0,b.remaining-dt)
 		e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
 		if e.hp>0 and (e.burnNumberTimer>=0.28 or e.burnInstances.is_empty()) and e.burnNumberDamage>0:

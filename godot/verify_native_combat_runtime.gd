@@ -38,6 +38,7 @@ func _initialize() -> void:
 	b.process_command({"epoch":4,"sequence":2,"dt":0.2})
 	_check(JSON.stringify(a.snapshot().enemies) == JSON.stringify(b.snapshot().enemies), "batched original timestep equivalence")
 	_damage_training_checks(fixtures)
+	_multi_burn_checks(fixtures)
 	_boss_damage_checks(fixtures)
 	_exact_checks(fixtures)
 	_response_mode_checks()
@@ -390,6 +391,29 @@ func _training_attack(t: Dictionary,crit: float = 1.0) -> Dictionary:
 
 func _training_near(actual: float,expected: float,label: String) -> void:
 	_check(absf(actual-expected)<1e-8*maxf(1.0,absf(expected)),label+" actual="+str(actual)+" expected="+str(expected))
+
+# Two fire turrets keep separate burns on one target; each records its own share
+# and both enter armor at the fixed DoT factor.
+func _multi_burn_checks(fixtures: Array) -> void:
+	var input := _training_input(fixtures,"magic")
+	var r = Runtime.new()
+	r.start(100,{"combatConfig":{},"enemies":[{"id":1,"hp":10000.0,"maxHp":10000.0,"maxArmor":10000.0,"armor":10000.0,"x":50.0,"y":0.0,"speed":0.0}],
+		"turrets":[{"id":1,"position":[0,0],"statInput":input,"state":{"x":0,"y":0}},{"id":2,"position":[0,1],"statInput":input.duplicate(true),"state":{"x":0,"y":1}}]},
+		{"clock":"godot","phase":"wave","running":true})
+	r.running = false
+	var e: Dictionary = r.enemies["1"]
+	for id in ["1","2"]:
+		var t: Dictionary = r.turrets[id]
+		r._hit(t,_training_attack(t),e,1.0,"direct",true)
+	_check(e.burnInstances.size()==2,"two fire turrets attach separate burns")
+	if e.burnInstances.size()!=2: return
+	var dps: float = e.burnInstances[0].damagePerSecond
+	var armor_before: float = e.armor
+	var dealt_before := {"1":float(r.turrets["1"].burnDamageDealt),"2":float(r.turrets["2"].burnDamageDealt)}
+	r._step(0.1)
+	_training_near(armor_before-e.armor,2.0*dps*0.1*0.5,"two fire turret burns stack at the fixed armor factor")
+	for id in ["1","2"]:
+		_training_near(float(r.turrets[id].burnDamageDealt)-dealt_before[id],dps*0.1*0.5,"turret "+id+" records its own burn")
 
 func _damage_training_checks(fixtures: Array) -> void:
 	const Stats = preload("res://combat/turret_stat_calculation.gd")

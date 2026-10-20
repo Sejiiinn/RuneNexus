@@ -192,7 +192,8 @@ func _dot() -> void:
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":2.0,"sourceX":1,"sourceY":0})
 	check(e.burnInstances.size()==2,"same-source refresh keeps one instance")
 	Enemy.step(e,2.0)
-	near(e.hp,9875.0,"strongest burn refresh and expiry remain unchanged")
+	# Source 0 refreshes 75 DPS to 1s; source 1 still burns separately for 2s.
+	near(e.hp,9825.0,"same-source refresh and other-source burns stack")
 	e = Enemy.create(enemy())
 	Enemy.add_poison(e,10.0,3.0,1,1.0,1.5)
 	near(e.poisonDamagePerSecond,15.0,"existing poison shares speed mechanism")
