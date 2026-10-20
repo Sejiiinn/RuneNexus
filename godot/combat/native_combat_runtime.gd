@@ -428,7 +428,7 @@ func _target_damage_multiplier(e: Dictionary) -> float:
 	return 1.0 + _boss_damage_bonus_rate if _boss_damage_bonus_rate > 0.0 and _boss(e) else 1.0
 
 func _boss(e: Dictionary) -> bool:
-	return bool(e.get("isBoss",false)) or e.get("type","") in ["boss","shieldBoss","forgeBoss"]
+	return Enemy.is_boss(e)
 
 # Larger score means nearer the core. Subtracting each route's own length
 # preserves every same-path ordering/tie while comparing unequal routes fairly.
@@ -1348,7 +1348,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		var p := logical + _visual_enemy_offset(e) / tile_size
 		var burning: bool = not e.burnInstances.is_empty()
 		var slowed: bool = not e.slowInstances.is_empty()
-		var poisoned: bool = float(e.poisonRemaining) > 0
+		var poisoned: bool = not e.poisonInstances.is_empty()
 		var diamond: bool = int(e.get("diamondReward", 0)) > 0
 		var row: FrameRows.Enemy = enemy_pool.get(e.id) if reuse_static else null
 		if row == null: row = FrameRows.Enemy.new()

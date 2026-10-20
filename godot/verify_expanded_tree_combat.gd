@@ -195,11 +195,12 @@ func _dot() -> void:
 	# Source 0 refreshes 75 DPS to 1s; source 1 still burns separately for 2s.
 	near(e.hp,9825.0,"same-source refresh and other-source burns stack")
 	e = Enemy.create(enemy())
-	Enemy.add_poison(e,10.0,3.0,1,1.0,1.5)
-	near(e.poisonDamagePerSecond,15.0,"existing poison shares speed mechanism")
-	near(e.poisonRemaining,2.0,"existing poison lifetime compresses")
+	Enemy.add_poison(e,{"damagePerSecond":10.0,"duration":3.0,"speedMultiplier":1.5})
+	near(e.poisonInstances[0].damagePerSecond,15.0,"existing poison shares speed mechanism")
+	near(e.poisonInstances[0].remaining,2.0,"existing poison lifetime compresses")
 	Enemy.step(e,5.0)
-	near(e.hp,9970.0,"existing poison total preserved without adding any poison attack")
+	# Total 30 is preserved; one stack adds the 5% stack bonus.
+	near(e.hp,9968.5,"existing poison total preserved without adding any poison attack")
 
 func _control() -> void:
 	var e := Enemy.create(enemy())

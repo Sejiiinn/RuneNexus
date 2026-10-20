@@ -502,7 +502,8 @@ func _boss_bonus_restore_cases(adapter, saved: Dictionary) -> void:
 	resumed.running = false
 	check(e.burnInstances[0].damagePerSecond == 0.5 and e.burnInstances[0].damageOverTimeIncreaseMultiplier == 2.0,"adapter resume preserves raw burn DPS and original layer")
 	check(e.burnInstances.size()==2 and e.burnInstances[1].damagePerSecond==0.475 and not e.burnInstances[1].has("damageOverTimeIncreaseMultiplier"),"codec adapter resume preserves same-source candidate with neutral optional metadata")
-	check(e.poisonDamagePerSecond == 2.0 and e.poisonDamageOverTimeIncreaseMultiplier == 2.0,"adapter resume preserves raw poison DPS and original layer")
+	var resumed_poison: Array = e.poisonInstances.filter(func(p): return p.damagePerSecond == 2.0 and p.damageOverTimeIncreaseMultiplier == 2.0)
+	check(e.poisonInstances.size() == 2 and resumed_poison.size() == 2,"adapter resume converts legacy poison stacks with raw DPS and original layer")
 	before = e.hp
 	resumed._step(0.1)
-	check(is_equal_approx(before-float(e.hp),(0.475*1.4+2.0*2.0*(1.0+0.4/2.0))*0.1*1.2),"adapter resume applies training additively then boss multiplier once")
+	check(is_equal_approx(before-float(e.hp),(0.475*1.4+2.0*2.0*(1.0+0.4/2.0)*1.1)*0.1*1.2),"adapter resume applies training additively, then the stack bonus and boss multiplier once")

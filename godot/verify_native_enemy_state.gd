@@ -10,6 +10,10 @@ func close(actual: float,expected: float,label: String) -> void:
 	check(absf(actual-expected)<0.00001,label+" got "+str(actual)+" expected "+str(expected))
 func count(events: Array,kind: String) -> int:
 	return events.filter(func(e): return e.type==kind).size()
+func poison(e: Dictionary,dps: float,duration: float,extra: Dictionary={}) -> void:
+	var value := {"damagePerSecond":dps,"duration":duration}
+	value.merge(extra,true)
+	Enemy.add_poison(e,value)
 func enemy(extra: Dictionary={}) -> Dictionary:
 	var raw := {"id":5,"maxHp":1000.0,"hp":1000.0,"speed":10.0,"path":[{"x":0.0,"y":0.0},{"x":10.0,"y":0.0},{"x":10.0,"y":10.0}]}
 	raw.merge(extra,true)
@@ -23,6 +27,7 @@ func _initialize() -> void:
 	_dot_expiry_checks()
 	_dot_reapplication_checks()
 	_dot_expiry_event_checks()
+	_boss_slow_checks()
 	var e := enemy({"speed":0.0,"maxShield":100.0,"shield":20.0,"shieldRegenRate":0.1,"maxArmor":100.0,"armor":10.0})
 	Enemy.add_burn(e,{"damagePerSecond":30.0,"duration":1.0})
 	Enemy.step(e,1.0)
@@ -56,11 +61,12 @@ func _initialize() -> void:
 	check(Enemy.burn_transfer(e,{"x":2,"y":3}).is_empty(),"source removal clears attribution")
 	check(e.burnInstances.size()==1,"source removal preserves damage")
 	e=enemy()
-	Enemy.add_poison(e,10,0.01,3)
-	Enemy.add_poison(e,10,0.01,3)
+	poison(e,10,0.01)
+	poison(e,10,0.01)
 	Enemy.step(e,0.5)
-	close(e.hp,999.8,"poison last tick clips to active lifetime")
-	check(e.poisonStacks==0,"poison expiration clears stacks")
+	# Two stacks: 20 DPS with a 10% stack bonus for 0.01s.
+	close(e.hp,999.78,"poison last tick clips to active lifetime")
+	check(e.poisonInstances.is_empty(),"poison expiration clears stacks")
 	e=enemy()
 	Enemy.add_slow(e,0.2,0.1)
 	Enemy.add_slow(e,0.5,1.0)
@@ -79,7 +85,7 @@ func _initialize() -> void:
 	close(e.riftMarkDamageAmplification,0,"rift expires after dot")
 	e=enemy({"hp":5.0})
 	Enemy.add_burn(e,{"damagePerSecond":10.0,"duration":3,"sourceX":2,"sourceY":3})
-	Enemy.add_poison(e,100,1,1)
+	poison(e,100,1)
 	var events := Enemy.step(e,1)
 	check(count(events,"killed")==1,"burn then poison kills exactly once")
 	check(count(Enemy.step(e,1),"killed")==0,"dead repeated step no kill")
@@ -158,15 +164,16 @@ func _dot_armor_checks() -> void:
 	# Poison passes armor fully. Burn without armor piercing enters armor at a
 	# fixed 50%; neither uses the size-based hit formula.
 	var e := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
-	Enemy.add_poison(e,40.0,2.0,1)
+	# One stack: 40 DPS with a 5% stack bonus deals 21 per half second.
+	poison(e,40.0,2.0)
 	Enemy.step(e,0.5)
 	close(e.shield,0,"poison: shield consumed first")
 	check(e.shieldBroken,"poison: shield break latched")
-	close(e.armor,15,"poison: overflow consumes armor without reduction")
+	close(e.armor,14,"poison: overflow consumes armor without reduction")
 	close(e.hp,1000,"poison: armor protects HP")
 	Enemy.step(e,0.5)
 	close(e.armor,0,"poison: armor consumed before HP")
-	close(e.hp,995,"poison: only armor overflow reaches HP")
+	close(e.hp,993,"poison: only armor overflow reaches HP")
 	e = enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
 	Enemy.add_burn(e,{"damagePerSecond":40.0,"duration":2.0,"ignoreArmorReduction":false})
 	Enemy.step(e,0.5)
@@ -190,9 +197,9 @@ func _dot_armor_checks() -> void:
 			if kind == "burn":
 				Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":2.0})
 			else:
-				Enemy.add_poison(e,100.0,2.0,1)
+				poison(e,100.0,2.0)
 			for tick in range(roundi(1.0/dt)): Enemy.step(e,dt)
-			close(e.armor,70 if kind == "burn" else 20,kind+": armor damage independent of dt "+str(dt))
+			close(e.armor,70 if kind == "burn" else 15,kind+": armor damage independent of dt "+str(dt))
 			close(e.hp,1000,kind+": no premature HP damage "+str(dt))
 	# Old saves with a false or missing per-burn flag use the fixed armor factor.
 	for burn in [{"remaining":2.0,"damagePerSecond":40.0,"ignoreArmorReduction":false},{"remaining":2.0,"damagePerSecond":40.0}]:
@@ -282,14 +289,15 @@ func _dot_expiry_checks() -> void:
 	for dt in [1.0/120.0,1.0/60.0,1.0/30.0,4.0/60.0,0.1,0.5,1.0]:
 		var suffix := " dt="+str(dt)
 		var poisoned := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
-		for stack in range(3): Enemy.add_poison(poisoned,40.0,0.37,3)
+		# Three stacks: 120 DPS with a 15% stack bonus for 0.37s = 51.06.
+		for stack in range(3): poison(poisoned,40.0,0.37)
 		var events := _advance_dot(poisoned,1.0,dt)
-		close(_damage_total(events,"poison"),44.4,"poison active interval total"+suffix)
+		close(_damage_total(events,"poison"),51.06,"poison active interval total"+suffix)
 		close(poisoned.shield,0,"poison expiry shield layer"+suffix)
 		close(poisoned.armor,0,"poison expiry armor layer"+suffix)
-		close(poisoned.hp,990.6,"poison expiry HP overflow"+suffix)
+		close(poisoned.hp,983.94,"poison expiry HP overflow"+suffix)
 		check(poisoned.shieldBroken,"poison expiry keeps shield break"+suffix)
-		check(poisoned.poisonStacks==0 and poisoned.poisonRemaining==0 and poisoned.poisonDamagePerSecond==0,"poison expiry clears damage state"+suffix)
+		check(poisoned.poisonInstances.is_empty(),"poison expiry clears damage state"+suffix)
 		close(poisoned.poisonNumberDamage,0,"poison expiry flushes damage number"+suffix)
 		var burning := enemy({"speed":0.0,"maxShield":15.0,"shield":15.0,"maxArmor":20.0,"armor":20.0})
 		Enemy.add_burn(burning,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
@@ -306,12 +314,14 @@ func _dot_expiry_checks() -> void:
 	for kind in ["burn","poison"]:
 		var e := enemy({"speed":0.0})
 		if kind == "burn": Enemy.add_burn(e,{"damagePerSecond":64.0,"duration":0.125})
-		else: Enemy.add_poison(e,64.0,0.125,1)
+		else: poison(e,64.0,0.125)
 		close(_damage_total(Enemy.step(e,0.0),kind),0,kind+" zero dt does not tick")
 		close(e.hp,1000,kind+" zero dt preserves HP")
-		close(_damage_total(Enemy.step(e,0.125),kind),8,kind+" exact boundary has one active interval")
+		# One poison stack carries the 5% stack bonus.
+		var lifetime := 8.0 if kind == "burn" else 8.4
+		close(_damage_total(Enemy.step(e,0.125),kind),lifetime,kind+" exact boundary has one active interval")
 		close(_damage_total(Enemy.step(e,0.5),kind),0,kind+" expired effect cannot tick again")
-		close(e.hp,992,kind+" exact lifetime damage")
+		close(e.hp,1000.0-lifetime,kind+" exact lifetime damage")
 	# Within one source, a weaker effect that ends under a stronger one adds nothing.
 	var hidden := enemy({"speed":0.0})
 	Enemy.add_burn(hidden,{"damagePerSecond":20.0,"duration":0.1})
@@ -328,26 +338,66 @@ func _dot_expiry_checks() -> void:
 	var original_events := Enemy.step(saved,0.5)
 	var restored_events := Enemy.step(restored,0.5)
 	check(original_events==restored_events,"DoT expiry events roundtrip through saved remaining time")
-	close(restored.hp,968,"restored DoTs use actual active intervals")
+	# Burn 30, legacy poison as two stacks: 40 DPS with a 10% bonus for 0.05s.
+	close(restored.hp,967.8,"restored DoTs use actual active intervals")
 
 func _dot_reapplication_checks() -> void:
+	# A new stack keeps its own timer and never refreshes older stacks.
 	var e := enemy({"speed":0.0})
-	Enemy.add_poison(e,10.0,0.2,2)
-	Enemy.add_poison(e,20.0,0.2,2)
-	Enemy.add_poison(e,30.0,0.2,2,1.5)
-	check(e.poisonStacks==2,"poison reapplication respects stack cap")
+	poison(e,10.0,0.2,{"sourceX":1,"sourceY":1})
 	Enemy.step(e,0.1)
-	close(e.hp,994,"poison capped stacks before refresh")
-	Enemy.add_poison(e,5.0,0.15,2,2.0)
-	close(e.poisonRemaining,0.15,"poison refresh replaces remaining duration")
-	close(e.poisonDamagePerSecond,5,"poison refresh replaces rather than maximizes DPS")
-	close(e.poisonDamageMultiplier,2,"poison refresh retains latest display multiplier")
-	Enemy.step(e,0.2)
-	close(e.hp,992.5,"refreshed poison clips only its new lifetime")
-	Enemy.add_poison(e,12.0,0.1,2)
-	check(e.poisonStacks==1,"poison after expiry starts a new stack")
-	Enemy.step(e,0.2)
-	close(e.hp,991.3,"new poison after expiry clips new lifetime")
+	poison(e,10.0,0.2,{"sourceX":1,"sourceY":1,"damageMultiplier":2.0})
+	check(e.poisonInstances.size()==2,"same-source poison adds a stack")
+	close(e.poisonInstances[0].remaining,0.1,"new stack does not refresh older stack")
+	close(e.poisonInstances[1].remaining,0.2,"new stack keeps its own duration")
+	var before: float = e.hp
+	var events := Enemy.step(e,0.3)
+	# Two stacks for 0.1s (20 DPS, +10%), then one stack for 0.1s (10 DPS, +5%).
+	close(before-e.hp,2.2+1.05,"stack bonus follows stacks active in each slice")
+	check(e.poisonInstances.is_empty(),"all independent stacks expire")
+	var numbers := events.filter(func(event): return event.type=="damageNumber" and event.kind=="poison")
+	check(numbers.size()==1 and numbers[0].damageMultiplier==2.0,"poison number shows the strongest active display multiplier")
+	# The same lifetime split over smaller steps gives the same damage.
+	for dt in [0.3,0.1,1.0/60.0]:
+		var split := enemy({"speed":0.0})
+		poison(split,10.0,0.1)
+		poison(split,10.0,0.3)
+		var split_before: float = split.hp
+		_advance_dot(split,0.3,dt)
+		close(split_before-split.hp,2.2+2.1,"poison stack expiry independent of dt "+str(dt))
+	# Different sources keep separate stack counts and bonuses.
+	e = enemy({"speed":0.0})
+	poison(e,10.0,1.0,{"sourceX":1,"sourceY":1})
+	poison(e,10.0,1.0,{"sourceX":1,"sourceY":1})
+	poison(e,10.0,1.0,{"sourceX":2,"sourceY":2})
+	events = Enemy.step(e,0.1)
+	close(1000.0-e.hp,2.2+1.05,"sources do not share stack bonus")
+	var poison_damages := events.filter(func(event): return event.type=="damage" and event.kind=="poison")
+	check(poison_damages.size()==2 and poison_damages[0].sourceX==2 and poison_damages[1].sourceX==1,"poison damage keeps per-source attribution, latest source first")
+	# The source cap replaces only the stack with the least time left.
+	e = enemy({"speed":0.0})
+	for i in range(Enemy.POISON_STACK_CAP): poison(e,1.0,1.0+i*0.1,{"sourceX":3,"sourceY":3})
+	poison(e,1.0,0.5,{"sourceX":4,"sourceY":4})
+	poison(e,1.0,9.0,{"sourceX":3,"sourceY":3})
+	var capped: Array = e.poisonInstances.filter(func(p): return p.sourceX==3)
+	check(capped.size()==Enemy.POISON_STACK_CAP,"source poison stacks stop at the cap")
+	var shortest := INF
+	for p in capped: shortest = minf(shortest,p.remaining)
+	close(shortest,1.1,"cap replaces the stack with the least time left")
+	check(e.poisonInstances.filter(func(p): return p.sourceX==4).size()==1,"another source is unaffected by the cap")
+	# K3 speed raises DPS and shortens the stack, keeping its total.
+	e = enemy({"speed":0.0})
+	poison(e,20.0,0.3,{"speedMultiplier":1.5})
+	close(e.poisonInstances[0].damagePerSecond,30,"poison speed raises stack DPS")
+	close(e.poisonInstances[0].remaining,0.2,"poison speed shortens stack lifetime")
+	# Legacy scalar poison restores as detached stacks once.
+	var legacy := enemy({"speed":0.0,"poisonRemaining":0.4,"poisonDamagePerSecond":5.0,"poisonStacks":3,"poisonDamageMultiplier":1.5,"poisonDamageOverTimeIncreaseMultiplier":2.0})
+	check(legacy.poisonInstances.size()==3,"legacy poison stacks become independent stacks")
+	check(legacy.poisonStacks==0 and legacy.poisonRemaining==0 and legacy.poisonDamagePerSecond==0 and not legacy.has("poisonDamageOverTimeIncreaseMultiplier"),"legacy poison fields are cleared after conversion")
+	for p in legacy.poisonInstances:
+		check(p.sourceX==null and p.damageMultiplier==1.5 and p.damageOverTimeIncreaseMultiplier==2.0,"legacy poison keeps display and original layer")
+	var reloaded := Enemy.create(Enemy.snapshot(legacy))
+	check(reloaded.poisonInstances.size()==3,"converted poison is not restored twice")
 	e = enemy({"speed":0.0})
 	Enemy.add_burn(e,{"damagePerSecond":60.0,"duration":0.1,"sourceX":1,"sourceY":2})
 	Enemy.step(e,0.04)
@@ -367,7 +417,7 @@ func _dot_expiry_event_checks() -> void:
 	var e := enemy({"speed":0.0})
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":2,"sourceY":2})
-	Enemy.add_poison(e,20.0,0.1,1)
+	poison(e,20.0,0.1)
 	var events := Enemy.step(e,0.5)
 	var damages := events.filter(func(event): return event.type=="damage")
 	check(damages.size()==3,"two source burns precede the poison tick")
@@ -377,12 +427,12 @@ func _dot_expiry_event_checks() -> void:
 		check(damages[2].kind=="poison","burn intervals remain before poison")
 		close(damages[0].damage,25,"latest source burn event damage")
 		close(damages[1].damage,10,"earlier source clips to its lifetime")
-		close(damages[2].damage,2,"poison event clips duration")
+		close(damages[2].damage,2.1,"poison event clips duration")
 	var numbers := events.filter(func(event): return event.type=="damageNumber")
 	check(numbers.size()==2,"expiry keeps one aggregate number per DoT kind")
 	if numbers.size()==2:
 		close(numbers[0].damage,35,"burn number aggregates both sources")
-		close(numbers[1].damage,2,"poison number uses clipped interval")
+		close(numbers[1].damage,2.1,"poison number uses clipped interval")
 		check(numbers[0].kind=="burn" and numbers[1].kind=="poison","damage-number order stays burn then poison")
 	# Full-step regeneration still precedes every burn interval; breaking is final.
 	# 30 burn: 10 breaks the regenerated shield, 20 enters 5 armor at half.
@@ -397,17 +447,17 @@ func _dot_expiry_event_checks() -> void:
 	Enemy.step(e,0.5)
 	close(e.shield,0,"piecewise-broken shield never regenerates")
 	e = enemy({"speed":0.0,"maxShield":100.0,"shield":5.0,"shieldRegenRate":0.1})
-	Enemy.add_poison(e,40.0,0.1,1)
+	poison(e,40.0,0.1)
 	Enemy.step(e,0.5)
-	close(e.shield,6,"poison expiry avoids excess shield damage after regen")
+	close(e.shield,5.8,"poison expiry avoids excess shield damage after regen")
 	check(not e.shieldBroken,"short poison does not falsely latch shield break")
 	Enemy.step(e,1.0)
-	close(e.shield,16,"unbroken shield regenerates after poison expiry")
+	close(e.shield,15.8,"unbroken shield regenerates after poison expiry")
 	# A kill by the source that ticks second belongs to that source, once only.
 	e = enemy({"hp":12.0})
 	Enemy.add_burn(e,{"damagePerSecond":50.0,"duration":0.5,"sourceX":2,"sourceY":2})
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.1,"sourceX":1,"sourceY":1})
-	Enemy.add_poison(e,100.0,0.5,1)
+	poison(e,100.0,0.5)
 	events = Enemy.step(e,0.3)
 	check(count(events,"killed")==1,"second source kills exactly once before poison")
 	var kills := events.filter(func(event): return event.type=="killed")
@@ -427,12 +477,12 @@ func _dot_expiry_event_checks() -> void:
 
 	# A short poison must not kill using damage from its inactive remainder.
 	e = enemy({"hp":0.5})
-	Enemy.add_poison(e,10.0,0.01,1)
+	poison(e,10.0,0.01)
 	events = Enemy.step(e,0.5)
-	close(e.hp,0.4,"short poison does not overkill past its lifetime")
+	close(e.hp,0.395,"short poison does not overkill past its lifetime")
 	check(count(events,"killed")==0,"short poison does not emit a false kill")
 	close(e.x,5,"surviving poison expiry still permits movement")
-	Enemy.add_poison(e,40.0,0.1,1)
+	poison(e,40.0,0.1)
 	events = Enemy.step(e,0.5)
 	check(count(events,"killed")==1,"lethal poison reapplication kills exactly once")
 	close(e.hp,0,"lethal poison clamps HP to zero")
@@ -518,8 +568,27 @@ func _training_dot_checks() -> void:
 	# Poison supports the same optional original layer; legacy DPS uses neutral1.
 	for increase in [1.0,2.0]:
 		e = enemy({"speed":0.0})
-		Enemy.add_poison(e,20.0,0.2,1,1.0,1.5,increase)
-		check(e.has("poisonDamageOverTimeIncreaseMultiplier") == (increase!=1.0),"poison original layer is optional")
+		poison(e,20.0,0.2,{"speedMultiplier":1.5,"damageOverTimeIncreaseMultiplier":increase})
+		check(e.poisonInstances[0].has("damageOverTimeIncreaseMultiplier") == (increase!=1.0),"poison original layer is optional")
 		Enemy.step(e,0.2,[],-1,1.2,0.3)
-		close(e.hp,1000.0-4.0*(1.0+0.3/increase)*1.2,"poison training same-layer add before amplification and clipped expiry")
-		check(not e.has("poisonDamageOverTimeIncreaseMultiplier"),"expired poison clears original layer metadata")
+		close(e.hp,1000.0-4.0*(1.0+0.3/increase)*1.05*1.2,"poison training same-layer add before stack bonus, amplification and clipped expiry")
+		check(e.poisonInstances.is_empty(),"expired poison clears original layer metadata")
+
+func _boss_slow_checks() -> void:
+	# Bosses keep half of every slow's reduction; stronger affix resistance wins.
+	for raw in [{"type":"boss"},{"type":"forgeBoss"},{"isBoss":true}]:
+		var boss := enemy(raw)
+		Enemy.add_slow(boss,0.5,1.0)
+		Enemy.step(boss,0.5)
+		close(boss.x,3.75,"boss resists half of a slow "+str(raw))
+	var normal := enemy()
+	Enemy.add_slow(normal,0.5,1.0)
+	Enemy.step(normal,0.5)
+	close(normal.x,2.5,"ordinary enemy takes the full slow")
+	var resistant := enemy({"type":"boss","slowResistance":0.8})
+	Enemy.add_slow(resistant,0.5,1.0)
+	Enemy.step(resistant,0.5)
+	close(resistant.x,4.5,"stronger slow resistance is kept on a boss")
+	var stunned := enemy({"type":"boss","stunRemaining":0.5})
+	Enemy.step(stunned,0.5)
+	close(stunned.x,0,"boss slow resistance leaves stun intact")

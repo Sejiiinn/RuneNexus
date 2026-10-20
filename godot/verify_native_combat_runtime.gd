@@ -325,13 +325,14 @@ func _boss_damage_checks(fixtures: Array) -> void:
 	# Existing DoT, including legacy poison, uses the latest setting each tick.
 	r.running = false
 	Enemy.add_burn(boss,{"damagePerSecond":50.0,"duration":5.0,"sourceX":0,"sourceY":0})
-	Enemy.add_poison(boss,10.0,5.0,1)
+	Enemy.add_poison(boss,{"damagePerSecond":10.0,"duration":5.0})
 	r.process_command({"epoch":91,"sequence":1,"commands":[{"kind":"combatConfig","config":{"bossDamageBonusRate":0.1}}]})
 	before = boss.hp
 	r._step(0.1)
-	_check(is_equal_approx(before-float(boss.hp),6.6),"already attached burn and poison read changed growth")
+	# Burn 50 and one poison stack 10*1.05, both with the 10% boss bonus.
+	_check(is_equal_approx(before-float(boss.hp),6.655),"already attached burn and poison read changed growth")
 	var stored: Dictionary = r.snapshot().enemies[0]
-	_check(stored.burnInstances[0].damagePerSecond == 50.0 and stored.poisonDamagePerSecond == 10.0 and not stored.has("bossDamageBonusRate"),"snapshot preserves raw DPS without target config")
+	_check(stored.burnInstances[0].damagePerSecond == 50.0 and stored.poisonInstances[0].damagePerSecond == 10.0 and not stored.has("bossDamageBonusRate"),"snapshot preserves raw DPS without target config")
 	# Transfer keeps raw DPS and evaluates the new recipient, in either direction.
 	var transfer: Dictionary = Enemy.burn_transfer(boss,{"x":0,"y":0})
 	var normal: Dictionary = r.enemies["4"]

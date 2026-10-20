@@ -5,10 +5,17 @@ extends RefCounted
 
 ## Share of non-poison damage over time that enters the armor layer.
 const DOT_ARMOR_FACTOR := 0.5
+## Poison stacks are kept per source turret, each with its own timer.
+const POISON_STACK_CAP := 20
+## A source's poison deals this much more per active stack of that source.
+const POISON_STACK_BONUS := 0.05
+## Bosses resist this share of every slow.
+const BOSS_SLOW_RESISTANCE := 0.5
+const BOSS_TYPES := ["boss","shieldBoss","forgeBoss"]
 
 static func create(raw: Dictionary) -> Dictionary:
 	var e: Dictionary = raw.duplicate(true)
-	var defaults := {"id":0,"maxHp":1.0,"maxShield":0.0,"maxArmor":0.0,"speed":0.0,"shieldRegenRate":0.0,"boardDistanceScale":1.0,"distanceTravelled":0.0,"targetIndex":1,"facingAngle":0.0,"shieldBroken":false,"arrived":false,"killReported":false,"burnInstances":[],"slowInstances":[],"firstControlApplied":false,"stunRemaining":0.0,"freezeRemaining":0.0,"poisonRemaining":0.0,"poisonDamagePerSecond":0.0,"poisonDamageMultiplier":1.0,"poisonStacks":0,"physicalVulnerabilityRemaining":0.0,"physicalVulnerabilityBonus":0.0,"elementalVulnerabilityRemaining":0.0,"elementalVulnerabilityBonus":0.0,"riftMarkRemaining":0.0,"riftMarkDamageAmplification":0.0,"burnNumberDamage":0.0,"burnNumberTimer":0.0,"poisonNumberDamage":0.0,"poisonNumberTimer":0.0,"hitFlashTimer":0.0,"statusEffectTime":0.0,"laneOffsetRatio":0.0,"visualPhase":0.0,"diamondReward":0,"path":[]}
+	var defaults := {"id":0,"maxHp":1.0,"maxShield":0.0,"maxArmor":0.0,"speed":0.0,"shieldRegenRate":0.0,"boardDistanceScale":1.0,"distanceTravelled":0.0,"targetIndex":1,"facingAngle":0.0,"shieldBroken":false,"arrived":false,"killReported":false,"burnInstances":[],"slowInstances":[],"firstControlApplied":false,"stunRemaining":0.0,"freezeRemaining":0.0,"poisonRemaining":0.0,"poisonDamagePerSecond":0.0,"poisonDamageMultiplier":1.0,"poisonStacks":0,"poisonInstances":[],"physicalVulnerabilityRemaining":0.0,"physicalVulnerabilityBonus":0.0,"elementalVulnerabilityRemaining":0.0,"elementalVulnerabilityBonus":0.0,"riftMarkRemaining":0.0,"riftMarkDamageAmplification":0.0,"burnNumberDamage":0.0,"burnNumberTimer":0.0,"poisonNumberDamage":0.0,"poisonNumberTimer":0.0,"hitFlashTimer":0.0,"statusEffectTime":0.0,"laneOffsetRatio":0.0,"visualPhase":0.0,"diamondReward":0,"path":[]}
 	for key in defaults:
 		if not e.has(key): e[key] = defaults[key]
 	e.hp = clampf(float(e.get("hp",e.maxHp)),0,float(e.maxHp))
@@ -33,10 +40,11 @@ static func create(raw: Dictionary) -> Dictionary:
 			else: burn.damageOverTimeIncreaseMultiplier = increase
 	if e.burnInstances.is_empty() and float(e.get("burnRemaining",0)) > 0 and float(e.get("burnDamagePerSecond",0)) > 0:
 		add_burn(e,{"remaining":e.burnRemaining,"damagePerSecond":e.burnDamagePerSecond,"damageMultiplier":e.get("burnDamageMultiplier",1.0)})
-	if e.has("poisonDamageOverTimeIncreaseMultiplier"):
-		var increase := dot_increase_multiplier(e.poisonDamageOverTimeIncreaseMultiplier)
-		if increase == 1.0: e.erase("poisonDamageOverTimeIncreaseMultiplier")
-		else: e.poisonDamageOverTimeIncreaseMultiplier = increase
+	var poisons: Array = e.poisonInstances
+	e.poisonInstances = []
+	for poison in poisons:
+		if poison is Dictionary: add_poison(e,poison)
+	_restore_legacy_poison(e)
 	_rebuild_path(e,e.path)
 	_place_at_distance(e,e.distanceTravelled)
 	if raw.has("x") and raw.has("y"): _set_position(e,float(raw.x),float(raw.y))
@@ -252,16 +260,42 @@ static func clear_burn_source(e: Dictionary,source: Dictionary) -> void:
 			b.sourceX=null
 			b.sourceY=null
 
-static func add_poison(e: Dictionary,dps: float,duration: float,max_stacks: int,multiplier: float=1,speed_multiplier: float=1,increase_multiplier: float=1) -> void:
-	# Optional speed applies to existing poison only, never grants a new attack.
-	speed_multiplier = maxf(0.000001, speed_multiplier)
-	e.poisonDamagePerSecond=dps*speed_multiplier
-	e.poisonDamageMultiplier=multiplier
+## Adds one poison stack with its own timer. A new stack never refreshes older
+## ones. At the source cap the stack with the least time left is replaced.
+## Optional speed (K3) shortens the stack and raises its DPS, keeping its total.
+static func add_poison(e: Dictionary,poison: Dictionary) -> void:
+	var speed := maxf(0.000001,float(poison.get("speedMultiplier",1.0)))
+	var dps := float(poison.get("damagePerSecond",0.0))*speed
+	var duration := float(poison.get("duration",poison.get("remaining",0.0)))/speed
+	if not is_finite(dps) or not is_finite(duration) or dps<=0 or duration<=0: return
+	var value := {"remaining":duration,"damagePerSecond":dps,"damageMultiplier":maxf(0,float(poison.get("damageMultiplier",1.0))),"sourceX":poison.get("sourceX"),"sourceY":poison.get("sourceY")}
+	var increase := dot_increase_multiplier(poison.get("damageOverTimeIncreaseMultiplier",1.0))
+	if increase != 1.0: value.damageOverTimeIncreaseMultiplier = increase
+	var shortest := -1
+	var count := 0
+	for i in e.poisonInstances.size():
+		var p: Dictionary = e.poisonInstances[i]
+		if not _same_source(p,value): continue
+		count += 1
+		if shortest < 0 or p.remaining < e.poisonInstances[shortest].remaining: shortest = i
+	if count >= POISON_STACK_CAP: e.poisonInstances.remove_at(shortest)
+	e.poisonInstances.append(value)
+
+# Old saves kept one scalar poison (DPS per stack, stack count, one timer).
+# Convert it to detached stacks once; later snapshots never write it back.
+static func _restore_legacy_poison(e: Dictionary) -> void:
+	var stacks := mini(POISON_STACK_CAP,int(e.poisonStacks))
+	if e.poisonInstances.is_empty() and e.poisonRemaining>0 and e.poisonDamagePerSecond>0:
+		for i in stacks:
+			add_poison(e,{"remaining":e.poisonRemaining,"damagePerSecond":e.poisonDamagePerSecond,"damageMultiplier":e.poisonDamageMultiplier,"damageOverTimeIncreaseMultiplier":e.get("poisonDamageOverTimeIncreaseMultiplier",1.0)})
+	e.poisonRemaining=0.0
+	e.poisonDamagePerSecond=0.0
+	e.poisonDamageMultiplier=1.0
+	e.poisonStacks=0
 	e.erase("poisonDamageOverTimeIncreaseMultiplier")
-	var increase := dot_increase_multiplier(increase_multiplier)
-	if increase != 1.0: e.poisonDamageOverTimeIncreaseMultiplier = increase
-	e.poisonStacks=mini(max_stacks,int(e.poisonStacks)+1)
-	e.poisonRemaining=duration/speed_multiplier
+
+static func is_boss(e: Dictionary) -> bool:
+	return bool(e.get("isBoss",false)) or e.get("type","") in BOSS_TYPES
 
 static func add_vulnerability(e: Dictionary,kind: String,bonus: float,duration: float) -> void:
 	if kind not in ["physical","elemental"] or bonus<=0 or duration<=0: return
@@ -292,7 +326,7 @@ static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array
 		events.append(_event(e,"damage",{"kind":kind,"damage":result.actualDamage,"bonusDamage":result.bonusDamage,"sourceX":attack.get("sourceX"),"sourceY":attack.get("sourceY")}))
 	return result.actualDamage
 
-static func _same_burn_source(a: Dictionary,b: Dictionary) -> bool:
+static func _same_source(a: Dictionary,b: Dictionary) -> bool:
 	return a.sourceX==b.sourceX and a.sourceY==b.sourceY
 
 # Each source turret contributes its own strongest burn, so different turrets
@@ -303,7 +337,7 @@ static func _tick_burns(e: Dictionary,dt: float,training_rate: float,target_mult
 	var count: int = e.burnInstances.size()
 	var single := true
 	for i in range(1,count):
-		if not _same_burn_source(e.burnInstances[0],e.burnInstances[i]):
+		if not _same_source(e.burnInstances[0],e.burnInstances[i]):
 			single = false
 			break
 	if single:
@@ -316,7 +350,7 @@ static func _tick_burns(e: Dictionary,dt: float,training_rate: float,target_mult
 		if e.hp <= 0: return
 		var group: Array = []
 		for i in range(start+1):
-			if handled[i] == 0 and _same_burn_source(e.burnInstances[start],e.burnInstances[i]):
+			if handled[i] == 0 and _same_source(e.burnInstances[start],e.burnInstances[i]):
 				handled[i] = 1
 				group.append(e.burnInstances[i])
 		_tick_burn_source(e,group,dt,training_rate,target_multiplier,events)
@@ -339,6 +373,49 @@ static func _tick_burn_source(e: Dictionary,burns: Array,dt: float,training_rate
 			"burnTransfer":strongest}
 		e.burnNumberDamage+=_dot_hit(e,attack,"burn",events,dt,target_multiplier)
 		elapsed = interval_end
+
+# Each source's stacks deal the sum of their DPS times the source stack bonus.
+# Stacks expiring inside dt split the step, so both the sum and the bonus use
+# only the stacks active in each slice and the result is independent of dt.
+static func _tick_poisons(e: Dictionary,dt: float,training_rate: float,target_multiplier: float,events: Array) -> void:
+	var count: int = e.poisonInstances.size()
+	var handled := PackedByteArray()
+	handled.resize(count)
+	for start in range(count-1,-1,-1):
+		if handled[start] == 1: continue
+		if e.hp <= 0: return
+		var group: Array = []
+		for i in range(start+1):
+			if handled[i] == 0 and _same_source(e.poisonInstances[start],e.poisonInstances[i]):
+				handled[i] = 1
+				group.append(e.poisonInstances[i])
+		var damage := _poison_source_damage(group,dt,training_rate)
+		if damage > 0:
+			var first: Dictionary = group[0]
+			e.poisonNumberDamage+=_dot_hit(e,{"damage":damage,"sourceX":first.sourceX,"sourceY":first.sourceY},"poison",events,0.0,target_multiplier)
+
+static func _poison_source_damage(stacks: Array,dt: float,training_rate: float) -> float:
+	var ends: Array = []
+	for p in stacks: ends.append(minf(dt,float(p.remaining)))
+	ends.sort()
+	var damage := 0.0
+	var elapsed := 0.0
+	for end in ends:
+		if end <= elapsed: continue
+		var active := 0
+		var dps := 0.0
+		for p in stacks:
+			if p.remaining > elapsed:
+				active += 1
+				dps += float(p.damagePerSecond)*(1.0 + training_rate / dot_increase_multiplier(p.get("damageOverTimeIncreaseMultiplier",1.0)))
+		damage += dps*(1.0 + POISON_STACK_BONUS*active)*(end-elapsed)
+		elapsed = end
+	return damage
+
+static func _max_poison_multiplier(e: Dictionary) -> float:
+	var value := 1.0 if e.poisonInstances.is_empty() else 0.0
+	for p in e.poisonInstances: value=maxf(value,p.damageMultiplier)
+	return value
 
 static func _max_burn_multiplier(e: Dictionary) -> float:
 	var value := 1.0 if e.burnInstances.is_empty() else 0.0
@@ -404,19 +481,17 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 			events.append(_event(e,"damageNumber",{"kind":"burn","damage":e.burnNumberDamage,"damageMultiplier":_max_burn_multiplier(e)}))
 			e.burnNumberDamage=0.0
 			e.burnNumberTimer=0.0
-	if e.poisonRemaining>0:
-		var poison_tick := minf(dt,float(e.poisonRemaining))
-		e.poisonRemaining=maxf(0,e.poisonRemaining-dt)
+	if not e.poisonInstances.is_empty():
 		e.poisonNumberTimer+=dt
-		e.poisonNumberDamage+=_dot_hit(e,{"damage":e.poisonDamagePerSecond*(1.0 + training_rate / dot_increase_multiplier(e.get("poisonDamageOverTimeIncreaseMultiplier", 1.0)))*e.poisonStacks*poison_tick},"poison",events,0.0,target_multiplier)
-		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonRemaining==0):
-			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":e.poisonDamageMultiplier}))
+		var display_multiplier := _max_poison_multiplier(e)
+		_tick_poisons(e,dt,training_rate,target_multiplier,events)
+		for p in e.poisonInstances: p.remaining=maxf(0,p.remaining-dt)
+		e.poisonInstances=e.poisonInstances.filter(func(p): return p.remaining>0)
+		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonInstances.is_empty()):
+			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":display_multiplier}))
 			e.poisonNumberDamage=0.0
 			e.poisonNumberTimer=0.0
-		if e.poisonRemaining==0:
-			e.poisonStacks=0
-			e.poisonDamagePerSecond=0.0
-			e.erase("poisonDamageOverTimeIncreaseMultiplier")
+		if e.poisonInstances.is_empty():
 			e.poisonNumberDamage=0.0
 			e.poisonNumberTimer=0.0
 	var hard_controlled_time := minf(dt, maxf(float(e.stunRemaining), float(e.freezeRemaining)))
@@ -448,8 +523,11 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 	if distance>0.001: e.facingAngle=atan2(dy,dx)
 	var multiplier := 1.0
 	for slow in e.slowInstances: multiplier=minf(multiplier,slow.multiplier)
-	# Steadfast affix reduces only the slowed share; stun/freeze stay intact.
-	if multiplier<1.0 and e.has("slowResistance"): multiplier=1.0-(1.0-multiplier)*(1.0-float(e.slowResistance))
+	# Steadfast affix and bosses reduce only the slowed share; stun/freeze stay intact.
+	if multiplier<1.0:
+		var resistance := float(e.get("slowResistance",0.0))
+		if is_boss(e): resistance = maxf(resistance,BOSS_SLOW_RESISTANCE)
+		if resistance>0.0: multiplier=1.0-(1.0-multiplier)*(1.0-resistance)
 	var movement: float=e.speed*e.boardDistanceScale*multiplier*maxf(0.0,dt-hard_controlled_time)
 	if distance<=movement:
 		e.distanceTravelled+=distance
