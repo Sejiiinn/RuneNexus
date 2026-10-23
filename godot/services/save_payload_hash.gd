@@ -32,6 +32,7 @@ const ORDERS = {
 		"directDamageTrainingUpgradeLevel",
 		"splashDamageTrainingUpgradeLevel",
 		"damageOverTimeTrainingUpgradeLevel",
+		"poisonDamageTrainingUpgradeLevel",
 		"physicalDamageTrainingUpgradeLevel",
 		"elementalDamageTrainingUpgradeLevel",
 		"criticalChanceUpgradeLevel",
@@ -128,6 +129,7 @@ const ORDERS = {
 		"poisonDamageMultiplier",
 		"poisonDamageOverTimeIncreaseMultiplier",
 		"poisonStacks",
+		"poisonInstances",
 		"slowInstances",
 		"physicalVulnerabilityRemaining",
 		"physicalVulnerabilityBonus",
@@ -147,6 +149,16 @@ const ORDERS = {
 		"routeId",
 		"enemyType",
 		"delay"
+	],
+	"SavedPoisonInstance": [
+		"damageOverTimeIncreaseMultiplier",
+		"remaining",
+		"damagePerSecond",
+		"damageMultiplier",
+		"sourceX",
+		"sourceY",
+		"stackBonus",
+		"corrosive"
 	],
 	"SavedSlowInstance": [
 		"multiplier",
@@ -225,7 +237,7 @@ const ORDERS = {
 		"value"
 	]
 }
-const CHILDREN = {"corePassiveLegacyAllocation": "SavedCorePassiveLegacyAllocation", "preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "slowInstances": "SavedSlowInstance", "gemDeckLog": "SavedGemDeckEntry"}
+const CHILDREN = {"corePassiveLegacyAllocation": "SavedCorePassiveLegacyAllocation", "preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "poisonInstances": "SavedPoisonInstance", "slowInstances": "SavedSlowInstance", "gemDeckLog": "SavedGemDeckEntry"}
 
 static func hash_payload(payload: Dictionary) -> String:
 	return encode(payload, "GameSaveData").sha256_text()

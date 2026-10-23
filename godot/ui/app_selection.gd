@@ -3,7 +3,7 @@ const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Adapts the native run owner to the existing selection renderer's tile units.
 ## Call after selection/run commands; no simulation or per-frame stat calculation.
 const GemPalette = preload("res://ui/battle_rewards.gd")
-const COLORS := {"arrow":0xffe7c66a,"cannon":0xffff7b2f,"magic":0xffff5e3a,"frost":0xff7fd8ff,"sniper":0xffb7f4ff,"lightning":0xffcfa7ff}
+const COLORS := {"arrow":0xffe7c66a,"cannon":0xffff7b2f,"magic":0xffff5e3a,"frost":0xff7fd8ff,"sniper":0xffb7f4ff,"lightning":0xffcfa7ff,"poison":0xffa6ff3a}
 var level_preview := false
 var _revision := 0
 var _last_state: Dictionary = {}

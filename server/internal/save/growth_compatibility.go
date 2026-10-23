@@ -54,6 +54,10 @@ func ValidateGrowthClient(progression []byte, clientVersion int) error {
 	if !valid || (level > 0 && clientVersion < BossDamageTrainingClientCompatibilityVersion) {
 		return ErrClientUpdateRequired
 	}
+	level, valid = poisonDamageTrainingLevel(progression)
+	if !valid || (level > 0 && clientVersion < PoisonTurretClientCompatibilityVersion) {
+		return ErrClientUpdateRequired
+	}
 	if hasFifthLinkResearch(progression) && clientVersion < FifthLinkClientCompatibilityVersion {
 		return ErrClientUpdateRequired
 	}
@@ -91,6 +95,11 @@ func ValidateGrowthUpdate(current, incoming []byte, clientVersion int) error {
 	if afterTraining < beforeTraining {
 		return ErrClientUpdateRequired
 	}
+	beforePoison, _ := poisonDamageTrainingLevel(current)
+	afterPoison, _ := poisonDamageTrainingLevel(incoming)
+	if afterPoison < beforePoison {
+		return ErrClientUpdateRequired
+	}
 	if GrowthVersion(incoming) < GrowthVersion(current) || GrowthVersion(incoming) > CurrentGrowthVersion {
 		return ErrClientUpdateRequired
 	}
@@ -126,6 +135,11 @@ var damageTrainingFields = [...]string{
 
 func bossDamageTrainingLevel(raw []byte) (int, bool) {
 	return optionalTrainingLevel(raw, "bossDamageTrainingUpgradeLevel", 40)
+}
+
+// Poison family training opens with the poison turret and shares its generation.
+func poisonDamageTrainingLevel(raw []byte) (int, bool) {
+	return optionalTrainingLevel(raw, "poisonDamageTrainingUpgradeLevel", 50)
 }
 
 func optionalTrainingLevel(raw []byte, key string, maximum int) (int, bool) {
@@ -177,6 +191,9 @@ func ValidateContentClient(progression, activeRun []byte, clientVersion int) err
 		return err
 	}
 	if err := ValidateGemContentClient(activeRun, clientVersion); err != nil {
+		return err
+	}
+	if err := validatePoisonTurretClient(activeRun, clientVersion); err != nil {
 		return err
 	}
 	if err := ValidateCoreTreeClient(progression, activeRun, clientVersion); err != nil {

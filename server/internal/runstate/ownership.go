@@ -131,7 +131,7 @@ func ValidGem(gem string) bool {
 
 func validTurret(kind string) bool {
 	switch kind {
-	case "arrow", "cannon", "magic", "frost", "sniper", "lightning":
+	case "arrow", "cannon", "magic", "frost", "sniper", "lightning", "poison":
 		return true
 	default:
 		return false

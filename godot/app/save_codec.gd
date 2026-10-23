@@ -28,7 +28,8 @@ const ENUMS = {
 		"magic",
 		"frost",
 		"sniper",
-		"lightning"
+		"lightning",
+		"poison"
 	],
 	"TurretTraitType": [
 		"overheatMagazine",
@@ -54,7 +55,11 @@ const ENUMS = {
 		"branchCurrent",
 		"focusedLightning",
 		"lightningRecovery",
-		"currentAmplification"
+		"currentAmplification",
+		"venomPool",
+		"pressurizedFeed",
+		"concentratedToxin",
+		"corrosiveToxin"
 	],
 	"TurretTargetPriority": [
 		"first",
@@ -395,6 +400,28 @@ const SCALARS = {
 		],
 		"damagePerSecond": [
 			"doubleValue",
+			null
+		]
+	},
+	"SavedPoisonInstance": {
+		"remaining": [
+			"doubleValue",
+			null
+		],
+		"damagePerSecond": [
+			"doubleValue",
+			null
+		],
+		"damageMultiplier": [
+			"doubleValue",
+			1
+		],
+		"sourceX": [
+			"nullableIntValue",
+			null
+		],
+		"sourceY": [
+			"nullableIntValue",
 			null
 		]
 	},
@@ -754,7 +781,7 @@ static func decode(v: Variant) -> Variant:
 static func _progression(v: Dictionary) -> Dictionary:
 	var out := _fields("SavedProgression", v)
 	# Preserve absence in old saves: adding a synthetic zero changes durable hashes.
-	for key in ["bossDamageTrainingUpgradeLevel", "directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel"]:
+	for key in ["bossDamageTrainingUpgradeLevel", "directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel", "poisonDamageTrainingUpgradeLevel"]:
 		if v.has(key): out[key] = v[key]
 	if v.has("gemResetTickets"): out.gemResetTickets = maxi(0, _int(v.get("gemResetTickets")))
 	if v.has("progressionVersion"):
@@ -786,10 +813,10 @@ static func _progression(v: Dictionary) -> Dictionary:
 	return out
 
 static func _valid_damage_training(p: Dictionary) -> bool:
-	for key in ["bossDamageTrainingUpgradeLevel", "directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel"]:
+	for key in ["bossDamageTrainingUpgradeLevel", "directDamageTrainingUpgradeLevel", "splashDamageTrainingUpgradeLevel", "damageOverTimeTrainingUpgradeLevel", "poisonDamageTrainingUpgradeLevel"]:
 		if not p.has(key): continue
 		var level: Variant = p[key]
-		var maximum := 40 if key == "bossDamageTrainingUpgradeLevel" else 80
+		var maximum: int = {"bossDamageTrainingUpgradeLevel": 40, "poisonDamageTrainingUpgradeLevel": 50}.get(key, 80)
 		if not level is int or level < 0 or level > maximum: return false
 	return true
 
@@ -805,10 +832,12 @@ static func _valid_dot_metadata(run: Variant) -> bool:
 	for enemy in enemies:
 		if not enemy is Dictionary: continue
 		if not _valid_dot_multiplier(enemy, "poisonDamageOverTimeIncreaseMultiplier"): return false
-		var burns: Variant = enemy.get("burnInstances", [])
-		if not burns is Array: continue
-		for burn in burns:
-			if burn is Dictionary and not _valid_dot_multiplier(burn, "damageOverTimeIncreaseMultiplier"): return false
+		# Each list is checked on its own; a malformed one must not skip the other.
+		for field in ["burnInstances", "poisonInstances"]:
+			var instances: Variant = enemy.get(field, [])
+			if not instances is Array: continue
+			for instance in instances:
+				if instance is Dictionary and not _valid_dot_multiplier(instance, "damageOverTimeIncreaseMultiplier"): return false
 	return true
 
 static func _optional_dot_multiplier(out: Dictionary, value: Dictionary, key: String) -> void:
@@ -923,6 +952,12 @@ static func _object(name: String, v: Variant) -> Variant:
 		"SavedBurnInstance":
 			_optional_dot_multiplier(out, v, "damageOverTimeIncreaseMultiplier")
 			if out.remaining <= 0 or out.damagePerSecond <= 0: return null
+		"SavedPoisonInstance":
+			_optional_dot_multiplier(out, v, "damageOverTimeIncreaseMultiplier")
+			# Per-turret trait state: concentrated toxin bonus and corrosive marking.
+			if v.has("stackBonus"): _optional_float(out, v, "stackBonus", 1.0)
+			if v.get("corrosive") is bool and v.corrosive: out.corrosive = true
+			if not is_finite(out.remaining) or not is_finite(out.damagePerSecond) or out.remaining <= 0 or out.damagePerSecond <= 0: return null
 		"SavedSlowInstance":
 			if not is_finite(out.multiplier) or out.multiplier < 0 or out.multiplier >= 1 or not is_finite(out.remaining) or out.remaining <= 0: return null
 		"SavedEnemy":
@@ -936,6 +971,9 @@ static func _object(name: String, v: Variant) -> Variant:
 			if out.burnInstances.is_empty() and out.burnRemaining > 0 and out.burnDamagePerSecond > 0:
 				out.burnInstances.append({"remaining": out.burnRemaining, "damagePerSecond": out.burnDamagePerSecond, "damageMultiplier": out.burnDamageMultiplier, "sourceX": null, "sourceY": null, "ignoreArmorReduction": false})
 			out.slowInstances = _objects(v.get("slowInstances"), "SavedSlowInstance")
+			# Optional so saves without poison keep their payload hash.
+			var poisons := _objects(v.get("poisonInstances"), "SavedPoisonInstance")
+			if not poisons.is_empty(): out.poisonInstances = poisons
 			out.diamondReward = 0 if out.type in ["boss", "shieldBoss", "forgeBoss"] else clampi(_int(v.get("diamondReward")), 0, 3)
 			# Optional magic/rare identity; invalid or boss values restore an ordinary enemy.
 			if v.has("rarity") and not out.type in ["boss", "shieldBoss", "forgeBoss"] and Rarity.valid_values(v.rarity, v.get("affixes", [])):

@@ -268,8 +268,6 @@ func _capture_normalized_handoff_cases(adapter, state: Dictionary, snapshot: Dic
 
 func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 	for type in service.catalog.turret_types():
-		# Combat-only types (poison) have no save schema yet.
-		if not type in Codec.ENUMS.TurretType: continue
 		var allowed: bool = "light" in service.catalog.turret_definition(type).attackTags
 		var legacy := saved.duplicate(true)
 		legacy.activeRun.turrets[0].type = type
@@ -509,3 +507,24 @@ func _boss_bonus_restore_cases(adapter, saved: Dictionary) -> void:
 	before = e.hp
 	resumed._step(0.1)
 	check(is_equal_approx(before-float(e.hp),(0.475*1.4+2.0*2.0*(1.0+0.4/2.0)*1.1)*0.1*1.2),"adapter resume applies training additively, then the stack bonus and boss multiplier once")
+
+	# Poison turret stacks keep their timer, source and trait metadata through
+	# Codec -> adapter resume -> runtime snapshot -> capture.
+	var poisoned: Dictionary = roundtrip.duplicate(true)
+	var target: Dictionary = poisoned.activeRun.enemies[0]
+	for key in ["poisonRemaining","poisonDamagePerSecond","poisonStacks","poisonDamageOverTimeIncreaseMultiplier"]: target.erase(key)
+	target.burnInstances = []
+	target.poisonInstances = [{"remaining":3.0,"damagePerSecond":1.5,"sourceX":4,"sourceY":5,"stackBonus":0.1,"corrosive":true,"damageOverTimeIncreaseMultiplier":1.5}]
+	var poison_roundtrip: Variant = Codec.decode(poisoned)
+	check(poison_roundtrip is Dictionary and poison_roundtrip.activeRun.enemies[0].poisonInstances.size() == 1,"poison stack codec roundtrip")
+	if not poison_roundtrip is Dictionary: return
+	prepared = adapter.prepare(poison_roundtrip)
+	check(not prepared.is_empty(),"poison stack save prepares: "+adapter.error)
+	if prepared.is_empty(): return
+	resumed = Runtime.new()
+	resumed.process_command({"epoch":94,"sequence":0,"session":prepared.session,"bootstrap":prepared.bootstrap})
+	resumed.running = false
+	var stacks: Array = resumed.enemies["100000"].poisonInstances
+	check(stacks.size() == 1 and stacks[0].remaining == 3.0 and stacks[0].damagePerSecond == 1.5 and stacks[0].sourceX == 4 and stacks[0].stackBonus == 0.1 and stacks[0].corrosive and stacks[0].damageOverTimeIncreaseMultiplier == 1.5,"adapter resume restores poison stack timer, source and trait metadata")
+	var captured_enemy: Variant = Codec.decode({"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":{"phase":"wave","enemies":[resumed.snapshot().enemies[0]]}})
+	check(captured_enemy is Dictionary and captured_enemy.activeRun.enemies[0].poisonInstances == poison_roundtrip.activeRun.enemies[0].poisonInstances,"runtime snapshot poison stacks encode back unchanged")

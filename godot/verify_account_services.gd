@@ -369,7 +369,7 @@ func _boss_damage_training_tests():
 	var saved: Dictionary = await online.sync(trained)
 	check(saved.ok and online.store.load_save().progression.bossDamageTrainingUpgradeLevel == 1, "Purchased training persists in account save")
 	var request: Dictionary = SaveJson.parse(remote.calls[-1].body)
-	check(request.clientCompatibilityVersion == 12 and request.data.progression.bossDamageTrainingUpgradeLevel == 1, "Training upload uses generation twelve")
+	check(request.clientCompatibilityVersion == Online.COMPATIBILITY and request.data.progression.bossDamageTrainingUpgradeLevel == 1, "Training upload uses the current generation")
 	check(request.data.progression.directDamageTrainingUpgradeLevel == 1 and request.data.progression.splashDamageTrainingUpgradeLevel == 60 and request.data.progression.damageOverTimeTrainingUpgradeLevel == 30, "Generation twelve uploads all training fields")
 	online.dispose()
 	online.queue_free()

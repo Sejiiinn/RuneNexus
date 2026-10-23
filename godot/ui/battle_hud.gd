@@ -10,8 +10,8 @@ const HudNumber = preload("res://ui/hud_number.gd")
 const TargetPriorityPopup = preload("res://ui/target_priority_popup.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const HudMenuPanel = preload("res://ui/hud_menu_panel.gd")
-const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}
-const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다."}
+const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝", "poison":"독"}
+const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다.","poison":"바닥에 독액을 쏘아 주변 적을 중독시키고 잠시 독 웅덩이를 남기는 포탑입니다."}
 const UPGRADES := {"towerDamage":"포탑 화력", "killGold":"처치 보너스", "waveGold":"정비 보급"}
 const PRIORITIES := {"first":"선두", "last":"후미", "strongest":"최대 체력", "weakest":"최저 체력", "nearest":"가까운 적"}
 var app

@@ -256,8 +256,8 @@ func _trait_checks(input: Dictionary) -> void:
 	var row = rows[0] if not rows.is_empty() else null
 	var extension = row.extension if row is Object else (row[8] if row is Array and row.size() > 8 else {})
 	_check(extension is Dictionary and bool(extension.get("venomPool", false)), "독액 웅덩이 연출 표시")
-	# 1차 가압 급액: 공격 속도 20% 증폭.
-	_near(Stats.stats_at(_trait_input(input, "pressurizedFeed", null), 1).attackRate, base.attackRate * 1.2, "가압 급액 공격 속도")
+	# 1차 가압 급액: 공격 속도 15% 증폭.
+	_near(Stats.stats_at(_trait_input(input, "pressurizedFeed", null), 1).attackRate, base.attackRate * 1.15, "가압 급액 공격 속도")
 	# 2차 농축 독소: 이 포탑 중첩당 보너스 10%.
 	r = _runtime(_trait_input(input, null, "concentratedToxin"), [_enemy(1, 60.0, 5.0)])
 	_rules(r)

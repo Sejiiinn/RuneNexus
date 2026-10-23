@@ -42,6 +42,8 @@ def main():
             "app": ["save_codec.gd", "save_json.gd", "local_save_slot.gd", "local_save_store.gd", "local_save_order.gd",
                     "run_transition_journal.gd", "reward_outbox.gd", "reward_settlement.gd", "gem_reroll.gd", "gem_command_result.gd"],
             "content": ["stage_progression.gd", "generated_progression.gd", "generated_core_tree.gd"],
+            # SaveCodec validates optional enemy rarity with the combat rules.
+            "combat": ["enemy_rarity.gd"],
             "services": ["http_transport.gd", "durable_record.gd", "account_session.gd", "online_save.gd", "save_payload_hash.gd"],
         }.items():
             (project / folder).mkdir()

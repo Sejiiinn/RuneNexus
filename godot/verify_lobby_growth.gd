@@ -51,6 +51,7 @@ func verify() -> void:
 	ui.setup(host)
 	_boss_training_card(host, ui)
 	_damage_training_cards(host, ui)
+	_poison_training_card(host, ui)
 	assert(ui.TITLES.nexusHp == "넥서스 체력" and ui.TITLES.turretTargetPriority == "전술 명령")
 	assert(ui.TITLES.linkMaintenance == "기초 연결 공학")
 	assert(ui.upgrade_requirement("criticalDamage") == 4)
@@ -146,6 +147,30 @@ func _boss_training_card(host, ui) -> void:
 	card = host.body.get_child(0).get_child(host.body.get_child(0).get_child_count()-1)
 	assert(_texts(card).contains("현재 +20%") and _texts(card).contains("최대 레벨") and not _texts(card).contains("다음"))
 	assert(_buttons(card)[0].disabled)
+	host.clear()
+	host.state = original
+	host.commands.clear()
+
+# Poison damage training opens with the poison turret on the 2-8 first clear.
+func _poison_training_card(host, ui) -> void:
+	var original: Dictionary = host.state.duplicate(true)
+	var title: String = ui.TITLES.poisonDamageTraining
+	host.state.progressionVersion = 1
+	host.state.clearedStageNumbers = [17, 22]
+	host.state.runes = 10000
+	ui.category = "전투"
+	ui.upgrades()
+	assert(not _texts(host.body).contains(title), "Poison training stays hidden before 2-8")
+	assert(_texts(host.body).contains(ui.TITLES.elementalDamageTraining))
+	host.clear()
+	host.state.clearedStageNumbers.append(23)
+	ui.upgrades()
+	var card := _card_with_title(host.body, title)
+	assert(card != null and ui.upgrade_requirement("poisonDamageTraining") == 23)
+	assert(_texts(card).contains("Lv.0/50") and ui.effect_value("poisonDamageTraining", 50) == ui.effect_value("elementalDamageTraining", 50))
+	var cost: int = host.app.run_domain.growth.data.permanentUpgrades.poisonDamageTraining.costs[0]
+	_buttons(card)[0].pressed.emit()
+	assert(host.state.poisonDamageTrainingUpgradeLevel == 1 and host.state.runes == 10000 - cost, "Poison training card purchases its own field")
 	host.clear()
 	host.state = original
 	host.commands.clear()

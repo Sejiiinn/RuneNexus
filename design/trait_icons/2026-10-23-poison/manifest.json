@@ -1,0 +1,42 @@
+[
+  {
+    "id": "venomPool",
+    "turret": "poison",
+    "name": "독액 웅덩이",
+    "stage": "primary",
+    "color": "#A6FF3A",
+    "prompt": "Use case: stylized-concept. Asset type: one production game ability icon for RuneNexus turret trait, to be viewed at 48–64 pixels. Create exactly ONE large centered emblem illustration in a square 1024x1024 canvas. Style: polished hand-painted game inventory art with sculpted cool gunmetal, restrained bevel highlights and concentrated colored energy; matches the trait emblems in the reference, not the surrounding UI. Strong chunky silhouette, two or three large forms, no intricate filigree. Perspective shallow three-quarter, key light upper left, bold values. Subject occupies central 75% with generous clear margins. Background: genuinely transparent alpha, no floor or environment, no backdrop. Only the emblem and its tight local glow remain; design for deep midnight navy UI behind it. NO circular border, NO frame, NO button, NO turret portrait, NO text, NO letters/numbers, NO label, NO watermark. No busy particles, no white full-image haze. It is an independent icon placed later in a shared circular UI socket. Accent color #A6FF3A. Subject: one wide shallow glowing toxic-green venom puddle lying flat in shallow three-quarter view, a heavy gunmetal mortar shell nose plunging into its center with a big splash crown of thick green droplets rising around it; the puddle clearly wide and spreading, outer rim brighter. Strong wide low silhouette, a pool not a fireball.",
+    "source": "sources/venomPool.png",
+    "asset": "assets/images/ui/traits/venomPool.png"
+  },
+  {
+    "id": "pressurizedFeed",
+    "turret": "poison",
+    "name": "가압 급액",
+    "stage": "primary",
+    "color": "#A6FF3A",
+    "prompt": "Use case: stylized-concept. Asset type: one production game ability icon for RuneNexus turret trait, to be viewed at 48–64 pixels. Create exactly ONE large centered emblem illustration in a square 1024x1024 canvas. Style: polished hand-painted game inventory art with sculpted cool gunmetal, restrained bevel highlights and concentrated colored energy; matches the trait emblems in the reference, not the surrounding UI. Strong chunky silhouette, two or three large forms, no intricate filigree. Perspective shallow three-quarter, key light upper left, bold values. Subject occupies central 75% with generous clear margins. Background: genuinely transparent alpha, no floor or environment, no backdrop. Only the emblem and its tight local glow remain; design for deep midnight navy UI behind it. NO circular border, NO frame, NO button, NO turret portrait, NO text, NO letters/numbers, NO label, NO watermark. No busy particles, no white full-image haze. It is an independent icon placed later in a shared circular UI socket. Accent color #A6FF3A. Subject: one chunky gunmetal pressure canister tilted diagonally, bright toxic-green liquid visible through a vertical glass window, a round brass pressure gauge on its side with the needle pushed far right, and two short broad green speed chevrons pointing right from its nozzle. Clearly pressurized fast feeding, not an explosion.",
+    "source": "sources/pressurizedFeed.png",
+    "asset": "assets/images/ui/traits/pressurizedFeed.png"
+  },
+  {
+    "id": "concentratedToxin",
+    "turret": "poison",
+    "name": "농축 독소",
+    "stage": "secondary",
+    "color": "#7CFF2E",
+    "prompt": "Use case: stylized-concept. Asset type: one production game ability icon for RuneNexus turret trait, to be viewed at 48–64 pixels. Create exactly ONE large centered emblem illustration in a square 1024x1024 canvas. Style: polished hand-painted game inventory art with sculpted cool gunmetal, restrained bevel highlights and concentrated colored energy; matches the trait emblems in the reference, not the surrounding UI. Strong chunky silhouette, two or three large forms, no intricate filigree. Perspective shallow three-quarter, key light upper left, bold values. Subject occupies central 75% with generous clear margins. Background: genuinely transparent alpha, no floor or environment, no backdrop. Only the emblem and its tight local glow remain; design for deep midnight navy UI behind it. NO circular border, NO frame, NO button, NO turret portrait, NO text, NO letters/numbers, NO label, NO watermark. No busy particles, no white full-image haze. It is an independent icon placed later in a shared circular UI socket. Accent color #7CFF2E. Subject: one faceted gunmetal-capped glass vial standing upright, filled with dense dark-to-bright saturated green toxin, three stacked heavy glowing droplets above it growing larger upward, the top droplet brightest. Clearly a concentrated stacking poison dose, compact vertical silhouette.",
+    "source": "sources/concentratedToxin.png",
+    "asset": "assets/images/ui/traits/concentratedToxin.png"
+  },
+  {
+    "id": "corrosiveToxin",
+    "turret": "poison",
+    "name": "부식 독소",
+    "stage": "secondary",
+    "color": "#C6FF4A",
+    "prompt": "Use case: stylized-concept. Asset type: one production game ability icon for RuneNexus turret trait, to be viewed at 48–64 pixels. Create exactly ONE large centered emblem illustration in a square 1024x1024 canvas. Style: polished hand-painted game inventory art with sculpted cool gunmetal, restrained bevel highlights and concentrated colored energy; matches the trait emblems in the reference, not the surrounding UI. Strong chunky silhouette, two or three large forms, no intricate filigree. Perspective shallow three-quarter, key light upper left, bold values. Subject occupies central 75% with generous clear margins. Background: genuinely transparent alpha, no floor or environment, no backdrop. Only the emblem and its tight local glow remain; design for deep midnight navy UI behind it. NO circular border, NO frame, NO button, NO turret portrait, NO text, NO letters/numbers, NO label, NO watermark. No busy particles, no white full-image haze. It is an independent icon placed later in a shared circular UI socket. Accent color #C6FF4A. Subject: one thick gunmetal armor plate tilted in three-quarter view, its upper corner being eaten away by glowing acid-green corrosion with melted drips running down and pitted holes, a few thick green droplets falling onto it. Clearly armor being corroded and weakened, not a shield breaking cleanly.",
+    "source": "sources/corrosiveToxin.png",
+    "asset": "assets/images/ui/traits/corrosiveToxin.png"
+  }
+]

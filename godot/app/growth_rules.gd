@@ -165,17 +165,22 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	result.availableTurretTypes = ["arrow", "cannon", "magic", "frost"]
 	if StageProgression.has_unlock(p,"turret","sniper"): result.availableTurretTypes.append("sniper")
 	if StageProgression.has_unlock(p,"turret","lightning"): result.availableTurretTypes.append("lightning")
+	if StageProgression.has_unlock(p,"turret","poison"): result.availableTurretTypes.append("poison")
 	result.availableGemTypes = []
 	for gem in data.gems:
 		if not StageProgression.has_unlock(p,"gem",gem): continue
 		result.availableGemTypes.append(gem)
-	for type in data.module.pools:
+	# Poison has no module pool yet but still needs the shared growth inputs.
+	for type in data.module.pools.keys() + ["poison"]:
 		var physical: bool = type in ["arrow", "cannon", "sniper"]
+		# Poison is its own family with its own training, never physical or elemental.
+		var family_key := "poisonDamageTraining" if type == "poison" else "physicalDamageTraining" if physical else "elementalDamageTraining"
+		var family_training: float = _level(p, family_key) * _c("familyDamageTrainingBonusPerUpgradeLevel")
 		var run_bonus: float = int(run_levels.get("towerDamage", 0)) * float(data.get("runUpgrades", {}).get("towerDamage", {}).get("effectPerLevel", 0))
 		result.turretStatInputs[type] = {
 			"moduleEffect": module_effect(p, type),
 			"coreEffects": core,
-			"towerDamageMultiplier": 1.0 + run_bonus + _level(p, "fireTraining") * _c("fireTrainingDamagePerUpgradeLevel") + _level(p, "physicalDamageTraining" if physical else "elementalDamageTraining") * _c("familyDamageTrainingBonusPerUpgradeLevel"),
+			"towerDamageMultiplier": 1.0 + run_bonus + _level(p, "fireTraining") * _c("fireTrainingDamagePerUpgradeLevel") + family_training,
 			"criticalChanceProgressionBonusRate": _research(p, "criticalChance") * _c("criticalChanceBonusPerResearchLevel") if StageProgression.has_unlock(p,"research","criticalChance") else 0.0,
 			"criticalDamageProgressionBonusRate": _level(p, "criticalDamage") * _c("criticalDamageBonusPerUpgradeLevel") if StageProgression.has_unlock(p,"upgrade","criticalDamage") else 0.0,
 			"passiveNumericGemEffectMultiplier": result.passiveNumericGemEffectMultiplier,

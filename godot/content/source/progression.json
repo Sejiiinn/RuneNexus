@@ -197,6 +197,7 @@
       "criticalDamage": 4,
       "physicalDamageTraining": 17,
       "elementalDamageTraining": 17,
+      "poisonDamageTraining": 23,
       "linkCostOptimization": 9,
       "turretLevelUpOptimization": 10,
       "bossDamageTraining": 24,
@@ -227,7 +228,8 @@
       "magic": 0,
       "frost": 0,
       "sniper": 3,
-      "lightning": 7
+      "lightning": 7,
+      "poison": 23
     },
     "gem": {
       "aimSpeed": 3,
@@ -439,6 +441,20 @@
       "title": "장갑 관통 젬",
       "icon": "gems/armorPiercing.png",
       "category": "젬"
+    },
+    {
+      "kind": "turret",
+      "key": "poison",
+      "title": "독 포탑",
+      "icon": "material:ea4b",
+      "category": "포탑"
+    },
+    {
+      "kind": "upgrade",
+      "key": "poisonDamageTraining",
+      "title": "독 피해 훈련",
+      "icon": "upgrades/poison_damage.png",
+      "category": "강화"
     },
     {
       "kind": "feature",

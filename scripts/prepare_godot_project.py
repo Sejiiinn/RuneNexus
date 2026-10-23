@@ -25,7 +25,7 @@ PROJECT = ROOT / "build/godot/project"
 ASSETS = PROJECT / "assets"
 SOURCE_ASSETS = ROOT / "assets/images/stage1_3d"
 TURRET_TYPES = ("arrow", "cannon", "magic", "frost", "sniper", "lightning")
-# 독 포탑은 모델만 준비됐다. 전투 유형이 아니므로 검사 프레임에는 넣지 않는다.
+# 독 포탑은 기존 검사 프레임 기준 장면을 바꾸지 않도록 모델 준비에만 넣는다.
 TURRET_MODEL_TYPES = TURRET_TYPES + ("poison",)
 ENEMY_TYPES = ("normal", "armored", "shielded", "fast", "tank", "boss")
 # Godot 4.7 GLTFDocument는 ImporterMesh 이름에 원본 glTF scene 이름을 앞붙인다.

@@ -21,3 +21,9 @@ cd design/poison_tower_concepts/2026-10-20/game
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python build_game.py
 /Applications/Blender.app/Contents/MacOS/Blender -b venom-mortar-game.blend --factory-startup --python export_game.py -- --install
 ```
+
+건설 버튼 아이콘(`assets/images/ui/hud/turrets_3d/poison.png`)은 설치한 게임 모델을 라이트닝 포탑과 같은 고정 HUD 카메라로 렌더한다. 결과 범위는 [`hud-icon-verification.json`](hud-icon-verification.json)에 남긴다.
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python design/poison_tower_concepts/2026-10-20/game/render_hud_icon.py
+```

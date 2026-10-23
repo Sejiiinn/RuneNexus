@@ -46,7 +46,9 @@ static func has_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	if not REQUIREMENTS.get(kind,{}).has(key): return false
 	# Prerequisite research is new content and never accepts legacy or grandfathered rights.
 	if kind == "research" and RESEARCH_PREREQUISITES.has(key): return requirement(kind,key) in p.get("clearedStageNumbers",[])
-	if kind+":"+key in p.get("grandfatherUnlocks",[]): return true
+	# Turrets/upgrades added after the legacy table (poison, new trainings) never
+	# accept grandfathered rights; legitimate migration cannot create them.
+	if kind+":"+key in p.get("grandfatherUnlocks",[]) and (not kind in ["upgrade","turret"] or LEGACY_REQUIREMENTS.get(kind,{}).has(key)): return true
 	if int(p.get("progressionVersion",0)) < VERSION and _legacy_unlock(p,kind,key): return true
 	var required := requirement(kind,key)
 	return required == 0 or required in p.get("clearedStageNumbers",[])
@@ -75,7 +77,7 @@ static func migrate_progression(p: Dictionary, run_evidence: Dictionary = {}, in
 		# an old entitlement, never new currency or an ownership grant.
 		for turret in run_evidence.get("turrets",[]) + inventory.get("items",[]):
 			var type := str(turret.get("type",turret.get("turretType","")))
-			if REQUIREMENTS.turret.has(type) and not "turret:"+type in rights: rights.append("turret:"+type)
+			if LEGACY_REQUIREMENTS.turret.has(type) and not "turret:"+type in rights: rights.append("turret:"+type)
 			for gem in turret.get("equippedGemSlots",[]) + turret.get("equippedGems",[]):
 				if gem in REQUIREMENTS.gem and not "gem:"+str(gem) in rights: rights.append("gem:"+str(gem))
 		for gem in run_evidence.get("gemInventory",{}):

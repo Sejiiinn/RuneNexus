@@ -224,7 +224,8 @@ func _row(stage: int, top: float) -> void:
 		var rect := Rect2(left, top + 39.46, 24 * badge_scale, 24 * badge_scale)
 		var color := WHITE if enabled else MUTED
 		_badge(rect, Color("e8f8ff14"), Color(color, 0.34), 7 * badge_scale)
-		if icons[i].begins_with("turret:"):
+		if icons[i] == "turret:poison": _image("ui/hud/turrets_3d/poison.png", Rect2(rect.position + Vector2.ONE * 2 * badge_scale, Vector2.ONE * 20 * badge_scale))
+		elif icons[i].begins_with("turret:"):
 			var shape := RewardTurretIcon.new()
 			shape.kind = icons[i].trim_prefix("turret:")
 			_place(shape, Rect2(rect.position + Vector2(3,4 if shape.kind == "sniper" else 3) * badge_scale, Vector2(18,16 if shape.kind == "sniper" else 18) * badge_scale))

@@ -25,6 +25,7 @@ var requirements = map[string]map[string]int{
 		"criticalDamage":            4,
 		"physicalDamageTraining":    17,
 		"elementalDamageTraining":   17,
+		"poisonDamageTraining":      23,
 		"linkCostOptimization":      9,
 		"turretLevelUpOptimization": 10,
 		"bossDamageTraining":        24,
@@ -56,6 +57,7 @@ var requirements = map[string]map[string]int{
 		"frost":     0,
 		"sniper":    3,
 		"lightning": 7,
+		"poison":    23,
 	},
 	"gem": {
 		"aimSpeed":      3,

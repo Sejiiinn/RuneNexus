@@ -38,17 +38,19 @@ func validateDamageOverTimeMetadata(raw []byte, clientVersion int) error {
 		if err := validate(enemy["poisonDamageOverTimeIncreaseMultiplier"]); err != nil {
 			return err
 		}
-		var burns []json.RawMessage
-		if json.Unmarshal(enemy["burnInstances"], &burns) != nil {
-			continue
-		}
-		for _, rawBurn := range burns {
-			var burn map[string]json.RawMessage
-			if json.Unmarshal(rawBurn, &burn) != nil {
+		for _, field := range []string{"burnInstances", "poisonInstances"} {
+			var instances []json.RawMessage
+			if json.Unmarshal(enemy[field], &instances) != nil {
 				continue
 			}
-			if err := validate(burn["damageOverTimeIncreaseMultiplier"]); err != nil {
-				return err
+			for _, rawInstance := range instances {
+				var instance map[string]json.RawMessage
+				if json.Unmarshal(rawInstance, &instance) != nil {
+					continue
+				}
+				if err := validate(instance["damageOverTimeIncreaseMultiplier"]); err != nil {
+					return err
+				}
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 extends SceneTree
 const SaveJson = preload("res://app/save_json.gd")
 const Codec = preload("res://app/save_codec.gd")
+const Hash = preload("res://services/save_payload_hash.gd")
 
 func _initialize() -> void:
 	var inputs: Variant = SaveJson.parse(FileAccess.get_file_as_string("res://fixtures/godot_save_codec_inputs.json"))
@@ -9,7 +10,7 @@ func _initialize() -> void:
 		push_error("Missing save codec fixtures")
 		quit(1)
 		return
-	var failures := _integer_boundaries() + _boss_damage_training() + _damage_training() + _dot_metadata()
+	var failures := _integer_boundaries() + _boss_damage_training() + _damage_training() + _dot_metadata() + _poison_turret()
 	for i in inputs.size():
 		# Historical synthetic scalar fixtures used 7.8, negative and nonnumeric
 		# revisions. Since v5, revision is a discriminant, not a lossy scalar:
@@ -137,6 +138,50 @@ func _dot_metadata() -> int:
 			record[key] = value
 			if Codec.is_canonical_v2(input) or Codec.decode(input) != null: failures += 1
 	print("SAVE_CODEC_DOT_METADATA failures=", failures)
+	return failures
+
+# Poison turrets keep type, traits and per-stack timers. Saves without poison
+# stacks gain no field, so their payload hash is unchanged.
+func _poison_turret() -> int:
+	var failures := 0
+	var stack := {"remaining":3.0,"damagePerSecond":1.5,"sourceX":2,"sourceY":3,"stackBonus":0.1,"corrosive":true,"damageOverTimeIncreaseMultiplier":1.5,"unknown":1}
+	var base := {"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":{"phase":"wave",
+		"turrets":[{"id":1,"type":"poison","x":2,"y":3,"primaryTrait":"venomPool","secondaryTrait":"corrosiveToxin"}],
+		"enemies":[{"type":"normal","poisonInstances":[stack,{"remaining":0.0,"damagePerSecond":1.0},{"remaining":2.0,"damagePerSecond":1.0,"corrosive":"yes"}]}]}}
+	var decoded: Variant = Codec.decode(base)
+	if not decoded is Dictionary: return 1
+	var turret: Dictionary = decoded.activeRun.turrets[0]
+	if turret.type != "poison" or turret.primaryTrait != "venomPool" or turret.secondaryTrait != "corrosiveToxin": failures += 1
+	for trait_id in ["pressurizedFeed","concentratedToxin"]:
+		if Codec._enum("TurretTraitType", trait_id) != trait_id: failures += 1
+	var poisons: Array = decoded.activeRun.enemies[0].get("poisonInstances", [])
+	if poisons.size() != 2: failures += 1
+	elif poisons[0] != {"remaining":3.0,"damagePerSecond":1.5,"damageMultiplier":1.0,"sourceX":2,"sourceY":3,"stackBonus":0.1,"corrosive":true,"damageOverTimeIncreaseMultiplier":1.5} or poisons[1].has("corrosive"): failures += 1
+	if not _equal(Codec.decode(decoded), decoded) or not Codec.is_normalized_v2(decoded): failures += 1
+	var without: Dictionary = base.duplicate(true)
+	without.activeRun.enemies[0].erase("poisonInstances")
+	var plain: Variant = Codec.decode(without)
+	if plain == null or plain.activeRun.enemies[0].has("poisonInstances"): failures += 1
+	without.activeRun.enemies[0].poisonInstances = []
+	if Codec.decode(without) != plain or Hash.hash_payload(Codec.decode(without)) != Hash.hash_payload(plain): failures += 1
+	if Hash.hash_payload(decoded) == Hash.hash_payload(plain): failures += 1
+	# Poison damage training is optional 0..50; absence keeps old hashes.
+	var trained: Dictionary = without.duplicate(true)
+	if Codec.decode(trained).progression.has("poisonDamageTrainingUpgradeLevel"): failures += 1
+	trained.progression.poisonDamageTrainingUpgradeLevel = 50
+	var trained_decoded: Variant = Codec.decode(trained)
+	if trained_decoded == null or trained_decoded.progression.poisonDamageTrainingUpgradeLevel != 50 or Hash.hash_payload(trained_decoded) == Hash.hash_payload(plain): failures += 1
+	for value in [51, -1, 1.5, "1"]:
+		trained.progression.poisonDamageTrainingUpgradeLevel = value
+		if Codec.decode(trained) != null: failures += 1
+	for value in [0.9, 4.01, "1"]:
+		var invalid: Dictionary = base.duplicate(true)
+		invalid.activeRun.enemies[0].poisonInstances[0].damageOverTimeIncreaseMultiplier = value
+		if Codec.decode(invalid) != null: failures += 1
+		# A malformed burn list must not skip poison metadata validation.
+		invalid.activeRun.enemies[0].burnInstances = "bad"
+		if Codec.decode(invalid) != null: failures += 1
+	print("SAVE_CODEC_POISON failures=", failures)
 	return failures
 
 # Godot JSON parses every number as float; compare values recursively without

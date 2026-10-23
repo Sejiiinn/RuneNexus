@@ -3,6 +3,7 @@ extends RefCounted
 const PATHS := {
 	"material:ef3a": "ui/hud/turrets_3d/sniper.png",
 	"material:eedd": "ui/hud/turrets_3d/lightning.png",
+	"material:ea4b": "ui/hud/turrets_3d/poison.png",
 	"material:f499": "stage_rewards/reward_research.png",
 }
 

@@ -3,6 +3,7 @@ const Growth = preload("res://app/growth_rules.gd")
 const Catalog = preload("res://content/content_catalog.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Json = preload("res://app/save_json.gd")
+const StageProgression = preload("res://content/stage_progression.gd")
 var failures: Array = []
 var assertions := 0
 func check(value: bool, label: String) -> void:
@@ -80,6 +81,7 @@ func _init() -> void:
 	_initial_research(growth)
 	_boss_damage_training(growth)
 	_damage_type_training(growth)
+	_poison_turret(growth)
 	_core_runtime(growth)
 	print(JSON.stringify({"assertions":assertions,"failures":failures}))
 	if failures.is_empty(): print("PASS growth rules")
@@ -180,6 +182,49 @@ func _core_runtime(growth) -> void:
 	var off: Dictionary = growth.core_config({"progression":unequipped.state}, 0, 1, catalog)
 	runtime.process_command({"epoch":1,"sequence":5,"dt":interval,"commands":[{"kind":"coreConfig","config":off}]})
 	check(runtime.core.skill == null and runtime.core.activation_count == 3, "unequip stops runtime activations")
+
+# Poison opens on the first 2-8 clear (stage ID 23) only, never through legacy
+# rights. Its family training is poison damage training (same curve, same 2-8
+# gate), never physical or elemental training.
+func _poison_turret(growth) -> void:
+	var p: Dictionary = growth.data.defaultProgression.duplicate(true)
+	# 17 opens family training so the exclusion is observable.
+	p.clearedStageNumbers = [1, 17, 22]
+	p.physicalDamageTrainingUpgradeLevel = 10
+	p.elementalDamageTrainingUpgradeLevel = 10
+	p.poisonDamageTrainingUpgradeLevel = 4
+	p.fireTrainingUpgradeLevel = 3
+	p.runes = 1000000
+	var locked: Dictionary = growth.derive(p)
+	check(not "poison" in locked.availableTurretTypes, "poison locked before 2-8")
+	check(near(locked.turretStatInputs.poison.towerDamageMultiplier, 1.0 + 3 * growth._c("fireTrainingDamagePerUpgradeLevel")), "locked forged poison training has no effect")
+	var rejected: Dictionary = growth.execute(p, {"kind":"upgradePermanent", "id":"poisonDamageTraining"})
+	check(not rejected.ok and rejected.state == p, "poison training buy locked before 2-8")
+	# New content ignores grandfathered rights, whether forged or from old run evidence.
+	var forged := p.duplicate(true)
+	forged.grandfatherUnlocks = ["turret:poison", "upgrade:poisonDamageTraining"]
+	check(not "poison" in growth.derive(forged).availableTurretTypes and not growth.execute(forged, {"kind":"upgradePermanent", "id":"poisonDamageTraining"}).ok, "poison ignores grandfathered rights")
+	var migrated: Dictionary = StageProgression.migrate_progression({"unlockedStageCount":30}, {"turrets":[{"type":"poison"}, {"type":"lightning"}]})
+	check(not "turret:poison" in migrated.grandfatherUnlocks and "turret:lightning" in migrated.grandfatherUnlocks, "old run evidence grants legacy turrets only")
+	var legacy := p.duplicate(true)
+	legacy.erase("progressionVersion")
+	legacy.unlockedStageCount = 30
+	check(not "poison" in growth.derive(legacy).availableTurretTypes, "poison has no legacy entitlement")
+	p.clearedStageNumbers.append(23)
+	var open: Dictionary = growth.derive(p)
+	check("poison" in open.availableTurretTypes, "poison opens on 2-8 first clear")
+	var poison: Dictionary = open.turretStatInputs.get("poison", {})
+	var fire: float = 3 * growth._c("fireTrainingDamagePerUpgradeLevel")
+	var family: float = 10 * growth._c("familyDamageTrainingBonusPerUpgradeLevel")
+	var poison_family: float = 4 * growth._c("familyDamageTrainingBonusPerUpgradeLevel")
+	check(near(poison.get("towerDamageMultiplier", 0.0), 1.0 + fire + poison_family), "poison gets poison training, not physical/elemental")
+	check(near(open.turretStatInputs.magic.towerDamageMultiplier, 1.0 + fire + family), "elemental turret ignores poison training")
+	check(near(open.turretStatInputs.arrow.towerDamageMultiplier, 1.0 + fire + family), "physical turret ignores poison training")
+	var definition: Dictionary = growth.data.permanentUpgrades.poisonDamageTraining
+	check(int(definition.maxLevel) == 50 and definition.costs == growth.data.permanentUpgrades.elementalDamageTraining.costs, "poison training shares the elemental curve")
+	var bought: Dictionary = growth.execute(p, {"kind":"upgradePermanent", "id":"poisonDamageTraining"})
+	check(bought.ok and int(bought.state.poisonDamageTrainingUpgradeLevel) == 5 and int(bought.state.runes) == 1000000 - int(definition.costs[4]), "poison training buy after 2-8")
+	check(poison.has("moduleEffect") and poison.moduleEffect.values().all(func(v): return v == 0.0), "poison has neutral module effect")
 
 func _damage_type_training(growth) -> void:
 	var keys := ["directDamageTraining", "splashDamageTraining", "damageOverTimeTraining"]
