@@ -32,7 +32,7 @@ func _build(state: Dictionary) -> void:
 		var definition: Dictionary = hud.app.catalog.turret_definition(type)
 		var capabilities := PackedStringArray()
 		for capability in definition.get("attackCapabilities",[]): capabilities.append(GemSlots.capability_label(str(capability)))
-		UiWidgets.label(hud.body,("물리" if definition.damageFamily == "physical" else "원소")+" · "+str({"arrow":"경량화기","cannon":"중화기 · 폭발","magic":"지속 피해","frost":"감속","sniper":"중화기 · 조준","lightning":"연쇄"}.get(type,""))+(" · "+" · ".join(capabilities) if not capabilities.is_empty() else ""),10)
+		UiWidgets.label(hud.body,{"physical":"물리","poison":"독"}.get(definition.damageFamily,"원소")+" · "+str({"arrow":"경량화기","cannon":"중화기 · 폭발","magic":"지속 피해","frost":"감속","sniper":"중화기 · 조준","lightning":"연쇄"}.get(type,""))+(" · "+" · ".join(capabilities) if not capabilities.is_empty() else ""),10)
 		var stats = hud.turret_stats(state,{"type":type,"level":1,"equippedGemSlots":[],"primaryTrait":null,"secondaryTrait":null})
 		var preview: Label = UiWidgets.label(hud.body,"피해 %s     초당 %.2f회     사거리 %.0f" % [HudNumber.compact(stats.damage),stats.attackRate,stats.range],11)
 		preview.name = "BuildStatPreview"

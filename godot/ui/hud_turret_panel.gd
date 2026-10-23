@@ -7,7 +7,7 @@ const HudNumber = preload("res://ui/hud_number.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const PREVIOUS_STATS_HEIGHT := 80.0
 const PREVIOUS_DAMAGE_ROW_HEIGHT := 34.0
-const CATEGORY_NAMES := {"physical": "물리", "elemental": "원소", "light": "경량화기", "heavy": "중화기", "damageOverTime": "지속피해", "cooling": "냉각"}
+const CATEGORY_NAMES := {"physical": "물리", "elemental": "원소", "poison": "독", "light": "경량화기", "heavy": "중화기", "damageOverTime": "지속피해", "cooling": "냉각"}
 const CATEGORY_GEMS := {"physical": "physicalDamage", "elemental": "elementalDamage", "light": "lightWeapon", "heavy": "heavyWeapon", "damageOverTime": "damageOverTime"}
 var hud: Control
 

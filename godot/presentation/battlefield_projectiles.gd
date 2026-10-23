@@ -4,15 +4,19 @@ signal failure(message: String)
 
 const Impact = preload("res://effects/godot_impact.gd")
 const SniperBlast = preload("res://effects/sniper_energy_blast.gd")
+const VenomSplash = preload("res://effects/venom_splash.gd")
 const SNIPER_VARIANT := "sniperEnergy"
-const IMPACT_LIGHT_COLORS := {"": Color(1.0, 0.42, 0.08), SNIPER_VARIANT: Color(0.32, 0.86, 1.0)}
+const VENOM_VARIANT := "venom"
+const IMPACT_LIGHT_COLORS := {"": Color(1.0, 0.42, 0.08), SNIPER_VARIANT: Color(0.32, 0.86, 1.0), VENOM_VARIANT: Color(0.3, 0.9, 0.4)}
 const FieldCache = preload("res://effects/field_cache.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
+const VenomProjectile = preload("res://effects/venom_projectile.gd")
 const FrameRows = preload("res://presentation/frame_rows.gd")
 const PROJECTILE_COLORS := {
 	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("ff8528"),
 	"frost": Color("94e6ff"), "sniper": Color("ffeec4"), "lightning": Color("c7d8ff"),
+	"poison": Color("a6ff3a"),
 }
 
 var world: Node3D
@@ -21,12 +25,13 @@ var projectiles := {}
 var impacts := {}
 var impact_pool: Array[Node3D] = []
 var sniper_blast_pool: Array[Node3D] = []
+var venom_splash_pool: Array[Node3D] = []
 var impact_lights: Array[OmniLight3D] = []
 var field: Dictionary
 var _projectile_meshes := {}
 var _ballistic_pool := {"arrow": [], "cannon": []}
 var _fire_projectile_pool: Array[Node3D] = []
-var _generic_projectile_pool := {"sniper": [], "frost": []}
+var _generic_projectile_pool := {"sniper": [], "frost": [], "poison": []}
 var _time := 0.0
 var columns := 8
 var rows := 10
@@ -75,10 +80,11 @@ func configure_stage(tower_types: Array) -> bool:
 	for kind: String in _projectile_meshes.keys():
 		if not kind in tower_types: _projectile_meshes.erase(kind)
 	if not "sniper" in tower_types: _free_pool(sniper_blast_pool)
+	if not "poison" in tower_types: _free_pool(venom_splash_pool)
 	if "cannon" in tower_types: return _ensure_field()
 	_free_pool(impact_pool)
 	field = {}
-	if not "sniper" in tower_types:
+	if not "sniper" in tower_types and not "poison" in tower_types:
 		for light in impact_lights: light.free()
 		impact_lights.clear()
 	return true
@@ -104,6 +110,7 @@ func adopt_prepared(source) -> void:
 	_adopt_pool(source._fire_projectile_pool, _fire_projectile_pool)
 	_adopt_pool(source.impact_pool, impact_pool)
 	_adopt_pool(source.sniper_blast_pool, sniper_blast_pool)
+	_adopt_pool(source.venom_splash_pool, venom_splash_pool)
 	_projectile_meshes.merge(source._projectile_meshes)
 
 
@@ -123,7 +130,7 @@ func clear(keep_prepared: bool = false) -> void:
 		# projectile metadata, ages, transforms, emitting tails, or impact lights.
 		_sync_projectiles([], {})
 		_update_impacts([])
-		for pool: Array in _ballistic_pool.values() + _generic_projectile_pool.values() + [_fire_projectile_pool, impact_pool, sniper_blast_pool]:
+		for pool: Array in _ballistic_pool.values() + _generic_projectile_pool.values() + [_fire_projectile_pool, impact_pool, sniper_blast_pool, venom_splash_pool]:
 			while pool.size() > 2:
 				pool.pop_back().free()
 			for effect: Node3D in pool:
@@ -148,6 +155,7 @@ func clear(keep_prepared: bool = false) -> void:
 		effect.free()
 	impact_pool.clear()
 	_free_pool(sniper_blast_pool)
+	_free_pool(venom_splash_pool)
 	for light in impact_lights:
 		light.light_energy = 0.0
 		light.visible = false
@@ -172,6 +180,8 @@ func _new_projectile(type: String) -> Node3D:
 		if not _fire_projectile_pool.is_empty():
 			return _fire_projectile_pool.pop_back()
 		return RunicFire.new(true)
+	if type == "poison":
+		return VenomProjectile.new()
 	if _ballistic_pool.has(type):
 		var pool: Array = _ballistic_pool[type]
 		if not pool.is_empty():
@@ -250,6 +260,11 @@ func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 		if type == "magic":
 			_update_fire_projectile(projectiles[id], row, turrets)
 			continue
+		if root is VenomProjectile:
+			var owner: Dictionary = turrets.get(row.owner_id, {}) if row.has_owner else {}
+			root.size_scale = VenomProjectile.VENOM_POOL_SCALE if bool(owner.get("venom_pool", false)) else 1.0
+			root.update_flight(row, Vector3(-columns / 2.0, 0.0, -rows / 2.0), owner.get("shot_pose") if int(owner.get("last_shot", -1)) == row.shot else null)
+			continue
 		if root is BallisticProjectile:
 			var pose = null
 			if row.has_launch and row.has_owner and not row.chained:
@@ -272,6 +287,7 @@ func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 				projectile.reset()
 				_ballistic_pool[type].append(projectile)
 			elif _generic_projectile_pool.has(type) and _generic_projectile_pool[type].size() < 64:
+				if projectile.has_method("reset"): projectile.reset()
 				projectile.visible = false
 				projectile.transform = Transform3D.IDENTITY
 				_generic_projectile_pool[type].append(projectile)
@@ -324,13 +340,14 @@ func _update_fire_projectile(entry: Dictionary, row: FrameRows.Projectile, turre
 func _update_impacts(units: Array) -> void:
 	var rows_list := FrameRows.rows("impacts", units)
 	# Only cannon shell blasts need the large field cache.
-	if rows_list.any(func(row: FrameRows.Impact): return row.variant != SNIPER_VARIANT) and not _ensure_field(): return
+	if rows_list.any(func(row: FrameRows.Impact): return row.variant not in [SNIPER_VARIANT, VENOM_VARIANT]) and not _ensure_field(): return
 	if not rows_list.is_empty(): _ensure_lights()
 	var alive := {}
 	for light in impact_lights:
 		light.light_energy = 0.0
 	var cannon_lights: Array = []
 	var sniper_lights: Array = []
+	var venom_lights: Array = []
 	for row: FrameRows.Impact in rows_list:
 		var id := row.id
 		alive[id] = true
@@ -342,6 +359,12 @@ func _update_impacts(units: Array) -> void:
 					world.add_child(effect)
 				else:
 					effect = sniper_blast_pool.pop_back()
+			elif row.variant == VENOM_VARIANT:
+				if venom_splash_pool.is_empty():
+					effect = VenomSplash.new()
+					world.add_child(effect)
+				else:
+					effect = venom_splash_pool.pop_back()
 			elif impact_pool.is_empty():
 				effect = Impact.new()
 				world.add_child(effect)
@@ -353,25 +376,29 @@ func _update_impacts(units: Array) -> void:
 		effect.visible = bool(options["volume"])
 		effect.position = Vector3(row.x - columns / 2.0, 0, row.y - rows / 2.0)
 		if effect.visible:
+			if effect is VenomSplash: effect.lifetime = row.duration
 			effect.update_impact(row.progress, row.radius, id, camera)
 			if row.variant == SNIPER_VARIANT:
 				if row.progress < 0.4: sniper_lights.append([effect, row])
+			elif row.variant == VENOM_VARIANT:
+				if row.progress < 0.22: venom_lights.append([effect, row])
 			elif row.progress < 0.68:
 				cannon_lights.append([effect, row])
-	# Cannon blasts keep their lights first; explosion-sniper blasts use what is left.
+	# Cannon blasts keep their lights first; explosion-sniper and venom splashes use what is left.
 	var light_index := 0
-	for request: Array in cannon_lights + sniper_lights:
+	for request: Array in cannon_lights + sniper_lights + venom_lights:
 		if light_index >= impact_lights.size(): break
 		var effect: Node3D = request[0]
 		var row: FrameRows.Impact = request[1]
 		var sniper: bool = row.variant == SNIPER_VARIANT
+		var venom: bool = row.variant == VENOM_VARIANT
 		# The sniper light stays near its splash radius and fades with the flash.
-		var light_end := 0.4 if sniper else 0.68
+		var light_end := 0.4 if sniper else (0.22 if venom else 0.68)
 		var light := impact_lights[light_index]
 		light.position = effect.position + Vector3(0, 0.3 + row.radius * 0.12, 0)
-		light.omni_range = row.radius * (1.8 if sniper else 3.2)
-		light.light_color = IMPACT_LIGHT_COLORS[SNIPER_VARIANT if sniper else ""]
-		light.light_energy = (1.4 if sniper else 1.6) * pow(1.0 - row.progress / light_end, 2)
+		light.omni_range = row.radius * (1.8 if sniper else (3.0 if venom else 3.2))
+		light.light_color = IMPACT_LIGHT_COLORS[row.variant if sniper or venom else ""]
+		light.light_energy = (1.4 if sniper else (0.45 if venom else 1.6)) * pow(1.0 - row.progress / light_end, 2)
 		light_index += 1
 	# Unused pool lights add nothing but still occupy per-object light lists.
 	for light in impact_lights:
@@ -380,5 +407,5 @@ func _update_impacts(units: Array) -> void:
 		if not alive.has(id):
 			var effect: Node3D = impacts[id]
 			effect.visible = false
-			(sniper_blast_pool if effect is SniperBlast else impact_pool).append(effect)
+			(sniper_blast_pool if effect is SniperBlast else (venom_splash_pool if effect is VenomSplash else impact_pool)).append(effect)
 			impacts.erase(id)

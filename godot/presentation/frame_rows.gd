@@ -152,18 +152,23 @@ class Impact extends RefCounted:
 	var radius := 0.0
 	## Normalized lifetime 0..1.
 	var progress := 0.0
-	## Blast renderer; empty is the cannon shell blast, "sniperEnergy" the explosion-gem sniper blast.
+	## Blast renderer; empty is the cannon shell blast, "sniperEnergy" the explosion-gem sniper blast,
+	## "venom" the poison landing and its lingering puddle.
 	var variant := ""
+	## Lifetime in seconds; only the venom puddle reads it (its length follows the puddle rule).
+	var duration := 0.0
 
 	static func from_array(d: Array) -> Impact:
 		var row := Impact.new()
 		row.id = int(d[0]); row.x = float(d[1]); row.y = float(d[2])
 		row.radius = float(d[3]); row.progress = float(d[4])
 		if d.size() > 5: row.variant = str(d[5])
+		if d.size() > 6: row.duration = float(d[6])
 		return row
 
 	func to_array() -> Array:
-		return [id, x, y, radius, progress] if variant.is_empty() else [id, x, y, radius, progress, variant]
+		if variant.is_empty(): return [id, x, y, radius, progress]
+		return [id, x, y, radius, progress, variant] if duration <= 0.0 else [id, x, y, radius, progress, variant, duration]
 
 class BuildPreview extends RefCounted:
 	var x := 0.0

@@ -62,6 +62,7 @@ SCRIPTS = {
     "verify_legacy_combat_regressions.gd": "PASS legacy combat replacements:",
     "verify_shared_turret_stats.gd": "SHARED_TURRET_STATS checks=",
     "verify_native_combat_runtime.gd": "PASS native combat runtime:",
+    "verify_poison_turret.gd": "POISON_TURRET checks=",
     "verify_fixed_combat_clock.gd": "FIXED_COMBAT_CLOCK checks=",
     "verify_lightning_target_priority.gd": "LIGHTNING_TARGET_PRIORITY checks=",
     "verify_turret_placement.gd": "TURRET_PLACEMENT checks=",

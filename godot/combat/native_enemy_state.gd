@@ -271,6 +271,8 @@ static func add_poison(e: Dictionary,poison: Dictionary) -> void:
 	var value := {"remaining":duration,"damagePerSecond":dps,"damageMultiplier":maxf(0,float(poison.get("damageMultiplier",1.0))),"sourceX":poison.get("sourceX"),"sourceY":poison.get("sourceY")}
 	var increase := dot_increase_multiplier(poison.get("damageOverTimeIncreaseMultiplier",1.0))
 	if increase != 1.0: value.damageOverTimeIncreaseMultiplier = increase
+	if poison.has("stackBonus"): value.stackBonus = float(poison.stackBonus)
+	if bool(poison.get("corrosive", false)): value.corrosive = true
 	var shortest := -1
 	var count := 0
 	for i in e.poisonInstances.size():
@@ -400,6 +402,9 @@ static func _poison_source_damage(stacks: Array,dt: float,training_rate: float) 
 	ends.sort()
 	var damage := 0.0
 	var elapsed := 0.0
+	# 중첩 보너스는 출처(포탑)마다 하나: 그 포탑 특성이 정한 값, 없으면 기본 5%.
+	var bonus := POISON_STACK_BONUS
+	for p in stacks: bonus = maxf(bonus, float(p.get("stackBonus", POISON_STACK_BONUS)))
 	for end in ends:
 		if end <= elapsed: continue
 		var active := 0
@@ -408,7 +413,7 @@ static func _poison_source_damage(stacks: Array,dt: float,training_rate: float) 
 			if p.remaining > elapsed:
 				active += 1
 				dps += float(p.damagePerSecond)*(1.0 + training_rate / dot_increase_multiplier(p.get("damageOverTimeIncreaseMultiplier",1.0)))
-		damage += dps*(1.0 + POISON_STACK_BONUS*active)*(end-elapsed)
+		damage += dps*(1.0 + bonus*active)*(end-elapsed)
 		elapsed = end
 	return damage
 

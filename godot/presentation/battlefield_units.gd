@@ -13,11 +13,13 @@ const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const SniperVfx = preload("res://effects/sniper_vfx.gd")
 const SniperTargetSurface = preload("res://effects/sniper_target_surface.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
+const VenomMuzzle = preload("res://effects/venom_muzzle.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
 const FrostTower = preload("res://effects/frost_tower.gd")
 const LightningCollar = preload("res://effects/lightning_collar.gdshader")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
+const EnemyPoison = preload("res://effects/enemy_poison.gd")
 const EnemyRarityGlow = preload("res://effects/enemy_rarity_glow.gd")
 const GuardianPreview = preload("res://presentation/guardian_preview.gd")
 const ShieldedPresentation = preload("res://presentation/shielded_presentation.gd")
@@ -29,6 +31,7 @@ const TURRET_MODELS := {
 	"frost": "res://assets/turrets/frost.glb",
 	"sniper": "res://assets/turrets/sniper.glb",
 	"lightning": "res://assets/turrets/lightning.glb",
+	"poison": "res://assets/turrets/poison.glb",
 }
 const ENEMY_MODELS := {
 	"normal": "res://assets/enemies/normal.glb",
@@ -227,15 +230,19 @@ func _new_turret(type: String) -> Dictionary:
 		root.add_child(effect)
 		entry["muzzle_effect"] = effect
 		return entry
+	if type == "poison":
+		var venom := VenomMuzzle.new()
+		root.add_child(venom)
+		entry["venom_muzzle"] = venom
 	for index in range(2):
 		var flash := WeaponAtlas.new()
-		flash.configure(true)
+		flash.configure(true, Color("5ee07a") if type == "poison" else Color.WHITE)
 		flash.position.x = (-0.062 if index == 0 else 0.062) if type == "arrow" else 0.0
 		flash.position.z = 0.018
 		muzzle.add_child(flash)
 		entry["flashes"].append(flash)
 		var smoke := WeaponAtlas.new()
-		smoke.configure(false, Color("697586") if type == "arrow" else Color.WHITE)
+		smoke.configure(false, Color("697586") if type == "arrow" else (Color("9fd9aa") if type == "poison" else Color.WHITE))
 		smoke.position.x = flash.position.x
 		muzzle.add_child(smoke)
 		entry["smokes"].append(smoke)
@@ -297,6 +304,8 @@ func _sync_turrets(units: Array) -> void:
 		else:
 			if type == "sniper":
 				entry["aim_state"] = row.extension
+			elif type == "poison":
+				entry["venom_pool"] = bool(row.extension.get("venomPool", false))
 			_update_fire(entry, row.shot_sequence, row.fire_feedback)
 	for id in turrets.keys():
 		if not alive.has(id):
@@ -335,6 +344,8 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 		entry["smoke_starts"] = [-INF, -INF]
 		if entry.has("muzzle_effect"):
 			entry["muzzle_effect"].reset()
+		if entry.has("venom_muzzle"):
+			entry["venom_muzzle"].reset()
 		if entry.has("fire_effect"):
 			entry["fire_effect"].reset()
 			entry["last_shot"] = -1
@@ -355,11 +366,12 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 	var age := maxf(0.0, time - float(entry["fire_start"]))
 	var heavy: bool = entry["type"] == "cannon"
 	var machine_gun: bool = entry["type"] == "arrow"
+	var mortar: bool = entry["type"] == "poison"
 	var duration := 0.11 if heavy else (0.12 if machine_gun else 0.085)
-	var recovery := 0.34 if heavy else (0.075 if machine_gun else 0.14)
+	var recovery := 0.34 if heavy else (0.075 if machine_gun else (0.26 if mortar else 0.14))
 	var kick := age / 0.018 if age < 0.018 else pow(clampf(1.0 - (age - 0.018) / recovery, 0.0, 1.0), 2.0)
-	entry["barrel"].position.z = float(entry["barrel_rest_z"]) - kick * (0.12 if heavy else (0.025 if machine_gun else 0.045))
-	if fired and (heavy or machine_gun or entry["type"] == "magic"):
+	entry["barrel"].position.z = float(entry["barrel_rest_z"]) - kick * (0.12 if heavy else (0.025 if machine_gun else (0.075 if mortar else 0.045)))
+	if fired and (heavy or machine_gun or entry["type"] in ["magic", "poison"]):
 		var muzzle: Node3D = entry["muzzle"]
 		var pose := muzzle.global_transform.orthonormalized()
 		pose.origin = muzzle.to_global(Vector3((0.062 if int(entry["active_port"]) == 1 else -0.062) if machine_gun else 0.0, 0.0, 0.018))
@@ -372,6 +384,10 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 	if entry.has("sniper_effect"):
 		entry["sniper_effect"].update_flash(age)
 		return
+	if entry.has("venom_muzzle"):
+		if fired:
+			entry["venom_muzzle"].fire(entry["muzzle"], time, shot_sequence)
+		entry["venom_muzzle"].update_effect(entry["muzzle"], time, camera)
 	if machine_gun:
 		# 최신 조준·반동 위치에서 이번 한 발만 기록. 건너뛴 순번은 재연하지 않음.
 		if fired:
@@ -427,6 +443,7 @@ func _sync_enemies(units: Array) -> void:
 	var time := _time
 	# 공통 GPU 입자 시계는 전투 프레임마다 한 번만 전달한다.
 	EnemyBurn.set_time(time)
+	EnemyPoison.set_time(time)
 	var alive := {}
 	for row: FrameRows.Enemy in FrameRows.rows("enemies", units):
 		var id := row.id
@@ -461,6 +478,7 @@ func _sync_enemies(units: Array) -> void:
 			_guardian_preview.update_walker(enemies[id], row, time)
 			EnemyFrost.apply(enemies[id], row.slowed)
 			EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
+			EnemyPoison.apply(enemies[id], row.poisoned)
 			continue
 		# 전투 판정의 기존 slowed 필드를 사용하며 부유·회전·크기는 원본 부모를 따른다.
 		if type == "shielded":
@@ -470,10 +488,12 @@ func _sync_enemies(units: Array) -> void:
 			ShieldedPresentation.update(enemies[id], row, time)
 			EnemyFrost.apply(enemies[id], row.slowed)
 			EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
+			EnemyPoison.apply(enemies[id], row.poisoned)
 			continue
 		EnemyFrost.apply(enemies[id], row.slowed)
 		# Diagnostic A/B switch: visual only; incoming combat burn state stays intact.
 		EnemyBurn.apply(enemies[id], row.burning and bool(options.get("burn_effects", true)), time)
+		EnemyPoison.apply(enemies[id], row.poisoned)
 		var hover := 0.025 if type in ["normal", "fast", "shielded"] else 0.008
 		root.position = Vector3(row.x - columns / 2.0, sin(row.phase) * hover, row.y - rows / 2.0)
 		root.rotation.y = PI / 2.0 - row.facing

@@ -28,7 +28,14 @@ static func resolve(input: Dictionary) -> Dictionary:
 	var multiplier := damage_multiplier(resistance)
 	var effects: Array = []
 	var status: Dictionary = input.get("status", {})
-	if status.get("hasDamageOverTime", false):
+	if status.get("hasDamageOverTime", false) and status.has("poisonDamagePerSecondScale"):
+		# One stack per hit with its own timer; same resistance and half-crit rule as burn.
+		var poison_multiplier := damage_multiplier(resistance, false)
+		var poison_critical_multiplier := 1.0 + (float(status.get("criticalMultiplier", 1.0)) - 1.0) * 0.5
+		effects.append({"type": "poison", "damagePerSecond": float(status["damage"]) * float(status["poisonDamagePerSecondScale"]) * float(status.get("damageScale", 1.0)) * poison_multiplier * float(status.get("damageOverTimeDamageMultiplier", 1.0)) * poison_critical_multiplier,
+			"duration": float(status["poisonDurationSeconds"]) * float(status.get("damageOverTimeDurationMultiplier", 1.0)),
+			"damageMultiplier": poison_multiplier})
+	elif status.get("hasDamageOverTime", false):
 		var burn_multiplier := damage_multiplier(resistance, false)
 		# Reuse the firing roll, with half of its bonus; direct-only traits stay separate.
 		var burn_critical_multiplier := 1.0 + (float(status.get("criticalMultiplier", 1.0)) - 1.0) * 0.5

@@ -299,7 +299,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
                                  "chapter3_floating_girders")
                  + tuple(f"chapter2_stage{stage}_props" for stage in range(6, 11))),
                 ("projectiles", ("cannonball",)),
-                ("turrets", preparation.TURRET_TYPES),
+                ("turrets", preparation.TURRET_MODEL_TYPES),
                 ("enemies", preparation.ENEMY_TYPES),
                 ("effects", ("machinegun_muzzle", "placement_dust")),
             ):
@@ -372,7 +372,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
             # policy must follow content references, not hard-coded hash names.
             from test_apk_gltf_textures import fixture, write_glb, read_glb
             source_glbs = {}
-            for kind in preparation.ENEMY_TYPES + preparation.TURRET_TYPES:
+            for kind in preparation.ENEMY_TYPES + preparation.TURRET_MODEL_TYPES:
                 for suffix in (("", "_death") if kind in ("normal", "fast", "tank") else ("",)):
                     document, binary = fixture()
                     payload = kind.encode()

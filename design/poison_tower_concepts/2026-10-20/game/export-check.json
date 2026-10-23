@@ -1,0 +1,41 @@
+{
+  "source": "venom-mortar-game.blend",
+  "triangles": 15080,
+  "atlas_size": 1024,
+  "glb_bytes": 3015668,
+  "glb_sha256": "437f1004db02370d0f94c21dd9ca410fc7afc012b6bc68ee7bd46d570efb60c4",
+  "glb_triangles": 15080,
+  "glb_meshes": 3,
+  "glb_images": 3,
+  "materials": {
+    "Iron | forged charcoal.001": "OPAQUE",
+    "Recess | dark gunmetal.001": "OPAQUE",
+    "Bronze | worn warm alloy.001": "OPAQUE",
+    "Runes | venom lime.001": "OPAQUE",
+    "Venom | muzzle glob.001": "BLEND",
+    "Venom | bubbles.001": "OPAQUE",
+    "Glass | tank wall.001": "BLEND",
+    "Venom | tank liquid.001": "BLEND"
+  },
+  "extensions_used": [],
+  "control_nodes": {
+    "turret_root": [
+      4,
+      5
+    ],
+    "turret_head": [
+      2,
+      3
+    ],
+    "turret_barrel": [
+      0,
+      1
+    ]
+  },
+  "muzzle_local_translation": [
+    0,
+    0.05499996244907379,
+    0.5149999856948853
+  ],
+  "installed": "assets/images/stage1_3d/turrets/poison.glb"
+}

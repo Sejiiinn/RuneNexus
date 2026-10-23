@@ -5,6 +5,7 @@ const Projectiles = preload("res://presentation/battlefield_projectiles.gd")
 const Fire = preload("res://effects/runic_fire.gd")
 const Frost = preload("res://effects/frost_tower.gd")
 const Burn = preload("res://effects/enemy_burn.gd")
+const Poison = preload("res://effects/enemy_poison.gd")
 const Lightning = preload("res://effects/lightning_attack.gd")
 const GuardianStatus = preload("res://effects/guardian_status.gd")
 const TargetSurface = preload("res://effects/sniper_target_surface.gd")
@@ -12,7 +13,7 @@ const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 const Ricochet = preload("res://effects/machinegun_ricochet.gd")
 const ShieldedDeath = preload("res://effects/shielded_death.gd")
 const EFFECT_CACHES := [
-	Fire, Frost, Burn, Lightning, GuardianStatus,
+	Fire, Frost, Burn, Poison, Lightning, GuardianStatus,
 	preload("res://effects/shielded_status.gd"),
 	preload("res://presentation/shielded_presentation.gd"),
 	preload("res://effects/enemy_frost.gd"),
@@ -64,7 +65,8 @@ static func resource_paths(enemy_types: Array, tower_types: Array) -> Array[Stri
 		if family == "boss": unique["res://assets/effects/boss_core_mask.png"] = true
 		if not GuardianStatus.MESHES.has(family): continue
 		for status: String in ["EnemyBurn", "EnemyFrost"]:
-			if status == "EnemyBurn" and not "magic" in tower_types: continue
+			# Poison bubbles draw on the burn particle meshes.
+			if status == "EnemyBurn" and not ("magic" in tower_types or "poison" in tower_types): continue
 			if status == "EnemyFrost" and not "frost" in tower_types: continue
 			for path: String in GuardianStatus.MESHES[family][status]: unique[path] = true
 	var result: Array[String] = []

@@ -23,7 +23,11 @@
     "branchCurrent": "분기 전류",
     "focusedLightning": "집중 낙뢰",
     "lightningRecovery": "낙뢰 회수",
-    "currentAmplification": "전류 증폭"
+    "currentAmplification": "전류 증폭",
+    "venomPool": "독액 웅덩이",
+    "pressurizedFeed": "가압 급액",
+    "concentratedToxin": "농축 독소",
+    "corrosiveToxin": "부식 독소"
   },
   "traitDescriptions": {
     "overheatMagazine": "같은 대상 명중마다 1중첩, 직격 피해 (중첩 수×2)% 증폭, 최대 15중첩",
@@ -49,7 +53,11 @@
     "branchCurrent": "후속 연쇄 대상 +1",
     "focusedLightning": "첫 대상 피해 30% 증폭, 후속 연쇄 대상 -1",
     "lightningRecovery": "남은 연쇄 1회마다 다음 공격 재장전 효율 15% 증가",
-    "currentAmplification": "후속 연쇄 피해 배율 +20%p (50% → 70%)"
+    "currentAmplification": "후속 연쇄 피해 배율 +20%p (50% → 70%)",
+    "venomPool": "공격 속도 71% 감폭, 포탑 피해 100% 증폭, 웅덩이 반경 100% 증가·3초 유지",
+    "pressurizedFeed": "공격 속도 20% 증폭",
+    "concentratedToxin": "이 포탑 독 중첩당 피해 증가 5% → 10%",
+    "corrosiveToxin": "이 포탑 독 3중첩 이상인 적 물리 저항 -15%p"
   },
   "gems": {
     "attackSpeed": {

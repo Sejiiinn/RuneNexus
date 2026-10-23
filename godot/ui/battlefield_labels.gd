@@ -184,7 +184,7 @@ class EnemyLabel extends Node2D:
 		var size := Vector2(float(dimensions[0]), float(dimensions[1]))
 		var bar_key := [size, data.get("hp"), data.get("maxHp"), data.get("armor"), data.get("maxArmor"), data.get("shield"), data.get("maxShield"), data.get("rarity", "")]
 		if bar_key != _bar_key: dirty = true; _bar_key = bar_key
-		var static_key := [size, data.get("diamondCarrier", false), data.get("poisoned", false)]
+		var static_key := [size, data.get("diamondCarrier", false)]
 		if static_key != _static_key: static_dirty = true; _static_key = static_key
 		var marked: bool = data.get("riftMarked", false)
 		var rift_key := [size, marked, data.get("effectTime", 0.0) if marked else 0.0]
@@ -216,7 +216,7 @@ class EnemyLabel extends Node2D:
 			carrier_dirty = false
 		if dirty: queue_redraw(); dirty = false
 		if static_dirty:
-			var enabled: bool = data.get("diamondCarrier", false) or data.get("poisoned", false)
+			var enabled: bool = data.get("diamondCarrier", false)
 			if enabled and decoration == null:
 				decoration = StaticDecoration.new()
 				decoration.show_behind_parent = true
@@ -280,15 +280,9 @@ class EnemyLabel extends Node2D:
 class StaticDecoration extends Node2D:
 	var data := {}
 	var textures := {}
+	# 중독은 적 몸의 3D 거품(EnemyPoison)으로만 표시한다. 바닥 장식 자리는 순서 계약으로 유지한다.
 	func _draw() -> void:
-		if data.is_empty(): return
-		var dimensions: Array = data["size"]
-		var size := Vector2(float(dimensions[0]), float(dimensions[1]))
-		var w := size.x
-		var center := size / 2.0
-		draw_set_transform(-size / 2.0)
-		if data.get("poisoned", false):
-			draw_arc(center, w * 0.5, 0, TAU, 64, Color("9dff4a66"), 2.0, true)
+		pass
 
 class DiamondCarrier extends Node2D:
 	var texture: Texture2D

@@ -135,15 +135,17 @@ static func _effect(entry: Dictionary, label: String, templates: Array, material
 	container.name = label
 	entry.root.add_child(container)
 	for index in range(templates.size()):
-		var mode := "burn" if label == "EnemyBurn" else ("shards" if index == 0 else "grains")
+		var mode := "burn" if label in ["EnemyBurn", "EnemyPoison"] else ("shards" if index == 0 else "grains")
+		# Poison reuses the burn particle mesh but keeps its own material.
+		var material_key := "poison" if label == "EnemyPoison" else mode
 		var effect := MeshInstance3D.new()
 		effect.mesh = _mesh(entry, templates[index], mode, offset)
 		if materials[index] is ShaderMaterial:
-			if not _materials.has(mode):
+			if not _materials.has(material_key):
 				var adapted: ShaderMaterial = materials[index].duplicate()
 				adapted.set_shader_parameter("skinned_status", true)
-				_materials[mode] = adapted
-			effect.material_override = _materials[mode]
+				_materials[material_key] = adapted
+			effect.material_override = _materials[material_key]
 		else: effect.material_override = materials[index]
 		effect.skin = _skin
 		effect.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -165,6 +167,15 @@ static func burn(entry: Dictionary, active: bool, material: ShaderMaterial, offs
 		entry.burn = _effect(entry, "EnemyBurn", [quad], [material], offset)
 	entry.burn.visible = active
 	entry.burn_active = active
+
+static func poison(entry: Dictionary, active: bool, material: ShaderMaterial, offset: int) -> void:
+	if not entry.has("poison"):
+		if not active: return
+		var quad := QuadMesh.new()
+		quad.size = Vector2.ONE
+		entry.poison = _effect(entry, "EnemyPoison", [quad], [material], offset)
+	entry.poison.visible = active
+	entry.poison_active = active
 
 static func frost(entry: Dictionary, active: bool, coat: ShaderMaterial, templates: Array, materials: Array) -> void:
 	if not entry.has("frost"):
@@ -200,6 +211,7 @@ static func update(entry: Dictionary) -> void:
 
 static func set_time(time: float) -> void:
 	if _materials.has("burn"): _materials.burn.set_shader_parameter("burn_time", time)
+	if _materials.has("poison"): _materials.poison.set_shader_parameter("burn_time", time)
 
 static func clear() -> void:
 	_surfaces.clear()
@@ -208,10 +220,13 @@ static func clear() -> void:
 	_skin = null
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
-	if not "shielded" in enemy_types or (not "magic" in tower_types and not "frost" in tower_types):
+	var particles := "magic" in tower_types or "poison" in tower_types
+	if not "shielded" in enemy_types or (not particles and not "frost" in tower_types):
 		clear()
 		return
 	for mode: String in _materials.keys():
-		if (mode == "burn" and not "magic" in tower_types) or (mode != "burn" and not "frost" in tower_types): _materials.erase(mode)
+		var needed: bool = {"burn": "magic" in tower_types, "poison": "poison" in tower_types}.get(mode, "frost" in tower_types)
+		if not needed: _materials.erase(mode)
+	# Burn and poison share the particle mesh.
 	for key: String in _meshes.keys():
-		if (key.begins_with("burn:") and not "magic" in tower_types) or (not key.begins_with("burn:") and not "frost" in tower_types): _meshes.erase(key)
+		if (key.begins_with("burn:") and not particles) or (not key.begins_with("burn:") and not "frost" in tower_types): _meshes.erase(key)

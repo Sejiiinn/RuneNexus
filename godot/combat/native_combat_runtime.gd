@@ -14,7 +14,18 @@ const FrameRows = preload("res://presentation/frame_rows.gd")
 const BLAST_DURATION: float = 1.1
 ## Matches effects/sniper_energy_blast.gd DURATION.
 const SNIPER_BLAST_DURATION: float = 0.6
-const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
+## 독액 착탄 연출(튄 방울·안개)의 최소 길이. 웅덩이는 독 장판 유지 시간만큼 이어진다.
+const VENOM_SPLASH_DURATION: float = 1.1
+## 독 장판: 착탄 지점에 착탄 반경만큼 남아, 포탑별 주기마다 안에 있는 적에게 독 1중첩을 준다.
+## 같은 포탑의 웅덩이 여러 개를 밟아도 주기당 1중첩. stackShare는 중첩 하나의 총 피해(치명타 없는 기본 피해 대비).
+## 독 중첩 하나 = 기준 피해의 hitShare(공통 규칙 30%)를 stackSeconds에 나눠 준다.
+## 착탄은 맞은 피해(100%)가 기준이고, 웅덩이는 포탑 피해 × puddleBase(절반)가 기준이다.
+const POISON_PUDDLE := {"duration": 1.0, "tick": 0.5, "maxCount": 3, "hitShare": 0.3, "puddleBase": 0.5, "stackSeconds": 5.0}
+## 1차 특성 독액 웅덩이: 웅덩이 3초.
+const VENOM_POOL_PUDDLE := {"duration": 3.0}
+## 2차 특성 부식 독소: 이 포탑 독 3중첩 이상인 동안 물리 저항 -15%p. 조건이 끊긴 뒤 잠깐만 남는다.
+const CORROSION := {"stacks": 3, "bonus": 0.15, "linger": 0.25}
+const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0, "poison":4.0}
 # Extend fired shots without changing turret or chain target acquisition ranges.
 const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
 # Game seconds, independent of render cadence and playback speed. Keep the
@@ -48,6 +59,11 @@ var events: Array = []
 # data until the next presentation observation; never include it in saves.
 var _presentation_deaths: Array = []
 var visual_effects: Array = []
+var puddles: Array = []
+## 부식 독소 중첩이 붙은 적 id. 중첩이 모두 사라지면 빠진다.
+var corroding: Dictionary = {}
+var poison_puddle: Dictionary = POISON_PUDDLE.duplicate()
+var venom_pool_puddle: Dictionary = VENOM_POOL_PUDDLE.duplicate()
 # Canonical static payloads are immutable; raw journal units stay compatible
 # with public frames, 3D impacts and development sessions.
 var _prepared_effects: Dictionary = {}
@@ -301,6 +317,8 @@ func _reset(packet: Dictionary) -> void:
 	enemies.clear()
 	turrets.clear()
 	projectiles.clear()
+	puddles.clear()
+	corroding.clear()
 	delayed.clear()
 	events.clear()
 	_presentation_deaths.clear()
@@ -497,6 +515,18 @@ func _core_damage_number(target: Dictionary, damage: float) -> void:
 	visual_id += 1
 	_append_visual({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff8ee6ff,"text":str(roundi(damage)),"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
 
+## 화상·독 틱을 적 상태가 모아 둔 주기(화상 0.28초, 독 0.5초)마다 아래로 떨어지는 숫자로 보인다.
+## 색은 이전 앱의 지속피해 숫자와 같다(화상 주황, 독 연두).
+const DOT_NUMBER_COLORS := {"burn": 0xffff8a2a, "poison": 0xff9dff4a}
+func _dot_damage_number(raw: Dictionary) -> void:
+	var damage := float(raw.get("damage", 0.0))
+	var e: Dictionary = enemies.get(str(raw.get("enemyId", "")), {})
+	if damage < 0.5 or e.is_empty() or not DOT_NUMBER_COLORS.has(raw.get("kind")): return
+	var at := (_pos(e) - origin) / tile_size
+	visual_id += 1
+	damage_number_index += 1
+	_append_visual({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":DOT_NUMBER_COLORS[raw.kind],"text":str(roundi(damage)),"feedback":"neutral","motion":"fallArc","arcDirection":1 if damage_number_index % 2 == 0 else -1,"points":[],"screenOffset":[0,0]})
+
 func _nexus_health_number(change: float) -> void:
 	visual_id += 1
 	var at := (_vec(path[-1])-origin)/tile_size if not path.is_empty() else Vector2.ZERO
@@ -692,9 +722,13 @@ func _command(c: Dictionary) -> void:
 			for p in projectiles:
 				p.position = (p.position-old_origin)*ratio+origin
 				p.origin = (p.origin-old_origin)*ratio+origin
+				if p.has("landing"): p.landing = (p.landing-old_origin)*ratio+origin
 				p.remaining *= ratio
 				p.attack = p.attack.duplicate(true)
 				for key in ["range","splashRadius","projectileSpeed","lightningChainJumpRange"]: p.attack[key] *= ratio
+			for puddle in puddles:
+				puddle.position = (puddle.position-old_origin)*ratio+origin
+				puddle.radius *= ratio
 		"spawn": _spawn(c.enemy)
 		"turret": _turret(c.turret)
 		"resetTraitState":
@@ -761,6 +795,8 @@ func _finish_step(dt: float) -> void:
 	var broadphase := _projectile_broadphase(moving.size())
 	for p in moving:
 		_move_projectile(p, dt, broadphase)
+	if not puddles.is_empty(): _tick_puddles(dt)
+	if not corroding.is_empty(): _apply_corrosion()
 	# Spawns change membership; later searches read the live dictionary.
 	_target_candidates_ready = false
 	_target_candidates = []
@@ -819,6 +855,9 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 	attack.definition = definition
 	attack.burnDamagePerSecondScale = 0.5
 	attack.burnDurationSeconds = 2.0
+	if definition.type == "poison":
+		# 착탄은 범위 피해만 준다. 독은 남은 웅덩이(독 장판)가 맡는다.
+		attack.hasDamageOverTime = false
 	t.cooldown = (0.95 + rng.randf() * 0.1) / _normal_attack_rate(t)
 	if stockpiled and definition.type != "lightning":
 		t.stockpileCharges -= 1
@@ -844,6 +883,8 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 		t.stockpilePrefiring = t.stockpileEnabled
 		_visual("charge", _vec(t.position), t, {"duration":charge_time, "ownerId":int(t.id), "attachmentRadius":0.4})
 		delayed.append({"kind": "charge", "timer": charge_time, "owner": str(t.id), "attack": attack, "stockpiled":stockpiled})
+	elif definition.type == "poison":
+		_lob(t, attack, _vec(t.position), target)
 	else:
 		var projectile_origin := _vec(t.position)
 		if definition.type == "magic":
@@ -1017,9 +1058,144 @@ func _first_projectile_collision(from: Vector2, movement: Vector2, attack: Dicti
 			hit = e
 	return {"target":hit, "fraction":first}
 
+# A lobbed glob ignores bodies on the way and follows its target until it lands.
+func _lob(t: Dictionary, a: Dictionary, from: Vector2, target: Dictionary) -> void:
+	projectile_id += 1
+	var landing := _pos(target)
+	projectiles.append({"id": projectile_id, "owner": str(t.id), "attack": a, "position": from, "origin": from, "direction": (landing - from).normalized(), "remaining": from.distance_to(landing), "chains": 0, "pierces": 0, "excluded": [], "chained": false, "shot": t.shotSequence, "lobTarget": str(target.id), "landing": landing})
+
+func _move_lob(t: Dictionary, p: Dictionary, dt: float) -> void:
+	var target: Dictionary = enemies.get(p.lobTarget, {})
+	if _alive(target): p.landing = _pos(target)
+	var offset: Vector2 = p.landing - p.position
+	var step := float(p.attack.projectileSpeed) * dt
+	if offset.length() > step:
+		p.direction = offset.normalized()
+		p.position += p.direction * step
+		p.remaining = offset.length() - step
+		projectiles.append(p)
+		return
+	p.position = p.landing
+	_add_puddle(t, p.attack, p.position)
+	_venom_burst(t, p.attack, p.position)
+
+## 바닥 착탄 폭발: 대상 구분 없이 반경 안 모든 적에게 100% 범위 피해와, 그 피해 기준 독 1중첩(공통 규칙).
+func _venom_burst(t: Dictionary, a: Dictionary, at: Vector2) -> void:
+	var radius := maxf(10.0 * board_scale, float(a.splashRadius))
+	var rules := _puddle_rules(a)
+	var burst := a.duplicate()
+	burst.hasDamageOverTime = true
+	burst.poisonDurationSeconds = float(rules.stackSeconds)
+	burst.poisonDamagePerSecondScale = float(rules.hitShare) / float(rules.stackSeconds)
+	var hit: Array = []
+	for candidate: Array in _target_candidate_view():
+		if _alive(candidate[0]) and at.distance_squared_to(candidate[1]) <= radius * radius: hit.append(candidate[0])
+	for e: Dictionary in hit:
+		if _alive(e): _hit(t, burst, e, 1.0, "splash", false)
+
+## 웅덩이 하나와 그 연출(착탄 폭발 겸용)을 남긴다. 포탑당 상한을 넘으면 가장 오래된 것부터 지운다.
+func _add_puddle(t: Dictionary, a: Dictionary, at: Vector2) -> void:
+	var radius := maxf(10.0 * board_scale, float(a.splashRadius))
+	var duration := float(_puddle_rules(a).duration)
+	var owned: Array = puddles.filter(func(item): return item.owner == str(t.id))
+	while owned.size() >= int(poison_puddle.maxCount):
+		var oldest: Dictionary = owned.pop_front()
+		puddles.erase(oldest)
+		visual_effects = visual_effects.filter(func(v): return int(v.id) != int(oldest.visualId))
+	_visual("blast", at, t, {"style": "venom", "variant": "venom", "duration": maxf(VENOM_SPLASH_DURATION, duration), "radius": radius})
+	puddles.append({"owner": str(t.id), "position": at, "radius": radius, "remaining": duration, "attack": _poison_stack_attack(a), "visualId": visual_id})
+	if not t.has("puddleTick"): t.puddleTick = 0.0
+
+func _puddle_rules(a: Dictionary) -> Dictionary:
+	if not bool(a.get("venomPool", false)): return poison_puddle
+	var rules := poison_puddle.duplicate()
+	rules.merge(venom_pool_puddle, true)
+	return rules
+
+## 웅덩이가 거는 독 중첩 하나의 공격. 포탑 피해의 절반을 기준으로 공통 규칙을 적용한다.
+## 치명타는 중첩을 걸 때마다 _poison_stack이 판정한다.
+func _poison_stack_attack(a: Dictionary) -> Dictionary:
+	var rules := _puddle_rules(a)
+	var stack := a.duplicate()
+	stack.hasDamageOverTime = true
+	stack.criticalMultiplier = 1.0
+	stack.poisonDurationSeconds = float(rules.stackSeconds)
+	stack.poisonDamagePerSecondScale = float(rules.puddleBase) * float(rules.hitShare) / float(rules.stackSeconds)
+	return stack
+
+## 포탑마다 주기 하나: 그 포탑의 웅덩이 어느 하나에라도 서 있는 적에게 독 1중첩.
+func _tick_puddles(dt: float) -> void:
+	var by_owner := {}
+	var alive_puddles: Array = []
+	for puddle in puddles:
+		puddle.remaining -= dt
+		if puddle.remaining <= 0.0: continue
+		alive_puddles.append(puddle)
+		if not by_owner.has(puddle.owner): by_owner[puddle.owner] = []
+		by_owner[puddle.owner].append(puddle)
+	puddles = alive_puddles
+	for owner: String in by_owner:
+		var t: Dictionary = turrets.get(owner, {})
+		if t.is_empty(): continue
+		t.puddleTick = float(t.get("puddleTick", 0.0)) + dt
+		if t.puddleTick < float(poison_puddle.tick): continue
+		t.puddleTick -= float(poison_puddle.tick)
+		var owned: Array = by_owner[owner]
+		for candidate: Array in _target_candidate_view():
+			var e: Dictionary = candidate[0]
+			if not _alive(e): continue
+			for puddle: Dictionary in owned:
+				if puddle.position.distance_squared_to(candidate[1]) <= float(puddle.radius) * float(puddle.radius):
+					_poison_stack(t, puddle.attack, e)
+					break
+	for owner: String in turrets:
+		if not by_owner.has(owner) and turrets[owner].has("puddleTick"): turrets[owner].puddleTick = 0.0
+
+## 직접 피해 없이 독 중첩 하나만 건다. 저항·지속피해 보정은 명중과 같은 계산을 쓴다.
+func _poison_stack(t: Dictionary, a: Dictionary, e: Dictionary) -> void:
+	var status := a.duplicate()
+	status.damageScale = 1.0
+	# 중첩마다 치명타 판정: 터지면 추가분의 50%를 반영한다(Attack.resolve 공통 규칙).
+	var chance := float(t.stats.get("criticalChance", 0.0))
+	status.criticalMultiplier = float(t.stats.criticalDamageMultiplier) if chance > 0.0 and rng.randf() < chance else 1.0
+	var resolved := Attack.resolve({"baseDamage": 0.0, "resistance": _resistance(a, e), "status": status})
+	for effect in resolved.effects:
+		if effect.type == "poison": _add_poison(t, a, e, effect)
+
+## 독 효과 하나를 출처·지속피해 증가·특성(농축·부식)과 함께 적에게 붙인다.
+func _add_poison(t: Dictionary, a: Dictionary, e: Dictionary, effect: Dictionary) -> void:
+	effect.sourceX = int(t.state.get("x", 0))
+	effect.sourceY = int(t.state.get("y", 0))
+	if a.has("damageOverTimeIncreaseMultiplier"): effect.damageOverTimeIncreaseMultiplier = a.damageOverTimeIncreaseMultiplier
+	if a.has("poisonStackBonus"): effect.stackBonus = float(a.poisonStackBonus)
+	if bool(a.get("poisonCorrosion", false)):
+		effect.corrosive = true
+		corroding[str(e.id)] = true
+	Enemy.add_poison(e, effect)
+
+## 부식 독소: 한 포탑의 부식 중첩이 3개 이상인 적만 물리 저항을 낮춘다.
+func _apply_corrosion() -> void:
+	for id: String in corroding.keys():
+		var e: Dictionary = enemies.get(id, {})
+		if e.is_empty() or not _alive(e):
+			corroding.erase(id)
+			continue
+		var counts := {}
+		for p: Dictionary in e.poisonInstances:
+			if not bool(p.get("corrosive", false)) or float(p.remaining) <= 0.0: continue
+			var key := "%s,%s" % [p.get("sourceX"), p.get("sourceY")]
+			counts[key] = int(counts.get(key, 0)) + 1
+		if counts.is_empty():
+			corroding.erase(id)
+		elif counts.values().max() >= int(CORROSION.stacks):
+			Enemy.add_vulnerability(e, "physical", float(CORROSION.bonus), float(CORROSION.linger))
+
 func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> void:
 	var t: Dictionary = turrets.get(p.owner, {})
 	if t.is_empty(): return
+	if p.has("landing"):
+		_move_lob(t, p, dt)
+		return
 	var step := minf(p.remaining, float(p.attack.projectileSpeed) * dt)
 	while true:
 		var from: Vector2 = p.position
@@ -1087,7 +1263,7 @@ func _lightning_complete(t: Dictionary, a: Dictionary, used: int) -> void:
 		t.cooldown = minf(t.cooldown, maxf(0, float(t.lastBaseCooldown) / (1 + unused * 0.15) - float(t.lightningElapsed)))
 
 func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false, direction: Vector2 = Vector2.ZERO, terminal_impact: bool = true) -> void:
-	var style: String = {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning"}.get(a.definition.type, "spark")
+	var style: String = {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning", "poison":"venom"}.get(a.definition.type, "spark")
 	if not terminal_impact and style == "blast": style = "spark"
 	var radius: float = a.splashRadius * (0.5 if chained else 1.0) if terminal_impact else 0.0
 	var extra := {"style":style,"radius":maxf(10.0 * board_scale, radius)}
@@ -1101,7 +1277,8 @@ func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scal
 		# Presentation routing only: the 3D ricochet uses the incoming flight and
 		# the struck body's lane offset. Damage and collision stay unchanged.
 		extra.merge({"turretType":"arrow", "targetId":int(target.id), "direction":[direction.x, direction.y]})
-	_visual("blast" if style == "blast" else "impact", at, t, extra)
+	# 독액 착탄 연출은 웅덩이(_add_puddle)가 함께 그린다.
+	if style != "venom": _visual("blast" if style == "blast" else "impact", at, t, extra)
 	var impacted: Array = [target]
 	if radius > 0:
 		# Targets are live enemy entries; identity avoids deep Dictionary compares.
@@ -1145,8 +1322,7 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 	var burn: Dictionary = Enemy.burn_transfer(e, source, _damage_over_time_training_bonus_rate) if direct and a.appliesIgnitionBurst else {}
 	var burst: float = Enemy.burn_damage_per_second(burn, _damage_over_time_training_bonus_rate) * 2.0 * float(a.damageOverTimeDurationMultiplier) * 0.3 if direct and a.appliesIgnitionBurst else 0.0
 	var trait_multiplier := _traits(t, a, e) if direct else 1.0
-	var family: String = a.definition.damageFamily
-	var resistance := {"family": family, "familyResistance": e.get("familyResistances", {}).get(family, 0.0), "tags": a.definition.attackTags, "tagResistances": e.get("tagResistances", {}), "attackPhysicalReduction": a.physicalResistanceReduction, "enemyPhysicalReduction": e.get("physicalVulnerabilityBonus", 0.0) if float(e.get("physicalVulnerabilityRemaining", 0)) > 0 else 0.0, "enemyElementalReduction": e.get("elementalVulnerabilityBonus", 0.0) if float(e.get("elementalVulnerabilityRemaining", 0)) > 0 else 0.0}
+	var resistance := _resistance(a, e)
 	var status := a.duplicate()
 	status.damageScale = scale
 	# Same-layer hit increases add before multiplication. They do not leak into DoT.
@@ -1163,17 +1339,24 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 				effect.sourceY = source.y
 				if a.has("damageOverTimeIncreaseMultiplier"): effect.damageOverTimeIncreaseMultiplier = a.damageOverTimeIncreaseMultiplier
 				Enemy.add_burn(e, effect)
+			"poison": _add_poison(t, a, e, effect)
 	var transfer := Enemy.burn_transfer(e, source, _damage_over_time_training_bonus_rate) if a.spreadsChainIgnition else {}
-	var result: Dictionary = Enemy.apply_hit(e, {"damage": resolved.damage, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer}, _target_damage_multiplier(e))
+	# 독 계열 타격은 독 중독처럼 방어구 감쇄를 받지 않는다(방어구 내구도는 먼저 깎인다).
+	var ignore_armor: bool = a.ignoresArmorReduction or a.definition.damageFamily == "poison"
+	var result: Dictionary = Enemy.apply_hit(e, {"damage": resolved.damage, "ignoreArmorReduction": ignore_armor, "burnTransfer": transfer}, _target_damage_multiplier(e))
 	_visual("damage", _pos(e), t, {"text":str(roundi(float(result.get("actualDamage", 0)))), "duration":0.65})
 	t[kind + "DamageDealt"] += float(result.get("actualDamage", 0))
 	_add_core_bonus_damage(float(result.get("bonusDamage", 0)))
 	_collect(result.get("events", []))
 	if burst > 0 and _alive(e):
-		result = Enemy.apply_hit(e, {"damage": burst, "ignoreArmorReduction": a.ignoresArmorReduction, "burnTransfer": transfer}, _target_damage_multiplier(e))
+		result = Enemy.apply_hit(e, {"damage": burst, "ignoreArmorReduction": ignore_armor, "burnTransfer": transfer}, _target_damage_multiplier(e))
 		t.directDamageDealt += float(result.get("actualDamage", 0))
 		_add_core_bonus_damage(float(result.get("bonusDamage", 0)))
 		_collect(result.get("events", []))
+
+func _resistance(a: Dictionary, e: Dictionary) -> Dictionary:
+	var family: String = a.definition.damageFamily
+	return {"family": family, "familyResistance": e.get("familyResistances", {}).get(family, 0.0), "tags": a.definition.attackTags, "tagResistances": e.get("tagResistances", {}), "attackPhysicalReduction": a.physicalResistanceReduction, "enemyPhysicalReduction": e.get("physicalVulnerabilityBonus", 0.0) if float(e.get("physicalVulnerabilityRemaining", 0)) > 0 else 0.0, "enemyElementalReduction": e.get("elementalVulnerabilityBonus", 0.0) if float(e.get("elementalVulnerabilityRemaining", 0)) > 0 else 0.0}
 
 # Preserve all turrets at a source coordinate and their insertion order. Numeric
 # coordinates may arrive as JSON floats or native ints; normalize just the keys.
@@ -1200,12 +1383,15 @@ func _collect(items: Array, burn_sources: Dictionary = {}, core_owned: bool = fa
 		# reader consumes it, so per-tick burn/poison never wakes economy settlement.
 		if type == "damage":
 			_add_core_bonus_damage(float(raw.get("bonusDamage", 0)))
-			if raw.get("kind") == "burn":
+			# Poison shares the turret's existing DoT total; the save schema has no separate field.
+			if raw.get("kind") in ["burn", "poison"]:
 				for t in _burn_source_turrets(raw, burn_sources):
 					if t.state.get("x") == raw.get("sourceX") and t.state.get("y") == raw.get("sourceY"):
 						t.burnDamageDealt += float(raw.get("damage", 0))
 			continue
-		if type == "damageNumber": continue
+		if type == "damageNumber":
+			_dot_damage_number(raw)
+			continue
 		var event: Dictionary = raw.duplicate(true)
 		if type == "killed":
 			event.kind = "kill"
@@ -1407,6 +1593,9 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 			if duration <= 0.0:
 				duration = maxf(float(t.cooldown), 1.0 / maxf(.001, float(t.stats.attackRate)))
 			row.extension = {"cooldown":t.cooldown, "duration":duration, "radius":float(t.stats.centeredAreaRadius)/tile_size}
+		if t.statInput.definition.type == "poison" and t.statInput.get("primaryTrait") == "venomPool":
+			# Presentation extension only: the heavier glob is drawn larger.
+			row.extension = {"venomPool": true}
 		if t.stockpileEnabled:
 			if is_same(row.extension, FrameRows.NO_EXTENSION): row.extension = {}
 			row.extension.merge({"stockpileEnabled":true,"stockpileCharges":int(t.stockpileCharges),"stockpileIdleElapsed":float(t.stockpileIdleElapsed),"stockpileChargeInterval":1.0 / _normal_attack_rate(t) + _normal_aim_duration(t)}, true)
@@ -1433,6 +1622,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 			impact.id = v.id; impact.x = v.x; impact.y = v.y
 			impact.radius = float(v.radius)/tile_size; impact.progress = clampf((clock-float(v.born))/float(v.duration),0,1)
 			impact.variant = str(v.get("variant", ""))
+			impact.duration = float(v.duration)
 			frame.impacts.append(impact)
 	for p in projectiles:
 		var at: Vector2 = (p.position - origin) / tile_size
@@ -1445,6 +1635,10 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 		row.has_launch = true; row.start_x = start.x; row.start_y = start.y
 		row.has_owner = true; row.owner_id = int(p.owner); row.shot = p.shot; row.chained = p.chained
 		row.finished_at = -1.0; row.has_end = false
+		if p.has("landing"):
+			# In-flight lob: the end fields carry the current landing point for the arc.
+			var landing: Vector2 = (p.landing - origin) / tile_size
+			row.has_end = true; row.end_x = landing.x; row.end_y = landing.y
 		frame.projectiles.append(row)
 	if reuse_static:
 		_frame_row_pool = {"enemies": enemy_rows, "turrets": turret_rows, "projectiles": projectile_rows, "impacts": impact_rows, "labels": label_rows}
@@ -1505,7 +1699,7 @@ func _diamond_reward_visual(enemy: Dictionary) -> void:
 func _visual(kind: String, at: Vector2, t: Dictionary, extra: Dictionary = {}) -> void:
 	visual_id += 1
 	var pos := (at - origin) / tile_size
-	var colors := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff}
+	var colors := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff, "poison":0xffa6ff3a}
 	var v := {"id":visual_id, "kind":kind, "born":clock, "duration":0.28, "x":pos.x, "y":pos.y, "tileSize":tile_size, "scale":board_scale, "color":colors.get(t.statInput.definition.type, 0xffffffff), "points":[], "screenOffset":[0,0], "feedback":"neutral", "motion":"rise", "arcDirection":1}
 	if t.statInput.definition.type == "lightning":
 		v["turretType"] = "lightning"

@@ -231,7 +231,7 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: String,variants: Dictionary = {}) -> void:
 	var types: Array = counts.keys().filter(func(type): return str(type).to_lower().contains("boss"))
 	types.append_array(counts.keys().filter(func(type): return not str(type).to_lower().contains("boss")))
-	var names = {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
+	var names = {"physical":"물리","elemental":"원소","poison":"독","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
 	for position in types.size():
 		var type: String = types[position]
 		if position > 0:

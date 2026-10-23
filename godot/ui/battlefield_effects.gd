@@ -234,7 +234,9 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 			var row := [id, float(event.get("x", 0)), float(event.get("y", 0)),
 				float(event.get("radius", 0)) / maxf(0.001, float(event.get("tileSize", 48))),
 				clampf(age / maxf(0.001, float(event["duration"])), 0, 1)]
-			if not str(event.get("variant", "")).is_empty(): row.append(str(event.variant))
+			if not str(event.get("variant", "")).is_empty():
+				row.append(str(event.variant))
+				if event.variant == "venom": row.append(float(event["duration"]))
 			blast_impacts.append(row)
 		else:
 			items.append(event)

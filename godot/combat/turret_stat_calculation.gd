@@ -1,6 +1,9 @@
 extends RefCounted
 const Capabilities = preload("res://combat/attack_capabilities.gd")
 const ProjectileEffects = preload("res://combat/projectile_effects.gd")
+## 독 포탑 1차 특성 독액 웅덩이: 초당 1.4발을 0.4발로, 포탑 피해 2배, 착탄 반경 2배.
+const VENOM_POOL_RATE := 0.4 / 1.4
+const VENOM_POOL_DAMAGE := 2.0
 ## Pure stat calculation. App progression, timers and RNG are inputs.
 # Shared content-addressed neutral results: combat, HUD and selection only differ
 # in distances and transient core/cleanup multipliers. No session/save state lives
@@ -96,12 +99,14 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		damage *= 1.0 + 0.3 * gem
 	if p == "spreadingChill":
 		damage *= 0.9
+	if p == "venomPool":
+		damage *= VENOM_POOL_DAMAGE
 	if "damageAmplifier" in gems:
 		damage *= 1.0 + 0.25 * gem
 	intermediates.damagePrefix = damage
 	damage *= (1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in gems else 1.0)
 	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate + float(core.get("rangeIncrease", 0.0))) * i.boardDistanceScale
-	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.0 + m.attackRateIncreaseRate + float(core.get("attackRateIncrease", 0.0)))
+	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.2 if p == "pressurizedFeed" else 1.0) * (VENOM_POOL_RATE if p == "venomPool" else 1.0) * (1.0 + m.attackRateIncreaseRate + float(core.get("attackRateIncrease", 0.0)))
 	if i.chainCleanupActive:
 		rate *= 1.4
 	rate *= i.corePassiveTurretAttackRateMultiplier
@@ -121,7 +126,8 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 			bonus += 0.3 * gem
 		if p == "lingeringEmbers":
 			bonus += 0.4
-		bonus += m.burnDurationIncreaseRate + float(core.get("burnDurationIncrease", 0.0))
+		if d.type != "poison":
+			bonus += m.burnDurationIncreaseRate + float(core.get("burnDurationIncrease", 0.0))
 		dot_duration = 1.0 + bonus
 		# Speed compresses any existing DoT, preserving a single application total.
 		var dot_speed := maxf(0.000001, float(core.get("damageOverTimeSpeedMultiplier", 1.0)))
@@ -135,7 +141,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 	var splash := 0.0
 	if not d.centeredAreaAttack:
 		var base_radius: float = d.splashRadius if d.splashRadius > 0 else (i.explosionGemValue if "explosion" in gems else 0.0)
-		var native_increase: float = (0.3 if p == "shrapnelShell" else 0.0) + (0.4 if s == "expandedBlastCore" else 0.0) + m.splashRadiusIncreaseRate
+		var native_increase: float = (0.3 if p == "shrapnelShell" else 0.0) + (0.4 if s == "expandedBlastCore" else 0.0) + (1.0 if p == "venomPool" else 0.0) + m.splashRadiusIncreaseRate
 		splash = (base_radius * effect_area + d.splashRadius * native_increase) * i.boardDistanceScale
 	var jumps := 0
 	if d.type == "lightning":
@@ -214,4 +220,8 @@ static func firing_stats(i: Dictionary, stats: Dictionary, critical_multiplier: 
 		out["applies" + trait_name.left(1).to_upper() + trait_name.substr(1)] = i.secondaryTrait == trait_name
 	for trait_name in ["overheatMagazine", "compressedCharge", "focusedLightning"]:
 		out["applies" + trait_name.left(1).to_upper() + trait_name.substr(1)] = i.primaryTrait == trait_name
+	if i.definition.type == "poison":
+		out.venomPool = i.primaryTrait == "venomPool"
+		out.poisonStackBonus = 0.1 if i.secondaryTrait == "concentratedToxin" else 0.05
+		out.poisonCorrosion = i.secondaryTrait == "corrosiveToxin"
 	return out

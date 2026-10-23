@@ -18,7 +18,7 @@ class GemCapabilityTests(unittest.TestCase):
         for key, turret in turrets.items():
             actual = turret['configuration']['statInput']['definition'].get('attackCapabilities', [])
             self.assertEqual(actual, rules[key].get('attackCapabilities', []), key)
-            self.assertEqual(actual, ['projectile'] if key in ('arrow', 'cannon', 'magic') else [], key)
+            self.assertEqual(actual, ['projectile'] if key in ('arrow', 'cannon', 'magic', 'poison') else [], key)
 
     def test_future_tower_projection_and_readonly_check(self):
         with tempfile.TemporaryDirectory() as folder:

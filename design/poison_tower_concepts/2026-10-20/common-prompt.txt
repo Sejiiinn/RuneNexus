@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Input image is a STYLE REFERENCE ONLY (an approved fire tower from the same game). Match its material language, camera, lighting, background and level of detail. Do not copy its shape.
+Game: RuneNexus, a stylized 3D tower defense. Towers sit on one square tile and are seen small from an elevated three-quarter camera, so the design needs a few large, bold, readable forms rather than fine detail.
+Shared look: compact single-tile rotating turret on a low circular dark gunmetal plinth with chunky antique-bronze braces; deep simple rune engravings; poison energy shown as toxic lime-green (#9BE22B-ish) translucent liquid and a few recessed lime-green glowing rune channels. Dark metal must stay dominant; green is the accent.
+Style: polished stylized 3D game asset concept render, large clean bevels, slight wear, charming and sturdy, not realistic military hardware.
+Composition: exactly one complete turret centered in a square image with at least ten percent margin on every side, elevated three-quarter view about 40 degrees down, weapon pointing lower left. Quiet dark desaturated green studio background and floor, soft light, contact shadow, restrained glow.
+Avoid: text, letters, labels, watermark, collage, multiple turrets, characters, skulls, bones, organic creature parts, tentacles, thick smoke clouds, excessive drips everywhere, tiny circuitry, excessive bloom, neon overload, cropping.

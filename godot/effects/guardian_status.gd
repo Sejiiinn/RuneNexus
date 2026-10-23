@@ -42,32 +42,33 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 			if material is ShaderMaterial:
 				var adapted := material.duplicate() as ShaderMaterial
 				adapted.set_shader_parameter("skinned_status", true)
-				if label == "EnemyBurn":
+				if label in ["EnemyBurn", "EnemyPoison"]:
 					adapted.set_shader_parameter("coordinate_scale", COORDINATE_SCALES[kind])
 				shared.append(adapted)
 			else: shared.append(material)
 		_materials[material_key] = shared
-	var meshes: Array = MESHES[kind][label]
+	# Poison bubbles reuse the burn particle meshes (same anchors and rows).
+	var meshes: Array = MESHES[kind]["EnemyBurn" if label == "EnemyPoison" else label]
 	for index in range(meshes.size()):
 		var effect := MeshInstance3D.new()
 		effect.mesh = StageResources.load_resource(meshes[index]) as Mesh
 		# Target geometry must expire with its status family, even when the same
 		# enemy and sniper/lightning remain eligible in the next stage.
-		effect.set_meta("target_geometry_weapon", "magic" if label == "EnemyBurn" else "frost")
+		effect.set_meta("target_geometry_weapon", {"EnemyBurn": "magic", "EnemyPoison": "poison"}.get(label, "frost"))
 		effect.skin = body.skin
 		effect.material_override = _materials[material_key][index]
 		effect.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		effect.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 		container.add_child(effect)
 		effect.skeleton = effect.get_path_to(skeleton)
-		if label == "EnemyBurn":
+		if label in ["EnemyBurn", "EnemyPoison"]:
 			effect.set_instance_shader_parameter("phase_offset", float(entry.root.get_instance_id() % 997) / 997.0 * 4.0)
 	return container
 
 
 static func set_burn_time(time: float) -> void:
 	for key: String in _materials:
-		if key.begins_with("EnemyBurn:"):
+		if key.begins_with("EnemyBurn:") or key.begins_with("EnemyPoison:"):
 			_materials[key][0].set_shader_parameter("burn_time", time)
 
 
@@ -76,5 +77,5 @@ static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
 	for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
 	for key: String in _materials.keys():
 		var pieces := key.split(":")
-		if not kinds.has(pieces[1]) or (pieces[0] == "EnemyBurn" and not "magic" in tower_types) or (pieces[0] == "EnemyFrost" and not "frost" in tower_types):
+		if not kinds.has(pieces[1]) or (pieces[0] == "EnemyBurn" and not "magic" in tower_types) or (pieces[0] == "EnemyPoison" and not "poison" in tower_types) or (pieces[0] == "EnemyFrost" and not "frost" in tower_types):
 			_materials.erase(key)

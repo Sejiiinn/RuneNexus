@@ -268,6 +268,8 @@ func _capture_normalized_handoff_cases(adapter, state: Dictionary, snapshot: Dic
 
 func _light_weapon_legacy_cases(adapter, service, saved: Dictionary) -> void:
 	for type in service.catalog.turret_types():
+		# Combat-only types (poison) have no save schema yet.
+		if not type in Codec.ENUMS.TurretType: continue
 		var allowed: bool = "light" in service.catalog.turret_definition(type).attackTags
 		var legacy := saved.duplicate(true)
 		legacy.activeRun.turrets[0].type = type

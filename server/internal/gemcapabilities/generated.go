@@ -11,6 +11,7 @@ var capabilities = map[string][]string{
 	"frost": {},
 	"lightning": {},
 	"magic": {"projectile"},
+	"poison": {"projectile"},
 	"sniper": {},
 }
 

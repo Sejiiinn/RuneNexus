@@ -25,6 +25,8 @@ PROJECT = ROOT / "build/godot/project"
 ASSETS = PROJECT / "assets"
 SOURCE_ASSETS = ROOT / "assets/images/stage1_3d"
 TURRET_TYPES = ("arrow", "cannon", "magic", "frost", "sniper", "lightning")
+# 독 포탑은 모델만 준비됐다. 전투 유형이 아니므로 검사 프레임에는 넣지 않는다.
+TURRET_MODEL_TYPES = TURRET_TYPES + ("poison",)
 ENEMY_TYPES = ("normal", "armored", "shielded", "fast", "tank", "boss")
 # Godot 4.7 GLTFDocument는 ImporterMesh 이름에 원본 glTF scene 이름을 앞붙인다.
 FOLIAGE_IMPORT_ID = "Dressing Export (temporary)_stage1_dressing_foliage"
@@ -349,7 +351,7 @@ def prepare() -> Path:
         required += [SOURCE_ASSETS / "environment/chapter2_tiles_expansion.glb"]
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "effects" / name for name in ("placement_dust.glb", "placement_dust.json")]
-    required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
+    required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_MODEL_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
     required += [SOURCE_ASSETS / "enemies" / name for name in ("normal_death.glb", "fast_death.glb", "tank_death.glb", "normal_status_burn.res", "normal_status_frost_shards.res", "normal_status_frost_grains.res", "fast_status_burn.res", "fast_status_frost_shards.res", "fast_status_frost_grains.res")]
     required += [SOURCE_ASSETS / "enemies" / f"{enemy}_status_{kind}.res"
@@ -431,7 +433,7 @@ def prepare() -> Path:
         if name != "boss":  # Already handled with its animation import policy.
             limit = 1024 if name in ("fast", "fast_death", "tank", "tank_death", "shielded") else 0
             _prepare_compressed_model_textures(ASSETS / "enemies" / f"{name}.glb", limit)
-    for name in TURRET_TYPES:
+    for name in TURRET_MODEL_TYPES:
         _prepare_compressed_model_textures(ASSETS / "turrets" / f"{name}.glb",
                                            1024 if name == "frost" else 0)
     _prepare_environment_texture_imports()
