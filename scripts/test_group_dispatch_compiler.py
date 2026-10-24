@@ -12,9 +12,10 @@ class GroupDispatchCompilerTests(unittest.TestCase):
     def setUpClass(cls): cls.game=compile_content()
 
     def test_all_gameplay_values_remain_bit_exact(self):
-        # Approved snapshot includes projectile capabilities and the 3-8 battery expansion.
+        # Approved snapshot includes the poison mortar; removing only that new
+        # turret reproduces the 6053 snapshot. Historical stage digests stay exact.
         self.assertEqual(typed_digest(without_dispatch_metadata(self.game)),
-                         '9e8ac13b6460718d2228356079c17ef2f4004be9c2df5938501f61cca8a14b07')
+                         '7ff66697bd52d268d180a017e0e34482350020766ed07f62bff38f14191fd784')
         fixture=read_json(ROOT/'test/fixtures/content_source_baseline.json')
         old={str(s['id']):typed_digest(without_dispatch_metadata(s)) for s in self.game['stages'][:25]}
         self.assertEqual(old,fixture['stageDigests'])

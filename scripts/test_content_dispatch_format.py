@@ -162,7 +162,8 @@ class DispatchFormatTests(unittest.TestCase):
         for row in implicit['stages'][0]['waves'][0]['groupDispatch']: row['spawnPortalId'] = 'default'
         with tempfile.TemporaryDirectory(prefix='dispatch-format-') as directory:
             temporary = Path(directory)
-            for name in ('content/runtime_content_format.gd', 'combat/teleport_pairs.gd', 'app/save_json.gd'):
+            for name in ('content/runtime_content_format.gd', 'combat/teleport_pairs.gd',
+                         'combat/enemy_rarity.gd', 'app/save_json.gd'):
                 target = temporary / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / 'godot' / name, target)
