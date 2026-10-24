@@ -197,22 +197,29 @@ func _poison_turret(growth) -> void:
 	p.runes = 1000000
 	var locked: Dictionary = growth.derive(p)
 	check(not "poison" in locked.availableTurretTypes, "poison locked before 2-8")
+	check(not "poisonDamage" in locked.availableGemTypes, "poison damage gem locked before 2-8")
 	check(near(locked.turretStatInputs.poison.towerDamageMultiplier, 1.0 + 3 * growth._c("fireTrainingDamagePerUpgradeLevel")), "locked forged poison training has no effect")
 	var rejected: Dictionary = growth.execute(p, {"kind":"upgradePermanent", "id":"poisonDamageTraining"})
 	check(not rejected.ok and rejected.state == p, "poison training buy locked before 2-8")
 	# New content ignores grandfathered rights, whether forged or from old run evidence.
 	var forged := p.duplicate(true)
-	forged.grandfatherUnlocks = ["turret:poison", "upgrade:poisonDamageTraining"]
-	check(not "poison" in growth.derive(forged).availableTurretTypes and not growth.execute(forged, {"kind":"upgradePermanent", "id":"poisonDamageTraining"}).ok, "poison ignores grandfathered rights")
-	var migrated: Dictionary = StageProgression.migrate_progression({"unlockedStageCount":30}, {"turrets":[{"type":"poison"}, {"type":"lightning"}]})
+	forged.grandfatherUnlocks = ["turret:poison", "upgrade:poisonDamageTraining", "gem:poisonDamage", "gem:armorPiercing"]
+	var forged_view: Dictionary = growth.derive(forged)
+	check(not "poison" in forged_view.availableTurretTypes and not growth.execute(forged, {"kind":"upgradePermanent", "id":"poisonDamageTraining"}).ok, "poison ignores grandfathered rights")
+	check(not "poisonDamage" in forged_view.availableGemTypes and "armorPiercing" in forged_view.availableGemTypes, "poison damage gem ignores grandfathered rights; legacy gems keep them")
+	var migrated: Dictionary = StageProgression.migrate_progression({"unlockedStageCount":30}, {"turrets":[{"type":"poison", "equippedGemSlots":["poisonDamage", "armorPiercing"]}, {"type":"lightning"}], "gemInventory":{"poisonDamage":1}, "rewardOptions":["poisonDamage"]})
 	check(not "turret:poison" in migrated.grandfatherUnlocks and "turret:lightning" in migrated.grandfatherUnlocks, "old run evidence grants legacy turrets only")
+	check(not "gem:poisonDamage" in migrated.grandfatherUnlocks and "gem:armorPiercing" in migrated.grandfatherUnlocks, "old run evidence grants legacy gems only")
 	var legacy := p.duplicate(true)
 	legacy.erase("progressionVersion")
 	legacy.unlockedStageCount = 30
-	check(not "poison" in growth.derive(legacy).availableTurretTypes, "poison has no legacy entitlement")
+	var legacy_view: Dictionary = growth.derive(legacy)
+	check(not "poison" in legacy_view.availableTurretTypes, "poison has no legacy entitlement")
+	check(not "poisonDamage" in legacy_view.availableGemTypes and "range" in legacy_view.availableGemTypes, "poison damage gem has no legacy entitlement")
 	p.clearedStageNumbers.append(23)
 	var open: Dictionary = growth.derive(p)
 	check("poison" in open.availableTurretTypes, "poison opens on 2-8 first clear")
+	check("poisonDamage" in open.availableGemTypes, "poison damage gem opens on 2-8 first clear")
 	var poison: Dictionary = open.turretStatInputs.get("poison", {})
 	var fire: float = 3 * growth._c("fireTrainingDamagePerUpgradeLevel")
 	var family: float = 10 * growth._c("familyDamageTrainingBonusPerUpgradeLevel")

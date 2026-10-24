@@ -1,7 +1,7 @@
 extends RefCounted
 ## Pure validation/projection. Every candidate, purchase and grant is server owned.
 const MAX_USES := 3
-const GEM_TYPES := ["attackSpeed","range","physicalDamage","elementalDamage","lightWeapon","heavyWeapon","damageOverTime","explosion","chain","criticalChance","aimSpeed","damageAmplifier","armorPiercing","multipleProjectiles","piercing"]
+const GEM_TYPES := ["attackSpeed","range","physicalDamage","elementalDamage","lightWeapon","heavyWeapon","damageOverTime","explosion","chain","criticalChance","aimSpeed","damageAmplifier","armorPiercing","multipleProjectiles","piercing","poisonDamage"]
 
 static func eligible(state: Dictionary) -> bool:
 	return state.get("phase") == "reward" and not state.get("isPurchasedGemReward", false) and int(state.get("completedRounds", 0)) > 0 and int(state.get("completedRounds", 0)) % 5 == 0

@@ -175,6 +175,7 @@ _GEM_NAMES = frozenset({
     "damageAmplifier", "attackSpeed", "armorPiercing", "damageOverTime", "chain",
     "elementalDamage", "range", "criticalChance", "aimSpeed", "lightWeapon",
     "heavyWeapon", "multipleProjectiles", "explosion", "physicalDamage", "piercing",
+    "poisonDamage",
 })
 
 

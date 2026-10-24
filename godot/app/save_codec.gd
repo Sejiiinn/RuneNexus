@@ -175,7 +175,8 @@ const ENUMS = {
 		"damageAmplifier",
 		"armorPiercing",
 		"multipleProjectiles",
-		"piercing"
+		"piercing",
+		"poisonDamage"
 	]
 }
 const SCALARS = {

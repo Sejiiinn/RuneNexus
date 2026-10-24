@@ -154,6 +154,13 @@ func _poison_turret() -> int:
 	if turret.type != "poison" or turret.primaryTrait != "venomPool" or turret.secondaryTrait != "corrosiveToxin": failures += 1
 	for trait_id in ["pressurizedFeed","concentratedToxin"]:
 		if Codec._enum("TurretTraitType", trait_id) != trait_id: failures += 1
+	# The poison damage gem survives inventory, offers and equipped slots.
+	var gems: Dictionary = base.duplicate(true)
+	gems.activeRun.gemInventory = {"poisonDamage":2}
+	gems.activeRun.rewardOptions = ["poisonDamage","range","chain"]
+	gems.activeRun.turrets[0].equippedGemSlots = ["poisonDamage"]
+	var gems_decoded: Variant = Codec.decode(gems)
+	if gems_decoded == null or gems_decoded.activeRun.gemInventory != {"poisonDamage":2} or not "poisonDamage" in gems_decoded.activeRun.rewardOptions or gems_decoded.activeRun.turrets[0].equippedGemSlots != ["poisonDamage"]: failures += 1
 	var poisons: Array = decoded.activeRun.enemies[0].get("poisonInstances", [])
 	if poisons.size() != 2: failures += 1
 	elif poisons[0] != {"remaining":3.0,"damagePerSecond":1.5,"damageMultiplier":1.0,"sourceX":2,"sourceY":3,"stackBonus":0.1,"corrosive":true,"damageOverTimeIncreaseMultiplier":1.5} or poisons[1].has("corrosive"): failures += 1

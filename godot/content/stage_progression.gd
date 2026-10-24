@@ -30,7 +30,7 @@ static func _legacy_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	var cleared: Array = p.get("clearedStageNumbers",[])
 	if kind == "core": return key == "guardianBeam" or (key == "riftMark" and (int(p.get("unlockedStageCount",1)) >= 6 or p.get("coreCombatSkill") == "riftMark"))
 	var old: Dictionary = LEGACY_REQUIREMENTS.get(kind,{})
-	if kind == "gem" and not old.has(key): return true
+	if kind == "gem" and not old.has(key): return not REQUIREMENTS.gem.has(key)
 	if not old.has(key): return false
 	if int(old[key]) == 0 or int(old[key]) in cleared: return true
 	if kind == "upgrade" and int(p.get(key+"UpgradeLevel",0)) > 0: return true
@@ -46,9 +46,9 @@ static func has_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	if not REQUIREMENTS.get(kind,{}).has(key): return false
 	# Prerequisite research is new content and never accepts legacy or grandfathered rights.
 	if kind == "research" and RESEARCH_PREREQUISITES.has(key): return requirement(kind,key) in p.get("clearedStageNumbers",[])
-	# Turrets/upgrades added after the legacy table (poison, new trainings) never
+	# Turrets/upgrades/gems added after the legacy table (poison, new trainings) never
 	# accept grandfathered rights; legitimate migration cannot create them.
-	if kind+":"+key in p.get("grandfatherUnlocks",[]) and (not kind in ["upgrade","turret"] or LEGACY_REQUIREMENTS.get(kind,{}).has(key)): return true
+	if kind+":"+key in p.get("grandfatherUnlocks",[]) and (not kind in ["upgrade","turret","gem"] or LEGACY_REQUIREMENTS.get(kind,{}).has(key)): return true
 	if int(p.get("progressionVersion",0)) < VERSION and _legacy_unlock(p,kind,key): return true
 	var required := requirement(kind,key)
 	return required == 0 or required in p.get("clearedStageNumbers",[])
@@ -79,11 +79,11 @@ static func migrate_progression(p: Dictionary, run_evidence: Dictionary = {}, in
 			var type := str(turret.get("type",turret.get("turretType","")))
 			if LEGACY_REQUIREMENTS.turret.has(type) and not "turret:"+type in rights: rights.append("turret:"+type)
 			for gem in turret.get("equippedGemSlots",[]) + turret.get("equippedGems",[]):
-				if gem in REQUIREMENTS.gem and not "gem:"+str(gem) in rights: rights.append("gem:"+str(gem))
+				if LEGACY_REQUIREMENTS.gem.has(gem) and not "gem:"+str(gem) in rights: rights.append("gem:"+str(gem))
 		for gem in run_evidence.get("gemInventory",{}):
-			if gem in REQUIREMENTS.gem and int(run_evidence.gemInventory[gem]) > 0 and not "gem:"+gem in rights: rights.append("gem:"+gem)
+			if LEGACY_REQUIREMENTS.gem.has(gem) and int(run_evidence.gemInventory[gem]) > 0 and not "gem:"+gem in rights: rights.append("gem:"+gem)
 		for gem in run_evidence.get("rewardOptions",[]):
-			if gem in REQUIREMENTS.gem and not "gem:"+str(gem) in rights: rights.append("gem:"+str(gem))
+			if LEGACY_REQUIREMENTS.gem.has(gem) and not "gem:"+str(gem) in rights: rights.append("gem:"+str(gem))
 		if run_evidence.get("runCoreCombatSkill") == "riftMark" and not "core:riftMark" in rights: rights.append("core:riftMark")
 	for id in ORDER:
 		if stage_unlocked(p,id) and not id in ids: ids.append(id)

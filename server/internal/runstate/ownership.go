@@ -122,7 +122,7 @@ func nonnegativeInteger(raw []byte) (int64, error) {
 
 func ValidGem(gem string) bool {
 	switch gem {
-	case "attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing":
+	case "attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing", "poisonDamage":
 		return true
 	default:
 		return false

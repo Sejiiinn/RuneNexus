@@ -62,6 +62,7 @@ var requirements = map[string]map[string]int{
 	"gem": {
 		"aimSpeed":      3,
 		"armorPiercing": 21,
+		"poisonDamage":  23,
 	},
 	"core": {
 		"guardianBeam": 0,

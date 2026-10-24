@@ -18,7 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var gemTypes = []string{"attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing"}
+var gemTypes = []string{"attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing", "poisonDamage"}
 
 type gemRewardRun struct {
 	RunID           string           `json:"economyRunId"`
@@ -51,10 +51,16 @@ func availableGemsForClient(raw []byte, clientVersion int) ([]string, error) {
 		if gem == "piercing" && clientVersion < PiercingClientCompatibilityVersion {
 			continue
 		}
+		if gem == "poisonDamage" && clientVersion < gamesave.PoisonTurretClientCompatibilityVersion {
+			continue
+		}
+		// Gems gated only after the legacy table are new content: legacy clears
+		// and grandfathered rights cannot open them.
+		legacyGated := stageprogression.HasRequirement("gem", gem, true)
 		if !stageprogression.HasRequirement("gem", gem, false) ||
-			contains(progression.GrandfatherUnlocks, "gem:"+gem) ||
+			(legacyGated && contains(progression.GrandfatherUnlocks, "gem:"+gem)) ||
 			intContains(progression.ClearedStageNumbers, stageprogression.Requirement("gem", gem, false)) ||
-			(progression.ProgressionVersion < stageprogression.Version && intContains(progression.ClearedStageNumbers, stageprogression.Requirement("gem", gem, true))) {
+			(legacyGated && progression.ProgressionVersion < stageprogression.Version && intContains(progression.ClearedStageNumbers, stageprogression.Requirement("gem", gem, true))) {
 			result = append(result, gem)
 		}
 	}

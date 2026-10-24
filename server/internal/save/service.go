@@ -235,7 +235,7 @@ func (service *Service) ClaimWriter(
 		return ClaimWriterResult{}, ErrClientUpdateRequired
 	}
 
-	if request.ClientCompatibilityVersion < PiercingClientCompatibilityVersion {
+	if request.ClientCompatibilityVersion < PoisonTurretClientCompatibilityVersion {
 		active, activeErr := txQueries.GetActiveEconomyRunForUpdate(ctx, databaseAccountID)
 		if activeErr != nil && !errors.Is(activeErr, pgx.ErrNoRows) {
 			return ClaimWriterResult{}, activeErr
@@ -401,7 +401,7 @@ func (service *Service) Update(
 		}
 	}
 
-	if request.ClientCompatibilityVersion < PiercingClientCompatibilityVersion {
+	if request.ClientCompatibilityVersion < PoisonTurretClientCompatibilityVersion {
 		active, activeErr := txQueries.GetActiveEconomyRunForUpdate(ctx, databaseAccountID)
 		if activeErr != nil && !errors.Is(activeErr, pgx.ErrNoRows) {
 			return UpdateResult{}, activeErr

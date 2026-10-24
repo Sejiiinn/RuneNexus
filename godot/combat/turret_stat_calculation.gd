@@ -93,6 +93,8 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		damage *= 1.0 + 0.4 * gem
 	if d.damageFamily == "elemental" and "elementalDamage" in gems:
 		damage *= 1.0 + 0.4 * gem
+	if d.damageFamily == "poison" and "poisonDamage" in gems:
+		damage *= 1.0 + 0.4 * gem
 	if "light" in d.attackTags and "lightWeapon" in gems:
 		damage *= 1.0 + 0.2 * gem
 	if "heavy" in d.attackTags and "heavyWeapon" in gems:

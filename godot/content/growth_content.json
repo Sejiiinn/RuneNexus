@@ -6407,7 +6407,8 @@
     "damageAmplifier",
     "armorPiercing",
     "multipleProjectiles",
-    "piercing"
+    "piercing",
+    "poisonDamage"
   ],
   "roundShardRewards": [
     0,
@@ -6830,6 +6831,7 @@
       "compatibleGems": [
         "attackSpeed",
         "range",
+        "poisonDamage",
         "damageOverTime",
         "explosion",
         "criticalChance",

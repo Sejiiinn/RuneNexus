@@ -134,6 +134,11 @@
       "name": "관통",
       "description": "적 2명 관통\n피해 감소 없음",
       "value": 2
+    },
+    "poisonDamage": {
+      "name": "독 피해 증폭",
+      "description": "독 포탑 피해 40% 증폭",
+      "value": 1.4
     }
   }
 }

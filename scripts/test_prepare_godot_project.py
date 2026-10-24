@@ -226,7 +226,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
 
     def test_app_ui_limits_are_exact_and_exclude_cropped_or_fullscreen_art(self):
         self.assertEqual(len(preparation._CORE_FRAME_NAMES), 8)
-        self.assertEqual(len(preparation._GEM_NAMES), 15)
+        self.assertEqual(len(preparation._GEM_NAMES), 16)
         for relative in preparation._CORE_FRAME_NAMES:
             self.assertEqual(preparation._app_texture_size_limit(relative), 512)
         for name in preparation._GEM_NAMES:

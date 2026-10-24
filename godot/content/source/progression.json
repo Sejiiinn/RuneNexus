@@ -233,7 +233,8 @@
     },
     "gem": {
       "aimSpeed": 3,
-      "armorPiercing": 21
+      "armorPiercing": 21,
+      "poisonDamage": 23
     },
     "core": {
       "guardianBeam": 0,
@@ -455,6 +456,13 @@
       "title": "독 피해 훈련",
       "icon": "upgrades/poison_damage.png",
       "category": "강화"
+    },
+    {
+      "kind": "gem",
+      "key": "poisonDamage",
+      "title": "독 피해 증폭 젬",
+      "icon": "gems/poisonDamage.png",
+      "category": "젬"
     },
     {
       "kind": "feature",
