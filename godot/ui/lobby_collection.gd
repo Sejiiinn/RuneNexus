@@ -141,7 +141,7 @@ func _module_name(item: Dictionary) -> String:
 	return str(MODULE_NAMES.get(str(item.get("turretType", "")) + "_" + str(item.get("part", "")), "모듈"))
 
 func _module_service(action: String, context: Dictionary = {}) -> void:
-	if lobby.has_method("_service"):
+	if lobby.has_method("open_service"):
 		lobby.open_service(action,context)
 		return
 	module_notice = action + "는 계정 서버 연결 후 이용할 수 있습니다."

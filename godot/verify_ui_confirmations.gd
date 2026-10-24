@@ -4,10 +4,11 @@ const Lobby = preload("res://ui/lobby.gd")
 class FakeServices extends RefCounted:
 	signal release_request
 	var busy := false
+	var account_connected := true
 	var updates := {"blocked": false}
 	var calls: Array = []
 	var response := {"ok": true, "body": {"economy": {}}}
-	func connected() -> bool: return true
+	func connected() -> bool: return account_connected
 	func needs_profile() -> bool: return false
 	func perform(action: String, values: Dictionary) -> Dictionary:
 		calls.append({"action": action, "values": values.duplicate(true)})
@@ -50,6 +51,7 @@ func _verify() -> void:
 	lobby.size = Vector2(320, 568)
 	await _research_checks(lobby, app)
 	await _slot_checks(lobby, app)
+	await _module_entry_checks(lobby, app)
 	await _module_checks(lobby, app)
 	await _module_identity_checks(lobby, app)
 	await _draw_checks(lobby, app)
@@ -171,6 +173,63 @@ func _slot_checks(lobby: Control, app: FakeApp) -> void:
 	confirm.pressed.emit()
 	assert(app.services.calls.is_empty(), "Slot unlocked while preview was open cannot be charged")
 	app.progression_inputs.researchSlotTwoUnlocked = false
+
+func _module_entry_checks(lobby: Control, app: FakeApp) -> void:
+	# Exercise the shipped inventory buttons, rather than opening the service
+	# directly: a broken dispatch gate must fail before confirmation/API checks.
+	var previous_page: String = lobby.page
+	var items: Array = [_module("entry-normal", "normal", false),
+		_module("entry-equipped", "rare", true), _module("entry-unique", "unique", false)]
+	var inventory_before := var_to_bytes(items)
+	app.progression_inputs.turretModules.items = items
+	app.services.calls.clear()
+	lobby.page = "포탑"
+	lobby.refresh()
+	lobby.collection.select_item(items[0])
+	await _settle(lobby)
+	var single := lobby.body.find_child("ModuleDisassembleAction", true, false) as Button
+	assert(single != null and not single.disabled)
+	single.pressed.emit()
+	await _settle(lobby)
+	assert(is_instance_valid(lobby.modal), "Connected inventory disassemble button opens the server confirmation")
+	assert(lobby._services.page == "모듈 분해" and lobby._services.context == {"id":"entry-normal"})
+	assert(app.services.calls.is_empty() and var_to_bytes(app.progression_inputs.turretModules.items) == inventory_before, "Opening a preview does not disassemble or grant diamonds")
+	var confirm := lobby.modal_body.find_child("DisassembleModulesConfirm", true, false) as Button
+	assert(confirm != null and not confirm.disabled)
+	confirm.pressed.emit()
+	confirm.pressed.emit()
+	assert(app.services.calls == [{"action":"disassemble_modules", "values":{"ids":["entry-normal"]}}], "Single disassembly reaches the server once with the selected ID")
+	app.services.release_request.emit()
+	await _settle(lobby)
+	lobby.close_modal()
+	app.services.calls.clear()
+	var bulk := lobby.body.find_child("ModuleBulkDisassembleAction", true, false) as Button
+	assert(bulk != null and not bulk.disabled)
+	bulk.pressed.emit()
+	await _settle(lobby)
+	assert(is_instance_valid(lobby.modal) and lobby._services.page == "모듈 일괄 분해", "Connected bulk inventory button opens confirmation")
+	assert(lobby._services.context.ids == ["entry-normal", "entry-equipped", "entry-unique"])
+	assert(app.services.calls.is_empty() and _text(lobby.modal_body).contains("52"), "Bulk preview excludes equipped modules and shows the server refund")
+	confirm = lobby.modal_body.find_child("DisassembleModulesConfirm", true, false) as Button
+	assert(confirm != null and not confirm.disabled)
+	confirm.pressed.emit()
+	confirm.pressed.emit()
+	assert(app.services.calls == [{"action":"disassemble_modules", "values":{"ids":["entry-normal","entry-unique"]}}], "Bulk confirmation sends only unequipped inventory IDs once")
+	app.services.release_request.emit()
+	await _settle(lobby)
+	lobby.close_modal()
+	app.services.calls.clear()
+	app.services.account_connected = false
+	for action in [single, bulk]:
+		action.pressed.emit()
+		await _settle(lobby)
+		assert(is_instance_valid(lobby.modal) and _text(lobby.modal_body).contains("계정을 연결하면"), "Disconnected inventory actions retain the account gate")
+		assert(lobby.modal_body.find_child("DisassembleModulesConfirm", true, false) == null and app.services.calls.is_empty(), "Disconnected actions cannot send a disassembly request")
+		lobby.close_modal()
+	app.services.account_connected = true
+	lobby.page = previous_page
+	lobby.refresh()
+	await process_frame
 
 func _module_checks(lobby: Control, app: FakeApp) -> void:
 	var items: Array = [
