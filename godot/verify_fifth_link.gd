@@ -49,7 +49,7 @@ func _initialize() -> void:
 	var discounted := p.duplicate(true); discounted.researchLevels.researchEfficiency=1; discounted.researchLevels.researchCostEfficiency=1
 	var discounted_quote: Dictionary=growth.research_quote(discounted,"linkExpansionTwo")
 	check(discounted_quote.cost==42857 and discounted_quote.durationMillis==27428571,"same research efficiencies")
-	completed.state.clearedStageNumbers.append_array([3,7])
+	completed.state.clearedStageNumbers.append_array([3,7,23])
 	var effects := EffectServices.new(); effects.app={"run_domain":{"growth":growth}}
 	var effect := {"effectType":"complete_research","payload":{"researchType":"linkExpansionTwo","targetLevel":1}}
 	effects.sample=p.duplicate(true); effects.sample.clearedStageNumbers=[20]
@@ -67,6 +67,7 @@ func _initialize() -> void:
 		var map: Dictionary=catalog.stage_map(0); var cell: int=map.tiles.find("build")
 		var result: Dictionary=commands.apply(state,{"kind":"build","type":type,"x":cell%int(map.columns),"y":cell/int(map.columns)})
 		check(result.ok,type+" build"); state=result.state
+		if not result.ok: continue
 		var id: int=state.turrets[0].id
 		var costs: Array=growth.data.turretRules[type].linkUpgradeCosts
 		var required_levels: Array=[1,3,5,7]
