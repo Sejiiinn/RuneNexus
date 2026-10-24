@@ -232,6 +232,15 @@ func _poison_turret(growth) -> void:
 	var bought: Dictionary = growth.execute(p, {"kind":"upgradePermanent", "id":"poisonDamageTraining"})
 	check(bought.ok and int(bought.state.poisonDamageTrainingUpgradeLevel) == 5 and int(bought.state.runes) == 1000000 - int(definition.costs[4]), "poison training buy after 2-8")
 	check(poison.has("moduleEffect") and poison.moduleEffect.values().all(func(v): return v == 0.0), "poison has neutral module effect")
+	# Poison modules: venomCore rolls poison duration; burn duration never reaches poison.
+	var moduled := p.duplicate(true)
+	moduled.turretModules = {"items":[
+		{"id":"p1","turretType":"poison","part":"core","family":"venomCore","grade":"rare","equipped":true,"options":[{"type":"poisonDurationIncrease","value":20},{"type":"splashRadiusIncrease","value":10},{"type":"burnDurationIncrease","value":20}]},
+		{"id":"m1","turretType":"magic","part":"core","family":"ignitionCore","grade":"rare","equipped":true,"options":[{"type":"poisonDurationIncrease","value":20}]}]}
+	var moduled_view: Dictionary = growth.derive(moduled)
+	var poison_module: Dictionary = moduled_view.turretStatInputs.poison.moduleEffect
+	check(near(poison_module.poisonDurationIncreaseRate, 0.2) and near(poison_module.splashRadiusIncreaseRate, 0.1) and near(poison_module.burnDurationIncreaseRate, 0.0), "poison core applies only its own pool")
+	check(near(moduled_view.turretStatInputs.magic.moduleEffect.poisonDurationIncreaseRate, 0.0), "flame core cannot roll poison duration")
 
 func _damage_type_training(growth) -> void:
 	var keys := ["directDamageTraining", "splashDamageTraining", "damageOverTimeTraining"]

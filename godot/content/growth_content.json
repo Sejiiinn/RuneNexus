@@ -3816,6 +3816,28 @@
           "highLevelUpgradeCostDiscount",
           "gemEffectIncrease"
         ]
+      },
+      "poison": {
+        "core": [
+          "damageIncrease",
+          "splashRadiusIncrease",
+          "damageOverTimeIncrease",
+          "poisonDurationIncrease"
+        ],
+        "barrel": [
+          "damageIncrease",
+          "attackRateIncrease",
+          "criticalChanceBonus",
+          "criticalDamageBonus",
+          "rangeIncrease"
+        ],
+        "frame": [
+          "levelUpCostDiscount",
+          "linkUpgradeCostDiscount",
+          "buildCostDiscount",
+          "highLevelUpgradeCostDiscount",
+          "gemEffectIncrease"
+        ]
       }
     },
     "ranges": {
@@ -4178,6 +4200,24 @@
           "min": 12,
           "max": 16
         }
+      },
+      "poisonDurationIncrease": {
+        "normal": {
+          "min": 4,
+          "max": 8
+        },
+        "magic": {
+          "min": 9,
+          "max": 14
+        },
+        "rare": {
+          "min": 15,
+          "max": 22
+        },
+        "unique": {
+          "min": 23,
+          "max": 34
+        }
       }
     },
     "families": {
@@ -4210,6 +4250,11 @@
         "core": "currentCore",
         "barrel": "coilBarrel",
         "frame": "insulatedFrame"
+      },
+      "poison": {
+        "core": "venomCore",
+        "barrel": "mortarBarrel",
+        "frame": "sealedFrame"
       }
     },
     "effects": {
@@ -4233,7 +4278,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "attackRateIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4255,7 +4301,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "criticalChanceBonus": {
         "damageIncreaseRate": 0.0,
@@ -4277,7 +4324,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "criticalDamageBonus": {
         "damageIncreaseRate": 0.0,
@@ -4299,7 +4347,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "rangeIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4321,7 +4370,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "levelUpCostDiscount": {
         "damageIncreaseRate": 0.0,
@@ -4343,7 +4393,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "linkUpgradeCostDiscount": {
         "damageIncreaseRate": 0.0,
@@ -4365,7 +4416,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "buildCostDiscount": {
         "damageIncreaseRate": 0.0,
@@ -4387,7 +4439,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "highLevelUpgradeCostDiscount": {
         "damageIncreaseRate": 0.0,
@@ -4409,7 +4462,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "gemEffectIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4431,7 +4485,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "splashRadiusIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4453,7 +4508,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "damageOverTimeIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4475,7 +4531,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "burnDurationIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4497,7 +4554,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "slowDurationIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4519,7 +4577,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "slowStrengthBonus": {
         "damageIncreaseRate": 0.0,
@@ -4541,7 +4600,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "lightningChainDamageIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4563,7 +4623,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "projectileSpeedIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4585,7 +4646,8 @@
         "projectileSpeedIncreaseRate": 1.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "splashSecondaryDamageBonus": {
         "damageIncreaseRate": 0.0,
@@ -4607,7 +4669,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 1.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "lightningChainRangeIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4629,7 +4692,8 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 1.0,
-        "aimSpeedIncreaseRate": 0.0
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 0.0
       },
       "aimSpeedIncrease": {
         "damageIncreaseRate": 0.0,
@@ -4651,7 +4715,31 @@
         "projectileSpeedIncreaseRate": 0.0,
         "splashSecondaryDamageBonusRate": 0.0,
         "lightningChainRangeIncreaseRate": 0.0,
-        "aimSpeedIncreaseRate": 1.0
+        "aimSpeedIncreaseRate": 1.0,
+        "poisonDurationIncreaseRate": 0.0
+      },
+      "poisonDurationIncrease": {
+        "damageIncreaseRate": 0.0,
+        "attackRateIncreaseRate": 0.0,
+        "criticalChanceBonusRate": 0.0,
+        "criticalDamageBonusRate": 0.0,
+        "rangeIncreaseRate": 0.0,
+        "levelUpCostDiscountRate": 0.0,
+        "linkUpgradeCostDiscountRate": 0.0,
+        "buildCostDiscountRate": 0.0,
+        "highLevelUpgradeCostDiscountRate": 0.0,
+        "gemEffectIncreaseRate": 0.0,
+        "splashRadiusIncreaseRate": 0.0,
+        "damageOverTimeIncreaseRate": 0.0,
+        "burnDurationIncreaseRate": 0.0,
+        "slowDurationIncreaseRate": 0.0,
+        "slowStrengthBonusRate": 0.0,
+        "lightningChainDamageIncreaseRate": 0.0,
+        "projectileSpeedIncreaseRate": 0.0,
+        "splashSecondaryDamageBonusRate": 0.0,
+        "lightningChainRangeIncreaseRate": 0.0,
+        "aimSpeedIncreaseRate": 0.0,
+        "poisonDurationIncreaseRate": 1.0
       }
     }
   },

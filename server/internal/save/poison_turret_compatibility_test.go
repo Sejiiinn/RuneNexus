@@ -59,3 +59,23 @@ func TestPoisonDamageTrainingRequiresCurrentClient(t *testing.T) {
 		t.Fatalf("poison training removal accepted: %v", err)
 	}
 }
+
+func TestPoisonModuleClientGuard(t *testing.T) {
+	inventory := []byte(`{"items":[{"turretType":"arrow"},{"turretType":"poison","equipped":true}]}`)
+	for _, client := range []int{11, 12} {
+		if err := ValidateModuleContentClient(inventory, client); !errors.Is(err, ErrClientUpdateRequired) {
+			t.Fatalf("generation %d may rewrite poison modules: %v", client, err)
+		}
+		if err := validatePoisonTurretClient([]byte(`{"runTurretModules":[{"turretType":"poison"}]}`), client); !errors.Is(err, ErrClientUpdateRequired) {
+			t.Fatalf("generation %d resumed a run with a poison module: %v", client, err)
+		}
+	}
+	if err := ValidateModuleContentClient(inventory, 13); err != nil {
+		t.Fatal(err)
+	}
+	for _, raw := range []string{``, `null`, `{"items":[{"turretType":"lightning"}]}`} {
+		if err := ValidateModuleContentClient([]byte(raw), 12); err != nil {
+			t.Fatalf("%q blocked an older client: %v", raw, err)
+		}
+	}
+}

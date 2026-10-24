@@ -136,7 +136,10 @@ const ENUMS = {
 		"anchorFrame",
 		"currentCore",
 		"coilBarrel",
-		"insulatedFrame"
+		"insulatedFrame",
+		"venomCore",
+		"mortarBarrel",
+		"sealedFrame"
 	],
 	"TurretModuleOptionType": [
 		"damageIncrease",
@@ -158,7 +161,8 @@ const ENUMS = {
 		"projectileSpeedIncrease",
 		"splashSecondaryDamageBonus",
 		"lightningChainRangeIncrease",
-		"aimSpeedIncrease"
+		"aimSpeedIncrease",
+		"poisonDurationIncrease"
 	],
 	"GemType": [
 		"attackSpeed",

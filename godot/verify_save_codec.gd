@@ -154,6 +154,11 @@ func _poison_turret() -> int:
 	if turret.type != "poison" or turret.primaryTrait != "venomPool" or turret.secondaryTrait != "corrosiveToxin": failures += 1
 	for trait_id in ["pressurizedFeed","concentratedToxin"]:
 		if Codec._enum("TurretTraitType", trait_id) != trait_id: failures += 1
+	# Poison modules keep their turret, family and duration option.
+	var modules: Dictionary = base.duplicate(true)
+	modules.turretModules = {"tickets":0,"items":[{"id":"p1","turretType":"poison","part":"core","family":"venomCore","grade":"rare","equipped":true,"acquiredOrder":1,"options":[{"type":"poisonDurationIncrease","value":20}]}]}
+	var module_items: Array = Codec.decode(modules).turretModules.get("items", [])
+	if module_items.size() != 1 or module_items[0].family != "venomCore" or module_items[0].options[0].type != "poisonDurationIncrease": failures += 1
 	# The poison damage gem survives inventory, offers and equipped slots.
 	var gems: Dictionary = base.duplicate(true)
 	gems.activeRun.gemInventory = {"poisonDamage":2}

@@ -170,8 +170,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	for gem in data.gems:
 		if not StageProgression.has_unlock(p,"gem",gem): continue
 		result.availableGemTypes.append(gem)
-	# Poison has no module pool yet but still needs the shared growth inputs.
-	for type in data.module.pools.keys() + ["poison"]:
+	for type in data.module.pools.keys():
 		var physical: bool = type in ["arrow", "cannon", "sniper"]
 		# Poison is its own family with its own training, never physical or elemental.
 		var family_key := "poisonDamageTraining" if type == "poison" else "physicalDamageTraining" if physical else "elementalDamageTraining"

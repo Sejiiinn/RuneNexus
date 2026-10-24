@@ -224,6 +224,13 @@ func _family_checks(input: Dictionary) -> void:
 	r._venom_burst(t, attack, r._pos(e))
 	_near(1000.0 - float(e.armor), _damage(input), "독 착탄은 방어구 감쇄 없이 그대로 소모")
 	_near(1000.0 - float(e.hp), 0.0, "방어구가 남아 있으면 체력은 그대로")
+	# 독 지속시간 모듈은 독 중첩 시간을 늘리고, 화상 지속시간 증가는 독에 들어가지 않는다.
+	var duration_input := input.duplicate(true)
+	duration_input.moduleEffect.poisonDurationIncreaseRate = 0.2
+	_near(Stats.stats_at(duration_input, 1).damageOverTimeDurationMultiplier, 1.2, "독 지속시간 모듈")
+	duration_input.moduleEffect.poisonDurationIncreaseRate = 0.0
+	duration_input.moduleEffect.burnDurationIncreaseRate = 0.5
+	_near(Stats.stats_at(duration_input, 1).damageOverTimeDurationMultiplier, 1.0, "화상 지속시간 모듈은 독 미적용")
 	# 독 피해 젬만 독 계열을 40% 키우고, 물리·원소 피해 젬은 독 포탑에 적용되지 않는다.
 	var base_damage: float = Stats.stats_at(input, 1).damage
 	for gems in [["poisonDamage"], ["physicalDamage"], ["elementalDamage"]]:

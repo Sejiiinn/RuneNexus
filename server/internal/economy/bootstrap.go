@@ -331,7 +331,8 @@ func decodeLegacyEconomy(
 			reason = "missing_id"
 		case module.AcquiredOrder <= 0:
 			reason = "invalid_acquired_order"
-		case validateModule(generated) != nil:
+		// Poison modules were never local items; a legacy import cannot create them.
+		case module.TurretType == "poison" || validateModule(generated) != nil:
 			reason = "catalog_mismatch"
 		default:
 			if _, exists := seenIDs[module.ID]; exists {

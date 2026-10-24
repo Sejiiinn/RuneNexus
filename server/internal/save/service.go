@@ -252,6 +252,9 @@ func (service *Service) ClaimWriter(
 		if err := ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, request.ClientCompatibilityVersion); err != nil {
 			return ClaimWriterResult{}, err
 		}
+		if err := ValidateModuleContentClient(snapshot.TurretModules, request.ClientCompatibilityVersion); err != nil {
+			return ClaimWriterResult{}, err
+		}
 	} else if !errors.Is(snapshotErr, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("read growth compatibility: %w", snapshotErr)
 	}
@@ -422,6 +425,9 @@ func (service *Service) Update(
 	}
 	if snapshotErr == nil {
 		if err := ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, request.ClientCompatibilityVersion); err != nil {
+			return UpdateResult{}, err
+		}
+		if err := ValidateModuleContentClient(snapshot.TurretModules, request.ClientCompatibilityVersion); err != nil {
 			return UpdateResult{}, err
 		}
 	}

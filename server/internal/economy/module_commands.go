@@ -69,6 +69,9 @@ func (service *Service) DrawModules(
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
 	}
+	if request.TurretType == "poison" && gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.PoisonTurretClientCompatibilityVersion {
+		return CommandResult{}, gamesave.ErrClientUpdateRequired
+	}
 	if !turretUnlocked(request.TurretType, saveSnapshot.Progression) {
 		return CommandResult{}, ErrInvalidCommand
 	}
@@ -311,6 +314,9 @@ func lockAuthoritativeEconomy(ctx context.Context, queries *dbgen.Queries, accou
 	if err := gamesave.ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
 		return dbgen.PlayerEconomy{}, err
 	}
+	if err := gamesave.ValidateModuleContentClient(snapshot.TurretModules, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
+		return dbgen.PlayerEconomy{}, err
+	}
 	return economy, nil
 }
 
@@ -362,12 +368,16 @@ func storeCommandResult(ctx context.Context, queries *dbgen.Queries, commandID p
 }
 
 func turretUnlocked(turretType string, progressionJSON []byte) bool {
-	if turretType != "sniper" && turretType != "lightning" {
+	if turretType != "sniper" && turretType != "lightning" && turretType != "poison" {
 		return true
 	}
 	var progression progressionUnlocks
 	if json.Unmarshal(progressionJSON, &progression) != nil {
 		return false
+	}
+	// Turrets added after the legacy table accept only their own first clear.
+	if !stageprogression.HasRequirement("turret", turretType, true) {
+		return intContains(progression.ClearedStageNumbers, stageprogression.Requirement("turret", turretType, false))
 	}
 	requiredStage := stageprogression.Requirement("turret", turretType, progression.ProgressionVersion < stageprogression.Version)
 	if progression.ProgressionVersion >= stageprogression.Version && contains(progression.GrandfatherUnlocks, "turret:"+turretType) {

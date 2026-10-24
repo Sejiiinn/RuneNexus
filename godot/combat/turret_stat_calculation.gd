@@ -130,6 +130,9 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 			bonus += 0.4
 		if d.type != "poison":
 			bonus += m.burnDurationIncreaseRate + float(core.get("burnDurationIncrease", 0.0))
+		else:
+			# Poison has its own module duration; burn duration bonuses never reach it.
+			bonus += float(m.get("poisonDurationIncreaseRate", 0.0))
 		dot_duration = 1.0 + bonus
 		# Speed compresses any existing DoT, preserving a single application total.
 		var dot_speed := maxf(0.000001, float(core.get("damageOverTimeSpeedMultiplier", 1.0)))

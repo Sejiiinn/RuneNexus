@@ -32,9 +32,9 @@ static func module_name(item: Dictionary) -> String:
 	var part := str(item.get("part", ""))
 	return str(CollectionUI.MODULE_NAMES.get(turret + "_" + part, "%s · %s" % [turret if not turret.is_empty() else "알 수 없는 포탑", CollectionUI.PARTS.get(part, part if not part.is_empty() else "알 수 없는 부품")]))
 
-static func effect_text(option: Dictionary) -> String:
+static func effect_text(option: Dictionary, turret_type: String = "") -> String:
 	var type := str(option.get("type", ""))
-	return "%s %s%d%%%s" % [CollectionUI.OPTIONS.get(type, type if not type.is_empty() else "추가 효과"), "−" if type.ends_with("Discount") else "+", int(option.get("value", 0)), "p" if type.ends_with("Bonus") else ""]
+	return "%s %s%d%%%s" % [CollectionUI.option_label(type, turret_type, type if not type.is_empty() else "추가 효과"), "−" if type.ends_with("Discount") else "+", int(option.get("value", 0)), "p" if type.ends_with("Bonus") else ""]
 
 static func _number(index: int, tint: Color, extent := 26) -> Control:
 	var badge := ResultNumber.new()
@@ -84,7 +84,7 @@ static func _row(rows: VBoxContainer, item: Dictionary, index: int, icon_extent:
 	details.add_child(title)
 	var options: Array = item.get("options", [])
 	for option in options:
-		var effect := _label(effect_text(option) if option is Dictionary else str(option), 13)
+		var effect := _label(effect_text(option, str(item.get("turretType", ""))) if option is Dictionary else str(option), 13)
 		effect.name = "ModuleEffect"
 		details.add_child(effect)
 	if options.is_empty(): details.add_child(_label("효과 정보 없음", 13))

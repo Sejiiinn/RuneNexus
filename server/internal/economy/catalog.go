@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	turretTypes        = []string{"arrow", "cannon", "magic", "frost", "sniper", "lightning"}
+	turretTypes        = []string{"arrow", "cannon", "magic", "frost", "sniper", "lightning", "poison"}
 	parts              = []string{"core", "barrel", "frame"}
 	grades             = []string{"normal", "magic", "rare", "unique"}
 	gradeRefund        = map[string]int64{"normal": 2, "magic": 5, "rare": 20, "unique": 50}
@@ -108,6 +108,9 @@ var optionRanges = map[string]map[string]optionRange{
 	},
 	"aimSpeedIncrease": {
 		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 11}, "unique": {12, 16},
+	},
+	"poisonDurationIncrease": {
+		"normal": {4, 8}, "magic": {9, 14}, "rare": {15, 22}, "unique": {23, 34},
 	},
 }
 
@@ -214,6 +217,8 @@ func optionPool(turretType string, part string) []string {
 		return []string{"damageIncrease", "slowDurationIncrease", "slowStrengthBonus", "rangeIncrease"}
 	case "sniper":
 		return []string{"damageIncrease", "criticalChanceBonus", "criticalDamageBonus", "aimSpeedIncrease"}
+	case "poison":
+		return []string{"damageIncrease", "splashRadiusIncrease", "damageOverTimeIncrease", "poisonDurationIncrease"}
 	default:
 		return []string{"damageIncrease", "lightningChainDamageIncrease", "lightningChainRangeIncrease", "attackRateIncrease"}
 	}
@@ -227,6 +232,7 @@ func familyFor(turretType string, part string) string {
 		"frost":     {"frostCore", "coldBarrel", "coolingFrame"},
 		"sniper":    {"scopeCore", "precisionBarrel", "anchorFrame"},
 		"lightning": {"currentCore", "coilBarrel", "insulatedFrame"},
+		"poison":    {"venomCore", "mortarBarrel", "sealedFrame"},
 	}
 	index := 0
 	if part == "barrel" {

@@ -208,6 +208,13 @@ func _run() -> void:
 				_assert_module_actions(host.body, choice)
 				host.progression_state.turretModules.items.pop_back()
 		helper.select_turret("arrow")
+	# New-progression saves follow fixed IDs: 2-1 (ID 6) is not lightning's 2-2 (ID 7).
+	for case in [[[6], false], [[7], true]]:
+		host.progression_state.progressionVersion = 1
+		host.progression_state.clearedStageNumbers = case[0]
+		helper.modules()
+		assert((host.body.find_child("TurretSelect_lightning", true, false) != null) == case[1], "Lightning module tab follows the server unlock")
+	host.progression_state.erase("progressionVersion")
 	host.progression_state.turretModules.items = saved_items
 	helper.modules()
 	for i in range(3): await process_frame
