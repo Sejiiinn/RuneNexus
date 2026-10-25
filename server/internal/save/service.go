@@ -17,6 +17,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// New save fields or content only raise CurrentClientCompatibilityVersion; the
+// account's client generation floor blocks older clients (ValidateClientGenerationFloor).
 const (
 	CurrentSchemaVersion              int32 = 2
 	CurrentClientCompatibilityVersion       = SupportCoreClientCompatibilityVersion
@@ -200,8 +202,12 @@ func (service *Service) ClaimWriter(
 	if err := txQueries.EnsureSaveWriterState(ctx, databaseAccountID); err != nil {
 		return ClaimWriterResult{}, fmt.Errorf("ensure save writer state: %w", err)
 	}
-	if _, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID); err != nil {
+	writer, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID)
+	if err != nil {
 		return ClaimWriterResult{}, fmt.Errorf("lock save writer state: %w", err)
+	}
+	if err := ValidateClientGenerationFloor(writer, request.ClientCompatibilityVersion); err != nil {
+		return ClaimWriterResult{}, err
 	}
 	if err := txQueries.EnsureSaveHeader(ctx, databaseAccountID); err != nil {
 		return ClaimWriterResult{}, err
@@ -271,6 +277,7 @@ func (service *Service) ClaimWriter(
 		AccountID:        databaseAccountID,
 		SessionID:        databaseSessionID,
 		ClientInstanceID: clientInstanceID,
+		ClientGeneration: int32(request.ClientCompatibilityVersion),
 	})
 	if err != nil {
 		return ClaimWriterResult{}, fmt.Errorf("advance save writer: %w", err)
@@ -397,6 +404,9 @@ func (service *Service) Update(
 	}
 	if writer.Generation != request.WriterGeneration || writer.SessionID != databaseSessionID {
 		return UpdateResult{}, &WriterReplacedError{CurrentGeneration: writer.Generation}
+	}
+	if err := ValidateClientGenerationFloor(writer, request.ClientCompatibilityVersion); err != nil {
+		return UpdateResult{}, err
 	}
 	if header.Revision != request.ExpectedRevision {
 		return UpdateResult{}, &RevisionConflictError{

@@ -255,6 +255,9 @@ func lockWriterAndSave(
 	if writer.Generation != writerGeneration || !writer.SessionID.Valid || writer.SessionID.Bytes != sessionID.Bytes {
 		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, ErrWriterReplaced
 	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
+		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, err
+	}
 	header, err := queries.GetSaveHeaderForUpdate(ctx, accountID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, ErrSaveRevisionConflict

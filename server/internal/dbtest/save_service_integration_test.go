@@ -1035,6 +1035,11 @@ func openSaveService(t *testing.T) (context.Context, *claimedSaveService, string
 	if err != nil {
 		t.Fatalf("claim save writer: %v", err)
 	}
+	// Most fixtures exercise the frozen per-feature gates, which protect accounts
+	// written before the client generation floor existed. Model that history.
+	if _, err := pool.Exec(ctx, "UPDATE save_writer_states SET client_generation_floor = 0 WHERE account_id = $1", account.ID); err != nil {
+		t.Fatalf("reset client generation floor: %v", err)
+	}
 	t.Cleanup(func() {
 		cleanupContext, cleanupCancel := context.WithTimeout(
 			context.Background(),

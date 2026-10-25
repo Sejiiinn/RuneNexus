@@ -279,6 +279,9 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 	if writer.Generation != request.WriterGeneration || writer.SessionID != session {
 		return CommandResult{}, ErrWriterReplaced
 	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
+	}
 	runID, err := parseUUID(request.RunID)
 	if err != nil || request.RunID != formatUUID(runID) || request.CompletedRounds < 0 || request.CompletedRounds >= 40 {
 		return CommandResult{}, ErrInvalidCommand

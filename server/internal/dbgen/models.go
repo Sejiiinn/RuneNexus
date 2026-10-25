@@ -342,12 +342,13 @@ type SaveWriterClaim struct {
 }
 
 type SaveWriterState struct {
-	AccountID        pgtype.UUID        `db:"account_id"`
-	Generation       int64              `db:"generation"`
-	SessionID        pgtype.UUID        `db:"session_id"`
-	ClientInstanceID pgtype.UUID        `db:"client_instance_id"`
-	ClaimedAt        pgtype.Timestamptz `db:"claimed_at"`
-	UpdatedAt        pgtype.Timestamptz `db:"updated_at"`
+	AccountID             pgtype.UUID        `db:"account_id"`
+	Generation            int64              `db:"generation"`
+	SessionID             pgtype.UUID        `db:"session_id"`
+	ClientInstanceID      pgtype.UUID        `db:"client_instance_id"`
+	ClaimedAt             pgtype.Timestamptz `db:"claimed_at"`
+	UpdatedAt             pgtype.Timestamptz `db:"updated_at"`
+	ClientGenerationFloor int32              `db:"client_generation_floor"`
 }
 
 type Session struct {

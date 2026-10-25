@@ -34,6 +34,7 @@ UPDATE save_writer_states
 SET generation = generation + 1,
     session_id = $2,
     client_instance_id = $3,
+    client_generation_floor = GREATEST(client_generation_floor, sqlc.arg(client_generation)::INTEGER),
     claimed_at = now(),
     updated_at = now()
 WHERE account_id = $1

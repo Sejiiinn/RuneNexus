@@ -51,20 +51,27 @@ UPDATE save_writer_states
 SET generation = generation + 1,
     session_id = $2,
     client_instance_id = $3,
+    client_generation_floor = GREATEST(client_generation_floor, $4::INTEGER),
     claimed_at = now(),
     updated_at = now()
 WHERE account_id = $1
-RETURNING account_id, generation, session_id, client_instance_id, claimed_at, updated_at
+RETURNING account_id, generation, session_id, client_instance_id, claimed_at, updated_at, client_generation_floor
 `
 
 type AdvanceSaveWriterParams struct {
 	AccountID        pgtype.UUID `db:"account_id"`
 	SessionID        pgtype.UUID `db:"session_id"`
 	ClientInstanceID pgtype.UUID `db:"client_instance_id"`
+	ClientGeneration int32       `db:"client_generation"`
 }
 
 func (q *Queries) AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterParams) (SaveWriterState, error) {
-	row := q.db.QueryRow(ctx, advanceSaveWriter, arg.AccountID, arg.SessionID, arg.ClientInstanceID)
+	row := q.db.QueryRow(ctx, advanceSaveWriter,
+		arg.AccountID,
+		arg.SessionID,
+		arg.ClientInstanceID,
+		arg.ClientGeneration,
+	)
 	var i SaveWriterState
 	err := row.Scan(
 		&i.AccountID,
@@ -73,6 +80,7 @@ func (q *Queries) AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterPa
 		&i.ClientInstanceID,
 		&i.ClaimedAt,
 		&i.UpdatedAt,
+		&i.ClientGenerationFloor,
 	)
 	return i, err
 }
@@ -361,7 +369,7 @@ func (q *Queries) GetSaveWriterClaim(ctx context.Context, arg GetSaveWriterClaim
 }
 
 const getSaveWriterStateForUpdate = `-- name: GetSaveWriterStateForUpdate :one
-SELECT account_id, generation, session_id, client_instance_id, claimed_at, updated_at
+SELECT account_id, generation, session_id, client_instance_id, claimed_at, updated_at, client_generation_floor
 FROM save_writer_states
 WHERE account_id = $1
 FOR UPDATE
@@ -377,6 +385,7 @@ func (q *Queries) GetSaveWriterStateForUpdate(ctx context.Context, accountID pgt
 		&i.ClientInstanceID,
 		&i.ClaimedAt,
 		&i.UpdatedAt,
+		&i.ClientGenerationFloor,
 	)
 	return i, err
 }

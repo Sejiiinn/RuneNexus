@@ -226,6 +226,9 @@ func (service *Service) Claim(
 	if playerEconomy.GemRerollEnabled && gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.GemRerollClientCompatibilityVersion {
 		return ClaimResult{}, gamesave.ErrClientUpdateRequired
 	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return ClaimResult{}, err
+	}
 	if err := gamesave.ValidateContentClient(snapshot.Progression, snapshot.ActiveRun, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
 		return ClaimResult{}, err
 	}

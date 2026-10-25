@@ -132,6 +132,9 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 	if writer.Generation != request.WriterGeneration || writer.SessionID != session {
 		return CommandResult{}, ErrWriterReplaced
 	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
+	}
 	if header.Revision != request.SourceSaveRevision {
 		return CommandResult{}, ErrSaveRevisionConflict
 	}

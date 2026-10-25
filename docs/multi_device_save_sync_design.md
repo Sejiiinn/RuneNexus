@@ -614,6 +614,13 @@ scope: guest와 account local 저장 전체
   `422 SAVE_CLIENT_VERSION_UNSUPPORTED`로 거부한다.
 - claim 검사만으로는 이미 writer를 가진 오래 실행된 클라이언트를 막을 수 없으므로
   PUT도 같은 호환성 검사를 수행한다.
+- 계정별 하한: writer claim에 성공한 가장 높은 호환 버전을
+  `save_writer_states.client_generation_floor`에 기록한다(migration022). writer claim·저장
+  PUT·경제·주간 보상 명령은 이보다 낮은 요청을 `426 CLIENT_UPDATE_REQUIRED`로 거부한다.
+  한 번 새 앱으로 접속한 계정은 구버전 앱에서 업데이트 안내를 받는다.
+- 새 저장 필드·콘텐츠는 클라이언트 호환 버전만 올리고 기능별 구세대 판정을 추가하지
+  않는다. 기존 기능별 판정(세대 2~14)은 하한 도입 전에 기록된 계정을 위한 동결 검사이며,
+  필수 업데이트 하한이 14 이상이 되면 제거한다.
 - `clientBuild`는 Web Git SHA나 앱 버전의 진단값이며 문자열 비교로 권한을 판단하지
   않는다.
 - 원격 저장 schema가 클라이언트보다 높으면 기존 writer를 교체하지 않고
