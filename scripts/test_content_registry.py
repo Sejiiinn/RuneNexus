@@ -16,6 +16,15 @@ class ContentRegistryTests(unittest.TestCase):
         self.assertIn('"core": {\n\t\t"damageIncrease": {"normal": {5, 8}, "magic": {9, 15}, "rare": {16, 24}, "unique": {25, 36}},', output)
         self.assertIn('"damageIncrease": {"normal": {4, 7}, "magic": {8, 13}, "rare": {14, 21}, "unique": {22, 30}},', output)
 
+    def test_every_gem_has_display_labels(self):
+        gems = json.loads((ROOT / 'godot/content/growth_content.json').read_text())['gems']
+        labels = json.loads((ROOT / 'godot/ui/battle_labels.json').read_text())['gems']
+        self.assertEqual(sorted(labels), sorted(gems))
+        for gem in gems:
+            for field in ('name', 'description', 'color'):
+                self.assertTrue(labels[gem].get(field), f'{gem}.{field}')
+            self.assertRegex(labels[gem]['color'], r'^[0-9A-F]{6}$', gem)
+
     def _copy_sources(self, root: Path) -> None:
         for relative in ['godot/content/source/turrets.json', 'godot/content/growth_content.json', TARGET, GODOT_TARGET]:
             target = root / relative

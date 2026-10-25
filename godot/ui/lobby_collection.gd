@@ -6,6 +6,7 @@ const Connector = preload("res://ui/module_connector.gd")
 const B = preload("res://ui/battle_theme.gd")
 const Q = preload("res://app/quest_progress.gd")
 const StageProgression = preload("res://content/stage_progression.gd")
+const ContentRegistry = preload("res://content/generated_content_registry.gd")
 const PARTS := {"core":"코어", "barrel":"포신", "frame":"프레임"}
 const GRADES := {"normal":"일반", "magic":"마법", "rare":"희귀", "unique":"유니크"}
 const PartGlyph = preload("res://ui/module_part_glyph.gd")
@@ -304,10 +305,8 @@ func modules() -> void:
 	var selector := HBoxContainer.new()
 	selector.add_theme_constant_override("separation", 6)
 	parent.add_child(selector)
-	var types := ["arrow", "cannon", "magic", "frost"]
 	# Same unlock rule as the server draw, including legacy and grandfathered rights.
-	for gated in ["sniper", "lightning", "poison"]:
-		if StageProgression.has_unlock(lobby.progression(), "turret", gated): types.append(gated)
+	var types: Array = ContentRegistry.TURRET_TYPES.filter(func(type): return StageProgression.has_unlock(lobby.progression(), "turret", type))
 	if not turret in types: turret = "arrow"
 	for type in types:
 		var token := _asset_button("", select_turret.bind(type), "ui/components/card_frame.png")

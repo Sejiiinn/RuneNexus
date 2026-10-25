@@ -9,7 +9,16 @@ const ResultEntrance = preload("res://ui/battle_result_entrance.gd")
 const GemEntrance = preload("res://ui/gem_reward_entrance.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const GemFlip = preload("res://ui/gem_reward_flip.gd")
-const GEM_COLORS := {"piercing":"F27DDB","attackSpeed": "FFD866", "range": "69D7FF", "physicalDamage": "F4F7FA", "elementalDamage": "9FFFE8", "poisonDamage": "A6FF3A", "lightWeapon": "E7C66A", "heavyWeapon": "FF8A2A", "damageOverTime": "9DFF4A", "explosion": "FF8A2A", "chain": "B98CFF", "criticalChance": "FF5F7E", "aimSpeed": "B7F4FF", "damageAmplifier": "FFA14A", "armorPiercing": "D0D7DE", "multipleProjectiles": "79E6C4"}
+## Gem colors live with the other gem labels; read-only like the former constant.
+static var GEM_COLORS: Dictionary = _gem_colors()
+
+static func _gem_colors() -> Dictionary:
+	var colors := {}
+	var labels: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://ui/battle_labels.json"))
+	if labels is Dictionary:
+		for gem in labels.get("gems", {}): colors[gem] = str(labels.gems[gem].get("color", "69D7FF"))
+	colors.make_read_only()
+	return colors
 const RULES := {"chain":"연쇄된 투사체는 피해 및 효과 범위가 50% 감폭됩니다.","explosion":"폭발은 직접 명중한 대상을 제외한 주변 적에게 명중 피해의 50%를 줍니다."}
 # The approved compact cycle glyph is code-native, like the reward entrance rune.
 class RerollGlyph extends Control:
