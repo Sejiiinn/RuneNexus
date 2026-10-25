@@ -33,7 +33,7 @@ func TestGemRerollSchemaConstraints(t *testing.T) {
 		{5, 4, []string{"range", "chain", "explosion"}},
 		{5, 1, []string{"range", "range", "chain"}},
 		{5, 1, []string{"range", "chain"}},
-		{5, 1, []string{"range", "chain", "invalid"}},
+		{5, 1, []string{"range", "chain", "Invalid Gem"}},
 	} {
 		if _, err = tx.Exec(ctx, "SAVEPOINT invalid_reroll"); err != nil {
 			t.Fatal(err)

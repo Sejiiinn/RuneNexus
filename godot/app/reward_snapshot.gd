@@ -42,7 +42,7 @@ func apply_authoritative(progression: Dictionary, snapshot: Dictionary) -> Dicti
 			if not option is Dictionary or not option.get("type") in Codec.ENUMS.TurretModuleOptionType or not _integer(option.get("value"), 1): return _invalid("Unsupported module option")
 			if seen.has(option.type) or not option.type in _catalog.pools[raw.turretType][raw.part]: continue
 			seen[option.type] = true
-			var limits: Dictionary = _catalog.ranges.get(option.type, {}).get(raw.grade, {})
+			var limits: Dictionary = Modules.range_for(_catalog, option.type, raw.part, raw.grade)
 			if limits.is_empty(): continue
 			options.append({"type": option.type, "value": clampi(int(option.value), int(limits.min), int(limits.max))})
 		if _catalog.families[raw.turretType][raw.part] != raw.family: continue

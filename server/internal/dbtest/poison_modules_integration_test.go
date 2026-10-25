@@ -16,7 +16,7 @@ import (
 func TestPoisonModuleDrawRequiresCurrentClient(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
 	var definition string
-	if err := fixture.pool.QueryRow(ctx, `SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='player_modules_turret_type_check'`).Scan(&definition); err != nil || !strings.Contains(definition, "'poison'") {
+	if err := fixture.pool.QueryRow(ctx, `SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='player_modules_turret_type_check'`).Scan(&definition); err != nil || !strings.Contains(definition, "turret_type ~") {
 		t.Fatalf("player_modules turret types: %q %v", definition, err)
 	}
 	progression, err := json.Marshal(map[string]any{

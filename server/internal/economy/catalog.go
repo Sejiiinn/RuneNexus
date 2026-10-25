@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
+	"github.com/Sejiiinn/RuneNexus/server/internal/contentregistry"
 )
 
 const (
@@ -18,9 +20,9 @@ const (
 )
 
 var (
-	turretTypes        = []string{"arrow", "cannon", "magic", "frost", "sniper", "lightning", "poison"}
-	parts              = []string{"core", "barrel", "frame"}
-	grades             = []string{"normal", "magic", "rare", "unique"}
+	turretTypes        = contentregistry.TurretTypes()
+	parts              = contentregistry.ModuleParts()
+	grades             = contentregistry.ModuleGrades()
 	gradeRefund        = map[string]int64{"normal": 2, "magic": 5, "rare": 20, "unique": 50}
 	gradeOptionWeights = map[string][]int{
 		"normal": {85, 15, 0},
@@ -48,70 +50,10 @@ type optionRange struct {
 	max int
 }
 
-var optionRanges = map[string]map[string]optionRange{
-	"damageIncrease": {
-		"normal": {4, 7}, "magic": {8, 13}, "rare": {14, 21}, "unique": {22, 30},
-	},
-	"attackRateIncrease": {
-		"normal": {1, 3}, "magic": {4, 6}, "rare": {7, 10}, "unique": {11, 14},
-	},
-	"criticalChanceBonus": {
-		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 11}, "unique": {12, 16},
-	},
-	"criticalDamageBonus": {
-		"normal": {8, 14}, "magic": {15, 24}, "rare": {25, 38}, "unique": {39, 55},
-	},
-	"rangeIncrease": {
-		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 11}, "unique": {12, 15},
-	},
-	"levelUpCostDiscount": {
-		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 11}, "unique": {12, 16},
-	},
-	"linkUpgradeCostDiscount": {
-		"normal": {3, 6}, "magic": {7, 10}, "rare": {11, 16}, "unique": {17, 24},
-	},
-	"buildCostDiscount": {
-		"normal": {2, 4}, "magic": {6, 8}, "rare": {10, 12}, "unique": {14, 16},
-	},
-	"highLevelUpgradeCostDiscount": {
-		"normal": {3, 5}, "magic": {6, 9}, "rare": {10, 15}, "unique": {16, 22},
-	},
-	"gemEffectIncrease": {
-		"normal": {2, 3}, "magic": {4, 5}, "rare": {6, 8}, "unique": {9, 12},
-	},
-	"splashRadiusIncrease": {
-		"normal": {3, 5}, "magic": {6, 9}, "rare": {10, 14}, "unique": {15, 22},
-	},
-	"damageOverTimeIncrease": {
-		"normal": {5, 8}, "magic": {9, 15}, "rare": {16, 24}, "unique": {25, 36},
-	},
-	"burnDurationIncrease": {
-		"normal": {4, 8}, "magic": {9, 14}, "rare": {15, 22}, "unique": {23, 34},
-	},
-	"slowDurationIncrease": {
-		"normal": {4, 8}, "magic": {9, 14}, "rare": {15, 22}, "unique": {23, 34},
-	},
-	"slowStrengthBonus": {
-		"normal": {1, 2}, "magic": {3, 4}, "rare": {5, 6}, "unique": {6, 8},
-	},
-	"lightningChainDamageIncrease": {
-		"normal": {5, 8}, "magic": {9, 15}, "rare": {16, 24}, "unique": {25, 36},
-	},
-	"projectileSpeedIncrease": {
-		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 11}, "unique": {12, 16},
-	},
-	"splashSecondaryDamageBonus": {
-		"normal": {3, 5}, "magic": {6, 9}, "rare": {10, 14}, "unique": {15, 20},
-	},
-	"lightningChainRangeIncrease": {
-		"normal": {3, 5}, "magic": {6, 9}, "rare": {10, 14}, "unique": {15, 22},
-	},
-	"aimSpeedIncrease": {
-		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 11}, "unique": {12, 16},
-	},
-	"poisonDurationIncrease": {
-		"normal": {4, 8}, "magic": {9, 14}, "rare": {15, 22}, "unique": {23, 34},
-	},
+// moduleRange returns the zero range for an option the catalog does not define.
+func moduleRange(optionType, part, grade string) optionRange {
+	limits, _ := contentregistry.ModuleRange(optionType, part, grade)
+	return optionRange{limits.Min, limits.Max}
 }
 
 func generateModule(turretType string, drawCount int64) (generatedModule, error) {
@@ -137,12 +79,7 @@ func generateModule(turretType string, drawCount int64) (generatedModule, error)
 	}
 	options := make([]moduleOption, 0, len(selected))
 	for _, optionType := range selected {
-		rangeForOption := optionRanges[optionType][grade]
-		if part == "core" && optionType == "damageIncrease" {
-			rangeForOption = map[string]optionRange{
-				"normal": {5, 8}, "magic": {9, 15}, "rare": {16, 24}, "unique": {25, 36},
-			}[grade]
-		}
+		rangeForOption := moduleRange(optionType, part, grade)
 		value, err := secureInt(rangeForOption.min, rangeForOption.max)
 		if err != nil {
 			return generatedModule{}, err
@@ -200,47 +137,11 @@ func rollOptionCount(grade string) (int, error) {
 }
 
 func optionPool(turretType string, part string) []string {
-	if part == "barrel" {
-		return []string{"damageIncrease", "attackRateIncrease", "criticalChanceBonus", "criticalDamageBonus", "rangeIncrease"}
-	}
-	if part == "frame" {
-		return []string{"levelUpCostDiscount", "linkUpgradeCostDiscount", "buildCostDiscount", "highLevelUpgradeCostDiscount", "gemEffectIncrease"}
-	}
-	switch turretType {
-	case "arrow":
-		return []string{"damageIncrease", "attackRateIncrease", "criticalChanceBonus", "projectileSpeedIncrease"}
-	case "cannon":
-		return []string{"damageIncrease", "splashRadiusIncrease", "splashSecondaryDamageBonus", "attackRateIncrease"}
-	case "magic":
-		return []string{"damageIncrease", "damageOverTimeIncrease", "burnDurationIncrease", "attackRateIncrease"}
-	case "frost":
-		return []string{"damageIncrease", "slowDurationIncrease", "slowStrengthBonus", "rangeIncrease"}
-	case "sniper":
-		return []string{"damageIncrease", "criticalChanceBonus", "criticalDamageBonus", "aimSpeedIncrease"}
-	case "poison":
-		return []string{"damageIncrease", "splashRadiusIncrease", "damageOverTimeIncrease", "poisonDurationIncrease"}
-	default:
-		return []string{"damageIncrease", "lightningChainDamageIncrease", "lightningChainRangeIncrease", "attackRateIncrease"}
-	}
+	return contentregistry.ModulePool(turretType, part)
 }
 
 func familyFor(turretType string, part string) string {
-	families := map[string][3]string{
-		"arrow":     {"rapidCore", "balancedBarrel", "stableFrame"},
-		"cannon":    {"blastCore", "heavyBarrel", "reinforcedFrame"},
-		"magic":     {"ignitionCore", "emberBarrel", "heatSinkFrame"},
-		"frost":     {"frostCore", "coldBarrel", "coolingFrame"},
-		"sniper":    {"scopeCore", "precisionBarrel", "anchorFrame"},
-		"lightning": {"currentCore", "coilBarrel", "insulatedFrame"},
-		"poison":    {"venomCore", "mortarBarrel", "sealedFrame"},
-	}
-	index := 0
-	if part == "barrel" {
-		index = 1
-	} else if part == "frame" {
-		index = 2
-	}
-	return families[turretType][index]
+	return contentregistry.ModuleFamily(turretType, part)
 }
 
 func validateModule(module generatedModule) error {
@@ -259,12 +160,7 @@ func validateModule(module generatedModule) error {
 			return errors.New("duplicate module option")
 		}
 		seen[option.Type] = struct{}{}
-		rangeForOption := optionRanges[option.Type][module.Grade]
-		if module.Part == "core" && option.Type == "damageIncrease" {
-			rangeForOption = map[string]optionRange{
-				"normal": {5, 8}, "magic": {9, 15}, "rare": {16, 24}, "unique": {25, 36},
-			}[module.Grade]
-		}
+		rangeForOption := moduleRange(option.Type, module.Part, module.Grade)
 		if option.Value < rangeForOption.min || option.Value > rangeForOption.max {
 			return errors.New("module option value is outside catalog")
 		}

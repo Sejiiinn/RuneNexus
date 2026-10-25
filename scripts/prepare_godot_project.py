@@ -17,6 +17,7 @@ from content_runtime_format import load_compiled_content
 from compile_progression import compile_progression
 from compile_core_passive_tree import compile_core_tree
 from compile_gem_capabilities import compile_capabilities
+from compile_content_registry import compile_registry
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -341,6 +342,7 @@ def prepare() -> Path:
     compile_progression(ROOT, check=True)
     compile_core_tree(ROOT, check=True)
     compile_capabilities(ROOT, check=True)
+    compile_registry(ROOT, check=True)
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
     required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb", "landmarks.glb")]

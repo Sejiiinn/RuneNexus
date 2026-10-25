@@ -76,7 +76,10 @@ func _init() -> void:
 	var equip := growth.execute(p, {"type":"equipTurretModule", "id":"m1"})
 	check(equip.ok, "existing module equip")
 	var effect := growth.module_effect(equip.state, "arrow")
-	check(effect.damageIncreaseRate == float(growth.data.module.ranges.damageIncrease.normal.max)/100.0, "module valid pool clamp")
+	check(effect.damageIncreaseRate == float(growth.data.module.partRanges.core.damageIncrease.normal.max)/100.0, "module valid pool clamp uses core damage range")
+	var unique_core: Dictionary = equip.state.duplicate(true)
+	unique_core.turretModules.items[0].grade = "unique"; unique_core.turretModules.items[0].options[0].value = 36
+	check(is_equal_approx(growth.module_effect(unique_core, "arrow").damageIncreaseRate, 0.36), "unique core damage 36 is not clamped to the barrel range")
 	check(growth.execute(equip.state, {"type":"unequipTurretModule", "id":"m1"}).ok, "module unequip")
 	_initial_research(growth)
 	_boss_damage_training(growth)

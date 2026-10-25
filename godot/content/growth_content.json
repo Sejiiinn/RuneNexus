@@ -4220,6 +4220,28 @@
         }
       }
     },
+    "partRanges": {
+      "core": {
+        "damageIncrease": {
+          "normal": {
+            "min": 5,
+            "max": 8
+          },
+          "magic": {
+            "min": 9,
+            "max": 15
+          },
+          "rare": {
+            "min": 16,
+            "max": 24
+          },
+          "unique": {
+            "min": 25,
+            "max": 36
+          }
+        }
+      }
+    },
     "families": {
       "arrow": {
         "core": "rapidCore",

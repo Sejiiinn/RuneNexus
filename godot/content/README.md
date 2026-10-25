@@ -10,6 +10,7 @@
 - `source/enemies.json`, `source/turrets.json`: 기본 정의와 네이티브 입력 템플릿.
 - `source/stages/001.json`~`030.json`: 고정 ID별 맵·최초 보상·40라운드의 그룹·표시 문구·클리어 보상. 그룹은 한 레코드, 타일은 보드 한 행을 한 줄로 기록한다. `spawnQueue`·`enemyDurability`는 원본에 쓰지 않는다.
 - `source/core_passive_tree_v5.json`: 확장 코어 트리의 좌표·연결·랭크별 비용·효과 원본. `source/core_passive_tree_v4.json`은 기존 런을 위한 보존 원본이다. [코어 생성기](../../scripts/compile_core_passive_tree.py)가 성장 카탈로그·Godot 랭크 레지스트리·서버 검증 레지스트리를 함께 만든다. 투자·이관 계약은 [현행 코어 기준](../../docs/core_passive_tree_implementation_plan.md)을 따른다.
+- `growth_content.json`의 `gems`·`module`과 `source/turrets.json`의 포탑 키: 젬·포탑·모듈 식별자와 모듈 풀·계열·범위의 공유 원본. `module.partRanges`는 부위별 범위 예외(코어 피해 증가)다. [레지스트리 생성기](../../scripts/compile_content_registry.py)가 Godot `generated_content_registry.gd`와 서버 `contentregistry`를 만들고, 저장 코덱·젬 리롤·서버 모듈 뽑기/검증·런 소유권 검사가 이를 사용한다. DB는 이름 대신 식별자 형식만 검사하므로 새 젬·포탑에 마이그레이션이 필요 없다.
 - `source/progression.json`: 진행 순서·표시·해금의 공유 원본. [진행 생성기](../../scripts/compile_progression.py)가 Godot·서버 테이블을 만든다.
   - `researchPrerequisites`는 연구 간 선행 조건이다. 선행 조건이 있는 연구는 새 콘텐츠로 보고 고정 스테이지 조건만 인정하며, 레거시·grandfather 해금은 적용하지 않는다. 서버·Godot의 판정은 [공용 사례](../../test/fixtures/research_prerequisite_cases.json)로 함께 검사한다.
 
@@ -19,6 +20,7 @@
 
 ```sh
 python3 scripts/compile_progression.py
+python3 scripts/compile_content_registry.py
 python3 scripts/content_compiler.py
 python3 scripts/content_compiler.py --check
 python3 scripts/verify_godot_content.py

@@ -2,6 +2,7 @@ extends RefCounted
 const StageProgression = preload("res://content/stage_progression.gd")
 ## Local session progression rules. Never performs network or persistent writes.
 const Json = preload("res://app/save_json.gd")
+const Modules = preload("res://content/module_catalog.gd")
 var data: Dictionary = {}
 var error := ""
 
@@ -94,7 +95,7 @@ func module_effect(p: Dictionary, type: String) -> Dictionary:
 		for option in item.get("options", []):
 			var key: String = str(option.get("type", ""))
 			if seen.has(key) or not key in data.module.pools.get(type, {}).get(part, []): continue
-			var limits: Dictionary = data.module.ranges.get(key, {}).get(item.get("grade"), {})
+			var limits: Dictionary = Modules.range_for(data.module, key, part, str(item.get("grade", "")))
 			if limits.is_empty(): continue
 			seen[key] = true
 			var value := clampf(float(option.get("value", 0)), float(limits.min), float(limits.max)) / 100.0

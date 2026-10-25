@@ -35,7 +35,7 @@ func TestPoisonModuleCatalog(t *testing.T) {
 	if familyFor("poison", "core") != "venomCore" || familyFor("poison", "barrel") != "mortarBarrel" || familyFor("poison", "frame") != "sealedFrame" {
 		t.Fatal("poison module families changed")
 	}
-	if optionRanges["poisonDurationIncrease"]["unique"] != optionRanges["burnDurationIncrease"]["unique"] {
+	if moduleRange("poisonDurationIncrease", "core", "unique") != moduleRange("burnDurationIncrease", "core", "unique") {
 		t.Fatal("poison duration shares the burn duration ranges")
 	}
 	valid := generatedModule{TurretType: "poison", Part: "core", Family: "venomCore", Grade: "rare", Options: []moduleOption{{Type: "poisonDurationIncrease", Value: 20}}}

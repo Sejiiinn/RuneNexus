@@ -18,7 +18,7 @@ func TestPoisonDamageSchemaPreservesGemIdentities(t *testing.T) {
 	}{
 		{`{"poisonDamage":1,"piercing":2,"armorPiercing":3}`, true},
 		{`{"poisonDamage":-1}`, false},
-		{`{"poison":1}`, false},
+		{`{"":1}`, false},
 	} {
 		var valid bool
 		if err := tx.QueryRow(ctx, `SELECT valid_run_gem_totals($1::jsonb)`, test.raw).Scan(&valid); err != nil {

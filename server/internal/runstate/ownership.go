@@ -8,6 +8,7 @@ import (
 	"errors"
 	"math"
 
+	"github.com/Sejiiinn/RuneNexus/server/internal/contentregistry"
 	"github.com/Sejiiinn/RuneNexus/server/internal/gemcapabilities"
 )
 
@@ -120,23 +121,9 @@ func nonnegativeInteger(raw []byte) (int64, error) {
 	return value, nil
 }
 
-func ValidGem(gem string) bool {
-	switch gem {
-	case "attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing", "poisonDamage":
-		return true
-	default:
-		return false
-	}
-}
+func ValidGem(gem string) bool { return contentregistry.ValidGem(gem) }
 
-func validTurret(kind string) bool {
-	switch kind {
-	case "arrow", "cannon", "magic", "frost", "sniper", "lightning", "poison":
-		return true
-	default:
-		return false
-	}
-}
+func validTurret(kind string) bool { return contentregistry.ValidTurret(kind) }
 
 // ValidatePristine permits a full client-generated initial checkpoint before
 // StartRun binds it to a fresh server identity. It cannot carry reward progress.

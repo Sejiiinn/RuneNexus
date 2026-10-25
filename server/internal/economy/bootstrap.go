@@ -317,7 +317,7 @@ func decodeLegacyEconomy(
 				if option.Type != "slowStrengthBonus" || option.Value < oldRange.min || option.Value > oldRange.max {
 					continue
 				}
-				currentRange := optionRanges[option.Type][module.Grade]
+				currentRange := moduleRange(option.Type, module.Part, module.Grade)
 				module.Options[index].Value = max(currentRange.min, min(currentRange.max, option.Value))
 			}
 		}

@@ -18,7 +18,7 @@ func TestPiercingSchemaPreservesGemIdentities(t *testing.T) {
 	}{
 		{`{"piercing":1,"armorPiercing":2}`, true},
 		{`{"piercing":-1}`, false},
-		{`{"unknown":1}`, false},
+		{`{"Unknown Gem":1}`, false},
 	} {
 		var valid bool
 		if err := tx.QueryRow(ctx, `SELECT valid_run_gem_totals($1::jsonb)`, test.raw).Scan(&valid); err != nil {

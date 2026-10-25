@@ -2,6 +2,7 @@ extends RefCounted
 ## Existing Dart GameSaveData v2 wire contract, including v1 migration.
 ## Enum IDs and scalar field rules mirror lib/data/save/game_save*.dart.
 const CoreTree = preload("res://content/generated_core_tree.gd")
+const ContentRegistry = preload("res://content/generated_content_registry.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
 const ENUMS = {
 	"ResearchType": [
@@ -22,15 +23,7 @@ const ENUMS = {
 		"waveGoldLimitExpansion",
 		"linkExpansionTwo"
 	],
-	"TurretType": [
-		"arrow",
-		"cannon",
-		"magic",
-		"frost",
-		"sniper",
-		"lightning",
-		"poison"
-	],
+	"TurretType": ContentRegistry.TURRET_TYPES,
 	"TurretTraitType": [
 		"overheatMagazine",
 		"lightweightBarrel",
@@ -107,81 +100,11 @@ const ENUMS = {
 		"killGold",
 		"waveGold"
 	],
-	"TurretModulePart": [
-		"core",
-		"barrel",
-		"frame"
-	],
-	"TurretModuleGrade": [
-		"normal",
-		"magic",
-		"rare",
-		"unique"
-	],
-	"TurretModuleFamily": [
-		"rapidCore",
-		"balancedBarrel",
-		"stableFrame",
-		"blastCore",
-		"heavyBarrel",
-		"reinforcedFrame",
-		"ignitionCore",
-		"emberBarrel",
-		"heatSinkFrame",
-		"frostCore",
-		"coldBarrel",
-		"coolingFrame",
-		"scopeCore",
-		"precisionBarrel",
-		"anchorFrame",
-		"currentCore",
-		"coilBarrel",
-		"insulatedFrame",
-		"venomCore",
-		"mortarBarrel",
-		"sealedFrame"
-	],
-	"TurretModuleOptionType": [
-		"damageIncrease",
-		"attackRateIncrease",
-		"criticalChanceBonus",
-		"criticalDamageBonus",
-		"rangeIncrease",
-		"levelUpCostDiscount",
-		"linkUpgradeCostDiscount",
-		"buildCostDiscount",
-		"highLevelUpgradeCostDiscount",
-		"gemEffectIncrease",
-		"splashRadiusIncrease",
-		"damageOverTimeIncrease",
-		"burnDurationIncrease",
-		"slowDurationIncrease",
-		"slowStrengthBonus",
-		"lightningChainDamageIncrease",
-		"projectileSpeedIncrease",
-		"splashSecondaryDamageBonus",
-		"lightningChainRangeIncrease",
-		"aimSpeedIncrease",
-		"poisonDurationIncrease"
-	],
-	"GemType": [
-		"attackSpeed",
-		"range",
-		"physicalDamage",
-		"elementalDamage",
-		"lightWeapon",
-		"heavyWeapon",
-		"damageOverTime",
-		"explosion",
-		"chain",
-		"criticalChance",
-		"aimSpeed",
-		"damageAmplifier",
-		"armorPiercing",
-		"multipleProjectiles",
-		"piercing",
-		"poisonDamage"
-	],
+	"TurretModulePart": ContentRegistry.MODULE_PARTS,
+	"TurretModuleGrade": ContentRegistry.MODULE_GRADES,
+	"TurretModuleFamily": ContentRegistry.MODULE_FAMILIES,
+	"TurretModuleOptionType": ContentRegistry.MODULE_OPTION_TYPES,
+	"GemType": ContentRegistry.GEM_TYPES,
 	"SupportCoreFamily": [
 		"damage"
 	]

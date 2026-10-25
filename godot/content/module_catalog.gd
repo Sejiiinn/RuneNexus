@@ -13,6 +13,11 @@ static func rules() -> Dictionary:
 		_freeze(_rules)
 	return _rules
 
+## A part-specific range (core damage) overrides the shared option range.
+static func range_for(catalog: Dictionary, option: String, part: String, grade: String) -> Dictionary:
+	var part_range: Dictionary = catalog.get("partRanges", {}).get(part, {}).get(option, {}).get(grade, {})
+	return part_range if not part_range.is_empty() else catalog.get("ranges", {}).get(option, {}).get(grade, {})
+
 static func _freeze(value: Variant) -> void:
 	if value is Dictionary:
 		for nested in value.values(): _freeze(nested)

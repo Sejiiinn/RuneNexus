@@ -85,7 +85,7 @@ func TestDecodeLegacyEconomyPreservesRebalancedFrostModules(t *testing.T) {
 					ID: "frost-owned", TurretType: "frost", Part: "core", Family: "frostCore", Grade: test.grade,
 					Options: []moduleOption{
 						{Type: "slowStrengthBonus", Value: value},
-						{Type: "slowDurationIncrease", Value: optionRanges["slowDurationIncrease"][test.grade].max},
+						{Type: "slowDurationIncrease", Value: moduleRange("slowDurationIncrease", "core", test.grade).max},
 					},
 					AcquiredOrder: 1, Equipped: true,
 				}}}

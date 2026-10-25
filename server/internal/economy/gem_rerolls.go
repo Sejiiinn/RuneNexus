@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/Sejiiinn/RuneNexus/server/internal/contentregistry"
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	stageprogression "github.com/Sejiiinn/RuneNexus/server/internal/progression"
 	"github.com/Sejiiinn/RuneNexus/server/internal/runstate"
@@ -18,7 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var gemTypes = []string{"attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing", "poisonDamage"}
+var gemTypes = contentregistry.GemTypes()
 
 type gemRewardRun struct {
 	RunID           string           `json:"economyRunId"`

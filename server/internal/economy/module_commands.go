@@ -368,7 +368,7 @@ func storeCommandResult(ctx context.Context, queries *dbgen.Queries, commandID p
 }
 
 func turretUnlocked(turretType string, progressionJSON []byte) bool {
-	if turretType != "sniper" && turretType != "lightning" && turretType != "poison" {
+	if stageprogression.Requirement("turret", turretType, false) == 0 {
 		return true
 	}
 	var progression progressionUnlocks
