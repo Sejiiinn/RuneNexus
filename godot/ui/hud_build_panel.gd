@@ -3,6 +3,8 @@ const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Construction picker and run-upgrade presentation. Prices remain domain-owned.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const HudNumber = preload("res://ui/hud_number.gd")
+const SupportCore = preload("res://app/support_core_rules.gd")
+const SupportCorePanel = preload("res://ui/hud_support_core_panel.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 var hud: Control
 
@@ -17,12 +19,16 @@ func _build(state: Dictionary) -> void:
 	var costs := {}
 	for kind in available:
 		costs[kind] = hud.app.run_domain.service.build_cost_from_derived(str(kind),configuration)
-	if hud.app.turret_type not in available and not available.is_empty():
+	var core_unlocked: bool = configuration.get("supportCoreUnlocked", false)
+	if core_unlocked: costs[SupportCorePanel.KIND] = SupportCore.BUILD_GOLD
+	if hud.app.turret_type not in available and not (core_unlocked and hud.app.turret_type == SupportCorePanel.KIND) and not available.is_empty():
 		hud.app.turret_type = available[0]
 		hud.app.refresh_selection()
 	var type = str(hud.app.turret_type)
 	var cost: int = costs[type] if costs.has(type) else hud.app.run_domain.service.build_cost_from_derived(type,configuration)
-	if tile == "build":
+	if tile == "build" and type == SupportCorePanel.KIND:
+		hud.support_core_panel.build_detail(state)
+	elif tile == "build":
 		var heading = HBoxContainer.new(); hud.body.add_child(heading)
 		UiWidgets.label(heading,hud.TOWERS.get(type,type)+" 포탑",14)
 		var install = UiWidgets.button(heading,"설치 · %s 골드" % HudNumber.compact_price(cost),func(): hud.app.build_selected(); hud.refresh())
@@ -42,14 +48,18 @@ func _build(state: Dictionary) -> void:
 	picker_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	picker_scroll.custom_minimum_size.y = 78; hud.body.add_child(picker_scroll)
 	var row = HBoxContainer.new(); row.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_theme_constant_override("separation",0); picker_scroll.add_child(row)
-	for kind in hud.TOWERS:
-		if kind not in available: continue
+	var kinds: Array = hud.TOWERS.keys().filter(func(kind): return kind in available)
+	# The support core spends a chosen bag gem, so a second tap never builds it.
+	if core_unlocked: kinds.append(SupportCorePanel.KIND)
+	for kind in kinds:
+		var title: String = SupportCorePanel.TITLE if kind == SupportCorePanel.KIND else hud.TOWERS[kind]
 		if row.get_child_count() > 0: row.add_child(hud.HudChrome.divider())
-		var b = UiWidgets.button(row,"%s\n%s" % [hud.TOWERS[kind],HudNumber.compact_price(costs[kind])],func():
-			if hud.app.turret_type == kind and hud.selected_tile_type() == "build": hud.app.build_selected()
+		var b = UiWidgets.button(row,"%s\n%s" % [title,HudNumber.compact_price(costs[kind])],func():
+			if hud.app.turret_type == kind and hud.selected_tile_type() == "build" and kind != SupportCorePanel.KIND: hud.app.build_selected()
 			else: hud.app.turret_type = kind; hud.app.refresh_selection()
 			hud.refresh())
-		b.tooltip_text = "%s · %d G" % [hud.TOWERS[kind],costs[kind]]
+		b.name = "Picker_"+str(kind)
+		b.tooltip_text = "%s · %d G" % [title,costs[kind]]+(" · 젬 1개 소비" if kind == SupportCorePanel.KIND else "")
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; b.add_theme_font_size_override("font_size",10)
 		b.clip_text = true; b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		b.custom_minimum_size = Vector2(0,78)
@@ -58,7 +68,7 @@ func _build(state: Dictionary) -> void:
 		var content = VBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.add_theme_constant_override("separation",0); b.add_child(content)
 		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); content.offset_top = 4; content.offset_bottom = -4; content.offset_left = 2; content.offset_right = -2
 		var art = UiWidgets.icon(content,"ui/hud/turrets_3d/"+kind+".png",40); art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var name_label = UiWidgets.label(content,hud.TOWERS[kind],10); name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; name_label.autowrap_mode = TextServer.AUTOWRAP_OFF; name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		var name_label = UiWidgets.label(content,title,10); name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; name_label.autowrap_mode = TextServer.AUTOWRAP_OFF; name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		var price_label = UiWidgets.label(content,HudNumber.compact_price(costs[kind])+" G",9); price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; price_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		for style in ["normal","hover","pressed","disabled","focus"]:
 			b.add_theme_stylebox_override(style,hud.HudChrome.quiet(style,type == kind,Color("e7c66a"),Vector2(3,3)))

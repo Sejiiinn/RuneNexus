@@ -206,7 +206,15 @@ const ORDERS = {
 		"nexusAdditionalHp",
 		"nexusAdditionalHpGranted",
 		"indomitableUsedThisStage",
-		"nexusInvulnerableRemaining"
+		"nexusInvulnerableRemaining",
+		"supportCores"
+	],
+	"SavedSupportCore": [
+		"x",
+		"y",
+		"family",
+		"consumedGem",
+		"investedGold"
 	],
 	"SavedGemDeckEntry": [
 		"kind",
@@ -237,7 +245,7 @@ const ORDERS = {
 		"value"
 	]
 }
-const CHILDREN = {"corePassiveLegacyAllocation": "SavedCorePassiveLegacyAllocation", "preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "poisonInstances": "SavedPoisonInstance", "slowInstances": "SavedSlowInstance", "gemDeckLog": "SavedGemDeckEntry"}
+const CHILDREN = {"corePassiveLegacyAllocation": "SavedCorePassiveLegacyAllocation", "preferences": "SavedPreferences", "progression": "SavedProgression", "turretModules": "SavedTurretModuleInventory", "activeRun": "SavedRunState", "activeResearches": "SavedActiveResearch", "items": "SavedTurretModule", "runTurretModules": "SavedTurretModule", "options": "SavedTurretModuleOption", "turrets": "SavedTurret", "enemies": "SavedEnemy", "spawnQueue": "SavedSpawnRequest", "runCoreCombatSkillStats": "SavedCoreCombatSkillStats", "burnInstances": "SavedBurnInstance", "poisonInstances": "SavedPoisonInstance", "slowInstances": "SavedSlowInstance", "gemDeckLog": "SavedGemDeckEntry", "supportCores": "SavedSupportCore"}
 
 static func hash_payload(payload: Dictionary) -> String:
 	return encode(payload, "GameSaveData").sha256_text()

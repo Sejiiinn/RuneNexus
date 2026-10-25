@@ -3,6 +3,7 @@ const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Adapts the native run owner to the existing selection renderer's tile units.
 ## Call after selection/run commands; no simulation or per-frame stat calculation.
 const GemPalette = preload("res://ui/battle_rewards.gd")
+const SupportCore = preload("res://app/support_core_rules.gd")
 const COLORS := {"arrow":0xffe7c66a,"cannon":0xffff7b2f,"magic":0xffff5e3a,"frost":0xff7fd8ff,"sniper":0xffb7f4ff,"lightning":0xffcfa7ff,"poison":0xffa6ff3a}
 var level_preview := false
 var _revision := 0
@@ -26,6 +27,7 @@ func _build_state(app) -> void:
 	if frame.is_empty(): return
 	frame.presentationVersion = 2
 	frame.buildPreview = null
+	frame.erase("supportCorePreview")
 	if not frame.get("presentation") is Dictionary: frame.presentation = {}
 	var hud = app.get("hud")
 	var rewards = hud.get("rewards") if hud != null else null
@@ -44,7 +46,7 @@ func _build_state(app) -> void:
 	var selected_id: int = app.run_domain.selected_id(chosen)
 	var derived: Dictionary = configuration_cache.derived(state,app.run_domain.service)
 	for turret in state.get("turrets",[]):
-		var stats := _stats(app,derived,turret)
+		var stats := _stats(app,derived,turret,state)
 		var selected: bool = int(turret.id) == selected_id
 		var entry := {"id":int(turret.id),"position":[float(turret.x)+0.5,float(turret.y)+0.5],"range":_range(app,str(turret.type),stats),"selected":selected,"color":COLORS.get(turret.type,0xff8ee6ff),"level":int(turret.level)}
 		# Separate from legacy 2D arcs; the model owner renders these in world space.
@@ -57,7 +59,7 @@ func _build_state(app) -> void:
 			if int(quote.get("level",0)) > 0 and int(state.gold) >= int(quote.level):
 				var next: Dictionary = turret.duplicate(true)
 				next.level += 1
-				entry.previewRange = _range(app,str(turret.type),_stats(app,derived,next))
+				entry.previewRange = _range(app,str(turret.type),_stats(app,derived,next,state))
 		selection.turrets.append(entry)
 		if rewarding:
 			var gem: String = rewards.pending_gem
@@ -73,18 +75,35 @@ func _build_state(app) -> void:
 	if kind in ["spawn","core"]:
 		tile.kind = "portal" if kind == "spawn" else "core"
 		selection.tiles.append(tile)
+	elif kind == "build" and not SupportCore.at(state,chosen.x,chosen.y).is_empty():
+		tile.kind = "supportCore"
+		selection.tiles.append(tile)
+		_support_reach(selection,chosen,map)
+	elif kind == "build" and state.get("phase") in ["preparation","wave"] and str(app.turret_type) == "supportCore":
+		if not derived.get("supportCoreUnlocked",false): return
+		tile.kind = "supportCore"
+		selection.tiles.append(tile)
+		_support_reach(selection,chosen,map)
+		frame.supportCorePreview = [chosen.x,chosen.y]
 	elif kind == "build" and state.get("phase") in ["preparation","wave"]:
 		var type := str(app.turret_type)
 		if type not in derived.get("availableTurretTypes",[]): return
 		var preview := {"type":type,"level":1,"primaryTrait":null,"secondaryTrait":null,"equippedGemSlots":[]}
-		tile.range = _range(app,type,_stats(app,derived,preview))
+		tile.range = _range(app,type,_stats(app,derived,preview,state))
 		tile.color = COLORS.get(type,0xff8ee6ff)
 		selection.tiles.append(tile)
 		frame.buildPreview = [-1,chosen.x+0.5,chosen.y+0.5,app.run_domain.service.initial_aim_angle(type),tile.range,0,type]
 
-func _stats(app, derived: Dictionary, turret: Dictionary) -> Dictionary:
+# The four tiles a support core strengthens.
+func _support_reach(selection: Dictionary, chosen: Vector2i, map: Dictionary) -> void:
+	for side in [Vector2i(1,0),Vector2i(-1,0),Vector2i(0,1),Vector2i(0,-1)]:
+		var reach: Vector2i = chosen + side
+		if reach.x < 0 or reach.y < 0 or reach.x >= int(map.columns) or reach.y >= int(map.rows): continue
+		if str(map.tiles[reach.y*int(map.columns)+reach.x]) == "build": selection.tiles.append({"position":[reach.x+0.5,reach.y+0.5],"kind":"supportReach"})
+
+func _stats(app, derived: Dictionary, turret: Dictionary, state: Dictionary = {}) -> Dictionary:
 	# Selection uses world tiles; HUD stats use 48-pixel tiles in a separate entry.
-	return configuration_cache.stats(app.catalog,turret,configuration_cache.stat_input(derived,turret),1.0)
+	return configuration_cache.stats(app.catalog,turret,configuration_cache.stat_input(derived,turret,state),1.0)
 
 func _range(app, type: String, stats: Dictionary) -> float:
 	var definition: Dictionary = app.catalog.turret_definition(type)

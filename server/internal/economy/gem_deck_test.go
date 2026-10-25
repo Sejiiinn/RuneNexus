@@ -160,6 +160,28 @@ func TestReplayGemDeckLogFollowsTheDeck(t *testing.T) {
 			t.Fatalf("%s accepted", name)
 		}
 	}
+	// A support core consumed the wave 5 gem; owned gems no longer include it.
+	consumed := chosen
+	consumed["gemDeckLog"] = append(consumed["gemDeckLog"].([]any)[:2:2], map[string]any{"kind": "consume", "choice": five[1][0]}, consumed["gemDeckLog"].([]any)[2])
+	consumed["gemInventory"] = map[string]any{}
+	if _, ok := replay(consumed); !ok {
+		t.Fatal("consumed gem rejected")
+	}
+	consumed["gemInventory"] = map[string]any{five[1][0]: 1}
+	if _, ok := replay(consumed); ok {
+		t.Fatal("consumed gem still owned")
+	}
+	for name, entry := range map[string]map[string]any{
+		"unowned consumption": {"kind": "consume", "choice": outside},
+		"consumption fields":  {"kind": "consume", "choice": five[1][0], "wave": 5},
+	} {
+		run := base()
+		run["gemDeckLog"].([]any)[0].(map[string]any)["choice"] = five[1][0]
+		run["gemDeckLog"] = append(run["gemDeckLog"].([]any)[:2:2], entry, run["gemDeckLog"].([]any)[2])
+		if _, ok := replay(run); ok {
+			t.Fatalf("%s accepted", name)
+		}
+	}
 	if gemRerollCost(0) != 0 || gemRerollCost(1) != 0 || gemRerollCost(3) != 2 {
 		t.Fatal("first reroll of a run is free")
 	}

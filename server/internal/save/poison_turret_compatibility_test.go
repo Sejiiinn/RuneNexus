@@ -29,9 +29,6 @@ func TestPoisonTurretRequiresCurrentClient(t *testing.T) {
 			t.Fatalf("invalid poison stack multiplier %s accepted: %v", value, err)
 		}
 	}
-	if CurrentClientCompatibilityVersion != PoisonTurretClientCompatibilityVersion {
-		t.Fatalf("current client generation %d", CurrentClientCompatibilityVersion)
-	}
 }
 
 func TestPoisonDamageTrainingRequiresCurrentClient(t *testing.T) {

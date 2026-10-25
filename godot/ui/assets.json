@@ -182,6 +182,7 @@
   "ui/hud/turrets_3d/sniper.png",
   "ui/hud/turrets_3d/lightning.png",
   "ui/hud/turrets_3d/poison.png",
+  "ui/hud/turrets_3d/supportCore.png",
   "ui/combat_components/native/modal.png",
   "ui/combat_components/native/primary.png",
   "ui/combat_components/native/secondary.png",

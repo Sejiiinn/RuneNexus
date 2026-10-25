@@ -70,6 +70,7 @@ var requirements = map[string]map[string]int{
 	},
 	"feature": {
 		"researchSlotTwo": 25,
+		"supportCore":     12,
 	},
 }
 

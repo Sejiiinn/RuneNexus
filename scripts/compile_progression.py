@@ -18,7 +18,7 @@ def generated_outputs(root: Path = ROOT) -> dict[Path, str]:
     for item in data["unlockDisplay"]:
         stage = data["requirements"][item["kind"]][item["key"]]
         unlocks.setdefault(stage, []).append([item["title"], item["icon"], item["category"]])
-        reward_kind = {"강화": "upgrade", "연구": "research", "젬": "gem", "코어": "core"}.get(item["category"], "research")
+        reward_kind = {"강화": "upgrade", "연구": "research", "젬": "gem", "코어": "core", "구조물": "turret"}.get(item["category"], "research")
         reward_icon = f"turret:{item['key']}" if item["kind"] == "turret" else f"stage_rewards/reward_{reward_kind}.png"
         icons = reward_icons.setdefault(stage, [])
         if reward_icon not in icons:

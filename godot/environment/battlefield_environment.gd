@@ -888,14 +888,16 @@ static func prepare_vertex_colors(model: Node) -> void:
 
 
 
-func update_occupancy(units: Array, supported_types: Dictionary) -> void:
+func update_occupancy(units: Array, supported_types: Dictionary, extra_tiles: Array = []) -> void:
 	var occupied := Vector2i.ZERO
 	if _using_dressing:
+		var tiles: Array = extra_tiles.duplicate()
 		for row: FrameRows.Turret in FrameRows.rows("turrets", units):
-			if not supported_types.has(row.type):
-				continue
-			var x := floori(row.x)
-			var z := floori(row.y)
+			if supported_types.has(row.type):
+				tiles.append(Vector2i(floori(row.x), floori(row.y)))
+		for tile: Vector2i in tiles:
+			var x := tile.x
+			var z := tile.y
 			if x >= 0 and x < columns and z >= 0 and z < rows:
 				var slot := _build_tile_slots[z * columns + x]
 				if slot >= 0 and slot < 16:

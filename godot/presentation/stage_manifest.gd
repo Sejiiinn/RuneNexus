@@ -2,6 +2,7 @@ extends RefCounted
 ## The whole stage, not just the first wave. Tower rights come from the same
 ## derived configuration as the build/reward UI, including restored equipment.
 const Units = preload("res://presentation/battlefield_units.gd")
+const SupportCores = preload("res://presentation/support_core_presentation.gd")
 
 static func for_stage(catalog, index: int, derived: Dictionary, restored_state: Dictionary = {}) -> Dictionary:
 	var enemies: Array = []
@@ -17,6 +18,8 @@ static func for_stage(catalog, index: int, derived: Dictionary, restored_state: 
 	var paths: Array = []
 	for kind: String in towers:
 		if Units.TURRET_MODELS.has(kind): _add(paths, Units.TURRET_MODELS[kind])
+	if derived.get("supportCoreUnlocked", false) or not restored_state.get("supportCores", []).is_empty():
+		_add(paths, SupportCores.MODEL)
 	for kind: String in enemies:
 		if Units.ENEMY_MODELS.has(kind): _add(paths, Units.ENEMY_MODELS[kind])
 		if kind in ["normal", "fast", "tank"]: _add(paths, "res://assets/enemies/%s_death.glb" % kind)

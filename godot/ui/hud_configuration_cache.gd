@@ -3,6 +3,7 @@ extends RefCounted
 ## Explicit sync also detects direct state edits by tools and regression tests.
 ## Timer polling may trust a run-session replacement/finish revision.
 const TURRET_FIELDS := ["id", "type", "x", "y", "level", "slotLimit", "primaryTrait", "secondaryTrait", "equippedGemSlots", "targetPriority", "investedGold"]
+const SupportCore = preload("res://app/support_core_rules.gd")
 const RUN_LOADOUT_FIELDS := ["runCorePassiveNodeRanks", "runCorePassiveTreeRevision", "runTurretModules"]
 var revision := 0
 var derive_count := 0
@@ -11,6 +12,8 @@ var _turrets: Array = []
 var _upgrades: Dictionary = {}
 var _progression: Dictionary = {}
 var _run_loadout: Dictionary = {}
+# Support cores change stat inputs (not derived growth); tracked for revision.
+var _support_cores: Array = []
 var _fields: Array = []
 var _derived: Dictionary = {}
 var _source_id := 0
@@ -38,10 +41,11 @@ func invalidate() -> void:
 	_stage = -1
 	revision += 1
 
-func stat_input(configuration: Dictionary, turret: Dictionary) -> Dictionary:
+## state supplies the board for support core bonuses; previews may omit it.
+func stat_input(configuration: Dictionary, turret: Dictionary, state: Dictionary = {}) -> Dictionary:
 	var input: Dictionary = configuration.get("turretStatInputs", {}).get(turret.type, {}).duplicate(true)
 	input.merge({"level":turret.level,"primaryTrait":turret.get("primaryTrait"),"secondaryTrait":turret.get("secondaryTrait"),"gems":turret.get("equippedGemSlots",[]).filter(func(g): return g != null)},true)
-	return input
+	return SupportCore.apply_to_input(input, state, turret)
 
 func stats(catalog, turret: Dictionary, input: Dictionary, tile_size: float) -> Dictionary:
 	var key := str(turret.get("id", "build:"+str(turret.type)))+":"+str(tile_size)
@@ -87,6 +91,7 @@ func sync(state: Dictionary, growth_data: Dictionary) -> int:
 		for field in TURRET_FIELDS: entry[field] = _owned(turret.get(field))
 		_turrets.append(entry)
 	_upgrades = state.get("runUpgradeLevels", {}).duplicate(true)
+	_support_cores = SupportCore.cores(state).duplicate(true)
 	_run_loadout.clear()
 	for field in RUN_LOADOUT_FIELDS:
 		if state.has(field): _run_loadout[field] = _owned(state[field])
@@ -104,6 +109,7 @@ func derived(state: Dictionary, service) -> Dictionary:
 
 func _matches(state: Dictionary) -> bool:
 	if _stage != int(state.get("stage", -1)) or _upgrades != state.get("runUpgradeLevels", {}): return false
+	if _support_cores != SupportCore.cores(state): return false
 	# Presence matters: removing the frozen field restores live progression.
 	for field in RUN_LOADOUT_FIELDS:
 		if state.has(field) != _run_loadout.has(field): return false

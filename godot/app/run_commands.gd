@@ -3,6 +3,7 @@ extends RefCounted
 ## Never reads/writes player saves or authoritative account currencies.
 const GemSlots = preload("res://app/gem_slot_rules.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
+const SupportCore = preload("res://app/support_core_rules.gd")
 var catalog
 var growth
 
@@ -120,9 +121,18 @@ func runtime_commands(state: Dictionary, target_id: Variant = null, configuratio
 		if target_id != null and int(t.id) != int(target_id): continue
 		var input: Dictionary = d.get("turretStatInputs",{}).get(t.type,{}).duplicate(true)
 		input.merge({"level":t.level,"primaryTrait":t.primaryTrait,"secondaryTrait":t.secondaryTrait,"gems":t.equippedGemSlots.filter(func(g): return g != null)},true)
+		SupportCore.apply_to_input(input, state, t)
 		var stat: Dictionary = catalog.turret(t.type,{"tileSize":state.get("tileSize",1.0),"statInput":input})
 		result.append({"kind":"turret","turret":{"id":t.id,"position":[(float(t.x)+0.5)*float(state.get("tileSize",1.0)),(float(t.y)+0.5)*float(state.get("tileSize",1.0))],"state":t.duplicate(true),"statInput":stat}})
 	return result
+
+func _build_tile(state: Dictionary, x: int, y: int) -> bool:
+	var map: Dictionary = catalog.stage_map(int(state.get("stage",0)))
+	return x >= 0 and y >= 0 and x < int(map.get("columns",0)) and y < int(map.get("rows",0)) and map.tiles[y*int(map.columns)+x] == "build"
+
+## Same refund rate as turrets; the consumed gem is never returned.
+func support_core_refund(core: Dictionary, configuration: Dictionary) -> int:
+	return int(float(core.get("investedGold",0))*float(configuration.get("turretRefundPercent",50))/100.0)
 
 func _reject(state: Dictionary, reason: String) -> Dictionary:
 	return {"ok":false,"error":reason,"state":state,"commands":[]}
@@ -145,16 +155,39 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		if type not in d.get("availableTurretTypes",["arrow","cannon","magic","frost"]): return _reject(state,"locked")
 		var x := int(command.get("x",-1))
 		var y := int(command.get("y",-1))
-		var map: Dictionary = catalog.stage_map(int(state.get("stage",0)))
-		if x < 0 or y < 0 or x >= int(map.get("columns",0)) or y >= int(map.get("rows",0)) or map.tiles[y*int(map.columns)+x] != "build": return _reject(state,"tile")
-		for placed in state.turrets:
-			if placed.x == x and placed.y == y: return _reject(state,"occupied")
+		if not _build_tile(state, x, y): return _reject(state,"tile")
+		if SupportCore.occupied(state, x, y): return _reject(state,"occupied")
 		if int(state.gold) < cost: return _reject(state,"gold")
 		next.gold -= cost
 		t = {"id":int(next.nextTurretId),"type":type,"x":x,"y":y,"level":1,"slotLimit":1,"equippedGemSlots":[null],"equippedGems":[],"primaryTrait":null,"secondaryTrait":null,"targetPriority":"first","investedGold":cost,"cooldown":0.0,"damageDealt":0.0,"directDamageDealt":0.0,"splashDamageDealt":0.0,"chainDamageDealt":0.0,"burnDamageDealt":0.0}
 		t.aimAngle = initial_aim_angle(type)
 		next.nextTurretId += 1
 		next.turrets.append(t)
+	elif kind == "buildSupportCore":
+		if not d.get("supportCoreUnlocked", false): return _reject(state,"locked")
+		var x := int(command.get("x",-1))
+		var y := int(command.get("y",-1))
+		var gem := str(command.get("gem",""))
+		if not _build_tile(state, x, y): return _reject(state,"tile")
+		if SupportCore.occupied(state, x, y): return _reject(state,"occupied")
+		if int(state.gold) < SupportCore.BUILD_GOLD: return _reject(state,"gold")
+		# Bag gems only; equipped gems stay on their turrets.
+		if int(next.gemInventory.get(gem,0)) <= 0: return _reject(state,"inventory")
+		next.gold -= SupportCore.BUILD_GOLD
+		next.gemInventory[gem] -= 1
+		if next.gemInventory[gem] == 0: next.gemInventory.erase(gem)
+		if not next.get("supportCores") is Array: next.supportCores = []
+		next.supportCores.append({"x":x,"y":y,"family":"damage","investedGold":SupportCore.BUILD_GOLD,"consumedGem":gem})
+		# Deck runs record the spent gem so the server replay still balances owned gems.
+		if command.get("deckLog", false):
+			var entries: Array = next.get("gemDeckLog", []) if next.get("gemDeckLog") is Array else []
+			entries.append({"kind":"consume","choice":gem})
+			next.gemDeckLog = entries
+	elif kind == "sellSupportCore":
+		var core := SupportCore.at(next, int(command.get("x",-1)), int(command.get("y",-1)))
+		if core.is_empty(): return _reject(state,"supportCore")
+		next.gold += support_core_refund(core, d)
+		next.supportCores.erase(core)
 	elif kind == "runUpgrade":
 		var type := str(command.get("type",""))
 		var q := run_upgrade_quote_from_derived(state,type,d)

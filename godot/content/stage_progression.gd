@@ -46,9 +46,10 @@ static func has_unlock(p: Dictionary, kind: String, key: String) -> bool:
 	if not REQUIREMENTS.get(kind,{}).has(key): return false
 	# Prerequisite research is new content and never accepts legacy or grandfathered rights.
 	if kind == "research" and RESEARCH_PREREQUISITES.has(key): return requirement(kind,key) in p.get("clearedStageNumbers",[])
-	# Turrets/upgrades/gems added after the legacy table (poison, new trainings) never
-	# accept grandfathered rights; legitimate migration cannot create them.
-	if kind+":"+key in p.get("grandfatherUnlocks",[]) and (not kind in ["upgrade","turret","gem"] or LEGACY_REQUIREMENTS.get(kind,{}).has(key)): return true
+	# Turrets/upgrades/gems/features added after the legacy table (poison, new
+	# trainings, support core) never accept grandfathered rights; legitimate
+	# migration cannot create them.
+	if kind+":"+key in p.get("grandfatherUnlocks",[]) and (not kind in ["upgrade","turret","gem","feature"] or LEGACY_REQUIREMENTS.get(kind,{}).has(key)): return true
 	if int(p.get("progressionVersion",0)) < VERSION and _legacy_unlock(p,kind,key): return true
 	var required := requirement(kind,key)
 	return required == 0 or required in p.get("clearedStageNumbers",[])

@@ -4,6 +4,7 @@ const GemSlots = preload("res://app/gem_slot_rules.gd")
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
 const GemPalette = preload("res://ui/battle_rewards.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const SupportCore = preload("res://app/support_core_rules.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const PREVIOUS_STATS_HEIGHT := 80.0
 const PREVIOUS_DAMAGE_ROW_HEIGHT := 34.0
@@ -41,6 +42,7 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	_category_tag(category_row,str(definition.damageFamily))
 	for tag in definition.get("attackTags",[]): _category_tag(category_row,str(tag))
 	for tag in definition.get("attackCapabilities",[]): _category_tag(category_row,str(tag))
+	_support_tag(category_row,state,turret)
 	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_row.add_child(category_spacer)
 	var total := HBoxContainer.new(); total.name = "TurretTotalDamage"; total.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	total.add_theme_constant_override("separation",6); category_row.add_child(total)
@@ -161,6 +163,20 @@ func _category_tag(parent: Node,key: String) -> void:
 	style.content_margin_top = 3; style.content_margin_bottom = 3; chip.add_theme_stylebox_override("panel",style)
 	parent.add_child(chip)
 	var label: Label = UiWidgets.label(chip,name,11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.add_theme_color_override("font_color",color)
+
+# Support core connection: the strengthened turret names its bonus.
+func _support_tag(parent: Node,state: Dictionary,turret: Dictionary) -> void:
+	var bonus := float(SupportCore.bonuses_at(state,int(turret.x),int(turret.y)).get("damage",0.0))
+	if bonus <= 0.0: return
+	var color := Color("3fe6d6")
+	var chip := PanelContainer.new(); chip.name = "SupportCoreLink"; chip.mouse_filter = Control.MOUSE_FILTER_PASS
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER; chip.tooltip_text = "지원 코어와 연결되어 피해가 %d%% 증가합니다." % roundi(bonus*100)
+	var style := StyleBoxFlat.new(); style.bg_color = Color(color,0.14); style.border_color = Color(color,0.85)
+	style.set_border_width_all(1); style.set_corner_radius_all(3); style.content_margin_left = 7; style.content_margin_right = 7
+	style.content_margin_top = 3; style.content_margin_bottom = 3; chip.add_theme_stylebox_override("panel",style)
+	parent.add_child(chip)
+	var label: Label = UiWidgets.label(chip,"연결 피해 +%d%%" % roundi(bonus*100),11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.add_theme_color_override("font_color",color)
 
 func _stat_value(stats: Dictionary,key: String,exact := false) -> String:

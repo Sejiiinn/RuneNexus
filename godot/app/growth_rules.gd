@@ -166,6 +166,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 	if StageProgression.has_unlock(p,"turret","sniper"): result.availableTurretTypes.append("sniper")
 	if StageProgression.has_unlock(p,"turret","lightning"): result.availableTurretTypes.append("lightning")
 	if StageProgression.has_unlock(p,"turret","poison"): result.availableTurretTypes.append("poison")
+	result.supportCoreUnlocked = StageProgression.has_unlock(p,"feature","supportCore")
 	result.availableGemTypes = []
 	for gem in data.gems:
 		if not StageProgression.has_unlock(p,"gem",gem): continue

@@ -196,6 +196,9 @@ func ValidateContentClient(progression, activeRun []byte, clientVersion int) err
 	if err := validatePoisonTurretClient(activeRun, clientVersion); err != nil {
 		return err
 	}
+	if err := validateSupportCoreClient(activeRun, clientVersion); err != nil {
+		return err
+	}
 	if err := ValidateCoreTreeClient(progression, activeRun, clientVersion); err != nil {
 		return err
 	}

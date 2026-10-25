@@ -890,3 +890,6 @@ __pycache__/
 /design/combat_ui_concepts/2026-10-19/gem-purchase-shortcut/*
 !/design/combat_ui_concepts/2026-10-19/gem-purchase-shortcut/README.md
 !/design/combat_ui_concepts/2026-10-19/gem-purchase-shortcut/implemented-440-*.png
+
+# Support core occlusion bake: an intermediate already multiplied into the committed colour atlas.
+/design/support_core_concepts/game/support-core-ao.png

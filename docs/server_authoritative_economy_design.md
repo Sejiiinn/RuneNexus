@@ -78,6 +78,7 @@ revision 5 계정 또는 새 필드를 사용하는 저장에는 세대 10 write
 - 클라이언트: 덱은 메모리에만 둔다. `GET /v1/economy`는 열린 덱 도전의 `gemDeckVersion=1`·`gemDeck`을 돌려주며, 경제 Outbox 캐시에는 `gemDeck`만 빼고 저장한다. 재시작 뒤 덱을 다시 읽기 전에는 보상 조작을 잠그고 서버 젬 명령으로 대체하지 않는다. offer·리롤·선택·구매는 로컬 체크포인트에 바로 커밋하며 activeRun의 `gemDeckLog`(offer마다 `kind`, `wave` 또는 `sequence`, `rerolls`, `choice`)에 기록한다.
 - 저장: 덱 도전의 일반 save는 서버 offer 행·리롤 예산·젬 소유 합계 일치 검사를 하지 않는다. 도전 UUID·스테이지 결속과 종료 tombstone 규칙은 유지한다. 덱 도전에 대한 `gems/*` 명령은 세대 10 요청이면 `GEM_OFFER_STATE_CONFLICT`, 그 미만이면 `CLIENT_UPDATE_REQUIRED`로 거절한다.
 - 리셋권: 클라이언트는 사용분을 즉시 로컬 잔액에서 빼고, 열린 덱 도전이 있는 동안 서버 잔액 반영 시에도 그 사용분을 계속 제외한다. 서버는 정산(`runs/settle`) 또는 종료(`runs/close`) 트랜잭션에서 canonical 체크포인트의 리롤 수(`gemDeckLog`와 `gemRerollsUsed` 중 큰 값, 최대 3)로 비용을 계산해 한 번 차감하고 원장에 남긴다. 잔액은 0 아래로 내려가지 않는다.
+- 젬 소비(세대 14): [지원 코어](support_core_design.md)를 지으면 소비한 가방 젬을 `{"kind":"consume","choice":젬}`으로 기록한다. 재생은 그때까지 받은 같은 젬이 있어야 하며 그만큼 보유 합계에서 뺀다. `supportCores` 또는 `consume` 기록이 있는 저장은 세대 14 미만 요청을 거절한다.
 - 사후 대조: 서버는 기록을 덱에 재생해 표시 후보, 선택이 후보 안에 있는지, 보유 젬 합계, 리롤 수를 확인할 수 있다(`replayGemDeckLog`). 현재는 리롤 수 계산에만 사용하며, 불일치나 잔액 부족을 조작으로 판정해 조치하는 동작은 아직 없다.
 - 한계: 덱은 클라이언트 메모리와 응답에 있으므로 다음 후보를 미리 보는 것은 막지 못한다. 전투·파편 획득의 클라이언트 신뢰 경계는 위 절과 같다.
 

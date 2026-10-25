@@ -487,6 +487,12 @@ func apply_run_command(request: Dictionary) -> bool:
 	if services != null and services.blocks_play(): return false
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return false
 	if save_failed and not persist_progression(): return false
+	if request.get("kind") == "buildSupportCore":
+		if support_core_blocked():
+			checkpoint.message = "이 도전에서는 지원 코어를 지을 수 없습니다."
+			return false
+		request = request.duplicate()
+		request.deckLog = checkpoint.owner != "guest"
 	if not super.apply_run_command(request): return false
 	refresh_selection()
 	if not request_checkpoint(): return false
@@ -851,6 +857,12 @@ func choose_reward(command: Dictionary) -> Dictionary:
 		refresh_ui()
 		return chosen
 	return await _perform_gem_command("choose_gem", values)
+
+## Server runs reconcile owned gems through the deck log, so a support core can
+## spend a gem only in deck runs; a run without a deck validates every upload
+## against server ownership instead. Guest runs keep their gems locally.
+func support_core_blocked() -> bool:
+	return checkpoint.owner != "guest" and _gem_deck().is_empty()
 
 ## The active run's gem deck, or {} when rewards use server commands.
 func _gem_deck() -> Dictionary:

@@ -19,7 +19,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = PoisonTurretClientCompatibilityVersion
+	CurrentClientCompatibilityVersion       = SupportCoreClientCompatibilityVersion
 )
 
 var (

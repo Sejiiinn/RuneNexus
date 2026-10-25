@@ -241,7 +241,8 @@
       "riftMark": 20
     },
     "feature": {
-      "researchSlotTwo": 25
+      "researchSlotTwo": 25,
+      "supportCore": 12
     }
   },
   "legacyRequirements": {
@@ -470,6 +471,13 @@
       "title": "연구 슬롯 II 구매 권한",
       "icon": "material:f499",
       "category": "연구"
+    },
+    {
+      "kind": "feature",
+      "key": "supportCore",
+      "title": "지원 코어",
+      "icon": "ui/hud/turrets_3d/supportCore.png",
+      "category": "구조물"
     },
     {
       "kind": "research",

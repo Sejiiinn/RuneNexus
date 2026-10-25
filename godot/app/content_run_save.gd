@@ -140,6 +140,11 @@ func _validate_normalized_checkpoint(decoded: Dictionary, battle_inputs: Diction
 		GemSlots.sync_equipped(t)
 		t.id = state.nextTurretId
 		state.nextTurretId += 1
+	for core in state.get("supportCores", []):
+		if core.x < 0 or core.y < 0 or core.x >= map.columns or core.y >= map.rows: return _reject("Invalid support core tile")
+		var cell := int(core.y) * int(map.columns) + int(core.x)
+		if occupied.has(cell) or map.tiles[cell] != "build": return _reject("Occupied or unbuildable support core tile")
+		occupied[cell] = true
 	for type in state.runUpgradeLevels:
 		var rule: Dictionary = growth.data.runUpgrades.get(type,{})
 		if rule.is_empty() or int(state.runUpgradeLevels[type]) < 0: return _reject("Invalid run upgrade")

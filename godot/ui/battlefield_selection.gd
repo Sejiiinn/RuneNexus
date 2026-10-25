@@ -422,10 +422,13 @@ func _draw_tile(data: Dictionary) -> void:
 	var kind := str(data.get("kind", "build"))
 	var outline := _tile_path(p, 2.0 / _tile)
 	if kind == "core": _draw_target.draw_colored_polygon(outline, _color(0x228ee6ff))
+	if kind == "supportCore": _draw_target.draw_colored_polygon(outline, _color(0x223fe6d6))
 	if data.get("range") != null:
 		_range_ring(p, float(data.range), _color(data.get("color"), 0.09), 0, true)
 		_range_ring(p, float(data.range), _color(data.get("color"), 0.42), 1.6)
-	_outline(outline, _color(0xccb16dff if kind == "portal" else 0xcc8ee6ff if kind == "core" else 0x668ee6ff), 3, p)
+	# Support core reach: the four tiles it strengthens, quieter than the selection.
+	var line_color := 0xccb16dff if kind == "portal" else 0xcc8ee6ff if kind == "core" else 0xcc3fe6d6 if kind == "supportCore" else 0x553fe6d6 if kind == "supportReach" else 0x668ee6ff
+	_outline(outline, _color(line_color), 2 if kind == "supportReach" else 3, p)
 
 func _draw_reward(data: Dictionary) -> void:
 	var p := _position(data)

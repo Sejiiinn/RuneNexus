@@ -181,6 +181,9 @@ const ENUMS = {
 		"multipleProjectiles",
 		"piercing",
 		"poisonDamage"
+	],
+	"SupportCoreFamily": [
+		"damage"
 	]
 }
 const SCALARS = {
@@ -609,6 +612,20 @@ const SCALARS = {
 			null
 		]
 	},
+	"SavedSupportCore": {
+		"x": [
+			"intValue",
+			null
+		],
+		"y": [
+			"intValue",
+			null
+		],
+		"investedGold": [
+			"nonNegativeInt",
+			null
+		]
+	},
 	"SavedTurretModuleOption": {
 		"value": [
 			"intValue",
@@ -905,9 +922,12 @@ static func _run(v: Variant, skill: Variant, tree_revision: int = 4) -> Variant:
 	for key in ["gemOfferId", "gemOfferStatus"]:
 		if v.get(key) is String: out[key] = v[key]
 	if v.has("gemDeckLog"): out.gemDeckLog = _deck_log(v.gemDeckLog)
+	# Optional so runs without support cores keep their payload hash.
+	if v.has("supportCores"): out.supportCores = _objects(v.supportCores, "SavedSupportCore")
 	return out
 
 # Generation-10 deck runs: one entry per presented offer, replayed by the server.
+# Generation 14 adds one entry per gem consumed by a support core.
 static func _deck_log(v: Variant) -> Array:
 	var out := []
 	if not v is Array: return out
@@ -918,6 +938,9 @@ static func _deck_log(v: Variant) -> Array:
 		match item.get("kind"):
 			"wave": out.append({"kind": "wave", "wave": maxi(0, _int(item.get("wave"))), "rerolls": clampi(_int(item.get("rerolls")), 0, 3), "choice": choice})
 			"purchase": out.append({"kind": "purchase", "sequence": maxi(1, _int(item.get("sequence"))), "choice": choice})
+			# A bag gem spent on a support core.
+			"consume":
+				if not choice.is_empty() and choice != "shards": out.append({"kind": "consume", "choice": choice})
 	return out
 
 static func _has_progress(v: Dictionary) -> bool:
@@ -936,6 +959,7 @@ static func _object(name: String, v: Variant) -> Variant:
 	match name:
 		"SavedActiveResearch": required = {"type": "ResearchType"}
 		"SavedTurret": required = {"type": "TurretType"}
+		"SavedSupportCore": required = {"family": "SupportCoreFamily", "consumedGem": "GemType"}
 		"SavedEnemy": required = {"type": "EnemyType"}
 		"SavedSpawnRequest": required = {"enemyType": "EnemyType"}
 		"SavedTurretModuleOption": required = {"type": "TurretModuleOptionType"}

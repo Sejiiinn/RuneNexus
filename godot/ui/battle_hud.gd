@@ -9,6 +9,7 @@ const HudChrome = preload("res://ui/hud_chrome.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const TargetPriorityPopup = preload("res://ui/target_priority_popup.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
+const SupportCore = preload("res://app/support_core_rules.gd")
 const HudMenuPanel = preload("res://ui/hud_menu_panel.gd")
 const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝", "poison":"독"}
 const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다.","poison":"바닥에 독액을 쏘아 주변 적을 중독시키고 잠시 독 웅덩이를 남기는 포탑입니다."}
@@ -89,6 +90,7 @@ var _layout_key: Array = []
 var turret_panel = preload("res://ui/hud_turret_panel.gd").new(self)
 var gem_panel = preload("res://ui/hud_gem_panel.gd").new(self)
 var build_panel = preload("res://ui/hud_build_panel.gd").new(self)
+var support_core_panel = preload("res://ui/hud_support_core_panel.gd").new(self)
 var menu_panel = preload("res://ui/hud_menu_panel.gd").new(self)
 var gem_shortcut = preload("res://ui/hud_gem_shortcut.gd").new(self)
 
@@ -335,8 +337,11 @@ func refresh(polled := false) -> void:
 			if int(turret.x) == app.selected.x and int(turret.y) == app.selected.y:
 				chosen = turret
 				break
+	var chosen_core: Dictionary = {}
+	if main_tab == "turrets" and chosen.is_empty() and app.selected.x >= 0:
+		chosen_core = SupportCore.at(state,app.selected.x,app.selected.y)
 	# Prices depend on turret/gem diversity and upgrades, but not wallet balances.
-	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview]
+	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview,chosen_core,SupportCore.connections(state).size(),support_core_panel.gem]
 	var incremental_turret: bool = main_tab == "turrets" and not chosen.is_empty() and (tab == "stats" or app.selection_view.level_preview)
 	if incremental_turret:
 		# Configuration/preview affect values, not the selected panel's identity.
@@ -357,6 +362,7 @@ func refresh(polled := false) -> void:
 		elif main_tab == "gems": gem_panel._inventory(state)
 		elif main_tab == "turrets":
 			if not chosen.is_empty(): turret_panel._turret(state,chosen)
+			elif not chosen_core.is_empty(): support_core_panel.detail(state,chosen_core)
 			else: build_panel._build(state)
 		scroll.set_deferred("scroll_vertical",previous_scroll)
 		var picker := body.get_node_or_null("TurretPicker") as ScrollContainer
@@ -432,7 +438,7 @@ func _fit_dock_to_content() -> void:
 	dock.offset_bottom = -safe_insets().w
 
 func _stat_input(state: Dictionary, turret: Dictionary) -> Dictionary:
-	return configuration_cache.stat_input(configuration_cache.derived(state,app.run_domain.service),turret)
+	return configuration_cache.stat_input(configuration_cache.derived(state,app.run_domain.service),turret,state)
 
 func turret_stats(state: Dictionary,turret: Dictionary) -> Dictionary:
 	return configuration_cache.stats(app.catalog,turret,_stat_input(state,turret),48.0)
@@ -577,7 +583,7 @@ func run_selected_command(kind: String, values: Dictionary = {}) -> void:
 func _error(error: String) -> String:
 	if error.begins_with("Saved "): return ""
 	if error.begins_with("Loaded "): return "저장한 전투를 불러왔습니다."
-	return str({"gold":"골드가 부족합니다.","gemShards":"젬 파편이 부족합니다.","tile":"건설 가능한 칸을 선택하세요.","occupied":"이미 포탑이 있는 칸입니다.","locked":"연구로 해금해야 합니다.","phase":"현재 단계에서는 사용할 수 없습니다.","gem":"이 포탑에 장착할 수 없는 젬입니다.","research":"연구가 필요합니다.","trait":"특성 선택 조건을 확인하세요.","inventory":"보유 젬이 없습니다.","requirement":"강화 조건을 확인하세요.","turret":"포탑을 선택하세요."}.get(error,error))
+	return str({"gold":"골드가 부족합니다.","gemShards":"젬 파편이 부족합니다.","tile":"건설 가능한 칸을 선택하세요.","occupied":"이미 포탑이나 지원 코어가 있는 칸입니다.","supportCore":"지원 코어를 선택하세요.","locked":"연구로 해금해야 합니다.","phase":"현재 단계에서는 사용할 수 없습니다.","gem":"이 포탑에 장착할 수 없는 젬입니다.","research":"연구가 필요합니다.","trait":"특성 선택 조건을 확인하세요.","inventory":"보유 젬이 없습니다.","requirement":"강화 조건을 확인하세요.","turret":"포탑을 선택하세요."}.get(error,error))
 
 func selected_tile_type() -> String:
 	var map: Dictionary = _stage_map()

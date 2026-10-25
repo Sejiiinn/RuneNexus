@@ -17,6 +17,7 @@ const NativeCombatRuntime = preload("res://combat/native_combat_runtime.gd")
 const BattlefieldEnvironment = preload("res://environment/battlefield_environment.gd")
 const CombatSpaceBackground = preload("res://environment/combat_space_background.gd")
 const BattlefieldUnits = preload("res://presentation/battlefield_units.gd")
+const SupportCorePresentation = preload("res://presentation/support_core_presentation.gd")
 const BattlefieldProjectiles = preload("res://presentation/battlefield_projectiles.gd")
 const BattlefieldPath = preload("res://presentation/battlefield_path.gd")
 const LightningPresentation = preload("res://presentation/lightning_presentation.gd")
@@ -157,6 +158,7 @@ var _generic_projectile_pool: Dictionary:
 	get: return _projectile_renderer._generic_projectile_pool
 
 var _units := BattlefieldUnits.new(world, camera)
+var _support_cores := SupportCorePresentation.new(world)
 var _lightning_presentation := LightningPresentation.new(world)
 var _machinegun_ricochet := MachinegunRicochet.new()
 var _projectile_renderer := BattlefieldProjectiles.new(world, camera)
@@ -628,6 +630,7 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 	RuntimeProfile.finish("session_presentation", session_presentation_tick)
 	var turrets_tick := RuntimeProfile.begin()
 	_sync_turrets(frame.get("turrets", []))
+	_sync_support_cores(frame)
 	RuntimeProfile.finish("turrets", turrets_tick)
 	var enemies_tick := RuntimeProfile.begin()
 	_sync_enemies(frame.get("enemies", []))
@@ -663,6 +666,7 @@ func _clear_scene() -> void:
 		node.hide()
 	_applied_groups.clear()
 	_units.clear()
+	_support_cores.clear()
 	_projectile_renderer.clear(effects_prepared)
 	_path_guide.clear()
 	_environment.clear()
@@ -691,7 +695,17 @@ func _sync_turrets(units: Array) -> void:
 	_units._sync_turrets(FrameRows.rows("turrets", units))
 	var selection = _presentation_nodes["selection"]
 	_units.sync_gem_orbits(selection._frame, selection.selection_revision, float(last_frame.get("time", 0.0)))
-	_environment.update_occupancy(units, TURRET_MODELS)
+	_environment.update_occupancy(units, TURRET_MODELS, _support_cores.cores.keys())
+
+
+## Support cores live in the run state, not in combat frames; the frame only
+## carries the build preview tile.
+func _sync_support_cores(frame: Dictionary) -> void:
+	var state: Dictionary = {}
+	if is_instance_valid(session_controller) and session_controller.get("run_domain") != null:
+		state = session_controller.run_domain.state
+	var preview: Variant = frame.get("supportCorePreview")
+	_support_cores.sync(state, Vector2i(int(preview[0]), int(preview[1])) if preview is Array and preview.size() == 2 else null, Vector2i(columns, rows), float(frame.get("time", 0.0)))
 
 
 func _sync_enemies(units: Array) -> void:

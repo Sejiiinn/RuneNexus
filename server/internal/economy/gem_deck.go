@@ -181,7 +181,8 @@ type gemDeckRun struct {
 }
 
 // replayGemDeckLog reconstructs a deck run from its checkpoint log: every
-// presented candidate set, choice and owned gem must follow from the deck. It
+// presented candidate set, choice and owned gem must follow from the deck,
+// less the gems support cores consumed. It
 // reports the recorded reroll count and whether the checkpoint is consistent.
 // Inconsistency is evidence for later review; this function takes no action.
 func replayGemDeckLog(deck *GemDeck, activeRun []byte) (int64, bool) {
@@ -194,6 +195,15 @@ func replayGemDeckLog(deck *GemDeck, activeRun []byte) (int64, bool) {
 	granted := map[string]int64{}
 	var pending []string
 	for index, entry := range run.Log {
+		if entry.Kind == "consume" {
+			// A support core spent one gem the run already owned (generation 14).
+			if entry.Wave != 0 || entry.Sequence != 0 || entry.Rerolls != 0 || granted[entry.Choice] <= 0 {
+				consistent = false
+			} else if granted[entry.Choice]--; granted[entry.Choice] == 0 {
+				delete(granted, entry.Choice)
+			}
+			continue
+		}
 		var options []string
 		var ok bool
 		switch entry.Kind {

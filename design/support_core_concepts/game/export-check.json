@@ -1,0 +1,44 @@
+{
+  "source": "support-core-E2.blend",
+  "triangles": 10844,
+  "atlas_size": 1024,
+  "glb_bytes": 3936424,
+  "glb_sha256": "e2cd886f7fe5abf990e0d3399350b02858d5e60c3facb9a5c19cf0bbefdceb57",
+  "glb_triangles": 10844,
+  "glb_meshes": 2,
+  "glb_images": 3,
+  "materials": {
+    "Crystal | floating core.001": "BLEND",
+    "Crystal | floating core sides.001": "OPAQUE",
+    "Crystal | floating heart.001": "OPAQUE",
+    "Iron | forged charcoal.001": "OPAQUE",
+    "Bronze | worn warm alloy.001": "OPAQUE",
+    "Recess | dark gunmetal.001": "OPAQUE",
+    "Runes | support cyan | arm 0": "OPAQUE",
+    "Crystal | cap panes | arm 0": "OPAQUE",
+    "Runes | support cyan | arm 1": "OPAQUE",
+    "Crystal | cap panes | arm 1": "OPAQUE",
+    "Runes | support cyan | arm 2": "OPAQUE",
+    "Crystal | cap panes | arm 2": "OPAQUE",
+    "Runes | support cyan | arm 3": "OPAQUE",
+    "Crystal | cap panes | arm 3": "OPAQUE",
+    "Runes | support cyan.001": "OPAQUE",
+    "Crown | glow well.001": "OPAQUE"
+  },
+  "extensions_used": [],
+  "control_nodes": {
+    "support_core_root": [
+      "core_crystal",
+      "support_core_root_geometry"
+    ],
+    "core_crystal": [
+      "core_crystal_geometry"
+    ]
+  },
+  "crystal_local_translation": [
+    0,
+    0.550000011920929,
+    0
+  ],
+  "installed": "assets/images/stage1_3d/turrets/support_core.glb"
+}
