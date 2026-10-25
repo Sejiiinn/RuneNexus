@@ -1,7 +1,7 @@
 # 지원 코어 설계
 
 역할: 맵에 설치해 인접 포탑을 강화하는 구조물인 지원 코어의 결정과 시작 수치. 정리: 2026-10-25 KST.
-상태: 첫 계열(피해 증가)을 앱·서버에 구현하고 로컬에서 검증했다(2026-10-25). 배포하지 않았다. 앱 세대 14와 서버를 함께 배포해야 한다([TODO](TODO.md#지원-코어)). 본체는 [E2 시안](../design/support_core_concepts/2026-10-25/E2-short-obelisk-conduit.png)의 [Blender 원본](../design/support_core_concepts/blender/README.md)을 [게임 모델](../design/support_core_concepts/game/README.md)로 옮겼다.
+상태: 첫 계열(피해 증가)을 앱·서버에 구현했으며 미배포다([미배포 조건](deployment_status.md#현재-미배포-변경)). 본체는 [E2 시안](../design/support_core_concepts/2026-10-25/E2-short-obelisk-conduit.png)의 [Blender 원본](../design/support_core_concepts/blender/README.md)을 [게임 모델](../design/support_core_concepts/game/README.md)로 옮겼다.
 
 ## 결정 요약
 

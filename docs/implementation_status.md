@@ -50,7 +50,7 @@ Go API·PostgreSQL의 Google 인증·영속 세션·온라인 저장·서버 권
 
 ### 젬/포탑 성장
 
-젬 보상·인벤토리·장착/교체, 링크 확장, 포탑 레벨·공격 명령·특성이 있다. 수치는 [밸런스 참조](gameplay_balance_reference.md), 특성 계약은 [젬 파편·특성](gem_shard_trait_design.md), UI 기준은 [DESIGNS](../DESIGNS.md)를 따른다.
+젬 보상·인벤토리·장착/교체, 링크 확장, 포탑 레벨·공격 명령·특성이 있다. 수치는 [밸런스 참조](gameplay_balance_reference.md), 특성 계약은 [젬 파편·특성](gem_shard_trait_design.md), UI 기준은 [DESIGNS](../DESIGNS.md)를 따른다. 독 포탑과 지속피해 규칙은 [독·속성 부여 설계](poison_elemental_infusion_design.md), 인접 포탑을 강화하는 설치 구조물은 [지원 코어 설계](support_core_design.md)를 따른다.
 
 ### 젬 효과 세부
 
