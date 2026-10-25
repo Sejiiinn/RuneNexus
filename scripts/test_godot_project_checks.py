@@ -63,6 +63,7 @@ class ProjectChecksTest(unittest.TestCase):
                 patch.object(runner, "source_revision", return_value={"head": "fixture", "tracked_dirty": True}), \
                 patch.object(runner, "validate_project"), patch.object(runner, "godot_executable", return_value="godot"), \
                 patch.object(runner.subprocess, "check_output", return_value="4.7.2.fixture\n"), \
+                patch.object(runner, "import_project"), \
                 patch.object(runner, "run_case", return_value=None) as run:
             report, code = runner.execute(selected, headless_only=True, require_complete=strict)
             return report, code, run.call_count
@@ -87,6 +88,24 @@ class ProjectChecksTest(unittest.TestCase):
         self.assertEqual((code, report["status"]), (1, "FAIL"))
         self.assertEqual(report["errors"], ["stale source"])
         self.assertEqual(report["counts"]["NOT_RUN"], len(runner.PRESETS["session"]))
+        run.assert_not_called()
+
+    def test_import_failure_has_report_and_never_executes_case(self):
+        for result in (subprocess.CompletedProcess([], 1, "", "import error"),
+                       subprocess.CompletedProcess([], 0, "ERROR: Error importing 'res://a.png'.\n", "")):
+            with self.subTest(exit=result.returncode):
+                self.assert_import_failure(result)
+
+    def assert_import_failure(self, result):
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()), \
+                patch.object(runner, "source_revision", return_value={}), \
+                patch.object(runner, "validate_project"), patch.object(runner, "godot_executable", return_value="godot"), \
+                patch.object(runner.subprocess, "check_output", return_value="4.7.2.fixture\n"), \
+                patch.object(runner.subprocess, "run", return_value=result), \
+                patch.object(runner, "run_case") as run:
+            report, code = runner.execute(["verify_app_resume.gd"], headless_only=True, require_complete=True)
+        self.assertEqual((report["status"], code), ("FAIL", 1))
+        self.assertIn("Godot import failed", report["errors"][0])
         run.assert_not_called()
 
     def test_presets_and_explicit_cases_deduplicate_without_adding_unrelated_checks(self):

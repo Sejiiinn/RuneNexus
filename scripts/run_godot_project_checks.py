@@ -162,6 +162,21 @@ def stale_project_files() -> list[str]:
     return stale
 
 
+def import_project(executable: str, work: Path) -> None:
+    """prepare_godot_project.py rewrites .import settings without importing, so
+    resources fail to load until the editor imports them. With a current cache
+    this is a ~2 s no-op; it runs in its own HOME like every case."""
+    home = work / "import"
+    home.mkdir(parents=True)
+    environment = {**os.environ, "HOME": str(home), "TMPDIR": str(home)}
+    imported = subprocess.run([executable, "--headless", "--editor", "--path", str(PROJECT), "--import", "--quit"],
+                              env=environment, text=True, errors="replace", capture_output=True, timeout=600)
+    output = imported.stdout + imported.stderr
+    # Godot can log "ERROR: Error importing" and still exit 0.
+    if imported.returncode or FAILURE.search(output):
+        raise RuntimeError(f"Godot import failed (exit {imported.returncode})\n{output[-8000:]}")
+
+
 def run_case(executable: str, name: str, marker: str, options: dict, work: Path) -> str | None:
     """Returns a failure description, or None when every step passed."""
     home = work / name.removesuffix(".gd")
@@ -235,6 +250,7 @@ def execute(selected: list[str], headless_only: bool, require_complete: bool) ->
         version = subprocess.check_output([executable, "--version"], text=True, timeout=20).strip()
         report["engine"] = {"path": str(executable), "version": version}
         with tempfile.TemporaryDirectory(prefix="godot-project-checks-") as directory:
+            import_project(executable, Path(directory))
             for result in report["cases"]:
                 name = result["name"]
                 if headless_only and CASES[name][1].get("renderer"):
