@@ -679,7 +679,7 @@ func _resume_services() -> void:
 		# foreground recheck. Server-required updates still open that gate.
 		if services.updates.blocked: await services.updates.check()
 		if services.updates.blocked: return
-	if services.account != null and not services.busy: await services.reconnect()
+	if services.account != null and not services.busy: await services.resume_session()
 
 func _process(delta: float) -> void:
 	_poll_checkpoint_completions()

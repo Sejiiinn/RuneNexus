@@ -404,26 +404,59 @@ func retry() -> Dictionary:
 	busy = true
 	play_ready = false
 	changed.emit()
-	# Every foreground/retry must confirm server authentication, even with an
-	# unexpired cached access token. Manifest success cannot satisfy this gate.
+	# An explicit recovery retry must restore server authentication. A normal
+	# live foreground return uses resume_session() without dropping its binding.
 	var result: Dictionary = await account.restore()
 	if result.get("ok",false) and connected():
 		if not online_ready: result = await _bind(_interactive_login)
-		else:
-			result = await online.foreground()
-			if result.get("ok",false) and online.requires_reload:
-				if not _load_slot(str(account.credentials.accountId)): result = {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
-				else:
-					economy.outbox = app.checkpoint.rewards()
-					online.acknowledge_reload()
-			if result.get("ok",false): result = await economy.refresh()
-			refresh_mailbox_summary()
+		else: result = await _refresh_online_session()
 	elif result.get("ok",false): result = {"ok":false,"code":"ACCOUNT_REQUIRED"}
 	play_ready = result.get("ok",false) and connected() and online_ready
 	busy = false
 	issue = "" if result.get("ok",false) else str(result.get("code","SYNC_FAILED"))
 	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
 	_show_auth_gate()
+	changed.emit()
+	return result
+
+func _refresh_online_session() -> Dictionary:
+	var result: Dictionary = await online.foreground()
+	if result.get("ok",false) and online.requires_reload:
+		if not _load_slot(str(account.credentials.accountId)): result = {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
+		else:
+			economy.outbox = app.checkpoint.rewards()
+			online.acknowledge_reload()
+	if result.get("ok",false): result = await economy.refresh()
+	refresh_mailbox_summary()
+	return result
+
+func _can_resume_live_session() -> bool:
+	if _startup_pending or not connected() or needs_profile() or not online_ready or not play_ready or online == null: return false
+	if app.startup_blocked or app.save_failed or online.requires_reload or online.state.get("rebase") != null: return false
+	if online.state.get("syncState") in ["blocked", "rebasing", "suspended"]: return false
+	var owner := str(account.credentials.accountId).to_lower()
+	return app.checkpoint.owner == owner and online.account_id == owner
+
+func resume_session() -> Dictionary:
+	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
+	if busy or reconnecting or (economy != null and economy.busy): return {"ok":false,"code":"BUSY"}
+	# A timer refresh already owns authentication; do not start a second restore.
+	if account != null and account.authentication_pending(): return {"ok":false,"code":"AUTH_RETRY_PENDING"}
+	if not _can_resume_live_session(): return await reconnect()
+	# Reuse this live, server-authenticated binding. The writer/save/economy
+	# requests still confirm authority, including token refresh and 401 recovery,
+	# without opening a reconnect overlay or discarding play readiness up front.
+	_background_busy = true
+	busy = true
+	changed.emit()
+	var result: Dictionary = await _refresh_online_session()
+	play_ready = result.get("ok",false) and connected() and online_ready
+	busy = false
+	_background_busy = false
+	if not play_ready:
+		# Failed authentication or recovery must keep the existing blocking path.
+		return await reconnect()
+	issue = ""
 	changed.emit()
 	return result
 

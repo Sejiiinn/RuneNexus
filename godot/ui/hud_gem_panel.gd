@@ -125,7 +125,7 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			detail.add_theme_constant_override("separation",0)
 			row.add_child(detail)
-			var requirement := GemSlots.requirement_text(chosen)
+			var requirement := "" if chosen == "piercing" else GemSlots.requirement_text(chosen)
 			var effect := gem_effect(chosen,turret)
 			if not requirement.is_empty(): effect = effect.trim_suffix("\n"+requirement)
 			UiWidgets.label(detail,gem_name(chosen)+" · "+effect,12)
@@ -440,6 +440,7 @@ func gem_name(type: String) -> String:
 func gem_description(type: String) -> String:
 	var gem: Dictionary = hud.labels.gems.get(type,{})
 	var description := str(gem.get("description",""))
+	if type == "piercing": return description
 	var requirement := GemSlots.requirement_text(type)
 	return description if requirement.is_empty() else description+"\n"+requirement
 
@@ -452,6 +453,7 @@ func _gem_block_reason(type: String,turret: Dictionary) -> String:
 	if type in turret.equippedGemSlots: return "이미 이 포탑에 장착됨"
 	if hud.selected_slot<0 or hud.selected_slot>=int(turret.slotLimit): return "링크 홈을 선택하세요"
 	if not GemSlots.is_compatible(type,hud.app.run_domain.growth.data.turretRules[turret.type]):
+		if type == "piercing": return "이 포탑에는 장착할 수 없습니다"
 		var requirement := GemSlots.requirement_text(type)
 		if not requirement.is_empty(): return requirement
 		return {"multipleProjectiles":"투사체 공격 포탑에만 장착 가능","chain":"투사체 공격 또는 기본 연쇄 포탑에만 장착 가능","lightWeapon":"경량화기 포탑에만 장착 가능","heavyWeapon":"중화기 포탑에만 장착 가능","aimSpeed":"조준 속도 적용 포탑에만 장착 가능"}.get(type,"이 포탑에는 장착할 수 없습니다")

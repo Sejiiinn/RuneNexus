@@ -132,7 +132,7 @@
     },
     "piercing": {
       "name": "관통",
-      "description": "적 2명 관통\n피해 감소 없음",
+      "description": "투사체 관통 2회 추가",
       "value": 2
     },
     "poisonDamage": {

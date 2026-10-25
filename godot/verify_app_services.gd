@@ -46,6 +46,10 @@ class ResumeLifecycle extends "res://app/app_lifecycle.gd":
 class ResumeScene extends "res://verify_support_fake_battlefield.gd":
 	func _init() -> void: combat_runtime = {"active":false}
 
+class LiveResumeScene extends "res://verify_support_fake_battlefield.gd":
+	func apply_frame(frame: Dictionary) -> void:
+		if frame.get("reset",false): combat_runtime.active=false
+
 class GateFixture extends Node:
 	signal changed
 	var blocked := true
@@ -70,6 +74,7 @@ class ModalUpdateFixture extends "res://services/update_service.gd":
 		return {"ok":accepted}
 
 class FixtureServer extends RefCounted:
+	signal release_request
 	var tree: SceneTree
 	var calls: Array = []
 	var nickname: Variant = null
@@ -81,6 +86,9 @@ class FixtureServer extends RefCounted:
 	var fail_profile := false
 	var fail_economy := false
 	var auth_status := 200
+	var hold_path := ""
+	var waiting := false
+	var reject_writer_once := false
 	var economy_revision := 0
 	var effects: Array = []
 	var settled: Array = []
@@ -94,6 +102,10 @@ class FixtureServer extends RefCounted:
 		var body: Variant = {} if raw.is_empty() else Json.parse(raw)
 		calls.append({"method":method,"path":path,"raw":raw,"headers":headers.duplicate(true)})
 		await tree.process_frame
+		if path == hold_path:
+			hold_path="";waiting=true
+			await release_request
+			waiting=false
 		if offline: return reply(0,{},"NETWORK_UNAVAILABLE")
 		if path.ends_with("/google") or path.ends_with("/refresh"):
 			if auth_status==426: return reply(426,{},"CLIENT_UPDATE_REQUIRED")
@@ -105,7 +117,12 @@ class FixtureServer extends RefCounted:
 		if path == "/v1/account/profile":
 			if fail_profile: return reply(503,{},"NETWORK_UNAVAILABLE")
 			return reply(200,{"nickname":nickname,"tag":"0012" if nickname != null else null})
-		if path == "/v1/save/writer": writer+=1; return reply(200,{"writerGeneration":writer,"claimedAt":"2026-09-24T00:00:00Z"})
+		if path == "/v1/save/writer":
+			if reject_writer_once:
+				reject_writer_once=false
+				return reply(401,{},"ACCESS_TOKEN_INVALID")
+			writer+=1
+			return reply(200,{"writerGeneration":writer,"claimedAt":"2026-09-24T00:00:00Z"})
 		if path == "/v1/save":
 			if method == HTTPClient.METHOD_GET:
 				if save == null: return reply(404,{},"SAVE_NOT_FOUND")
@@ -186,6 +203,7 @@ func _run():
 	await _gate_checks()
 	await _update_modal_checks()
 	await _login_resume_checks()
+	await _live_resume_checks()
 	await _auth_gate_checks()
 	app=AppStub.new()
 	app.run_domain.growth.load_catalog()
@@ -435,13 +453,28 @@ func _login_resume_checks() -> void:
 		var prior_binding=coordinator.epoch
 		var prior_requests=wire.calls.size()
 		var preserved_modal=lobby.modal
+		var native_reads=native.reads
+		var resume_events: Array = []
+		var resume_overlay: Control
+		var observe_resume: Callable
 		if outcome=="success": login_app.in_lobby=false
+		if outcome=="success":
+			resume_overlay=load("res://ui/reconnect_overlay.gd").new()
+			resume_overlay.services=coordinator;root.add_child(resume_overlay)
+			observe_resume=func():
+				if coordinator.reconnecting or resume_overlay._active or resume_overlay.visible:
+					resume_events.append("blocking reconnect")
+			coordinator.changed.connect(observe_resume)
 		if outcome=="no_pause": coordinator.busy=true
 		await lifecycle._resume_services()
 		check(update.checks==prior_checks+(1 if already_blocked else 0) and update.blocked==already_blocked,"Later resume only rechecks an existing update gate: "+outcome)
 		if outcome=="success":
 			check(not login_app.in_lobby and login_app.retry_count==prior_loads and coordinator.epoch==prior_binding,"Healthy account foreground preserves route without rebinding or checkpoint reload")
 			check(wire.calls.size()>prior_requests and lobby.modal==preserved_modal,"Healthy account still synchronizes while preserving its open modal")
+			check(resume_events.is_empty(),"Healthy foreground never starts a blocking reconnect or flashes its overlay")
+			check(native.reads==native_reads and wire.calls.slice(prior_requests).all(func(call): return not call.path.ends_with("/refresh")),"Healthy foreground reuses its authenticated session instead of restoring it again")
+			coordinator.changed.disconnect(observe_resume)
+			resume_overlay.queue_free()
 		if outcome=="no_pause":
 			check(coordinator.busy and update.checks==prior_checks,"Ordinary resume preserves non-login work without opening an update gate")
 			coordinator.busy=false
@@ -451,6 +484,64 @@ func _login_resume_checks() -> void:
 		lifecycle.scene=null;lifecycle.queue_free();scene_stub.queue_free();lobby.queue_free();coordinator.queue_free();native.queue_free()
 		await process_frame
 	print("LOGIN_RESUME scenarios=",scenarios.size()," failures=",failures.size()-initial_failures)
+
+func _live_resume_checks() -> void:
+	var initial_failures=failures.size()
+	var game=ResumeLifecycle.new();game.scene=LiveResumeScene.new()
+	game.checkpoint=Checkpoint.new(folder.path_join("live-resume"),ACCOUNT_A)
+	game.checkpoint.allow_progression_only=true
+	check(game.catalog.load_catalog() and game.run_domain.growth.load_catalog() and game.retry_load(),"Live resume fixture loads an isolated account save")
+	check(await game.start_stage(0),"Live resume fixture starts real native combat")
+	var native=Platform.new();root.add_child(native)
+	var wire=FixtureServer.new();wire.tree=self;wire.nickname="전투복귀"
+	wire.save=game.checkpoint.store.load_save();wire.revision=1
+	var coordinator=Services.new();root.add_child(coordinator);coordinator.set_process(false)
+	coordinator.app=game;game.services=coordinator;coordinator._startup_pending=false
+	coordinator.root_path=game.checkpoint.base_directory;coordinator.platform=native;coordinator.config={"googleClientId":"fixture-client"}
+	coordinator.account=Auth.new();coordinator.add_child(coordinator.account)
+	coordinator.account.configure("http://127.0.0.1:19764",native,wire)
+	coordinator.account.changed.connect(coordinator._account_changed)
+	coordinator.economy=Economy.new();coordinator.add_child(coordinator.economy)
+	check((await coordinator.login()).ok,"Live account binding restores its native combat checkpoint")
+	game.in_lobby=false
+	game._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
+	var checkpoint_before=game.checkpoint
+	var state_before: Dictionary=game.run_domain.state.duplicate(true)
+	var frame_before: Dictionary=game.scene.combat_runtime.snapshot()
+	var epoch_before=game.epoch
+	var overlay=load("res://ui/reconnect_overlay.gd").new();overlay.services=coordinator;root.add_child(overlay)
+	var notices: Array=[]
+	var observe: Callable=func():
+		if coordinator.reconnecting or overlay._active or overlay.visible: notices.append("reconnect")
+	coordinator.changed.connect(observe)
+	wire.hold_path="/v1/save/writer"
+	game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
+	for frame in 30:
+		if wire.waiting: break
+		await process_frame
+	check(wire.waiting and coordinator.busy and coordinator._background_busy and not coordinator.blocks_play(),"Held foreground server check stays nonblocking on the battle screen")
+	check(not game.in_lobby and game.scene.combat_runtime.session.paused and game.scene.combat_runtime.snapshot()==frame_before,"Foreground check preserves paused native combat without auto-resume")
+	wire.release_request.emit()
+	for frame in 60:
+		if not coordinator.busy: break
+		await process_frame
+	check(not coordinator.busy and coordinator.play_ready and notices.is_empty(),"Normal battle return never opens reconnect UI")
+	check(game.checkpoint==checkpoint_before and game.epoch==epoch_before and game.run_domain.state==state_before,"Normal foreground preserves checkpoint, runtime epoch and complete run state")
+	# A real 401 still refreshes the token, rather than reopening the account UI.
+	wire.reject_writer_once=true
+	var requests_before=wire.calls.size()
+	check((await coordinator.resume_session()).ok and notices.is_empty(),"Foreground token refresh after 401 remains quiet")
+	var refreshes=wire.calls.slice(requests_before).filter(func(call): return call.path.ends_with("/refresh"))
+	check(refreshes.size()==1 and game.checkpoint==checkpoint_before and not game.in_lobby,"401 refresh confirms authority without rebinding the live battle")
+	coordinator.changed.disconnect(observe)
+	# Actual authority failure still uses the existing recovery/blocking path.
+	wire.offline=true;coordinator.reconnect_delays=[0.0]
+	check(not (await coordinator.resume_session()).ok and not coordinator.play_ready and coordinator.blocks_play(),"Failed foreground authentication cannot retain permission to play")
+	check(game.in_lobby and game.checkpoint.owner==ACCOUNT_A and game.checkpoint.store.load_save().activeRun!=null,"Failed foreground preserves the account checkpoint for recovery")
+	coordinator.online.dispose();overlay.queue_free();coordinator.queue_free();native.queue_free()
+	await process_frame
+	game.scene.free();game.free();await process_frame
+	print("LIVE_RESUME failures=",failures.size()-initial_failures)
 
 func _ui_checks() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations",true)

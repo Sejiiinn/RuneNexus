@@ -22,7 +22,7 @@ func run() -> void:
 	await settle()
 	if "--piercing-only" in OS.get_cmdline_user_args():
 		await check_piercing_requirement()
-		print("PASS piercing gem UI: single condition, compatibility color, button state and 360/440 bounds")
+		print("PASS piercing gem UI: concise effect, compatibility feedback, button state and 360/440 bounds")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--light-only" in OS.get_cmdline_user_args():
 		await check_light_weapon_restriction()
@@ -494,14 +494,15 @@ func check_piercing_requirement() -> void:
 			panel.body_key = null; panel.configuration_cache._derived = {}
 			panel.refresh(); await settle(); await settle()
 			var condition: Label = panel.body.find_child("GemRequirement",true,false)
-			assert(condition != null and condition.text == "장착 조건: 투사체")
-			var count := 0
-			for node in descendants(panel.body):
-				if node is Label: count += node.text.count("장착 조건: 투사체")
-			assert(count == 1,"requirement is shown once")
+			assert(condition == null)
+			assert(not all_text(panel.body).contains("장착 조건: 투사체"))
+			assert(not all_text(panel.body).contains("피해 감소 없음"))
 			var compatible: bool = type == "arrow"
-			assert(condition.modulate == (Color("939aa4") if compatible else Color("ffa68a")))
+			var blocked: Label
+			for node in descendants(panel.body):
+				if node is Label and node.text == "이 포탑에는 장착할 수 없습니다": blocked = node
+			assert((blocked == null) == compatible)
 			var action: Button = find_exact(panel.body,"장착")
 			assert(action != null and action.disabled != compatible)
-			for control in [condition,action]:
+			for control in [action] if compatible else [blocked,action]:
 				assert(control.get_global_rect().position.x >= 0 and control.get_global_rect().end.x <= width)
