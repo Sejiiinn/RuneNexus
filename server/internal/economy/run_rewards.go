@@ -90,6 +90,9 @@ func (service *Service) SettleRun(
 	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
 		return result, err
 	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
+	}
 	receipt, err = runSettlementReceipt(ctx, txQueries, accountUUID, rewardKey)
 	if err == nil {
 		var result CommandResult

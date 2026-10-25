@@ -52,7 +52,7 @@ func (service *Service) DrawModules(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(
+	writer, saveSnapshot, err := lockWriterAndSave(
 		ctx, txQueries, accountUUID, sessionUUID,
 		request.WriterGeneration, request.SourceSaveRevision, request.RawBody,
 	)
@@ -65,6 +65,9 @@ func (service *Service) DrawModules(
 	}
 	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
 		return result, err
+	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err

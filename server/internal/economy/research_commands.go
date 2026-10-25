@@ -9,6 +9,7 @@ import (
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	stageprogression "github.com/Sejiiinn/RuneNexus/server/internal/progression"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -59,7 +60,7 @@ func (service *Service) CompleteResearch(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
+	writer, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -69,6 +70,9 @@ func (service *Service) CompleteResearch(
 	}
 	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
 		return result, err
+	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
@@ -184,7 +188,7 @@ func (service *Service) UnlockResearchSlotTwo(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
+	writer, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -194,6 +198,9 @@ func (service *Service) UnlockResearchSlotTwo(
 	}
 	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
 		return result, err
+	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
 	}
 	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
@@ -286,7 +293,7 @@ func (service *Service) AcknowledgeProgressionEffect(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.AppliedSaveRevision, request.RawBody)
+	writer, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.AppliedSaveRevision, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -296,6 +303,9 @@ func (service *Service) AcknowledgeProgressionEffect(
 	}
 	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
 		return result, err
+	}
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return CommandResult{}, err
 	}
 	effect, err := txQueries.GetEconomyProgressionEffectForUpdate(ctx, dbgen.GetEconomyProgressionEffectForUpdateParams{AccountID: accountUUID, ID: effectUUID})
 	if errors.Is(err, pgx.ErrNoRows) || effect.Status != "pending" {

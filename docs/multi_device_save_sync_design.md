@@ -616,7 +616,10 @@ scope: guest와 account local 저장 전체
   PUT도 같은 호환성 검사를 수행한다.
 - 계정별 하한: writer claim에 성공한 가장 높은 호환 버전을
   `save_writer_states.client_generation_floor`에 기록한다(migration022). writer claim·저장
-  PUT·경제·주간 보상 명령은 이보다 낮은 요청을 `426 CLIENT_UPDATE_REQUIRED`로 거부한다.
+  PUT·writer를 확인하는 경제 명령·주간 보상은 이보다 낮은 요청을
+  `426 CLIENT_UPDATE_REQUIRED`로 거부한다. 하한 검사는 잠금 후 영수증 재조회 뒤에
+  두어 하한 상승 자체가 이미 성공한 요청의 재시도를 막지 않게 한다. writer가 교체된
+  경우의 재시도는 기존 writer 계약을 따른다.
   한 번 새 앱으로 접속한 계정은 구버전 앱에서 업데이트 안내를 받는다.
 - 새 저장 필드·콘텐츠는 클라이언트 호환 버전만 올리고 기능별 구세대 판정을 추가하지
   않는다. 기존 기능별 판정(세대 2~14)은 하한 도입 전에 기록된 계정을 위한 동결 검사이며,

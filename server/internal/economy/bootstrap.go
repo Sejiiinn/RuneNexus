@@ -96,6 +96,11 @@ func (service *Service) Bootstrap(
 	if result, found, err := storedCommandResult[BootstrapResult](ctx, txQueries, databaseAccountID, identity); found || err != nil {
 		return result, err
 	}
+	// After the locked receipt recheck, so an exact retry of a request that
+	// succeeded before a newer client raised the floor still recovers its result.
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return BootstrapResult{}, err
+	}
 	if economy.AuthorityState == "server_authoritative" {
 		return BootstrapResult{}, ErrAlreadyBootstrapped
 	}
@@ -254,9 +259,6 @@ func lockWriterAndSave(
 	}
 	if writer.Generation != writerGeneration || !writer.SessionID.Valid || writer.SessionID.Bytes != sessionID.Bytes {
 		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, ErrWriterReplaced
-	}
-	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
-		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, err
 	}
 	header, err := queries.GetSaveHeaderForUpdate(ctx, accountID)
 	if errors.Is(err, pgx.ErrNoRows) {

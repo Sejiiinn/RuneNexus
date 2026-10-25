@@ -65,3 +65,56 @@ func TestClientGenerationFloorRejectsOlderClientsAfterNewerClaim(t *testing.T) {
 		t.Fatalf("older economy command over floor: %v", err)
 	}
 }
+
+// A retry that passed the unlocked receipt lookup before its first attempt
+// committed must still recover that receipt after a newer client raised the
+// floor while it waited for the writer lock.
+func TestClientGenerationFloorKeepsLockedClaimReplay(t *testing.T) {
+	ctx, f, account := openSaveService(t)
+	older := gamesave.CurrentClientCompatibilityVersion - 1
+	retryKey := "0198b955-3656-7c40-b3cb-87f427b90c64"
+	raw := []byte(fmt.Sprintf(`{"clientCompatibilityVersion":%d}`, older))
+	hold, err := f.pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer hold.Rollback(ctx)
+	var holder int32
+	if err := hold.QueryRow(ctx, `SELECT pg_backend_pid()`).Scan(&holder); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := hold.Exec(ctx, `SELECT 1 FROM save_writer_states WHERE account_id=$1 FOR UPDATE`, f.accountUUID); err != nil {
+		t.Fatal(err)
+	}
+	type outcome struct {
+		result gamesave.ClaimWriterResult
+		err    error
+	}
+	done := make(chan outcome, 1)
+	go func() {
+		result, err := f.service.ClaimWriter(ctx, account, f.sessionID, gamesave.ClaimWriterRequest{
+			IdempotencyKey: retryKey, ClientInstanceID: secondClientID, ClientCompatibilityVersion: older, RawBody: raw,
+		})
+		done <- outcome{result, err}
+	}()
+	for waiting := false; !waiting; {
+		if err := f.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE $1::int = ANY(pg_blocking_pids(pid)))`, holder).Scan(&waiting); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// The first attempt commits its receipt, then a newer client raises the floor.
+	if _, err := hold.Exec(ctx, `INSERT INTO save_writer_claims(account_id,idempotency_key,session_id,client_instance_id,request_hash,resulting_generation,result_claimed_at)
+		VALUES($1,$2::uuid,$3::uuid,$4::uuid,sha256($5::bytea),7,now())`, f.accountUUID, retryKey, f.sessionID, secondClientID, raw); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := hold.Exec(ctx, `UPDATE save_writer_states SET client_generation_floor=$2 WHERE account_id=$1`, f.accountUUID, older+1); err != nil {
+		t.Fatal(err)
+	}
+	if err := hold.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	got := <-done
+	if got.err != nil || got.result.WriterGeneration != 7 {
+		t.Fatalf("locked retry after floor raise: %+v %v", got.result, got.err)
+	}
+}

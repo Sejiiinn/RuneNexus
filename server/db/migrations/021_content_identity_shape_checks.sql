@@ -58,6 +58,7 @@ ALTER TABLE player_modules ADD CONSTRAINT player_modules_turret_type_check
 ---- create above / drop below ----
 -- Restores the 019/020 name lists. This fails, and rolls back, once any row
 -- holds content added after 020; such rows are never deleted to force it.
+-- Redefining a function does not recheck rows, so the guard at the end does.
 CREATE OR REPLACE FUNCTION valid_run_gem_totals(value JSONB) RETURNS BOOLEAN
 LANGUAGE sql IMMUTABLE PARALLEL SAFE SET search_path = public AS $$
     SELECT CASE WHEN jsonb_typeof(value) = 'object' THEN NOT EXISTS (
@@ -116,3 +117,12 @@ ALTER TABLE economy_gem_rerolls ADD CONSTRAINT economy_gem_rerolls_gem_options_c
 ALTER TABLE player_modules DROP CONSTRAINT player_modules_turret_type_check;
 ALTER TABLE player_modules ADD CONSTRAINT player_modules_turret_type_check
     CHECK (turret_type IN ('arrow', 'cannon', 'magic', 'frost', 'sniper', 'lightning', 'poison'));
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM economy_runs WHERE NOT valid_run_gem_totals(owned_gems)
+            OR (purchased_offer IS NOT NULL AND NOT COALESCE(valid_run_gem_offer(purchased_offer), false)))
+        OR EXISTS (SELECT 1 FROM economy_gem_offers WHERE NOT COALESCE(valid_run_gem_offer(payload), false)) THEN
+        RAISE EXCEPTION 'run gem rows hold content added after migration 020';
+    END IF;
+END $$;

@@ -206,9 +206,6 @@ func (service *Service) ClaimWriter(
 	if err != nil {
 		return ClaimWriterResult{}, fmt.Errorf("lock save writer state: %w", err)
 	}
-	if err := ValidateClientGenerationFloor(writer, request.ClientCompatibilityVersion); err != nil {
-		return ClaimWriterResult{}, err
-	}
 	if err := txQueries.EnsureSaveHeader(ctx, databaseAccountID); err != nil {
 		return ClaimWriterResult{}, err
 	}
@@ -221,6 +218,11 @@ func (service *Service) ClaimWriter(
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("recheck save writer claim receipt: %w", err)
+	}
+	// After the locked recheck: a claim that succeeded before a newer client
+	// raised the floor must still replay its receipt.
+	if err := ValidateClientGenerationFloor(writer, request.ClientCompatibilityVersion); err != nil {
+		return ClaimWriterResult{}, err
 	}
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
 	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
