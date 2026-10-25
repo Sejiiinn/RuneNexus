@@ -75,15 +75,16 @@ func run() -> void:
 		tap(spec[0])
 		app.build_selected()
 	print("SUPPORT_CORE_SETUP stage=", STAGE_ID, " core=", core, " turrets=", app.run_domain.state.turrets.size())
-	# Build step: empty tile, support core picked, a bag gem chosen.
+	# Build step: empty tile and support core picked; the default gem (most copies: chain) is preselected.
 	app.hud.main_tab = "turrets"
 	app.turret_type = "supportCore"
 	tap(core)
-	app.hud.support_core_panel.gem = "chain"
 	present()
 	await capture("1-build-gem-choice")
-	var install: Button = app.hud.find_child("SupportCoreInstall", true, false)
-	install.pressed.emit()
+	print("SUPPORT_CORE_DEFAULT_GEM ", app.hud.support_core_panel.chosen(app.run_domain.state))
+	# A second tap on the picker builds, like a turret.
+	var picker: Button = app.hud.find_child("Picker_supportCore", true, false)
+	picker.pressed.emit()
 	present()
 	var built := not SupportCore.at(app.run_domain.state, core.x, core.y).is_empty()
 	print("SUPPORT_CORE_BUILT ", built, " gold=", app.run_domain.state.gold, " gems=", app.run_domain.state.gemInventory, " links=", SupportCore.connections(app.run_domain.state).size())

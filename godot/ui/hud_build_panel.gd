@@ -49,13 +49,15 @@ func _build(state: Dictionary) -> void:
 	picker_scroll.custom_minimum_size.y = 78; hud.body.add_child(picker_scroll)
 	var row = HBoxContainer.new(); row.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_theme_constant_override("separation",0); picker_scroll.add_child(row)
 	var kinds: Array = hud.TOWERS.keys().filter(func(kind): return kind in available)
-	# The support core spends a chosen bag gem, so a second tap never builds it.
 	if core_unlocked: kinds.append(SupportCorePanel.KIND)
 	for kind in kinds:
 		var title: String = SupportCorePanel.TITLE if kind == SupportCorePanel.KIND else hud.TOWERS[kind]
 		if row.get_child_count() > 0: row.add_child(hud.HudChrome.divider())
 		var b = UiWidgets.button(row,"%s\n%s" % [title,HudNumber.compact_price(costs[kind])],func():
-			if hud.app.turret_type == kind and hud.selected_tile_type() == "build" and kind != SupportCorePanel.KIND: hud.app.build_selected()
+			if hud.app.turret_type == kind and hud.selected_tile_type() == "build":
+				# A second tap builds; the support core spends its default (or picked) bag gem.
+				if kind == SupportCorePanel.KIND: hud.support_core_panel.install(hud.app.run_domain.state)
+				else: hud.app.build_selected()
 			else: hud.app.turret_type = kind; hud.app.refresh_selection()
 			hud.refresh())
 		b.name = "Picker_"+str(kind)

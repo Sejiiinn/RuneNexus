@@ -11,7 +11,8 @@ const ICON := "ui/hud/turrets_3d/supportCore.png"
 const CYAN := Color("3fe6d6")
 const DESCRIPTION := "상하좌우로 맞닿은 포탑의 피해를 15% 높입니다. 직접 공격하지 않습니다."
 var hud: Control
-## Bag gem chosen for the next construction; cleared after building.
+## Bag gem the player picked for the next construction; cleared after building.
+## Empty means the default gem (default_gem) is used.
 var gem := ""
 
 func _init(owner: Control) -> void:
@@ -21,47 +22,74 @@ func blocked_reason() -> String:
 	if hud.app.has_method("support_core_blocked") and hud.app.support_core_blocked(): return "이 도전에서는 지을 수 없습니다."
 	return ""
 
-## Construction step on an empty build tile: choose which bag gem to spend.
-func build_detail(state: Dictionary) -> void:
+## The bag gem a construction spends unless the player picks another: the one
+## with the most copies (usually a spare), then the one fewest placed turrets
+## have equipped, then bag order.
+static func default_gem(state: Dictionary) -> String:
+	var equipped := {}
+	for turret in state.get("turrets", []):
+		for slot in turret.get("equippedGemSlots", []):
+			if slot != null: equipped[str(slot)] = int(equipped.get(str(slot), 0)) + 1
+	var best := ""
+	var inventory: Dictionary = state.get("gemInventory", {})
+	for type in inventory:
+		var count := int(inventory[type])
+		if count <= 0: continue
+		if best.is_empty() or count > int(inventory[best]) or (count == int(inventory[best]) and int(equipped.get(str(type), 0)) < int(equipped.get(best, 0))):
+			best = str(type)
+	return best
+
+## The gem the next construction spends: the player's pick while it is still in the bag, else the default.
+func chosen(state: Dictionary) -> String:
 	var inventory: Dictionary = state.get("gemInventory", {})
 	if not inventory.has(gem) or int(inventory[gem]) <= 0: gem = ""
+	return gem if not gem.is_empty() else default_gem(state)
+
+## Construction step on an empty build tile: the default gem is already chosen,
+## so one tap installs; the gem strip only changes it.
+func build_detail(state: Dictionary) -> void:
+	var inventory: Dictionary = state.get("gemInventory", {})
+	var spend := chosen(state)
 	var heading := HBoxContainer.new(); heading.name = "SupportCoreHeading"; hud.body.add_child(heading)
 	var title: Label = UiWidgets.label(heading, TITLE, 14); title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var reason := blocked_reason()
-	var label := "설치 · %s 골드" % HudNumber.compact_price(SupportCore.BUILD_GOLD) if not gem.is_empty() else "소비할 젬 선택"
-	var install: Button = UiWidgets.button(heading, label, func(): _install())
+	# Same label as a turret; the highlighted gem in the strip below shows what is spent.
+	var label := "설치 · %s 골드" % HudNumber.compact_price(SupportCore.BUILD_GOLD) if not spend.is_empty() else "가방에 젬 없음"
+	var install: Button = UiWidgets.button(heading, label, func(): install(hud.app.run_domain.state))
 	install.name = "SupportCoreInstall"
-	install.tooltip_text = "설치 · %d 골드 · %s 1개 소비" % [SupportCore.BUILD_GOLD, hud.gem_name(gem)] if not gem.is_empty() else "가방에서 소비할 젬을 고르세요"
-	hud.track_purchase_button(install, "gold", SupportCore.BUILD_GOLD, gem.is_empty() or not reason.is_empty())
+	install.tooltip_text = "설치 · %d 골드 · %s 1개 소비" % [SupportCore.BUILD_GOLD, hud.gem_name(spend)] if not spend.is_empty() else "가방에 소비할 젬이 없습니다"
+	hud.track_purchase_button(install, "gold", SupportCore.BUILD_GOLD, spend.is_empty() or not reason.is_empty())
 	UiWidgets.label(hud.body, DESCRIPTION, 11)
 	var cost: Label = UiWidgets.label(hud.body, "골드 %d + 가방 젬 1개 · 소비한 젬은 철거해도 돌아오지 않습니다." % SupportCore.BUILD_GOLD, 10)
 	cost.name = "SupportCoreCost"; cost.modulate = Color("b7d5e3")
 	if not reason.is_empty():
 		var note: Label = UiWidgets.label(hud.body, reason, 11); note.name = "SupportCoreBlocked"; note.modulate = Color("ffb38a")
 		return
-	var caption: Label = UiWidgets.label(hud.body, "소비할 젬", 11); caption.name = "SupportCoreGemCaption"; caption.modulate = CYAN
+	var caption: Label = UiWidgets.label(hud.body, "소비할 젬 · 눌러서 바꾸기", 11); caption.name = "SupportCoreGemCaption"; caption.modulate = CYAN
 	var strip := ScrollContainer.new(); strip.name = "SupportCoreGems"
 	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	hud.body.add_child(strip)
 	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 4); strip.add_child(row)
 	for type in inventory:
 		if int(inventory[type]) <= 0: continue
-		_gem_button(row, str(type), int(inventory[type]))
+		_gem_button(row, str(type), int(inventory[type]), str(type) == spend)
 	if row.get_child_count() == 0:
 		var empty: Label = UiWidgets.label(hud.body, "가방에 젬이 없습니다. 장착한 젬은 소비할 수 없습니다.", 11)
 		empty.name = "SupportCoreNoGems"; empty.modulate = Color("ffb38a")
 	else: strip.custom_minimum_size.y = 50
 
-func _gem_button(row: Node, type: String, count: int) -> void:
+func _gem_button(row: Node, type: String, count: int, selected: bool) -> void:
 	var b: Button = UiWidgets.button(row, "", func():
-		gem = "" if gem == type else type
+		gem = type
 		hud.refresh())
 	b.name = "SupportCoreGem_" + type
 	b.custom_minimum_size = Vector2(48, 48)
-	b.toggle_mode = true; b.button_pressed = gem == type
+	b.toggle_mode = true; b.button_pressed = selected
+	# The install button does not name the gem, so the one to be spent must stand out: the others dim.
+	if not selected: b.modulate = Color(1, 1, 1, 0.42)
 	for state_name in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var frame := Frame.new("ui/components/card_frame.png", 2)
-		if gem == type: frame.modulate_color = Color("ffe29a")
+		if selected: frame.modulate_color = Color("ffe29a")
 		elif state_name == "hover": frame.modulate_color = Color("a6f4ff")
 		b.add_theme_stylebox_override(state_name, frame)
 	var icon := TextureRect.new(); icon.name = "SupportCoreGemIcon"
@@ -76,10 +104,11 @@ func _gem_button(row: Node, type: String, count: int) -> void:
 	amount.offset_left = 3; amount.offset_right = -4; amount.offset_top = -15; amount.offset_bottom = -1
 	b.tooltip_text = "%s ×%d" % [hud.gem_name(type), count]
 
-func _install() -> void:
-	if gem.is_empty(): return
-	var chosen := gem
-	if hud.app.apply_run_command({"kind":"buildSupportCore", "x":hud.app.selected.x, "y":hud.app.selected.y, "gem":chosen}):
+## Builds on the selected tile with the chosen gem (the build button and a second picker tap).
+func install(state: Dictionary) -> void:
+	var spend := chosen(state)
+	if spend.is_empty(): return
+	if hud.app.apply_run_command({"kind":"buildSupportCore", "x":hud.app.selected.x, "y":hud.app.selected.y, "gem":spend}):
 		gem = ""
 	hud.refresh()
 

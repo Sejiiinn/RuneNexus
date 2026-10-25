@@ -1,6 +1,6 @@
 extends SceneTree
-## Support cores: 3-2 unlock without legacy rights, construction with a chosen
-## bag gem, adjacent +15% damage in the module damage-increase layer (strongest
+## Support cores: 3-2 unlock without legacy rights, construction with a bag gem
+## (default: the most copies, then the least equipped), adjacent +15% damage in the module damage-increase layer (strongest
 ## of a family only), demolition refund, deck log consumption and the run save.
 const Catalog = preload("res://content/content_catalog.gd")
 const Growth = preload("res://app/growth_rules.gd")
@@ -12,6 +12,7 @@ const Hash = preload("res://services/save_payload_hash.gd")
 const Progress = preload("res://content/stage_progression.gd")
 const SupportCore = preload("res://app/support_core_rules.gd")
 const Cache = preload("res://ui/hud_configuration_cache.gd")
+const CorePanel = preload("res://ui/hud_support_core_panel.gd")
 var failures: Array[String] = []
 var checks := 0
 var catalog
@@ -30,6 +31,7 @@ func _initialize() -> void:
 	service = Commands.new(catalog, growth)
 	map = catalog.stage_map(0)
 	_unlock()
+	_default_gem()
 	var tiles := _tiles()
 	check(not tiles.is_empty(), "stage has a core tile with two build neighbours and a diagonal")
 	if not tiles.is_empty():
@@ -44,6 +46,13 @@ func _build(x: int, y: int) -> bool:
 	return x >= 0 and y >= 0 and x < int(map.columns) and y < int(map.rows) and map.tiles[y * int(map.columns) + x] == "build"
 
 # Core C, turret east E, turret south S, second core at E's east, diagonal D.
+func _default_gem() -> void:
+	check(CorePanel.default_gem({"gemInventory":{}, "turrets":[]}) == "", "no default without bag gems")
+	check(CorePanel.default_gem({"gemInventory":{"range":1, "chain":3, "attackSpeed":2}, "turrets":[]}) == "chain", "default is the gem with the most copies")
+	var equipped := [{"equippedGemSlots":["range", null]}, {"equippedGemSlots":["range", "chain"]}]
+	check(CorePanel.default_gem({"gemInventory":{"range":2, "chain":2, "crit":0}, "turrets":equipped}) == "chain", "ties go to the gem fewer turrets use")
+	check(CorePanel.default_gem({"gemInventory":{"crit":0, "range":0}, "turrets":[]}) == "", "empty stacks are not spent")
+
 func _tiles() -> Dictionary:
 	for y in range(int(map.rows)):
 		for x in range(int(map.columns)):

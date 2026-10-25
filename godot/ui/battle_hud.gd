@@ -341,7 +341,7 @@ func refresh(polled := false) -> void:
 	if main_tab == "turrets" and chosen.is_empty() and app.selected.x >= 0:
 		chosen_core = SupportCore.at(state,app.selected.x,app.selected.y)
 	# Prices depend on turret/gem diversity and upgrades, but not wallet balances.
-	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview,chosen_core,SupportCore.connections(state).size(),support_core_panel.gem]
+	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview,chosen_core,SupportCore.connections(state).size(),support_core_panel.chosen(state)]
 	var incremental_turret: bool = main_tab == "turrets" and not chosen.is_empty() and (tab == "stats" or app.selection_view.level_preview)
 	if incremental_turret:
 		# Configuration/preview affect values, not the selected panel's identity.
