@@ -1,6 +1,6 @@
 # Godot 단독 앱 배포 이력
 
-역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다.
+역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다. 본문의 `~/Library/Application Support/RuneNexus/operations/<폴더>` 근거는 2026-10-26부터 외장 `/Volumes/KIOXIA_MAC/RuneNexus/operations-archive/<폴더>`에 있다.
 
 ## 2026-10-24 Android 0.2.25 / code 6054 — 필수 업데이트 공개 완료
 
