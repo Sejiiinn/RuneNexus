@@ -24,8 +24,15 @@ func check(ok: bool, label: String) -> void:
 	if not ok: failures.append(label)
 func run() -> void:
 	var controller_script = load("res://session/session_controller.gd")
-	for path in ["res://app/app_lifecycle.gd", "res://session/standalone.gd"]:
-		check(load(path).get_base_script() == controller_script, path + " directly shares session orchestration")
+	check(load("res://session/standalone.gd").get_base_script() == controller_script, "standalone directly shares session orchestration")
+	# The app splits into layers (save state → gem rewards → lifecycle) but must
+	# still reach the controller without inheriting standalone development state.
+	var app_bases: Array = []
+	var base: Script = load("res://app/app_lifecycle.gd").get_base_script()
+	while base != null:
+		app_bases.append(base)
+		base = base.get_base_script()
+	check(app_bases.has(controller_script) and not app_bases.has(load("res://session/standalone.gd")), "app lifecycle shares session orchestration without standalone")
 	var controller = controller_script.new()
 	var names: Array = controller.get_property_list().map(func(property): return property.name)
 	for property in ["fixture", "status", "panel", "turret_button", "wave_button", "content_enabled", "next_id"]:
