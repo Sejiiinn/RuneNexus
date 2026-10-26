@@ -37,9 +37,12 @@ func run() -> void:
 		var build_indices: Array = []
 		for i in range(source.map.tiles.size()):
 			if source.map.tiles[i] == "build": build_indices.append(i)
+		# The fixture clears stages 1-15; later unlocks (e.g. poison) stay locked.
+		var available: Array = app.run_domain.growth.derive(app.run_domain.state.progression).availableTurretTypes
 		for i in range(mini(6, build_indices.size())):
 			var index: int = build_indices[i]
 			app.board_tap(Vector2i(index % int(source.map.columns), floori(float(index)/int(source.map.columns))))
+			while app.turret_type not in available: app.cycle_turret()
 			app.build_selected()
 			app.cycle_turret()
 		check(scene.combat_runtime.turrets.size() == mini(6, build_indices.size()), "six actual turret configurations")
