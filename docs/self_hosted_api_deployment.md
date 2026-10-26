@@ -262,6 +262,22 @@ docker compose \
 보존합니다. DuckDNS 갱신기의 상태 파일은 임시 파일이므로 컨테이너 재생성 직후
 한 번 다시 갱신하고 healthcheck를 통과합니다.
 
+## API 반영과 DB 백업
+
+API 이미지·DB 마이그레이션 반영은 [반영 스크립트](../scripts/server_release.py)로 수행한다. 배포마다 일회성 스크립트를 새로 만들지 않는다. 산출물·동결 백업·compose는 `~/Library/Application Support/RuneNexus/operations/server-<sha8>-<UTC>/`에 남는다.
+
+1. `python3 scripts/server_release.py prepare <commit>`: 정확한 소스로 API·migrate 이미지를 빌드하고 `make test`·`vet`·`integration-test`를 실행한다. 실행 중인 API의 compose에서 이미지만 바꾼 반영본과 직전본을 만들고, 운영 DB 사본을 격리 DB에 복원해 마이그레이션 후 기존 행·열 보존을 확인한다. 새 이미지를 그 사본으로 격리 기동해 공개 계약(상태 200·보호 경로 401)을 확인한다. 운영 컨테이너는 바꾸지 않는다.
+2. `python3 scripts/server_release.py rehearse-deploy <작업 폴더>`: 운영 DB 사본과 현 API compose를 격리 이름·네트워크로 바꾼 스택에서 아래 deploy 전 과정을 실행한다.
+3. `python3 scripts/server_release.py deploy <작업 폴더> --confirm`: prepare 이후 API·스키마·이미지가 그대로인지 확인한 뒤 API를 정지하고, 동결 백업을 격리 복원으로 확인한 다음 운영 마이그레이션·새 API 기동·로컬/공개 HTTP·실행 설정 보존을 확인한다.
+
+마이그레이션 전에 실패하면 직전 API compose로 다시 띄운다. 마이그레이션 뒤 실패하면 DB를 되돌리지 않고 동결 백업과 직전 compose 경로를 안내하며, 직전 API는 새 스키마와의 호환을 확인한 뒤에만 띄운다. 기존 행을 의도적으로 바꾸는 마이그레이션은 `--allow-changed-table <table>`로 명시한다. 배포별 기능 검사(세대·지급 계약)는 Go 통합 테스트가 맡는다.
+
+운영 DB는 매일 04:17에 [백업 스크립트](../scripts/server_backup.py)가 외장 볼륨 `/Volumes/KIOXIA_MAC/RuneNexus/db-backups/`에 `pg_dump -Fc`로 백업한다. 최근 14개와 최근 8주의 주별 최신본을 남기고 `backup-log.jsonl`에 기록한다. 볼륨이 빠져 있으면 백업하지 않고 실패한다. 실행 기록은 `~/Library/Logs/RuneNexus/db-backup.log`에 있다.
+
+- 등록·갱신: `python3 scripts/server_backup.py install-launchd`. launchd는 `~/Documents`의 스크립트와 외장 볼륨을 직접 읽지 못하므로(macOS 개인정보 보호) 스크립트 사본을 `~/Library/Application Support/RuneNexus/bin/`에 두고, 외장 볼륨 파일은 Docker 보조 컨테이너로만 다룬다. 스크립트를 바꾸면 다시 등록한다.
+- 복원 확인: `python3 scripts/server_backup.py verify [백업 이름]`이 백업을 일회용 격리 DB에 복원해 스키마·테이블·행 수를 보고한다. 운영 DB에는 접속하지 않는다.
+- 실제 복구는 API를 멈춘 뒤 운영 DB에 복원하는 파괴적 작업이므로 스크립트로 자동화하지 않고 사용자 승인 후 수행한다.
+
 ## 클라이언트 전환
 
 API HTTPS 검증이 끝난 뒤 GitHub Actions Variables의 `RUNE_NEXUS_API_BASE_URL`을

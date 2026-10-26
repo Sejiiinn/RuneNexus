@@ -1346,7 +1346,7 @@ SHUTDOWN_TIMEOUT
 
 - [x] HTTPS reverse proxy, 인증 요청 제한과 보안 헤더
 - 계정·원격 데이터 삭제
-- DB 백업과 복원 자동화
+- [x] DB 정기 백업과 격리 복원 확인 자동화([운영 절차](self_hosted_api_deployment.md#api-반영과-db-백업))
 - 개인정보 처리방침과 스토어 데이터 공개 항목
 
 ## 1차 범위에서 제외
