@@ -201,9 +201,14 @@ static func damage_over_time_training_multiplier(i: Dictionary) -> float:
 	if not "damageOverTime" in i.definition.attackTags: return 1.0
 	return 1.0 + float(i.get("damageOverTimeTrainingBonusRate", 0.0)) / damage_over_time_increase_multiplier(i)
 
+const FIRING_STAT_KEYS := ["damage", "range", "effectAreaMultiplier", "centeredAreaRadius", "pierceCount", "chainCount", "splashRadius", "splashSecondaryDamageMultiplier", "projectileSpeed", "physicalResistanceReduction", "ignoresArmorReduction", "damageOverTimeDamageMultiplier", "damageOverTimeDurationMultiplier", "slowDuration", "slowMultiplier", "appliesFrostCrack", "appliesIgnitionBurst", "spreadsChainIgnition", "lightningChainMaxJumps", "lightningChainDamageMultiplier"]
+## [trait, attack flag] pairs, spelled out so firing never builds key strings.
+const SECONDARY_TRAIT_FLAGS := [["chainCleanup", "appliesChainCleanup"], ["suppressiveFire", "appliesSuppressiveFire"], ["exposedMark", "appliesExposedMark"], ["finishingShot", "appliesFinishingShot"]]
+const PRIMARY_TRAIT_FLAGS := [["overheatMagazine", "appliesOverheatMagazine"], ["compressedCharge", "appliesCompressedCharge"], ["focusedLightning", "appliesFocusedLightning"]]
+
 static func firing_stats(i: Dictionary, stats: Dictionary, critical_multiplier: float) -> Dictionary:
 	var out := {}
-	for key in ["damage", "range", "effectAreaMultiplier", "centeredAreaRadius", "pierceCount", "chainCount", "splashRadius", "splashSecondaryDamageMultiplier", "projectileSpeed", "physicalResistanceReduction", "ignoresArmorReduction", "damageOverTimeDamageMultiplier", "damageOverTimeDurationMultiplier", "slowDuration", "slowMultiplier", "appliesFrostCrack", "appliesIgnitionBurst", "spreadsChainIgnition", "lightningChainMaxJumps", "lightningChainDamageMultiplier"]:
+	for key: String in FIRING_STAT_KEYS:
 		out[key] = stats[key]
 	if "damageOverTime" in i.definition.attackTags:
 		if float(i.get("damageOverTimeTrainingBonusRate", 0.0)) > 0.0:
@@ -221,10 +226,10 @@ static func firing_stats(i: Dictionary, stats: Dictionary, critical_multiplier: 
 	out.hasChain = "chain" in i.gems
 	out.hasDamageOverTime = "damageOverTime" in i.definition.attackTags
 	out.lightningChainJumpRange = i.lightningChainJumpRange * (1.0 + i.moduleEffect.lightningChainRangeIncreaseRate + float(core.get("lightningChainRangeIncrease", 0.0)))
-	for trait_name in ["chainCleanup", "suppressiveFire", "exposedMark", "finishingShot"]:
-		out["applies" + trait_name.left(1).to_upper() + trait_name.substr(1)] = i.secondaryTrait == trait_name
-	for trait_name in ["overheatMagazine", "compressedCharge", "focusedLightning"]:
-		out["applies" + trait_name.left(1).to_upper() + trait_name.substr(1)] = i.primaryTrait == trait_name
+	for pair: Array in SECONDARY_TRAIT_FLAGS:
+		out[pair[1]] = i.secondaryTrait == pair[0]
+	for pair: Array in PRIMARY_TRAIT_FLAGS:
+		out[pair[1]] = i.primaryTrait == pair[0]
 	if i.definition.type == "poison":
 		out.venomPool = i.primaryTrait == "venomPool"
 		out.poisonStackBonus = 0.1 if i.secondaryTrait == "concentratedToxin" else 0.05

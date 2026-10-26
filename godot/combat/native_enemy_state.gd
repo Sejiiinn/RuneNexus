@@ -57,7 +57,14 @@ static func create(raw: Dictionary) -> Dictionary:
 static func _set_position(e: Dictionary,x: float,y: float) -> void:
 	e.x=x
 	e.y=y
-	e.position={"x":x,"y":y}
+	# The mirror is owned by this enemy (create deep-copies, snapshots deep-copy),
+	# so moving rewrites it instead of allocating one per step.
+	var p = e.get("position")
+	if p is Dictionary and p.size() == 2 and p.has("x") and p.has("y"):
+		p.x=x
+		p.y=y
+	else:
+		e.position={"x":x,"y":y}
 
 static func _px(p) -> float:
 	return float(p[0]) if p is Array else float(p.x)
@@ -148,11 +155,7 @@ static func _apply_layers(e: Dictionary,damage: float,ignore: bool,armor_factor:
 		damage-=taken
 		if e.shield==0: e.shieldBroken=true
 	if damage>0 and e.armor>0:
-		if not ignore and armor_factor >= 0.0:
-			damage *= armor_factor
-		elif not ignore:
-			var pressure := sqrt(float(e.maxArmor))*3.0
-			damage *= 0.12+0.88*damage/(damage+pressure)
+		damage=_armor_damage(e,damage,ignore,armor_factor)
 		var taken := minf(e.armor,damage)
 		e.armor=maxf(0,e.armor-taken)
 		actual+=taken
@@ -161,6 +164,30 @@ static func _apply_layers(e: Dictionary,damage: float,ignore: bool,armor_factor:
 		var taken := minf(e.hp,damage)
 		e.hp=maxf(0,e.hp-taken)
 		actual+=taken
+	return actual
+
+static func _armor_damage(e: Dictionary,damage: float,ignore: bool,armor_factor: float) -> float:
+	if ignore: return damage
+	if armor_factor >= 0.0: return damage*armor_factor
+	var pressure := sqrt(float(e.maxArmor))*3.0
+	return damage*(0.12+0.88*damage/(damage+pressure))
+
+## Same arithmetic as _apply_layers without mutating the enemy, so the rift-mark
+## bonus baseline needs no copy of the whole enemy per hit.
+static func _layer_damage(e: Dictionary,damage: float,ignore: bool,armor_factor: float) -> float:
+	var actual := 0.0
+	var shield := float(e.shield)
+	if shield>0:
+		var taken := minf(shield,damage)
+		actual+=taken
+		damage-=taken
+	if damage>0 and e.armor>0:
+		damage=_armor_damage(e,damage,ignore,armor_factor)
+		var taken := minf(e.armor,damage)
+		actual+=taken
+		damage=maxf(0,damage-taken)
+	if damage>0:
+		actual+=minf(e.hp,damage)
 	return actual
 
 static func apply_hit(e: Dictionary,attack: Dictionary,target_multiplier: float=1.0) -> Dictionary:
@@ -173,7 +200,7 @@ static func apply_hit(e: Dictionary,attack: Dictionary,target_multiplier: float=
 	var armor_factor := float(attack.get("armorFactor",-1.0))
 	var amp: float = float(e.riftMarkDamageAmplification) if e.riftMarkRemaining>0 else 0.0
 	var base := 0.0
-	if amp>0: base=_apply_layers(e.duplicate(),damage,ignore,armor_factor)
+	if amp>0: base=_layer_damage(e,damage,ignore,armor_factor)
 	result.actualDamage=_apply_layers(e,damage*(1+amp),ignore,armor_factor)
 	result.bonusDamage=maxf(0,result.actualDamage-base) if amp>0 else 0.0
 	if e.hp<=0 and not e.killReported:
@@ -480,8 +507,12 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 	if not e.burnInstances.is_empty():
 		e.burnNumberTimer+=dt
 		_tick_burns(e,dt,training_rate,target_multiplier,events)
-		for b in e.burnInstances: b.remaining=maxf(0,b.remaining-dt)
-		e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
+		# Rebuild the list only when an instance expired this step.
+		var burn_expired := false
+		for b in e.burnInstances:
+			b.remaining=maxf(0,b.remaining-dt)
+			if not b.remaining>0: burn_expired=true
+		if burn_expired: e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
 		if e.hp>0 and (e.burnNumberTimer>=0.28 or e.burnInstances.is_empty()) and e.burnNumberDamage>0:
 			events.append(_event(e,"damageNumber",{"kind":"burn","damage":e.burnNumberDamage,"damageMultiplier":_max_burn_multiplier(e)}))
 			e.burnNumberDamage=0.0
@@ -490,8 +521,11 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 		e.poisonNumberTimer+=dt
 		var display_multiplier := _max_poison_multiplier(e)
 		_tick_poisons(e,dt,training_rate,target_multiplier,events)
-		for p in e.poisonInstances: p.remaining=maxf(0,p.remaining-dt)
-		e.poisonInstances=e.poisonInstances.filter(func(p): return p.remaining>0)
+		var poison_expired := false
+		for p in e.poisonInstances:
+			p.remaining=maxf(0,p.remaining-dt)
+			if not p.remaining>0: poison_expired=true
+		if poison_expired: e.poisonInstances=e.poisonInstances.filter(func(p): return p.remaining>0)
 		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonInstances.is_empty()):
 			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":display_multiplier}))
 			e.poisonNumberDamage=0.0
@@ -503,8 +537,11 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 	e.stunRemaining = maxf(0.0, float(e.stunRemaining) - dt)
 	e.freezeRemaining = maxf(0.0, float(e.freezeRemaining) - dt)
 	if not e.slowInstances.is_empty():
-		for slow in e.slowInstances: slow.remaining-=dt
-		e.slowInstances=e.slowInstances.filter(func(s): return s.remaining>0)
+		var slow_expired := false
+		for slow in e.slowInstances:
+			slow.remaining-=dt
+			if not slow.remaining>0: slow_expired=true
+		if slow_expired: e.slowInstances=e.slowInstances.filter(func(s): return s.remaining>0)
 	# Fixed fields avoid assembling keys for every enemy at every 60 Hz step.
 	# Keep physical -> elemental -> rift expiry after continuous damage.
 	if e.physicalVulnerabilityRemaining>0:

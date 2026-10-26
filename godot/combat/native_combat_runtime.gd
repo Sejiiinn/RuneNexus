@@ -26,6 +26,9 @@ const VENOM_POOL_PUDDLE := {"duration": 3.0}
 ## 2차 특성 부식 독소: 이 포탑 독 3중첩 이상인 동안 물리 저항 -15%p. 조건이 끊긴 뒤 잠깐만 남는다.
 const CORROSION := {"stacks": 3, "bonus": 0.15, "linger": 0.25}
 const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0, "poison":4.0}
+## Turret-type presentation tables, shared instead of rebuilt per shot or hit.
+const IMPACT_STYLES := {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning", "poison":"venom"}
+const VISUAL_COLORS := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff, "poison":0xffa6ff3a}
 # Extend fired shots without changing turret or chain target acquisition ranges.
 const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
 # Game seconds, independent of render cadence and playback speed. Keep the
@@ -759,7 +762,13 @@ func _step(dt: float) -> void:
 	if running: defense.step(dt)
 	_target_candidates_ready = false
 	clock += dt
-	if not visual_effects.is_empty():
+	# Most steps expire nothing; rebuild only when one entry has ended.
+	var visual_expired := false
+	for v in visual_effects:
+		if not clock - float(v.born) < float(v.duration):
+			visual_expired = true
+			break
+	if visual_expired:
 		visual_effects = visual_effects.filter(func(v):
 			if clock - float(v.born) < float(v.duration): return true
 			_prepared_effects.erase(int(v.id))
@@ -814,10 +823,11 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 	t.cleanup = maxf(0, float(t.cleanup) - dt)
 	t.fireFeedback = maxf(0, float(t.fireFeedback) - dt)
 	t.lightningElapsed += dt
-	for id in t.recent.keys():
-		t.recent[id] -= dt
-		if t.recent[id] <= 0:
-			t.recent.erase(id)
+	if not t.recent.is_empty():
+		for id in t.recent.keys():
+			t.recent[id] -= dt
+			if t.recent[id] <= 0:
+				t.recent.erase(id)
 	if not running or t.cooldown > 0 or t.stockpilePrefiring:
 		t.aimProgress = 0
 		return
@@ -1263,7 +1273,7 @@ func _lightning_complete(t: Dictionary, a: Dictionary, used: int) -> void:
 		t.cooldown = minf(t.cooldown, maxf(0, float(t.lastBaseCooldown) / (1 + unused * 0.15) - float(t.lightningElapsed)))
 
 func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scale: float = 1.0, chained: bool = false, direction: Vector2 = Vector2.ZERO, terminal_impact: bool = true) -> void:
-	var style: String = {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning", "poison":"venom"}.get(a.definition.type, "spark")
+	var style: String = IMPACT_STYLES.get(a.definition.type, "spark")
 	if not terminal_impact and style == "blast": style = "spark"
 	var radius: float = a.splashRadius * (0.5 if chained else 1.0) if terminal_impact else 0.0
 	var extra := {"style":style,"radius":maxf(10.0 * board_scale, radius)}
@@ -1323,13 +1333,12 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 	var burst: float = Enemy.burn_damage_per_second(burn, _damage_over_time_training_bonus_rate) * 2.0 * float(a.damageOverTimeDurationMultiplier) * 0.3 if direct and a.appliesIgnitionBurst else 0.0
 	var trait_multiplier := _traits(t, a, e) if direct else 1.0
 	var resistance := _resistance(a, e)
-	var status := a.duplicate()
-	status.damageScale = scale
 	# Same-layer hit increases add before multiplication. They do not leak into DoT.
 	var hit_increase := float(a.get("directDamageIncrease", 0.0)) + _direct_damage_training_bonus_rate
 	if kind == "splash": hit_increase += float(a.get("splashDamageIncrease", 0.0)) + _splash_damage_training_bonus_rate
 	elif kind == "chain": hit_increase += float(a.get("chainDamageIncrease", 0.0))
-	var resolved := Attack.resolve({"baseDamage": float(a.damage) * float(a.criticalMultiplier) * scale * (1.0 + hit_increase), "traitMultiplier": trait_multiplier, "resistance": resistance, "status": status})
+	# resolve only reads status; the per-hit scale travels beside the shared attack.
+	var resolved := Attack.resolve({"baseDamage": float(a.damage) * float(a.criticalMultiplier) * scale * (1.0 + hit_increase), "traitMultiplier": trait_multiplier, "resistance": resistance, "status": a, "damageScale": scale})
 	for effect in resolved.effects:
 		match effect.type:
 			"slow": Enemy.add_control(e, "slow", effect.duration, {"multiplier":effect.multiplier, "firstControlDurationMultiplier":a.get("firstControlDurationMultiplier", 1.0)})
@@ -1699,8 +1708,7 @@ func _diamond_reward_visual(enemy: Dictionary) -> void:
 func _visual(kind: String, at: Vector2, t: Dictionary, extra: Dictionary = {}) -> void:
 	visual_id += 1
 	var pos := (at - origin) / tile_size
-	var colors := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff, "poison":0xffa6ff3a}
-	var v := {"id":visual_id, "kind":kind, "born":clock, "duration":0.28, "x":pos.x, "y":pos.y, "tileSize":tile_size, "scale":board_scale, "color":colors.get(t.statInput.definition.type, 0xffffffff), "points":[], "screenOffset":[0,0], "feedback":"neutral", "motion":"rise", "arcDirection":1}
+	var v := {"id":visual_id, "kind":kind, "born":clock, "duration":0.28, "x":pos.x, "y":pos.y, "tileSize":tile_size, "scale":board_scale, "color":VISUAL_COLORS.get(t.statInput.definition.type, 0xffffffff), "points":[], "screenOffset":[0,0], "feedback":"neutral", "motion":"rise", "arcDirection":1}
 	if t.statInput.definition.type == "lightning":
 		v["turretType"] = "lightning"
 		v["ownerId"] = int(t.id)
