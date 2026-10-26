@@ -74,18 +74,22 @@ def backup(destination: Path):
     try:
         digest = volume(destination, 'umask 077; trap \'rm -f "/backups/$1"\' EXIT; cat > "/backups/$1"; '
                         'pg_restore --list "/backups/$1" | grep -q "TABLE public schema_version"; '
-                        'sha256sum "/backups/$1" | cut -d" " -f1; mv "/backups/$1" "/backups/$2"; trap - EXIT',
-                        partial, output, stdin=producer.stdout).decode().strip()
+                        'sha256sum "/backups/$1" | cut -d" " -f1; trap - EXIT',
+                        partial, stdin=producer.stdout).decode().strip()
     finally:
         producer.stdout.close()
-        if producer.wait():
-            raise SystemExit(f"pg_dump failed ({producer.returncode})")
-    names = volume(destination, "ls -1 /backups").split()
+        producer.wait()
+    # 목록 확인은 TOC만 보므로, pg_dump가 끝까지 성공한 덤프만 정식 이름으로 게시한다
+    if producer.returncode:
+        volume(destination, 'rm -f "/backups/$1"', partial)
+        raise SystemExit(f"pg_dump failed ({producer.returncode})")
+    names = volume(destination, "ls -1 /backups").split() + [output]
     removed = sorted(n for n in names if PATTERN.fullmatch(n) and n not in retained(names))
     record = {"completed_at": stamp, "backup": output, "sha256": digest, "schema": version, "removed": removed}
-    volume(destination, 'printf "%s  %s\\n" "$1" "$2" > "/backups/$2.sha256"; printf "%s\\n" "$3" >> /backups/backup-log.jsonl; '
-           'shift 3; for old in "$@"; do rm -f "/backups/$old" "/backups/$old.sha256"; done',
-           digest, output, json.dumps(record), *removed)
+    volume(destination, 'mv "/backups/$1" "/backups/$3"; printf "%s  %s\\n" "$2" "$3" > "/backups/$3.sha256"; '
+           'printf "%s\\n" "$4" >> /backups/backup-log.jsonl; '
+           'shift 4; for old in "$@"; do rm -f "/backups/$old" "/backups/$old.sha256"; done',
+           partial, digest, output, json.dumps(record), *removed)
     print(json.dumps(record))
 
 
@@ -126,6 +130,7 @@ def install_launchd(destination: Path, hour: int, minute: int):
     if not docker:
         raise SystemExit("docker CLI not found")
     agent = Path.home() / "Library/LaunchAgents" / f"{LABEL}.plist"
+    agent.parent.mkdir(parents=True, exist_ok=True)
     agent.write_bytes(plistlib.dumps({
         "Label": LABEL,
         "ProgramArguments": [sys.executable, str(INSTALL / "server_backup.py"),

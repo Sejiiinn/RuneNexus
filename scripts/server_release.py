@@ -75,6 +75,30 @@ def host_url(container):
     return "http://127.0.0.1:" + inspect(container)["NetworkSettings"]["Ports"]["8080/tcp"][0]["HostPort"]
 
 
+def runtime_signature(container):
+    """prepare 이후 바뀌면 준비한 compose가 운영 설정을 되돌리게 되는 실행 설정."""
+    return {"image": container["Image"], "env": environment(container),
+            "config": {key: container["Config"].get(key) for key in CONFIG_KEYS},
+            "host": {key: container["HostConfig"].get(key) for key in (*HOST_KEYS, "PortBindings")},
+            "mounts": sorted((m.get("Type"), m.get("Source"), m["Destination"], m.get("RW")) for m in container["Mounts"]),
+            "networks": sorted(container["NetworkSettings"]["Networks"])}
+
+
+def restore_previous(target: Target):
+    """스키마가 그대로일 때 직전 API compose로 되돌리고 실제로 healthy인지 확인한다."""
+    restarted = subprocess.run(["docker", "compose", "-f", str(target.rollback), "up", "-d", "--no-deps",
+                                "--no-build", "api"], capture_output=True, text=True)
+    try:
+        if restarted.returncode:
+            raise RuntimeError(restarted.stderr.strip()[-2000:])
+        wait_healthy(target.api)
+    except Exception as error:  # noqa: BLE001 - 복귀 실패는 원래 오류와 함께 알린다
+        print(f"ROLLBACK FAILED: the API may be down ({error}). Start it manually: docker compose -f "
+              f"'{target.rollback}' up -d --no-deps --no-build api", file=sys.stderr)
+        return
+    print("FAILED before migration; previous API restarted and healthy", file=sys.stderr)
+
+
 def compare_tables(before, after, allowed):
     changed = sorted(table for table in before if before[table] != after.get(table) and table not in allowed)
     if changed:
@@ -201,9 +225,8 @@ class Target:
 def deploy(work: Path, target: Target, meta, allowed, label="production"):
     log = work / f"{label}-deploy.log"
     before = json.loads((target.snapshots / "before-api.inspect.private.json").read_text())
-    current = inspect(target.api)
-    if current["Image"] != before["Image"] or environment(current) != environment(before):
-        raise SystemExit("API container changed since prepare; run prepare again")
+    if runtime_signature(inspect(target.api)) != runtime_signature(before):
+        raise SystemExit("API container configuration changed since prepare; run prepare again")
     image = inspect(meta["api_image"])
     if image["Id"] != meta["api_image_id"] or \
             image["Config"]["Labels"]["org.opencontainers.image.revision"] != meta["target_sha"]:
@@ -248,25 +271,28 @@ def deploy(work: Path, target: Target, meta, allowed, label="production"):
             print(f"MIGRATION_PASS schema {schema}->{meta['expected_schema']}", flush=True)
         run(["docker", "compose", "-f", str(target.release), "up", "-d", "--no-deps", "--no-build", "api"], log)
         wait_healthy(target.api)
+        result = verify_deployed(work, target, meta, before, schema, frozen, started, user, name, label)
     except BaseException:
         if not migrated:
-            # 스키마가 그대로면 직전 API를 그대로 다시 띄운다
-            subprocess.run(["docker", "compose", "-f", str(target.rollback), "up", "-d", "--no-deps", "--no-build",
-                            "api"], capture_output=True)
-            print("FAILED before migration; previous API restarted from the rollback compose", file=sys.stderr)
+            # 스키마가 그대로면 직전 API로 되돌린다
+            restore_previous(target)
         else:
             print(f"FAILED after migration. Do not downgrade the DB. Frozen backup: {frozen}. Previous API "
                   f"config: {target.rollback} (start it only after checking compatibility with schema "
                   f"{meta['expected_schema']}).", file=sys.stderr)
         raise
+    print(f"{label.upper()}_DEPLOY_PASS image={meta['api_image']} schema={result['schema']} "
+          f"http={len(result['checks'])}")
 
+
+def verify_deployed(work, target, meta, before, schema, frozen, started, user, name, label):
     after = inspect(target.api)
     checks = smoke(host_url(target.api)) + (smoke(target.public_url) if target.public_url else [])
     runtime = {key: before["Config"].get(key) == after["Config"].get(key) for key in CONFIG_KEYS}
     runtime.update({key: before["HostConfig"].get(key) == after["HostConfig"].get(key) for key in HOST_KEYS})
-    preserved = {name: inspect(name)["Id"] == json.loads(
-        (target.snapshots / f"before-{name.split('-')[2]}.inspect.private.json").read_text())["Id"]
-        for name in target.others}
+    preserved = {other: inspect(other)["Id"] == json.loads(
+        (target.snapshots / f"before-{other.split('-')[2]}.inspect.private.json").read_text())["Id"]
+        for other in target.others}
     result = {
         "target_sha": meta["target_sha"], "image": meta["api_image"], "image_id": after["Image"],
         "schema": {"before": schema, "after": server_ops.schema_version(target.db, user, name)},
@@ -282,7 +308,7 @@ def deploy(work: Path, target: Target, meta, allowed, label="production"):
               if not result[key]] + [k for k, ok in {**runtime, **preserved}.items() if not ok]
     if after["Image"] != meta["api_image_id"] or failed:
         raise RuntimeError(f"Post-deploy contract mismatch: {failed}")
-    print(f"{label.upper()}_DEPLOY_PASS image={meta['api_image']} schema={result['schema']} http={len(checks)}")
+    return result
 
 
 def rehearse(work: Path, allowed):

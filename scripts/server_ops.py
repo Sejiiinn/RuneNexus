@@ -26,7 +26,9 @@ SEARCH_PATH_PUBLIC = b"SELECT pg_catalog.set_config('search_path', 'public, pg_c
 def private_file(path: Path):
     """소유자만 읽는 파일로 연다(백업에는 계정·세션 데이터가 들어 있다)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    return os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb")
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    os.fchmod(descriptor, 0o600)  # 이미 있던 파일의 권한도 좁힌다
+    return os.fdopen(descriptor, "wb")
 
 
 def write_private_json(path: Path, value):
