@@ -19,6 +19,8 @@ APK 팩은 `android:<github.sha>`를 `app_config.json`에 포함한다. Godot 4.
 
 ## 배포 때 읽고 확인할 범위
 
+실행 순서는 [release 스킬](../.claude/skills/release/SKILL.md)이 묶는다. APK의 실행·대기·검수는 [apk_release.py](../scripts/apk_release.py)(`build`→`publish`, 공개된 릴리스 재대조는 `verify-public`), 배포 기록의 이력 이동은 [deployment_record.py](../scripts/deployment_record.py)가 맡는다.
+
 1. [배포 인계](deployment_status.md)의 마지막 확인 결과와 실제 공개 APK를 대조하고, 그 이후 변경에서 이번 배포 대상을 정한다. 문서 기록만으로 미배포 여부를 단정하지 않는다.
 2. 대상 커밋, APK 버전, 릴리스 노트를 확정한다. 워크플로 실행의 `headSha`가 대상과 같은지 확인한다.
 3. 변경 영향에 맞는 검증 결과를 확인하고 기본 build-only 워크플로를 실행한다. 이미 확보한 동일 커밋의 관련 근거를 활용한다.
