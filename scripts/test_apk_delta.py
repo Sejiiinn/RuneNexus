@@ -50,6 +50,32 @@ class ApkDeltaTest(unittest.TestCase):
         self.assertEqual(self.target.read_bytes(), self.output.read_bytes())
         self.assertLess(self.patch.stat().st_size, self.target.stat().st_size // 10)
 
+    def make_pack(self, files):
+        base = 112
+        data, rows = b'', []
+        for name, payload in files:
+            path = name.encode()
+            path += b'\0' * (-len(path) % 4)
+            rows.append(struct.pack('<I', len(path)) + path + struct.pack(
+                '<2Q16sI', len(data), len(payload), hashlib.md5(payload).digest(), 0))
+            data += payload + b'\0' * (-len(payload) % 16)
+        header = struct.pack('<6I2Q', 0x43504447, 4, 4, 7, 2, 2, base, base + len(data))
+        return header.ljust(base, b'\0') + data + struct.pack('<I', len(files)) + b''.join(rows)
+
+    def test_pack_files_shifted_by_resized_file_are_reused(self):
+        # 앞쪽 파일 크기 변화로 뒤 파일이 밀려도 PCK 파일 단위로 재사용해야 한다
+        stable, tail = os.urandom(400_000), os.urandom(300_000)
+        for path, config, ending in [(self.base, b'a' * 100, b'old!'), (self.target, b'b' * 133, b'new!')]:
+            pack = self.make_pack([('res://config.cfg', config), ('res://stable.bin', stable),
+                                   ('res://tail.bin', tail[:-4] + ending)])
+            with zipfile.ZipFile(path, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr('classes.dex', b'code' * 1000)
+                archive.writestr(zipfile.ZipInfo('assets/game.pck'), pack, compress_type=zipfile.ZIP_STORED)
+        self.create()
+        apk_delta.apply_patch(self.base, self.patch, self.output)
+        self.assertEqual(self.target.read_bytes(), self.output.read_bytes())
+        self.assertLess(self.patch.stat().st_size, 80_000)
+
     def test_stored_entries_and_zip_comments(self):
         stable = os.urandom(150_000)
         for path, prefix in [(self.base, b'old'), (self.target, b'new-prefix')]:

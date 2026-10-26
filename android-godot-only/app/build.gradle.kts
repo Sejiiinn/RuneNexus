@@ -31,7 +31,8 @@ android {
     productFlavors {
         create("production") {
             dimension = "deployment"
-            ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64") }
+            // 실기기 ABI만 공개 배포에 포함; x86_64는 에뮬레이터 전용(약 75MB)
+            ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
         }
         create("inspection") {
             dimension = "deployment"

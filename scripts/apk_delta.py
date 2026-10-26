@@ -8,10 +8,14 @@ import struct
 import tempfile
 import zipfile
 
+from audit_godot_pack import PackError, read_directory
+
 MAGIC = b"RNDELTA1"
 MAX_SIZE = 512 * 1024 * 1024
 MAX_OPERATIONS = 100_000
 CHUNK_SIZE = 64 * 1024
+# 연속 리터럴을 한 연산으로 묶되 메모리에 쌓는 양은 제한
+LITERAL_FLUSH = 16 * 1024 * 1024
 
 
 def _size(path):
@@ -42,6 +46,10 @@ def _u64(stream):
 
 def _intervals(path):
     """로컬 헤더에서 압축 데이터의 실제 위치 계산."""
+    return [(start, end) for start, end, _ in _entries(path)]
+
+
+def _entries(path):
     intervals = []
     size = _size(path)
     with zipfile.ZipFile(path) as archive, path.open("rb") as stream:
@@ -56,14 +64,59 @@ def _intervals(path):
             if start < 0 or end > size:
                 raise ValueError("ZIP entry exceeds APK bounds")
             if end > start:
-                intervals.append((start, end))
-    intervals.sort()
+                intervals.append((start, end, entry))
+    intervals.sort(key=lambda item: item[:2])
     previous = 0
-    for start, end in intervals:
+    for start, end, _ in intervals:
         if start < previous:
             raise ValueError("Overlapping ZIP entries")
         previous = end
     return intervals
+
+
+class _Window:
+    """APK 안 무압축 항목을 독립 파일처럼 읽는 창."""
+
+    def __init__(self, stream, start, size):
+        self.stream, self.start, self.size, self.position = stream, start, size, 0
+
+    def seek(self, offset, whence=0):
+        self.position = {0: offset, 1: self.position + offset, 2: self.size + offset}[whence]
+        return self.position
+
+    def tell(self):
+        return self.position
+
+    def read(self, count):
+        count = max(0, min(count, self.size - self.position))
+        self.stream.seek(self.start + self.position)
+        data = self.stream.read(count)
+        self.position += len(data)
+        return data
+
+
+def _pack_payloads(stream, entries):
+    """무압축 Godot PCK의 파일별 payload 범위(APK 절대 위치).
+
+    PCK 안 파일 하나의 크기가 바뀌면 뒤 바이트가 모두 밀려 고정 64KB 청크가
+    어긋난다. 파일 단위 범위로 재사용하면 밀림과 무관하게 같은 파일을 찾는다.
+    """
+    ranges = set()
+    for start, end, entry in entries:
+        if not entry.filename.endswith(".pck") or entry.compress_type != zipfile.ZIP_STORED:
+            continue
+        try:
+            pack = read_directory(_Window(stream, start, end - start))
+        except PackError:
+            continue
+        ranges.update((start + item["offset"], start + item["offset"] + item["bytes"])
+                      for item in pack["entries"] if item["bytes"])
+    payloads, previous = [], 0
+    for start, end in sorted(ranges):
+        if start >= previous:
+            payloads.append((start, end))
+            previous = end
+    return payloads
 
 
 def _chunks(stream, start, end):
@@ -85,46 +138,126 @@ def _output_temp(output, inputs):
     return handle, Path(handle.name)
 
 
+class _Operations:
+    """인접 COPY·리터럴을 합쳐 연산 수와 패치 크기 축소."""
+
+    def __init__(self, patch):
+        self.patch, self.count, self.copy, self.literal, self.literal_size = patch, 0, None, [], 0
+
+    def _emit(self, header, data=b""):
+        self.count += 1
+        if self.count > MAX_OPERATIONS:
+            raise ValueError("Too many patch operations")
+        self.patch.write(header + data)
+
+    def _flush_copy(self):
+        if self.copy:
+            self._emit(b"\x00" + struct.pack(">QQ", *self.copy))
+            self.copy = None
+
+    def _flush_literal(self):
+        if self.literal:
+            self._emit(b"\x01" + struct.pack(">Q", self.literal_size), b"".join(self.literal))
+            self.literal, self.literal_size = [], 0
+
+    def copy_from(self, offset, length):
+        self._flush_literal()
+        if self.copy and self.copy[0] + self.copy[1] == offset:
+            self.copy[1] += length
+        else:
+            self._flush_copy()
+            self.copy = [offset, length]
+
+    def add(self, data):
+        self._flush_copy()
+        self.literal.append(data)
+        self.literal_size += len(data)
+        if self.literal_size >= LITERAL_FLUSH:
+            self._flush_literal()
+
+    def finish(self):
+        self._flush_copy()
+        self._flush_literal()
+
+
+def _same(original, offset, stream, start, length):
+    """해시 일치 후보를 실제 바이트로 재확인."""
+    stream.seek(start)
+    for position in range(0, length, CHUNK_SIZE):
+        original.seek(offset + position)
+        size = min(CHUNK_SIZE, length - position)
+        if _read(original, size) != _read(stream, size):
+            return False
+    return True
+
+
+def _range_hash(stream, start, end, index=None):
+    digest = hashlib.sha256()
+    for offset, data in _chunks(stream, start, end):
+        digest.update(data)
+        if index is not None:
+            index.setdefault((len(data), hashlib.sha256(data).digest()), offset)
+    return digest.digest()
+
+
 def create_patch(base: Path, target: Path, output: Path) -> None:
-    """ZIP 데이터 청크를 재사용하며 결정론적 gzip 패치 생성."""
+    """ZIP 데이터·PCK 파일 단위로 원본을 재사용하는 결정론적 gzip 패치 생성."""
     base, target, output = Path(base), Path(target), Path(output)
     base_size, target_size = _size(base), _size(target)
-    base_intervals, target_intervals = _intervals(base), _intervals(target)
-    index = {}
+    base_entries, target_entries = _entries(base), _entries(target)
+    index, payload_index = {}, {}
     with base.open("rb") as stream:
-        for start, end in base_intervals:
+        for start, end, _ in base_entries:
             for offset, data in _chunks(stream, start, end):
                 index.setdefault((len(data), hashlib.sha256(data).digest()), offset)
+        # 바뀐 파일도 같은 파일 시작 기준 청크로 앞부분을 재사용
+        for start, end in _pack_payloads(stream, base_entries):
+            payload_index.setdefault((end - start, _range_hash(stream, start, end, index)), start)
     handle, temporary = _output_temp(output, [base, target])
     try:
         with handle, gzip.GzipFile(filename="", mode="wb", fileobj=handle, mtime=0) as patch:
             patch.write(MAGIC + struct.pack(">QQ", base_size, target_size) + _hash(base) + _hash(target))
-            count = 0
+            operations = _Operations(patch)
             with target.open("rb") as stream, base.open("rb") as original:
-                position = 0
+                payloads = _pack_payloads(stream, target_entries)
                 # 헤더·서명 블록·중앙 디렉터리도 바이트 그대로 보존
-                regions = []
-                for start, end in target_intervals:
+                regions, position = [], 0
+                for start, end, _ in target_entries:
                     if position < start:
                         regions.append((position, start, False))
                     regions.append((start, end, True))
                     position = end
                 if position < target_size:
                     regions.append((position, target_size, False))
+                split, cursor = [], 0
                 for start, end, reusable in regions:
-                    for _, data in _chunks(stream, start, end):
-                        count += 1
-                        if count > MAX_OPERATIONS:
-                            raise ValueError("Too many patch operations")
+                    while cursor < len(payloads) and payloads[cursor][1] <= end:
+                        payload_start, payload_end = payloads[cursor]
+                        if payload_start >= start:
+                            if start < payload_start:
+                                split.append((start, payload_start, reusable, False))
+                            split.append((payload_start, payload_end, reusable, True))
+                            start = payload_end
+                        cursor += 1
+                    if start < end:
+                        split.append((start, end, reusable, False))
+                for start, end, reusable, payload in split:
+                    if payload:
+                        offset = payload_index.get((end - start, _range_hash(stream, start, end)))
+                        if offset is not None and _same(original, offset, stream, start, end - start):
+                            operations.copy_from(offset, end - start)
+                            continue
+                    for chunk_start, data in _chunks(stream, start, end):
                         offset = index.get((len(data), hashlib.sha256(data).digest())) if reusable else None
                         if offset is not None:
                             original.seek(offset)
                             if _read(original, len(data)) != data:
                                 offset = None
                         if offset is None:
-                            patch.write(b"\x01" + struct.pack(">Q", len(data)) + data)
+                            operations.add(data)
                         else:
-                            patch.write(b"\x00" + struct.pack(">QQ", offset, len(data)))
+                            operations.copy_from(offset, len(data))
+                operations.finish()
             patch.write(b"\xff")
         os.replace(temporary, output)
     finally:

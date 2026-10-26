@@ -1,6 +1,6 @@
 # Godot Android 호스트
 
-Flutter 없이 공용 `rune_nexus.pck`를 실행한다. `productionRelease`는 기존 앱 ID `com.example.rune_nexus`, 기존 배포 서명 환경변수, `VERSION_CODE`·`VERSION_NAME`, `armeabi-v7a`·`arm64-v8a`·`x86_64` ABI를 사용한다. 릴리스는 `debuggable=false`다. 키 없이 만든 로컬 production APK는 미서명이며 설치·배포 후보가 아니다. 배포에서는 `RUNE_NEXUS_REQUIRE_RELEASE_SIGNING=true`로 키 누락 시 실패시킨다.
+Flutter 없이 공용 `rune_nexus.pck`를 실행한다. `productionRelease`는 기존 앱 ID `com.example.rune_nexus`, 기존 배포 서명 환경변수, `VERSION_CODE`·`VERSION_NAME`, `armeabi-v7a`·`arm64-v8a` ABI를 사용한다(에뮬레이터 전용 `x86_64`는 공개 배포에서 제외). 릴리스는 `debuggable=false`다. 키 없이 만든 로컬 production APK는 미서명이며 설치·배포 후보가 아니다. 배포에서는 `RUNE_NEXUS_REQUIRE_RELEASE_SIGNING=true`로 키 누락 시 실패시킨다.
 
 `inspectionDebug`는 앱 ID `com.example.rune_nexus.godotonly`, 디버그 서명, arm64 ABI를 사용한다. 기존 사용자 앱과 저장소에서 분리된 기기 검수용이다. 두 variant 모두 같은 Godot 프로젝트 팩을 실행한다.
 

@@ -26,7 +26,8 @@ def _read(stream, count):
     return data
 
 
-def audit_stream(stream, source="<stream>", largest=20):
+def read_directory(stream):
+    """Validate the header and directory; payload offsets are absolute in the pack."""
     stream.seek(0, 2)
     pack_bytes = stream.tell()
     stream.seek(0)
@@ -65,11 +66,20 @@ def audit_stream(stream, source="<stream>", largest=20):
         entries.append({"path": path, "bytes": size, "offset": absolute,
                         "directory_md5": md5.hex()})
     directory_end = stream.tell()
-    cache = {}
     for entry in entries:
         start, size = entry["offset"], entry["bytes"]
         if size and (start < 40 or (start < directory_end and start + size > directory)):
             raise PackError(f"Payload overlaps metadata: {entry['path']}")
+    return {"pack_bytes": pack_bytes, "format_version": version,
+            "engine_version": f"{major}.{minor}.{patch}", "entries": entries}
+
+
+def audit_stream(stream, source="<stream>", largest=20):
+    pack = read_directory(stream)
+    entries, count = pack["entries"], len(pack["entries"])
+    cache = {}
+    for entry in entries:
+        start, size = entry["offset"], entry["bytes"]
         key = (start, size)
         if key not in cache:
             stream.seek(start)
@@ -98,8 +108,8 @@ def audit_stream(stream, source="<stream>", largest=20):
         })
     duplicate_groups.sort(key=lambda group: (-group["logical_duplicate_bytes"], group["sha256"]))
     return {
-        "source": str(source), "format_version": version,
-        "engine_version": f"{major}.{minor}.{patch}", "pack_bytes": pack_bytes,
+        "source": str(source), "format_version": pack["format_version"],
+        "engine_version": pack["engine_version"], "pack_bytes": pack["pack_bytes"],
         "entry_count": count, "logical_payload_bytes": sum(e["bytes"] for e in entries),
         "logical_duplicate_bytes": sum(g["logical_duplicate_bytes"] for g in duplicate_groups),
         "distinct_range_duplicate_bytes": sum(g["distinct_range_duplicate_bytes"] for g in duplicate_groups),
