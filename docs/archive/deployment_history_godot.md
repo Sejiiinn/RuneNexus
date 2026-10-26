@@ -2,6 +2,15 @@
 
 역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다. 본문의 `~/Library/Application Support/RuneNexus/operations/<폴더>` 근거는 2026-10-26부터 외장 `/Volumes/KIOXIA_MAC/RuneNexus/operations-archive/<폴더>`에 있다.
 
+## 2026-10-24 Android 0.2.26 / code 6055 — 모듈 분해 수정·필수 업데이트 공개 완료
+
+- APK 대상 `34d05903e36249bf986478fce6201e0ae2dffc41`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40071018176), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6055), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6055/rune-nexus.apk). 검수한 build-only 산출물5개를 그대로 2026-10-24 07:02:17 UTC(16:02:17 KST)에 공개·최신 지정했다. **필수 업데이트·최소 지원 코드6055**이며 서버·DB 재배포는 하지 않았다.
+- 분해 버튼이 존재하지 않는 `_service`를 확인해 연결 계정도 안내문으로 보내던 조건을 실제 진입점 `open_service`로 수정했다. 이 조건은 2026-09-22 `32cd0f52`부터 있었으며6054 배포 전 검사에서 실제 인벤토리 버튼 진입을 놓쳐 발견하지 못했다. 새 회귀 검사에서 수정 전 실패를 재현하고 수정 후 관련 네이티브3사례를 통과했다. 연결/미연결 서비스 대역으로 실제 버튼→확인창→요청, 단일/일괄 ID·환급 미리보기·장착 모듈 제외·확인 전 무변경·중복 요청 방지·미연결 차단을 확인했다.
+- CI의 Python191개·Godot 네이티브91개·prepared session/lifecycle7개(NOT_RUN0), 계정/AppServices·서명 빌드·Android 패치 디코더·6052/6053/6054 서명 일치와 Python/Kotlin 차등 복원이 통과했다. 아티팩트12551438639의 실제 다운로드 ZIP SHA-256이 GitHub digest와 같았고, 패키지/바이너리 버전·기존 서명·운영 설정·내장 clientBuild를 대조했다. 실제 APK의 compiled PCK4사례(분해 확인·컬렉션·경제 서비스·compiled origin)와 Metal Mobile/Apple M4의320px 연결/미연결 확인창 검증을 통과했고 부모가 개별/일괄 분해 화면을 직접 확인했다. 제품 소스 override는 없으며 서비스 요청은 대역 검증이다.
+- APK **432,731,514 bytes**, SHA-256 `fd2c631050b4ee73133e4bd4125d23ca3305cd8f19d9710fc683a1c18608eefb`. 6054 대비 **+48 bytes**로 PCK 증가와 같다. PCK204,507,208 bytes·1382항목, ABI3종/네이티브6개의 바이트와 기존22개 중복군2,707,494 bytes는 동일하다. 에셋 원본 변경·제작 원본 포함·신규 중복은 없다. 6052/6053/6054→6055 패치는 각각146,063,848 / 146,063,838 / 111,501,697 bytes다.
+- 소유한 API37 arm64 read-only AVD의6054→6055 실제 업데이트 후 설치 직후 primary/backup 저장 바이트·최초 설치 시각, 뒤로가기/Home/재시작 후 진행 중 런·설정·모듈·v4 트리 투자/포인트 보존과 런타임 오류 없음 등10조건이 통과했다. 변경은 날짜 필드4개와 저장 시각뿐이다. 공개 후 같은 격리 환경의 실제6054 앱에서0.2.26 필수 업데이트 안내·업데이트 버튼만 표시·게임 시작 차단을 직접 확인했다. 소유 에뮬레이터를 종료했고 원본 AVD 디스크6개의 크기/mtime는 동일하다.
+- 공개 tag 대상·성공 CI, latest/버전 manifest 바이트·최소 지원6055, 자산5개 크기·GitHub SHA-256이 검수본과 같고 익명 주소의 실제 APK·패치3개·manifest 다운로드도 통과했다. 상세 후보/공개 대조·실제 PCK·Android 저장/화면 근거는 Git 밖 `~/Library/Application Support/RuneNexus/operations/apk-6055-release-20261024T063841Z/`에 보관한다. **실제 Google 로그인·운영 계정 모듈 분해/환급·Android 본게임·실기기 조작/지속 성능은 미검증**이며 운영 계정 데이터는 변경하지 않았다. 독립 검증은 요청 없어 수행하지 않았다.
+
 ## 2026-10-24 서버·DB — 6054 선행 반영 완료
 
 - 정확한 `e37d0b3846839133a803303c6f0b7972eec83003` 소스로 `rune-nexus-api:e37d0b38`을 빌드·반영했다. 실행 image ID는 `sha256:c9877cd7c032b3b2a6b9dc724eebb313ea6db8c2f5d59554a0c407de054e25f2`이며 revision label은 대상 소스 SHA와 일치한다. 뒤이은 앱 배포 준비 커밋은 검사 코드만 바꾸므로 운영 제품 코드와 같다.
