@@ -32,7 +32,7 @@
 가능하다. 현재 Godot 구현은 다음과 같다.
 
 - 포탑 상태의 `targetPriority` (기본 `first`): [런 명령](../godot/app/run_commands.gd)의 `targetPriority` 명령으로 변경
-- 표적 선택: [전투 런타임](../godot/combat/native_combat_runtime.gd)의 `_target(from, radius, priority, ...)`
+- 표적 선택: [전투 런타임 표적 계층](../godot/combat/combat_runtime_targeting.gd)의 `_target(from, radius, priority, ...)`
 - 선택 UI: [전투 HUD](../godot/ui/battle_hud.gd)의 공격 목표 팝업 (`ui/target_priority_popup.gd`)
 
 1차 구현 범위:

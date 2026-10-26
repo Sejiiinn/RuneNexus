@@ -15,7 +15,7 @@ Android 스테이지 1~30의 전투·런·저장·UI 소스는 Godot 앱에 있�
 | 책임 | 현행 구현 |
 | --- | --- |
 | 적 이동·상태·내구도·도착 | [적 상태](../godot/combat/native_enemy_state.gd) |
-| 타깃·조준·발사·탄환·저항·특성·지속 피해 | [전투 런타임](../godot/combat/native_combat_runtime.gd), [피해 계산](../godot/combat/attack_calculation.gd) |
+| 타깃·조준·발사·탄환·저항·특성·지속 피해 | [전투 런타임](../godot/combat/native_combat_runtime.gd)(공개 진입점)과 그 아래 계층 [표적](../godot/combat/combat_runtime_targeting.gd)·[피해](../godot/combat/combat_runtime_damage.gd)·[무기](../godot/combat/combat_runtime_weapons.gd)·[스텝](../godot/combat/combat_runtime_simulation.gd)·[표시 프레임](../godot/combat/combat_runtime_frame.gd)·[공통 상태](../godot/combat/combat_runtime_state.gd), [피해 계산](../godot/combat/attack_calculation.gd) |
 | 웨이브 생성·완료, 코어 주기·활성화 | [웨이브](../godot/combat/native_wave_state.gd), [코어 스킬](../godot/combat/native_core_skill_state.gd) |
 | 코어 HP·방어·긴급 방어·회복·패배 | [코어 방어](../godot/combat/native_core_defense_state.gd) |
 | 콘텐츠·런·성장·로컬 저장 | [콘텐츠 로더](../godot/content/README.md), [Godot 명령](../godot/app/run_commands_README.md), [앱 저장 계약](../godot/app/README.md) |
