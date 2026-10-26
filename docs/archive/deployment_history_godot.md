@@ -2,6 +2,14 @@
 
 역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다. 본문의 `~/Library/Application Support/RuneNexus/operations/<폴더>` 근거는 2026-10-26부터 외장 `/Volumes/KIOXIA_MAC/RuneNexus/operations-archive/<폴더>`에 있다.
 
+## 2026-10-24 서버·DB — 6054 선행 반영 완료
+
+- 정확한 `e37d0b3846839133a803303c6f0b7972eec83003` 소스로 `rune-nexus-api:e37d0b38`을 빌드·반영했다. 실행 image ID는 `sha256:c9877cd7c032b3b2a6b9dc724eebb313ea6db8c2f5d59554a0c407de054e25f2`이며 revision label은 대상 소스 SHA와 일치한다. 뒤이은 앱 배포 준비 커밋은 검사 코드만 바꾸므로 운영 제품 코드와 같다.
+- 2026-10-24 14:14:43~14:15:28 KST에 API 쓰기 정지·연결0을 확인하고 최신 DB18을 동결 백업했다. 백업을 격리 PostgreSQL18에 복원한 뒤 019(독 피해 젬)·020(독 모듈)을 적용해 **스키마18→20**, 기존33개 데이터 테이블의 모든 행·영수증 fingerprint 보존을 확인했다. 운영 migration 직후에도 복원 검증본과 동일했다. dump는 **2,364,590 bytes**, SHA-256 `f4217b73c2773c9f564be3bc9dabc8a657360dfd7b9ee33488c142fec5f5cb71`이며 복구 스크립트의 별도 재복원·DB20 이행도 통과했다.
+- Go test/vet·전체 pgx 통합, 실제 새 이미지의 격리 HTTP32조건(독 훈련·모듈·세대13, 구12 차단, 과거 영수증 복구), 운영 loopback/공개 HTTPS18조건과 SQL4조건을 통과했다. API 교체 직후 공개503은 Caddy의 기존30초 health check 상태에서 발생했고 다음 검사에서 설정 변경·재시작 없이 회복했다. 최종 API는 healthy다.
+- 전체 환경·인증 영수증키·mount/port/network·실행 옵션과 PostgreSQL/Caddy/DuckDNS 컨테이너를 보존했다. **최소 저장 호환세대4 유지**, 독 콘텐츠를 저장한 계정에는 선택적세대13 보호를 적용한다. 운영 계정 로그인·명령·지급·저장 조작은 하지 않았다. 새 쓰기 뒤 구API/DB 자동 복귀는 수행하지 않는다.
+- 상세 소스·보호 백업·복원/compose·검사·동결/운영 대조는 Git 밖 `~/Library/Application Support/RuneNexus/operations/apk-6054-server-20261024T051316Z/`에 보관한다. 검수용 API·DB·네트워크와 임시 자격증명을 제거했고 운영4개 컨테이너·백업·복구 절차는 유지했다. 실제 Google 계정 앱 E2E는 미검증이며 독립 검증은 요청 없어 수행하지 않았다.
+
 ## 2026-10-24 Android 0.2.25 / code 6054 — 필수 업데이트 공개 완료
 
 - APK 대상 `314673d6790345895ebcf6e3d307d95d63cc42ec`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40066395838), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6054), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6054/rune-nexus.apk). 검수한 build-only 산출물5개를 그대로 2026-10-24 05:58:20 UTC(14:58:20 KST)에 공개·최신 지정했다. **필수 업데이트·최소 지원 코드6054**이며 서버·DB는 아래 절과 같이 먼저 반영했다.
