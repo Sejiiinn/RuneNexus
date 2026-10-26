@@ -1,0 +1,46 @@
+name: Godot checks
+description: Download the pinned Godot and run the contract, regression and prepared-project checks shared by push CI and the APK release.
+runs:
+  using: composite
+  steps:
+    - name: Prepare Godot renderer
+      shell: bash
+      run: |
+        python3 - <<'PYGODOT'
+        import hashlib, os, pathlib, urllib.request, zipfile
+        version = "4.7.2-stable"
+        archive_name = f"Godot_v{version}_linux.x86_64.zip"
+        expected = "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4"
+        folder = pathlib.Path(os.environ["RUNNER_TEMP"]) / "godot"
+        folder.mkdir(exist_ok=True)
+        archive = folder / archive_name
+        urllib.request.urlretrieve(
+            f"https://github.com/godotengine/godot/releases/download/{version}/{archive_name}",
+            archive,
+        )
+        if hashlib.sha256(archive.read_bytes()).hexdigest() != expected:
+            raise SystemExit("Godot archive checksum mismatch")
+        executable = folder / f"Godot_v{version}_linux.x86_64"
+        with zipfile.ZipFile(archive) as package:
+            executable.write_bytes(package.read(executable.name))
+        executable.chmod(0o755)
+        with open(os.environ["GITHUB_ENV"], "a") as environment:
+            environment.write(f"GODOT_EXECUTABLE={executable}\n")
+        PYGODOT
+
+    - name: Verify contracts and prepare Godot pack
+      shell: bash
+      run: |
+        python3 -m unittest discover -s scripts -p 'test_*.py'
+        python3 scripts/verify_godot_content.py
+        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/run_godot_native_regressions.py
+        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_account_services.py
+        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_app_services.py
+        python3 scripts/build_godot_pack.py
+
+    - name: Verify prepared Godot session and lifecycle
+      shell: bash
+      run: |
+        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/run_godot_project_checks.py \
+          --preset session --preset lifecycle --headless-only --require-complete \
+          --output build/godot-project-checks.json

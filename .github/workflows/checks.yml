@@ -1,0 +1,80 @@
+name: Checks
+
+# Full regression on main pushes, so a broken commit surfaces before the next
+# APK release instead of at it. Local work keeps running only related checks.
+on:
+  push:
+    branches: [main]
+    # Skip pushes that touch only these. design/ text (map, round and wave
+    # sources) is read by tests, so only its binaries are ignored.
+    paths-ignore:
+      - 'docs/**'
+      - '.agents/**'
+      - '.claude/**'
+      - 'AGENTS.md'
+      - 'DESIGNS.md'
+      - 'design/**/*.blend'
+      - 'design/**/*.blend1'
+      - 'design/**/*.xcf'
+      - 'design/**/*.png'
+      - 'design/**/*.jpg'
+      - 'design/**/*.jpeg'
+      - 'design/**/*.webp'
+      - 'design/**/*.gif'
+      - 'design/**/*.mp4'
+      - 'design/**/*.glb'
+      - 'design/**/*.ora'
+      - 'design/**/*.bin'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      # Same checkout as deploy-apk.yml: no design/ binaries.
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/design/**/*.blend
+            !/design/**/*.blend1
+            !/design/**/*.xcf
+            !/design/**/*.png
+            !/design/**/*.jpg
+            !/design/**/*.jpeg
+            !/design/**/*.webp
+            !/design/**/*.gif
+            !/design/**/*.mp4
+            !/design/**/*.glb
+            !/design/**/*.ora
+            !/design/**/*.bin
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+
+      - name: Go vet and test
+        working-directory: server
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Verify contracts, regressions and prepared project
+        uses: ./.github/actions/godot-checks
+
+      - name: Save Godot project check results
+        if: ${{ always() && hashFiles('build/godot-project-checks.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-project-checks
+          path: build/godot-project-checks.json

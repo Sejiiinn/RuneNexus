@@ -159,14 +159,22 @@ class ProjectChecksTest(unittest.TestCase):
             self.assertEqual(runner.stale_project_files(), [])
 
     def test_release_workflow_checks_prepared_project_before_apk(self):
-        workflow = (runner.ROOT / ".github/workflows/deploy-apk.yml").read_text()
-        prepare = workflow.index("python3 scripts/build_godot_pack.py")
-        checks = workflow.index("python3 scripts/run_godot_project_checks.py")
-        apk = workflow.index(":app:assembleProductionRelease")
+        workflows = runner.ROOT / ".github/workflows"
+        workflow = (workflows / "deploy-apk.yml").read_text()
+        shared = (runner.ROOT / ".github/actions/godot-checks/action.yml").read_text()
+        prepare = shared.index("python3 scripts/build_godot_pack.py")
+        checks = shared.index("python3 scripts/run_godot_project_checks.py")
         self.assertLess(prepare, checks)
-        self.assertLess(checks, apk)
-        self.assertIn("--preset session --preset lifecycle --headless-only --require-complete", workflow[checks:apk])
-        self.assertIn("always() && hashFiles('build/godot-project-checks.json')", workflow[checks:apk])
+        self.assertIn("--preset session --preset lifecycle --headless-only --require-complete", shared[checks:])
+        uses = workflow.index("uses: ./.github/actions/godot-checks")
+        apk = workflow.index(":app:assembleProductionRelease")
+        self.assertLess(uses, apk)
+        self.assertIn("always() && hashFiles('build/godot-project-checks.json')", workflow[uses:apk])
+        # Push CI runs the same shared checks on the same checkout.
+        push = (workflows / "checks.yml").read_text()
+        self.assertIn("uses: ./.github/actions/godot-checks", push)
+        sparse = lambda text: text[text.index("sparse-checkout: |"):text.index("!/design/**/*.bin")]
+        self.assertEqual(sparse(push), sparse(workflow))
         for preset in ("session", "lifecycle"):
             for name in runner.PRESETS[preset]:
                 self.assertIn(name, runner.CASES)

@@ -6,7 +6,7 @@
 
 ## 현행 배포 경로
 
-배포 워크플로는 [deploy-apk.yml](../.github/workflows/deploy-apk.yml) 하나다. 웹 배포 경로는 폐기했다. 수동 실행의 기본값 `publish=false`는 서명 APK·패치·`update.json`을 검증해 Actions 아티팩트로 보관하며 공개하지 않는다.
+배포 워크플로는 [deploy-apk.yml](../.github/workflows/deploy-apk.yml) 하나다. 계약·회귀·준비 프로젝트 검사는 [공용 액션](../.github/actions/godot-checks/action.yml)으로 묶여 있으며, `main` 푸시 때 도는 [검사 CI](../.github/workflows/checks.yml)도 같은 액션과 Go vet·test를 실행한다. 웹 배포 경로는 폐기했다. 수동 실행의 기본값 `publish=false`는 서명 APK·패치·`update.json`을 검증해 Actions 아티팩트로 보관하며 공개하지 않는다.
 
 | 입력·검사 | 빌드와 결과 |
 | --- | --- |
