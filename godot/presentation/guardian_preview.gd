@@ -44,6 +44,7 @@ const QUARTER_TURN_SECONDS := 0.12
 # Approved v2 Walk and Death share the same root/floor coordinates.
 const DEATH_FLOOR := 0.0
 const FrameRows = preload("res://presentation/frame_rows.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
 
 var _world: Node3D
 var _walk_scene: PackedScene
@@ -352,7 +353,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 	for event: Dictionary in observed:
 		if int(event.id) <= _event_id: continue
 		_event_id = int(event.id)
-		if event.get("kind", "") != "kill": continue
+		if event.get("kind", "") != CombatKinds.KILL: continue
 		var id := int(event.enemyId)
 		if _killed_ids.has(id): continue
 		_killed_ids[id] = true

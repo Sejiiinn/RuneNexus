@@ -15,6 +15,7 @@ const Slot = preload("res://app/local_save_slot.gd")
 const RewardOutbox = preload("res://app/reward_outbox.gd")
 const TransitionJournal = preload("res://app/run_transition_journal.gd")
 const RewardSnapshot = preload("res://app/reward_snapshot.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 var store
 var message := ""
 var preferences: Dictionary = {}
@@ -299,10 +300,10 @@ func _project_gem_offer(app, state: Dictionary, snapshot: Dictionary, command: D
 	var slot := int(intent.get("slot", -1))
 	if intent.get("buySlot", false):
 		if slot != int(target.slotLimit): return resolved
-		var linked: Dictionary = service.apply(next, {"kind":"link", "id":target.id})
+		var linked: Dictionary = service.apply(next, {"kind":RunKinds.LINK, "id":target.id})
 		if not linked.get("ok", false): return resolved
 		next = linked.state
-	var equipped: Dictionary = service.apply(next, {"kind":"equipGem", "id":target.id, "slot":slot, "type":offer.grantedGem})
+	var equipped: Dictionary = service.apply(next, {"kind":RunKinds.EQUIP_GEM, "id":target.id, "slot":slot, "type":offer.grantedGem})
 	if not equipped.get("ok", false): return resolved
 	next = equipped.state
 	next.gemOfferEquipRevision = offer.revision

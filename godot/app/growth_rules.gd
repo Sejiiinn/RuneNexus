@@ -3,6 +3,8 @@ const StageProgression = preload("res://content/stage_progression.gd")
 ## Local session progression rules. Never performs network or persistent writes.
 const Json = preload("res://app/save_json.gd")
 const Modules = preload("res://content/module_catalog.gd")
+## Always-available turrets; stage unlocks append the rest.
+const BASE_TURRET_TYPES := ["arrow", "cannon", "magic", "frost"]
 var data: Dictionary = {}
 var error := ""
 
@@ -163,7 +165,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		result.runUpgradeMaxLevelBonuses[type] = int(_research(p, type + "LimitExpansion") * _c("runUpgradeLimitExpansionMaxLevelPerLevel"))
 	var wave_level := clampi(int(run_levels.get("waveGold", 0)), 0, int(data.runUpgrades.waveGold.maxLevel) + result.runUpgradeMaxLevelBonuses.waveGold)
 	result.waveClearGoldBonus += int(data.runUpgrades.waveGold.effects[wave_level])
-	result.availableTurretTypes = ["arrow", "cannon", "magic", "frost"]
+	result.availableTurretTypes = BASE_TURRET_TYPES.duplicate()
 	if StageProgression.has_unlock(p,"turret","sniper"): result.availableTurretTypes.append("sniper")
 	if StageProgression.has_unlock(p,"turret","lightning"): result.availableTurretTypes.append("lightning")
 	if StageProgression.has_unlock(p,"turret","poison"): result.availableTurretTypes.append("poison")

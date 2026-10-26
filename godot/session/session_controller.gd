@@ -2,6 +2,8 @@ extends Node
 const StageProgression = preload("res://content/stage_progression.gd")
 ## Shared content session orchestration; app and development UI own their lifecycle.
 const Catalog = preload("res://content/content_catalog.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 var progression_inputs: Dictionary = {}
 var run_domain = preload("res://session/run_session.gd").new()
 var applying_events := false
@@ -73,7 +75,7 @@ func prepare_run_transition() -> bool:
 	if abandoning:
 		# Commit the live cancellation only after both checkpoint and outbox succeed.
 		# Otherwise a later save would capture failure with the old spawn schedule.
-		command([{"kind":"waveCancel"}], {"phase":terminal.phase,"paused":true})
+		command([{"kind":CombatKinds.COMMAND_WAVE_CANCEL}], {"phase":terminal.phase,"paused":true})
 	return true
 
 func _can_replace_run() -> bool:
@@ -181,7 +183,7 @@ func apply_run_command(request: Dictionary) -> bool:
 	if not is_content_session() or not scene.combat_runtime.active: return false
 	# Settle newly observed events before checking affordability/phase.
 	if not command(): return false
-	var build_id := int(run_domain.state.get("nextTurretId",-1)) if request.get("kind") == "build" else -1
+	var build_id := int(run_domain.state.get("nextTurretId",-1)) if request.get("kind") == RunKinds.BUILD else -1
 	var previous: Dictionary = run_domain.state.duplicate(true)
 	var result: Dictionary = run_domain.apply(request)
 	if not result.get("ok", false):
@@ -195,7 +197,7 @@ func apply_run_command(request: Dictionary) -> bool:
 	if build_id >= 0:
 		var placed: Dictionary = run_domain.service.turret(run_domain.state,build_id)
 		if not placed.is_empty(): scene.confirm_turret_placement(build_id,str(placed.type),int(placed.x),int(placed.y))
-	if request.get("kind") == "sell":
+	if request.get("kind") == RunKinds.SELL:
 		scene.cancel_turret_placement(int(request.get("id",-1)))
 	scene.combat_base_frame.buildPreview = null
 	return true
@@ -229,9 +231,9 @@ func apply_growth_command(request: Dictionary) -> bool:
 func progression_commands(refresh: Dictionary) -> Array:
 	var updates: Array = refresh.get("commands", []).duplicate()
 	var effects: Dictionary = run_domain.growth.derive(run_domain.growth.run_effect_progression(run_domain.state))
-	updates.append({"kind":"combatConfig","config":run_domain.growth.combat_config(effects)})
-	updates.append({"kind":"defenseConfig","config":effects.defenseConfig})
-	updates.append({"kind":"coreConfig","config":run_domain.growth.core_config(run_domain.state, stage, int(run_domain.state.roundIndex), catalog)})
+	updates.append({"kind":CombatKinds.COMMAND_COMBAT_CONFIG,"config":run_domain.growth.combat_config(effects)})
+	updates.append({"kind":CombatKinds.COMMAND_DEFENSE_CONFIG,"config":effects.defenseConfig})
+	updates.append({"kind":CombatKinds.COMMAND_CORE_CONFIG,"config":run_domain.growth.core_config(run_domain.state, stage, int(run_domain.state.roundIndex), catalog)})
 	return updates
 
 ## Saves a new progression, then applies it to the live run (see
@@ -276,7 +278,7 @@ func board_tap(tile: Vector2i) -> void:
 
 func build_selected() -> void:
 	if selected.x < 0 or not scene.combat_runtime.active: return
-	apply_run_command({"kind":"build","x":selected.x,"y":selected.y,"type":turret_type})
+	apply_run_command({"kind":RunKinds.BUILD,"x":selected.x,"y":selected.y,"type":turret_type})
 
 func start_wave() -> void:
 	if not scene.combat_runtime.active or scene.combat_runtime.defense.failed: return
@@ -299,7 +301,7 @@ func start_wave() -> void:
 	next_enemy_id += wave.spawnQueue.size()
 	run_domain.state.phase = "wave"
 	run_domain.state.roundIndex = next_round
-	command([{"kind":"waveStart","wave":wave}], {"phase":"wave","paused":false})
+	command([{"kind":CombatKinds.COMMAND_WAVE_START,"wave":wave}], {"phase":"wave","paused":false})
 	next_round += 1
 	return
 

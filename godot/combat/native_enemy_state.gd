@@ -2,6 +2,7 @@ extends RefCounted
 ## Authoritative enemy state. Coordinates and distance use logical board pixels.
 ## Preserve discrete update order and discarded waypoint overshoot.
 ## Continuous damage integrates only the interval where each effect is active.
+const Kinds = preload("res://combat/combat_kinds.gd")
 
 ## Share of non-poison damage over time that enters the armor layer.
 const DOT_ARMOR_FACTOR := 0.5
@@ -206,7 +207,7 @@ static func apply_hit(e: Dictionary,attack: Dictionary,target_multiplier: float=
 	if e.hp<=0 and not e.killReported:
 		e.killReported=true
 		result.killed=true
-		result.events.append(_event(e,"killed",{"burnTransfer":attack.get("burnTransfer",{})}))
+		result.events.append(_event(e,Kinds.ENEMY_KILLED,{"burnTransfer":attack.get("burnTransfer",{})}))
 	return result
 
 static func add_slow(e: Dictionary,multiplier: float,duration: float) -> void:
@@ -352,7 +353,7 @@ static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array
 		result.events[0].burnTransfer = transfer
 	events.append_array(result.events)
 	if result.actualDamage>0:
-		events.append(_event(e,"damage",{"kind":kind,"damage":result.actualDamage,"bonusDamage":result.bonusDamage,"sourceX":attack.get("sourceX"),"sourceY":attack.get("sourceY")}))
+		events.append(_event(e,Kinds.ENEMY_DAMAGE,{"kind":kind,"damage":result.actualDamage,"bonusDamage":result.bonusDamage,"sourceX":attack.get("sourceX"),"sourceY":attack.get("sourceY")}))
 	return result.actualDamage
 
 static func _same_source(a: Dictionary,b: Dictionary) -> bool:
@@ -483,10 +484,10 @@ static func _teleport_at(e: Dictionary,index: int,events: Array) -> bool:
 		e.targetIndex = exit_index+1
 		e.teleportSerial = int(e.get("teleportSerial",0))+1
 		_face_after_exit(e,exit_index)
-		events.append(_event(e,"teleport",{"color":pair.color,"fromX":from_x,"fromY":from_y,"teleportSerial":e.teleportSerial}))
+		events.append(_event(e,Kinds.ENEMY_TELEPORT,{"color":pair.color,"fromX":from_x,"fromY":from_y,"teleportSerial":e.teleportSerial}))
 		if e.targetIndex >= e.path.size():
 			e.arrived = true
-			events.append(_event(e,"coreArrival"))
+			events.append(_event(e,Kinds.ENEMY_CORE_ARRIVAL))
 		return true
 	return false
 
@@ -514,7 +515,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 			if not b.remaining>0: burn_expired=true
 		if burn_expired: e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
 		if e.hp>0 and (e.burnNumberTimer>=0.28 or e.burnInstances.is_empty()) and e.burnNumberDamage>0:
-			events.append(_event(e,"damageNumber",{"kind":"burn","damage":e.burnNumberDamage,"damageMultiplier":_max_burn_multiplier(e)}))
+			events.append(_event(e,Kinds.ENEMY_DAMAGE_NUMBER,{"kind":"burn","damage":e.burnNumberDamage,"damageMultiplier":_max_burn_multiplier(e)}))
 			e.burnNumberDamage=0.0
 			e.burnNumberTimer=0.0
 	if not e.poisonInstances.is_empty():
@@ -527,7 +528,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 			if not p.remaining>0: poison_expired=true
 		if poison_expired: e.poisonInstances=e.poisonInstances.filter(func(p): return p.remaining>0)
 		if e.hp>0 and (e.poisonNumberTimer>=0.5 or e.poisonInstances.is_empty()):
-			events.append(_event(e,"damageNumber",{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":display_multiplier}))
+			events.append(_event(e,Kinds.ENEMY_DAMAGE_NUMBER,{"kind":"poison","damage":e.poisonNumberDamage,"damageMultiplier":display_multiplier}))
 			e.poisonNumberDamage=0.0
 			e.poisonNumberTimer=0.0
 		if e.poisonInstances.is_empty():
@@ -578,7 +579,7 @@ static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1,ta
 		if dt > 0 and _teleport_at(e,int(e.targetIndex)-1,events): return events
 		if e.targetIndex>=e.path.size():
 			e.arrived=true
-			events.append(_event(e,"coreArrival"))
+			events.append(_event(e,Kinds.ENEMY_CORE_ARRIVAL))
 	else:
 		_set_position(e,e.x+dx/distance*movement,e.y+dy/distance*movement)
 		e.distanceTravelled+=movement

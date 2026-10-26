@@ -4,6 +4,9 @@ extends RefCounted
 const GemSlots = preload("res://app/gem_slot_rules.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
 const SupportCore = preload("res://app/support_core_rules.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
+const GrowthRules = preload("res://app/growth_rules.gd")
 var catalog
 var growth
 
@@ -123,7 +126,7 @@ func runtime_commands(state: Dictionary, target_id: Variant = null, configuratio
 		input.merge({"level":t.level,"primaryTrait":t.primaryTrait,"secondaryTrait":t.secondaryTrait,"gems":t.equippedGemSlots.filter(func(g): return g != null)},true)
 		SupportCore.apply_to_input(input, state, t)
 		var stat: Dictionary = catalog.turret(t.type,{"tileSize":state.get("tileSize",1.0),"statInput":input})
-		result.append({"kind":"turret","turret":{"id":t.id,"position":[(float(t.x)+0.5)*float(state.get("tileSize",1.0)),(float(t.y)+0.5)*float(state.get("tileSize",1.0))],"state":t.duplicate(true),"statInput":stat}})
+		result.append({"kind":CombatKinds.COMMAND_TURRET,"turret":{"id":t.id,"position":[(float(t.x)+0.5)*float(state.get("tileSize",1.0)),(float(t.y)+0.5)*float(state.get("tileSize",1.0))],"state":t.duplicate(true),"statInput":stat}})
 	return result
 
 func _build_tile(state: Dictionary, x: int, y: int) -> bool:
@@ -139,20 +142,20 @@ func _reject(state: Dictionary, reason: String) -> Dictionary:
 
 func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 	var kind := str(command.get("kind",""))
-	if kind in ["chooseRewardGem","chooseRewardShards","chooseRewardGemEquip"]: return _choose_reward(state,command)
-	if kind == "purchaseGemChoice": return _purchase_gem_choice(state)
-	if kind == "rerollRewardFree": return _reject(state, "serverOfferRequired")
+	if kind in RunKinds.REWARD_CHOICES: return _choose_reward(state,command)
+	if kind == RunKinds.PURCHASE_GEM_CHOICE: return _purchase_gem_choice(state)
+	if kind == RunKinds.REROLL_REWARD_FREE: return _reject(state, "serverOfferRequired")
 	if state.get("phase", "") not in ["preparation","wave"]: return _reject(state,"phase")
 	var next := state.duplicate(true)
 	var t := turret(next,int(command.get("id",-1)))
 	var removed := -1
 	# One fresh authoritative configuration serves every quote in this transaction.
 	var d := derived(state)
-	if kind == "build":
+	if kind == RunKinds.BUILD:
 		var type := str(command.get("type",""))
 		var cost := build_cost_from_derived(type,d)
 		if cost <= 0: return _reject(state,"type")
-		if type not in d.get("availableTurretTypes",["arrow","cannon","magic","frost"]): return _reject(state,"locked")
+		if type not in d.get("availableTurretTypes",GrowthRules.BASE_TURRET_TYPES): return _reject(state,"locked")
 		var x := int(command.get("x",-1))
 		var y := int(command.get("y",-1))
 		if not _build_tile(state, x, y): return _reject(state,"tile")
@@ -163,7 +166,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		t.aimAngle = initial_aim_angle(type)
 		next.nextTurretId += 1
 		next.turrets.append(t)
-	elif kind == "buildSupportCore":
+	elif kind == RunKinds.BUILD_SUPPORT_CORE:
 		if not d.get("supportCoreUnlocked", false): return _reject(state,"locked")
 		var x := int(command.get("x",-1))
 		var y := int(command.get("y",-1))
@@ -183,12 +186,12 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 			var entries: Array = next.get("gemDeckLog", []) if next.get("gemDeckLog") is Array else []
 			entries.append({"kind":"consume","choice":gem})
 			next.gemDeckLog = entries
-	elif kind == "sellSupportCore":
+	elif kind == RunKinds.SELL_SUPPORT_CORE:
 		var core := SupportCore.at(next, int(command.get("x",-1)), int(command.get("y",-1)))
 		if core.is_empty(): return _reject(state,"supportCore")
 		next.gold += support_core_refund(core, d)
 		next.supportCores.erase(core)
-	elif kind == "runUpgrade":
+	elif kind == RunKinds.RUN_UPGRADE:
 		var type := str(command.get("type",""))
 		var q := run_upgrade_quote_from_derived(state,type,d)
 		if q.is_empty() or int(q.cost) <= 0: return _reject(state,"maxLevel")
@@ -199,31 +202,31 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		if t.is_empty(): return _reject(state,"turret")
 		var q := quotes_from_derived(state,int(t.id),d)
 		match kind:
-			"level", "link":
+			RunKinds.LEVEL, RunKinds.LINK:
 				var cost := int(q[kind])
 				if cost <= 0: return _reject(state,"requirement")
 				if int(next.gold) < cost: return _reject(state,"gold")
 				next.gold -= cost
 				t.investedGold += cost
-				if kind == "level": t.level += 1
+				if kind == RunKinds.LEVEL: t.level += 1
 				else:
 					t.slotLimit += 1
 					t.equippedGemSlots.append(null)
-			"sell":
+			RunKinds.SELL:
 				next.gold += int(q.sell)
 				for gem in t.equippedGemSlots:
 					if gem != null: next.gemInventory[gem] = int(next.gemInventory.get(gem,0))+1
 				removed = int(t.id)
 				next.turrets.erase(t)
-			"equipGem", "removeGem":
+			RunKinds.EQUIP_GEM, RunKinds.REMOVE_GEM:
 				var slot := int(command.get("slot",-1))
-				if kind == "equipGem" and command.has("slot"):
+				if kind == RunKinds.EQUIP_GEM and command.has("slot"):
 					slot = clampi(slot,0,int(t.slotLimit)-1)
-				if not command.has("slot") and kind == "equipGem":
+				if not command.has("slot") and kind == RunKinds.EQUIP_GEM:
 					slot = t.equippedGemSlots.find(null)
 					if slot < 0: slot = 0
 				if slot < 0 or slot >= int(t.slotLimit): return _reject(state,"slot")
-				if kind == "equipGem":
+				if kind == RunKinds.EQUIP_GEM:
 					var gem := str(command.get("type",""))
 					if int(next.gemInventory.get(gem,0)) <= 0: return _reject(state,"inventory")
 					if not GemSlots.can_equip(t, gem, _rule(t.type)): return _reject(state,"gem")
@@ -233,14 +236,14 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 				else:
 					if t.equippedGemSlots[slot] == null: return _reject(state,"emptySlot")
 					GemSlots.replace_owned(t, slot, null, next.gemInventory)
-			"primaryTrait", "secondaryTrait":
-				var secondary := kind == "secondaryTrait"
+			RunKinds.PRIMARY_TRAIT, RunKinds.SECONDARY_TRAIT:
+				var secondary := kind == RunKinds.SECONDARY_TRAIT
 				var trait_name := str(command.get("type",""))
 				if t[kind] != null or int(t.level) < (7 if secondary else 3) or (secondary and t.primaryTrait == null) or trait_name not in q[kind+"s"]: return _reject(state,"trait")
 				if int(next.gemShards) < int(q[kind]): return _reject(state,"gemShards")
 				next.gemShards -= int(q[kind])
 				t[kind] = trait_name
-			"targetPriority":
+			RunKinds.TARGET_PRIORITY:
 				if not d.get("canSetTurretTargetPriority",false): return _reject(state,"research")
 				var priority := str(command.get("type",""))
 				if priority not in ["first","last","strongest","weakest","nearest"]: return _reject(state,"priority")
@@ -249,10 +252,10 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 	var next_d := d if _derive_context(next) == _derive_context(state) else derived(next)
 	var commands: Array = []
 	# Economy-only run upgrades leave every turret's combat inputs unchanged.
-	if kind != "runUpgrade" or next_d.get("turretStatInputs") != d.get("turretStatInputs"):
-		commands = runtime_commands(next, t.id, next_d) if kind == "level" else runtime_commands(next, null, next_d)
-	if kind in ["primaryTrait","secondaryTrait"]: commands.append({"kind":"resetTraitState","id":t.id,"primary":kind == "primaryTrait"})
-	if removed >= 0: commands.push_front({"kind":"removeTurret","id":removed})
+	if kind != RunKinds.RUN_UPGRADE or next_d.get("turretStatInputs") != d.get("turretStatInputs"):
+		commands = runtime_commands(next, t.id, next_d) if kind == RunKinds.LEVEL else runtime_commands(next, null, next_d)
+	if kind in [RunKinds.PRIMARY_TRAIT,RunKinds.SECONDARY_TRAIT]: commands.append({"kind":CombatKinds.COMMAND_RESET_TRAIT_STATE,"id":t.id,"primary":kind == RunKinds.PRIMARY_TRAIT})
+	if removed >= 0: commands.push_front({"kind":CombatKinds.COMMAND_REMOVE_TURRET,"id":removed})
 	return {"ok":true,"error":"","state":next,"commands":commands}
 
 func _success(state: Dictionary, commands: Array = []) -> Dictionary:

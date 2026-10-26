@@ -9,6 +9,7 @@ const ResultEntrance = preload("res://ui/battle_result_entrance.gd")
 const GemEntrance = preload("res://ui/gem_reward_entrance.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const GemFlip = preload("res://ui/gem_reward_flip.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 ## Gem colors live with the other gem labels; read-only like the former constant.
 static var GEM_COLORS: Dictionary = _gem_colors()
 
@@ -443,7 +444,7 @@ func _cards(state: Dictionary, width: float) -> void:
 		shard.add_theme_stylebox_override("disabled",bar)
 		if shard_selected:
 			var confirm: Button = UiWidgets.button(body,"젬 파편 받기",func():
-				if revision == _layout_revision: _settle({"kind":"chooseRewardShards"}))
+				if revision == _layout_revision: _settle({"kind":RunKinds.CHOOSE_REWARD_SHARDS}))
 			confirm.disabled = locked
 	if not collection.is_empty():
 		_text(body,"획득 젬",10).name = "GemRewardInventoryHeading"
@@ -550,7 +551,7 @@ func _target(state: Dictionary, viewport: Vector2) -> void:
 	target_layer.add_child(target_actions)
 	target_actions.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	target_actions.offset_left = safe.x+8; target_actions.offset_right = -safe.z-8; target_actions.offset_top = -safe.w-60; target_actions.offset_bottom = -safe.w-16
-	for spec in [["젬 다시 선택",func(): close_back()],["보관",func(): _settle({"kind":"chooseRewardGem","type":pending_gem})]]:
+	for spec in [["젬 다시 선택",func(): close_back()],["보관",func(): _settle({"kind":RunKinds.CHOOSE_REWARD_GEM,"type":pending_gem})]]:
 		UiWidgets.button(target_actions,spec[0],spec[1]).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 func board_tap(tile: Vector2i) -> bool:
@@ -566,7 +567,7 @@ func board_tap(tile: Vector2i) -> bool:
 			target_hint = "이미 같은 젬이 장착되어 있습니다"
 		else:
 			var empty: int = turret.equippedGemSlots.find(null)
-			if empty >= 0: _settle({"kind":"chooseRewardGemEquip","type":pending_gem,"id":turret.id,"slot":empty})
+			if empty >= 0: _settle({"kind":RunKinds.CHOOSE_REWARD_GEM_EQUIP,"type":pending_gem,"id":turret.id,"slot":empty})
 			else: replacement_id = int(turret.id); replacement_slot = -1
 		key = ""
 		hud.refresh()
@@ -764,12 +765,12 @@ func _confirm_replacement() -> void:
 	var turret: Dictionary = hud.app.run_domain.service.turret(hud.app.run_domain.state,replacement_id)
 	if turret.is_empty(): return
 	if replacement_slot == int(turret.slotLimit): _buy_replacement_slot()
-	else: _settle({"kind":"chooseRewardGemEquip","type":pending_gem,"id":replacement_id,"slot":replacement_slot})
+	else: _settle({"kind":RunKinds.CHOOSE_REWARD_GEM_EQUIP,"type":pending_gem,"id":replacement_id,"slot":replacement_slot})
 
 func _buy_replacement_slot() -> void:
 	var turret: Dictionary = hud.app.run_domain.service.turret(hud.app.run_domain.state,replacement_id)
 	if not replacing() or turret.is_empty(): return
-	_settle({"kind":"chooseRewardGemEquip","type":pending_gem,"id":replacement_id,"slot":int(turret.slotLimit),"buySlot":true})
+	_settle({"kind":RunKinds.CHOOSE_REWARD_GEM_EQUIP,"type":pending_gem,"id":replacement_id,"slot":int(turret.slotLimit),"buySlot":true})
 
 func _recover_reward() -> void:
 	if not hud.app.has_method("recover_reward_command"): return

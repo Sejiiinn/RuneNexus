@@ -5,6 +5,7 @@ const Frame = preload("res://ui/lobby_frame.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const SupportCore = preload("res://app/support_core_rules.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 const KIND := "supportCore"
 const TITLE := "지원 코어"
 const ICON := "ui/hud/turrets_3d/supportCore.png"
@@ -108,7 +109,7 @@ func _gem_button(row: Node, type: String, count: int, selected: bool) -> void:
 func install(state: Dictionary) -> void:
 	var spend := chosen(state)
 	if spend.is_empty(): return
-	if hud.app.apply_run_command({"kind":"buildSupportCore", "x":hud.app.selected.x, "y":hud.app.selected.y, "gem":spend}):
+	if hud.app.apply_run_command({"kind":RunKinds.BUILD_SUPPORT_CORE, "x":hud.app.selected.x, "y":hud.app.selected.y, "gem":spend}):
 		gem = ""
 	hud.refresh()
 
@@ -165,5 +166,5 @@ func _demolish(x: int, y: int, quoted_refund: int) -> void:
 	if refund_of(state, core) != quoted_refund:
 		_demolish_confirm(core, refund_of(state, core))
 		return
-	hud.run_command({"kind":"sellSupportCore", "x":x, "y":y})
+	hud.run_command({"kind":RunKinds.SELL_SUPPORT_CORE, "x":x, "y":y})
 	hud.close_modal()

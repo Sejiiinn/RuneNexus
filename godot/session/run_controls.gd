@@ -1,4 +1,5 @@
 extends PanelContainer
+const RunKinds = preload("res://app/run_command_kinds.gd")
 ## Compact development controls for the migrated domain, not the final game HUD.
 var app
 var gem: OptionButton
@@ -22,9 +23,9 @@ func _ready() -> void:
 	box.add_child(description)
 	var row := HFlowContainer.new()
 	box.add_child(row)
-	_button(row, "Level up", func(): app.selected_run_command("level"))
-	_button(row, "Sell", func(): app.selected_run_command("sell"))
-	_button(row, "Add link", func(): app.selected_run_command("link"))
+	_button(row, "Level up", func(): app.selected_run_command(RunKinds.LEVEL))
+	_button(row, "Sell", func(): app.selected_run_command(RunKinds.SELL))
+	_button(row, "Add link", func(): app.selected_run_command(RunKinds.LINK))
 	gem = _picker(row, app.run_domain.growth.data.gems)
 	slot = SpinBox.new()
 	slot.min_value = 1
@@ -32,21 +33,21 @@ func _ready() -> void:
 	slot.step = 1
 	slot.prefix = "Slot "
 	row.add_child(slot)
-	_button(row, "Equip", func(): app.selected_run_command("equipGem", {"type":_selected(gem),"slot":int(slot.value)-1}))
-	_button(row, "Remove", func(): app.selected_run_command("removeGem", {"slot":int(slot.value)-1}))
+	_button(row, "Equip", func(): app.selected_run_command(RunKinds.EQUIP_GEM, {"type":_selected(gem),"slot":int(slot.value)-1}))
+	_button(row, "Remove", func(): app.selected_run_command(RunKinds.REMOVE_GEM, {"slot":int(slot.value)-1}))
 	var second := HFlowContainer.new()
 	box.add_child(second)
 	trait_picker = _picker(second, [])
-	_button(second, "Trait I", func(): app.selected_run_command("primaryTrait", {"type":_selected(trait_picker)}))
-	_button(second, "Trait II", func(): app.selected_run_command("secondaryTrait", {"type":_selected(trait_picker)}))
+	_button(second, "Trait I", func(): app.selected_run_command(RunKinds.PRIMARY_TRAIT, {"type":_selected(trait_picker)}))
+	_button(second, "Trait II", func(): app.selected_run_command(RunKinds.SECONDARY_TRAIT, {"type":_selected(trait_picker)}))
 	upgrade = _picker(second, app.run_domain.growth.data.runUpgrades.keys())
-	_button(second, "Run upgrade", func(): app.apply_run_command({"kind":"runUpgrade","type":_selected(upgrade)}))
+	_button(second, "Run upgrade", func(): app.apply_run_command({"kind":RunKinds.RUN_UPGRADE,"type":_selected(upgrade)}))
 	var third := HFlowContainer.new()
 	box.add_child(third)
 	reward = _picker(third, [])
-	_button(third, "Choose gem", func(): app.apply_run_command({"kind":"chooseRewardGem","type":_selected(reward)}))
-	_button(third, "Choose shards", func(): app.apply_run_command({"kind":"chooseRewardShards"}))
-	_button(third, "Buy gem choice", func(): app.apply_run_command({"kind":"purchaseGemChoice"}))
+	_button(third, "Choose gem", func(): app.apply_run_command({"kind":RunKinds.CHOOSE_REWARD_GEM,"type":_selected(reward)}))
+	_button(third, "Choose shards", func(): app.apply_run_command({"kind":RunKinds.CHOOSE_REWARD_SHARDS}))
+	_button(third, "Buy gem choice", func(): app.apply_run_command({"kind":RunKinds.PURCHASE_GEM_CHOICE}))
 	permanent = _picker(third, app.run_domain.growth.data.permanentUpgrades.keys())
 	_button(third, "Growth", func(): app.apply_growth_command({"kind":"permanentUpgrade","type":_selected(permanent)}))
 

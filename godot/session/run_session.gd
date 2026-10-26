@@ -3,6 +3,8 @@ extends RefCounted
 const Growth = preload("res://app/growth_rules.gd")
 const Commands = preload("res://app/run_commands.gd")
 const QuestProgress = preload("res://app/quest_progress.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 var growth = Growth.new()
 var quests = QuestProgress.new()
 var service
@@ -84,7 +86,7 @@ func apply(command: Dictionary) -> Dictionary:
 	var result: Dictionary = service.apply(state, command)
 	if result.get("ok", false):
 		state = result.state
-		if command.get("kind") == "runUpgrade":
+		if command.get("kind") == RunKinds.RUN_UPGRADE:
 			state.progression = quests.record(state.progression,"buyRunUpgrades",1,int(now_millis.call()))
 		result.state = state
 		error = ""
@@ -117,7 +119,7 @@ func collect(runtime) -> Dictionary:
 		var result: Dictionary = {"ok": true}
 		var quest_types: Array = []
 		match str(event.kind):
-			"kill":
+			CombatKinds.KILL:
 				var enemy: Dictionary = runtime.enemies.get(str(event.enemyId), {})
 				if enemy.is_empty():
 					error = "Missing enemy for reward; event retained"
@@ -127,13 +129,13 @@ func collect(runtime) -> Dictionary:
 					result = service.award_kill_owned(state, enemy, kill_derived)
 					quest_types.append("killEnemies")
 					if service.catalog.enemy_definition(enemy.type).get("isBoss",false): quest_types.append("killBosses")
-			"waveCompleted":
+			CombatKinds.WAVE_COMPLETED:
 				if runtime.defense.hp > 0:
 					result = service.complete_wave(state, int(event.waveId))
 					# The pure wave transaction already returns deeply owned state.
 					if result.get("ok",false): progression_owned = true
 					quest_types.append("clearWaves")
-			"coreDefeated":
+			CombatKinds.CORE_DEFEATED:
 				state.phase = "coreDestruction"
 		if not result.get("ok", false):
 			error = str(result.get("error", "Event rejected; retained"))

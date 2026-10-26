@@ -483,11 +483,11 @@ func apply_growth_command(request: Dictionary) -> bool:
 
 func apply_run_command(request: Dictionary) -> bool:
 	if _gem_reroll_requesting or _pending_gem_reroll(): return false
-	if request.get("kind") in ["purchaseGemChoice", "rerollRewardFree", "chooseRewardGem", "chooseRewardGemEquip", "chooseRewardShards"]: return false # Server commands exclusively own candidates and grants.
+	if request.get("kind") in [RunKinds.PURCHASE_GEM_CHOICE, RunKinds.REROLL_REWARD_FREE] + RunKinds.REWARD_CHOICES: return false # Server commands exclusively own candidates and grants.
 	if services != null and services.blocks_play(): return false
 	if startup_blocked or in_lobby or _battle_preparation_pending(): return false
 	if save_failed and not persist_progression(): return false
-	if request.get("kind") == "buildSupportCore":
+	if request.get("kind") == RunKinds.BUILD_SUPPORT_CORE:
 		if support_core_blocked():
 			checkpoint.message = "이 도전에서는 지원 코어를 지을 수 없습니다."
 			return false
@@ -498,7 +498,7 @@ func apply_run_command(request: Dictionary) -> bool:
 	if not request_checkpoint(): return false
 	# Command receipts, rather than equipment snapshots, own this transient cue.
 	# Loading, removing gems and repeated selection frames cannot replay it.
-	if request.get("kind") in ["equipGem", "chooseRewardGemEquip"]:
+	if request.get("kind") in [RunKinds.EQUIP_GEM, RunKinds.CHOOSE_REWARD_GEM_EQUIP]:
 		scene.play_gem_equip_burst(int(request.get("id", -1)), str(request.get("type", "")))
 	return true
 
@@ -841,18 +841,18 @@ func recover_reward_command() -> Dictionary:
 func choose_reward(command: Dictionary) -> Dictionary:
 	if startup_blocked or in_lobby: return {"ok":false,"code":"GEM_OFFER_PENDING"}
 	if gem_reroll_state().locked or not GemReroll.current_offer(run_domain.state): return {"ok":false,"code":"GEM_OFFER_PENDING"}
-	if command.get("kind") not in ["chooseRewardGem", "chooseRewardGemEquip", "chooseRewardShards"]: return {"ok":false,"code":"INVALID_CHOICE"}
-	if command.kind == "chooseRewardShards" and run_domain.state.get("isPurchasedGemReward", false): return {"ok":false,"code":"INVALID_CHOICE"}
+	if command.get("kind") not in RunKinds.REWARD_CHOICES: return {"ok":false,"code":"INVALID_CHOICE"}
+	if command.kind == RunKinds.CHOOSE_REWARD_SHARDS and run_domain.state.get("isPurchasedGemReward", false): return {"ok":false,"code":"INVALID_CHOICE"}
 	var values := _gem_values()
-	values.choice = "shards" if command.kind == "chooseRewardShards" else str(command.get("type", ""))
+	values.choice = "shards" if command.kind == RunKinds.CHOOSE_REWARD_SHARDS else str(command.get("type", ""))
 	if values.choice != "shards" and values.choice not in run_domain.state.rewardOptions: return {"ok":false,"code":"INVALID_CHOICE"}
-	if command.kind == "chooseRewardGemEquip":
+	if command.kind == RunKinds.CHOOSE_REWARD_GEM_EQUIP:
 		if not run_domain.service.validate_reward_equip(run_domain.state, command): return {"ok":false,"code":"INVALID_EQUIP"}
 		var target: Dictionary = run_domain.service.turret(run_domain.state, int(command.get("id", -1)))
 		values.equipIntent = {"x":target.x,"y":target.y,"turretType":target.type,"slot":command.get("slot", -1),"buySlot":command.get("buySlot", false)}
 	if not _gem_deck().is_empty():
 		var chosen := _apply_gem_step(func(state: Dictionary) -> Dictionary: return _deck_choice(state, str(values.choice), command))
-		if chosen.get("ok", false) and command.kind == "chooseRewardGemEquip": scene.play_gem_equip_burst(int(command.id), str(values.choice))
+		if chosen.get("ok", false) and command.kind == RunKinds.CHOOSE_REWARD_GEM_EQUIP: scene.play_gem_equip_burst(int(command.id), str(values.choice))
 		_resume_after_gem_purchase()
 		refresh_ui()
 		return chosen
@@ -899,14 +899,14 @@ func _apply_gem_step(step: Callable) -> Dictionary:
 
 func _deck_choice(state: Dictionary, choice: String, request: Dictionary) -> Dictionary:
 	var next := GemDeck.choose(state, choice)
-	if next.is_empty() or request.get("kind") != "chooseRewardGemEquip": return next
+	if next.is_empty() or request.get("kind") != RunKinds.CHOOSE_REWARD_GEM_EQUIP: return next
 	var service = run_domain.service
 	var id := int(request.get("id", -1))
 	if request.get("buySlot", false):
-		var linked: Dictionary = service.apply(next, {"kind":"link", "id":id})
+		var linked: Dictionary = service.apply(next, {"kind":RunKinds.LINK, "id":id})
 		if not linked.get("ok", false): return {}
 		next = linked.state
-	var equipped: Dictionary = service.apply(next, {"kind":"equipGem", "id":id, "slot":int(request.get("slot", -1)), "type":choice})
+	var equipped: Dictionary = service.apply(next, {"kind":RunKinds.EQUIP_GEM, "id":id, "slot":int(request.get("slot", -1)), "type":choice})
 	if not equipped.get("ok", false): return {}
 	next = equipped.state
 	next.gemOfferEquipRevision = next.gemOfferRevision

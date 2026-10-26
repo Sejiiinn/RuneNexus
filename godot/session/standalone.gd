@@ -99,7 +99,7 @@ func build_selected() -> void:
 		if turret.position == position: return
 	var stats: Dictionary = fixture.turret.duplicate(true)
 	stats.boardDistanceScale = 1.0 / 48.0
-	command([{"kind":"turret","turret":{"id":next_id,"position":position,"statInput":stats,"state":{"x":selected.x,"y":selected.y}}}])
+	command([{"kind":CombatKinds.COMMAND_TURRET,"turret":{"id":next_id,"position":position,"statInput":stats,"state":{"x":selected.x,"y":selected.y}}}])
 	next_id += 1
 	scene.combat_base_frame.buildPreview = null
 
@@ -114,7 +114,7 @@ func start_wave() -> void:
 	for index in range(12):
 		queue.append({"delay":index*0.6,"enemyType":"normal","enemy":checkpoint.enemy_configuration(path,index+1)})
 	if scene.combat_runtime.wave.active: return
-	command([{"kind":"waveStart","wave":{"id":scene.combat_runtime.wave.id+1,"active":true,"spawnQueue":queue}}],{"phase":"wave","paused":false})
+	command([{"kind":CombatKinds.COMMAND_WAVE_START,"wave":{"id":scene.combat_runtime.wave.id+1,"active":true,"spawnQueue":queue}}],{"phase":"wave","paused":false})
 
 func _process(delta: float) -> void:
 	super._process(delta)

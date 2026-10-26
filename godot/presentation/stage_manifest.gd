@@ -3,13 +3,14 @@ extends RefCounted
 ## derived configuration as the build/reward UI, including restored equipment.
 const Units = preload("res://presentation/battlefield_units.gd")
 const SupportCores = preload("res://presentation/support_core_presentation.gd")
+const GrowthRules = preload("res://app/growth_rules.gd")
 
 static func for_stage(catalog, index: int, derived: Dictionary, restored_state: Dictionary = {}) -> Dictionary:
 	var enemies: Array = []
 	for wave in range(catalog.wave_count(index)):
 		for kind in catalog.wave_summary(index, wave).get("enemyCounts", {}):
 			if kind not in enemies: enemies.append(kind)
-	var towers: Array = derived.get("availableTurretTypes", ["arrow", "cannon", "magic", "frost"]).duplicate()
+	var towers: Array = derived.get("availableTurretTypes", GrowthRules.BASE_TURRET_TYPES).duplicate()
 	for turret: Dictionary in restored_state.get("turrets", []):
 		var kind := str(turret.get("type", ""))
 		if Units.TURRET_MODELS.has(kind) and kind not in towers: towers.append(kind)

@@ -6,6 +6,7 @@ const HudNumber = preload("res://ui/hud_number.gd")
 const SupportCore = preload("res://app/support_core_rules.gd")
 const SupportCorePanel = preload("res://ui/hud_support_core_panel.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 var hud: Control
 
 func _init(owner: Control) -> void:
@@ -134,7 +135,7 @@ func _upgrades(state: Dictionary) -> void:
 		arrow.add_theme_color_override("font_color",Color("8ba9ba")); arrow.visible = not at_max
 		var next_label := _upgrade_label(effects,_upgrade_value(type,next),12 if compact else 13,"UpgradeNext")
 		next_label.add_theme_color_override("font_color",Color("43e2ed")); next_label.visible = not at_max
-		var b: Button = UiWidgets.button(row,"",func(): hud.run_command({"kind":"runUpgrade","type":type}))
+		var b: Button = UiWidgets.button(row,"",func(): hud.run_command({"kind":RunKinds.RUN_UPGRADE,"type":type}))
 		b.name = "Purchase"
 		b.custom_minimum_size = Vector2(84 if compact else 118,54)
 		for button_state in ["normal","hover","pressed","disabled","focus"]:

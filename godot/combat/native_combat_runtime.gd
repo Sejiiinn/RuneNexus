@@ -2,6 +2,7 @@ extends RefCounted
 ## Persistent combat authority. Commands, simulation time and events are ACKed once.
 const Teleports = preload("res://combat/teleport_pairs.gd")
 const Enemy = preload("res://combat/native_enemy_state.gd")
+const Kinds = preload("res://combat/combat_kinds.gd")
 const Capabilities = preload("res://combat/attack_capabilities.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const Wave = preload("res://combat/native_wave_state.gd")
@@ -255,7 +256,7 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	for command in packet.get("commands",[]):
 		var route_error := _validate_command_routes(command)
 		if not route_error.is_empty(): return {"accepted":false,"reason":"invalidRoutes","detail":route_error}
-		if command.get("kind") == "layout":
+		if command.get("kind") == Kinds.COMMAND_LAYOUT:
 			var teleport_error := Teleports.validate_compiled(teleport_pairs,command.get("path",path))
 			if not teleport_error.is_empty():
 				return {"accepted":false,"reason":"invalidTeleportPairs","detail":teleport_error}
@@ -263,8 +264,8 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	if clock_change: clock_control_changing.emit()
 	var ack_event := int(packet.get("ackEvent", 0))
 	for event in events:
-		if int(event.id) <= ack_event and event.kind in ["kill","arrival"]:
-			if event.kind == "kill": _retain_death_presentation(event)
+		if int(event.id) <= ack_event and event.kind in Kinds.ACK_REMOVES_ENEMY:
+			if event.kind == Kinds.KILL: _retain_death_presentation(event)
 			enemies.erase(str(event.enemyId))
 	events = events.filter(func(e): return int(e.id) > ack_event)
 	if packet.get("session") is Dictionary:
@@ -365,7 +366,7 @@ func _start_wave(raw: Dictionary, reset_core: bool) -> void:
 	wave.start(raw)
 	if wave.active:
 		portal_alert = 0.55
-		_emit({"kind":"waveStarted","waveId":wave.id})
+		_emit({"kind":Kinds.WAVE_STARTED,"waveId":wave.id})
 	terminal = false
 	if raw.has("coreConfig"):
 		core.configure(raw.coreConfig,raw.get("core",{}))
@@ -542,11 +543,11 @@ func _check_native_wave_complete() -> void:
 		var recovery: float = defense.recover_round()
 		if recovery>0:
 			_nexus_health_number(recovery)
-			_emit({"kind":"coreRecovered","amount":recovery})
+			_emit({"kind":Kinds.CORE_RECOVERED,"amount":recovery})
 		running = false
 		core.reset_cycle()
 		_refresh_turret_stats()
-		_emit({"kind":"waveCompleted","waveId":wave.id})
+		_emit({"kind":Kinds.WAVE_COMPLETED,"waveId":wave.id})
 
 func _path(raw: Array) -> Array:
 	var result: Array = []
@@ -600,14 +601,14 @@ func _validate_spawn_route(request: Dictionary, known_routes: Dictionary) -> Str
 	return ""
 
 func _validate_command_routes(command: Dictionary) -> String:
-	if command.get("kind") == "spawn":
+	if command.get("kind") == Kinds.COMMAND_SPAWN:
 		var problem := _validate_spawn_route({"enemy":command.get("enemy",{})},routes)
 		if not problem.is_empty(): return problem
-	if command.get("kind") == "waveStart":
+	if command.get("kind") == Kinds.COMMAND_WAVE_START:
 		for request in command.get("wave", {}).get("spawnQueue", []):
 			var problem := _validate_spawn_route(request,routes)
 			if not problem.is_empty(): return problem
-	if command.get("kind") == "layout" and (command.has("routes") or command.has("spawnPortalId")):
+	if command.get("kind") == Kinds.COMMAND_LAYOUT and (command.has("routes") or command.has("spawnPortalId")):
 		var problem := _validate_routes(command)
 		if not problem.is_empty(): return problem
 	return ""
@@ -653,29 +654,29 @@ func _turret(raw: Dictionary) -> void:
 
 func _command(c: Dictionary) -> void:
 	match c.get("kind", ""):
-		"combatConfig":
+		Kinds.COMMAND_COMBAT_CONFIG:
 			_configure_combat(c.config)
-		"waveStart":
+		Kinds.COMMAND_WAVE_START:
 			_start_wave(c.wave, true)
-		"waveCancel":
+		Kinds.COMMAND_WAVE_CANCEL:
 			wave.cancel()
 			running = false
 			pending_steps.clear()
-		"coreConfig":
+		Kinds.COMMAND_CORE_CONFIG:
 			core.configure(c.config,c.get("state",{}))
 			_refresh_turret_stats()
-		"resetCoreCycle":
+		Kinds.COMMAND_RESET_CORE_CYCLE:
 			core.reset_cycle()
 			_refresh_turret_stats()
-		"emergencyCharge":
+		Kinds.COMMAND_EMERGENCY_CHARGE:
 			core.emergency_charge(float(c.get("recoveryRate",0)))
-		"defenseConfig":
+		Kinds.COMMAND_DEFENSE_CONFIG:
 			defense.configure(c.config)
-		"defenseRestore":
+		Kinds.COMMAND_DEFENSE_RESTORE:
 			defense.restore(c.state)
 			core.emergency_charge_used_this_round = defense.emergency_charge_used_this_round
 			terminal = defense.failed
-		"layout":
+		Kinds.COMMAND_LAYOUT:
 			var old_origin := origin
 			var old_tile := tile_size
 			var old_path := path
@@ -732,9 +733,9 @@ func _command(c: Dictionary) -> void:
 			for puddle in puddles:
 				puddle.position = (puddle.position-old_origin)*ratio+origin
 				puddle.radius *= ratio
-		"spawn": _spawn(c.enemy)
-		"turret": _turret(c.turret)
-		"resetTraitState":
+		Kinds.COMMAND_SPAWN: _spawn(c.enemy)
+		Kinds.COMMAND_TURRET: _turret(c.turret)
+		Kinds.COMMAND_RESET_TRAIT_STATE:
 			var turret: Dictionary = turrets.get(str(c.id), {})
 			if not turret.is_empty():
 				if bool(c.get("primary", false)):
@@ -743,20 +744,20 @@ func _command(c: Dictionary) -> void:
 				for key in ["suppressiveTarget", "suppressiveHits"]: turret[key] = 0
 				for key in ["cleanup", "lastBaseCooldown", "lightningElapsed"]: turret[key] = 0.0
 				turret.recent = {}
-		"removeTurret":
+		Kinds.COMMAND_REMOVE_TURRET:
 			var removed: Dictionary = turrets.get(str(c.id), {})
 			if not removed.is_empty():
 				for e in enemies.values():
 					Enemy.clear_burn_source(e, {"x": removed.state.get("x"), "y": removed.state.get("y")})
 			turrets.erase(str(c.id))
-		"riftMark":
+		Kinds.COMMAND_RIFT_MARK:
 			if enemies.has(str(c.enemyId)):
 				Enemy.add_rift_mark(enemies[str(c.enemyId)], c.damageAmplification, c.duration)
-		"coreDamage":
+		Kinds.COMMAND_CORE_DAMAGE:
 			if enemies.has(str(c.enemyId)):
 				var result: Dictionary = Enemy.apply_hit(enemies[str(c.enemyId)], {"damage": c.damage})
 				_collect(result.get("events", []), {}, true)
-				_emit({"kind": "coreDamage", "enemyId": c.enemyId, "damage": result.get("actualDamage", 0.0)})
+				_emit({"kind": Kinds.CORE_DAMAGE, "enemyId": c.enemyId, "damage": result.get("actualDamage", 0.0)})
 
 func _step(dt: float) -> void:
 	if running: defense.step(dt)
@@ -1390,7 +1391,7 @@ func _collect(items: Array, burn_sources: Dictionary = {}, core_owned: bool = fa
 		var type: String = raw.get("type", "")
 		# Continuous damage is settled here into turret and core totals. No journal
 		# reader consumes it, so per-tick burn/poison never wakes economy settlement.
-		if type == "damage":
+		if type == Kinds.ENEMY_DAMAGE:
 			_add_core_bonus_damage(float(raw.get("bonusDamage", 0)))
 			# Poison shares the turret's existing DoT total; the save schema has no separate field.
 			if raw.get("kind") in ["burn", "poison"]:
@@ -1398,20 +1399,20 @@ func _collect(items: Array, burn_sources: Dictionary = {}, core_owned: bool = fa
 					if t.state.get("x") == raw.get("sourceX") and t.state.get("y") == raw.get("sourceY"):
 						t.burnDamageDealt += float(raw.get("damage", 0))
 			continue
-		if type == "damageNumber":
+		if type == Kinds.ENEMY_DAMAGE_NUMBER:
 			_dot_damage_number(raw)
 			continue
 		var event: Dictionary = raw.duplicate(true)
-		if type == "killed":
-			event.kind = "kill"
+		if type == Kinds.ENEMY_KILLED:
+			event.kind = Kinds.KILL
 			if not core_owned: core.charge_from_kill()
 			_diamond_reward_visual(enemies.get(str(event.enemyId), {}))
 			_spread_burn(event)
 			for t in turrets.values():
 				if float(t.recent.get(str(event.enemyId), 0)) > 0:
 					t.cleanup = 3.0
-		elif type == "coreArrival":
-			event.kind = "arrival"
+		elif type == Kinds.ENEMY_CORE_ARRIVAL:
+			event.kind = Kinds.ARRIVAL
 			var enemy: Dictionary = enemies.get(str(event.enemyId),{})
 			var result: Dictionary = defense.arrive(enemy,_boss(enemy),core.emergency_charge)
 			event.merge(result,true)
@@ -1424,7 +1425,7 @@ func _collect(items: Array, burn_sources: Dictionary = {}, core_owned: bool = fa
 				running = false
 				wave.cancel()
 				pending_steps.clear()
-				_emit({"kind":"coreDefeated","enemyId":event.enemyId})
+				_emit({"kind":Kinds.CORE_DEFEATED,"enemyId":event.enemyId})
 			continue
 		else:
 			event.effectKind = raw.get("kind", "")

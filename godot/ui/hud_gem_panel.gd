@@ -5,6 +5,7 @@ const GemSlots = preload("res://app/gem_slot_rules.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
+const RunKinds = preload("res://app/run_command_kinds.gd")
 var hud: Control
 
 func _init(owner: Control) -> void:
@@ -138,7 +139,7 @@ func _gems(state: Dictionary,turret: Dictionary,_q: Dictionary) -> void:
 			if reason.is_empty(): _gem_rule(detail,chosen,0)
 			elif reason != requirement: UiWidgets.label(detail,reason,10).modulate = Color("ffa68a")
 			var action: Button = UiWidgets.button(row,"해제" if equipped else "장착",func():
-				hud.run_selected_command("removeGem" if equipped else "equipGem",{"type":chosen,"slot":hud.selected_slot})
+				hud.run_selected_command(RunKinds.REMOVE_GEM if equipped else RunKinds.EQUIP_GEM,{"type":chosen,"slot":hud.selected_slot})
 				hud.selected_gem = ""
 				hud.refresh())
 			action.disabled = not reason.is_empty()
@@ -236,7 +237,7 @@ func _unlock_popover(band: Control, socket: Button, state: Dictionary, turret: D
 		if slot != opened or fresh_price != price or fresh_price <= 0 or int(current.get("gold",0)) < fresh_price:
 			popup.set_meta("submitted",false)
 			return
-		if hud.app.apply_run_command({"kind":"link","id":turret_id}):
+		if hud.app.apply_run_command({"kind":RunKinds.LINK,"id":turret_id}):
 			hud.selected_slot = opened
 			hud.selected_gem = ""
 		else: popup.set_meta("submitted",false)
@@ -290,7 +291,7 @@ func _inventory_strip(parent: Node,state: Dictionary,turret: Dictionary = {}) ->
 		if int(state.gemInventory[type]) <= 0: continue
 		var b = UiWidgets.button(inventory,"",func():
 			if not turret.is_empty() and hud.selected_slot >= int(turret.slotLimit): hud.selected_slot = -1
-			if hud.selected_gem == type and not turret.is_empty() and _gem_block_reason(type,turret).is_empty(): hud.run_selected_command("equipGem",{"type":type,"slot":hud.selected_slot}); hud.selected_gem = ""
+			if hud.selected_gem == type and not turret.is_empty() and _gem_block_reason(type,turret).is_empty(): hud.run_selected_command(RunKinds.EQUIP_GEM,{"type":type,"slot":hud.selected_slot}); hud.selected_gem = ""
 			else: hud.selected_gem = type
 			hud.refresh())
 		b.name = "GemInventory_"+str(type)
