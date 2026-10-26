@@ -11,9 +11,9 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "godot"
 ENGINE_ERROR = re.compile(r"(?:^|\n)(?:SCRIPT ERROR:|ERROR:)|Parse Error:|Compile Error:")
-SCRIPTS = {"verify_app_services.gd": "APP_SERVICES failures=0",
-           "verify_background_receipt.gd": "BACKGROUND_RECEIPT failures=0",
-           "verify_mailbox_notifications.gd": "MAILBOX_NOTIFICATIONS checks="}
+SCRIPTS = {"tests/verify_app_services.gd": "APP_SERVICES failures=0",
+           "tests/verify_background_receipt.gd": "BACKGROUND_RECEIPT failures=0",
+           "tests/verify_mailbox_notifications.gd": "MAILBOX_NOTIFICATIONS checks="}
 GODOT = Path(os.environ.get("GODOT_BIN", ROOT / "build/godot-preview/tools/Godot.app/Contents/MacOS/Godot"))
 
 def main():

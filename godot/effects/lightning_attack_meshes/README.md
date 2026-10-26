@@ -32,5 +32,5 @@ The module owns no lights, gameplay state, wall clock or particle simulation.
 Reproducible authoring utilities and the approved source are under
 `design/lightning_tower_concepts/approved_a/`: `extract_lightning_paths.py`,
 `lightning_paths.json`, and `bake_lightning.gd`.
-Headless module verification: `godot/verify_lightning_attack.gd`. Rendering and
+Headless module verification: `godot/tests/verify_lightning_attack.gd`. Rendering and
 mobile performance must be checked separately in the actual game.

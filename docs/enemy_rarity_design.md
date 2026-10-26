@@ -1,6 +1,6 @@
 # 마법·희귀 몬스터 설계
 
-역할: 마법·희귀 몬스터의 현행 규칙, 라운드 원본 작성 방식, 실행·저장 계약. 정리: 2026-10-19 KST. 수치 원본은 [`enemies.json`의 `enemyRarity`](../godot/content/source/enemies.json), 배치 원본은 [스테이지 원본](../godot/content/source/stages/)의 웨이브 `elites`다. 검증은 [전용 회귀](../godot/verify_enemy_rarity.gd)와 [컴파일러 검사](../scripts/test_content_compiler.py)가 맡는다.
+역할: 마법·희귀 몬스터의 현행 규칙, 라운드 원본 작성 방식, 실행·저장 계약. 정리: 2026-10-19 KST. 수치 원본은 [`enemies.json`의 `enemyRarity`](../godot/content/source/enemies.json), 배치 원본은 [스테이지 원본](../godot/content/source/stages/)의 웨이브 `elites`다. 검증은 [전용 회귀](../godot/tests/verify_enemy_rarity.gd)와 [컴파일러 검사](../scripts/test_content_compiler.py)가 맡는다.
 
 ## 기본 규칙 — 라운드 설계의 재료
 

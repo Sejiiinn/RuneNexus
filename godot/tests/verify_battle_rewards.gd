@@ -1,0 +1,464 @@
+extends SceneTree
+const HudNumber = preload("res://ui/hud_number.gd")
+const Fixture = preload("res://tests/verify_battle_hud.gd")
+const GemOffers = preload("res://app/gem_reroll.gd")
+
+# Layout-only fake server. Durable transport/recovery and authorization are
+# exercised by verify_gem_reroll; this fixture never adds a production bypass.
+class RewardApp extends Fixture.App:
+	var recovery_view: Dictionary = {}
+	var recovery_requests := 0
+	func gem_reroll_state() -> Dictionary:
+		if not recovery_view.is_empty(): return recovery_view.duplicate()
+		return {"status":"unsupported","remaining":3,"free":true,"available":false,"locked":false,"note":"젬 다시 뽑기를 사용할 수 없습니다"}
+	func recover_reward_command() -> Dictionary:
+		recovery_requests += 1
+		recovery_view.clear()
+		return {"ok":true}
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+	var app = RewardApp.new()
+	assert(app.catalog.load_catalog())
+	assert(app.run_domain.initialize(app.catalog,{},0,100))
+	root.add_child(app)
+	var hud = load("res://ui/battle_hud.gd").new()
+	hud.app = app; app.hud = hud; root.add_child(hud)
+	await process_frame
+	var state: Dictionary = app.run_domain.state
+	state.gold = 10000; state.gemShards = 100
+	var map: Dictionary = app.catalog.stage(0).map
+	var index: int = map.tiles.find("build")
+	app.selected = Vector2i(index % int(map.columns),index / int(map.columns))
+	app.build_selected()
+	var bounds: Rect2 = hud.battlefield_rect()
+	var empty_style: StyleBox = hud.overlay.get_theme_stylebox("panel")
+	assert((await app.purchase_reward_gems()).ok)
+	app.run_domain.state.rewardOptions = ["attackSpeed","range","physicalDamage"]
+	hud.refresh()
+	assert(hud.overlay.visible and hud.blocks_board_input())
+	app.recovery_view = {"status":"recovering","remaining":3,"free":true,"available":true,"locked":true,"note":"처리 결과를 확인해야 합니다. 다시 눌러 확인하세요."}
+	hud.refresh()
+	assert(hud.overlay_body.find_child("GemRewardReroll",true,false) == null, "purchase never displays reroll")
+	var purchase_retry: Button = hud.overlay_body.find_child("GemPurchaseRetry",true,false)
+	assert(purchase_retry != null)
+	for card in hud.overlay_body.find_child("GemRewardCards",true,false).get_children(): assert(card.disabled)
+	purchase_retry.pressed.emit()
+	assert(app.recovery_requests == 1 and hud.overlay_body.find_child("GemPurchaseRetry",true,false) == null, "purchase retry recovers authority without rerolling")
+	var reward_style: StyleBox = hud.overlay.get_theme_stylebox("panel")
+	hud.refresh()
+	assert(hud.overlay.get_theme_stylebox("panel") == reward_style)
+	hud.rewards.pending_gem = "attackSpeed"; hud.rewards.key = ""; hud.refresh()
+	assert(hud.rewards.targeting() and not hud.blocks_board_input())
+	assert(bounds == hud.battlefield_rect())
+	hud.rewards.board_tap(app.selected)
+	assert(app.run_domain.state.phase == "preparation")
+	assert(app.run_domain.state.turrets[0].equippedGemSlots[0] == "attackSpeed")
+	assert(not hud.overlay.visible and not hud.rewards.targeting())
+	assert(hud.overlay.get_theme_stylebox("panel") == empty_style)
+	assert((await app.purchase_reward_gems()).ok)
+	app.run_domain.state.rewardOptions = ["range","physicalDamage","attackSpeed"]
+	hud.rewards.pending_gem = "range"; hud.rewards.key = ""; hud.refresh()
+	hud.rewards.board_tap(app.selected)
+	assert(hud.rewards.replacing() and hud.blocks_board_input())
+	var replacement_style: StyleBox = hud.overlay.get_theme_stylebox("panel")
+	assert(replacement_style != reward_style)
+	hud.refresh()
+	assert(hud.overlay.get_theme_stylebox("panel") == replacement_style)
+	assert(hud.rewards.replacement_slot == -1)
+	_assert_socket_assets(hud.overlay_body,1)
+	var before_choice: Dictionary = app.run_domain.state.duplicate(true)
+	assert(_confirm_button(hud.overlay_body).disabled)
+	hud.rewards._confirm_replacement()
+	assert(app.run_domain.state == before_choice)
+	hud.rewards._select_replacement_slot(0)
+	assert(hud.rewards.replacement_slot == 0)
+	assert("gem_socket_selected.png" in _asset_names(hud.overlay_body))
+	assert(not _confirm_button(hud.overlay_body).disabled)
+	assert(app.run_domain.state == before_choice)
+	assert(hud.close_back() and not hud.rewards.replacing() and hud.rewards.targeting())
+	assert(hud.overlay.get_theme_stylebox("panel") == reward_style)
+	assert(hud.rewards.replacement_id == -1 and hud.rewards.replacement_slot == -1)
+	assert(hud.rewards.pending_gem == "range" and app.run_domain.state == before_choice)
+	hud.rewards.board_tap(app.selected)
+	assert(hud.rewards.replacing() and hud.rewards.replacement_slot == -1)
+	assert(hud.overlay.get_theme_stylebox("panel") == replacement_style)
+	assert(_confirm_button(hud.overlay_body).disabled)
+	assert(hud.close_back() and hud.rewards.targeting())
+	assert(hud.close_back() and not hud.rewards.targeting() and hud.overlay.visible)
+	assert(app.run_domain.state.phase == "reward")
+	hud.rewards._settle({"kind":"chooseRewardGem","type":"range"})
+	assert(app.run_domain.state.gemInventory.range == 1)
+	assert(app.run_domain.state.turrets[0].equippedGemSlots[0] == "attackSpeed")
+	# Two occupied slots exercise changing the preview without settling the reward.
+	app.run_domain.state.turrets[0].slotLimit = 2
+	app.run_domain.state.turrets[0].equippedGemSlots = ["attackSpeed","physicalDamage"]
+	app.run_domain.state.turrets[0].equippedGems = ["attackSpeed","physicalDamage"]
+	assert((await app.purchase_reward_gems()).ok)
+	app.run_domain.state.rewardOptions = ["range","physicalDamage","attackSpeed"]
+	hud.rewards.pending_gem = "range"; hud.rewards.key = ""; hud.refresh()
+	hud.rewards.board_tap(app.selected)
+	assert(hud.rewards.replacement_slot == -1)
+	before_choice = app.run_domain.state.duplicate(true)
+	hud.rewards._select_replacement_slot(0)
+	assert(app.run_domain.state == before_choice)
+	hud.rewards._select_replacement_slot(1)
+	assert(hud.rewards.replacement_slot == 1 and app.run_domain.state == before_choice)
+	assert(not _confirm_button(hud.overlay_body).disabled)
+	hud.rewards._confirm_replacement()
+	assert(app.run_domain.state.phase == "preparation")
+	assert(app.run_domain.state.turrets[0].equippedGemSlots == ["attackSpeed","range"])
+	assert(app.run_domain.state.gemInventory.get("physicalDamage",0) == int(before_choice.gemInventory.get("physicalDamage",0))+1)
+	assert(app.run_domain.state.gemInventory.get("attackSpeed",0) == before_choice.gemInventory.get("attackSpeed",0))
+	assert(app.run_domain.state.gemInventory.range == before_choice.gemInventory.range)
+	assert(hud.rewards.pending_gem.is_empty() and hud.rewards.replacement_id == -1 and hud.rewards.replacement_slot == -1)
+	var after_confirmation: Dictionary = app.run_domain.state.duplicate(true)
+	hud.rewards._confirm_replacement()
+	assert(app.run_domain.state == after_confirmation)
+	assert(not hud.overlay.visible and bounds == hud.battlefield_rect())
+	# Buying a slot equips the pending reward atomically without displacing either gem.
+	assert((await app.purchase_reward_gems()).ok)
+	app.run_domain.state.rewardOptions = ["physicalDamage","range","attackSpeed"]
+	app.run_domain.state.turrets[0].level = 2
+	hud.rewards.pending_gem = "physicalDamage"; hud.rewards.key = ""; hud.refresh()
+	hud.rewards.board_tap(app.selected)
+	_assert_socket_assets(hud.overlay_body,2)
+	assert(_confirm_button(hud.overlay_body).disabled) # Third slot requires level 3.
+	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.3 필요")
+	before_choice = app.run_domain.state.duplicate(true)
+	hud.rewards._select_replacement_slot(2)
+	assert(hud.rewards.replacement_slot == -1 and app.run_domain.state == before_choice)
+	app.run_domain.state.turrets[0].level = 3
+	app.run_domain.state.gold = 0
+	hud.rewards.key = ""; hud.refresh()
+	assert(_confirm_button(hud.overlay_body).disabled)
+	before_choice = app.run_domain.state.duplicate(true)
+	hud.rewards._select_replacement_slot(2)
+	assert(hud.rewards.replacement_slot == -1 and app.run_domain.state == before_choice)
+	app.run_domain.state.gold = 10000
+	hud.rewards.key = ""; hud.refresh()
+	assert(_confirm_button(hud.overlay_body).disabled)
+	var slot_cost: int = app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).link
+	assert(slot_cost > 0)
+	before_choice = app.run_domain.state.duplicate(true)
+	hud.rewards._select_replacement_slot(2)
+	assert(hud.rewards.replacement_slot == 2 and app.run_domain.state == before_choice)
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text == "슬롯 추가 후 장착 ·")
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmPrice",true,false).get_node("Amount").text == HudNumber.compact_integer(slot_cost))
+	assert(_confirm_button(hud.overlay_body).find_child("ConfirmPrice",true,false).get_node("Amount").tooltip_text == str(slot_cost))
+	assert(not _confirm_button(hud.overlay_body).disabled)
+	hud.rewards._confirm_replacement()
+	assert(app.run_domain.state.phase == "preparation")
+	assert(app.run_domain.state.turrets[0].slotLimit == 3)
+	assert(app.run_domain.state.turrets[0].equippedGemSlots == ["attackSpeed","range","physicalDamage"])
+	assert(app.run_domain.state.gold == int(before_choice.gold)-slot_cost)
+	assert(app.run_domain.state.gemInventory == before_choice.gemInventory)
+	assert(hud.rewards.pending_gem.is_empty() and hud.rewards.replacement_id == -1 and hud.rewards.replacement_slot == -1)
+	assert(not hud.overlay.visible and bounds == hud.battlefield_rect())
+	# The direct action remains equivalent to the unified confirm branch.
+	var unified_result: Dictionary = app.run_domain.state.duplicate(true)
+	app.run_domain.state = before_choice.duplicate(true)
+	hud.rewards.pending_gem = "physicalDamage"; hud.rewards.key = ""; hud.refresh()
+	hud.rewards.board_tap(app.selected)
+	hud.rewards._buy_replacement_slot()
+	assert(app.run_domain.state == unified_result)
+	# The reward picker shows the fifth price and Lv7 gate before purchase.
+	app.run_domain.state.phase = "reward"
+	app.run_domain.state.rewardOptions = ["criticalChance","damageAmplifier","multipleProjectiles"]
+	app.run_domain.state.progression.researchLevels = {"linkExpansionOne":1,"linkExpansionTwo":1}
+	app.run_domain.state.progression.clearedStageNumbers = [20,30]
+	app.run_domain.state.turrets[0].slotLimit = 4
+	app.run_domain.state.turrets[0].equippedGemSlots = ["attackSpeed","range","physicalDamage","lightWeapon"]
+	app.run_domain.state.turrets[0].level = 6
+	hud.rewards.pending_gem = "criticalChance"; hud.rewards.replacement_id = int(app.run_domain.state.turrets[0].id)
+	hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+	assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)
+	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.7 필요")
+	var fifth_cost: int = app.run_domain.growth.data.turretRules.arrow.linkUpgradeCosts[3]
+	assert(hud.overlay_body.find_child("SlotPrice",true,false).get_node("Amount").text == HudNumber.compact_integer(fifth_cost))
+	app.run_domain.state.turrets[0].level = 7; hud.rewards.key = ""; hud.refresh()
+	assert(not hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)
+	app.run_domain.state = unified_result.duplicate(true)
+	# Six unlocked sockets are a display fixture; progression rules remain unchanged.
+	app.run_domain.state.phase = "reward"
+	app.run_domain.state.turrets[0].slotLimit = 6
+	app.run_domain.state.turrets[0].equippedGemSlots = ["attackSpeed","physicalDamage","criticalChance","lightWeapon","damageAmplifier","multipleProjectiles"]
+	hud.rewards.pending_gem = "range"; hud.rewards.replacement_id = int(app.run_domain.state.turrets[0].id)
+	hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+	_assert_socket_assets(hud.overlay_body,6)
+	assert(hud.overlay_body.find_child("ReplacementSockets",true,false).get_child_count() == 2)
+	before_choice = app.run_domain.state.duplicate(true)
+	hud.rewards._select_replacement_slot(5)
+	assert(hud.rewards.replacement_slot == 5 and app.run_domain.state == before_choice)
+	assert(not _confirm_button(hud.overlay_body).disabled)
+	assert(_asset_names(hud.overlay_body).count("gem_socket_selected.png") == 1)
+	await _assert_replacement_layout(hud,app)
+	_assert_invalidated_purchase(hud,app)
+	await _assert_owned_gem_layout(hud,app)
+	await _assert_reward_selection_layout(hud,app)
+	for phase in ["success","failure"]:
+		app.run_domain.state.phase = phase; hud.refresh()
+		assert(hud.overlay.visible and hud.blocks_board_input())
+		assert(bounds == hud.battlefield_rect())
+	await _assert_large_number_summaries(hud,app)
+	print("PASS battle rewards: target equip, preview-only replacement selection, confirmed slot/inventory, back/reset, store, results, stable camera")
+	hud.queue_free(); app.queue_free(); await process_frame; quit()
+
+func _confirm_button(node: Node) -> Button:
+	return node.find_child("ReplacementConfirm",true,false) as Button
+
+func _asset_names(node: Node) -> Array[String]:
+	var result: Array[String] = []
+	if node is Button and node.icon != null: result.append(node.icon.resource_path.get_file())
+	if node is TextureRect and node.texture != null: result.append(node.texture.resource_path.get_file())
+	for child in node.get_children(): result.append_array(_asset_names(child))
+	return result
+
+func _assert_socket_assets(node: Node, occupied: int) -> void:
+	var sockets: Node = node.find_child("ReplacementSockets",true,false)
+	var names := _asset_names(sockets)
+	# The add-slot choice is the next socket of the same row, not a separate option.
+	var adding: Button = sockets.find_child("ReplacementAddSlot",true,false)
+	var total := occupied+(1 if adding != null else 0)
+	assert(names.count("gem_socket_empty.png") == total)
+	assert(names.count("gem_socket_locked.png") == 0)
+	assert(names.count("gem_link_active.png")+names.count("gem_link_locked.png") == total-int(ceil(total/3.0)))
+	if adding != null: assert(adding.find_child("AddSlotPlus",true,false) != null and node.find_child("OwnedGold",true,false) == null)
+	_assert_socket_targets(sockets)
+
+func _assert_socket_targets(node: Node) -> void:
+	if node is TextureRect and node.texture != null and node.texture.resource_path.get_file().begins_with("gem_socket_"):
+		var target := node.get_parent() as Button
+		assert(target != null and target.custom_minimum_size.x >= 52 and target.custom_minimum_size.y >= 52)
+	for child in node.get_children(): _assert_socket_targets(child)
+
+func _assert_owned_gem_layout(hud, app) -> void:
+	var original_size := root.size
+	var original_scale := root.content_scale_size
+	app.run_domain.state.phase = "reward"
+	app.run_domain.state.isPurchasedGemReward = false
+	app.run_domain.state.completedRounds = 15
+	app.run_domain.state.rewardOptions = ["lightWeapon","criticalChance","damageOverTime"]
+	app.run_domain.state.turrets = []
+	hud.rewards.pending_gem = ""
+	hud.rewards.replacement_id = -1
+	for width in [440,320]:
+		root.size = Vector2i(width,900)
+		root.content_scale_size = Vector2i(width,900)
+		for many in [false,true]:
+			app.run_domain.state.gemInventory = {"attackSpeed":1,"chain":1}
+			if many:
+				for type in app.run_domain.growth.data.gems: app.run_domain.state.gemInventory[type] = 12
+			hud.rewards.key = ""; hud.refresh()
+			for i in range(12): await process_frame
+			var chips: HFlowContainer
+			for child in hud.overlay_body.get_children():
+				if child is HFlowContainer: chips = child
+			assert(chips != null)
+			var capture_dir := OS.get_environment("REWARD_LAYOUT_CAPTURES")
+			if not capture_dir.is_empty() and DisplayServer.get_name() != "headless":
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png(capture_dir.path_join("owned-%d-%s.png" % [width,"many" if many else "two"]))
+			for chip in chips.get_children():
+				var label: Label = chip.get_child(1)
+				assert(label.get_line_count() == 1,"Owned gem name/count must stay on one line")
+				assert(label.size.x+0.5 >= label.get_minimum_size().x,"Owned gem label must retain full text width")
+				assert(chip.position.x+chip.size.x <= chips.size.x+0.5,"Owned gem entries must flow within modal width")
+	root.size = original_size; root.content_scale_size = original_scale
+	hud.rewards.key = ""; hud.refresh()
+	for i in range(12): await process_frame
+	print("PASS owned gem labels: two/all gems with quantities, one-line entries at 320/440")
+
+func _button_text(node: Node,prefix: String) -> Button:
+	for button in node.find_children("*","Button",true,false):
+		if button.text.begins_with(prefix): return button
+	return null
+
+func _record_reward_rects(hud) -> Array[Rect2]:
+	var history: Array[Rect2] = []
+	for frame in range(12):
+		await process_frame
+		if hud.overlay.visible: history.append(hud.overlay.get_global_rect())
+	return history
+
+func _assert_no_reward_overshoot(history: Array[Rect2],before: Rect2,after: Rect2) -> void:
+	for bounds in history:
+		assert(bounds == before or bounds == after,"Reward frame must fit once without a temporary larger or smaller rectangle: "+str(bounds)+" before="+str(before)+" after="+str(after))
+
+func _assert_reward_selection_layout(hud,app) -> void:
+	var original_size := root.size
+	var original_scale := root.content_scale_size
+	for width in [440,320]:
+		root.size = Vector2i(width,760); root.content_scale_size = root.size
+		for purchased in [false,true]:
+			var state: Dictionary = app.run_domain.state
+			state.phase = "reward"; state.isPurchasedGemReward = purchased
+			state.rewardReturnPhase = "preparation" if purchased else null
+			state.completedRounds = 5
+			state.economyRunId = "00000000-0000-4000-8000-000000000123"
+			state.gemOfferId = "00000000-0000-4000-8000-000000000125" if purchased else "00000000-0000-4000-8000-000000000124"
+			state.gemOfferRevision = 1
+			state.gemOfferStatus = "pending"
+			state.rewardOptions = ["damageOverTime","multipleProjectiles","chain"]
+			# This matrix measures steady-state frame fitting. Entrance timing has its
+			# own regression; mark the fixture identity consumed before first layout.
+			var entrance = hud.rewards.gem_entrance
+			entrance.cancel()
+			entrance._seen[JSON.stringify([str(state.economyRunId),app.stage,int(state.completedRounds)])] = true
+			for type in app.run_domain.growth.data.gems: state.gemInventory[type] = 12
+			hud.rewards.pending_gem = ""; hud.rewards.replacement_id = -1; hud.rewards.shard_selected = false
+			hud.rewards.key = ""; hud.refresh(); await _record_reward_rects(hud)
+			# Isolate steady-state selection layout from the separately tested entrance.
+			if hud.rewards.gem_entrance.active:
+				hud.rewards.gem_entrance._apply(1.0)
+				await _record_reward_rects(hud)
+			var initial: Rect2 = hud.overlay.get_global_rect()
+			var before_state: Dictionary = state.duplicate(true)
+			var expanded := initial
+			if not purchased:
+				var shard: Button = _button_text(hud.overlay_body,"젬 대신")
+				shard.pressed.emit()
+				var history: Array[Rect2] = await _record_reward_rects(hud)
+				expanded = hud.overlay.get_global_rect()
+				_assert_no_reward_overshoot(history,initial,expanded)
+				_button_text(hud.overlay_body,"젬 대신").pressed.emit()
+				_assert_no_reward_overshoot(await _record_reward_rects(hud),expanded,expanded)
+			else: assert(_button_text(hud.overlay_body,"젬 대신") == null)
+			for option_index in [0,2]:
+				# The only direct Buttons in the card row are the gem choices.
+				var row: HBoxContainer
+				for child in hud.overlay_body.get_children():
+					if child is HBoxContainer: row = child; break
+				(row.get_child(option_index) as Button).pressed.emit(); await _record_reward_rects(hud)
+				assert(hud.rewards.targeting() and not hud.overlay.visible)
+				assert(hud.rewards.close_back())
+				var history: Array[Rect2] = await _record_reward_rects(hud)
+				_assert_no_reward_overshoot(history,expanded,initial)
+				assert(hud.overlay.get_global_rect() == initial,"Returning to the same options keeps the fitted frame")
+				expanded = initial
+			assert(app.run_domain.state == before_state,"Choice previews must not settle or alter balances")
+			if not purchased:
+				_button_text(hud.overlay_body,"젬 대신").pressed.emit(); await _record_reward_rects(hud)
+				var shards: int = state.gemShards
+				_button_text(hud.overlay_body,"젬 파편 받기").pressed.emit()
+				assert(app.run_domain.state.phase == "preparation")
+				assert(int(app.run_domain.state.gemShards) == shards+int(app.run_domain.growth.data.constants.gemShardRewardFallbackAmount))
+			else:
+				hud.rewards._settle({"kind":"chooseRewardGem","type":"damageOverTime"})
+				assert(app.run_domain.state.phase == "preparation" and int(app.run_domain.state.gemInventory.damageOverTime) == 13)
+			print("PASS reward selection frame width=",width," purchased=",purchased," initial=",initial)
+	root.size = original_size; root.content_scale_size = original_scale
+	hud.rewards.key = ""; hud.refresh()
+
+func _assert_replacement_layout(hud,app) -> void:
+	var original_size := root.size
+	var original_scale := root.content_scale_size
+	var before: Dictionary = app.run_domain.state.duplicate(true)
+	for width in [440,320]:
+		root.size = Vector2i(width,760); root.content_scale_size = root.size
+		# Viewport scaling changes become visible on the following frame.
+		await process_frame
+		for count in [1,3,6]:
+			var state: Dictionary = app.run_domain.state
+			var turret: Dictionary = state.turrets[0]
+			turret.level = 7; turret.slotLimit = count
+			turret.equippedGemSlots = ["attackSpeed","physicalDamage","criticalChance","lightWeapon","damageAmplifier","multipleProjectiles"].slice(0,count)
+			turret.equippedGems = turret.equippedGemSlots.duplicate()
+			state.phase = "reward"; state.gold = 10000
+			hud.rewards.pending_gem = "range"; hud.rewards.replacement_id = int(turret.id)
+			hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+			await _record_reward_rects(hud)
+			var frame: Rect2 = hud.overlay.get_global_rect()
+			var footer: Rect2 = _confirm_button(hud.overlay_body).get_global_rect()
+			var original: Dictionary = state.duplicate(true)
+			var maximum: int = app.run_domain.service.derived(state).get("maxTurretLinkSlots",3)
+			assert(hud.overlay_body.find_child("ReplacementCapacity",true,false).text == "장착 %d개 · 최대 %d개" % [count,maximum])
+			assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false) != null if count < maximum else hud.overlay_body.find_child("ReplacementAddSlot",true,false) == null)
+			assert(_asset_names(hud.overlay_body).count("gold.png") == (1 if count < maximum else 0))
+			assert(hud.overlay_body.find_child("ReplacementGuide",true,false).text == ("교체할 젬이나 새 슬롯을 선택하세요." if count < maximum else "교체할 젬을 선택하세요."))
+			assert(_confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text == "장착")
+			for slot in count:
+				assert(hud.overlay_body.find_child("SlotEffect%d" % slot,true,false).text == hud.rewards._replacement_effect(str(turret.equippedGemSlots[slot]),turret))
+			for choice in [0,count-1,count]:
+				hud.rewards._select_replacement_slot(choice)
+				await _record_reward_rects(hud)
+				assert(state == original,"Replacement choices only preview")
+				assert(hud.overlay.get_global_rect() == frame,"Replacement selection must keep modal height and position: width=%d count=%d choice=%d before=%s after=%s" % [width,count,choice,frame,hud.overlay.get_global_rect()])
+				assert(_confirm_button(hud.overlay_body).get_global_rect() == footer,"Replacement selection must keep footer stable")
+				_assert_replacement_content(hud.overlay_body,frame)
+				var guide: String = hud.overlay_body.find_child("ReplacementGuide",true,false).text
+				var caption: String = _confirm_button(hud.overlay_body).find_child("ConfirmCaption",true,false).text
+				if choice < count:
+					var leaving: String = hud.gem_name(str(turret.equippedGemSlots[choice]))
+					var target: Button = hud.overlay_body.find_child("Slot%d" % choice,true,false)
+					assert(target.find_child("ReplacedGemBadge",true,false) != null and target.find_child("IncomingPreview",true,false).texture.resource_path.ends_with("/range.png"))
+					assert(hud.overlay_body.find_child("SlotName%d" % choice,true,false).text == "%s → %s" % [leaving,hud.gem_name("range")])
+					assert(guide.begins_with(leaving) and guide.ends_with(" 보관함으로 돌아갑니다.") and caption == "교체")
+				elif count < maximum:
+					var preview: TextureRect = hud.overlay_body.find_child("ReplacementAddSlot",true,false).find_child("IncomingPreview",true,false)
+					assert(preview != null and preview.modulate.a < 1.0 and guide == "기존 젬은 그대로 유지됩니다." and caption == "슬롯 추가 후 장착 ·")
+			print("PASS replacement layout width=",width," count=",count," frame=",frame," footer=",footer)
+	app.run_domain.state = before
+	root.size = original_size; root.content_scale_size = original_scale
+	hud.rewards.key = ""; hud.refresh()
+	await _record_reward_rects(hud)
+
+func _assert_replacement_content(node: Node,frame: Rect2) -> void:
+	if node is Label:
+		assert(not node.text.contains(" G") and not node.text.contains(" g"),"Gold units use the existing PNG")
+		assert(not node.text.contains("남음") and not node.text.contains("효과 제거"),"Do not restore the removed explanation band")
+		assert(node.get_global_rect().position.x >= frame.position.x-0.5)
+		assert(node.get_global_rect().end.x <= frame.end.x+0.5,"Replacement content fits 320/440 width: "+node.text)
+	for child in node.get_children(): _assert_replacement_content(child,frame)
+
+func _assert_invalidated_purchase(hud,app) -> void:
+	var original: Dictionary = app.run_domain.state.duplicate(true)
+	var state: Dictionary = original.duplicate(true)
+	var turret: Dictionary = state.turrets[0]
+	state.phase = "reward"; state.gold = 10000
+	state.progression.grandfatherUnlocks = ["research:linkExpansionOne"]
+	state.progression.researchLevels = {"linkExpansionOne":1}
+	turret.level = 7; turret.slotLimit = 3
+	turret.equippedGemSlots = ["attackSpeed","physicalDamage","criticalChance"]
+	turret.equippedGems = turret.equippedGemSlots.duplicate()
+	var cost: int = app.run_domain.service.quotes(state,int(turret.id)).link
+	assert(cost > 0)
+	for reason in ["gold","level","research"]:
+		app.run_domain.state = state.duplicate(true)
+		hud.rewards.pending_gem = "range"; hud.rewards.replacement_id = int(turret.id)
+		hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
+		hud.rewards._select_replacement_slot(3)
+		assert(not _confirm_button(hud.overlay_body).disabled)
+		match reason:
+			"gold": app.run_domain.state.gold = cost-1
+			"level": app.run_domain.state.turrets[0].level = 4
+			"research": app.run_domain.state.progression.researchLevels = {}
+		hud.rewards.key = ""; hud.refresh()
+		assert(_confirm_button(hud.overlay_body).disabled,"Invalid purchase preview must disable confirm: "+reason)
+		if reason == "gold":
+			var add: Button = hud.overlay_body.find_child("ReplacementAddSlot",true,false)
+			assert(add.disabled and hud.overlay_body.find_child("AddSlotDescription",true,false).text == "골드 부족")
+		var invalid: Dictionary = app.run_domain.state.duplicate(true)
+		hud.rewards._confirm_replacement()
+		assert(app.run_domain.state == invalid,"Invalid confirmation must not mutate the reward: "+reason)
+	app.run_domain.state = original
+	print("PASS invalidated reward purchase: gold, level and research changes disable confirmation")
+
+func _assert_large_number_summaries(hud,app) -> void:
+	for width in [320,440]:
+		root.size = Vector2i(width,900); root.content_scale_size = root.size
+		var parent := VBoxContainer.new(); root.add_child(parent)
+		var money: HBoxContainer = hud.rewards._replacement_money(parent,"필요",12500,"QuotedMoney",12)
+		assert(money.get_node("Amount").text == "12.5K")
+		assert(money.get_node("Amount").tooltip_text == "12500")
+		parent.queue_free()
+		app.run_domain.state.phase = "success"
+		app.run_domain.state.progression.lastRunRuneReward = 18225
+		app.run_domain.state.progression.runes = 11092
+		var before: Dictionary = app.run_domain.state.duplicate(true)
+		hud.rewards.key = ""; hud.refresh()
+		for frame in range(5): await process_frame
+		var amount: Label = hud.overlay_body.find_child("lastRunRuneReward",true,false).get_node("RewardAmount")
+		assert(amount.text == "+18.2K" and amount.tooltip_text == "+18225")
+		var wallet: Label = hud.overlay_body.find_child("Record3",true,false).get_node("Value")
+		assert(wallet.text == "11.1K" and wallet.tooltip_text == "11092")
+		assert(app.run_domain.state == before,"Result formatting must preserve settlement values")

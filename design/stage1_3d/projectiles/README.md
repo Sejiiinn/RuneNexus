@@ -41,6 +41,6 @@
 
 ## 확인 기록
 
-- 자동 검사: [verify_projectiles.gd](../../../godot/verify_projectiles.gd)가 구형 규격·불투명 재질 공유·실제 비행/명중점·짧은 꼬리·종료와 재사용·기존 화살 경로를 검사한다. headless dummy 렌더러에서는 불티 MultiMesh의 GPU transform을 읽을 수 없어 해당 항목의 자동 수치 검사는 실제 렌더러 실행 시에만 수행된다. 최종 headless 결과는 0 failures다.
+- 자동 검사: [verify_projectiles.gd](../../../godot/tests/verify_projectiles.gd)가 구형 규격·불투명 재질 공유·실제 비행/명중점·짧은 꼬리·종료와 재사용·기존 화살 경로를 검사한다. headless dummy 렌더러에서는 불티 MultiMesh의 GPU transform을 읽을 수 없어 해당 항목의 자동 수치 검사는 실제 렌더러 실행 시에만 수행된다. 최종 headless 결과는 0 failures다.
 - 실제 게임 시각 검증: Android 에뮬레이터의 정상 `lib/main.dart` 앱, 메모리 저장소의 스테이지 2에서 실제 대포 사격으로 확인했다. [고정 시점 확대](verification/android-angled-zoom.png)·[드론 시점 확대](verification/android-drone-zoom.png)는 게임 줌 2.1배에서 비행 중 순간을 디버거로 정지한 캡처다. 둥근 어두운 금속 몸체와 뒤쪽의 짧은 주황 불꽃·회색 연기가 분리되어 보이며, 긴 예광은 없다. 초기 흰 탄체 문제는 COLOR_0 사용 플래그 누락으로 확인해 수정했고 해당 회귀 검사도 통과했다. [기본 크기 캡처](verification/android-angled-normal.png)에서도 탄체가 구분되며, [1배속 전투 영상](verification/android-gameplay-1x.mp4)의 실제 사격·명중·효과 소멸도 확인했다. 최종 실행 로그에 스크립트/셰이더 오류가 없었다. 프레임 성능 벤치마크는 수행하지 않았다. 사용자의 영구 저장 데이터는 수정하지 않았으며 검증 후 정상 앱으로 복원했다.
 - 패키지 측정: 동일 환경의 직전 디버그 APK 497,014,398바이트 → 최종 497,536,194바이트(+521,796바이트, 약 0.50MiB). PCK는 74,365,128 → 74,886,924바이트. 구형 GLB 566,092바이트(내장 512 노멀 포함)와 비행 효과가 증가 원인이다. APK에 GLB의 Flutter 중복 복사나 Blender 원본·생성 Python이 들어가지 않고 `assets/rune_nexus.pck` 한 경로로 포함됨을 ZIP 목록에서 확인했다. 공개 배포는 하지 않았으며 이 비교는 공개 release APK 간 비교가 아니다.

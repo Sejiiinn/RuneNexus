@@ -3,7 +3,7 @@
 
 run_godot_native_regressions.py owns the asset-free contract cases, and
 verify_godot_{account,app}_services.py own the service cases. This runner covers
-the remaining godot/verify_*.gd scripts against build/godot/project after
+the remaining godot/tests/verify_*.gd scripts against build/godot/project after
 scripts/prepare_godot_project.py. Every case gets its own HOME/TMPDIR, so user
 play saves and other work are untouched.
 """
@@ -185,7 +185,7 @@ def run_case(executable: str, name: str, marker: str, options: dict, work: Path)
     environment = {**os.environ, "HOME": str(home), "TMPDIR": str(home),
                    **{key: expand(value) for key, value in options.get("env", {}).items()}}
     command = [executable] + ([] if options.get("renderer") else ["--headless"])
-    command += ["--path", str(PROJECT), "--script", f"res://{name}"]
+    command += ["--path", str(PROJECT), "--script", f"res://tests/{name}"]
     for step in options.get("steps", [options.get("args", [])]):
         arguments = ["--", *map(expand, step)] if step else []
         try:
@@ -211,10 +211,10 @@ def run_case(executable: str, name: str, marker: str, options: dict, work: Path)
 
 
 def validate_project() -> None:
-    covered = set(CASES) | {path.name for path in SOURCE.glob("verify_support_*.gd")}
+    covered = set(CASES) | {path.name for path in (SOURCE / "tests").glob("verify_support_*.gd")}
     for runner in (NATIVE_RUNNER, *SERVICE_RUNNERS):
         covered |= set(re.findall(r"verify_[a-z0-9_]+\.gd", runner.read_text()))
-    unassigned = sorted(path.name for path in SOURCE.glob("verify_*.gd") if path.name not in covered)
+    unassigned = sorted(path.name for path in (SOURCE / "tests").glob("verify_*.gd") if path.name not in covered)
     if unassigned:
         raise RuntimeError("verify scripts without a runner: " + ", ".join(unassigned))
     if not PROJECT.joinpath("project.godot").is_file():

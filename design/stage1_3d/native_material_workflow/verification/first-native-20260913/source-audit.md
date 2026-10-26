@@ -39,7 +39,7 @@ Blender 렌더 카메라는 Z-up `(1.7,-4.8,6.2)`에서 `(0,0,.22)`를 보는 �
 
 후속 검증은 공용 APK 빌드와 분리한 `build/godot/native-contract-test`에서 수행했다. 소스와 GLB를 복사하고 `.godot` 캐시·기존 `.import`를 제외해 Godot 4.7.2로 새로 임포트했다. 공용 `build/godot/project`, 원본 GLB, prepare/PCK 경로를 변경하지 않았다.
 
-[verify_native_contracts.gd](../../../../../godot/verify_native_contracts.gd)는 **6,540개 검사·실패 0개**로 종료했다. fresh import 로그 (`native-contract-fresh-import.log`, 로컬 자료), 실행 로그 (`native-contract-run.log`, 로컬 자료), 구조화 결과 (`native-contract-report.json`, 로컬 자료)를 보존했다.
+[verify_native_contracts.gd](../../../../../godot/tests/verify_native_contracts.gd)는 **6,540개 검사·실패 0개**로 종료했다. fresh import 로그 (`native-contract-fresh-import.log`, 로컬 자료), 실행 로그 (`native-contract-run.log`, 로컬 자료), 구조화 결과 (`native-contract-report.json`, 로컬 자료)를 보존했다.
 
 - 실제 임포트 재질 25개의 storage 속성 125~126개를 비교했다. 후보가 의도적으로 바꾸는 이름·내장 굴절 활성·굴절 scale·Albedo alpha 외의 값과 참조는 같았고, 원본은 후보 생성 전후 그대로였다. 이번 원본의 `refraction_scale` 기본값도 `.05`여서 실제 차이는 이름·alpha·refraction 활성 세 속성이었다.
 - 코어 `albedo_color`는 `(1,1,1,1)`, `vertex_color_use_as_albedo=true`, `vertex_color_is_srgb=false`였다. 임포트 `emission`의 sRGB 표현은 약 `(.0186,.1977,.2127)`로 GLB 선형 `(.00144,.0324,.0372)`와 표현 공간이 다르다. 후보는 이 임포트 값을 그대로 보존한다. 이 숫자 차이를 임의 색 보정의 근거로 사용하지 않는다.

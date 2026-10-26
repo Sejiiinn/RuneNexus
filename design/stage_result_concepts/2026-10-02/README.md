@@ -14,7 +14,7 @@
 
 ## 구현과 검증
 
-2026-10-04 결집 연출을 Godot 결과창에 적용했다. 실제 시간으로 진행도를 유지하여 정산 응답으로 본문이 재구성되어도 중간 동작을 이어가고, 같은 런의 화면 복귀에는 재생을 반복하지 않는다. 등장 전 숨은 행동의 입력을 막고 연출 완료·중단 시 원래 상태로 복원한다. Godot 4.7.2 / macOS Metal Forward Mobile의 격리 실제 App/HUD 실행과 별도 독립 검증으로 성공·실패, 440×900·320×680, 세 보상 열, 재시작·스테이지 이동, 정산 중 재구성·크기 변경, 전투 정지·배속과 독립적인 완료, HUD 제거를 확인했다. 유지 회귀 [등장 연출](../../../godot/verify_battle_result_entrance.gd), 기존 보상·교체 UI·정산·레이아웃 검사도 통과했다. 부모가 실제 연속 화면과 최종 화면을 직접 검토했으며 미해결 사항은 없다. 상세 로컬 근거는 `build/godot/result-animation-native-review/`에 보관한다. 이 연출 변경에 Android APK 빌드·배포는 포함하지 않았다.
+2026-10-04 결집 연출을 Godot 결과창에 적용했다. 실제 시간으로 진행도를 유지하여 정산 응답으로 본문이 재구성되어도 중간 동작을 이어가고, 같은 런의 화면 복귀에는 재생을 반복하지 않는다. 등장 전 숨은 행동의 입력을 막고 연출 완료·중단 시 원래 상태로 복원한다. Godot 4.7.2 / macOS Metal Forward Mobile의 격리 실제 App/HUD 실행과 별도 독립 검증으로 성공·실패, 440×900·320×680, 세 보상 열, 재시작·스테이지 이동, 정산 중 재구성·크기 변경, 전투 정지·배속과 독립적인 완료, HUD 제거를 확인했다. 유지 회귀 [등장 연출](../../../godot/tests/verify_battle_result_entrance.gd), 기존 보상·교체 UI·정산·레이아웃 검사도 통과했다. 부모가 실제 연속 화면과 최종 화면을 직접 검토했으며 미해결 사항은 없다. 상세 로컬 근거는 `build/godot/result-animation-native-review/`에 보관한다. 이 연출 변경에 Android APK 빌드·배포는 포함하지 않았다.
 
 승인 01의 중앙 상징·청동 외곽·청록 구획을 새 PNG 4개로 적용했다. [승리·첫 클리어 실제 화면](implementation/victory-first-clear-440x900.png) · [패배 실제 화면](implementation/failure-440x900.png). 편집 가능한 XCF와 생성 프롬프트는 `production/`에 보존하고, 게임에는 `assets/images/results/`의 최종 PNG만 연결했다.
 

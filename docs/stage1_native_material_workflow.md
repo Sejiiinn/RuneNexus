@@ -49,8 +49,8 @@
 
 ```sh
 python3 scripts/build_godot_pack.py
-"$GODOT_EXECUTABLE" --headless --path build/godot/project --script res://verify_runtime.gd
-"$GODOT_EXECUTABLE" --path build/godot/project --script res://verify_scene.gd -- --crystal-glass
+"$GODOT_EXECUTABLE" --headless --path build/godot/project --script res://tests/verify_runtime.gd
+"$GODOT_EXECUTABLE" --path build/godot/project --script res://tests/verify_scene.gd -- --crystal-glass
 ```
 
 변경 대상의 검사만 선택한다. 룬 포탑·화상은 위 연결 기록의 기존 검수를 사용한다. Android 실행은 [공용 빌드·본게임 연결](stage1_3d_preview.md)과 [인앱 검증](../.agents/in_app_test_guide.md), 시각 판정은 [디자인 기준](../DESIGNS.md)을 따른다. APK가 필요한 범위에서는 [용량 점검](android_apk_distribution.md#용량-점검)을 적용하며 배포는 승인된 범위에서 수행한다.

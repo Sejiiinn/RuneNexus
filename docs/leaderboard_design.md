@@ -94,7 +94,7 @@
 
 - 새 테이블은 migration 적용 시 비어 있다. 이미 완료된 정산은 기존 영수증 경로에서 반환하므로 소급 등록하지 않는다. 서버 코드 활성화 이후 새로 완료되는 정산부터 집계한다.
 - 당시 Flutter 조회는 기존 `OnlineAccountSessionController`의 인증 갱신을 재사용한다. 열린 모달은 서버 정산 성공 알림으로 다시 조회하고 계정이 바뀌면 이전 응답을 폐기한다.
-- 운영 화면에는 예시 데이터가 없다. 당시 디자인 검증 데이터는 제거된 Flutter 테스트 `test/leaderboard_dialog_test.dart`에만 있었으며 `design/leaderboard/implemented_preview.png`는 그 예시를 당시 위젯으로 렌더한 이미지다. 현재 Godot 화면 검사는 `godot/verify_leaderboard_ui.gd`다.
+- 운영 화면에는 예시 데이터가 없다. 당시 디자인 검증 데이터는 제거된 Flutter 테스트 `test/leaderboard_dialog_test.dart`에만 있었으며 `design/leaderboard/implemented_preview.png`는 그 예시를 당시 위젯으로 렌더한 이미지다. 현재 Godot 화면 검사는 `godot/tests/verify_leaderboard_ui.gd`다.
 - 초기 구현 시에는 운영 배포를 수행하지 않았다. 이후 배포 상태와 필요한 후속 migration은 [배포 인계](deployment_status.md)에서 관리한다. 신규 정산 코드는 migration `009_leaderboard_records.sql`을 서버 코드보다 먼저 적용한다. 기존 저장·경제 데이터를 재작성하지 않는다.
 - 서버 테스트는 격리 PostgreSQL에서 migration 001~009, 정산 원자성·재시도·순위 비교를 검증한다. 클라이언트는 API 오류·인증 만료·응답 경합·계정 전환·반응형·로비 연결을 검증한다.
 

@@ -66,7 +66,7 @@
 - 젬 소비와 서버: 서버 명령·DB migration을 추가하지 않았다. 덱 도전(세대 10 이상)은 저장마다 젬 소유를 검사하지 않고, 종료 때 `gemDeckLog`를 덱에 재생해 보유 젬을 대조한다. 그래서 코어 건설 때 `gemDeckLog`에 `{"kind":"consume","choice":젬}`을 남기고, 서버 재생은 이미 받은 젬에서 그만큼 뺀다([런 젬 덱](server_authoritative_economy_design.md#런-젬-덱-호환-세대-10)). 덱 없이 서버 젬 명령을 쓰는 도전은 저장마다 소유 합계를 검사하므로 코어를 지을 수 없다("이 도전에서는 지을 수 없습니다"). 게스트 런은 젬을 로컬에서만 소비한다.
 - 호환 세대 14: 이전 앱은 `supportCores`와 `consume` 기록을 버리므로, 둘 중 하나가 있는 저장은 세대 14 미만 요청을 `CLIENT_UPDATE_REQUIRED`로 거절한다.
 - 화면: 건설 목록 끝에 지원 코어(150 G)가 있다. 빈 건설 칸에서 고르면 효과·비용 안내와 "소비할 젬" 목록(가방 젬만, 개수 표시)이 나온다. 가장 많이 겹친 젬(같으면 포탑에 덜 장착한 젬)이 미리 골라져 있어, "설치 · 150 골드" 버튼이나 목록을 한 번 더 눌러 포탑처럼 바로 짓는다. 소비할 젬은 젬 줄에서 밝게(나머지는 흐리게) 보이고, 다른 젬을 눌러 바꾼다. 설치한 코어를 고르면 계열, "맞닿은 포탑 피해 +15%", "연결된 포탑 N기", 소비한 젬, "철거 · +112 G"와 확인 창(소비한 젬은 돌아오지 않음)이 나온다. 강화받는 포탑 상세의 분류 줄에 "연결 피해 +15%"를 표시한다.
-- 검증: `godot/verify_support_core.gd`(해금·건설·소비·인접/대각선·중첩·환급·저장 복원), 서버 `support_core_compatibility_test.go`·`gem_deck_test.go`. 실제 화면은 [게임 모델 기록](../design/support_core_concepts/game/README.md#실제-화면)에 있다. Android 실기기는 확인하지 않았다.
+- 검증: `godot/tests/verify_support_core.gd`(해금·건설·소비·인접/대각선·중첩·환급·저장 복원), 서버 `support_core_compatibility_test.go`·`gem_deck_test.go`. 실제 화면은 [게임 모델 기록](../design/support_core_concepts/game/README.md#실제-화면)에 있다. Android 실기기는 확인하지 않았다.
 
 ## 미정
 

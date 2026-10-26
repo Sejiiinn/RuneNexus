@@ -35,4 +35,4 @@ Godot 4.7.2, macOS에서 프로젝트·캐시·저장을 격리했다. 하위 �
 
 이 결과는 합성 입력의 이벤트 처리 CPU 비용이며 전체 FPS·GPU·Android 실기기 성능 향상을 의미하지 않는다. APK 빌드·설치·공개 배포는 수행하지 않았다.
 
-검사 진입점: [세션 컨트롤러](../../../godot/verify_session_controller.gd), [앱 수명주기](../../../godot/verify_app_lifecycle.gd), [이벤트 묶음](../../../godot/verify_event_batch.gd), [프로세스 재시작](../../../godot/verify_reward_quest_session.gd). 이벤트 검사에 격리한 `res://baseline/run_session.gd`를 제공하면 기존 구현 상태 대조와 CPU 비교도 실행한다.
+검사 진입점: [세션 컨트롤러](../../../godot/tests/verify_session_controller.gd), [앱 수명주기](../../../godot/tests/verify_app_lifecycle.gd), [이벤트 묶음](../../../godot/tests/verify_event_batch.gd), [프로세스 재시작](../../../godot/tests/verify_reward_quest_session.gd). 이벤트 검사에 격리한 `res://baseline/run_session.gd`를 제공하면 기존 구현 상태 대조와 CPU 비교도 실행한다.

@@ -23,7 +23,7 @@
 `fa5457d75b0218a707ae1f5f37aaa1962a7748f5537ad996563b3af0cfc6008e`.
 각 6종의 기본 치명타 확률에 맞춰 연구 보너스만 주입하여 실제 최종 합이
 0과 1의 직전·정확 경계·초과가 되도록 했다. 현재 비교는
-[verify_turret_stat_calculation.gd](../../godot/verify_turret_stat_calculation.gd)가
+[verify_turret_stat_calculation.gd](../../godot/tests/verify_turret_stat_calculation.gd)가
 네이티브 회귀 실행기에서 두 파일 합계 318개를 같은 허용 오차로 검사한다.
 
 젬 설정은 실제 저장 복원·장착 규칙을 거친다. `config.gems`의 불허 젬은

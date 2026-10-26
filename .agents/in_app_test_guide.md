@@ -26,7 +26,7 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --editor --p
 build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/project --resolution 440x900 -- --app
 ```
 
-`GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py`는 검사용 프로젝트에서 전투·런·저장·UI 회귀를 실행한다. 에셋·주 장면·렌더러가 필요한 나머지 `godot/verify_*.gd`는 프로젝트 준비 후 `python3 scripts/run_godot_project_checks.py`로 실행한다. 이 실행기는 사례 전에 편집기 가져오기를 직접 수행하므로 위 수동 가져오기 없이 실행해도 된다(최신 캐시면 약 2초). 위 가져오기 명령은 앱을 직접 띄울 때 필요하다. 어느 실행기에도 속하지 않은 검사 스크립트가 있으면 이 실행기가 실패한다. 콘텐츠 JSON은 `python3 scripts/verify_godot_content.py`로 확인한다. 헤드리스 통과는 실제 화면·터치나 기기 인증·저장 인계의 완료가 아니다.
+`GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py`는 검사용 프로젝트에서 전투·런·저장·UI 회귀를 실행한다. 에셋·주 장면·렌더러가 필요한 나머지 `godot/tests/verify_*.gd`는 프로젝트 준비 후 `python3 scripts/run_godot_project_checks.py`로 실행한다. 이 실행기는 사례 전에 편집기 가져오기를 직접 수행하므로 위 수동 가져오기 없이 실행해도 된다(최신 캐시면 약 2초). 위 가져오기 명령은 앱을 직접 띄울 때 필요하다. 어느 실행기에도 속하지 않은 검사 스크립트가 있으면 이 실행기가 실패한다. 콘텐츠 JSON은 `python3 scripts/verify_godot_content.py`로 확인한다. 헤드리스 통과는 실제 화면·터치나 기기 인증·저장 인계의 완료가 아니다.
 
 ## Android 검수 앱과 정식 앱
 

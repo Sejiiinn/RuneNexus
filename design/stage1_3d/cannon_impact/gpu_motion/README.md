@@ -12,7 +12,7 @@
 
 ## 회귀 검사와 측정
 
-[검증 스크립트](../../../../godot/verify_impact_motion.gd)는 [seed fixture](../../../../test/fixtures/godot/impact_seed_1404.json)의 90개 입자 값을 GPU 데이터와 대조한다. fixture는 전환 전 실제 CPU 스크립트를 실행해 캡처했으며, 해당 baseline 파일은 HEAD `f9c0dc1`의 `godot/effects/godot_impact.gd`와 SHA-256 `8e0dc957b6d1a8568ecebad15a3a2888a0fec14f2a256ac9fcf9b86d2b7fab5c`가 같다. fixture는 배포 Godot 원본 밖에 둔다.
+[검증 스크립트](../../../../godot/tests/verify_impact_motion.gd)는 [seed fixture](../../../../test/fixtures/godot/impact_seed_1404.json)의 90개 입자 값을 GPU 데이터와 대조한다. fixture는 전환 전 실제 CPU 스크립트를 실행해 캡처했으며, 해당 baseline 파일은 HEAD `f9c0dc1`의 `godot/effects/godot_impact.gd`와 SHA-256 `8e0dc957b6d1a8568ecebad15a3a2888a0fec14f2a256ac9fcf9b86d2b7fab5c`가 같다. fixture는 배포 Godot 원본 밖에 둔다.
 
 Godot 4.7.2 headless에서 seed 데이터·정적 버퍼 불변·시계 정지·되감기·ID와 반경 변경·풀 재사용·카메라 갱신·동시 효과 격리·그룹 가시성·AABB 계약 검사가 통과했다. 실제 GPU vertex 출력, 개별 입자의 생존 표현과 조명은 이 검사로 확인하지 않는다.
 

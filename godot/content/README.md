@@ -119,7 +119,7 @@ Python 실행 소비자는 [저장 형식 코덱](../../scripts/content_runtime_
 ```sh
 python3 scripts/verify_godot_content.py
 GODOT_BIN=/path/to/godot
-"$GODOT_BIN" --headless --path godot --script res://verify_content_catalog.gd
+"$GODOT_BIN" --headless --path godot --script res://tests/verify_content_catalog.gd
 GODOT_BIN=/path/to/godot python3 scripts/run_godot_native_regressions.py
 ```
 

@@ -194,7 +194,7 @@ def manifest() -> dict[str, Path | bytes]:
     for name in FIXTURES:
         files[f"test/fixtures/{name}"] = ROOT / "test/fixtures" / name
     for name in (*SCRIPTS, *HELPERS):
-        files[f"godot/{name}"] = ROOT / "godot" / name
+        files[f"godot/tests/{name}"] = ROOT / "godot/tests" / name
     for relative in json.loads((ROOT / "godot/ui/assets.json").read_text()):
         path = Path(relative)
         if path.is_absolute() or ".." in path.parts:
@@ -305,7 +305,7 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
     home.mkdir(parents=True, exist_ok=True)
     try:
         process = subprocess.run([executable, "--headless", "--path", str(project),
-                                  "--script", f"res://{name}"],
+                                  "--script", f"res://tests/{name}"],
                                  env=isolated_environment(home, temporary / "tmp" / name.removesuffix(".gd")),
                                  text=True, errors="replace", capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:

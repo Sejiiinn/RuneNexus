@@ -572,7 +572,7 @@ hp
 
 직접 타격과 점화 폭발 등 순간 피해에는 기존 방어구 감쇄와 장갑 관통 젬 규칙을 유지한다. 화상 갱신·전이, 독 중첩, 설정된 지속시간과 피해 집계 방식도 유지한다.
 
-저장 스키마는 바꾸지 않는다. 화상 데이터의 `ignoreArmorReduction`은 장갑 관통 여부로 해석하며, `false`이거나 누락된 과거 저장의 화상은 50% 비율을 적용한다. 회귀 검증은 [적 상태 검사](../godot/verify_native_enemy_state.gd)의 보호 계위 순서·시간 간격·복원·전이 사례와 [런타임 검사](../godot/verify_native_combat_runtime.gd)의 화염 포탑 두 대 사례로 확인한다.
+저장 스키마는 바꾸지 않는다. 화상 데이터의 `ignoreArmorReduction`은 장갑 관통 여부로 해석하며, `false`이거나 누락된 과거 저장의 화상은 50% 비율을 적용한다. 회귀 검증은 [적 상태 검사](../godot/tests/verify_native_enemy_state.gd)의 보호 계위 순서·시간 간격·복원·전이 사례와 [런타임 검사](../godot/tests/verify_native_combat_runtime.gd)의 화염 포탑 두 대 사례로 확인한다.
 
 ### 지속피해의 만료 구간
 

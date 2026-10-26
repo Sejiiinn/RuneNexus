@@ -116,7 +116,7 @@ func TestFifthLinkResearchCompletionAndAcknowledgement(t *testing.T) {
 	}
 }
 
-// Shared with godot/verify_fifth_link.gd so both chain gates stay equivalent.
+// Shared with godot/tests/verify_fifth_link.gd so both chain gates stay equivalent.
 func TestResearchPrerequisiteSharedCases(t *testing.T) {
 	payload, err := os.ReadFile("../../../test/fixtures/research_prerequisite_cases.json")
 	if err != nil {

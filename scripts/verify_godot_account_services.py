@@ -49,8 +49,9 @@ def main():
             (project / folder).mkdir()
             for name in files:
                 shutil.copyfile(ROOT / "godot" / folder / name, project / folder / name)
-        shutil.copyfile(ROOT / "godot/verify_account_services.gd", project / "verify.gd")
-        shutil.copyfile(ROOT / "godot/verify_durable_record.gd", project / "verify_durable_record.gd")
+        (project / "tests").mkdir()
+        shutil.copyfile(ROOT / "godot/tests/verify_account_services.gd", project / "verify.gd")
+        shutil.copyfile(ROOT / "godot/tests/verify_durable_record.gd", project / "tests/verify_durable_record.gd")
         imported = subprocess.run([str(GODOT), "--headless", "--editor", "--path", str(project), "--quit"], env=environment, capture_output=True, text=True, timeout=60)
         if imported.returncode or ENGINE_ERROR.search(imported.stdout + imported.stderr):
             raise SystemExit(imported.stdout + imported.stderr)
@@ -58,7 +59,7 @@ def main():
             threading.Thread(target=server.serve_forever, daemon=True).start()
             env = dict(environment, RUNE_ACCOUNT_TEST_ROOT=str(project / "state"), RUNE_ACCOUNT_HASH_FIXTURE=str(ROOT / "test/fixtures/godot_account_payload_hashes.json"), RUNE_ACCOUNT_CODEC_FIXTURE=str(ROOT / "test/fixtures/godot_save_codec_expected.json"), RUNE_ACCOUNT_HTTP_FIXTURE=f"http://127.0.0.1:{server.server_port}")
             try:
-                for script in ("verify_durable_record.gd", "verify.gd"):
+                for script in ("tests/verify_durable_record.gd", "verify.gd"):
                     result = subprocess.run([str(GODOT), "--headless", "--path", str(project), "--script", script], env=env, capture_output=True, text=True, timeout=60)
                     print(result.stdout, end="")
                     print(result.stderr, end="")
