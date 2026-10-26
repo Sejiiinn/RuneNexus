@@ -27,8 +27,21 @@ static func for_stage(catalog, index: int, derived: Dictionary, restored_state: 
 	_add(paths, "res://assets/backgrounds/combat_space_nearby.res")
 	_add(paths, "res://assets/ui/turret_levels.png")
 	_add(paths, "res://assets/ui/death_silhouettes.png")
+	# Gem reward/inventory icons would otherwise load from disk on the wave-end
+	# frame that opens the reward modal. Icons are optional UI (missing ones show
+	# no texture), so an absent file must not block stage entry.
+	var gems: Array = derived.get("availableGemTypes", []).duplicate()
+	for gem in restored_state.get("gemInventory", {}):
+		if gem not in gems: gems.append(gem)
+	gems.sort()
+	for gem in gems: _add_existing(paths, "res://assets/app/gems/%s.png" % gem)
+	_add_existing(paths, "res://assets/app/ui/hud/icons/shard.png")
+	_add_existing(paths, "res://assets/app/ui/hud/icons/gem_reset_ticket.png")
 	return {"stage_id":catalog.stage_id(index),"enemy_types":enemies,"tower_types":towers,
 		"map":catalog.stage_map(index),"paths":paths}
 
 static func _add(paths: Array, path: String) -> void:
 	if path not in paths: paths.append(path)
+
+static func _add_existing(paths: Array, path: String) -> void:
+	if ResourceLoader.exists(path): _add(paths, path)
