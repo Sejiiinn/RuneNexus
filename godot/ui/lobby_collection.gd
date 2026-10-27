@@ -553,18 +553,21 @@ func _claim(parent: VBoxContainer, target: Dictionary = {}) -> void:
 	var modal = lobby.get("modal")
 	if not is_instance_valid(modal) or not modal.get_meta("quest_dialog",false): return
 	var visible_parent: VBoxContainer = lobby.get("modal_body")
+	var ok: bool = result.get("ok",false)
+	var key := str(target.get("questType", target.get("rewardType", "")))
 	if not is_instance_valid(current) or not current.is_inside_tree() or visible_parent != current:
+		# A dialog reopened while waiting still shows the gain, but not an old failure.
 		quest_notice = ""
 		quests(visible_parent)
+		if ok and period == requested_period: _show_claim_gain(visible_parent, key, before)
 		return
 	if period != requested_period:
 		quest_notice = ""
 		quests(current)
 		return
-	var ok: bool = result.get("ok",false)
 	quest_notice = "" if ok else "수령하지 못했습니다. 계정 및 저장에서 동기화 상태를 확인해 주세요."
 	quests(current)
-	if ok: _show_claim_gain(current, str(target.get("questType", target.get("rewardType", ""))), before)
+	if ok: _show_claim_gain(current, key, before)
 
 func _claim_wallet() -> Dictionary:
 	return {"diamonds":lobby.diamonds(), "tickets":int(lobby.progression().get("turretModules",{}).get("tickets",0))}
@@ -681,6 +684,9 @@ func _refresh_quests(view: Dictionary) -> void:
 		var same_account := _pending_claim_current()
 		busy = _claim_pending and same_account
 		if not same_account: quest_notice = ""
+	# Reopening the dialog mid-claim restores the server spinner over it.
+	var modal = lobby.get("modal")
+	if busy and is_instance_valid(modal) and modal.get_meta("quest_dialog",false): _show_claim_overlay()
 	view.notice.text = quest_notice
 	view.notice.visible = not quest_notice.is_empty()
 	view.clock_notice.visible = blocked

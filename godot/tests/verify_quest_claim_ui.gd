@@ -109,9 +109,23 @@ func run():
 	host.close_modal(true); host.open_quests(); await frames()
 	parent=host.modal_body
 	check(buttons(parent).filter(func(button):return button.text=="수령" and not button.disabled).is_empty(),"reopened same binding retains pending disable")
+	var reopened_overlay: Control = host.modal.get_node_or_null("ClaimOverlay")
+	check(reopened_overlay != null and reopened_overlay._active and "보상을 수령하는 중" in texts(reopened_overlay),"reopened dialog restores the pending spinner")
 	service.completed.emit({"ok":false,"code":"NETWORK_ERROR"}); await frames()
 	check(not buttons(parent).filter(func(button):return button.text=="수령" and not button.disabled).is_empty(),"reopened same binding unlocks after previous completion")
 	check(not "수령하지 못했습니다" in texts(parent),"closed dialog completion does not overwrite reopened dialog notice")
+	claim=buttons(parent).filter(func(button):return button.text=="수령" and not button.disabled)[0]
+	claim.pressed.emit(); await frames()
+	host.close_modal(true); host.open_quests(); await frames()
+	parent=host.modal_body
+	target = service.requests.back().target
+	if target.rewardType=="all_complete": app.progression_inputs.dailyQuestAllCompleteClaimed=true
+	elif target.rewardType=="attendance": app.progression_inputs.dailyAttendanceRewardClaimed=true
+	else: app.progression_inputs.claimedDailyQuestRewards.append(target.questType)
+	app.progression_inputs.freeDiamonds = int(app.progression_inputs.get("freeDiamonds",0)) + 20
+	service.completed.emit({"ok":true}); await frames()
+	var reopened_gain: Control = host.modal.get_node_or_null("ClaimGain")
+	check(reopened_gain != null and "+20" in texts(reopened_gain),"reopened dialog still shows the gained diamonds")
 	claim=buttons(parent).filter(func(button):return button.text=="수령" and not button.disabled)[0]
 	claim.pressed.emit(); await frames()
 	var old_service=service
