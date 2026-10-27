@@ -8,7 +8,7 @@
 
 ## 현재 미배포 변경
 
-없음. 마지막 공개 앱은 6057 / 0.2.28(`cfc87f07`, 선택 업데이트·최소 지원 코드6055), 운영 서버는 `53fb799d`·DB22다.
+없음. 마지막 공개 앱은 6057 / 0.2.28(`cfc87f07`, 선택 업데이트·최소 지원 코드6055), 운영 서버는 `f85a9037`·DB22다.
 
 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이와 Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
 
@@ -21,13 +21,14 @@
 - 공개 tag 대상 커밋·성공 CI, 내장 `clientBuild=android:cfc87f07…`, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산4개의 크기·SHA-256과 GitHub digest 일치를 확인했다(`apk_release.py publish`의 `public-verification.json`).
 - Android에서만 드러나는 변경(저장 마이그레이션·업데이트/패치 경로·네이티브 연동·터치·수명주기)이 없어 AVD 업데이트 설치 확인은 하지 않았다. 끊김 개선 수치는 데스크톱 실제 앱 측정이며 **Android 실기기·모바일 GPU에서의 개선, 앱 내 패치 다운로드 업데이트, 실제 Google 로그인·계정 동기화·운영 서버 연결 플레이는 미검증**이다. 포함 변경 중 사망 연출 예열·탱크 기준점·HUD 비용·계층 분할 일부는 Codex 독립 검증을 거쳤고, 배포 절차 자체의 독립 검증은 요청이 없어 수행하지 않았다.
 
-## 2026-10-26 서버·DB — `53fb799d` 반영 완료
+## 2026-10-27 서버 — `f85a9037` 반영 완료
 
-- [반영 스크립트](../scripts/server_release.py)로 처음 반영했다. 정확한 `53fb799d19b77bb77749704096bbf6011bff8fe8` 소스로 `rune-nexus-api:53fb799d`(image `sha256:8cb973e8714f5566de51debd3c2007d47ea4962e1ee0cc1ae862c85e474eb0a1`, revision label 일치)를 빌드했다. `prepare`에서 Go test/vet·전체 pgx 통합, 운영 DB 사본의 migration021·022(스키마20→22) 뒤 기존 33개 테이블의 기존 열 값 보존, 새 이미지 격리 기동의 공개 계약9조건을 통과했다. `rehearse-deploy`로 운영 DB 사본·현 API 설정의 격리 스택에서 정지·동결 백업 복원·마이그레이션·기동·HTTP9조건까지 통과했다.
-- 2026-10-26 13:23:39~13:23:52 KST에 API를 정지(DB 클라이언트0 확인)하고 동결 백업을 격리 복원해 행 지문이 같음을 확인한 뒤 운영 DB를 **스키마20→22**로 올렸다. 기존 열 값은 모두 보존됐다. 새 API는 healthy이며 loopback·공개 HTTPS의 상태 200·보호 경로401 18조건을 통과했다. 환경·mount·port·network·실행 설정과 PostgreSQL/Caddy/DuckDNS 컨테이너를 보존했다. 운영 계정 로그인·명령은 하지 않았다.
-- 반영 내용: 젬·포탑 식별자 형식 검사(021), 계정별 클라이언트 세대 하한(022), 세대 14(지원 코어) 수용, 콘텐츠 레지스트리 기반 서버 검증.
-- 세대 하한: DB migration022가 `save_writer_states.client_generation_floor`를 추가하고, 서버는 writer를 획득한 가장 높은 세대를 기록해 그보다 낮은 세대의 writer 획득·저장 PUT·writer를 확인하는 경제 명령·주간 보상을 업데이트 필요로 거부한다. 하한 검사는 잠금 후 영수증 재조회 뒤에 두어 하한 상승 자체가 이미 성공한 요청의 재시도를 막지 않게 한다([저장 스키마와 구버전 클라이언트](multi_device_save_sync_design.md#16-저장-스키마와-구버전-클라이언트)). 앱 변경은 없으며, 하한은 이번 반영 뒤 writer 획득부터 기록된다. 서버 Go test/vet, 격리 PostgreSQL18 전체 DB 통합 검사(전용 하한 사례와 잠금 대기 중 재시도 영수증 복구 경쟁 사례 포함)와 022 적용→롤백(21)→재적용을 통과했다. 021 롤백은 런 젬 행에 020 이후 콘텐츠가 있으면 거부되며, 이를 격리 DB에서 확인했다. Codex 독립 검증에서 지적된 claim 재조회 순서·배포 설명·021 롤백 결함을 반영했다. 같은 검증이 찾은 기존 결함(writer를 확인하는 경제 명령·주간 보상에서 writer 세대·세션 불일치 검사가 잠금 후 영수증 재조회보다 앞서, writer 교체 경쟁 중 재시도가 영수증 대신 409를 받을 수 있음)은 이번 변경 전부터 있었다. 서버 결과는 이미 반영되어 있고 writer를 잃은 기기는 재연결 때 서버 상태로 복구되며 동시 기기 경쟁에서만 발생해, 영향이 미미하다고 보고 사용자와 합의해 처리하지 않았다.
-- 동결 백업(`production-frozen-schema20.dump`, SHA-256 `8b211431fa69ada9817655151d32c7470978acaeb9812c9890ac932a68a3f390`)과 반영 기록은 Git 밖 `~/Library/Application Support/RuneNexus/operations/server-53fb799d-20261026T032849Z/`에 있다. 새 쓰기 뒤 구API/DB 자동 복귀는 하지 않는다. 실제 Google 계정 앱 E2E·독립 검증은 수행하지 않았다.
+- Go 툴체인·서버 의존성 보안 패치다. 정확한 `f85a90373e3a3669152f28dfadcbcdb906474c0f` 소스로 `rune-nexus-api:f85a9037`(image `sha256:f05182b060a4b14a1eb54140ee4aa5efdfaa22caa0b5f13fdc0daed44410d3b9`)을 빌드했다. 앱·저장·API 계약·DB 스키마 변경은 없다(`53fb799d` 이후 서버 쪽 다른 변경은 테스트 주석·fixture 설명의 검사 경로뿐).
+- 포함: Go 1.26.5→1.26.10(`go.mod` toolchain·API/마이그레이션 Dockerfile·Makefile·compose 빌드 인자), `golang.org/x/net` 0.61.0·`x/text` 0.43.0·`x/crypto` 0.58.0·`google.golang.org/grpc` 1.84.0, `google.golang.org/api` 0.309.0, `pgx/v5` 5.11.0. 패치 전 `govulncheck`에서 서버 코드가 호출하는 경로의 취약점(표준 라이브러리 HTTP/2·`net/http`·TLS 인증서, x/net HTTP/2, grpc, x/text)이 15건 있었고 패치 후 0건이다. 남은 미호출 1건(GO-2026-5932, 유지보수 종료된 `x/crypto/openpgp`)은 수정 버전이 없고 서버가 그 패키지를 포함하지 않는다. `cloud.google.com/go/auth`는 `google.golang.org/api` 0.309.0이 요구하는 의사 버전 `v0.24.1-0.20261001053825-dbc26066f70a`다.
+- 검사: `make -C server test`·`vet`(golang:1.26.10-alpine), 격리 DB 통합 검사79건(skip0), `prepare`의 Go test/vet·통합·운영 DB 사본 마이그레이션 사전 검사(스키마22→22, 33개 테이블)·격리 API9조건, `rehearse-deploy`의 정지·동결 백업 복원·HTTP9조건을 통과했다.
+- 2026-10-27 17:18:51~17:19:02 KST(약 11초)에 API를 정지하고 동결 백업을 격리 복원해 확인한 뒤 반영했다. 스키마는 22 그대로다. 새 API는 healthy이며 loopback·공개 HTTPS 각 9조건(상태 200·보호 경로401)을 통과했다. 환경·mount·port·network·실행 설정과 PostgreSQL/Caddy/DuckDNS 컨테이너를 보존했다. 운영 계정 로그인·명령은 하지 않았다.
+- 동결 백업(`production-frozen-schema22.dump`, SHA-256 `2b55ec83b70a9a55daf8d550296386c60034ae575f44b9f99989cebc1b383530`)과 반영 기록은 Git 밖 `~/Library/Application Support/RuneNexus/operations/server-f85a9037-20261027T081244Z/`에 있다. 이전 작업 폴더 `server-53fb799d-…`·`apk-6054-server-…`는 외장 보관소로 옮겼다.
+- Codex 독립 검증(변경 커밋 대상): 버전 일관성·모듈 정합성(`go mod verify`·`tidy` 무변경)·호환성(build/test/vet, Google ID token 검증 코드 동일, pgxpool 사용 API 유지)·auth 의사 버전 근거·문서 정확성 PASS, 결함 0건. 호출 경로 취약점 0건과 Docker 빌드는 검증 샌드박스의 네트워크·Docker 차단으로 **미확인**이며, 이 두 항목은 Claude의 `govulncheck`와 `prepare` 빌드로만 확인했다. **실제 Google 계정 로그인·앱 연결 E2E는 미검증**이다.
 
 ## 과거 배포 기록
 

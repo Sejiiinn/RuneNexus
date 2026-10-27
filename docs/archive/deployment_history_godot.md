@@ -2,6 +2,14 @@
 
 역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다. 본문의 `~/Library/Application Support/RuneNexus/operations/<폴더>` 근거는 2026-10-26부터 외장 `/Volumes/KIOXIA_MAC/RuneNexus/operations-archive/<폴더>`에 있다.
 
+## 2026-10-26 서버·DB — `53fb799d` 반영 완료
+
+- [반영 스크립트](../../scripts/server_release.py)로 처음 반영했다. 정확한 `53fb799d19b77bb77749704096bbf6011bff8fe8` 소스로 `rune-nexus-api:53fb799d`(image `sha256:8cb973e8714f5566de51debd3c2007d47ea4962e1ee0cc1ae862c85e474eb0a1`, revision label 일치)를 빌드했다. `prepare`에서 Go test/vet·전체 pgx 통합, 운영 DB 사본의 migration021·022(스키마20→22) 뒤 기존 33개 테이블의 기존 열 값 보존, 새 이미지 격리 기동의 공개 계약9조건을 통과했다. `rehearse-deploy`로 운영 DB 사본·현 API 설정의 격리 스택에서 정지·동결 백업 복원·마이그레이션·기동·HTTP9조건까지 통과했다.
+- 2026-10-26 13:23:39~13:23:52 KST에 API를 정지(DB 클라이언트0 확인)하고 동결 백업을 격리 복원해 행 지문이 같음을 확인한 뒤 운영 DB를 **스키마20→22**로 올렸다. 기존 열 값은 모두 보존됐다. 새 API는 healthy이며 loopback·공개 HTTPS의 상태 200·보호 경로401 18조건을 통과했다. 환경·mount·port·network·실행 설정과 PostgreSQL/Caddy/DuckDNS 컨테이너를 보존했다. 운영 계정 로그인·명령은 하지 않았다.
+- 반영 내용: 젬·포탑 식별자 형식 검사(021), 계정별 클라이언트 세대 하한(022), 세대 14(지원 코어) 수용, 콘텐츠 레지스트리 기반 서버 검증.
+- 세대 하한: DB migration022가 `save_writer_states.client_generation_floor`를 추가하고, 서버는 writer를 획득한 가장 높은 세대를 기록해 그보다 낮은 세대의 writer 획득·저장 PUT·writer를 확인하는 경제 명령·주간 보상을 업데이트 필요로 거부한다. 하한 검사는 잠금 후 영수증 재조회 뒤에 두어 하한 상승 자체가 이미 성공한 요청의 재시도를 막지 않게 한다([저장 스키마와 구버전 클라이언트](../multi_device_save_sync_design.md#16-저장-스키마와-구버전-클라이언트)). 앱 변경은 없으며, 하한은 이번 반영 뒤 writer 획득부터 기록된다. 서버 Go test/vet, 격리 PostgreSQL18 전체 DB 통합 검사(전용 하한 사례와 잠금 대기 중 재시도 영수증 복구 경쟁 사례 포함)와 022 적용→롤백(21)→재적용을 통과했다. 021 롤백은 런 젬 행에 020 이후 콘텐츠가 있으면 거부되며, 이를 격리 DB에서 확인했다. Codex 독립 검증에서 지적된 claim 재조회 순서·배포 설명·021 롤백 결함을 반영했다. 같은 검증이 찾은 기존 결함(writer를 확인하는 경제 명령·주간 보상에서 writer 세대·세션 불일치 검사가 잠금 후 영수증 재조회보다 앞서, writer 교체 경쟁 중 재시도가 영수증 대신 409를 받을 수 있음)은 이번 변경 전부터 있었다. 서버 결과는 이미 반영되어 있고 writer를 잃은 기기는 재연결 때 서버 상태로 복구되며 동시 기기 경쟁에서만 발생해, 영향이 미미하다고 보고 사용자와 합의해 처리하지 않았다.
+- 동결 백업(`production-frozen-schema20.dump`, SHA-256 `8b211431fa69ada9817655151d32c7470978acaeb9812c9890ac932a68a3f390`)과 반영 기록은 Git 밖 `~/Library/Application Support/RuneNexus/operations/server-53fb799d-20261026T032849Z/`에 있다. 새 쓰기 뒤 구API/DB 자동 복귀는 하지 않는다. 실제 Google 계정 앱 E2E·독립 검증은 수행하지 않았다.
+
 ## 2026-10-26 Android 0.2.27 / code 6056 — 공개 완료
 
 - APK 대상 `82aae9da7a0cf69a6a13157a083d14b1298d9fc9`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40269450886), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40273588260), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6056), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6056/rune-nexus.apk). 2026-10-26 05:34:57 UTC(14:34:57 KST)에 공개·최신 지정했다. **선택 업데이트·최소 지원 코드6055**이며 서버 `53fb799d`·DB22를 먼저 반영했다.
