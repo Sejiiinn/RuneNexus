@@ -36,7 +36,7 @@ services:
       context: ./server
       dockerfile: Dockerfile.migrate
       args:
-        GO_VERSION: 1.26.5
+        GO_VERSION: 1.26.10
         TERN_VERSION: 2.4.1
     environment:
       PGHOST: db
@@ -60,7 +60,7 @@ services:
       context: ./server
       dockerfile: Dockerfile
       args:
-        GO_VERSION: 1.26.5
+        GO_VERSION: 1.26.10
     init: true
     restart: unless-stopped
     environment:
