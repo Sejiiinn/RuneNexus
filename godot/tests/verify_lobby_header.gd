@@ -47,14 +47,18 @@ func run() -> void:
 				for i in range(5): await process_frame
 				var bounds := Rect2(Vector2.ZERO,Vector2(width,900))
 				if page == "스테이지":
-					# The stage map header: chapter switcher, wallet and settings, no back button.
+					# The stage map header: chapter switcher and wallet, no back button; settings sit in the bottom strip.
 					var wallet_box := lobby.find_child("HomeWallet",true,false) as Control
-					var parts := ["ChapterPrev","ChapterTitle","ChapterNext","ChapterRange","Settings"].map(func(id): return lobby.find_child(id,true,false) as Control)
+					var parts := ["ChapterPrev","ChapterTitle","ChapterNext","ChapterRange"].map(func(id): return lobby.find_child(id,true,false) as Control)
 					for part in parts + [wallet_box]:
 						assert(bounds.encloses(part.get_global_rect()),"Stage header overflow: %s %d long=%s"%[part.name,width,long_balance])
-					for part in parts:
-						if part.name != "Settings": assert(not wallet_box.get_global_rect().intersects(part.get_global_rect()),"Wallet overlaps %s"%part.name)
-					assert(not wallet_box.get_global_rect().intersects(parts[4].get_global_rect()),"Wallet and settings overlap")
+						if part != wallet_box: assert(not wallet_box.get_global_rect().intersects(part.get_global_rect()),"Wallet overlaps %s"%part.name)
+					var strip := (lobby.find_child("ShortcutStrip",true,false) as Control).get_global_rect()
+					for id in ["Leaderboard","Events","Mailbox","Settings"]:
+						var cell := lobby.find_child(id,true,false) as Control
+						assert(strip.grow(0.5).encloses(cell.get_global_rect()),"Shortcut outside the strip: %s %d"%[id,width])
+						for label in cell.find_children("*","Label",true,false):
+							assert(label.size.x+0.1 >= label.get_minimum_size().x,"Shortcut label clipped: %s %d"%[id,width])
 					for id in ["Diamonds","Runes"]:
 						var balance := wallet_box.find_child(id,true,false) as Label
 						assert(balance.size.x+0.1 >= balance.get_minimum_size().x,"Balance clipped")

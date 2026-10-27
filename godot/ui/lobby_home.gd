@@ -242,7 +242,7 @@ func _header(w: float, title_h: float, subtitle_h: float) -> void:
 	var title: String = lobby.stages.CHAPTERS[chapter - 1]
 	var wallet_w := maxf(88, 34 + _font(800).get_string_size(Numbers.compact_integer(maxi(lobby.diamonds(), int(lobby.progression().get("runes", 0)))), HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(11)).x + 10)
 	# The title gives way to the wallet; the next-chapter arrow always stays tappable.
-	var title_w := minf(_font(900).get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(20)).x + 4, w - 54 - wallet_w - 34 - 34)
+	var title_w := minf(_font(900).get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(20)).x + 4, w - 16 - wallet_w - 34 - 34)
 	_chapter_arrow("ChapterPrev", "‹", Rect2(4, 6, 30, title_h + 10), chapter - 1)
 	var heading := _label(canvas, title, Rect2(34, 12, title_w, title_h), 20, 900, PRIMARY)
 	heading.name = "ChapterTitle"
@@ -251,19 +251,19 @@ func _header(w: float, title_h: float, subtitle_h: float) -> void:
 	heading.size.x = title_w
 	_chapter_arrow("ChapterNext", "›", Rect2(34 + title_w, 6, 30, title_h + 10), chapter + 1)
 	var range_text := "챕터 %d · %d-1 – %d-10" % [chapter, chapter, chapter]
-	var range_w := minf(_font(700).get_string_size(range_text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(11)).x + 4, w - 54 - wallet_w - 39)
+	var range_w := minf(_font(700).get_string_size(range_text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(11)).x + 4, w - 16 - wallet_w - 39)
 	var subtitle := _label(canvas, range_text, Rect2(35, 12 + title_h + 2, range_w, subtitle_h), 11, 700, SECONDARY)
 	subtitle.name = "ChapterRange"
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_OFF
 	subtitle.clip_text = true
 	subtitle.size.x = maxf(0, range_w)
-	# Wallet on the resource frame, settings at the corner.
+	# Wallet on the resource frame at the corner; settings live in the shortcut strip.
 	var row_h := maxf(18, 15.0 * _font_size(11) / 11.0)
 	var wallet := Panel.new()
 	wallet.name = "HomeWallet"
 	wallet.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wallet.add_theme_stylebox_override("panel", Frame.new("ui/hud/resource_panel.png", 0))
-	wallet.position = Vector2(w - 54 - wallet_w, 12)
+	wallet.position = Vector2(w - 12 - wallet_w, 12)
 	wallet.size = Vector2(wallet_w, maxf(42, row_h * 2 + 6))
 	canvas.add_child(wallet)
 	var rows := [["res://assets/ui/diamond_currency.png", lobby.diamonds(), "Diamonds"], ["ui/hud/icons/rune.png", int(lobby.progression().get("runes", 0)), "Runes"]]
@@ -274,9 +274,6 @@ func _header(w: float, title_h: float, subtitle_h: float) -> void:
 		value.name = rows[i][2]
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		value.autowrap_mode = TextServer.AUTOWRAP_OFF
-	var settings := _button(canvas, "Settings", Rect2(w - 50, 11, 40, 40), open_settings)
-	settings.tooltip_text = "설정"
-	_image(settings, "lobby_settings_icon.png", Rect2(2, 2, 36, 36))
 
 func _chapter_arrow(id: String, glyph: String, rect: Rect2, target: int) -> void:
 	var enabled: bool = target >= 1 and target <= lobby.stages.CHAPTERS.size()
@@ -297,20 +294,37 @@ func _shortcuts(rect: Rect2) -> void:
 	strip.position = rect.position
 	strip.size = rect.size
 	canvas.add_child(strip)
-	var third := rect.size.x / 3
-	_shortcut(canvas, "Leaderboard", "리더보드", "lobby_leaderboard_icon.png", Rect2(rect.position.x, rect.position.y, third, rect.size.y), true, open_service.bind("리더보드"))
-	_shortcut(canvas, "Events", "이벤트", "lobby_event_icon.png", Rect2(rect.position.x + third, rect.position.y, third, rect.size.y), true, open_events)
-	_shortcut(canvas, "Mailbox", "우편함", "lobby_mailbox_icon.png", Rect2(rect.position.x + third * 2, rect.position.y, third, rect.size.y), true, open_service.bind("우편함"))
-	for i in [1, 2]:
+	# Each cell gets its icon and word plus an equal share of the spare width, so
+	# the longest word still fits on narrow phones.
+	var items := [
+		["Settings", "설정", "lobby_settings_icon.png", open_settings],
+		["Leaderboard", "리더보드", "lobby_leaderboard_icon.png", open_service.bind("리더보드")],
+		["Events", "이벤트", "lobby_event_icon.png", open_events],
+		["Mailbox", "우편함", "lobby_mailbox_icon.png", open_service.bind("우편함")],
+	]
+	var natural: Array[float] = []
+	var spare := rect.size.x
+	for item in items:
+		natural.append(_shortcut_width(item[1]))
+		spare -= natural[-1]
+	var x := rect.position.x
+	var cells := {}
+	for i in items.size():
+		var cell_w: float = natural[i] + spare / items.size()
+		cells[items[i][0]] = _shortcut(canvas, items[i][0], items[i][1], items[i][2], Rect2(x, rect.position.y, cell_w, rect.size.y), items[i][3])
+		x += cell_w
+		if i == items.size() - 1: continue
 		var line := ColorRect.new()
 		line.color = Color("7e929f40")
-		line.position = Vector2(rect.position.x + third * i, rect.position.y + 9)
+		line.position = Vector2(x, rect.position.y + 9)
 		line.size = Vector2(1, rect.size.y - 18)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		canvas.add_child(line)
+	var events: Button = cells["Events"]
+	var mailbox: Button = cells["Mailbox"]
 	# Keep both indicators so receipt updates do not rebuild home.
-	_alert_badge("QuestReadyDot", Vector2(rect.position.x + third + 26, rect.position.y + 6), _claimable())
-	_alert_badge("MailboxReadyDot", Vector2(rect.position.x + third * 2 + 26, rect.position.y + 6), _mail_claimable())
+	_alert_badge("QuestReadyDot", events.position + events.get_node("Icon").position + Vector2(18, -1), _claimable())
+	_alert_badge("MailboxReadyDot", mailbox.position + mailbox.get_node("Icon").position + Vector2(18, -1), _mail_claimable())
 
 func _alert_badge(id: String, at: Vector2, ready: bool) -> void:
 	var dot := Panel.new()
@@ -396,12 +410,18 @@ func _button(parent: Control, id: String, rect: Rect2, action: Callable) -> Butt
 	parent.add_child(button)
 	return button
 
-func _shortcut(parent: Control, id: String, text: String, asset: String, rect: Rect2, horizontal: bool, action: Callable, icon_size: float = 0) -> Button:
+func _shortcut_width(text: String) -> float:
+	return 24 + 6 + _font(700).get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(12)).x + 2
+
+## Icon and label centred together, so narrow strips keep the whole word.
+func _shortcut(parent: Control, id: String, text: String, asset: String, rect: Rect2, action: Callable) -> Button:
 	var button := _button(parent, id, rect, action)
 	button.tooltip_text = text
-	var icon := icon_size if icon_size > 0 else (24.0 if horizontal else 38.0)
-	_image(button, asset, Rect2(8 if horizontal else (rect.size.x - icon) / 2, (rect.size.y - icon) / 2 if horizontal else 5, icon, icon))
-	_label(button, text, Rect2(icon + 16 if horizontal else 3, 0 if horizontal else 47, rect.size.x - icon - 24 if horizontal else rect.size.x - 6, rect.size.y if horizontal else maxf(15, rect.size.y - 51.4)), 12, 700, SECONDARY if id == "Settings" else PRIMARY, not horizontal)
+	var icon := 24.0
+	var x := maxf(0, (rect.size.x - _shortcut_width(text)) / 2)
+	_image(button, asset, Rect2(x, (rect.size.y - icon) / 2, icon, icon)).name = "Icon"
+	var label := _label(button, text, Rect2(x + icon + 6, 0, maxf(0, rect.size.x - x - icon - 6), rect.size.y), 12, 700, PRIMARY)
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	return button
 
 func _surface(parent: Control, rect: Rect2, kind: String) -> void:
