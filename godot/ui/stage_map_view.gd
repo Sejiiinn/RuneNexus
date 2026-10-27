@@ -9,6 +9,7 @@ const Numbers = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const Effects = preload("res://ui/stage_map_effects.gd")
 const Stages = preload("res://ui/lobby_stages.gd")
+const StageCard = preload("res://ui/lobby_stage_card.gd")
 const SOURCE := Vector2(853, 1844)
 # Platform centres measured on the background art; index 9 is the rune gate.
 const SPOTS := {
@@ -17,6 +18,9 @@ const SPOTS := {
 	3: [Vector2(160,1355), Vector2(435,1160), Vector2(590,1000), Vector2(420,860), Vector2(680,725), Vector2(545,625), Vector2(375,505), Vector2(620,395), Vector2(490,310), Vector2(510,205)],
 }
 const GOLD := Color("e7c66a")
+const TEAL := Color("68fff0")
+# Visible ring centre of node_socket_gold.png, which sits right and below its canvas centre.
+const GOLD_SOCKET_CENTRE := Vector2(131, 130.5) / 256.0
 const WHITE := Color("e8f8ff")
 const MUTED := Color("7f93a1")
 const TAP_SLOP := 10.0
@@ -152,19 +156,23 @@ func refresh_nodes() -> void:
 			holder.add_child(halo)
 		var socket := _texture(holder, "stage_map/node_socket_gold.png" if state == "selected" else ("ui/components/gem_socket_selected.png" if state == "cleared" else "ui/components/gem_socket_empty.png"), Rect2(Vector2.ZERO, rect.size))
 		if state == "locked": socket.modulate = Color(0.55, 0.55, 0.6)
+		# Centre the gold ring, not its canvas, on the stage number.
+		if state == "selected": socket.position -= (GOLD_SOCKET_CENTRE - Vector2(0.5, 0.5)) * d
 		var number := _label(Progression.stage_label(id), 13 if state == "selected" else 11, GOLD if state == "selected" else (WHITE if open else MUTED))
 		number.name = "Number"
 		number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		number.size = rect.size
 		holder.add_child(number)
-		# One badge per first-clear unlock, only while it is still unclaimed.
-		if not stages.reward_highlighted(id):
-			var unlocks: Array = stages.unlock_items(id)
-			for b in mini(unlocks.size(), 3):
-				# The gate node sits under the header wallet, so its badges go left.
-				var at := c + (Vector2(-d / 2 - 18 - b * 21, -d / 2 - 6) if i == 9 else Vector2(d / 2 - 6 + b * 21, -d / 2 - 6))
-				_badge(unlocks[b], Rect2(at, Vector2(22, 22)), open, animated).name = "UnlockBadge%d_%d" % [id, b]
+		# One badge per first-clear unlock; obtained ones stay with a teal check.
+		var claimed: bool = stages.reward_highlighted(id)
+		var unlocks: Array = stages.unlock_items(id)
+		for b in mini(unlocks.size(), 3):
+			# The gate node sits under the header wallet, so its badges go left.
+			var at := c + (Vector2(-d / 2 - 18 - b * 21, -d / 2 - 6) if i == 9 else Vector2(d / 2 - 6 + b * 21, -d / 2 - 6))
+			var badge := _badge(unlocks[b], Rect2(at, Vector2(22, 22)), open, animated, claimed)
+			badge.name = "UnlockBadge%d_%d" % [id, b]
+			badge.set_meta("claimed", claimed)
 		if open and state != "selected":
 			_rune_amount(nodes, id, Rect2(c.x - 30, c.y + d / 2 - 1, 60, 14), 10)
 
@@ -191,12 +199,12 @@ func _label(value: String, px: int, color: Color, weight := 900) -> Label:
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
-func _badge(item: Array, rect: Rect2, bright: bool, animated: bool) -> Panel:
+func _badge(item: Array, rect: Rect2, bright: bool, animated: bool, claimed: bool) -> Panel:
 	var badge := Panel.new()
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color("0b1620f0")
-	box.border_color = Color(GOLD, 0.8 if bright else 0.3)
+	box.border_color = Color(TEAL, 0.75) if claimed else Color(GOLD, 0.8 if bright else 0.3)
 	box.set_border_width_all(1)
 	box.set_corner_radius_all(10)
 	badge.add_theme_stylebox_override("panel", box)
@@ -205,7 +213,14 @@ func _badge(item: Array, rect: Rect2, bright: bool, animated: bool) -> Panel:
 	nodes.add_child(badge)
 	var icon := _texture(badge, Stages.unlock_icon(item), Rect2(Vector2(3, 3), rect.size - Vector2(6, 6)))
 	icon.modulate = Color.WHITE if bright else Color(1, 1, 1, 0.45)
-	if bright and animated:
+	if claimed:
+		var check := StageCard.Check.new()
+		check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		check.position = rect.size - Vector2(8, 8)
+		check.size = Vector2(11, 11)
+		check.z_index = 1  # above the next badge, which overlaps this one's corner
+		badge.add_child(check)
+	elif bright and animated:
 		var shimmer := Effects.Shimmer.new()
 		shimmer.target = icon
 		shimmer.delay = randf() * 4.0

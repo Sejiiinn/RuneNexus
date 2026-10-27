@@ -113,9 +113,13 @@ func verify_map_and_card(ui, host) -> void:
 				assert(y >= gate_y - 20 and y <= base_y + 1, "Stage %s reachable at %s" % [Progression.stage_label(id), dimensions])
 			assert(map.map_scale.y >= map.map_scale.x * 0.85 - 0.001 and map.map_scale.y <= map.map_scale.x + 0.001, "Map art never squeezes past 85%")
 			var badges: int = 0
+			var claimed: int = 0
 			for id in ids:
-				if not ui.reward_highlighted(id): badges += mini(ui.unlock_items(id).size(), 3)
-			assert(map.nodes.find_children("UnlockBadge*", "Panel", true, false).size() == badges, "One badge per unclaimed first-clear unlock")
+				badges += mini(ui.unlock_items(id).size(), 3)
+				if ui.reward_highlighted(id): claimed += mini(ui.unlock_items(id).size(), 3)
+			var shown: Array = map.nodes.find_children("UnlockBadge*", "Panel", true, false)
+			assert(shown.size() == badges, "One badge per first-clear unlock, obtained or not")
+			assert(shown.filter(func(b): return b.get_meta("claimed") and b.get_child_count() == 2).size() == claimed, "Obtained unlocks keep their badge with a check")
 			# Tap selects; a stage tap reports its id.
 			var pressed: Array = []
 			map.stage_pressed.connect(func(id): pressed.append(id))
