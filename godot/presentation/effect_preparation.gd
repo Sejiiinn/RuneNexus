@@ -190,8 +190,19 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 		if not wreck.is_empty():
 			wreck.root.position = Vector3(1.0, 0.0, 0.0)
 			ShieldedDeath.sample(wreck, ShieldedDeath.BURSTS[0] + .05)
+		# Other corpses take the live kill path; their first draw otherwise stalls the first kill.
+		var corpse: Dictionary = units._guardian_preview.rehearse_death(kind)
+		var ages: Array = units._guardian_preview.rehearsal_ages(kind) if not corpse.is_empty() else []
+		if not corpse.is_empty():
+			corpse.root.position = Vector3(-1.0, 0.0, 0.0)
+			units._guardian_preview.sample_death(corpse, ages[0])
 		await _draw()
 		if not wreck.is_empty(): wreck.root.free()
+		for age: float in ages.slice(1):
+			if not _is_current(scene): break
+			units._guardian_preview.sample_death(corpse, age)
+			await _draw()
+		if not corpse.is_empty(): corpse.root.free()
 		if not _is_current(scene):
 			_dispose(scene, units, projectiles, viewport)
 			return false

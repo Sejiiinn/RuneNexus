@@ -361,22 +361,6 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		if enemy.is_empty(): continue
 		var kind: String = enemy.get("type", "normal")
 		if kind not in ["normal", "fast", "tank", "shielded"] and kind not in BOSS_KINDS: continue
-		if kind == "normal" and not prepare(): continue
-		if kind in BOSS_KINDS and _boss_scene == null:
-			_boss_scene = StageResources.load_resource(BOSS_PATH) as PackedScene
-			if _boss_scene == null:
-				failure.emit("보스 사망 GLB를 불러오지 못했습니다.")
-				continue
-		if kind == "tank" and _tank_death_scene == null:
-			_tank_death_scene = StageResources.load_resource(TANK_DEATH_PATH) as PackedScene
-			if _tank_death_scene == null:
-				failure.emit("탱커 사망 GLB를 불러오지 못했습니다.")
-				continue
-		if kind == "fast" and _fast_death_scene == null:
-			_fast_death_scene = StageResources.load_resource(FAST_DEATH_PATH) as PackedScene
-			if _fast_death_scene == null:
-				failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
-				continue
 		var offset: Vector2 = event.visualOffset if event.has("visualOffset") else runtime._visual_enemy_offset(enemy)
 		var point: Vector2 = (Vector2(float(event.x), float(event.y)) - runtime.origin + offset) / runtime.tile_size
 		if kind == "shielded":
@@ -392,9 +376,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 			wreck.born = time
 			deaths[id] = wreck
 			continue
-		var corpse := _tank_death_scene if kind == "tank" else (_fast_death_scene if kind == "fast" else _death_scene)
-		if kind in BOSS_KINDS: corpse = _boss_scene
-		var entry := _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else ("Death" if kind in ["normal", "tank"] else ""))
+		var entry := _new_death(kind)
 		if entry.is_empty(): continue
 		entry.root.position = Vector3(point.x - map_size.x / 2.0, 0.0, point.y - map_size.y / 2.0)
 		# Keep the last visible body direction if death interrupts a turn.
@@ -402,13 +384,9 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 		entry.root.rotation.y = walker.root.rotation.y if not walker.is_empty() and is_instance_valid(walker.root) else PI / 2.0 - float(enemy.facingAngle)
 		var scale_factor := visual_scale(kind)
 		entry.root.scale = Vector3.ONE * float(enemy.get("presentationScale", 0.48 if kind == "fast" else 0.55)) * scale_factor
-		if kind == "normal": NormalDeath.attach(entry)
-		if kind == "fast": HoundDeath.attach(entry)
-		if kind == "tank":
-			if not walker.is_empty() and is_instance_valid(walker.root):
-				entry.root.position = walker.root.position
-				entry.root.scale = walker.root.scale
-			TankDeath.attach(entry, walker)
+		if kind == "tank" and not walker.is_empty() and is_instance_valid(walker.root):
+			entry.root.position = walker.root.position
+			entry.root.scale = walker.root.scale
 		if kind in BOSS_KINDS:
 			if not walker.is_empty() and is_instance_valid(walker.root):
 				entry.root.scale = walker.root.scale
@@ -417,7 +395,7 @@ func observe_native(runtime, time: float, map_size: Vector2i) -> void:
 			# authoritative; never drag a corpse/light back to the old portal.
 			var changed_portal := not walker.is_empty() and int(walker.get("teleport_serial", 0)) != int(enemy.get("teleportSerial", 0))
 			if changed_portal: entry.root.rotation.y = PI / 2.0 - float(enemy.facingAngle)
-			BossDeath.attach(entry, walker)
+		_attach_death(entry, kind, walker)
 		entry.born = time
 		deaths[id] = entry
 	update_deaths(time)
@@ -427,34 +405,90 @@ func update_deaths(time: float) -> void:
 	for id in deaths.keys():
 		var entry: Dictionary = deaths[id]
 		var age := time - float(entry.born)
-		var duration := TankDeath.LIFETIME if entry.type == "tank" else (FAST_DEATH_SECONDS if entry.type == "fast" else NormalDeath.LIFETIME)
-		if entry.type in BOSS_KINDS: duration = BossDeath.LIFETIME
-		if entry.type == "shielded": duration = ShieldedDeath.LIFETIME
-		if age < 0.0 or age >= duration:
+		if age < 0.0 or age >= death_lifetime(entry.type):
 			entry.root.free()
 			deaths.erase(id)
 			continue
-		if entry.type in BOSS_KINDS:
-			BossDeath.sample(entry, age)
-		elif entry.type == "shielded":
-			ShieldedDeath.sample(entry, age)
-		elif entry.type == "normal":
-			# Keep the approved final pose throughout settle/fade, including 4x
-			# updates that cross the collapse boundary. Rewinds resample the clip.
-			if age < DEATH_SECONDS or not entry.get("death_settled", false):
-				entry.player.seek(minf(age, DEATH_SECONDS), true)
-				entry.death_settled = age >= DEATH_SECONDS
-		elif entry.type == "tank":
-			# The complete object-track clip holds while residue fade uses live age.
-			# Rewinds into collapse must sample again and invalidate the hold.
-			if age < TankDeath.COLLAPSE or not entry.get("death_settled", false):
-				entry.player.seek(minf(age, TankDeath.COLLAPSE), true)
-				entry.death_settled = age >= TankDeath.COLLAPSE
-		else:
-			entry.player.seek(age, true)
-		if entry.type == "normal": NormalDeath.sample(entry, age)
-		if entry.type == "fast": HoundDeath.sample(entry, age)
-		if entry.type == "tank": TankDeath.sample(entry, age)
+		sample_death(entry, age)
+
+
+static func death_lifetime(type: String) -> float:
+	var duration := TankDeath.LIFETIME if type == "tank" else (FAST_DEATH_SECONDS if type == "fast" else NormalDeath.LIFETIME)
+	if type in BOSS_KINDS: duration = BossDeath.LIFETIME
+	if type == "shielded": duration = ShieldedDeath.LIFETIME
+	return duration
+
+
+## Corpse ages whose first draw needs its own material or mesh: the opening body,
+## boss chips and dust after contact, and the late fade variant.
+static func rehearsal_ages(kind: String) -> Array:
+	var ages := [.05]
+	if kind in BOSS_KINDS: ages.append(BossDeath.CONTACT + .1)
+	ages.append(death_lifetime(kind) - .15)
+	return ages
+
+
+func sample_death(entry: Dictionary, age: float) -> void:
+	if entry.type in BOSS_KINDS:
+		BossDeath.sample(entry, age)
+	elif entry.type == "shielded":
+		ShieldedDeath.sample(entry, age)
+	elif entry.type == "normal":
+		# Keep the approved final pose throughout settle/fade, including 4x
+		# updates that cross the collapse boundary. Rewinds resample the clip.
+		if age < DEATH_SECONDS or not entry.get("death_settled", false):
+			entry.player.seek(minf(age, DEATH_SECONDS), true)
+			entry.death_settled = age >= DEATH_SECONDS
+	elif entry.type == "tank":
+		# The complete object-track clip holds while residue fade uses live age.
+		# Rewinds into collapse must sample again and invalidate the hold.
+		if age < TankDeath.COLLAPSE or not entry.get("death_settled", false):
+			entry.player.seek(minf(age, TankDeath.COLLAPSE), true)
+			entry.death_settled = age >= TankDeath.COLLAPSE
+	else:
+		entry.player.seek(age, true)
+	if entry.type == "normal": NormalDeath.sample(entry, age)
+	if entry.type == "fast": HoundDeath.sample(entry, age)
+	if entry.type == "tank": TankDeath.sample(entry, age)
+
+
+# Death scene, clip and floor shared by live kills and the loading rehearsal.
+func _new_death(kind: String) -> Dictionary:
+	if kind == "normal" and not prepare(): return {}
+	if kind in BOSS_KINDS and _boss_scene == null:
+		_boss_scene = StageResources.load_resource(BOSS_PATH) as PackedScene
+		if _boss_scene == null:
+			failure.emit("보스 사망 GLB를 불러오지 못했습니다.")
+			return {}
+	if kind == "tank" and _tank_death_scene == null:
+		_tank_death_scene = StageResources.load_resource(TANK_DEATH_PATH) as PackedScene
+		if _tank_death_scene == null:
+			failure.emit("탱커 사망 GLB를 불러오지 못했습니다.")
+			return {}
+	if kind == "fast" and _fast_death_scene == null:
+		_fast_death_scene = StageResources.load_resource(FAST_DEATH_PATH) as PackedScene
+		if _fast_death_scene == null:
+			failure.emit("빠른 룬 하운드 사망 GLB를 불러오지 못했습니다.")
+			return {}
+	var corpse := _tank_death_scene if kind == "tank" else (_fast_death_scene if kind == "fast" else _death_scene)
+	if kind in BOSS_KINDS: corpse = _boss_scene
+	return _instantiate(corpse, DEATH_FLOOR if kind == "normal" else 0.0, kind, "BossDeath" if kind in BOSS_KINDS else ("Death" if kind in ["normal", "tank"] else ""))
+
+
+func _attach_death(entry: Dictionary, kind: String, walker: Dictionary) -> void:
+	if kind == "normal": NormalDeath.attach(entry)
+	if kind == "fast": HoundDeath.attach(entry)
+	if kind == "tank": TankDeath.attach(entry, walker)
+	if kind in BOSS_KINDS: BossDeath.attach(entry, walker)
+
+
+## Loading-only corpse through the live kill path, without a walker or journal
+## entry. Its body and fade shaders compile before the first kill; the caller frees it.
+func rehearse_death(kind: String) -> Dictionary:
+	if kind not in ["normal", "fast", "tank"] and kind not in BOSS_KINDS: return {}
+	var entry := _new_death(kind)
+	if not entry.is_empty(): _attach_death(entry, kind, {})
+	return entry
 
 
 func retain_stage(enemy_types: Array) -> void:

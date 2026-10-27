@@ -4,6 +4,10 @@ const Preparation = preload("res://presentation/effect_preparation.gd")
 const Resources = preload("res://presentation/stage_resources.gd")
 const ALL_ENEMIES := ["normal", "fast", "armored", "shielded", "tank", "boss", "shieldBoss", "forgeBoss"]
 const ALL_TOWERS := ["arrow", "cannon", "magic", "frost", "sniper", "lightning"]
+const NormalDeath = preload("res://effects/normal_death.gd")
+const HoundDeath = preload("res://effects/hound_death.gd")
+const TankDeath = preload("res://effects/tank_death.gd")
+const BossDeath = preload("res://effects/boss_death.gd")
 
 class CountingMotion extends "res://presentation/guardian_preview.gd":
 	var cold_boss_labels := 0
@@ -47,6 +51,10 @@ func run() -> void:
 	check(scene.last_frame == before and scene.combat_runtime.rng.state == rng_state, "Presentation preparation preserves frame and combat RNG")
 	check(scene.field.texture == field, "Large impact field is reused")
 	check(motion._boss_head_bounds_ready and motion._boss_scene == null, "Successful rehearsal transfers boss bounds without retaining its scene or rig")
+	# The first kill of each species reuses the corpse materials its rehearsal compiled.
+	check(not NormalDeath._materials.is_empty() and not HoundDeath._body_materials.is_empty() and HoundDeath._material != null, "Rehearsal prepares normal and hound corpse materials")
+	check(not TankDeath._materials.is_empty() and not BossDeath._materials.is_empty() and BossDeath._chip_material != null, "Rehearsal prepares tank and boss corpse materials")
+	check(motion.deaths.is_empty() and motion.walkers.is_empty(), "Rehearsed corpses never enter the live death journal")
 	var prepared_bounds: AABB = motion._boss_head_bounds
 	var prepared_id: int = motion._boss_head_bounds_scene_id
 	for kind in ["normal", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]:
@@ -66,6 +74,16 @@ func run() -> void:
 		for body: Array in scene.enemies[10].frost_bodies:
 			check(body[0].get_surface_override_material(body[1]) == body[2], "Expired frost restores original material: " + kind)
 	scene._sync_enemies([])
+	# Each rehearsed boss age must actually show the debris that its first kill draws.
+	var corpse: Dictionary = motion.rehearse_death("boss")
+	var ages: Array = motion.rehearsal_ages("boss")
+	var shown := []
+	for age: float in ages:
+		motion.sample_death(corpse, age)
+		shown.append(corpse.death_chips.any(func(chip): return chip.mesh.visible) and corpse.death_puffs.any(func(puff): return puff.mesh.visible))
+	check(shown.count(true) == 1 and not shown[0], "Boss rehearsal includes one chip and dust age after the opening body")
+	corpse.root.free()
+	check(motion.deaths.is_empty(), "Boss rehearsal probe leaves no live death")
 	var renderer = scene._projectile_renderer
 	check(renderer._ballistic_pool.cannon.size() == 2 and renderer._fire_projectile_pool.size() == 2 and renderer.impact_pool.size() == 2, "Only two instances per prepared pool")
 	var cannon = renderer._ballistic_pool.cannon.back()
