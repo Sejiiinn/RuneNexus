@@ -1,16 +1,25 @@
 extends Control
+## Stage home: the chapter map is the first screen. Header switches chapters and shows
+## the wallet; the card under the map starts the selected stage; shortcuts and the
+## menu tabs sit at the bottom.
 const Progression = preload("res://content/stage_progression.gd")
-## Home-only port of main_menu_lobby.dart. Other menu pages keep their own theme.
 const ModalFrame = preload("res://ui/game_modal_frame.gd")
 const Assets = preload("res://ui/app_theme.gd")
 const Device = preload("res://app/device_preferences.gd")
 const Quests = preload("res://app/quest_progress.gd")
+const Numbers = preload("res://ui/hud_number.gd")
+const Frame = preload("res://ui/lobby_frame.gd")
+const StageMap = preload("res://ui/stage_map_view.gd")
+const StageCard = preload("res://ui/lobby_stage_card.gd")
 const PRIMARY := Color("e8f8ff")
 const SECONDARY := Color("b9d6e4")
+const MAX_WIDTH := 460.0
 var lobby
 var canvas: Control
-var background: TextureRect
-var pedestal: TextureRect
+var backdrop: TextureRect
+var map: Control
+var card: Control
+var footer: VBoxContainer
 var modal: Control
 var modal_frame: Control
 var modal_height := 0.0
@@ -76,17 +85,31 @@ func _ready() -> void:
 	theme = Theme.new()
 	theme.default_font = _font(700)
 	theme.default_font_size = 12
-	background = _image(self, "lobby_sanctuary_background.png", Rect2())
-	background.stretch_mode = TextureRect.STRETCH_SCALE
-	pedestal = _image(self, "lobby_rune_pedestal.png", Rect2())
+	var under := ColorRect.new()
+	under.color = Color("03080c")
+	under.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	under.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(under)
+	# Wider than the map column (desktop): the same painting, dimmed, fills the sides.
+	backdrop = _image(self, "", Rect2())
+	backdrop.name = "MapBackdrop"
+	backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	backdrop.modulate = Color(0.32, 0.34, 0.4)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	canvas = Control.new()
 	canvas.name = "MenuCanvas"
 	add_child(canvas)
+	map = StageMap.new()
+	map.stages = lobby.stages
+	map.font_size = _font_size
+	map.stage_pressed.connect(select_stage)
+	canvas.add_child(map)
+	footer = VBoxContainer.new()
+	footer.name = "HomeFooter"
+	add_child(footer)
+	lobby._footer(footer)
 	resized.connect(_layout)
 	_layout()
-	var services = lobby.app.get("services")
-	if services is Object and services.has_signal("changed"):
-		services.changed.connect(refresh_quest_indicator)
 
 func _font(weight: int) -> Font:
 	if not fonts.has(weight):
@@ -122,106 +145,172 @@ static func _cutout_insets(cutouts: Array, screen: Vector2) -> Vector4:
 
 func _layout() -> void:
 	if not is_instance_valid(canvas): return
-	var scene_scale := maxf(size.x / 853.0, size.y / 1844.0)
-	var scene_size := Vector2(853, 1844) * scene_scale
-	background.position = Vector2((size.x - scene_size.x) / 2, 0)
-	background.size = scene_size
-	var device_size := scene_size.x * 0.49
-	pedestal.position = Vector2((size.x - device_size) / 2, scene_size.y * 0.417 - device_size * 0.92)
-	pedestal.size = Vector2.ONE * device_size
 	_refresh_text_scale()
 	var inset := _insets()
 	var available := size - Vector2(inset.x + inset.z, inset.y + inset.w)
-	var width := minf(available.x, 460)
-	var height := maxf(available.y, width / 853 * 1844 * 0.5 + 400 + clampf(text_scale - 1, 0, 3) * 250 + inset.y + inset.w)
-	var fit := minf(1, available.y / height)
-	canvas.position = Vector2(inset.x, inset.y) + (available - Vector2(width, height) * fit) / 2
-	canvas.size = Vector2(width, height)
-	canvas.scale = Vector2.ONE * fit
-	_build_canvas(width, height)
+	var width := minf(available.x, MAX_WIDTH)
+	footer.position = Vector2(inset.x, size.y - inset.w - footer.get_combined_minimum_size().y)
+	footer.size = Vector2(available.x, footer.get_combined_minimum_size().y)
+	canvas.position = Vector2(inset.x + (available.x - width) / 2, inset.y)
+	canvas.size = Vector2(width, footer.position.y - inset.y)
+	map.position = Vector2.ZERO
+	map.size = canvas.size
+	refresh()
 	_layout_modal()
 
-func _build_canvas(w: float, h: float) -> void:
+## Rebuilds everything over the map; the map keeps its background and effects.
+func refresh() -> void:
+	if not is_instance_valid(canvas) or canvas.size.x <= 0: return
+	lobby.stages.ensure_selection()
+	var services = lobby.app.get("services")
+	if services is Object and services.has_signal("changed") and not services.changed.is_connected(refresh_quest_indicator):
+		services.changed.connect(refresh_quest_indicator)
 	for child in canvas.get_children():
+		if child == map: continue
 		canvas.remove_child(child)
 		child.queue_free()
-	var active: bool = lobby.has_active_run()
+	var w := canvas.size.x
+	var h := canvas.size.y
 	var blocked: bool = lobby.app.get("startup_blocked") == true
-	var settings_width := maxf(84, 52 + _font(700).get_string_size("설정",HORIZONTAL_ALIGNMENT_LEFT,-1,_font_size(12)).x)
-	var settings_height := maxf(40, _font_size(12) * 1.25 + 12)
-	var settings := _shortcut(canvas, "Settings", "설정", "lobby_settings_icon.png", Rect2(w - 16 - settings_width, 6, settings_width, settings_height), true, open_settings, 28)
-	settings.tooltip_text = "설정"
-	_image(canvas, "rune_nexus_logo_serif.png", Rect2((w - 208) / 2, 6 + settings_height, 208, 52))
-	var top := 6 + maxf(160, w / 853 * 1844 * 0.5 - 6)
-	var title_h := 21.0 * _font_size(20) / 20.0
+	backdrop.texture = Assets.texture("stage_map/chapter%d_map.jpg" % lobby.stages.chapter)
+	backdrop.visible = size.x > w + 1
+	# Bottom stack: shortcut strip over the tabs, the stage card over the strip.
 	var detail_h := 15.0 * _font_size(12) / 12.0
-	var action_h := maxf(48, 20 + detail_h)
-	var panel_h: float = 79.4 + title_h - 21 + detail_h - 15 + (18 + action_h if active else 0)
-	_surface(canvas, Rect2(44, top, w - 88, panel_h), "panel")
-	var title := "스테이지 %s" % Progression.stage_label(int(lobby.app.run_domain.state.get("stage", 0)) + 1) if active else "전투 준비"
-	_label(canvas, title, Rect2(62, top + 18, w - 124, title_h), 20, 900, PRIMARY, true)
-	var detail := "도전할 스테이지를 선택하세요"
-	if active:
-		var state: Dictionary = lobby.app.run_domain.state
-		var rounds: int = lobby.app.catalog.wave_count(int(state.stage))
-		detail = "%d / %d 라운드" % [mini(int(state.get("roundIndex", 0)) + 1, rounds), rounds]
-	_label(canvas, detail, Rect2(62, top + 26 + title_h, w - 124, detail_h), 12, 700, SECONDARY, true)
-	if active:
-		_stage_button(canvas, "ContinueRun", "이어서 진행", Rect2(62, top + panel_h - 18 - action_h, w - 124, action_h), false, func():
-			if not await lobby.app.resume_run(): lobby.show_failure()
-		).disabled = blocked
-	# Bottom content is anchored within the same fitted canvas, never a ScrollContainer.
-	var bottom_lines := 1
-	for value in ["넥서스 코어","영구 강화","연구","포탑 모듈"]:
-		bottom_lines = maxi(bottom_lines,ceili(_font(700).get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,_font_size(12)).x / maxf(1,(w-40)/4-6)))
-	var bottom_h := 78.4 + detail_h * bottom_lines - 15
-	var bottom_y := h - 12 - bottom_h
-	var stage_height := maxf(56, 20 + detail_h)
-	var stage_y := bottom_y - 14 - stage_height
-	var third := (w - 32) / 3
-	var shortcut_lines := ceili(_font(700).get_string_size("리더보드",HORIZONTAL_ALIGNMENT_LEFT,-1,_font_size(12)).x / maxf(1,third-48))
-	var shortcut_height := maxf(40, 16 + detail_h * shortcut_lines)
-	var shortcuts_y := stage_y - 8 - shortcut_height
+	var strip_h := maxf(38, 14 + detail_h)
+	var strip_y := h - 8 - strip_h
+	var card_y := strip_y - 10 - StageCard.HEIGHT
+	var title_h := 26.0 * _font_size(20) / 20.0
+	var subtitle_h := 16.0 * _font_size(11) / 11.0
+	var header_h := maxf(62, 12 + title_h + subtitle_h + 6)
+	map.arrange(lobby.stages.chapter, header_h + 63, card_y - 58)
+	map.refresh_nodes()
+	_shade(Rect2(0, 0, w, header_h + 34), 0.92, 0.0)
+	_shade(Rect2(0, card_y - 94, w, h - card_y + 94), 0.0, 0.95)
+	_header(w, title_h, subtitle_h)
+	card = StageCard.new()
+	card.stages = lobby.stages
+	card.font_size = _font_size
+	card.position = Vector2(12, card_y)
+	card.size = Vector2(w - 24, StageCard.HEIGHT)
+	canvas.add_child(card)
+	card.show_stage(lobby.stages.selected)
+	_shortcuts(Rect2(12, strip_y, w - 24, strip_h))
+	if blocked:
+		var waiting_for_update: bool = services != null and services.updates != null and services.updates.blocked
+		var status := "업데이트 확인을 완료하면 저장을 불러옵니다." if waiting_for_update else "저장을 불러오지 못했습니다. 기존 저장은 보존됩니다."
+		_surface(canvas, Rect2(16, card_y - 108, w - 32, 98), "panel")
+		_label(canvas, status, Rect2(28, card_y - 100, w - 56, 32), 12, 700, SECONDARY, true).name = "StartupStatus"
+		if waiting_for_update:
+			_stage_button(canvas, "RetryUpdate", "업데이트 확인", Rect2(40, card_y - 64, w - 80, 46), false, func(): lobby.open_service("업데이트"))
+		else:
+			_stage_button(canvas, "RetryLoad", "다시 불러오기", Rect2(40, card_y - 64, w - 80, 46), false, func(): lobby.app.retry_load())
+	elif not lobby.message.is_empty():
+		var note := _label(canvas, lobby.message, Rect2(16, card_y - 52, w - 32, 44), 12, 700, PRIMARY, true)
+		note.name = "HomeMessage"
+		note.add_theme_constant_override("outline_size", 5)
+		note.add_theme_color_override("font_outline_color", Color("03080ce6"))
+
+func select_stage(id: int) -> void:
+	if id == lobby.stages.selected: return
+	lobby.stages.selected = id
+	map.refresh_nodes()
+	card.show_stage(id)
+
+func select_chapter(value: int) -> void:
+	lobby.stages.select_chapter(value)
+	refresh()
+
+func _shade(rect: Rect2, top_alpha: float, bottom_alpha: float) -> void:
+	var g := Gradient.new()
+	g.set_color(0, Color(0.01, 0.03, 0.05, top_alpha))
+	g.set_color(1, Color(0.01, 0.03, 0.05, bottom_alpha))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(0, 1)
+	var t := TextureRect.new()
+	t.texture = gt
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_SCALE
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	t.position = rect.position
+	t.size = rect.size
+	canvas.add_child(t)
+
+func _header(w: float, title_h: float, subtitle_h: float) -> void:
+	var chapter: int = lobby.stages.chapter
+	var title: String = lobby.stages.CHAPTERS[chapter - 1]
+	var wallet_w := maxf(88, 34 + _font(800).get_string_size(Numbers.compact_integer(maxi(lobby.diamonds(), int(lobby.progression().get("runes", 0)))), HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(11)).x + 10)
+	# The title gives way to the wallet; the next-chapter arrow always stays tappable.
+	var title_w := minf(_font(900).get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(20)).x + 4, w - 54 - wallet_w - 34 - 34)
+	_chapter_arrow("ChapterPrev", "‹", Rect2(4, 6, 30, title_h + 10), chapter - 1)
+	var heading := _label(canvas, title, Rect2(34, 12, title_w, title_h), 20, 900, PRIMARY)
+	heading.name = "ChapterTitle"
+	heading.autowrap_mode = TextServer.AUTOWRAP_OFF
+	heading.clip_text = true
+	heading.size.x = title_w
+	_chapter_arrow("ChapterNext", "›", Rect2(34 + title_w, 6, 30, title_h + 10), chapter + 1)
+	var range_text := "챕터 %d · %d-1 – %d-10" % [chapter, chapter, chapter]
+	var range_w := minf(_font(700).get_string_size(range_text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(11)).x + 4, w - 54 - wallet_w - 39)
+	var subtitle := _label(canvas, range_text, Rect2(35, 12 + title_h + 2, range_w, subtitle_h), 11, 700, SECONDARY)
+	subtitle.name = "ChapterRange"
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_OFF
+	subtitle.clip_text = true
+	subtitle.size.x = maxf(0, range_w)
+	# Wallet on the resource frame, settings at the corner.
+	var row_h := maxf(18, 15.0 * _font_size(11) / 11.0)
+	var wallet := Panel.new()
+	wallet.name = "HomeWallet"
+	wallet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wallet.add_theme_stylebox_override("panel", Frame.new("ui/hud/resource_panel.png", 0))
+	wallet.position = Vector2(w - 54 - wallet_w, 12)
+	wallet.size = Vector2(wallet_w, maxf(42, row_h * 2 + 6))
+	canvas.add_child(wallet)
+	var rows := [["res://assets/ui/diamond_currency.png", lobby.diamonds(), "Diamonds"], ["ui/hud/icons/rune.png", int(lobby.progression().get("runes", 0)), "Runes"]]
+	for i in 2:
+		var y := (wallet.size.y - row_h * 2) / 2 + row_h * i
+		_image(wallet, rows[i][0], Rect2(6, y + (row_h - 13) / 2, 13, 13))
+		var value := _label(wallet, Numbers.compact_integer(rows[i][1]), Rect2(22, y, wallet_w - 28, row_h), 11, 800, PRIMARY)
+		value.name = rows[i][2]
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		value.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var settings := _button(canvas, "Settings", Rect2(w - 50, 11, 40, 40), open_settings)
+	settings.tooltip_text = "설정"
+	_image(settings, "lobby_settings_icon.png", Rect2(2, 2, 36, 36))
+
+func _chapter_arrow(id: String, glyph: String, rect: Rect2, target: int) -> void:
+	var enabled: bool = target >= 1 and target <= lobby.stages.CHAPTERS.size()
+	var button := _button(canvas, id, rect, select_chapter.bind(target))
+	button.disabled = not enabled
+	button.tooltip_text = "이전 챕터" if glyph == "‹" else "다음 챕터"
+	var label := _label(button, glyph, Rect2(Vector2.ZERO, rect.size), 26, 700, Color(PRIMARY, 0.85 if enabled else 0.3), true)
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+
+func _shortcuts(rect: Rect2) -> void:
 	var strip := Panel.new()
-	strip.position = Vector2(16, shortcuts_y)
-	strip.size = Vector2(w - 32, shortcut_height)
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color("101a24ad")
-	box.border_color = Color("7e929f40")
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(6)
-	strip.add_theme_stylebox_override("panel", box)
+	strip.name = "ShortcutStrip"
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var dock := StyleBoxTexture.new()
+	dock.texture = Assets.texture("ui/hud/dock_panel.png")
+	dock.set_texture_margin_all(2)
+	strip.add_theme_stylebox_override("panel", dock)
+	strip.position = rect.position
+	strip.size = rect.size
 	canvas.add_child(strip)
-	_shortcut(canvas, "Leaderboard", "리더보드", "lobby_leaderboard_icon.png", Rect2(16, shortcuts_y, third, shortcut_height), true, open_service.bind("리더보드"))
-	_shortcut(canvas, "Events", "이벤트", "lobby_event_icon.png", Rect2(16 + third, shortcuts_y, third, shortcut_height), true, open_events)
-	_shortcut(canvas, "Mailbox", "우편함", "lobby_mailbox_icon.png", Rect2(16 + third * 2, shortcuts_y, third, shortcut_height), true, open_service.bind("우편함"))
+	var third := rect.size.x / 3
+	_shortcut(canvas, "Leaderboard", "리더보드", "lobby_leaderboard_icon.png", Rect2(rect.position.x, rect.position.y, third, rect.size.y), true, open_service.bind("리더보드"))
+	_shortcut(canvas, "Events", "이벤트", "lobby_event_icon.png", Rect2(rect.position.x + third, rect.position.y, third, rect.size.y), true, open_events)
+	_shortcut(canvas, "Mailbox", "우편함", "lobby_mailbox_icon.png", Rect2(rect.position.x + third * 2, rect.position.y, third, rect.size.y), true, open_service.bind("우편함"))
 	for i in [1, 2]:
 		var line := ColorRect.new()
 		line.color = Color("7e929f40")
-		line.position = Vector2(16 + third * i, shortcuts_y + 10)
-		line.size = Vector2(1, 20)
+		line.position = Vector2(rect.position.x + third * i, rect.position.y + 9)
+		line.size = Vector2(1, rect.size.y - 18)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		canvas.add_child(line)
 	# Keep both indicators so receipt updates do not rebuild home.
-	_alert_badge("QuestReadyDot", Vector2(16 + third + 28, shortcuts_y + 8), _claimable())
-	_alert_badge("MailboxReadyDot", Vector2(16 + third * 2 + 28, shortcuts_y + 8), _mail_claimable())
-	_stage_button(canvas, "StageSelect", "스테이지 선택", Rect2(44, stage_y, w - 88, stage_height), true, lobby.open_page.bind("스테이지"), "stage_rewards/reward_stage.png").disabled = blocked
-	_surface(canvas, Rect2(16, bottom_y, w - 32, bottom_h), "panel")
-	var entries := [["Core", "넥서스 코어", "core", "코어"], ["Upgrades", "영구 강화", "upgrade", "강화"], ["Research", "연구", "research", "연구"], ["Modules", "포탑 모듈", "turret", "포탑"]]
-	for i in range(4):
-		var e: Array = entries[i]
-		_shortcut(canvas, e[0], e[1], "stage_rewards/reward_%s.png" % e[2], Rect2(20 + (w - 40) / 4 * i, bottom_y + 6, (w - 40) / 4, bottom_h - 12), false, lobby.open_page.bind(e[3]))
-	if blocked:
-		var services = lobby.app.get("services")
-		var waiting_for_update: bool = services != null and services.updates != null and services.updates.blocked
-		var status := "업데이트 확인을 완료하면 저장을 불러옵니다." if waiting_for_update else "저장을 불러오지 못했습니다. 기존 저장은 보존됩니다."
-		_label(canvas, status, Rect2(44, top + panel_h + 6, w - 88, 32), 12, 700, SECONDARY, true).name = "StartupStatus"
-		if waiting_for_update:
-			_stage_button(canvas, "RetryUpdate", "업데이트 확인", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.open_service("업데이트"))
-		else:
-			_stage_button(canvas, "RetryLoad", "다시 불러오기", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.app.retry_load())
-	elif not lobby.message.is_empty():
-		_label(canvas, lobby.message, Rect2(44, top + panel_h + 8, w - 88, 45), 12, 700, SECONDARY, true)
+	_alert_badge("QuestReadyDot", Vector2(rect.position.x + third + 26, rect.position.y + 6), _claimable())
+	_alert_badge("MailboxReadyDot", Vector2(rect.position.x + third * 2 + 26, rect.position.y + 6), _mail_claimable())
 
 func _alert_badge(id: String, at: Vector2, ready: bool) -> void:
 	var dot := Panel.new()

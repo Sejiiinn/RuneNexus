@@ -100,7 +100,7 @@ func save_restore(stage_id: int) -> bool:
 	check(active_identity() == before,"active route/portal identity and distance survive disk restore "+str(stage_id))
 	check(bool(scene.combat_runtime.session.paused),"restore paused "+str(stage_id))
 	connect_observer()
-	app.lobby.page = "로비"
+	app.lobby.page = "스테이지"
 	app.refresh_ui()
 	await process_frame
 	var button := app.lobby.find_child("ContinueRun",true,false) as Button

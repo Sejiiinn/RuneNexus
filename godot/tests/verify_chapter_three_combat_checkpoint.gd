@@ -50,7 +50,7 @@ func _initialize() -> void:
 	ui_app.run_domain.state.phase = "wave"
 	var lobby = LobbyFixture.Lobby.new()
 	lobby.app = ui_app
-	lobby.page = "로비"
+	lobby.page = "스테이지"
 	root.add_child(lobby)
 	await process_frame
 	await process_frame

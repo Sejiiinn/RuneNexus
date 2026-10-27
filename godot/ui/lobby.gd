@@ -14,7 +14,7 @@ const Stages = preload("res://ui/lobby_stages.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const NAMES := {"startingGold":"초기 자금", "nexusHp":"코어 내구도", "supply":"보급", "fireTraining":"화력 훈련", "physicalDamageTraining":"물리 피해 훈련", "elementalDamageTraining":"원소 피해 훈련", "poisonDamageTraining":"독 피해 훈련", "criticalDamage":"치명타 피해", "killGold":"처치 골드", "bossBounty":"보스 현상금", "linkCostOptimization":"링크 비용 최적화", "turretLevelUpOptimization":"포탑 강화 비용 최적화", "researchEfficiency":"연구 효율", "researchCostEfficiency":"연구 비용 효율", "turretTargetPriority":"포탑 목표 우선순위", "linkExpansionOne":"링크 확장 I", "linkExpansionTwo":"링크 확장 II", "gemAttunement":"젬 조율", "criticalChance":"치명타 확률", "emergencySale":"긴급 매각", "linkMaintenance":"링크 정비", "crystalRecovery":"결정 회수", "runeResonance":"룬 공명", "runUpgradeCostOptimization":"전투 강화 비용 최적화", "towerDamageLimitExpansion":"화력 한계 확장", "killGoldLimitExpansion":"처치 보상 한계 확장", "waveGoldLimitExpansion":"보급 한계 확장", "guardianBeam":"수호 광선", "riftMark":"균열 낙인", "arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"번개", "poison":"독"}
 var app
-var page := "로비"
+var page := "스테이지"
 var home: Control
 var body: VBoxContainer
 var safe: MarginContainer
@@ -106,6 +106,14 @@ func refresh() -> void:
 	if _refreshing: return
 	_refreshing = true
 	var same_page := _rendered_page == page
+	if page == "스테이지" and same_page and is_instance_valid(home) and home.get_parent() == self:
+		# The stage home updates in place so the map's ambience keeps running.
+		home.refresh()
+		_finish_refresh(null, 0)
+		if is_instance_valid(modal):
+			var update: Callable = modal.get_meta("refresh",Callable())
+			if update.is_valid(): update.call_deferred()
+		return
 	var scroll_position := _page_scroll.scroll_vertical if same_page and is_instance_valid(_page_scroll) else 0
 	var kept_modal: Control = modal if same_page and is_instance_valid(modal) else null
 	if kept_modal != null: remove_child(kept_modal)
@@ -121,7 +129,7 @@ func refresh() -> void:
 		child.queue_free()
 	home = null
 	safe = null
-	if page == "로비":
+	if page == "스테이지":
 		home = Home.new()
 		home.lobby = self
 		add_child(home)
@@ -144,24 +152,15 @@ func refresh() -> void:
 	column.add_theme_constant_override("separation", 4)
 	safe.add_child(column)
 	_header(column)
-	var content := _margin(column, 24 if page == "스테이지" else (0 if page == "코어" else 12))
+	var content := _margin(column, 0 if page == "코어" else 12)
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body = VBoxContainer.new()
 	body.name = "PageBody"
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_theme_constant_override("separation", 10)
-	if page in ["코어", "스테이지", "포탑"]:
+	if page in ["코어", "포탑"]:
 		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		if page == "스테이지":
-			var centered := CenterContainer.new()
-			centered.size_flags_vertical = Control.SIZE_EXPAND_FILL
-			centered.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			content.add_child(centered)
-			centered.add_child(body)
-			var fit := func(): body.custom_minimum_size = Vector2(minf(400,centered.size.x),centered.size.y)
-			centered.resized.connect(fit)
-			fit.call_deferred()
-		else: content.add_child(body)
+		content.add_child(body)
 	else:
 		var scroll := ScrollContainer.new()
 		_page_scroll = scroll
@@ -173,7 +172,6 @@ func refresh() -> void:
 		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		body.alignment = BoxContainer.ALIGNMENT_CENTER
 	match page:
-		"스테이지": stages.render()
 		"강화": growth.upgrades()
 		"연구": growth.research()
 		"코어": core.render()
@@ -206,7 +204,7 @@ func _finish_refresh(kept_modal: Control, scroll_position: int) -> void:
 		get_tree().process_frame.connect(restore,CONNECT_ONE_SHOT)
 
 func refresh_economy() -> void:
-	if page == "로비" and is_instance_valid(home):
+	if page == "스테이지" and is_instance_valid(home):
 		home.refresh_quest_indicator()
 		if is_instance_valid(modal) and modal.get_meta("quest_dialog",false): collection.quests(modal_body)
 	else:
@@ -255,39 +253,17 @@ func _header(parent: Node) -> void:
 	heading.add_theme_constant_override("separation", 6)
 	heading.alignment = BoxContainer.ALIGNMENT_BEGIN
 	identity.add_child(heading)
-	if page == "스테이지":
-		var event := UiWidgets.plain_button("", open_quests)
-		event.name = "StageQuests"
-		event.custom_minimum_size = Vector2(38,38)
-		event.icon = AppTheme.texture("quests/entry_reward_ready.jpg" if _quest_ready() else "quests/entry_default.jpg")
-		event.expand_icon = true
-		event.add_theme_constant_override("icon_max_width",38)
-		heading.add_child(event)
-		var logo := _image("rune_nexus_logo_serif.png", Vector2(0,44))
-		logo.name = "StageHeaderLogo"
-		logo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
-		heading.add_child(logo)
-	else:
-		var path: String = {"코어":"core","강화":"upgrade","연구":"research","포탑":"turret"}.get(page,"stage")
-		var icon := _image("stage_rewards/reward_%s.png" % path, Vector2(24,24))
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		heading.add_child(icon)
-		var title := _text({"코어":"넥서스 코어", "강화":"영구 강화", "연구":"연구", "포탑":"포탑 모듈"}.get(page, page), 15)
-		title.name = "MenuTitle"
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		heading.add_child(title)
-	var back := UiWidgets.plain_button("‹ 로비", open_page.bind("로비"))
-	back.name = "MenuBack"
-	back.tooltip_text = "로비로 돌아가기"
-	back.custom_minimum_size = Vector2(40,26)
-	back.add_theme_font_size_override("font_size", 11)
-	back.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	identity.add_child(back)
+	var path: String = {"코어":"core","강화":"upgrade","연구":"research","포탑":"turret"}.get(page,"stage")
+	var icon := _image("stage_rewards/reward_%s.png" % path, Vector2(24,24))
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	heading.add_child(icon)
+	var title := _text({"코어":"넥서스 코어", "강화":"영구 강화", "연구":"연구", "포탑":"포탑 모듈"}.get(page, page), 15)
+	title.name = "MenuTitle"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	heading.add_child(title)
 	var resources := PanelContainer.new()
 	resources.name = "MenuResources"
 	resources.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -579,7 +555,7 @@ func _skills() -> void: core.skills()
 func go_back() -> void:
 	if close_modal(): return
 	if is_instance_valid(home) and home.close_modal(): return
-	if page != "로비": open_page("로비")
+	if page != "스테이지": open_page("스테이지")
 	else: app.request_quit()
 
 func _settings() -> void:

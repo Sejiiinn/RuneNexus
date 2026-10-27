@@ -4,6 +4,8 @@ const Stages = preload("res://ui/lobby_stages.gd")
 const Catalog = preload("res://content/content_catalog.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const Quests = preload("res://app/quest_progress.gd")
+const StageMap = preload("res://ui/stage_map_view.gd")
+const StageCard = preload("res://ui/lobby_stage_card.gd")
 
 class App extends RefCounted:
 	var catalog = Catalog.new()
@@ -80,51 +82,46 @@ func verify() -> void:
 		host.add_child(host.body)
 		var ui := Stages.new()
 		ui.setup(host)
-		ui.chapter = 3
+		ui.select_chapter(3)
 		var before: Dictionary = host.p.duplicate(true)
-		ui.render()
-		await settle()
-		var scroll: ScrollContainer = ui.canvas.get_node("StageRowsScroll")
-		var rows := scroll.get_node("StageRows").get_children().filter(func(node): return node is Button)
+		var map = StageMap.new()
+		map.stages = ui
+		host.add_child(map)
+		map.size = Vector2(width,900)
+		map.arrange(3,125,640)
+		map.refresh_nodes()
+		var card = StageCard.new()
+		card.stages = ui
+		host.add_child(card)
+		card.size = Vector2(width - 24,StageCard.HEIGHT)
 		for stage in range(26,31):
 			var expected: int = [9400,11092,13089,15445,18225][stage-26]
 			var compact: String = ["9,400","11.1K","13.1K","15.4K","18.2K"][stage-26]
 			check(ui.rune_reward(stage) == expected, "reward preview unchanged: " + str(stage))
-			check(labels(ui.canvas).any(func(label): return label.text == "룬 +" + compact), "list compact label: " + compact)
+			if ui.unlocked(stage) and stage != ui.selected:
+				check(labels(map).any(func(label): return label.text == compact), "map compact label: " + compact)
 			var settlement: Dictionary = Quests.new().finish(host.p,{"stageNumber":stage,"completedRounds":40,"success":true})
 			check(settlement.lastRunRuneReward == expected and int(settlement.runes) - int(before.runes) == expected, "exact settlement: " + str(stage))
-			rows[stage-21].pressed.emit()
+			card.show_stage(stage)
 			await settle()
-			check(labels(host.modal).any(func(label): return label.text == "+" + compact), "row opens compact detail: " + str(stage))
-			var stats: HBoxContainer = host.modal.find_child("StageQuickStats",true,false)
-			var reward_label: Label = stats.get_child(stats.get_child_count()-1).get_child(2)
-			check(reward_label.text == "+" + compact, "detail reward uses summary policy: " + str(stage))
-			var detail_measured: float = reward_label.get_theme_font("font").get_string_size(reward_label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,reward_label.get_theme_font_size("font_size")).x
-			check(detail_measured <= reward_label.size.x + 1, "detail reward label fits: " + reward_label.text)
-			check(host.modal.get_combined_minimum_size().x <= width - 52, "detail fits: %d at %d" % [stage,width])
-			check(host.modal.get_child(host.modal.get_child_count()-1).disabled == (stage > 26), "locked detail stays readable: " + str(stage))
-			host.modal.find_child("CloseStageDetails",true,false).pressed.emit()
-			check(not is_instance_valid(host.modal), "detail closes")
-		for label in labels(ui.canvas):
-			if label.text.begins_with("룬 +"):
+			var amount: Label = card.find_child("RuneAmount",true,false)
+			check(amount.text == compact, "card reward uses summary policy: " + str(stage))
+			var measured: float = amount.get_theme_font("font").get_string_size(amount.text,HORIZONTAL_ALIGNMENT_LEFT,-1,amount.get_theme_font_size("font_size")).x
+			check(measured <= amount.size.x + 1, "card reward label fits: " + amount.text)
+			check((card.find_child("StageLocked",false,false) != null) == (not ui.unlocked(stage)), "locked card stays readable: " + str(stage))
+		for label in labels(map):
+			if label.text.ends_with("K") or label.text.contains(","):
 				var measured: float = label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x
-				check(measured <= label.size.x + 1, "reward label fits: " + label.text)
-		scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
-		await settle()
-		check(rows[-1].get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "last stage reachable")
-		check(scroll.scroll_horizontal == 0, "no horizontal scroll")
-		check(host.p == before, "display and detail preserve progression")
+				check(measured <= label.size.x + 1, "map reward label fits: " + label.text)
+		check(host.p == before, "display preserves progression")
 		host.app.run_domain.state = {"stage":29,"roundIndex":39,"gold":1200,"turrets":[],"phase":"wave"}
 		host.p.clearedStageNumbers = Progression.ordered_ids().slice(0,29)
-		for child in host.body.get_children(): host.body.remove_child(child); child.queue_free()
-		ui.render()
+		card.show_stage(30)
 		await settle()
-		check(labels(ui.canvas).any(func(label): return label.text == "룬 +18.2K"), "active reward compact")
-		check(labels(ui.canvas).any(func(label): return label.text == "1,200"), "active gold shares common threshold")
-		ui.details(30)
+		check(card.find_child("RuneAmount",true,false).text == "18.2K", "active reward compact")
+		check(card.find_child("RoundCount",true,false).text == "39 / 40", "active round progress")
+		card.find_child("ContinueRun",false,false).pressed.emit()
 		await settle()
-		check(labels(host.modal).any(func(label): return label.text == "+18.2K"), "active detail uses compact reward")
-		ui.start(30)
 		check(host.app.resumed == 1, "continue callback unchanged")
 		host.free()
 		await settle()

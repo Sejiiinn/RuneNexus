@@ -5,6 +5,8 @@ const Progression = preload("res://content/stage_progression.gd")
 const Quests = preload("res://app/quest_progress.gd")
 const Codec = preload("res://app/save_codec.gd")
 const Store = preload("res://app/local_save_store.gd")
+const StageMap = preload("res://ui/stage_map_view.gd")
+const StageCard = preload("res://ui/lobby_stage_card.gd")
 class App extends RefCounted:
 	var catalog
 	var run_domain := {"state":{}}
@@ -19,6 +21,7 @@ class Host extends Control:
 	var modal: VBoxContainer
 	var started := -1
 	var opened_modals := 0
+	func _init() -> void: name = "Host"
 	func progression() -> Dictionary: return p
 	func has_active_run() -> bool: return not app.run_domain.state.is_empty()
 	func request_stage_start(index: int) -> void: started = index
@@ -63,52 +66,97 @@ func verify() -> void:
 	assert(not ui.reward_highlighted(3))
 	host.p.erase("availableTurretTypes")
 	host.p.clearedStageNumbers.append(3)
-	ui.details(8)
-	assert(host.modal.get_child(host.modal.get_child_count()-1).disabled)
 	ui.start(8)
 	assert(host.started == -1)
 	ui.start(7)
 	assert(host.started == 6)
-	host.size = Vector2(440,900)
-	host.body.size = Vector2(392,660)
-	ui.render()
-	assert(ui.chapter == 2)
-	await process_frame
-	await process_frame
+	ui.ensure_selection()
+	assert(ui.chapter == 2 and ui.selected == 7, "Opens on the newest chapter at its first unlocked, uncleared stage")
 	ui.select_chapter(3)
-	assert(ui.chapter == 3)
+	assert(ui.chapter == 3 and ui.selected == Progression.ids_for_chapter(3)[0], "A locked chapter selects its first stage")
 	host.app.run_domain.state = {"stage":3,"roundIndex":5,"gold":250,"turrets":[{},{}],"phase":"wave"}
+	ui.ensure_selection()
+	assert(ui.chapter == 1 and ui.selected == 4, "A new active run moves the map to its stage")
+	ui.selected = 2
+	ui.ensure_selection()
+	assert(ui.selected == 2, "The player's own selection stays while the run is unchanged")
 	ui.start(4)
 	assert(host.app.resumed == 1 and host.started == 6)
-	for width in [320,440]:
-		for in_progress in [false,true]:
-			host.app.run_domain.state = {"stage":3,"roundIndex":5,"gold":250,"turrets":[],"phase":"wave"} if in_progress else {}
-			for child in host.body.get_children(): host.body.remove_child(child); child.queue_free()
-			host.size = Vector2(width,900)
-			host.body.size = Vector2(width - 48,660)
-			ui.chapter = 1
-			ui.render()
-			await process_frame
-			await process_frame
-			for child in ui.canvas.get_children():
-				assert(child.position.x >= -1 and child.position.y >= -1)
-				assert(child.position.x + child.size.x <= ui.canvas.size.x + 1, "%s at width %d" % [child, width])
-				assert(child.position.y + child.size.y <= ui.canvas.size.y + 1)
-			ui.details(5)
-			await process_frame
-			assert(host.modal.get_combined_minimum_size().x <= width - 52)
-			assert(host.modal.find_child("StageDetailsHeader",true,false) != null)
-			var chips := host.modal.find_children("UnlockChip*", "PanelContainer",true,false)
-			assert(chips.size() == 1)
-			for chip in chips:
-				assert(chip.get_child(0) is HBoxContainer, "Unlock chip icon and label must be horizontal")
-				assert(chip.custom_minimum_size.y == 52)
-				assert(chip.find_child("RewardName",true,false).get_theme_color("font_color") == ui.SECONDARIES[0])
-	host.close_modal()
-	await verify_stage_scroll(ui, host)
-	print("PASS stage restoration: reference bounds 320/440, active/list, chapter, locked/start/continue, 25-stage monotonic rune preview/settlement, preserved wallet/save, wheel/touch list scroll 320/440 short/normal, canonical rewards and unlock lists")
+	assert(Stages.unlock_icon(ui.unlock_items(3)[0]) == "ui/hud/turrets_3d/sniper.png" and Stages.unlock_destination(ui.unlock_items(3)[0]) == "포탑 해금")
+	assert(Stages.unlock_destination(ui.unlock_items(11)[0]) == "모듈 티켓 지급" and Stages.previous_stage(8) == 7)
+	host.app.run_domain.state = {}
+	await verify_map_and_card(ui, host)
+	print("PASS stage restoration: stage map 320/440 short/normal/tall, map tap/drag, card bar/actions/unlock bubble, active/locked/continue, 25-stage monotonic rune preview/settlement, preserved wallet/save, canonical rewards and unlock lists")
 	host.free()
 	quit()
+
+func verify_map_and_card(ui, host) -> void:
+	for dimensions in [Vector2(320, 520), Vector2(440, 700), Vector2(440, 940)]:
+		for chapter in [1, 2, 3]:
+			ui.select_chapter(chapter)
+			var map = StageMap.new()
+			map.stages = ui
+			host.add_child(map)
+			map.size = dimensions
+			var gate_y := 125.0
+			var base_y: float = dimensions.y - 270
+			map.arrange(chapter, gate_y, base_y)
+			map.refresh_nodes()
+			var ids: Array = Progression.ids_for_chapter(chapter)
+			for i in ids.size():
+				var at: Vector2 = map._centers[ids[i]]
+				assert(at.x > 0 and at.x < dimensions.x, "Stage socket inside the map width")
+			# Every stage can be scrolled between the header and the card.
+			for id in ids:
+				map.set_scroll(map._centers[id].y - (gate_y + base_y) / 2)
+				var y: float = map._centers[id].y - map.scroll
+				assert(y >= gate_y - 20 and y <= base_y + 1, "Stage %s reachable at %s" % [Progression.stage_label(id), dimensions])
+			assert(map.map_scale.y >= map.map_scale.x * 0.85 - 0.001 and map.map_scale.y <= map.map_scale.x + 0.001, "Map art never squeezes past 85%")
+			var badges: int = 0
+			for id in ids:
+				if not ui.reward_highlighted(id): badges += mini(ui.unlock_items(id).size(), 3)
+			assert(map.nodes.find_children("UnlockBadge*", "Panel", true, false).size() == badges, "One badge per unclaimed first-clear unlock")
+			# Tap selects; a stage tap reports its id.
+			var pressed: Array = []
+			map.stage_pressed.connect(func(id): pressed.append(id))
+			var target: int = ids[1]
+			map._gui_input(_button(map._centers[target] - Vector2(0, map.scroll), true))
+			map._gui_input(_button(map._centers[target] - Vector2(0, map.scroll), false))
+			assert(pressed == [target], "Tap on a socket selects it")
+			map.free()
+		for stage in [1, 3, 7, 8, 11]:
+			var card = StageCard.new()
+			card.stages = ui
+			host.add_child(card)
+			card.size = Vector2(dimensions.x - 24, StageCard.HEIGHT)
+			card.show_stage(stage)
+			var rect := Rect2(Vector2.ZERO, card.size)
+			for child in card.get_children():
+				if child is Control: assert(rect.grow(1).encloses(Rect2(child.position, child.size)), "%s outside card at %s" % [child.name, dimensions])
+			var action: Button = card.find_child("StageStart", false, false) if ui.unlocked(stage) else card.find_child("StageLocked", false, false)
+			assert(action != null and action.disabled == not ui.unlocked(stage))
+			assert(card.get_node("RoundTrack").position.x + card.get_node("RoundTrack").size.x <= action.position.x - 11, "Round bar stops before the action")
+			var tiles := card.find_children("Unlock*", "Button", false, false)
+			assert(tiles.size() == mini(ui.unlock_items(stage).size(), 3))
+			if not tiles.is_empty():
+				tiles[0].pressed.emit()
+				await process_frame
+				var bubble: Control = card.find_child("UnlockTooltip", false, false)
+				assert(bubble != null and bubble.position.y < 0 and bubble.position.x >= 0 and bubble.position.x + bubble.size.x <= card.size.x + 0.1, "Bubble opens above the card")
+				assert(card.find_child("TooltipDestination", true, false).text == Stages.unlock_destination(ui.unlock_items(stage)[0]))
+				var catcher: Control = host.get_node("TooltipCatcher")
+				catcher.gui_input.emit(_button(Vector2(5, 5), true))
+				await process_frame
+				assert(card.find_child("UnlockTooltip", false, false) == null, "Tap outside closes the bubble")
+			card.free()
+			await process_frame
+
+func _button(at: Vector2, down: bool) -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.position = at
+	event.pressed = down
+	return event
 
 func verify_rune_rewards(ui, host) -> void:
 	var original: Dictionary = host.p.duplicate(true)
@@ -162,89 +210,3 @@ func verify_rune_rewards(ui, host) -> void:
 
 func expected_unrounded(ordinal: int, level: int) -> float:
 	return 150.0 * pow(1.18, ordinal - 1) * (1.0 + level * 0.02)
-
-func stage_pointer(event: InputEvent) -> void:
-	Input.parse_input_event(event)
-	Input.flush_buffered_events()
-
-func stage_row_buttons(scroll: ScrollContainer) -> Array:
-	return scroll.get_node("StageRows").get_children().filter(func(child): return child is Button)
-
-func verify_stage_scroll(ui, host) -> void:
-	# Native touch scrolling is gated by touchscreen availability on desktop.
-	var old_emulation := Input.emulate_touch_from_mouse
-	Input.emulate_touch_from_mouse = true
-	for width in [320, 440]:
-		for height in [600, 900]:
-			root.size = Vector2i(width, height)
-			root.content_scale_size = Vector2i(width, height)
-			for in_progress in [false, true]:
-				for chapter in [1, 2]:
-					host.app.run_domain.state = {"stage":0 if chapter == 1 else 5, "roundIndex":5, "gold":250, "turrets":[], "phase":"wave"} if in_progress else {}
-					for child in host.body.get_children(): host.body.remove_child(child); child.queue_free()
-					host.size = Vector2(width, height)
-					host.body.size = Vector2(width - 48, height - 240)
-					ui.list_scroll.clear()
-					ui.chapter = chapter
-					ui.render()
-					await process_frame
-					await process_frame
-					var scroll := ui.canvas.get_node("StageRowsScroll") as ScrollContainer
-					var rows := stage_row_buttons(scroll)
-					assert(rows.size() == (9 if in_progress else 10))
-					assert(rows[0].size.y >= 40, "Short list rows must remain readable/tappable")
-					assert(scroll.get_v_scroll_bar().max_value > scroll.get_v_scroll_bar().page)
-					assert(not scroll.get_v_scroll_bar().visible and not scroll.get_h_scroll_bar().visible and scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED)
-					var fixed_rects: Array = []
-					for child in ui.canvas.get_children():
-						if child != scroll: fixed_rects.append(child.get_global_rect())
-					var opened: int = host.opened_modals
-					var point: Vector2 = rows[0].get_global_rect().get_center()
-					var touch := InputEventScreenTouch.new()
-					touch.index = 0; touch.position = point; touch.pressed = true
-					stage_pointer(touch)
-					await process_frame
-					for i in range(1, 5):
-						var drag := InputEventScreenDrag.new()
-						drag.index = 0; drag.position = point - Vector2(0, i * 12); drag.relative = Vector2(0, -12)
-						stage_pointer(drag)
-						await process_frame
-					touch = InputEventScreenTouch.new()
-					touch.index = 0; touch.position = point - Vector2(0, 48); touch.pressed = false
-					stage_pointer(touch)
-					await process_frame
-					assert(scroll.scroll_vertical > 0 and host.opened_modals == opened, "Row swipe must scroll without opening details")
-					# A tap cancels native scroll momentum and still opens the stage details.
-					scroll.scroll_vertical = 0
-					await process_frame
-					point = rows[0].get_global_rect().get_center()
-					for down in [true, false]:
-						var tap := InputEventScreenTouch.new()
-						tap.index = 0; tap.position = point; tap.pressed = down
-						stage_pointer(tap)
-					assert(host.opened_modals == opened + 1, "Row tap must open details")
-					host.close_modal()
-					await process_frame
-					for i in range(40):
-						var wheel := InputEventMouseButton.new()
-						wheel.position = scroll.get_global_rect().get_center(); wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN; wheel.pressed = true
-						stage_pointer(wheel)
-					await process_frame
-					assert(scroll.scroll_vertical >= scroll.get_v_scroll_bar().max_value - scroll.get_v_scroll_bar().page - 1, "Wheel must reach the final stage")
-					assert(rows[-1].tooltip_text == "스테이지 %d-10 상세" % chapter)
-					assert(rows[-1].get_global_rect().end.y <= scroll.get_global_rect().end.y + 1)
-					assert(scroll.scroll_horizontal == 0)
-					var index := 0
-					for child in ui.canvas.get_children():
-						if child != scroll:
-							assert(child.get_global_rect() == fixed_rects[index], "Scrolling must keep chapter tabs/banner/active card fixed")
-							index += 1
-					var remembered: int = scroll.scroll_vertical
-					ui.select_chapter(3)
-					await process_frame
-					await process_frame
-					ui.select_chapter(chapter)
-					await process_frame
-					await process_frame
-					assert(ui.canvas.get_node("StageRowsScroll").scroll_vertical == remembered, "Each chapter retains its list position")
-	Input.emulate_touch_from_mouse = old_emulation

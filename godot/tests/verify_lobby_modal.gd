@@ -45,7 +45,7 @@ func check(lobby: Control) -> void:
 	assert(Rect2(Vector2.ZERO,lobby.size).encloses(frame), "Modal outside viewport: %s %s"%[frame,lobby.size])
 	assert(frame.get_center().distance_to(lobby.size/2)<1, "Animation overwrote centered layout")
 	for label in labels(lobby.modal_frame):
-		if label.text in ["기록 없음","잠김","클리어 보상","강화","연구","최초 클리어 보상","시작하기","시작 불가"]:
+		if label.text in ["새 전투 시작","취소","임무"]:
 			assert(label.get_line_count()==1,"Vertical caption: "+label.text)
 func run() -> void:
 	assert(not ProjectSettings.get_setting("accessibility/disable_animations",false))
@@ -61,44 +61,53 @@ func run() -> void:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = Vector2i(width,760)
 		for stage in [1,8,11]:
+			app.run_domain.state = {}
 			app.progression_inputs.unlockedStageCount = 11 if stage==11 else 2
 			lobby.open_page("스테이지")
-			lobby.stages.select_chapter(Progression.chapter_for(stage))
+			lobby.home.select_chapter(Progression.chapter_for(stage))
+			lobby.home.select_stage(stage)
 			await UiTweens.finished(self)
-			# Stage rows live in the chapter's native scroll list.
-			for target in lobby.stages.canvas.find_children("*","Button",true,false):
-				if target.tooltip_text == "스테이지 %s 상세"%Progression.stage_label(stage):
-					(lobby.stages.canvas.get_node("StageRowsScroll") as ScrollContainer).ensure_control_visible(target)
-					await process_frame
-					click(target)
-			assert(is_instance_valid(lobby.modal),"Actual stage-row click opens details")
-			await UiTweens.finished(self)
-			check(lobby)
-			for chip in lobby.modal_body.find_children("UnlockChip*","PanelContainer",true,false):
-				var reward_label: Label = chip.find_child("RewardName",true,false)
-				assert(reward_label.get_theme_font_size("font_size")==16,"Reward labels must not shrink")
-				assert(reward_label.size.y >= reward_label.get_minimum_size().y,"Wrapped reward text fits")
-			print("PASS modal width=",width," stage=",stage," rect=",lobby.modal_frame.get_global_rect())
-			if not OS.get_environment("MODAL_OUT").is_empty() and DisplayServer.get_name() != "headless":
-				await RenderingServer.frame_post_draw
-				root.get_texture().get_image().save_png(OS.get_environment("MODAL_OUT")+"/after-%d-stage%d.png"%[width,stage])
-			var action := lobby.modal_body.find_child("StageAction",true,false) as Button
-			assert(action.disabled == (stage==8))
-			assert(lobby.modal_scroll.get_global_rect().encloses(action.get_global_rect()))
+			var card: Control = lobby.home.card
+			assert(card.stage == stage)
+			assert(Rect2(Vector2.ZERO,lobby.size).encloses(card.get_global_rect()), "Stage card outside viewport")
+			var action := card.find_child("StageLocked" if stage==8 else "StageStart",false,false) as Button
+			assert(action != null and action.disabled == (stage==8))
 			var count: int = app.starts.size()
 			click(action)
 			assert(app.starts.size() == count+(0 if stage==8 else 1),"Actual start hit")
+			# With a run in progress another stage asks before replacing it.
 			if stage != 8:
-				assert(not is_instance_valid(lobby.modal), "Start closes modal")
+				app.run_domain.state = {"stage":0 if stage != 1 else 1,"roundIndex":2,"phase":"preparation"}
+				lobby.refresh()
+				lobby.home.select_chapter(Progression.chapter_for(stage))
+				lobby.home.select_stage(stage)
 				await UiTweens.finished(self)
-				lobby.stages.details(stage)
+				click(lobby.home.card.find_child("StageStart",false,false))
+				assert(is_instance_valid(lobby.modal),"Start over an active run opens the confirmation")
 				await UiTweens.finished(self)
 				check(lobby)
-			click(lobby.modal_frame.find_child("CloseStageDetails",true,false))
-			assert(not is_instance_valid(lobby.modal),"Actual close hit")
-			await UiTweens.finished(self)
+				print("PASS modal width=",width," stage=",stage," rect=",lobby.modal_frame.get_global_rect())
+				if not OS.get_environment("MODAL_OUT").is_empty() and DisplayServer.get_name() != "headless":
+					await RenderingServer.frame_post_draw
+					root.get_texture().get_image().save_png(OS.get_environment("MODAL_OUT")+"/after-%d-stage%d.png"%[width,stage])
+				count = app.starts.size()
+				click(lobby.modal_frame.find_child("ConfirmNewRun",true,false))
+				assert(app.starts.size() == count+1 and not is_instance_valid(lobby.modal),"Actual confirm hit")
+				await UiTweens.finished(self)
+			# Unlock icon bubble opens and closes with real pointer hits.
+			var tile := lobby.home.card.find_child("Unlock0",false,false) as Control
+			if tile:
+				click(tile)
+				await process_frame
+				await process_frame
+				assert(lobby.home.card.find_child("UnlockTooltip",false,false) != null,"Actual unlock icon hit opens the bubble")
+				click(lobby.home.find_child("ChapterRange",true,false))
+				await process_frame
+				await process_frame
+				assert(lobby.home.card.find_child("UnlockTooltip",false,false) == null,"Tap outside closes the bubble")
+	app.run_domain.state = {}
 	# A resize while the entrance tween is active must not restore its old location.
-	lobby.stages.details(1)
+	lobby.open_quests()
 	await create_timer(0.04).timeout # deliberately mid-entrance
 	root.size = Vector2i(440,1100)
 	await UiTweens.finished(self)
@@ -112,12 +121,11 @@ func run() -> void:
 	lobby.modal_scroll.scroll_vertical = 10000
 	await process_frame
 	await process_frame
-	var action := lobby.modal_body.find_child("StageAction",true,false) as Control
-	assert(lobby.modal_scroll.get_global_rect().encloses(action.get_global_rect()),"Scrolled start reachable")
-	var close := lobby.modal_frame.find_child("CloseStageDetails",true,false) as Control
+	var close := lobby.modal_frame.find_child("CloseModal",true,false) as Control
 	assert(Rect2(Vector2.ZERO,lobby.size).encloses(close.get_global_rect()),"Close stays visible during scroll")
 	click(close)
+	await process_frame
 	assert(not is_instance_valid(lobby.modal))
-	print("PASS lobby_modal: animations ON, 320/440 physical900 logical760 expand, caption lines, actual stage/start/close hits, resize during tween, short viewport scroll")
+	print("PASS lobby_modal: animations ON, 320/440 physical900 logical760 expand, caption lines, actual card start/confirm/unlock bubble hits, resize during tween, short viewport scroll")
 	lobby.free()
 	quit()

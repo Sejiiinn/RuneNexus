@@ -211,6 +211,17 @@ def _prepare_hud_texture_limit(texture: Path, size_limit: int = 256) -> None:
     )
 
 
+def _prepare_mipmapped_ui_texture(texture: Path) -> None:
+    """Stage-map art is drawn well below its source size; mipmaps keep the downscale clean.
+    The painted JPEG maps stay lossy (WebP) so the APK does not grow by full-size PNGs."""
+    mode = "compress/mode=1\ncompress/lossy_quality=0.85" if texture.suffix == ".jpg" else "compress/mode=0"
+    texture.with_suffix(texture.suffix + ".import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        f'[params]\n{mode}\ncompress/normal_map=2\n'
+        'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
+    )
+
+
 def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
     # 실제 식생의 잎과 투영 차폐를 유지한다. 같은 GLB의 바위 LOD는 그대로 둔다.
     path = ASSETS / "environment" / (filename + ".import")
@@ -314,6 +325,8 @@ def _prepare_app_ui() -> None:
         limit = _app_texture_size_limit(relative)
         if limit:
             _prepare_hud_texture_limit(target, limit)
+        elif relative.startswith("stage_map/"):
+            _prepare_mipmapped_ui_texture(target)
 
 
 def _prepare_combat_background() -> None:

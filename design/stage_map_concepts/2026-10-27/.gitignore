@@ -1,0 +1,8 @@
+# Iteration mockups and the throwaway mockup script stay local; originals and
+# implemented captures are kept.
+*.png
+*.gd
+!*_map_bg.png
+!node_socket_gold.png
+!stage_number_socket_v1.png
+!implemented/*.png

@@ -45,36 +45,42 @@ func run() -> void:
 			for page in ["스테이지","코어","강화","연구","포탑"]:
 				lobby.open_page(page)
 				for i in range(5): await process_frame
-				var header := lobby.find_child("MenuHeader",true,false) as Control
-				var back := lobby.find_child("MenuBack",true,false) as Button
-				var wallet := lobby.find_child("MenuResources",true,false) as Control
-				var heading := lobby.find_child("MenuHeading",true,false) as Control
 				var bounds := Rect2(Vector2.ZERO,Vector2(width,900))
-				assert(bounds.encloses(header.get_global_rect()),"Header overflow: %s %d long=%s"%[page,width,long_balance])
-				assert(not wallet.get_global_rect().intersects(heading.get_global_rect()),"Wallet and title overlap")
-				assert(back.size.y >=26 and back.size.y <=28 and back.size.x >=40,"Compact back dimensions")
-				assert(back.global_position.y >= heading.get_global_rect().end.y + 2,"Back belongs below the title")
-				assert(is_equal_approx(back.global_position.x,heading.global_position.x),"Back aligns to the left title group")
-				assert(not wallet.get_global_rect().intersects(back.get_global_rect()),"Wallet and back overlap")
-				var title := lobby.find_child("MenuTitle",true,false) as Label
-				if title: assert(title.horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT,"Title is left aligned")
-				for row in wallet.get_child(0).get_children():
-					var label := row.get_child(1) as Label
-					assert(label.size.x+0.1 >= label.get_minimum_size().x,"Balance clipped")
+				if page == "스테이지":
+					# The stage map header: chapter switcher, wallet and settings, no back button.
+					var wallet_box := lobby.find_child("HomeWallet",true,false) as Control
+					var parts := ["ChapterPrev","ChapterTitle","ChapterNext","ChapterRange","Settings"].map(func(id): return lobby.find_child(id,true,false) as Control)
+					for part in parts + [wallet_box]:
+						assert(bounds.encloses(part.get_global_rect()),"Stage header overflow: %s %d long=%s"%[part.name,width,long_balance])
+					for part in parts:
+						if part.name != "Settings": assert(not wallet_box.get_global_rect().intersects(part.get_global_rect()),"Wallet overlaps %s"%part.name)
+					assert(not wallet_box.get_global_rect().intersects(parts[4].get_global_rect()),"Wallet and settings overlap")
+					for id in ["Diamonds","Runes"]:
+						var balance := wallet_box.find_child(id,true,false) as Label
+						assert(balance.size.x+0.1 >= balance.get_minimum_size().x,"Balance clipped")
+					assert(lobby.find_child("MenuBack",true,false) == null and lobby.find_child("StageQuests",true,false) == null,"No back button or stage quest icon")
+				else:
+					var header := lobby.find_child("MenuHeader",true,false) as Control
+					var wallet := lobby.find_child("MenuResources",true,false) as Control
+					var heading := lobby.find_child("MenuHeading",true,false) as Control
+					assert(bounds.encloses(header.get_global_rect()),"Header overflow: %s %d long=%s"%[page,width,long_balance])
+					assert(not wallet.get_global_rect().intersects(heading.get_global_rect()),"Wallet and title overlap")
+					assert(lobby.find_child("MenuBack",true,false) == null,"Tabs return through the stage tab, not a back button")
+					var title := lobby.find_child("MenuTitle",true,false) as Label
+					if title: assert(title.horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT,"Title is left aligned")
+					for row in wallet.get_child(0).get_children():
+						var label := row.get_child(1) as Label
+						assert(label.size.x+0.1 >= label.get_minimum_size().x,"Balance clipped")
 				if not OS.get_environment("HEADER_OUT").is_empty() and DisplayServer.get_name() != "headless":
 					await RenderingServer.frame_post_draw
 					root.get_texture().get_image().save_png(OS.get_environment("HEADER_OUT")+"/%d-%s-%s.png"%[width,page,"long" if long_balance else "normal"])
-				if page == "스테이지":
-					await click(lobby.find_child("StageQuests",true,false))
-					assert(is_instance_valid(lobby.modal))
-					lobby.close_modal()
-					await process_frame
-				await click(lobby.find_child("MenuBack",true,false))
-				assert(lobby.page == "로비" and is_instance_valid(lobby.home),"Back navigates to home")
+				if page != "스테이지":
+					await click(lobby.find_child("TabStage",true,false))
+					assert(lobby.page == "스테이지" and is_instance_valid(lobby.home),"Stage tab returns to the map")
 				lobby.open_page(page)
 				lobby.find_child("TabResearch",true,false).pressed.emit()
 				assert(lobby.page == "연구", "Footer page transition")
-	print("PASS lobby_header: 320/440, five pages, 18-digit balances, left title / compact back below, bounds/no overlap, pointer back and stage quests")
+	print("PASS lobby_header: 320/440, five pages, 18-digit balances, stage map header and tab headers, bounds/no overlap, pointer stage tab return")
 	lobby.free()
 	quit()
 

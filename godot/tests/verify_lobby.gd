@@ -58,9 +58,28 @@ func _verify() -> void:
 	lobby.app = app
 	root.add_child(lobby)
 	await process_frame
-	assert(not lobby.home.canvas.has_node("ContinueRun"))
-	for id in ["Settings", "StageSelect", "Leaderboard", "Events", "Mailbox", "Core", "Upgrades", "Research", "Modules"]:
-		assert(lobby.home.canvas.has_node(id), "Missing home action: " + id)
+	assert(lobby.page == "스테이지", "The stage map is the first screen")
+	assert(lobby.home.find_child("ContinueRun",true,false) == null)
+	assert(lobby.find_child("MenuBack",true,false) == null and lobby.find_child("StageHeaderLogo",true,false) == null, "No separate lobby to go back to")
+	for id in ["Settings", "ChapterPrev", "ChapterNext", "StageStart", "Leaderboard", "Events", "Mailbox", "TabStage", "TabCore", "TabUpgrade", "TabResearch", "TabTurret"]:
+		assert(lobby.home.find_child(id,true,false) != null, "Missing home action: " + id)
+	# A tap on another stage socket selects it and the card's start button starts it.
+	var map: Control = lobby.home.map
+	assert(lobby.stages.selected == 1, "Opens on the first unlocked stage not cleared yet")
+	_tap(map, map._centers[2] - Vector2(0, map.scroll))
+	assert(lobby.stages.selected == 2 and lobby.home.card.stage == 2, "Tapping a socket selects that stage")
+	var drag_from: Vector2 = map._centers[1] - Vector2(0, map.scroll)
+	_press(map, drag_from, true)
+	var motion := InputEventMouseMotion.new(); motion.position = drag_from - Vector2(0, 40); map._gui_input(motion)
+	_press(map, drag_from - Vector2(0, 40), false)
+	assert(lobby.stages.selected == 2, "A drag never selects the stage under the finger")
+	lobby.home.find_child("StageStart",true,false).pressed.emit()
+	assert(app.starts == [1], "Card start begins the selected stage")
+	app.starts.clear()
+	lobby.home.find_child("ChapterNext",true,false).pressed.emit()
+	assert(lobby.stages.chapter == 2 and lobby.home.find_child("StageLocked",true,false) != null, "Next chapter shows its locked first stage")
+	lobby.home.find_child("ChapterPrev",true,false).pressed.emit()
+	assert(lobby.stages.chapter == 1)
 	for id in ["QuestReadyDot", "MailboxReadyDot"]:
 		var badge: Panel = lobby.home.canvas.get_node(id)
 		assert(badge.size == Vector2(7, 7) and badge.get_theme_stylebox("panel").bg_color == Color("e53935"), "Both alerts retain 7px size with the same red circle")
@@ -103,20 +122,24 @@ func _verify() -> void:
 	assert(not app.quit_requested, "Back must close a home modal before quitting")
 	lobby.home.open_events()
 	lobby.home.modal_frame.find_child("Quests",true,false).pressed.emit()
-	assert(lobby.page == "로비" and is_instance_valid(lobby.modal))
+	assert(lobby.page == "스테이지" and is_instance_valid(lobby.modal))
 	assert(not is_instance_valid(lobby.home.modal))
 	lobby.go_back()
-	assert(lobby.page == "로비")
+	assert(lobby.page == "스테이지")
 	app.run_domain.state = {"stage":0,"roundIndex":2,"phase":"preparation"}
 	lobby.refresh()
 	await process_frame
-	assert(lobby.home.canvas.has_node("ContinueRun"))
+	assert(lobby.home.find_child("ContinueRun",true,false) != null and lobby.stages.selected == 1, "An active run selects its stage with a continue action")
+	lobby.home.find_child("ContinueRun",true,false).pressed.emit()
+	assert(app.resumes == 1)
 	for dimensions in [Vector2(320, 568), Vector2(440, 988)]:
 		lobby.home.size = dimensions
 		lobby.home._layout()
 		var bounds := Rect2(lobby.home.global_position, dimensions)
-		for id in ["Settings", "StageSelect", "ContinueRun", "Core", "Modules"]:
-			assert(bounds.encloses(lobby.home.canvas.get_node(id).get_global_rect()), "Home action outside viewport: " + id)
+		for id in ["Settings", "ContinueRun", "StageCard", "Mailbox", "TabCore", "TabTurret"]:
+			assert(bounds.encloses(lobby.home.find_child(id,true,false).get_global_rect()), "Home action outside viewport: " + id)
+		var selected_y: float = lobby.home.map._centers[lobby.stages.selected].y - lobby.home.map.scroll
+		assert(selected_y > 56 and selected_y < lobby.home.card.position.y, "The selected stage shows between the header and the card")
 	var enlarged := LargeTextHome.new()
 	enlarged.lobby = lobby
 	root.add_child(enlarged)
@@ -124,20 +147,22 @@ func _verify() -> void:
 	enlarged.size = Vector2(320,568)
 	enlarged._layout()
 	assert(enlarged._font_size(12) == 24 and enlarged._font_size(20) == 36, "SP conversion must preserve per-size nonlinear scaling")
-	assert(enlarged.canvas.size.y >= 320.0/853*1844*0.5+650)
-	for id in ["Settings","StageSelect","ContinueRun","Core","Modules"]:
-		assert(Rect2(enlarged.global_position,enlarged.size).encloses(enlarged.canvas.get_node(id).get_global_rect()), "Large-text action outside safe canvas: " + id)
+	for id in ["Settings","ContinueRun","Mailbox","TabCore","TabTurret"]:
+		assert(Rect2(enlarged.global_position,enlarged.size).encloses(enlarged.find_child(id,true,false).get_global_rect()), "Large-text action outside safe canvas: " + id)
 	enlarged.free()
 	app.run_domain.state = {}
 	lobby.refresh()
-	for page in ["스테이지", "강화", "연구", "코어", "포탑", "설정", "로비"]:
+	for page in ["강화", "연구", "코어", "포탑", "설정", "스테이지"]:
 		lobby.open_page(page)
 		await process_frame
-		if page == "로비":
+		if page == "스테이지":
 			assert(is_instance_valid(lobby.home))
 			assert(not _has_scroll(lobby.home), "Home must stay fixed, not become a scrolling list")
 		else:
 			assert(lobby.safe.get_child_count() > 0)
+			lobby.go_back()
+			assert(lobby.page == "스테이지" and not app.quit_requested, "Back from a tab returns to the stage map")
+			lobby.open_page(page)
 	for dimensions in [Vector2(320,568),Vector2(440,988)]:
 		root.content_scale_size = Vector2i(dimensions)
 		lobby.size = dimensions
@@ -145,7 +170,7 @@ func _verify() -> void:
 			lobby.open_page(page)
 			await process_frame
 			await process_frame
-			assert(lobby.body.get_combined_minimum_size().x <= dimensions.x, "Page too wide: " + page)
+			if page != "스테이지": assert(lobby.body.get_combined_minimum_size().x <= dimensions.x, "Page too wide: " + page)
 			var bounds := Rect2(Vector2.ZERO,dimensions)
 			var tabs := lobby.find_child("MenuTabs",true,false) as Control
 			assert(bounds.encloses(tabs.get_global_rect()), "Tabs outside viewport: " + page)
@@ -158,7 +183,7 @@ func _verify() -> void:
 	lobby.open_page("스테이지")
 	await process_frame
 	await process_frame
-	assert(lobby.stages.canvas.size.x <= 400.1, "Wide stage must retain Flutter's 400 maximum width")
+	assert(lobby.home.canvas.size.x <= 460.1 and lobby.home.find_child("MapBackdrop",true,false).visible, "Wide screens keep a map column over the dimmed backdrop")
 	lobby.stages.select_chapter(3)
 	lobby.open_page("강화")
 	lobby.open_page("스테이지")
@@ -182,11 +207,24 @@ func _verify() -> void:
 	lobby.open_page("코어")
 	lobby._node_details("attackHaste")
 	await process_frame
-	lobby.open_page("로비")
+	lobby.open_page("스테이지")
+	lobby.go_back()
+	assert(app.quit_requested, "Back on the stage map leaves the app")
 	print("LOBBY_SMOKE_OK pages=8 lock+purchase+core_dialog home=new+active+small+modal_back+events")
 	lobby.queue_free()
 	await process_frame
 	quit()
+
+func _press(control: Control, at: Vector2, down: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.position = at
+	event.pressed = down
+	control._gui_input(event)
+
+func _tap(control: Control, at: Vector2) -> void:
+	_press(control, at, true)
+	_press(control, at, false)
 
 func _has_scroll(node: Node) -> bool:
 	if node is ScrollContainer: return true
