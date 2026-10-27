@@ -8,18 +8,19 @@
 
 ## 현재 미배포 변경
 
-없음. 마지막 공개 앱은 6057 / 0.2.28(`cfc87f07`, 선택 업데이트·최소 지원 코드6055), 운영 서버는 `f85a9037`·DB22다.
+없음. 마지막 공개 앱은 6058 / 0.2.29(`eca02b54`, **필수 업데이트**·최소 지원 코드6058), 운영 서버는 `f85a9037`·DB22다.
 
 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이와 Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
 
-## 2026-10-27 Android 0.2.28 / code 6057 — 공개 완료
+## 2026-10-28 Android 0.2.29 / code 6058 — 공개 완료
 
-- APK 대상 `cfc87f0725cefe0f6006b1dcb1c3af22531602fd`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40452279229), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40454068459), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6057), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6057/rune-nexus.apk). 2026-10-27 05:26:22 UTC(14:26:22 KST)에 공개·최신 지정했다. **선택 업데이트·최소 지원 코드6055**이며 클라이언트 세대14·저장·API·DB 변경이 없어 서버는 반영하지 않았다(`53fb799d` 이후 서버 쪽 변경은 테스트 주석·검사 경로 문서뿐).
-- 포함: 적 종류별 첫 처치 때 사망 연출 셰이더 준비 끊김(데스크톱 70~80ms)을 로딩 예열로 이동, 첫 탱크의 체력바 기준점 재계산(7~8ms) 제거, 웨이브 끝 하단 HUD 패널 재구성 비용 제거, 젬 보상 화면 첫 표시의 텍스처 로드 지연 제거, 전투 스텝·명중의 임시 할당 축소. 동작 변화 없는 전투 런타임·앱 수명주기·전장 장면·전장 환경·확장 코어 트리 계층 분할과 검사 스크립트의 `godot/tests/` 이동(내보내기 제외)도 포함한다.
-- 두 CI 모두 배포 검사 공용 액션(계약·회귀·준비 프로젝트)·서명 빌드·팩 감사·Android 패치 디코더·검증된 차등 업데이트 준비를 통과했다. 공개 실행은 build-only와 별도로 다시 빌드했으므로 아래 크기는 공개본 기준이다.
-- APK **362,033,713 bytes**, SHA-256 `413caeb5…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6057/update.json)). 6056 대비 **+32,396 bytes**이며 전부 PCK 증가다(209,216,388 bytes·1441항목, +38항목). 증가 항목은 계층 분할로 생긴 새 스크립트 19개의 `.gdc`·`.remap`이고 `tests/`·`verify_*` 항목은 없다. 기존22개 중복군2,707,494 bytes는 같고 신규 중복은 없다. **6056/6055/6054→6057 패치는 4,618,321 / 7,641,275 / 7,774,906 bytes**다.
-- 공개 tag 대상 커밋·성공 CI, 내장 `clientBuild=android:cfc87f07…`, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산4개의 크기·SHA-256과 GitHub digest 일치를 확인했다(`apk_release.py publish`의 `public-verification.json`).
-- Android에서만 드러나는 변경(저장 마이그레이션·업데이트/패치 경로·네이티브 연동·터치·수명주기)이 없어 AVD 업데이트 설치 확인은 하지 않았다. 끊김 개선 수치는 데스크톱 실제 앱 측정이며 **Android 실기기·모바일 GPU에서의 개선, 앱 내 패치 다운로드 업데이트, 실제 Google 로그인·계정 동기화·운영 서버 연결 플레이는 미검증**이다. 포함 변경 중 사망 연출 예열·탱크 기준점·HUD 비용·계층 분할 일부는 Codex 독립 검증을 거쳤고, 배포 절차 자체의 독립 검증은 요청이 없어 수행하지 않았다.
+- APK 대상 `eca02b549a96bd62a8bb2e266340c34d1cb28e0d`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40530691263), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40533131959), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6058), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6058/rune-nexus.apk). 2026-10-27 15:39:51 UTC(2026-10-28 00:39:51 KST)에 공개·최신 지정했다. 사용자 요청으로 **필수 업데이트·최소 지원 코드6058**이다. 클라이언트 세대·저장·API·DB 변경이 없어 서버는 반영하지 않았다(운영 `f85a9037` 이후 `server/`·콘텐츠 원본·fixture 변경 없음).
+- 포함: 별도 메인 로비를 없애고 스테이지 탭을 챕터 지도 홈으로 교체(지도·소켓·해금 배지·룬 보상·선택 경로·챕터별 배경 움직임, 하단 스테이지 카드와 해금 말풍선, 옛 목록·상세 모달 제거, [결정](design_decisions/lobby.md)), 임무 보상 수령 중 회전 로딩과 획득 다이아 수치 연출(완료 문구 제거), 코어 트리의 영역 4개 제목·진행 배지·상세 영역 태그 제거. 독립 검증 후 수정 2건(수령 대기 중 임무창 재진입 때 로딩·획득 표시, 카드 안 탭으로 말풍선 닫기)을 함께 넣었다.
+- 검사: 로컬에서 관련 Godot 회귀(로비·스테이지·숫자·임무 수령·모달·리더보드·레이아웃·챕터3 체크포인트·코어 트리)와 프로젝트 검사(로비 헤더·모달·앱 수명주기·챕터3 렌더·확장 코어 UI), `test_prepare_godot_project` 12건을 통과했다. build-only CI가 배포 검사 공용 액션(계약·회귀·준비 프로젝트)·서명 빌드·팩 감사·패치 디코더·차등 업데이트 준비를 통과했고, 공개 실행은 검수한 build-only 후보를 다시 빌드하지 않고 승격했다(`same_as_build_only_candidate=true`).
+- APK **359,017,521 bytes**, SHA-256 `dc3e8719…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6058/update.json)). 6057 대비 **−3,016,192 bytes**이며 PCK가 206,200,196 bytes·1389항목(−3,016,192 bytes, −52항목)으로 줄었다. 옛 로비 배경·받침대, 챕터 배너, 스테이지 목록·상세 모달 전용 UI 33개를 앱 에셋 목록에서 빼고, 챕터 지도 3장(손실 WebP·밉맵)과 소켓 2개를 더했다. 기존22개 중복군2,707,494 bytes는 같고 신규 중복은 없다. **6057/6056/6055→6058 패치는 6,564,151 / 6,882,774 / 9,747,791 bytes**다.
+- 공개 tag 대상 커밋·성공 CI, 내장 `clientBuild=android:eca02b54…`, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산의 크기·SHA-256과 GitHub digest 일치를 확인했다(`apk_release.py publish`의 `public-verification.json`).
+- Codex 독립 검증(gpt-6-astra, high): 미배포 커밋 3건 대상 완료 조건 8개 중 6개 PASS, 2개 FAIL(중간 1건·미미 1건)을 받아 모두 수정하고 검증자 재현 스크립트로 재확인했다. 수정 뒤 전체 재검증은 하지 않았다.
+- 지도 홈은 데스크톱 `--app`의 로그인 관문에 가려 실제 로비 코드에 시험 진행 데이터를 넣어 확인했다([캡처](../design/stage_map_concepts/2026-10-27/README.md)). AVD 업데이트 설치 확인은 하지 않았다. **Android 실기기의 지도 홈 표시·터치·시스템 뒤로가기(지도에서 앱 종료), 모바일 GPU에서의 배경 효과 부하, 앱 내 필수 업데이트·패치 다운로드, 실제 Google 로그인·운영 서버 연결 보상 수령은 미검증**이다.
 
 ## 2026-10-27 서버 — `f85a9037` 반영 완료
 
