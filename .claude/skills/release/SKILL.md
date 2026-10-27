@@ -45,8 +45,8 @@ python3 scripts/apk_release.py build --version-code <N> --version-name <x.y.z> -
 python3 scripts/apk_release.py publish --version-code <N>
 ```
 
-- build와 같은 입력·커밋으로 `publish=true`를 실행한다. HEAD가 바뀌었으면 build부터 다시 한다.
-- 공개 자산을 익명으로 받아 GitHub digest·크기, latest/버전별 `update.json`, 공개 URL 관측 검수(`public-verification.json`)를 대조한다. 결과 `publish.json`의 수치가 공개본 기준이다(공개 실행은 다시 빌드한다).
+- build와 같은 입력·커밋으로 `publish=true`·`promote_run_id=<build 실행>`을 실행해, 검수한 build-only 후보 파일을 다시 빌드하지 않고 공개한다(1~2분). HEAD가 바뀌었거나 build 뒤 다른 APK가 공개돼 승격이 거부되면 build부터 다시 한다.
+- 공개 자산을 익명으로 받아 GitHub digest·크기, latest/버전별 `update.json`, 공개 URL 관측 검수(`public-verification.json`), build-only 후보와의 바이트 일치(`same_as_build_only_candidate`)를 대조한다.
 
 ## 5. 기록
 

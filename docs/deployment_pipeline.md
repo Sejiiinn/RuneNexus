@@ -11,9 +11,9 @@
 | 입력·검사 | 빌드와 결과 |
 | --- | --- |
 | 버전·서명·API·Google 설정 검사 → Python 콘텐츠·스크립트 검사 → Godot 네이티브 회귀 | Godot 팩과 `android-godot-only`의 `productionRelease`를 빌드하고 Godot 팩·APK 패치 디코더를 감사 |
-| 최근 최대 3개 공개 APK의 서명·차등 복원 검증 | 기본 실행은 APK·패치·`update.json` 아티팩트만 보관. `publish=true`일 때만 초안을 공개·최신 release로 지정 |
+| 최근 최대 3개 공개 APK의 서명·차등 복원 검증 | 기본 실행은 APK·패치·`update.json`과 입력·패치 기준 기록을 아티팩트로 보관. `publish=true`일 때만 초안을 공개·최신 release로 지정하며, `promote_run_id`를 주면 다시 빌드하지 않고 그 build-only 후보를 [승격 검사](../scripts/promote_apk_candidate.py) 뒤 공개 |
 
-입력은 `version_code`, `version_name`, `notes`, `required_update`, `publish`다. `required_update=true`이면 이번 버전을 최소 지원 버전으로 지정하며, 선택 업데이트는 기존 최소 지원 버전을 유지한다. 버전 코드는 초안을 포함한 기존 APK release보다 커야 하며, 별도 배포한 설치본도 고려한다. 서명·차등 패치·실패한 초안 처리 규칙은 [APK 배포](android_apk_distribution.md#배포-실행)를 따른다.
+입력은 `version_code`, `version_name`, `notes`, `required_update`, `publish`, 선택 입력 `promote_run_id`다. `required_update=true`이면 이번 버전을 최소 지원 버전으로 지정하며, 선택 업데이트는 기존 최소 지원 버전을 유지한다. 버전 코드는 초안을 포함한 기존 APK release보다 커야 하며, 별도 배포한 설치본도 고려한다. 서명·차등 패치·실패한 초안 처리 규칙은 [APK 배포](android_apk_distribution.md#배포-실행)를 따른다.
 
 APK 팩은 `android:<github.sha>`를 `app_config.json`에 포함한다. Godot 4.7.2와 Java 17을 사용하며 Flutter/Dart SDK를 설치하지 않는다. API·Google·업데이트 설정은 기존 Actions vars와 서명 secrets에서 주입한다.
 

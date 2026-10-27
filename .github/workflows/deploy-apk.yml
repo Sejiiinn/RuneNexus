@@ -25,9 +25,15 @@ on:
         required: true
         default: false
         type: boolean
+      promote_run_id:
+        description: '공개할 build-only 실행 ID (비우면 다시 빌드해 공개)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: android-apk-release
@@ -35,6 +41,7 @@ concurrency:
 
 jobs:
   release:
+    if: ${{ inputs.promote_run_id == '' }}
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -246,6 +253,89 @@ jobs:
           name: rune-nexus-apk-${{ inputs.version_code }}
           path: build/apk-release/*
 
+      # promote 작업이 같은 입력·같은 패치 기준인지 대조할 근거
+      - name: Record build-only inputs
+        if: ${{ !inputs.publish }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          temp = pathlib.Path(os.environ["RUNNER_TEMP"])
+          record = {
+              "version_code": os.environ["VERSION_CODE"], "version_name": os.environ["VERSION_NAME"],
+              "notes": os.environ["RELEASE_NOTES"], "required_update": os.environ["REQUIRED_UPDATE"],
+              "sha": os.environ["GITHUB_SHA"],
+              "patch_base_tags": json.loads((temp / "patch-base-tags.json").read_text()),
+          }
+          (temp / "release-inputs.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
+          PY
+
+      - name: Save build-only inputs
+        if: ${{ !inputs.publish }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-release-inputs-${{ inputs.version_code }}
+          path: ${{ runner.temp }}/release-inputs.json
+
       - name: Remove signing material
         if: always()
         run: rm -f "$ANDROID_KEYSTORE_PATH"
+
+  # 검수한 build-only 후보 파일을 다시 빌드하지 않고 그대로 공개한다
+  promote:
+    if: ${{ inputs.promote_run_id != '' }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION_CODE: ${{ inputs.version_code }}
+      VERSION_NAME: ${{ inputs.version_name }}
+      RELEASE_NOTES: ${{ inputs.notes }}
+      REQUIRED_UPDATE: ${{ inputs.required_update }}
+      PUBLISH: ${{ inputs.publish }}
+      CANDIDATE_RUN: ${{ inputs.promote_run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+
+      - name: Verify build-only candidate run
+        run: |
+          [[ "$PUBLISH" == "true" ]] || { echo "promote_run_id requires publish=true"; exit 1; }
+          [[ "$CANDIDATE_RUN" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid promote_run_id"; exit 1; }
+          gh api "repos/$GH_REPO/actions/runs/$CANDIDATE_RUN" > "$RUNNER_TEMP/candidate-run.json"
+          python3 - <<'PY'
+          import json, os, pathlib
+          run = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "candidate-run.json").read_text())
+          expected = {
+              "path": ".github/workflows/deploy-apk.yml", "event": "workflow_dispatch",
+              "status": "completed", "conclusion": "success", "head_sha": os.environ["GITHUB_SHA"],
+          }
+          for key, value in expected.items():
+              if run.get(key) != value:
+                  raise SystemExit(f"Candidate run {key} is {run.get(key)!r}, expected {value!r}")
+          if run["repository"]["full_name"] != os.environ["GH_REPO"]:
+              raise SystemExit("Candidate run belongs to another repository")
+          PY
+
+      - name: Check candidate against inputs and current releases
+        run: |
+          gh run download "$CANDIDATE_RUN" -n "rune-nexus-apk-$VERSION_CODE" -D "$RUNNER_TEMP/candidate"
+          gh run download "$CANDIDATE_RUN" -n "apk-release-inputs-$VERSION_CODE" -D "$RUNNER_TEMP/recorded"
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/existing-releases.json"
+          printf '%s' "$RELEASE_NOTES" > "$RUNNER_TEMP/release-notes.md"
+          python3 scripts/promote_apk_candidate.py \
+            --candidate "$RUNNER_TEMP/candidate" \
+            --recorded-inputs "$RUNNER_TEMP/recorded/release-inputs.json" \
+            --releases "$RUNNER_TEMP/existing-releases.json" \
+            --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --required-update "$REQUIRED_UPDATE" --sha "$GITHUB_SHA"
+
+      - name: Publish build-only candidate
+        run: |
+          tag="apk-$VERSION_CODE"
+          gh release create "$tag" --draft --target "$GITHUB_SHA" \
+            --title "Rune Nexus $VERSION_NAME ($VERSION_CODE)" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            "$RUNNER_TEMP"/candidate/*
+          gh release edit "$tag" --draft=false --latest

@@ -2,11 +2,12 @@
 """APK 배포 워크플로 실행·대기·검수를 한 명령으로 묶는다.
 
 build    build-only(publish=false) 실행 → 완료 대기 → 아티팩트를 받아 release_report로 후보 검수
-publish  build와 같은 입력으로 publish=true 실행 → 완료 대기 → 공개 주소에서 익명으로 받은 자산을
-         후보·공개 검수하고 GitHub 자산 digest·latest update.json과 대조
+publish  build와 같은 입력으로 publish=true·promote_run_id=<build 실행> 실행 → 검수한 후보 파일을
+         다시 빌드하지 않고 공개 → 공개 주소에서 익명으로 받은 자산을 후보 파일·GitHub 자산 digest·
+         latest update.json과 대조
 
-입력·결과는 build/apk-release-<code>/에 남는다. 공개 실행은 다시 빌드하므로 공개본 기준 크기는
-publish 결과를 쓴다. 대상은 origin/main에 푸시된 현재 HEAD다.
+입력·결과는 build/apk-release-<code>/에 남는다. 대상은 origin/main에 푸시된 현재 HEAD다.
+build 뒤 다른 APK가 공개되면 패치 기준이 달라져 승격이 거부되므로 build부터 다시 한다.
 """
 from __future__ import annotations
 
@@ -38,10 +39,11 @@ def head():
     return sha
 
 
-def dispatch(inputs, publish):
+def dispatch(inputs, publish, promote_run=None):
     """워크플로를 실행하고 이번 실행의 run ID를 찾는다."""
     started = datetime.now(timezone.utc) - timedelta(seconds=5)
-    fields = [f"{key}={value}" for key, value in {**inputs, "publish": str(publish).lower()}.items() if key != "sha"]
+    extra = {"publish": str(publish).lower(), **({"promote_run_id": str(promote_run)} if promote_run else {})}
+    fields = [f"{key}={value}" for key, value in {**inputs, **extra}.items() if key != "sha"]
     sh("gh", "workflow", "run", WORKFLOW, "--ref", "main", *sum((["-f", field] for field in fields), []))
     for _ in range(30):
         time.sleep(4)
@@ -114,13 +116,17 @@ def publish(code):
     inputs = built["inputs"]
     if head() != inputs["sha"]:
         raise SystemExit("HEAD moved since build; run build again")
-    run = dispatch(inputs, True)
-    print(f"publish run {run}", flush=True)
+    run = dispatch(inputs, True, built["build_run"])
+    print(f"publish run {run} (promoting build-only run {built['build_run']})", flush=True)
     wait(run, inputs["sha"], work, "publish")
-    verify_public(code, inputs, run, work)
+    verify_public(code, inputs, run, work, work / "build-only")
 
 
-def verify_public(code, inputs, run, work: Path):
+def file_hashes(folder: Path):
+    return {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in folder.iterdir() if path.is_file()}
+
+
+def verify_public(code, inputs, run, work: Path, candidate: Path | None = None):
     public = work / "public"
     public.mkdir(exist_ok=True)
     assets = json.loads(sh("gh", "api", f"repos/{REPO}/releases/tags/apk-{code}", "--jq",
@@ -139,12 +145,15 @@ def verify_public(code, inputs, run, work: Path):
     verify(public, inputs["sha"], run, work / "public-verification.json",
            "--candidate-report", str(work / "public-candidate.json"), "--release-tag", f"apk-{code}",
            "--latest-manifest", LATEST_MANIFEST, source=f"{DOWNLOAD}/apk-{code}")
+    # 승격 공개는 검수한 후보와 바이트까지 같아야 한다
+    same_as_candidate = None if candidate is None else file_hashes(public) == file_hashes(candidate)
     result = {"inputs": inputs, "publish_run": run, "release": f"https://github.com/{REPO}/releases/tag/apk-{code}",
               "assets_match_github_digest": not mismatched, "mismatched": mismatched,
-              "latest_manifest_matches": latest_same, **summary(public, manifest, work / "public-candidate.json")}
+              "latest_manifest_matches": latest_same, "same_as_build_only_candidate": same_as_candidate,
+              **summary(public, manifest, work / "public-candidate.json")}
     (work / "publish.json").write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    if mismatched or not latest_same:
+    if mismatched or not latest_same or same_as_candidate is False:
         raise SystemExit("Public assets do not match the release")
 
 

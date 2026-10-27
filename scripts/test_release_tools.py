@@ -1,5 +1,7 @@
 """배포 기록 정리와 APK 배포 실행기의 네트워크 없는 단위 검사."""
 from datetime import datetime, timezone
+import hashlib
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -7,6 +9,7 @@ from unittest.mock import patch
 
 import apk_release
 import deployment_record
+import promote_apk_candidate
 
 
 class DeploymentRecordTest(unittest.TestCase):
@@ -48,6 +51,70 @@ class ApkReleaseTest(unittest.TestCase):
         fields = [calls[0][i + 1] for i, value in enumerate(calls[0]) if value == "-f"]
         self.assertIn("publish=true", fields)
         self.assertFalse(any(field.startswith("sha=") for field in fields))
+        self.assertFalse(any(field.startswith("promote_run_id=") for field in fields))
+
+    def test_publish_dispatch_promotes_the_build_only_run(self):
+        inputs = {"version_code": "6058", "version_name": "0.2.29", "notes": "n", "required_update": "false",
+                  "sha": "abc"}
+        calls = []
+        with patch.object(apk_release, "sh", side_effect=lambda *a: calls.append(a) or
+                          '[{"databaseId": 9, "headSha": "abc", "createdAt": "2999-01-01T00:00:00Z"}]'), \
+                patch.object(apk_release.time, "sleep"):
+            apk_release.dispatch(inputs, True, 41)
+        fields = [calls[0][i + 1] for i, value in enumerate(calls[0]) if value == "-f"]
+        self.assertIn("promote_run_id=41", fields)
+
+
+def release(code, draft=False):
+    return {"tag_name": f"apk-{code}", "draft": draft, "published_at": None if draft else "2026-10-27T00:00:00Z"}
+
+
+class PromoteCandidateTest(unittest.TestCase):
+    INPUTS = {"version_code": "6058", "version_name": "0.2.29", "notes": "- 개선", "required_update": "false"}
+    RELEASES = [release(6057), release(6056), release(6055), release(6054)]
+
+    def candidate(self, directory):
+        folder = Path(directory)
+        apk, patch_file = folder / "rune-nexus.apk", folder / "patch-from-6057.rndelta"
+        apk.write_bytes(b"apk")
+        patch_file.write_bytes(b"patch")
+        (folder / "update.json").write_text(json.dumps({
+            "versionCode": 6058, "versionName": "0.2.29", "notes": "- 개선", "minimumSupportedVersionCode": 6055,
+            "sha256": hashlib.sha256(b"apk").hexdigest(), "sizeBytes": 3,
+            "patches": [{"fromVersionCode": 6057, "sha256": hashlib.sha256(b"patch").hexdigest(), "sizeBytes": 5}],
+        }, ensure_ascii=False))
+        recorded = {**self.INPUTS, "sha": "abc", "patch_base_tags": ["apk-6057", "apk-6056", "apk-6055"]}
+        return folder, recorded
+
+    def check(self, folder, recorded, inputs=None, releases=None):
+        return promote_apk_candidate.check_candidate(folder, recorded, inputs or self.INPUTS, "abc",
+                                                     self.RELEASES if releases is None else releases)
+
+    def test_matching_candidate_can_be_promoted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder, recorded = self.candidate(directory)
+            self.assertEqual(self.check(folder, recorded), [])
+            # 초안은 패치 기준이 아니므로 바뀌어도 공개 가능
+            self.assertEqual(self.check(folder, recorded, releases=self.RELEASES + [release(6050, draft=True)]), [])
+
+    def test_refuses_when_a_release_was_published_after_the_build(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder, recorded = self.candidate(directory)
+            problems = self.check(folder, recorded, releases=[release(6058)] + self.RELEASES)
+            self.assertTrue(any("rebuild" in problem for problem in problems))
+            self.assertTrue(any("versionCode" in problem for problem in problems))
+
+    def test_refuses_changed_inputs_commit_or_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder, recorded = self.candidate(directory)
+            self.assertTrue(self.check(folder, recorded, inputs={**self.INPUTS, "notes": "다른 안내"}))
+            self.assertTrue(self.check(folder, {**recorded, "sha": "other"}))
+            self.assertTrue(self.check(folder, recorded, inputs={**self.INPUTS, "required_update": "true"}))
+            (folder / "extra.txt").write_text("x")
+            self.assertTrue(any("candidate files" in p for p in self.check(folder, recorded)))
+            (folder / "extra.txt").unlink()
+            (folder / "patch-from-6057.rndelta").write_bytes(b"other")
+            self.assertTrue(any("patch-from-6057" in p for p in self.check(folder, recorded)))
 
 
 if __name__ == "__main__":
