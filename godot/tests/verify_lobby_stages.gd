@@ -144,6 +144,12 @@ func verify_map_and_card(ui, host) -> void:
 				var bubble: Control = card.find_child("UnlockTooltip", false, false)
 				assert(bubble != null and bubble.position.y < 0 and bubble.position.x >= 0 and bubble.position.x + bubble.size.x <= card.size.x + 0.1, "Bubble opens above the card")
 				assert(card.find_child("TooltipDestination", true, false).text == Stages.unlock_destination(ui.unlock_items(stage)[0]))
+				card._gui_input(_button(Vector2(40, 40), true))
+				await process_frame
+				assert(card.find_child("UnlockTooltip", false, false) == null, "Tap inside the card closes the bubble")
+				tiles = card.find_children("Unlock*", "Button", false, false)
+				tiles[0].pressed.emit()
+				await process_frame
 				var catcher: Control = host.get_node("TooltipCatcher")
 				catcher.gui_input.emit(_button(Vector2(5, 5), true))
 				await process_frame

@@ -39,6 +39,12 @@ func _ready() -> void:
 	name = "StageCard"
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
+func _gui_input(event: InputEvent) -> void:
+	# A tap on the card itself, outside its buttons, also closes the bubble.
+	if tooltip >= 0 and event is InputEventMouseButton and event.pressed:
+		tooltip = -1
+		_rebuild.call_deferred()
+
 func _exit_tree() -> void:
 	if is_instance_valid(_catcher): _catcher.queue_free()
 
