@@ -363,7 +363,6 @@ func node_details(owner, id: String) -> void:
 	tag.content_margin_right = 6
 	category.add_theme_stylebox_override("normal",tag)
 	tags.add_child(category)
-	tags.add_child(_plain(str(region_of(str(d.get("category",""))).name),11,MUTED))
 	head.add_child(_close_button(owner))
 	var rank_row := HBoxContainer.new()
 	rank_row.add_theme_constant_override("separation",8)

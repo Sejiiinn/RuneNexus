@@ -26,12 +26,6 @@ const SELECT := Color("e8fff6")
 const MUTED := Color("8ea4ab")
 const LOCKED_TINT := Color(0.46,0.49,0.53)
 const HUB_GLYPH := 0xf0616
-const REGIONS := [
-	{"name":"집중 타격","categories":["직격","발동"],"color":Color("eda78b"),"title":Vector2(410,235)},
-	{"name":"원소 공명","categories":["연소","확산"],"color":Color("96d9db"),"title":Vector2(2360,170)},
-	{"name":"강화 육성","categories":["육성","지원"],"color":Color("add4a9"),"title":Vector2(410,2580)},
-	{"name":"전선 제어","categories":["제어","방위"],"color":Color("a2d8f1"),"title":Vector2(2320,2580)},
-]
 const SKILL_TEXT := {
 	"guardianBeam":"5초마다 자동 발동 · 가장 앞선 적에게 광선을 발사하며 포탑 화력에 비례해 피해가 증가합니다.",
 	"riftMark":"10초마다 자동 발동 · 내구도가 높은 적 4명의 받는 모든 피해를 기본 25% 증폭합니다. 코어 스킬 위력에 비례하며 보스는 절반입니다.",
@@ -110,11 +104,6 @@ func openers(owner) -> Array:
 	for neighbor in owner.data().nodes[id].neighbors:
 		if not bool(owner.data().nodes[neighbor].get("terminal",false)): result.append(neighbor)
 	return result
-
-func region_of(category: String) -> Dictionary:
-	for region in REGIONS:
-		if category in region.categories: return region
-	return REGIONS[0]
 
 # ---- camera ----
 func cover_zoom(owner) -> float:

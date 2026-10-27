@@ -102,10 +102,6 @@ func draw_tree(owner, canvas: Control) -> void:
 			_grow_line(canvas,owner,a,start,b,end,k)
 			_grow_line(canvas,owner,b,end,a,start,k)
 	if owner.allocating and not wave.is_empty(): _draw_wave_links(owner,canvas,k)
-	if detailed:
-		for region in REGIONS:
-			var at := screen(owner,region.title)
-			_text(canvas,region.name,at,int(maxf(36*zoom,14)),Color("edd8b3"),900)
 	for id in owner.node_ids():
 		_draw_node(owner,canvas,id,available,hint,detailed)
 	_draw_core(owner,canvas,core,detailed)
@@ -192,44 +188,9 @@ func _draw_core(owner, canvas: Control, core: Vector2, detailed: bool) -> void:
 	var baseline := font.get_ascent(14)-font.get_height(14)/2.0
 	canvas.draw_string(font,Vector2(plate.position.x+(18+icon_size if equipped else 16),plate.get_center().y+baseline+1),title,HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f4e6c8"))
 
-## Overview bands: region progress, legend and gesture hint at screen-fixed sizes.
+## Overview legend and gesture hint at screen-fixed sizes.
 func _draw_overview(owner, canvas: Control) -> void:
 	var view_size := canvas.size
-	var top := point_bar.position.y+point_bar.size.y+10 if is_instance_valid(point_bar) else 10.0
-	var spots := [Vector2(12,top),Vector2(-12,top),Vector2(12,view_size.y-144),Vector2(-12,view_size.y-144)]
-	var actual: Dictionary = owner.actual()
-	var font := AppTheme.font(800)
-	for index in REGIONS.size():
-		var region: Dictionary = REGIONS[index]
-		var invested := 0
-		var whole := 0
-		for id in owner.node_ids():
-			var d: Dictionary = owner.data().nodes[id]
-			if not str(d.get("category","")) in region.categories: continue
-			for i in int(d.maxRank): whole += int(d.rankCosts[i])
-			for i in mini(int(actual.get(id,0)),int(d.maxRank)): invested += int(d.rankCosts[i])
-		var amount := "%d/%d" % [invested,whole]
-		var name_width := font.get_string_size(region.name,HORIZONTAL_ALIGNMENT_LEFT,-1,13).x
-		var amount_width := AppTheme.font(700).get_string_size(amount,HORIZONTAL_ALIGNMENT_LEFT,-1,11).x
-		var width := 10+8+6+name_width+6+46+6+amount_width+10
-		var spot: Vector2 = spots[index]
-		var box := Rect2(Vector2(spot.x if spot.x > 0 else view_size.x+spot.x-width,spot.y),Vector2(width,28))
-		var pill := StyleBoxFlat.new()
-		pill.bg_color = Color(0.016,0.055,0.086,0.78)
-		pill.border_color = Color(1,1,1,0.08)
-		pill.set_border_width_all(1)
-		pill.set_corner_radius_all(14)
-		canvas.draw_style_box(pill,box)
-		var x := box.position.x+10
-		var mid := box.get_center().y
-		canvas.draw_circle(Vector2(x+4,mid),4,region.color)
-		x += 14
-		canvas.draw_string(font,Vector2(x,mid+5),region.name,HORIZONTAL_ALIGNMENT_LEFT,-1,13,Color("edd8b3"))
-		x += name_width+6
-		canvas.draw_rect(Rect2(x,mid-2,46,4),Color("1d2d37"))
-		if whole > 0: canvas.draw_rect(Rect2(x,mid-2,46.0*invested/whole,4),GOLD)
-		x += 52
-		canvas.draw_string(AppTheme.font(700),Vector2(x,mid+4),amount,HORIZONTAL_ALIGNMENT_LEFT,-1,11,GOLD if invested > 0 else MUTED)
 	if is_instance_valid(owner.inline_panel): return
 	var small := AppTheme.font(600)
 	canvas.draw_string(small,Vector2(12,view_size.y-56),"눌러서 확대 · 끌어서 이동",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("b7cbcf"))
