@@ -57,6 +57,7 @@ var selected_gem := ""
 var elapsed := 0.0
 var body_key: Variant = ""
 var body_value_key: Array = []
+var _body_phase := ""
 var body_purchase_buttons: Array[Dictionary] = []
 var overlay_key := ""
 var main_buttons := {}
@@ -341,15 +342,26 @@ func refresh(polled := false) -> void:
 	if main_tab == "turrets" and chosen.is_empty() and app.selected.x >= 0:
 		chosen_core = SupportCore.at(state,app.selected.x,app.selected.y)
 	# Prices depend on turret/gem diversity and upgrades, but not wallet balances.
-	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview,chosen_core,SupportCore.connections(state).size(),support_core_panel.chosen(state)]
+	# Panels and run commands only distinguish the playable phases from the rest,
+	# so preparation <-> wave keeps the panel; the dock is hidden otherwise and
+	# rebuilds once it shows again.
+	var playable := phase in ["preparation","wave"]
+	# A selected portal shows the current wave, which advances at each wave end.
+	var portal_wave := int(state.get("completedRounds",0)) if main_tab == "turrets" and chosen.is_empty() and chosen_core.is_empty() and selected_tile_type() == "spawn" else -1
+	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,playable,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview,chosen_core,SupportCore.connections(state).size(),support_core_panel.chosen(state),portal_wave]
 	var incremental_turret: bool = main_tab == "turrets" and not chosen.is_empty() and (tab == "stats" or app.selection_view.level_preview)
 	if incremental_turret:
 		# Configuration/preview affect values, not the selected panel's identity.
-		key = [main_tab,chosen.id,chosen.type,"stats",phase]
+		key = [main_tab,chosen.id,chosen.type,"stats",playable]
 	elif main_tab == "upgrades":
-		key = [main_tab,viewport.x < 380,phase]
+		key = [main_tab,viewport.x < 380,playable]
 	var value_key := [dk,app.selection_view.level_preview]
-	if not body_key is Array or key != body_key:
+	# Phase changes still close the priority popup as the former rebuild did.
+	if phase != _body_phase:
+		_body_phase = phase
+		target_priority_popup.hide()
+	if not playable: pass
+	elif not body_key is Array or key != body_key:
 		target_priority_popup.hide()
 		body_key = key.duplicate(true)
 		body_value_key = value_key.duplicate()
