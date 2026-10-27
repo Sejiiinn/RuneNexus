@@ -1,10 +1,16 @@
 extends Control
 ## Dims the current screen and blocks input while services quietly reconnect
 ## after a foreground return. The account gate opens only if that fails.
+## Other server waits reuse it through caption_text and active_check.
 const T = preload("res://ui/app_theme.gd")
 const FADE_SEC := 0.2
 const TURN_SEC := 0.9
 var services
+var caption_text := "서버에 다시 연결하는 중"
+## Replaces services.reconnecting as the visibility condition when valid.
+var active_check: Callable
+## Input is blocked at once; the shade waits so quick replies do not flash.
+var show_delay := 0.0
 var spinner: Control
 var _angle := 0.0
 var _fade: Tween
@@ -35,7 +41,7 @@ func _ready() -> void:
 	spinner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	spinner.draw.connect(_draw_spinner)
 	column.add_child(spinner)
-	var caption := T.label("서버에 다시 연결하는 중", 13)
+	var caption := T.label(caption_text, 13)
 	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
 	caption.add_theme_constant_override("outline_size", 6)
 	caption.add_theme_color_override("font_outline_color", Color("02070d"))
@@ -46,7 +52,8 @@ func _ready() -> void:
 	sync()
 
 func sync() -> void:
-	var active: bool = services != null and services.get("reconnecting") == true
+	var active: bool = bool(active_check.call()) if active_check.is_valid() \
+		else services != null and services.get("reconnecting") == true
 	if active == _active: return
 	_active = active
 	if _fade != null: _fade.kill()
@@ -56,6 +63,7 @@ func sync() -> void:
 			modulate.a = 0.0
 		show()
 		_fade = create_tween()
+		if show_delay > 0 and modulate.a == 0.0: _fade.tween_interval(show_delay)
 		_fade.tween_property(self, "modulate:a", 1.0, FADE_SEC)
 	else:
 		_fade = create_tween()

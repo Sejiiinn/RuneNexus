@@ -66,9 +66,15 @@ func run():
 	claim.pressed.emit(); await frames()
 	check(service.requests.size()==1,"first claim sends one command")
 	check(buttons(parent).filter(func(button): return button.text=="수령" and not button.disabled).is_empty(),"pending disables all claim controls")
+	var overlay: Control = host.modal.get_node_or_null("ClaimOverlay")
+	check(overlay != null and overlay.visible and overlay.mouse_filter == Control.MOUSE_FILTER_STOP and host.modal.get_child(-1) == overlay,"pending claim blocks the dialog with the server spinner")
+	check("보상을 수령하는 중" in texts(overlay) and not "보상을 확인하고 있습니다" in texts(parent),"pending claim shows connection state instead of a notice line")
 	claim.pressed.emit(); await frames()
 	check(service.requests.size()==1,"rapid repeated press cannot send another command")
 	service.completed.emit({"ok":false,"code":"NETWORK_ERROR"}); await frames()
+	check(not overlay._active,"claim completion releases the server spinner")
+	await create_timer(0.2).timeout
+	check(not overlay.visible,"released server spinner stops blocking the dialog")
 	check(not buttons(parent).filter(func(button): return button.text=="수령" and not button.disabled).is_empty(),"failure enables retry")
 	check(panels(parent)==initial,"pending and failure keep original rows")
 	check("수령하지 못했습니다" in texts(parent),"failed claim displays existing retry guidance")
@@ -79,8 +85,13 @@ func run():
 	if target.rewardType=="all_complete": app.progression_inputs.dailyQuestAllCompleteClaimed=true
 	elif target.rewardType=="attendance": app.progression_inputs.dailyAttendanceRewardClaimed=true
 	else: app.progression_inputs.claimedDailyQuestRewards.append(target.questType)
+	app.progression_inputs.freeDiamonds = int(app.progression_inputs.get("freeDiamonds",0)) + 20
 	service.completed.emit({"ok":true}); await frames()
 	check(buttons(parent).any(func(button):return button.text=="수령 완료" and button.disabled),"successful claim updates claimed row")
+	var gain: Control = host.modal.get_node_or_null("ClaimGain")
+	check(gain != null and "+20" in texts(gain) and not "보상을 수령했습니다" in texts(parent),"success shows the gained diamonds instead of a notice line")
+	await create_timer(1.6).timeout
+	check(not is_instance_valid(gain),"gained diamond pop removes itself")
 	check(panels(parent)==initial,"success preserves row identities")
 	check(host.modal_scroll.scroll_vertical==scroll,"claim completion preserves scroll")
 	host.collection.set_period("weekly",parent); await frames()
