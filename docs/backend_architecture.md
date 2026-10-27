@@ -659,20 +659,7 @@ COMMIT
 
 ## 클라이언트 동기화 상태 기계
 
-### 현재 코드 통합 제약
-
-현재 `OnlineSaveApi`는 원격 조회·조건부 갱신 계약을 구현하고,
-`OnlineSaveCoordinator`는 계정별 영속 Outbox, 단일 in-flight, 최신 pending 병합,
-동일 본문·멱등성 key 재시도, 재시작 복구와 충돌 중단을 담당한다. Web Local Storage와
-IO application support 경로 모두 primary·backup 복구를 제공한다. 최초 로그인 시에는
-기존 Outbox를 먼저 확인하고, 새 연결이면 원격 account 진행을 우선해 account 슬롯을
-자동 준비한다. 원격이 없을 때만 guest 진행을 이전하며 원본은 backup한다. account 로컬
-저장은 독립 후보가 아니라 계정 기록의 캐시다. 자동 연결된 account 슬롯에는
-coordinator를 실제 게임에 주입한다. 라운드 종료 같은
-중요 체크포인트는 로컬 저장 성공 뒤 영속 Outbox에 등록하고, 전송 완료를 기다리지
-않는다. 원격 기록 자동 적용은 현재 revision과 payload fingerprint를 초기 동기화
-기준으로 삼는다. 기존 Outbox에 미전송·충돌·차단 상태가 있으면 새 기준으로
-재기준화하지 않고 coordinator가 exact 요청과 rebase journal을 우선 복구한다.
+### 클라이언트 통합 원칙
 
 정상 로그인 흐름에는 저장 선택과 사용자 충돌 해결이 없다. exact in-flight 영수증을
 먼저 확인한 뒤
@@ -681,21 +668,9 @@ coordinator를 실제 게임에 주입한다. 라운드 종료 같은
 가진 session만 수행한다. 상세 상태 전이와 crash 복구는
 `docs/multi_device_save_sync_design.md`를 구현 기준으로 삼는다.
 
-현재 `SaveScheduler`는 `_writeLocalSave`만 직렬화하고 `_saveRoundCheckpoint`는
-직접 파일 쓰기와 온라인 호출을 수행한다. 최종 구현에서는 다음처럼 바꾼다.
-
-- 모든 로컬 파일 쓰기는 하나의 `LocalSaveCoordinator` 직렬화 경로를 사용한다.
-- 체크포인트도 직접 `_writeLocalSaveData`를 호출하지 않는다.
-- 로컬 저장 완료 후 outbox enqueue까지 성공해야 온라인 동기화를 예약한다.
-- 로컬 저장 실패는 플레이를 막지 않지만 내부 결과로 실패를 전달해 outbox가
-  저장되지 않은 스냅샷을 전송하지 않게 한다.
-- `OnlineSaveRepository`의 Future는 HTTP 완료가 아니라 durable enqueue 완료를
-  뜻한다.
-- `_saveRoundCheckpoint`는 durable enqueue까지만 기다리고 HTTP는 기다리지 않는다.
-- 여러 곳의 `unawaited(_saveRoundCheckpoint())`가 네트워크 병렬 요청을 만들지
-  않도록 실제 HTTP 전송은 별도 `OnlineSaveCoordinator` 한 곳에서만 수행한다.
-
 일반 게임 흐름이나 메뉴 이동은 느린 네트워크 응답을 기다리지 않는다.
+
+현재 Godot 클라이언트의 대응 구현은 [앱 서비스](../godot/services/)와 [Godot 앱·저장 계약](../godot/app/README.md)이 원본이다. Flutter 클라이언트의 클래스별 통합 상태와 당시 변경 계획은 [전환 전 기록](archive/backend_architecture_before_godot_20260924.md#flutter-클라이언트-코드-통합-제약)에 보존했다.
 
 ### 영속 메타데이터
 
