@@ -73,9 +73,12 @@ func _init(world: Node3D) -> void:
 	_world = world
 
 
-func adopt_prepared_boss_label(source) -> void:
-	# Rehearsal rigs are discarded. Keep only immutable bind bounds and their
-	# resource identity; the living actor must bind its own skeleton/head bone.
+func adopt_prepared_labels(source) -> void:
+	# Rehearsal rigs are discarded. Keep only immutable bind bounds (and the boss
+	# resource identity); the living actor must bind its own skeleton/head bone.
+	if source._tank_head_bounds_ready and source._tank_scene != null:
+		_tank_head_bounds = source._tank_head_bounds
+		_tank_head_bounds_ready = true
 	if not source._boss_head_bounds_ready or source._boss_scene == null: return
 	_boss_head_bounds = source._boss_head_bounds
 	_boss_head_bounds_ready = true

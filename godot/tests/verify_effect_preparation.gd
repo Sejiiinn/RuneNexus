@@ -11,6 +11,10 @@ const BossDeath = preload("res://effects/boss_death.gd")
 
 class CountingMotion extends "res://presentation/guardian_preview.gd":
 	var cold_boss_labels := 0
+	var cold_tank_labels := 0
+	func _prepare_tank_label(entry: Dictionary, model: Node3D) -> void:
+		if not _tank_head_bounds_ready: cold_tank_labels += 1
+		super._prepare_tank_label(entry, model)
 	func _prepare_boss_label(entry: Dictionary, model: Node3D) -> void:
 		if not _boss_head_bounds_ready: cold_boss_labels += 1
 		super._prepare_boss_label(entry, model)
@@ -56,6 +60,8 @@ func run() -> void:
 	check(not TankDeath._materials.is_empty() and not BossDeath._materials.is_empty() and BossDeath._chip_material != null, "Rehearsal prepares tank and boss corpse materials")
 	check(motion.deaths.is_empty() and motion.walkers.is_empty(), "Rehearsed corpses never enter the live death journal")
 	var prepared_bounds: AABB = motion._boss_head_bounds
+	check(motion._tank_head_bounds_ready and motion._tank_scene == null, "Successful rehearsal transfers tank bounds without retaining its scene or rig")
+	var prepared_tank_bounds: AABB = motion._tank_head_bounds
 	var prepared_id: int = motion._boss_head_bounds_scene_id
 	for kind in ["normal", "fast", "tank", "boss", "shieldBoss", "forgeBoss"]:
 		var data := [10,4.0,5.0,0.0,0.0,1.0,0.0,kind,false,false]
@@ -64,6 +70,9 @@ func run() -> void:
 			check(scene.enemies[10].label_bounds == prepared_bounds and motion._boss_head_bounds_scene_id == prepared_id, "First actual boss retains exact prepared bounds: " + kind)
 			check(motion.cold_boss_labels == 0, "First actual boss skips vertex/bone bounds traversal: " + kind)
 			check(scene.enemies[10].label_skeleton.is_inside_tree(), "Actual boss binds its own live skeleton: " + kind)
+		if kind == "tank":
+			check(scene.enemies[10].label_bounds == prepared_tank_bounds and motion.cold_tank_labels == 0, "First actual tank retains prepared bounds and skips vertex traversal")
+			check(scene.enemies[10].label_skeleton.is_inside_tree(), "Actual tank binds its own live skeleton")
 		check(not scene.enemies[10].has("burn") and not scene.enemies[10].has("frost"), "Prepared status resources never attach to an unaffected enemy: " + kind)
 		data[8] = true; data[9] = true
 		scene._sync_enemies([data])
