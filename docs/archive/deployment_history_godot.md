@@ -2,6 +2,15 @@
 
 역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다. 본문의 `~/Library/Application Support/RuneNexus/operations/<폴더>` 근거는 2026-10-26부터 외장 `/Volumes/KIOXIA_MAC/RuneNexus/operations-archive/<폴더>`에 있다.
 
+## 2026-10-26 Android 0.2.27 / code 6056 — 공개 완료
+
+- APK 대상 `82aae9da7a0cf69a6a13157a083d14b1298d9fc9`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40269450886), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40273588260), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6056), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6056/rune-nexus.apk). 2026-10-26 05:34:57 UTC(14:34:57 KST)에 공개·최신 지정했다. **선택 업데이트·최소 지원 코드6055**이며 서버 `53fb799d`·DB22를 먼저 반영했다.
+- 포함: 지원 코어(3-2 해금, 첫 계열 피해 증가, 클라이언트 세대14), 앱 복귀 때 유효한 동일 계정의 재연결 화면·인증 복원 생략, 관통 젬 설명 간소화, 콘텐츠 레지스트리 기반 식별자와 코어 부품 피해 증가 범위 결함 수정, PCK 파일 단위 차등 패치 생성기, 공개 APK의 `x86_64` 제외.
+- 두 CI 모두 배포 검사 공용 액션(Python·콘텐츠·Godot 네이티브 회귀·계정/AppServices·준비 프로젝트 session/lifecycle)·서명 빌드·팩 감사·Android 패치 디코더를 통과했고, 패치3개의 Python/Kotlin 차등 복원이 통과했다. 공개 실행은 build-only와 별도로 다시 빌드했으므로 아래 크기는 공개본 기준이다.
+- APK **362,001,317 bytes**, SHA-256 `61bb8c93…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6056/update.json)). 6055 대비 **−70,730,197 bytes(−16.3%)**로 `x86_64` 엔진·C++ 라이브러리(약75MB) 제거가 원인이며 PCK는 지원 코어 에셋만큼 +4,676,784 bytes(209,183,992 bytes·1403항목)다. 기존22개 중복군2,707,494 bytes는 같고 신규 중복은 없다. **6055/6054/6053→6056 패치는 7,214,232 / 7,348,587 / 11,025,106 bytes**로, 이전 고정 청크 생성기의 약146MB에서 줄었다.
+- 공개 tag 대상 커밋·성공 CI, 내장 `clientBuild=android:82aae9da…`, latest/버전별 `update.json` 바이트 일치, 익명 공개 주소에서 받은 자산5개의 크기·SHA-256과 GitHub digest 일치를 확인했다(`release_report verify`, 공개 다운로드 관측 항목은 curl 익명 다운로드로 대조).
+- build-only 후보로 API37 arm64 읽기 전용 AVD에서 공개 6055 설치·실행 → 6056 업데이트 설치 직후 primary/backup 저장 바이트·최초 설치 시각 동일, 6056 실행 후 런타임 오류 없이 로비·게스트 로그인 안내 표시를 확인했다. **앱 내 패치 다운로드 업데이트, 실제 Google 로그인·계정 동기화·운영 서버 연결 플레이, 실기기·모바일 GPU는 미검증**이다. 독립 검증은 요청 없어 수행하지 않았다.
+
 ## 2026-10-24 Android 0.2.26 / code 6055 — 모듈 분해 수정·필수 업데이트 공개 완료
 
 - APK 대상 `34d05903e36249bf986478fce6201e0ae2dffc41`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40071018176), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6055), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6055/rune-nexus.apk). 검수한 build-only 산출물5개를 그대로 2026-10-24 07:02:17 UTC(16:02:17 KST)에 공개·최신 지정했다. **필수 업데이트·최소 지원 코드6055**이며 서버·DB 재배포는 하지 않았다.
