@@ -7,7 +7,8 @@
 명령 영수증을 구현했다. 기존 account 저장은 최초 연결 시 한 번만 bootstrap하며 구매
 다이아를 무료 다이아로 합산한다. 로그인 account의 모듈 뽑기·분해, 연구 즉시 완료,
 두 번째 연구 슬롯, 일·주간 보상, 런 획득 다이아와 스테이지 11 최초 모듈권은 모두
-서버 명령으로만 확정된다. Flutter `EconomyCoordinator`는 계정별 경제 Outbox를 사용해
+서버 명령으로만 확정된다. Godot [`economy_service.gd`](../godot/services/economy_service.gd)는
+계정 슬롯별 영속 Outbox([`reward_outbox.gd`](../godot/app/reward_outbox.gd))를 사용해
 응답 유실 시 같은 key와 본문을 복구하고, 일반 save의 경제 필드는 서버 원본을 변경하지
 못한다. 경제 전환 계정은 최소 호환성 세대 2를 요구한다. 성장 이전
 (`progression.growthVersion=1`)을 마친 계정은 세대 3을 요구하며 성장 버전 회귀도
@@ -697,8 +698,9 @@ reward claim과 구매 검증은 `expectedEconomyRevision`을 보내지 않는�
 10. 현재 writer 분기가 유효하면 pending reward claim 전송
 11. 일반 플레이 활성화
 
-경제 조회가 실패해도 캐시된 모듈로 일반 플레이는 허용한다. 단 경제 변경 UI는
-조회가 성공할 때까지 잠근다.
+경제 조회·복구가 실패하면 일반 플레이도 활성화하지 않는다. 캐시된 경제 값으로
+대신 플레이하지 않고 복구 재시도 경로에 머문다([앱 서비스](../godot/services/app_services.gd)의
+`play_ready`).
 
 ## 8. 멱등성·동시성·장애 처리
 
