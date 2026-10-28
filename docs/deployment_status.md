@@ -8,19 +8,19 @@
 
 ## 현재 미배포 변경
 
-없음. 마지막 공개 앱은 6058 / 0.2.29(`eca02b54`, **필수 업데이트**·최소 지원 코드6058), 운영 서버는 `f85a9037`·DB22다.
+없음. 마지막 공개 앱은 6059 / 0.2.30(`33d65199`, 선택 업데이트·최소 지원 코드6058), 운영 서버는 `f85a9037`·DB22다.
 
 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이와 Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
 
-## 2026-10-28 Android 0.2.29 / code 6058 — 공개 완료
+## 2026-10-28 Android 0.2.30 / code 6059 — 공개 완료
 
-- APK 대상 `eca02b549a96bd62a8bb2e266340c34d1cb28e0d`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40530691263), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40533131959), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6058), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6058/rune-nexus.apk). 2026-10-27 15:39:51 UTC(2026-10-28 00:39:51 KST)에 공개·최신 지정했다. 사용자 요청으로 **필수 업데이트·최소 지원 코드6058**이다. 클라이언트 세대·저장·API·DB 변경이 없어 서버는 반영하지 않았다(운영 `f85a9037` 이후 `server/`·콘텐츠 원본·fixture 변경 없음).
-- 포함: 별도 메인 로비를 없애고 스테이지 탭을 챕터 지도 홈으로 교체(지도·소켓·해금 배지·룬 보상·선택 경로·챕터별 배경 움직임, 하단 스테이지 카드와 해금 말풍선, 옛 목록·상세 모달 제거, [결정](design_decisions/lobby.md)), 임무 보상 수령 중 회전 로딩과 획득 다이아 수치 연출(완료 문구 제거), 코어 트리의 영역 4개 제목·진행 배지·상세 영역 태그 제거. 독립 검증 후 수정 2건(수령 대기 중 임무창 재진입 때 로딩·획득 표시, 카드 안 탭으로 말풍선 닫기)을 함께 넣었다.
-- 검사: 로컬에서 관련 Godot 회귀(로비·스테이지·숫자·임무 수령·모달·리더보드·레이아웃·챕터3 체크포인트·코어 트리)와 프로젝트 검사(로비 헤더·모달·앱 수명주기·챕터3 렌더·확장 코어 UI), `test_prepare_godot_project` 12건을 통과했다. build-only CI가 배포 검사 공용 액션(계약·회귀·준비 프로젝트)·서명 빌드·팩 감사·패치 디코더·차등 업데이트 준비를 통과했고, 공개 실행은 검수한 build-only 후보를 다시 빌드하지 않고 승격했다(`same_as_build_only_candidate=true`).
-- APK **359,017,521 bytes**, SHA-256 `dc3e8719…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6058/update.json)). 6057 대비 **−3,016,192 bytes**이며 PCK가 206,200,196 bytes·1389항목(−3,016,192 bytes, −52항목)으로 줄었다. 옛 로비 배경·받침대, 챕터 배너, 스테이지 목록·상세 모달 전용 UI 33개를 앱 에셋 목록에서 빼고, 챕터 지도 3장(손실 WebP·밉맵)과 소켓 2개를 더했다. 기존22개 중복군2,707,494 bytes는 같고 신규 중복은 없다. **6057/6056/6055→6058 패치는 6,564,151 / 6,882,774 / 9,747,791 bytes**다.
-- 공개 tag 대상 커밋·성공 CI, 내장 `clientBuild=android:eca02b54…`, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산의 크기·SHA-256과 GitHub digest 일치를 확인했다(`apk_release.py publish`의 `public-verification.json`).
-- Codex 독립 검증(gpt-6-astra, high): 미배포 커밋 3건 대상 완료 조건 8개 중 6개 PASS, 2개 FAIL(중간 1건·미미 1건)을 받아 모두 수정하고 검증자 재현 스크립트로 재확인했다. 수정 뒤 전체 재검증은 하지 않았다.
-- 지도 홈은 데스크톱 `--app`의 로그인 관문에 가려 실제 로비 코드에 시험 진행 데이터를 넣어 확인했다([캡처](../design/stage_map_concepts/2026-10-27/README.md)). AVD 업데이트 설치 확인은 하지 않았다. **Android 실기기의 지도 홈 표시·터치·시스템 뒤로가기(지도에서 앱 종료), 모바일 GPU에서의 배경 효과 부하, 앱 내 필수 업데이트·패치 다운로드, 실제 Google 로그인·운영 서버 연결 보상 수령은 미검증**이다.
+- APK 대상 `33d6519983af37af0efab437903bf081a515e511`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40650174316), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40652276663), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6059), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6059/rune-nexus.apk). 2026-10-28 07:47:27 UTC(16:47:27 KST)에 공개·최신 지정했다. 저장·API 호환이 유지되어 **선택 업데이트**이며 최소 지원 코드는 6058 그대로다. 클라이언트 세대·저장·API·DB 변경이 없어 서버는 반영하지 않았다(운영 `f85a9037` 이후 `server/`·콘텐츠 원본·fixture 변경 없음).
+- 포함: 영구 강화 탭을 청동 단련대 목록과 해금·잠김·완료 상태 탭으로 재설계하고 레벨업 성공 단련 연출 추가, 강화 탭 배경의 용광로 빛·불티, 연구 탭을 청록 설계도 카드·연구 전용 9-slice 에셋·작은 크기용 아이콘으로 재설계하고 배경 청록 조명·훑기 빛·입자 추가, 슬롯이 차 있어도 룬이 충분한 연구 카드는 어둡게 하지 않음([결정](design_decisions/lobby.md)), 스테이지 홈 설정을 하단 단축 줄 맨 왼쪽으로 이동, 선택 소켓 숫자 중심 보정과 획득한 해금 배지 체크 표시 유지. 쓰지 않는 옛 연구 슬롯 에셋 2개를 제거했다.
+- 검사: 로컬에서 관련 Godot 회귀(강화·연구 화면, 연구 가능 상태·슬롯·중단·모달 갱신·확인창, 로비)를 통과했다. build-only CI가 배포 검사 공용 액션(계약·회귀·준비 프로젝트)·서명 빌드·팩 감사·패치 디코더·차등 업데이트 준비를 통과했고, 공개 실행은 검수한 build-only 후보를 다시 빌드하지 않고 승격했다(`same_as_build_only_candidate=true`).
+- APK **359,493,129 bytes**, SHA-256 `fabce59d…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6059/update.json)). 6058 대비 **+475,608 bytes**이며 PCK가 206,675,800 bytes·1439항목(+475,604 bytes, +50항목)으로 늘었다. 강화 13개·연구 14개 새 UI PNG를 더하고 옛 연구 슬롯 2개를 뺀 순증 25개 에셋의 가져오기 항목이다. 기존22개 중복군2,707,494 bytes는 같고 신규 중복은 없다. **6058/6057/6056→6059 패치는 6,591,008 / 6,944,820 / 7,389,661 bytes**다.
+- 공개 tag 대상 커밋·성공 CI, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산4개의 크기·SHA-256과 GitHub digest 일치를 확인했다(`apk_release.py publish`의 `public-verification.json`).
+- Codex 독립 검증(gpt-6-astra, high): 강화 탭 재설계(조건 1·2·3·5·6·9 PASS, 미미 2건은 생략 제안, 1건은 기존부터 실패하던 `verify_menu_shell_parity.gd`)와 연구 탭 재설계(조건 10개 중 8개 PASS, 에셋 면 알파 252~254의 미미 1건은 사용자 합의로 생략, 훑기 빛 움직임은 미확인)를 각각 받았다. 강화 탭의 세부 디테일·단련 연출·배경은 그 검증 뒤에 바뀌어 독립 재검증하지 않았다.
+- Android 전용 변경이 없어 AVD·기기 확인은 하지 않았다. **Android 실기기의 새 강화·연구 화면 표시와 터치, 모바일 GPU에서의 배경 셰이더·입자 부하, 앱 내 패치 업데이트, 실제 Google 로그인·운영 서버 연결 강화·연구 명령은 미검증**이다.
 
 ## 2026-10-27 서버 — `f85a9037` 반영 완료
 
