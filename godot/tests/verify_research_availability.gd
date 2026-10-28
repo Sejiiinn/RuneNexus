@@ -17,8 +17,7 @@ func cards(lobby: Control) -> Array:
 func card(lobby: Control, id: String) -> Control:
 	return lobby.body.find_child("ResearchCard_"+id,true,false)
 func is_ready(panel: Control) -> bool:
-	var style: StyleBoxTexture=panel.get_theme_stylebox("panel")
-	return panel.modulate==Color.WHITE and style.modulate_color.g>1 and style.modulate_color.b>1
+	return panel.get_meta("research_status")=="연구 가능"
 func compare(lobby: Control, app: Fixture.FakeApp) -> void:
 	assert(texts(lobby.body).contains("해금된 연구") and not texts(lobby.body).contains("시작 가능 연구"))
 	assert(not texts(lobby.body).contains("룬 부족"),"The list has no rune shortage badge or amount")
@@ -33,12 +32,15 @@ func compare(lobby: Control, app: Fixture.FakeApp) -> void:
 		assert(app.progression_inputs==before,"Availability probe does not mutate progression")
 		assert(is_ready(panel)==ready,"Card availability agrees with real startResearch rules: "+id)
 		assert((panel.get_meta("research_status")=="연구 가능")==ready)
-		if ready:
-			assert(panel.modulate==Color.WHITE)
-			var style: StyleBoxTexture=panel.get_theme_stylebox("panel")
-			assert(style.texture!=null and style.modulate_color.g>1 and style.modulate_color.b>1,"Ready card keeps an image frame with cyan emphasis")
+		var style: StyleBoxTexture=panel.get_theme_stylebox("panel")
+		assert(style.texture!=null,"Every card keeps an image frame")
+		var affordable: bool=int(app.progression_inputs.get("runes",0))>=int(app.run_domain.growth.research_quote(app.progression_inputs,id).cost)
+		var bright: bool=ready or panel.get_meta("research_status")=="연구 중" or (panel.get_meta("research_status")=="빈 연구 슬롯 필요" and affordable)
+		if bright:
+			assert(panel.modulate==Color.WHITE,"Startable, running and slot-waiting affordable cards stay bright: "+id)
 		else:
 			assert(panel.modulate.r<0.7 and panel.modulate.g<0.7 and panel.modulate.b<0.75 and panel.self_modulate==Color.WHITE,"Unavailable tint inherits to all card children")
+		if not bright:
 			for child in panel.find_children("*","TextureRect",true,false):
 				assert(panel.is_ancestor_of(child),"Every icon/currency remains under the dimmed card")
 		assert(panel.get_combined_minimum_size().x <= panel.size.x,"Card contents fit both columns")
@@ -80,9 +82,10 @@ func run() -> void:
 	baseline.runes=80; baseline.freeDiamonds=1280; baseline.clearedStageNumbers=Progression.ordered_ids()
 	app.progression_inputs=baseline.duplicate(true)
 	var lobby=Lobby.new(); lobby.app=app; root.add_child(lobby); await settle(); lobby.open_page("연구"); await settle()
-	for width in [440,320]:
+	# The app never renders below 440 logical px; 760 covers fold/tablet widths.
+	for width in [440,760]:
 		root.size=Vector2i(width,900); root.content_scale_size=root.size; await settle(); compare(lobby,app)
-		assert(lobby.body.find_children("*","GridContainer",true,false).all(func(grid):return grid.columns==2),"320/440 keep two columns")
+		assert(lobby.body.find_children("*","GridContainer",true,false).all(func(grid):return grid.columns==2),"440/760 keep two columns")
 		await capture("research-availability-%d" % width)
 	# Clearing 3-10 alone leaves link II locked until link I is completed.
 	assert(card(lobby,"linkExpansionTwo").get_meta("research_status")=="링크 확장 I 연구 완료 필요")
@@ -99,7 +102,7 @@ func run() -> void:
 			assert(is_ready(card(lobby,"criticalChance"))== (wallet>=int(quote.cost)))
 	# Wallet updates through the existing refresh preserve selection/detail behavior.
 	app.progression_inputs=baseline.duplicate(true); app.progression_inputs.runes=0; lobby.refresh(); await settle(); compare(lobby,app)
-	await capture("research-all-dim-320")
+	await capture("research-all-dim-760")
 	var commands=app.commands.size()
 	await mouse_click(lobby.body.find_child("ResearchSelect_researchEfficiency",true,false))
 	assert(lobby.modal!=null and app.commands.size()==commands,"Dim cards still open details without starting research")

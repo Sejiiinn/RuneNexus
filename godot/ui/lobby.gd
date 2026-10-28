@@ -145,6 +145,7 @@ func refresh() -> void:
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
 	if page == "강화": growth.forge_atmosphere(self, bg)
+	elif page == "연구": growth.lab_atmosphere(self, bg)
 	safe = MarginContainer.new()
 	safe.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(safe)

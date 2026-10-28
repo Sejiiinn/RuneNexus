@@ -14,3 +14,7 @@ production/v2-hammer.png
 implementation/*.gif
 implementation/*-vs-concept.png
 implementation/button-zoom.png
+# Rejected research part sheets and alpha inspection sheets stay local.
+research-production/sheet-parts.png
+research-production/sheet-parts-v2.png
+research-production/inspect*.png

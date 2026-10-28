@@ -74,12 +74,12 @@ func _heading(box: Node, id: String, level: int, maximum: int, cost := -1, upgra
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
-	row.add_child(_icon(id, 44 if upgrade else 36))
+	row.add_child(_icon(id, 44) if upgrade else _lab_icon(id, 42))
 	var words := VBoxContainer.new()
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	words.add_theme_constant_override("separation", 3)
 	row.add_child(words)
-	var title := T.label(str(TITLES.get(id, id)), 12)
+	var title := T.label(str(TITLES.get(id, id)), 13)
 	_strong(title)
 	title.add_theme_color_override("font_color", Color("b9d6e4"))
 	words.add_child(title)
@@ -123,13 +123,17 @@ func _glyph(code: int, pixels: int, color: Color) -> Label:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
 
-func _section(parent: Node, title: String, code: int, color: Color) -> VBoxContainer:
+func _section(parent: Node, title: String, icon: String, color: Color) -> VBoxContainer:
 	var box := _surface(parent, "ui/components/panel_frame.png", 9)
+	box.get_parent().add_theme_stylebox_override("panel", _lab("section", 10))
+	_sweep(box.get_parent())
 	box.add_theme_constant_override("separation", 8)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 7)
 	box.add_child(row)
-	row.add_child(_glyph(code, 17, color))
+	var mark := _image(LAB_ART + icon + ".png", 17)
+	mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(mark)
 	row.add_child(_inline(title, 13))
 	var line := ColorRect.new()
 	line.color = Color(color, 0.35)
@@ -138,6 +142,54 @@ func _section(parent: Node, title: String, code: int, color: Color) -> VBoxConta
 	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(line)
 	return box
+
+# The lab scan sweep also passes over research panels. It is laid out in screen
+# space, so it crosses cards and the backdrop as one line.
+func _sweep(panel: Control) -> void:
+	if _animations_off(): return
+	if _sweep_sheet == null:
+		var shader := Shader.new()
+		shader.code = PANEL_SWEEP
+		_sweep_sheet = ShaderMaterial.new()
+		_sweep_sheet.shader = shader
+		_sweep_sheet.set_shader_parameter("scan_speed", LAB_SCAN_SPEED)
+	var sheet := ColorRect.new()
+	sheet.name = "LabSweep"
+	sheet.material = _sweep_sheet
+	sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(sheet)
+	panel.move_child(sheet, 0)
+
+const LAB_ART := "ui/components/research/"
+## Logical corner size kept fixed when each research frame stretches.
+const LAB_CORNERS := {"card":Vector2(13,13), "card_active":Vector2(13,13), "slot":Vector2(13,13), "section":Vector2(13,13), "row_locked":Vector2(13,9), "button_instant":Vector2(7,7), "button_stop":Vector2(7,7), "tag_active":Vector2(7,7)}
+
+func _lab(name: String, inset := 8) -> StyleBox:
+	var path := LAB_ART + name + ".png"
+	var frame := Frame.new(path, inset)
+	frame.source_scale = 3.0
+	var corner: Vector2 = LAB_CORNERS[name]
+	frame.source_center = Rect2(corner, T.texture(path).get_size() / 3.0 - corner * 2)
+	return frame
+
+func _hourglass(pixels: int) -> TextureRect:
+	var glass := _image(LAB_ART + "icon_hourglass.png", pixels)
+	glass.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return glass
+
+# Research icons float inside a thin technical ring instead of the metal socket.
+func _lab_icon(id: String, pixels: int) -> Control:
+	var ring := _image(LAB_ART + "icon_ring.png", pixels)
+	var path: String = ICONS.get(id, "research/" + id.to_snake_case() + ".png")
+	var icon := _image(path, 0)
+	ring.add_child(icon)
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var inset := roundi(pixels * 0.2)
+	icon.offset_left = inset
+	icon.offset_top = inset
+	icon.offset_right = -inset
+	icon.offset_bottom = -inset
+	return ring
 
 func _grid(parent: Node) -> GridContainer:
 	var grid := GridContainer.new()
@@ -477,44 +529,107 @@ void fragment() {
 }
 """
 
+# Scan sweep shared by the lab backdrop and research panels.
+const SWEEP := """
+float sweep(vec2 uv, float speed, float time) {
+	return speed > 0.0 ? exp(-pow((uv.y - fract(time * speed) * 1.2 + 0.1) * 30.0, 2.0)) : 0.0;
+}
+"""
+const PANEL_SWEEP := """
+shader_type canvas_item;
+uniform float scan_speed = 0.0;
+""" + SWEEP + """
+void fragment() {
+	COLOR = vec4(0.38, 0.86, 1.0, sweep(SCREEN_UV, scan_speed, TIME) * 0.08);
+}
+"""
+const LAB_SCAN_SPEED := 0.12
+var _sweep_sheet: ShaderMaterial
+
+# The research page relights the same hall as a cool blueprint lab: teal lamp
+# light from the arch and floor, with a slow scan
+# line sweeping down while animations are on.
+const LAB_LIGHT := """
+shader_type canvas_item;
+uniform vec3 tint = vec3(0.72, 0.9, 1.06);
+uniform vec3 lamp = vec3(0.32, 0.86, 1.0);
+uniform float scan_speed = 0.0;
+float glow(vec2 uv, float aspect, vec2 center, float radius) {
+	vec2 d = (uv - center) * vec2(1.0, aspect);
+	return 1.0 - smoothstep(0.0, radius, length(d));
+}
+""" + SWEEP + """
+void fragment() {
+	vec4 base = texture(TEXTURE, UV);
+	base.rgb = mix(base.rgb, vec3(dot(base.rgb, vec3(0.3, 0.59, 0.11))), 0.6);
+	float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
+	float arch = glow(SCREEN_UV, aspect, vec2(0.5, 0.08), 0.8);
+	float floor_light = glow(SCREEN_UV, aspect, vec2(0.5, 1.02), 1.1);
+	float scan = sweep(SCREEN_UV, scan_speed, TIME);
+	float light = arch * arch * 3.0 + pow(floor_light, 1.6) * 4.0;
+	vec3 lit = base.rgb * tint * (vec3(1.0) + lamp * light) + lamp * scan * 0.05;
+	COLOR = vec4(lit, base.a);
+}
+"""
+
 func forge_atmosphere(parent: Node, backdrop: CanvasItem) -> void:
+	_relight(backdrop, FORGE_LIGHT)
+	if _animations_off(): return
+	var embers := _motes(parent, "ForgeEmbers", 30, Vector2(22, 50), Vector2(0.1, 0.24))
+	embers.color_ramp = _ramp([Color(1, 0.9, 0.6, 0), Color(1, 0.92, 0.65, 1), Color(1, 0.62, 0.25, 0.85), Color(1, 0.35, 0.08, 0)])
+
+func lab_atmosphere(parent: Node, backdrop: CanvasItem) -> void:
+	var light := _relight(backdrop, LAB_LIGHT)
+	light.set_shader_parameter("scan_speed", 0.0 if _animations_off() else LAB_SCAN_SPEED)
+	if _animations_off(): return
+	var motes := _motes(parent, "LabMotes", 18, Vector2(6, 16), Vector2(0.07, 0.16))
+	motes.spread = 60.0
+	motes.color_ramp = _ramp([Color(0.6, 0.95, 1, 0), Color(0.65, 0.95, 1, 0.8), Color(0.35, 0.8, 1, 0.55), Color(0.3, 0.7, 1, 0)])
+
+func _relight(backdrop: CanvasItem, code: String) -> ShaderMaterial:
 	var shader := Shader.new()
-	shader.code = FORGE_LIGHT
+	shader.code = code
 	var light := ShaderMaterial.new()
 	light.shader = shader
 	backdrop.material = light
-	if _animations_off(): return
+	return light
+
+func _ramp(colors: Array) -> Gradient:
+	var fade := Gradient.new()
+	fade.offsets = PackedFloat32Array([0.0, 0.12, 0.65, 1.0])
+	fade.colors = PackedColorArray(colors)
+	return fade
+
+# Soft additive specks rising from the bottom edge across the full width.
+func _motes(parent: Node, name: String, amount: int, speed: Vector2, scale: Vector2) -> CPUParticles2D:
 	var layer := Control.new()
-	layer.name = "ForgeEmbers"
+	layer.name = name
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	parent.add_child(layer)
-	var embers := CPUParticles2D.new()
-	embers.amount = 30
-	embers.lifetime = 7.0
-	embers.preprocess = 7.0
-	embers.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	embers.direction = Vector2.UP
-	embers.spread = 20.0
-	embers.gravity = Vector2(0, -4)
-	embers.initial_velocity_min = 22.0
-	embers.initial_velocity_max = 50.0
-	embers.scale_amount_min = 0.1
-	embers.scale_amount_max = 0.24
-	embers.texture = _ember_texture()
+	var motes := CPUParticles2D.new()
+	motes.amount = amount
+	motes.lifetime = 7.0
+	motes.preprocess = 7.0
+	motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	motes.direction = Vector2.UP
+	motes.spread = 20.0
+	motes.gravity = Vector2(0, -4)
+	motes.initial_velocity_min = speed.x
+	motes.initial_velocity_max = speed.y
+	motes.scale_amount_min = scale.x
+	motes.scale_amount_max = scale.y
+	motes.texture = _ember_texture()
 	var additive := CanvasItemMaterial.new()
 	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	embers.material = additive
-	var fade := Gradient.new()
-	fade.offsets = PackedFloat32Array([0.0, 0.12, 0.65, 1.0])
-	fade.colors = PackedColorArray([Color(1, 0.9, 0.6, 0), Color(1, 0.92, 0.65, 1), Color(1, 0.62, 0.25, 0.85), Color(1, 0.35, 0.08, 0)])
-	embers.color_ramp = fade
-	layer.add_child(embers)
+	motes.material = additive
+	layer.add_child(motes)
 	var place := func():
-		embers.position = Vector2(layer.size.x * 0.5, layer.size.y)
-		embers.emission_rect_extents = Vector2(layer.size.x * 0.5, 8)
+		motes.position = Vector2(layer.size.x * 0.5, layer.size.y)
+		motes.emission_rect_extents = Vector2(layer.size.x * 0.5, 8)
 	layer.resized.connect(place)
 	place.call()
+	return motes
 
 func _ember_texture() -> Texture2D:
 	var gradient := Gradient.new()
@@ -683,16 +798,8 @@ func research_status(id: String) -> String:
 
 func _slot_button(parent: Node, text: String, callback: Callable, primary := false) -> Button:
 	var action := T.button(text, callback, "primary" if primary else "secondary", true)
-	var skin = preload("res://ui/button_skin.gd")
 	for state in ["normal", "hover", "pressed", "disabled"]:
-		var style: StyleBoxTexture
-		if primary:
-			style = skin.surface("primary",Vector2(9,5))
-		else:
-			style = StyleBoxTexture.new()
-			style.texture = T.texture("ui/components/research_slot_a_stop.png")
-			style.set_texture_margin_all(10)
-			style.set_content_margin_all(5)
+		var style := _lab("button_instant" if primary else "button_stop", 5)
 		if state == "hover": style.modulate_color = Color(1.12,1.12,1.12)
 		elif state == "pressed": style.modulate_color = Color(0.8,0.9,0.94)
 		elif state == "disabled": style.modulate_color = Color("607887")
@@ -709,10 +816,7 @@ func _research_slot(parent: Node, item: Dictionary) -> void:
 	card.name = "ResearchSlot_" + str(item.type)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
-	var frame := Frame.new("ui/components/research_slot_a_frame.png",10)
-	frame.source_scale = 6
-	frame.source_center = Rect2(16,10,318.8,58.3)
-	card.add_theme_stylebox_override("panel",frame)
+	card.add_theme_stylebox_override("panel",_lab("slot", 12))
 	parent.add_child(card)
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override("separation",6)
@@ -720,7 +824,7 @@ func _research_slot(parent: Node, item: Dictionary) -> void:
 	var identity := HBoxContainer.new()
 	identity.add_theme_constant_override("separation",8)
 	row.add_child(identity)
-	var icon := _icon(str(item.type),48)
+	var icon := _lab_icon(str(item.type),54)
 	icon.name = "ResearchSlotIcon"
 	icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	identity.add_child(icon)
@@ -769,7 +873,7 @@ func _research_slot(parent: Node, item: Dictionary) -> void:
 	time_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	time_row.add_theme_constant_override("separation",3)
 	actions.add_child(time_row)
-	time_row.add_child(_glyph(0xe556,13,Color("92bed8")))
+	time_row.add_child(_hourglass(14))
 	var clock := _inline("",10)
 	clock.name = "ResearchSlotClock"
 	time_row.add_child(clock)
@@ -790,8 +894,8 @@ func _research_slot(parent: Node, item: Dictionary) -> void:
 	divider.custom_minimum_size.x=1
 	divider.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	content.add_child(divider)
-	var diamond := _inline("◇",15)
-	diamond.add_theme_color_override("font_color",Color("31d9ed"))
+	var diamond := _image("res://assets/ui/diamond_currency.png",15)
+	diamond.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	content.add_child(diamond)
 	var cost_label := _inline("",11)
 	cost_label.name = "ResearchSlotCost"
@@ -816,9 +920,10 @@ func _research_slot(parent: Node, item: Dictionary) -> void:
 	var timer := Timer.new()
 	timer.name="ResearchSlotTimer"; timer.wait_time=1
 	row.add_child(timer); timer.timeout.connect(update); timer.start()
+	_sweep(card)
 
 func research() -> void:
-	var slots := _section(lobby.body, "연구 슬롯", 0xf499, Color("b9d6e4"))
+	var slots := _section(lobby.body, "연구 슬롯", "icon_slots", Color("b9d6e4"))
 	var active: Array = lobby.progression().get("activeResearches", [])
 	var count := 2 if lobby.progression().get("researchSlotTwoUnlocked", false) else 1
 	for i in range(count):
@@ -827,6 +932,7 @@ func research() -> void:
 
 		else:
 			var empty := _surface(slots, "ui/components/row_frame.png", 9)
+			empty.get_parent().add_theme_stylebox_override("panel", _lab("row_locked", 9))
 			var row := HBoxContainer.new()
 			empty.add_child(row)
 			row.add_child(_glyph(0xe050, 18, Color("607587")))
@@ -834,7 +940,19 @@ func research() -> void:
 	var slot_available := Progression.has_unlock(lobby.progression(), "feature", "researchSlotTwo")
 	if count == 1:
 		var cost := int(_growth().data.constants.researchSlotTwoUnlockCost)
-		_button(slots, "두 번째 슬롯 · 다이아 %d" % cost if slot_available else "두 번째 슬롯 · 스테이지 2-10 클리어 필요", _slot_confirm, not slot_available)
+		var second := _button(slots, "두 번째 슬롯 · 다이아 %d" % cost if slot_available else "두 번째 슬롯 · 스테이지 2-10 클리어 필요", _slot_confirm, not slot_available)
+		second.name = "ResearchSlotTwo"
+		for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+			var face := _lab("button_instant" if slot_available else "row_locked", 8)
+			if state == "hover": face.modulate_color = Color(1.12, 1.12, 1.12)
+			elif state == "pressed": face.modulate_color = Color(0.82, 0.88, 0.92)
+			elif state == "focus": face = StyleBoxEmpty.new()
+			second.add_theme_stylebox_override(state, face)
+		if not slot_available:
+			second.add_theme_color_override("font_disabled_color", Color("8da2ad"))
+			var lock := _image(LAB_ART + "icon_lock.png", 16)
+			second.add_child(lock)
+			lock.position = Vector2(14, 9)
 	var groups := {"가능한 연구":[], "잠긴 연구":[], "완료한 연구":[]}
 	var ids: Array = _growth().data.research.keys()
 	ids.sort_custom(func(a, b): return Progression.ordinal_for(Progression.requirement("research", a)) < Progression.ordinal_for(Progression.requirement("research", b)))
@@ -842,7 +960,7 @@ func research() -> void:
 		var status := research_status(id)
 		groups["완료한 연구" if status == "연구 완료" else ("잠긴 연구" if status.begins_with("스테이지") or status.ends_with("연구 완료 필요") else "가능한 연구")].append(id)
 	for group in groups:
-		var presentation: Array = {"가능한 연구":["해금된 연구", 0xf33d, Color("e7c66a")], "잠긴 연구":["아직 해금되지 않음", 0xe3b1, Color("8da5b3")], "완료한 연구":["연구 완료", 0xe1f7, Color("bdefcf")]}[group]
+		var presentation: Array = {"가능한 연구":["해금된 연구", "icon_flask", Color("e7c66a")], "잠긴 연구":["아직 해금되지 않음", "icon_lock", Color("8da5b3")], "완료한 연구":["연구 완료", "icon_done", Color("bdefcf")]}[group]
 		var section := _section(lobby.body, presentation[0], presentation[1], presentation[2])
 		if groups[group].is_empty(): continue
 		var grid := _grid(section)
@@ -857,16 +975,16 @@ func research() -> void:
 			panel.name = "ResearchCard_" + id
 			panel.set_meta("research_id",id)
 			panel.set_meta("research_status",status)
-			if ready:
-				# Tint the existing metallic image, keeping its bevels and corners.
-				var ready_frame := _style("ui/components/card_frame.png",8)
-				ready_frame.modulate_color = Color(0.35,1.55,1.65)
-				panel.add_theme_stylebox_override("panel",ready_frame)
-			else:
+			var running := status == "연구 중"
+			panel.add_theme_stylebox_override("panel", _lab("card_active" if running else "card", 9))
+			# A full slot alone does not dim a card the wallet can already pay for.
+			var waiting := status == "빈 연구 슬롯 필요" and int(lobby.progression().get("runes", 0)) >= int(q.cost)
+			if not ready and not running and not waiting:
 				# Inherited modulation includes the icon, labels, rune and time.
 				panel.modulate = Color(0.48,0.58,0.68)
+			_sweep(panel)
 			_heading(box, id, int(q.level), int(d.maxLevel), -1 if int(q.level) >= int(d.maxLevel) else int(q.cost))
-			var effect := _strong(T.label(_research_effect(id, int(q.level), int(d.maxLevel)), 10))
+			var effect := _strong(T.label(_research_effect(id, int(q.level), int(d.maxLevel)), 11))
 			effect.add_theme_color_override("font_color", Color("b9d6e4"))
 			box.add_child(effect)
 			var spacer := Control.new(); spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL; spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE; box.add_child(spacer)
@@ -874,11 +992,27 @@ func research() -> void:
 			var state_text := _inline(status if status in ["연구 중","연구 완료"] else "",11)
 			state_text.name = "ResearchAvailability"
 			state_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			footer.add_child(state_text)
+			if status == "연구 중":
+				var tag := PanelContainer.new()
+				tag.add_theme_stylebox_override("panel", _lab("tag_active", 3))
+				tag.custom_minimum_size = Vector2(72, 24)
+				tag.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+				state_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				state_text.add_theme_color_override("font_color", Color("e8f8ff"))
+				state_text.size_flags_horizontal = Control.SIZE_FILL
+				tag.add_child(state_text)
+				var tag_slot := Control.new()
+				tag_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				tag_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				footer.add_child(tag)
+				footer.add_child(tag_slot)
+			else:
+				footer.add_child(state_text)
 			if int(q.level) < int(d.maxLevel):
 				var duration := HBoxContainer.new(); duration.add_theme_constant_override("separation",3); footer.add_child(duration)
-				duration.add_child(_glyph(0xe556, 10, Color("8da5b3")))
-				duration.add_child(_inline(_duration(int(q.remainingMillis)), 9))
+				duration.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+				duration.add_child(_hourglass(13))
+				duration.add_child(_inline(_duration(int(q.remainingMillis)), 10))
 
 			if group != "잠긴 연구" and _active(id).is_empty():
 				# BaseButton cancels its release action when the parent starts scrolling.

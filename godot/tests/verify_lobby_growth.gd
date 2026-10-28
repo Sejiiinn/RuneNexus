@@ -105,7 +105,10 @@ func verify() -> void:
 		host.body.size = Vector2(width - 28, 900)
 		for page in ["전투", "경제", "연구"]:
 			host.clear()
-			if page == "연구": ui.research()
+			if page == "연구":
+				ui.research()
+				for card in host.body.find_children("ResearchCard_*", "PanelContainer", true, false):
+					assert(card.get_child(0).name == "LabSweep" and card.get_theme_stylebox("panel").texture != null, "Research cards carry the scan sweep under their content")
 			else: ui.category = page; ui.upgrades()
 			await process_frame
 			await process_frame
@@ -265,6 +268,11 @@ func _status_tabs(host, ui) -> void:
 	ui.forge_atmosphere(holder, backdrop)
 	assert(backdrop.material is ShaderMaterial and backdrop.material.shader.code.contains("furnace"), "Upgrade page relights the hall backdrop")
 	assert(holder.get_node_or_null("ForgeEmbers") != null, "Upgrade page adds rising embers")
+	var lab_backdrop := TextureRect.new()
+	holder.add_child(lab_backdrop)
+	ui.lab_atmosphere(holder, lab_backdrop)
+	assert(lab_backdrop.material is ShaderMaterial and lab_backdrop.material.shader.code.contains("sweep"), "Research page relights the hall as a lab")
+	assert(holder.get_node_or_null("LabMotes") != null, "Research page adds drifting motes")
 	ProjectSettings.set_setting("accessibility/disable_animations", true)
 	var still := VBoxContainer.new()
 	host.add_child(still)
@@ -272,6 +280,8 @@ func _status_tabs(host, ui) -> void:
 	still.add_child(still_backdrop)
 	ui.forge_atmosphere(still, still_backdrop)
 	assert(still.get_node_or_null("ForgeEmbers") == null, "Embers stay off when animations are disabled")
+	ui.lab_atmosphere(still, still_backdrop)
+	assert(still.get_node_or_null("LabMotes") == null and still_backdrop.material.get_shader_parameter("scan_speed") == 0.0, "The lab scan and motes stay off when animations are disabled")
 	ProjectSettings.set_setting("accessibility/disable_animations", false)
 	still.queue_free()
 	holder.queue_free()
