@@ -144,6 +144,7 @@ func refresh() -> void:
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
+	if page == "강화": growth.forge_atmosphere(self, bg)
 	safe = MarginContainer.new()
 	safe.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(safe)

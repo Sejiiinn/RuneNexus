@@ -453,6 +453,82 @@ func _forge_divider(locked: bool) -> Control:
 	if locked: line.self_modulate = Color(0.7, 0.72, 0.76)
 	return line
 
+# Relights the shared lobby hall as a forge for the upgrade page: the stone
+# picks up an umber tint and furnace light from below and the far arch, so
+# lit edges glow while the shadows stay dark, and a few embers rise.
+const FORGE_LIGHT := """
+shader_type canvas_item;
+uniform vec3 tint = vec3(1.0, 0.74, 0.54);
+uniform vec3 ember = vec3(1.0, 0.46, 0.14);
+float glow(vec2 uv, float aspect, vec2 center, float radius) {
+	vec2 d = (uv - center) * vec2(1.0, aspect);
+	return 1.0 - smoothstep(0.0, radius, length(d));
+}
+void fragment() {
+	vec4 base = texture(TEXTURE, UV);
+	// Drain the hall's teal accents first; tinted teal turns lime, not firelight.
+	base.rgb = mix(base.rgb, vec3(dot(base.rgb, vec3(0.3, 0.59, 0.11))), 0.85);
+	float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
+	float furnace = glow(SCREEN_UV, aspect, vec2(0.5, 1.02), 1.45);
+	float arch = glow(SCREEN_UV, aspect, vec2(0.5, 0.1), 0.42);
+	float light = pow(furnace, 1.6) * 8.0 + arch * arch * 4.0;
+	vec3 lit = base.rgb * tint * (vec3(1.0) + ember * light) + ember * (pow(furnace, 2.2) * 0.16 + arch * arch * 0.04);
+	COLOR = vec4(lit, base.a);
+}
+"""
+
+func forge_atmosphere(parent: Node, backdrop: CanvasItem) -> void:
+	var shader := Shader.new()
+	shader.code = FORGE_LIGHT
+	var light := ShaderMaterial.new()
+	light.shader = shader
+	backdrop.material = light
+	if _animations_off(): return
+	var layer := Control.new()
+	layer.name = "ForgeEmbers"
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(layer)
+	var embers := CPUParticles2D.new()
+	embers.amount = 30
+	embers.lifetime = 7.0
+	embers.preprocess = 7.0
+	embers.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	embers.direction = Vector2.UP
+	embers.spread = 20.0
+	embers.gravity = Vector2(0, -4)
+	embers.initial_velocity_min = 22.0
+	embers.initial_velocity_max = 50.0
+	embers.scale_amount_min = 0.1
+	embers.scale_amount_max = 0.24
+	embers.texture = _ember_texture()
+	var additive := CanvasItemMaterial.new()
+	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	embers.material = additive
+	var fade := Gradient.new()
+	fade.offsets = PackedFloat32Array([0.0, 0.12, 0.65, 1.0])
+	fade.colors = PackedColorArray([Color(1, 0.9, 0.6, 0), Color(1, 0.92, 0.65, 1), Color(1, 0.62, 0.25, 0.85), Color(1, 0.35, 0.08, 0)])
+	embers.color_ramp = fade
+	layer.add_child(embers)
+	var place := func():
+		embers.position = Vector2(layer.size.x * 0.5, layer.size.y)
+		embers.emission_rect_extents = Vector2(layer.size.x * 0.5, 8)
+	layer.resized.connect(place)
+	place.call()
+
+func _ember_texture() -> Texture2D:
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, 0.25, 1.0])
+	gradient.colors = PackedColorArray([Color.WHITE, Color(1, 1, 1, 0.7), Color(1, 1, 1, 0)])
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.0, 0.5)
+	texture.width = 32
+	texture.height = 32
+	return texture
+
 func _strike_finished() -> bool:
 	if _strike.is_empty(): return false
 	var d: Dictionary = _growth().data.permanentUpgrades[_strike.id]
