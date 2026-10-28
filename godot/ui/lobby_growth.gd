@@ -196,72 +196,353 @@ func upgrades_tabs(parent: Node) -> void:
 		icon_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		icon_center.add_child(icon)
 
-func upgrades() -> void:
-	var grid := _grid(lobby.body)
-	for id in COMBAT if category == "전투" else ECONOMY:
-		if not Progression.has_unlock(lobby.progression(), "upgrade", id): continue
+const UPGRADE_ART := "ui/components/upgrade/"
+## Forge-row nine-patch art: masters are 3x logical; centers are logical pixels between the rivets/end caps.
+const UPGRADE_FRAMES := {"row_normal":Rect2(16,15,135,24), "row_locked":Rect2(16,15,135,24), "row_max":Rect2(16,15,135,24), "button_normal":Rect2(11,7,74,15), "button_disabled":Rect2(11,7,70,15), "button_max":Rect2(12,8,79,30), "locked_plate":Rect2(12,8,79,30), "gauge_track":Rect2(5,3,137,4), "tab_bar":Rect2(20,8,260,16), "tab_selected":Rect2(10,7,102,13), "divider":Rect2(0,12,3,66)}
+## Level-up button, locked condition and max seal share one action slot.
+const ACTION_SIZE := Vector2(96, 58)
+## Logical rows of the level-up art: dark price band height and the rim below it (measured at ACTION_SIZE).
+const BUTTON_BAND := 19.0
+const BUTTON_RIM := 7.0
+const UPGRADE_STATUSES := ["해금", "잠김", "완료"]
+## Lock codepoint in the bundled Flutter MaterialIcons font.
+const LOCK_GLYPH := 0xe3ae
+const UPGRADE_EMPTY := {"해금":"레벨업할 수 있는 강화가 없습니다.", "잠김":"잠긴 강화가 없습니다.", "완료":"아직 최대 레벨에 도달한 강화가 없습니다."}
+var status := "해금"
+## The level-up being applied ({id, before}); rows rebuilt meanwhile replay its forge strike.
+var _strike := {}
+
+## Segmented forge gauge redrawn for its width, so ticks never stretch.
+class ForgeGauge extends Control:
+	var ratio := 0.0
+	var finished := false
+	var track: StyleBox
+	## Cells lit by the latest level-up glow white-hot while flash fades from 1 to 0.
+	var flash_from := -1
+	var flash := 0.0:
+		set(value):
+			flash = value
+			queue_redraw()
+	func lit_cells(value: float) -> int:
+		var cells := maxi(8, int((size.x - 6) / 11.0))
+		return ceili(value * cells) if value > 0 else 0
+	func _init() -> void:
+		custom_minimum_size.y = 13
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_RESIZED: queue_redraw()
+	func _draw() -> void:
+		var area := Rect2(Vector2.ZERO, size)
+		if track: draw_style_box(track, area)
+		var inner := area.grow_individual(-3, -3, -3, -3)
+		if inner.size.x <= 0 or inner.size.y <= 0: return
+		var cells := maxi(8, int(inner.size.x / 11.0))
+		var step := inner.size.x / cells
+		var lit := ceili(ratio * cells) if ratio > 0 else 0
+		for i in cells:
+			var cell := Rect2(inner.position.x + i * step + 1.0, inner.position.y, step - 2.0, inner.size.y)
+			if i < lit:
+				var heat := float(i) / maxf(1, cells - 1)
+				var color := Color("ffd76e") if finished else Color("ef7a1f").lerp(Color("ffc040"), heat)
+				if flash > 0 and i >= mini(flash_from, lit - 1): color = color.lerp(Color("fffbea"), flash)
+				draw_rect(cell, color)
+				draw_rect(Rect2(cell.position, Vector2(cell.size.x, maxf(1, cell.size.y * 0.35))), Color(1, 0.93, 0.7, 0.45))
+			else:
+				draw_rect(cell, Color("15110e"))
+
+func _forge(name: String, inset := 0) -> StyleBox:
+	var frame := Frame.new(UPGRADE_ART + name + ".png", inset)
+	frame.source_scale = 3.0
+	frame.source_center = UPGRADE_FRAMES[name]
+	return frame
+
+func upgrade_groups() -> Dictionary:
+	var ids: Array = COMBAT if category == "전투" else ECONOMY
+	var groups := {"해금":[], "잠김":[], "완료":[]}
+	for id in ids:
 		var d: Dictionary = _growth().data.permanentUpgrades[id]
 		if not d.get("enabled", true): continue
-		var level := int(lobby.progression().get(d.field, 0))
-		var maximum := int(d.maxLevel)
-		var cost := int(d.costs[mini(level, maximum)])
-		var enabled := level < maximum and int(lobby.progression().get("runes", 0)) >= cost
-		var box := _surface(grid, "ui/components/card_frame.png", 12)
-		box.custom_minimum_size.y = 158
-		_heading(box, id, level, maximum, -1, true)
-		var description := T.label(str(DESCRIPTIONS[id]), 10)
-		description.add_theme_color_override("font_color", Color("9eb3bf"))
-		box.add_child(description)
-		_effect(box, id, level, maximum, enabled)
-		var spacer := Control.new()
-		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		box.add_child(spacer)
-		var b := _button(box, "최대 레벨" if level >= maximum else "", lobby.apply_growth_change.bind({"kind":"upgradePermanent", "id":id}), not enabled)
-		for state in ["normal", "disabled", "hover", "pressed"]: b.add_theme_stylebox_override(state, _style("ui/components/upgrade_levelup_frame_v2.png", 7))
-		if level < maximum:
-			b.tooltip_text = "레벨업 · 룬 %d" % cost
-			var margin := MarginContainer.new()
-			margin.add_theme_constant_override("margin_left", 7)
-			margin.add_theme_constant_override("margin_right", 7)
-			margin.add_theme_constant_override("margin_top", 3)
-			margin.add_theme_constant_override("margin_bottom", 3)
-			margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			b.add_child(margin)
-			margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			var content := Control.new()
-			content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			margin.add_child(content)
-			var label := _strong(T.label("레벨업", 10))
-			label.autowrap_mode = TextServer.AUTOWRAP_OFF
-			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			label.add_theme_color_override("font_color", Color("e8fbff") if enabled else Color("6d7f8f"))
-			content.add_child(label)
-			label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			var chip := PanelContainer.new()
-			var chip_style := _style("ui/components/upgrade_rune_cost_frame_v2.png", 9)
-			chip_style.content_margin_top = 7
-			chip_style.content_margin_bottom = 7
-			chip.add_theme_stylebox_override("panel", chip_style)
-			chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			content.add_child(chip)
-			_currency(chip, cost)
-			var align_cost := func():
-				chip.size = chip.get_combined_minimum_size()
-				# Anchored children do not contribute to the Button's minimum size.
-				b.custom_minimum_size = Vector2(chip.size.x + label.get_minimum_size().x + 16, maxf(34, chip.size.y + 6))
-				chip.position = Vector2(content.size.x - chip.size.x, (content.size.y - chip.size.y) * 0.5)
-				# Keep the caption centered; reserve the same cost width on both sides.
-				var side := chip.size.x + 2
-				if content.size.x >= side * 2 + label.get_minimum_size().x:
-					label.offset_left = side
-					label.offset_right = -side
-				else:
-					label.offset_left = 0
-					label.offset_right = -side
-			content.resized.connect(align_cost)
-			chip.minimum_size_changed.connect(align_cost)
-			align_cost.call_deferred()
+		if not Progression.has_unlock(lobby.progression(), "upgrade", id): groups["잠김"].append(id)
+		elif int(lobby.progression().get(d.field, 0)) >= int(d.maxLevel): groups["완료"].append(id)
+		else: groups["해금"].append(id)
+	# Locked rows follow the stage that opens them; ties keep the catalog order.
+	groups["잠김"].sort_custom(func(a, b):
+		var left := Progression.ordinal_for(upgrade_requirement(a))
+		var right := Progression.ordinal_for(upgrade_requirement(b))
+		return left < right or (left == right and ids.find(a) < ids.find(b)))
+	return groups
+
+func upgrade_status_tabs(parent: Node) -> void:
+	var groups := upgrade_groups()
+	var bar := PanelContainer.new()
+	bar.name = "UpgradeStatusTabs"
+	bar.add_theme_stylebox_override("panel", _forge("tab_bar", 4))
+	parent.add_child(bar)
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 2)
+	bar.add_child(tabs)
+	for key in UPGRADE_STATUSES:
+		var b := Button.new()
+		b.name = "UpgradeStatus_" + key
+		b.text = "%s  %d" % [key, groups[key].size()]
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.custom_minimum_size.y = 28
+		b.focus_mode = Control.FOCUS_NONE
+		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		b.add_theme_font_override("font", T.font(900))
+		b.add_theme_font_size_override("font_size", 12)
+		var selected: bool = key == status
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+			b.add_theme_color_override(state, Color("fff0d2") if selected else Color("9a9488"))
+		for state in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+			var style: StyleBox = StyleBoxEmpty.new()
+			if selected and state != "focus": style = _forge("tab_selected")
+			elif state in ["hover", "pressed", "hover_pressed"]:
+				style = _forge("tab_selected")
+				style.modulate_color = Color(1, 1, 1, 0.3)
+			b.add_theme_stylebox_override(state, style)
+		if key == "완료" and _strike_finished(): _flash.call_deferred(b, Color(1.9, 1.6, 1.1), 0.7)
+		b.pressed.connect(func():
+			if status == key: return
+			status = key
+			var scroll = lobby.get("_page_scroll")
+			if is_instance_valid(scroll): scroll.scroll_vertical = 0
+			lobby.refresh())
+		tabs.add_child(b)
+
+func upgrades() -> void:
+	var list := VBoxContainer.new()
+	list.name = "UpgradeList"
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 8)
+	lobby.body.add_child(list)
+	var ids: Array = upgrade_groups()[status]
+	if ids.is_empty():
+		var empty := PanelContainer.new()
+		empty.name = "UpgradeEmpty"
+		empty.add_theme_stylebox_override("panel", _forge("row_locked", 14))
+		list.add_child(empty)
+		var text := T.label(str(UPGRADE_EMPTY[status]), 11)
+		text.add_theme_color_override("font_color", Color("8e949a"))
+		text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.add_child(text)
+		return
+	for id in ids: _upgrade_row(list, id)
+
+func _upgrade_row(parent: Node, id: String) -> void:
+	var d: Dictionary = _growth().data.permanentUpgrades[id]
+	var level := int(lobby.progression().get(d.field, 0))
+	var maximum := int(d.maxLevel)
+	var locked := not Progression.has_unlock(lobby.progression(), "upgrade", id)
+	var finished := not locked and level >= maximum
+	var cost := int(d.costs[mini(level, maximum)])
+	var enabled := not locked and not finished and int(lobby.progression().get("runes", 0)) >= cost
+	var panel := PanelContainer.new()
+	panel.name = "UpgradeRow_" + id
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.set_meta("upgrade_id", id)
+	panel.set_meta("level_text", "Lv.%d/%d" % [level, maximum])
+	var frame := _forge("row_locked" if locked else ("row_max" if finished else "row_normal"))
+	frame.content_margin_left = 14
+	frame.content_margin_right = 14
+	frame.content_margin_top = 12
+	frame.content_margin_bottom = 11
+	panel.add_theme_stylebox_override("panel", frame)
+	parent.add_child(panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	panel.add_child(row)
+	row.add_child(_forge_icon(id, locked))
+	var levels := VBoxContainer.new()
+	levels.custom_minimum_size.x = 32
+	levels.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	levels.add_theme_constant_override("separation", -3)
+	row.add_child(levels)
+	var number_color := Color("7d848a") if locked else (Color("ffd76e") if finished else Color("f0b75a"))
+	var number: Label
+	for part in [["Lv.", 10], [str(level), 23], ["/%d" % maximum, 10]]:
+		var label := _inline(part[0], part[1])
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.add_theme_color_override("font_color", number_color if part[1] > 10 else Color("8a8f93") if locked else Color("c9b48d"))
+		levels.add_child(label)
+		if part[1] > 10: number = label
+	row.add_child(_forge_divider(locked))
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	words.add_theme_constant_override("separation", 3)
+	row.add_child(words)
+	var title := _strong(T.label(str(TITLES.get(id, id)), 14))
+	title.add_theme_color_override("font_color", Color("a3a8ac") if locked else Color("f4e6c8"))
+	words.add_child(title)
+	var description := T.label(str(DESCRIPTIONS[id]), 10)
+	description.add_theme_color_override("font_color", Color("787f86") if locked else Color("a99f90"))
+	words.add_child(description)
+	var effect := HFlowContainer.new()
+	effect.add_theme_constant_override("h_separation", 4)
+	effect.add_theme_constant_override("v_separation", 1)
+	words.add_child(effect)
+	var current := _inline("현재 " + effect_value(id, level), 11)
+	current.add_theme_color_override("font_color", Color("9aa0a5") if locked else Color("e9dcc2"))
+	effect.add_child(current)
+	if not finished:
+		var arrow := _inline("→", 11)
+		arrow.add_theme_color_override("font_color", Color("8a8f93"))
+		effect.add_child(arrow)
+		var next := _inline("다음 " + effect_value(id, level + 1), 11)
+		next.add_theme_color_override("font_color", Color("b39a62") if locked else Color("ffc54d"))
+		effect.add_child(next)
+	var gauge := ForgeGauge.new()
+	gauge.ratio = float(level) / maxf(1, maximum)
+	gauge.finished = finished
+	gauge.track = _forge("gauge_track")
+	words.add_child(gauge)
+	if _strike.get("id") == id and level > int(_strike.before):
+		_play_strike.call_deferred(panel, number, gauge, float(_strike.before) / maxf(1, maximum))
+	var action: Control
+	if locked: action = _forge_plate("locked_plate", LOCK_GLYPH, "%s 클리어" % Progression.stage_label(upgrade_requirement(id)), Color("a3a8ac"))
+	elif finished: action = _forge_plate("button_max", 0, "최대 레벨", Color("4a2c08"))
+	else: action = _levelup_button(id, cost, enabled, level)
+	row.add_child(action)
+
+func _forge_icon(id: String, locked: bool) -> Control:
+	var socket := _image(UPGRADE_ART + "icon_socket.png", 56)
+	socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var icon := _image(ICONS.get(id, "upgrades/" + id.to_snake_case() + ".png"), 0)
+	socket.add_child(icon)
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in [SIDE_LEFT, SIDE_TOP]: icon.set_offset(side, 7)
+	for side in [SIDE_RIGHT, SIDE_BOTTOM]: icon.set_offset(side, -7)
+	if locked:
+		# Dims the bronze socket and its icon together to match the grey iron row.
+		socket.self_modulate = Color(0.62, 0.64, 0.68)
+		icon.modulate = Color(0.55, 0.58, 0.62)
+		var badge := _glyph(LOCK_GLYPH, 13, Color("d4d8dc"))
+		badge.name = "LockBadge"
+		badge.add_theme_color_override("font_outline_color", Color("0b0c0d"))
+		badge.add_theme_constant_override("outline_size", 5)
+		socket.add_child(badge)
+		badge.position = Vector2(socket.custom_minimum_size.x - 12, -4)
+	return socket
+
+func _forge_plate(art: String, code: int, text: String, color: Color) -> Control:
+	var plate := PanelContainer.new()
+	plate.custom_minimum_size = ACTION_SIZE
+	plate.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	plate.add_theme_stylebox_override("panel", _forge(art, 4))
+	var box := VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 0)
+	plate.add_child(box)
+	if code:
+		var glyph := _glyph(code, 17, color)
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(glyph)
+	var label := _inline(text, 12 if code else 13)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_color_override("font_color", color)
+	box.add_child(label)
+	return plate
+
+func _forge_divider(locked: bool) -> Control:
+	var line := Panel.new()
+	line.custom_minimum_size.x = 3
+	line.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_stylebox_override("panel", _forge("divider"))
+	if locked: line.self_modulate = Color(0.7, 0.72, 0.76)
+	return line
+
+func _strike_finished() -> bool:
+	if _strike.is_empty(): return false
+	var d: Dictionary = _growth().data.permanentUpgrades[_strike.id]
+	return int(lobby.progression().get(d.field, 0)) >= int(d.maxLevel) and int(_strike.before) < int(d.maxLevel)
+
+func _animations_off() -> bool:
+	return ProjectSettings.get_setting("accessibility/disable_animations", false)
+
+## Brightens a control and lets it cool back to its own colors.
+func _flash(control: Control, peak: Color, seconds: float, own := false) -> void:
+	if _animations_off() or not is_instance_valid(control) or not control.is_inside_tree(): return
+	var property := "self_modulate" if own else "modulate"
+	control.set(property, peak)
+	control.create_tween().tween_property(control, property, Color.WHITE, seconds).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+
+## Forge strike after a level-up: row edge flares, the level number pops, new gauge cells cool from white.
+func _play_strike(panel: Control, number: Label, gauge: ForgeGauge, before: float) -> void:
+	if _animations_off() or not is_instance_valid(panel) or not panel.is_inside_tree(): return
+	_flash(panel, Color(1.55, 1.3, 1.05), 0.45, true)
+	if is_instance_valid(number):
+		number.pivot_offset = number.size / 2
+		number.scale = Vector2.ONE * 1.3
+		_flash(number, Color(1.7, 1.5, 1.1), 0.35)
+		number.create_tween().tween_property(number, "scale", Vector2.ONE, 0.28).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	if is_instance_valid(gauge):
+		gauge.flash_from = gauge.lit_cells(before)
+		gauge.flash = 1.0
+		gauge.create_tween().tween_property(gauge, "flash", 0.0, 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+
+func _levelup_button(id: String, cost: int, enabled: bool, level := 0) -> Button:
+	var b := Button.new()
+	b.name = "UpgradeLevelUp_" + id
+	b.tooltip_text = "레벨업 · 룬 %d" % cost
+	b.disabled = not enabled
+	b.custom_minimum_size = ACTION_SIZE
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
+		var style := _forge("button_normal" if enabled else "button_disabled")
+		if state == "hover": style.modulate_color = Color(1.12, 1.08, 1.0)
+		elif state in ["pressed", "hover_pressed"]: style.modulate_color = Color(0.82, 0.78, 0.72)
+		elif state == "focus": style = StyleBoxEmpty.new()
+		b.add_theme_stylebox_override(state, style)
+	b.pressed.connect(func():
+		# Rows rebuilt by this command (including reentrant refreshes) replay the strike.
+		_strike = {"id":id, "before":level}
+		lobby.apply_growth_change({"kind":"upgradePermanent", "id":id})
+		_strike = {})
+	# The art has a bronze caption face over a dark price band; content follows that split.
+	var caption_area := CenterContainer.new()
+	caption_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(caption_area)
+	caption_area.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	caption_area.offset_top = 4
+	caption_area.offset_bottom = -(BUTTON_BAND + BUTTON_RIM + 2)
+	var price_area := CenterContainer.new()
+	price_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(price_area)
+	price_area.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	price_area.offset_top = -(BUTTON_BAND + BUTTON_RIM)
+	price_area.offset_bottom = -BUTTON_RIM
+	var ink := Color("2b1606") if enabled else Color("4a4e52")
+	var caption := HBoxContainer.new()
+	caption.alignment = BoxContainer.ALIGNMENT_CENTER
+	caption.add_theme_constant_override("separation", 3)
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	caption_area.add_child(caption)
+	var hammer := _image(UPGRADE_ART + "hammer.png", 22)
+	hammer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if not enabled: hammer.modulate = Color(0.55, 0.57, 0.6)
+	caption.add_child(hammer)
+	var label := _inline("레벨업", 13)
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_color_override("font_color", ink)
+	caption.add_child(label)
+	var price := HBoxContainer.new()
+	price.alignment = BoxContainer.ALIGNMENT_CENTER
+	price.add_theme_constant_override("separation", 6)
+	price.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	price_area.add_child(price)
+	var rune := _image("ui/hud/icons/rune.png", 15)
+	rune.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if not enabled: rune.modulate = Color(0.6, 0.62, 0.65)
+	price.add_child(rune)
+	var value := _inline(str(cost), 13)
+	value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	value.add_theme_color_override("font_color", Color("fff6e4") if enabled else Color("8b9095"))
+	price.add_child(value)
+	return b
 
 func effect_value(id: String, level: int) -> String:
 	if id == "linkExpansionOne": return "링크 홈 4개" if level > 0 else "링크 홈 3개"

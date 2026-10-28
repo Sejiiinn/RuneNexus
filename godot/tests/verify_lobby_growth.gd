@@ -98,7 +98,9 @@ func verify() -> void:
 	ui._submit("cancelResearch","researchEfficiency")
 	host.clear()
 	host.state.clearedStageNumbers = range(1,31)
-	for width in [320, 440]:
+	_status_tabs(host, ui)
+	# The app never renders below 440 logical px; 760 covers fold/tablet widths.
+	for width in [440, 760]:
 		host.size = Vector2(width, 900)
 		host.body.size = Vector2(width - 28, 900)
 		for page in ["전투", "경제", "연구"]:
@@ -113,7 +115,7 @@ func verify() -> void:
 			else:
 				assert(host.body.get_child_count() == 4, "Research slots and three framed groups")
 			assert(host.body.get_combined_minimum_size().x <= width - 28, "%s overflow at %d: %s" % [page, width, host.body.get_combined_minimum_size()])
-	print("PASS growth pages: 320/440 layout, prerequisites, effects, detail-only selection, start/cancel confirmation")
+	print("PASS growth pages: 440/760 layout, prerequisites, effects, detail-only selection, start/cancel confirmation")
 	host.free()
 	quit()
 
@@ -122,6 +124,15 @@ func _boss_training_card(host, ui) -> void:
 	ui.category = "전투"
 	ui.upgrades()
 	assert(not _texts(host.body).contains("대형 표적 훈련"), "Boss training is hidden before its fixed stage gate")
+	host.clear()
+	ui.status = "잠김"
+	ui.upgrades()
+	var locked := _card_with_title(host.body, "대형 표적 훈련")
+	assert(locked != null and _texts(locked).contains("2-9 클리어") and _buttons(locked).is_empty(), "Locked tab previews the boss training with its stage gate")
+	assert(_texts(locked).contains("다음 +0.5%"), "Locked rows preview the first level effect")
+	var order: Array = host.body.get_child(0).get_children().map(func(row): return row.get_meta("upgrade_id"))
+	assert(order == ["criticalDamage", "physicalDamageTraining", "elementalDamageTraining", "poisonDamageTraining", "bossDamageTraining", "directDamageTraining", "splashDamageTraining", "damageOverTimeTraining"], "Locked rows follow their unlock stage: %s" % [order])
+	ui.status = "해금"
 	host.clear()
 	host.state.clearedStageNumbers = [24]
 	host.state.runes = 200
@@ -144,9 +155,14 @@ func _boss_training_card(host, ui) -> void:
 	host.state.runes = 100000
 	host.clear()
 	ui.upgrades()
-	card = host.body.get_child(0).get_child(host.body.get_child(0).get_child_count()-1)
+	assert(_card_with_title(host.body, "대형 표적 훈련") == null, "Maxed upgrades leave the unlocked tab")
+	host.clear()
+	ui.status = "완료"
+	ui.upgrades()
+	card = _card_with_title(host.body, "대형 표적 훈련")
 	assert(_texts(card).contains("현재 +20%") and _texts(card).contains("최대 레벨") and not _texts(card).contains("다음"))
-	assert(_buttons(card)[0].disabled)
+	assert(_buttons(card).is_empty() and card.get_meta("level_text") == "Lv.40/40")
+	ui.status = "해금"
 	host.clear()
 	host.state = original
 	host.commands.clear()
@@ -167,7 +183,7 @@ func _poison_training_card(host, ui) -> void:
 	ui.upgrades()
 	var card := _card_with_title(host.body, title)
 	assert(card != null and ui.upgrade_requirement("poisonDamageTraining") == 23)
-	assert(_texts(card).contains("Lv.0/50") and ui.effect_value("poisonDamageTraining", 50) == ui.effect_value("elementalDamageTraining", 50))
+	assert(card.get_meta("level_text") == "Lv.0/50" and ui.effect_value("poisonDamageTraining", 50) == ui.effect_value("elementalDamageTraining", 50))
 	var cost: int = host.app.run_domain.growth.data.permanentUpgrades.poisonDamageTraining.costs[0]
 	_buttons(card)[0].pressed.emit()
 	assert(host.state.poisonDamageTrainingUpgradeLevel == 1 and host.state.runes == 10000 - cost, "Poison training card purchases its own field")
@@ -191,7 +207,7 @@ func _damage_training_cards(host, ui) -> void:
 		ui.upgrades()
 		var card := _card_with_title(host.body, ui.TITLES[id])
 		assert(card != null and ui.upgrade_requirement(id) == 26)
-		assert(_texts(card).contains("Lv.0/80") and _texts(card).contains("다음 +0.5%"))
+		assert(card.get_meta("level_text") == "Lv.0/80" and _texts(card).contains("다음 +0.5%"))
 		assert(ui.effect_value(id, 80) == "+40%")
 		var before: int = host.state.runes
 		var cost: int = host.app.run_domain.growth.data.permanentUpgrades[id].costs[0]
@@ -207,18 +223,46 @@ func _damage_training_cards(host, ui) -> void:
 		host.state.runes = 100000
 		ui.upgrades()
 		card = _card_with_title(host.body, ui.TITLES[id])
-		assert(_texts(card).contains("Lv.79/80") and _texts(card).contains("현재 +39.5%") and _texts(card).contains("다음 +40%"))
+		assert(card.get_meta("level_text") == "Lv.79/80" and _texts(card).contains("현재 +39.5%") and _texts(card).contains("다음 +40%"))
 		cost = host.app.run_domain.growth.data.permanentUpgrades[id].costs[79]
 		_buttons(card)[0].pressed.emit()
 		assert(host.state[id + "UpgradeLevel"] == 80 and host.state.runes == 100000 - cost, "Last damage training purchase reaches80 with correct debit: " + id)
 		host.clear()
+		ui.status = "완료"
 		ui.upgrades()
 		card = _card_with_title(host.body, ui.TITLES[id])
-		assert(_texts(card).contains("Lv.80/80") and _texts(card).contains("현재 +40%") and _texts(card).contains("최대 레벨") and not _texts(card).contains("다음"))
-		assert(_buttons(card)[0].disabled)
+		assert(card.get_meta("level_text") == "Lv.80/80" and _texts(card).contains("현재 +40%") and _texts(card).contains("최대 레벨") and not _texts(card).contains("다음"))
+		assert(_buttons(card).is_empty())
+		ui.status = "해금"
 		host.clear()
 	host.state = original
 	host.commands.clear()
+
+# Status tabs count the current category and switch the list without touching progress.
+func _status_tabs(host, ui) -> void:
+	var original: Dictionary = host.state.duplicate(true)
+	host.state.clearedStageNumbers = [1, 4, 5]
+	host.state.nexusHpUpgradeLevel = 30
+	ui.category = "전투"
+	var holder := VBoxContainer.new()
+	host.add_child(holder)
+	ui.upgrade_status_tabs(holder)
+	var labels: Array = holder.find_children("UpgradeStatus_*", "Button", true, false).map(func(b): return b.text)
+	assert(labels == ["해금  2", "잠김  7", "완료  1"], "Status tab counts: %s" % [labels])
+	host.clear()
+	ui.upgrades()
+	var unlocked: Array = host.body.get_child(0).get_children().map(func(row): return row.get_meta("upgrade_id"))
+	assert(unlocked == ["fireTraining", "criticalDamage"], "Unlocked tab keeps catalog order: %s" % [unlocked])
+	holder.find_child("UpgradeStatus_완료", true, false).pressed.emit()
+	assert(ui.status == "완료")
+	host.clear()
+	host.state.nexusHpUpgradeLevel = 0
+	ui.upgrades()
+	assert(host.body.get_child(0).get_child(0).name == "UpgradeEmpty", "An empty tab shows one empty row")
+	ui.status = "해금"
+	holder.queue_free()
+	host.clear()
+	host.state = original
 
 func _card_with_title(body: Node, title: String) -> Control:
 	for child in body.get_child(0).get_children():

@@ -1,0 +1,16 @@
+# Discarded v1 parts, zoom comparisons and the GIF copy stay local; approved
+# concepts, v2 production sources and representative captures are kept.
+production/*.png
+!production/sheet-*-v2.png
+!production/v2-*.png
+production/v2-hammer.png
+!production/sheet-parts.png
+!production/sheet-detail.png
+!production/tab_bar.png
+!production/tab_selected.png
+!production/divider.png
+!production/gauge_track.png
+!production/hammer-v3.png
+implementation/*.gif
+implementation/*-vs-concept.png
+implementation/button-zoom.png

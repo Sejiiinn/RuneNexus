@@ -269,5 +269,18 @@
   "stage_map/chapter2_map.jpg",
   "stage_map/chapter3_map.jpg",
   "stage_map/node_socket_gold.png",
-  "stage_map/stage_number_socket.png"
+  "stage_map/stage_number_socket.png",
+  "ui/components/upgrade/row_normal.png",
+  "ui/components/upgrade/row_locked.png",
+  "ui/components/upgrade/row_max.png",
+  "ui/components/upgrade/icon_socket.png",
+  "ui/components/upgrade/button_normal.png",
+  "ui/components/upgrade/button_disabled.png",
+  "ui/components/upgrade/button_max.png",
+  "ui/components/upgrade/gauge_track.png",
+  "ui/components/upgrade/tab_bar.png",
+  "ui/components/upgrade/tab_selected.png",
+  "ui/components/upgrade/divider.png",
+  "ui/components/upgrade/locked_plate.png",
+  "ui/components/upgrade/hammer.png"
 ]

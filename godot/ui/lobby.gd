@@ -152,6 +152,8 @@ func refresh() -> void:
 	column.add_theme_constant_override("separation", 4)
 	safe.add_child(column)
 	_header(column)
+	# Status tabs stay fixed above the scrolling upgrade list.
+	if page == "강화": growth.upgrade_status_tabs(_margin(column, 12))
 	var content := _margin(column, 0 if page == "코어" else 12)
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body = VBoxContainer.new()
@@ -166,11 +168,11 @@ func refresh() -> void:
 		_page_scroll = scroll
 		scroll.name = "PageScroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		if page == "연구": scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		if page in ["연구", "강화"]: scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		content.add_child(scroll)
 		scroll.add_child(body)
 		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		body.alignment = BoxContainer.ALIGNMENT_CENTER
+		body.alignment = BoxContainer.ALIGNMENT_BEGIN if page == "강화" else BoxContainer.ALIGNMENT_CENTER
 	match page:
 		"강화": growth.upgrades()
 		"연구": growth.research()

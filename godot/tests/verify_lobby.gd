@@ -163,7 +163,8 @@ func _verify() -> void:
 			lobby.go_back()
 			assert(lobby.page == "스테이지" and not app.quit_requested, "Back from a tab returns to the stage map")
 			lobby.open_page(page)
-	for dimensions in [Vector2(320,568),Vector2(440,988)]:
+	# Real logical sizes only: the 440x760 expand base never renders narrower than 440.
+	for dimensions in [Vector2(440,760),Vector2(440,988),Vector2(760,1000)]:
 		root.content_scale_size = Vector2i(dimensions)
 		lobby.size = dimensions
 		for page in ["스테이지","강화","연구","코어","포탑"]:
