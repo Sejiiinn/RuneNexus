@@ -51,7 +51,7 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/proj
 
 이미 등장한 적의 상태와 포탑 쿨다운·피해 통계는 복원한다. 기존 v2에 없는 탄환·코어 사이클 시계는 새로 저장하지 않으며, 대기 중인 적의 무작위 값은 콘텐츠 규칙에 따라 재생성한다. 당시 실제 런 저장 검증은 로컬 보관본 `docs/analysis/godot_content_save_20260921/`에 있다(저장소 미추적).
 
-기존 저장 회귀는 `--session --session-fixture` 또는 검사 스크립트의 `content_enabled=false`에서 유지한다. 이 모드에서만 기본 화살포탑/고정 일반 적 설정을 복원하고 다른 설정은 거절한다. `Save`는 v2, `Load`는 정지 상태 복원(`Pause`로 재개)이다. 저장 경로는 `user://standalone-session/saves/guest/`이며 실제 사용자 슬롯을 자동으로 읽지 않는다. [저장 기반 API](../app/README.md)를 참고한다.
+기존 저장 회귀는 `--session --session-fixture` 또는 검사 스크립트의 `content_enabled=false`에서 유지한다. 이 모드에서만 기본 기관총 포탑/고정 일반 적 설정을 복원하고 다른 설정은 거절한다. `Save`는 v2, `Load`는 정지 상태 복원(`Pause`로 재개)이다. 저장 경로는 `user://standalone-session/saves/guest/`이며 실제 사용자 슬롯을 자동으로 읽지 않는다. [저장 기반 API](../app/README.md)를 참고한다.
 
 `standalone_fixture.json`은 기존 Dart 지도와 기본 포탑 스탯에서 추출한 **과거 저장 회귀 자료**다. 현재 실행용 콘텐츠 원본이 아니며 실제 콘텐츠 경로는 이 파일의 고정 전투 설정을 사용하지 않는다.
 

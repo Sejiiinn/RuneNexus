@@ -9,7 +9,7 @@ class Host extends Control:
 	var commands: Array = []
 	var growth
 	func progression() -> Dictionary: return progression_state
-	func display_title(value: String) -> String: return {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"번개"}.get(value, value)
+	func display_title(value: String) -> String: return {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}.get(value, value)
 	func apply_growth_change(command: Dictionary) -> void:
 		commands.append(command)
 		var request: Dictionary = command.duplicate()
