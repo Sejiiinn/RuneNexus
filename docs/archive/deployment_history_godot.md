@@ -2,6 +2,16 @@
 
 역할: 2026-09-24 Godot 단독 앱 전환 이후 배포 기록의 보존본. 최신 앱·서버 배포와 미배포 변경은 [배포 상태](../deployment_status.md)에 있고, 새 배포를 기록할 때 직전 기록을 이 문서 맨 위로 옮긴다. 각 절의 “현재”·“이번”은 당시 기준이다. 전환 전 기록은 [전환 전 배포 기록](deployment_before_godot_20260924.md)에 있다. 본문의 `~/Library/Application Support/RuneNexus/operations/<폴더>` 근거는 2026-10-26부터 외장 `/Volumes/KIOXIA_MAC/RuneNexus/operations-archive/<폴더>`에 있다.
 
+## 2026-10-28 Android 0.2.30 / code 6059 — 공개 완료
+
+- APK 대상 `33d6519983af37af0efab437903bf081a515e511`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40650174316), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40652276663), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6059), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6059/rune-nexus.apk). 2026-10-28 07:47:27 UTC(16:47:27 KST)에 공개·최신 지정했다. 저장·API 호환이 유지되어 **선택 업데이트**이며 최소 지원 코드는 6058 그대로다. 클라이언트 세대·저장·API·DB 변경이 없어 서버는 반영하지 않았다(운영 `f85a9037` 이후 `server/`·콘텐츠 원본·fixture 변경 없음).
+- 포함: 영구 강화 탭을 청동 단련대 목록과 해금·잠김·완료 상태 탭으로 재설계하고 레벨업 성공 단련 연출 추가, 강화 탭 배경의 용광로 빛·불티, 연구 탭을 청록 설계도 카드·연구 전용 9-slice 에셋·작은 크기용 아이콘으로 재설계하고 배경 청록 조명·훑기 빛·입자 추가, 슬롯이 차 있어도 룬이 충분한 연구 카드는 어둡게 하지 않음([결정](../design_decisions/lobby.md)), 스테이지 홈 설정을 하단 단축 줄 맨 왼쪽으로 이동, 선택 소켓 숫자 중심 보정과 획득한 해금 배지 체크 표시 유지. 쓰지 않는 옛 연구 슬롯 에셋 2개를 제거했다.
+- 검사: 로컬에서 관련 Godot 회귀(강화·연구 화면, 연구 가능 상태·슬롯·중단·모달 갱신·확인창, 로비)를 통과했다. build-only CI가 배포 검사 공용 액션(계약·회귀·준비 프로젝트)·서명 빌드·팩 감사·패치 디코더·차등 업데이트 준비를 통과했고, 공개 실행은 검수한 build-only 후보를 다시 빌드하지 않고 승격했다(`same_as_build_only_candidate=true`).
+- APK **359,493,129 bytes**, SHA-256 `fabce59d…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6059/update.json)). 6058 대비 **+475,608 bytes**이며 PCK가 206,675,800 bytes·1439항목(+475,604 bytes, +50항목)으로 늘었다. 강화 13개·연구 14개 새 UI PNG를 더하고 옛 연구 슬롯 2개를 뺀 순증 25개 에셋의 가져오기 항목이다. 기존22개 중복군2,707,494 bytes는 같고 신규 중복은 없다. **6058/6057/6056→6059 패치는 6,591,008 / 6,944,820 / 7,389,661 bytes**다.
+- 공개 tag 대상 커밋·성공 CI, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산4개의 크기·SHA-256과 GitHub digest 일치를 확인했다(`apk_release.py publish`의 `public-verification.json`).
+- Codex 독립 검증(gpt-6-astra, high): 강화 탭 재설계(조건 1·2·3·5·6·9 PASS, 미미 2건은 생략 제안, 1건은 기존부터 실패하던 `verify_menu_shell_parity.gd`)와 연구 탭 재설계(조건 10개 중 8개 PASS, 에셋 면 알파 252~254의 미미 1건은 사용자 합의로 생략, 훑기 빛 움직임은 미확인)를 각각 받았다. 강화 탭의 세부 디테일·단련 연출·배경은 그 검증 뒤에 바뀌어 독립 재검증하지 않았다.
+- Android 전용 변경이 없어 AVD·기기 확인은 하지 않았다. **Android 실기기의 새 강화·연구 화면 표시와 터치, 모바일 GPU에서의 배경 셰이더·입자 부하, 앱 내 패치 업데이트, 실제 Google 로그인·운영 서버 연결 강화·연구 명령은 미검증**이다.
+
 ## 2026-10-28 Android 0.2.29 / code 6058 — 공개 완료
 
 - APK 대상 `eca02b549a96bd62a8bb2e266340c34d1cb28e0d`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40530691263), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/40533131959), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6058), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6058/rune-nexus.apk). 2026-10-27 15:39:51 UTC(2026-10-28 00:39:51 KST)에 공개·최신 지정했다. 사용자 요청으로 **필수 업데이트·최소 지원 코드6058**이다. 클라이언트 세대·저장·API·DB 변경이 없어 서버는 반영하지 않았다(운영 `f85a9037` 이후 `server/`·콘텐츠 원본·fixture 변경 없음).
