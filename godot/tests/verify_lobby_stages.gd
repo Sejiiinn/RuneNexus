@@ -119,7 +119,8 @@ func verify_map_and_card(ui, host) -> void:
 				if ui.reward_highlighted(id): claimed += mini(ui.unlock_items(id).size(), 3)
 			var shown: Array = map.nodes.find_children("UnlockBadge*", "Panel", true, false)
 			assert(shown.size() == badges, "One badge per first-clear unlock, obtained or not")
-			assert(shown.filter(func(b): return b.get_meta("claimed") and b.get_child_count() == 2).size() == claimed, "Obtained unlocks keep their badge with a check")
+			assert(shown.filter(func(b): return b.get_meta("claimed") and map.nodes.get_node_or_null(NodePath(b.name.replace("UnlockBadge", "UnlockCheck"))) != null).size() == claimed, "Obtained unlocks keep their badge with a check")
+			assert(map.find_children("*", "CanvasItem", true, false).all(func(n): return n.z_index == 0), "Map art never lifts itself above lobby modals")
 			# Tap selects; a stage tap reports its id.
 			var pressed: Array = []
 			map.stage_pressed.connect(func(id): pressed.append(id))

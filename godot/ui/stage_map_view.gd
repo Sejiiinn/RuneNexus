@@ -167,12 +167,24 @@ func refresh_nodes() -> void:
 		# One badge per first-clear unlock; obtained ones stay with a teal check.
 		var claimed: bool = stages.reward_highlighted(id)
 		var unlocks: Array = stages.unlock_items(id)
+		var shown_badges: Array[Panel] = []
 		for b in mini(unlocks.size(), 3):
 			# The gate node sits under the header wallet, so its badges go left.
 			var at := c + (Vector2(-d / 2 - 18 - b * 21, -d / 2 - 6) if i == 9 else Vector2(d / 2 - 6 + b * 21, -d / 2 - 6))
 			var badge := _badge(unlocks[b], Rect2(at, Vector2(22, 22)), open, animated, claimed)
 			badge.name = "UnlockBadge%d_%d" % [id, b]
 			badge.set_meta("claimed", claimed)
+			shown_badges.append(badge)
+		# Checks are drawn after every badge so the next badge cannot cover them,
+		# without a z_index that would also lift them above lobby modals.
+		if claimed:
+			for badge in shown_badges:
+				var check := StageCard.Check.new()
+				check.name = badge.name.replace("UnlockBadge", "UnlockCheck")
+				check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				check.position = badge.position + badge.size - Vector2(8, 8)
+				check.size = Vector2(11, 11)
+				nodes.add_child(check)
 		if open and state != "selected":
 			_rune_amount(nodes, id, Rect2(c.x - 30, c.y + d / 2 - 1, 60, 14), 10)
 
@@ -213,14 +225,7 @@ func _badge(item: Array, rect: Rect2, bright: bool, animated: bool, claimed: boo
 	nodes.add_child(badge)
 	var icon := _texture(badge, Stages.unlock_icon(item), Rect2(Vector2(3, 3), rect.size - Vector2(6, 6)))
 	icon.modulate = Color.WHITE if bright else Color(1, 1, 1, 0.45)
-	if claimed:
-		var check := StageCard.Check.new()
-		check.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		check.position = rect.size - Vector2(8, 8)
-		check.size = Vector2(11, 11)
-		check.z_index = 1  # above the next badge, which overlaps this one's corner
-		badge.add_child(check)
-	elif bright and animated:
+	if not claimed and bright and animated:
 		var shimmer := Effects.Shimmer.new()
 		shimmer.target = icon
 		shimmer.delay = randf() * 4.0
