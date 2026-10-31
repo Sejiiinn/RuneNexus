@@ -91,8 +91,6 @@ var impact_lights: Array[OmniLight3D]:
 	get: return _projectile_renderer.impact_lights
 var _world_environment := Environment.new()
 var _fill_light := DirectionalLight3D.new()
-var field: Dictionary:
-	get: return _projectile_renderer.field
 var last_frame := {}
 var columns: int:
 	get: return _environment.columns

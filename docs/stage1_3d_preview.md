@@ -26,7 +26,7 @@
 
 착탄 효과는 Godot 전투 런타임의 명중에서 생성한다. 화염·냉기의 승인된 3D 표현은 유지하며 기존 2D 착탄 도형은 생성하지 않는다. 이전 표시 이벤트 이관 과정은 [착탄 수명 이관·검증](../design/stage1_3d/presentation_migration/impact_lifecycle/README.md)에 남긴다.
 
-대포 폭발은 Godot 전투 런타임에서 생성하고 전투 시계로 진행한다. 기존 3D 파편·체적 효과·광원·풀은 유지한다. 이전 표시 이벤트 이관 과정은 [검증 기록](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md)에 남긴다.
+대포 폭발은 Godot 전투 런타임에서 생성하고 전투 시계로 진행한다. 플립북 화구·입체 파편·광원·풀을 사용한다. 이전 표시 이벤트 이관 과정은 [검증 기록](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md)에 남긴다.
 
 공통 탄환의 발사·이동·충돌·피해·연쇄 판정과 비행 표시는 Godot이 담당한다. Flutter에서 매 프레임 탄환 좌표를 전송하거나 Flame 잔상을 갱신하지 않는다. 저격·냉기 표시의 메시·재질 공유와 노드 재사용은 유지한다. 표시 전용 단계의 [이벤트·재사용 검증](../design/stage1_3d/presentation_migration/projectile_lifecycle/README.md)은 당시 판정 책임과 구분한다.
 
@@ -40,7 +40,7 @@
 
 일반 Android Gradle `preBuild`에서 `scripts/build_godot_pack.py`를 실행해 `godot/`와 기존 3D 에셋으로 `build/godot/android-assets/rune_nexus.pck`를 만든다. 입력 해시가 같으면 기존 팩을 재사용한다. Godot 공식 **4.7.2** 실행 파일이 필요하며 `GODOT_EXECUTABLE` 또는 PATH의 `godot`/`godot4`를 사용한다. 기존 macOS 검수 도구 경로도 인식한다. APK 배포 workflow는 체크섬을 확인한 같은 버전의 Linux 실행 파일을 준비한다.
 
-Godot 준비 단계는 GLB 사이의 동일 이미지를 공용 외부 텍스처로 묶고, 포탄 체적 캐시는 무손실 gzip으로 패키징한다. 제작 GLB·효과 원본은 유지한다. [용량 점검·공용 자산 정책](android_apk_distribution.md#godot-자산-패키징)을 따른다.
+Godot 준비 단계는 GLB 사이의 동일 이미지를 공용 외부 텍스처로 묶고, 대포 폭발 시트는 고품질 VRAM 압축으로 가져온다. 제작 GLB·효과 원본은 유지한다. [용량 점검·공용 자산 정책](android_apk_distribution.md#godot-자산-패키징)을 따른다.
 
 2026-09-13 ThreeJS·`flutter_angle` 의존성과 전용 SDK 도구 설치를 제거했다. Android SDK·NDK는 Flutter Gradle 설정을 따르며 Godot 실행 파일·AAR·PCK 준비는 유지한다.
 
@@ -69,8 +69,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 - 포탈·코어는 A안의 독립 `environment/landmarks.glb`를 사용한다. 지면·식생 없이 타일 중심에 배치하고 메시·재질을 공유한다. 보라 소용돌이는 오목한 메시의 불투명 공유 셰이더, 코어는 받침을 고정한 채 길쭉한 청록 결정만 부유·회전한다. 내부의 별도 불투명 물체 없이 승인한 Blender 형태와 재질 값을 사용하는 단일 청록 크리스탈에 공용 환경 반사·광원 하이라이트를 적용한다. 화면 굴절·알파 혼합은 사용하지 않는다. 파란 테두리나 모서리 전용 발광은 사용하지 않는다. 128px 공용 하늘 반사를 사용하고 석재·금속도 같은 환경을 수신한다. 코어 전용 반사 프로브는 제거했다. 전투 정지·배속을 따른다. [원본·규격·검수](../design/stage1_3d/portal_core_concepts/README.md)를 따른다.
 - 기본 전장은 비스듬한 직교 시점과 전장 전체 맞춤을 사용한다. `Stage1CameraView.drone`은 같은 3D 전장을 위에서 내려다보며, 시점 변경 때 경계·맞춤 배율과 입력 투영을 함께 갱신한다. 원본 위치·면적의 RectAreaLight 세 개로 위치별 석재 반사를 계산한다. PMREM은 낮은 하늘 반사에만 쓰며, AgX 중간 명도 대비와 지형 그림자를 함께 적용한다. 복제된 실제 인스턴스에 명암 처리와 면광원 방향 행렬 보정을 연결한다. Blender 시안과 웹 렌더러의 광원 계산은 동일하지 않다.
 - Android Godot 기관총은 실제 발사 시퀀스마다 좌우 포구를 교대하며 Blender 입체 화염·짧은 체적 연기·불티·반동을 표시한다. 연기와 불티는 발사 위치에 남으며 최근 6발의 슬롯을 재사용한다. [원본·효과 기준](../design/stage1_3d/machinegun_muzzle_3d/README.md)을 따른다. 대포는 더 큰 포구 섬광과 긴 반동 복귀, 둥근 검은 철구와 짧은 화염·연기를 사용한다. 대포와 기존 ThreeJS 경로의 포구 이미지는 Blender 프레임 렌더와 GIMP 패킹으로 제작한 투명 아틀라스다.
-- 포탄 착탄은 제작 단계에서 생성한 시간별 3D 밀도·발광·열도장(48³×32시점, 13.5MiB)을 전장 단위로 공유한다. 초기 화염에 조밀한 시간 표본을 두고 인접 시점을 보간하며, 전장 로딩 중 GPU 업로드를 끝낸다. 카메라에 종속된 완성 이미지가 아니며 광선 적분·조명·미세 기폭 섬광·입체 파편은 현재 시점에서 계산한다.
-- 대포 착탄은 캐시된 3D 밀도·발광·열도장을 GPU에서 적분하는 체적 화염과 실제 입체 불티·금속 파편으로 렌더한다. 착탄 이미지나 아틀라스는 로드하지 않는다. 최신 파편탄+부분 화염 시안의 짧은 섬광·주황 화염·방사형 금속 파편·회색 먼지 흐름을 따르며 전체 표시는 1.1초다. 이 방향은 이전의 큰 화염구를 대체한다. 고정 수의 순간 광원이 가까운 석재·적·포탑을 밝히고 화염과 함께 감쇠한다. 피해 판정·탄속·공격 주기는 기존 전투 상태를 따른다. 불티·금속 파편의 운동은 정적 seed 데이터와 외부 전투 시계 uniform을 사용하는 GPU vertex shader로 옮겼으며 [전환·계약 검증·측정 기록](../design/stage1_3d/cannon_impact/gpu_motion/README.md)을 따른다.
+- 대포 착탄은 Blender 연기 시뮬레이션을 게임 시점에서 렌더한 64칸 플립북 시트(2048², 모바일 ASTC 약 5.6MB)를 화면과 평행한 카드로 재생하고, 입체 흙 파편 22개·잉걸불과 불 잔재 105개·그을음 자국·순간 광원을 더한다. 전체 표시는 1.1초이며 모든 운동은 정적 seed 데이터와 외부 전투 시계로 GPU에서 다시 계산한다. 카드는 깊이 검사 없이 그려 착탄 옆 포탑·적 위에 겹친다. 피해 판정·탄속·공격 주기는 기존 전투 상태를 따른다. [제작·검수](../design/effects/cannon_explosion_flipbook/README.md)를 따른다.
 - 추가 환경 장식은 별도 `environment/dressing.glb`의 풀·고사리와 이끼돌·뿌리를 두 메시로 병합한다. 외곽·타일 틈과 빈 건설칸 내부에 배치하며, 설치 시 중앙 식생만 숨기고 철거 시 다시 표시한다. 가장자리·틈 식생과 이동 경로의 여유는 유지한다. 풀은 공유 정점 셰이더로 최대 0.022타일만 흔들린다. 전투 배속과 독립적이며 추가 텍스처·투명 블렌딩·스킨 애니메이션을 사용하지 않는다. 새 에셋은 Godot PCK에만 포함한다. 원본·성능·검수는 [환경 장식 제작 기록](../design/stage1_3d/environment_dressing/README.md)을 따른다.
 - 적의 감속 상태는 승인한 Blender 서리 시안의 표면 성에와 어깨·등의 입체 얼음 결정으로 표시한다. 공통 성에 마스크·미세 질감을 읽는 셰이더를 원래 몸체 재질에 붙인다. 얼음 결정은 두 공통 메시와 적별 부착 변환만 사용하며 두 MultiMesh로 그린다. 감속 중에만 코팅과 결정을 표시하고 개체별 원본 텍스처를 만들지 않는다. 기존 2D 서리 링·파편은 Godot 라벨에서 제거한다. [원본·이식·확인 범위](../design/stage1_3d/frost_effect_concept/README.md).
 - 적의 화상 상태는 [승인 Blender V3](../design/fire_tower_concepts/enemy_burn/README.md)의 짧은 불꽃 입자가 몸체 주변에서 솟고 흩어지는 모습으로 표시한다. 원본 체적 불꽃을 구운 공통 16프레임 아틀라스와 종별 부착 자료를 공유하며, 적마다 52개 입자를 단일 MultiMesh로 그린다. 운동·크기·소멸은 GPU에서 공유 전투 시계로 계산하고 CPU는 상태 전환과 시간 전달만 처리한다. 화상 중에만 표시하며 이동·회전·크기를 따르고 냉각과 함께 표시할 수 있다. 기존 Godot 라벨의 화상 스프라이트는 제거하며 원본 적 재질·피해·중첩·지속시간은 유지한다. [이식·검증 및 측정 범위](../design/fire_tower_concepts/enemy_burn/integration/README.md)를 따른다.
@@ -89,15 +88,15 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 제품 성능과 시각 검수는 모바일 네이티브를 기준으로 하며 APK로 전달한다. 기존 웹 측정과 캡처는 과거 개발 검수 기록이다. 2026-09-13에는 ThreeJS 경로만 제거했으나, 2026-09-20 변경에서는 Flame 의존성과 2D 전장도 제거했다. 웹·iOS·PC의 Godot 연결과 지원 범위 결정은 남아 있으며 지원 포기를 승인받은 상태가 아니다.
 
-모바일 성능 완료 조건은 기준 실기기의 profile/release 빌드에서 실제 전투 4배속·여러 포탑 동시 착탄·지속 전투를 측정하는 것이다. 평균 FPS 외에 프레임 시간 상위 95/99백분위, 순간 지연, 메모리와 발열 후 저하를 함께 확인한다. 목표는 60fps(프레임 예산 약 16.7ms)이며, 지원 하한 기종과 실측 결과는 아직 확정되지 않았다. 현재 밀도·발광·열도 캐시를 공유하지만 폭발별 광선 적분과 투명 중첩 비용은 남아 있으므로 다중 착탄 성능을 통과했다고 간주하지 않는다.
+모바일 성능 완료 조건은 기준 실기기의 profile/release 빌드에서 실제 전투 4배속·여러 포탑 동시 착탄·지속 전투를 측정하는 것이다. 평균 FPS 외에 프레임 시간 상위 95/99백분위, 순간 지연, 메모리와 발열 후 저하를 함께 확인한다. 목표는 60fps(프레임 예산 약 16.7ms)이며, 지원 하한 기종과 실측 결과는 아직 확정되지 않았다. 대포 폭발은 플립북 카드로 바꿔 폭발별 광선 적분을 없앴지만 넓은 반투명 카드의 중첩 비용이 남아 있으므로 다중 착탄 성능을 통과했다고 간주하지 않는다.
 
 4배속은 Godot 전투의 생성 주기와 전투 효과 시계에 같은 시간 배율을 적용한다. 같은 전투 조건에서 평균 동시 개수가 단순히 네 배가 되는 구조는 아니지만, 동시 발사·다중 탄환이 집중되는 순간과 프레임당 전투 처리량은 별도 확인해야 한다.
 
 현재 Android Godot 연결 대상은 실제 콘텐츠인 스테이지 1~15다. 스테이지 16 이후의 2D 전장은 없으며 다른 플랫폼의 대체 전투 연결은 미완료다. 저장 형식과 전투 수치 계약은 유지한다. 일반 APK와 검수 APK 모두 공식 Godot AAR·공통 PCK·JNI 보존 규칙을 사용하고 Flutter가 선택한 ABI를 유지한다. 모바일 실기기의 지속 전투·메모리·발열·배포 호환성 검증은 별도로 수행한다.
 
-현행 자동 검증은 Godot 프레임 계약·브리지, 표시 입력의 저장 불변성·타일 클릭 역변환, 기존 카메라와 보상 선택 및 적 표시를 포함한다. 표시 통합은 추가로 세 묶음의 DTO·적용 확인·소수 viewport·수명/리셋, 짧은 효과 큐·단일 tick 생성/종료, Godot 라벨·선택·효과 및 보상 dim의 실제 픽셀 클립을 검사한다. ThreeJS 카메라·발사 효과·수명 테스트는 렌더러와 함께 보관했으며 현재 테스트 대상이 아니다. 최초 연결 검수는 `design/stage1_3d/runtime/`, 그래픽 마감과 대포 발사 영상은 `design/stage1_3d/polish_runtime/`, 기관총 이펙트 가독성 수정은 `design/stage1_3d/machinegun_visibility/`에 기록한다. 원본 전체 환경과 반사광 연결 검수는 `design/stage1_3d/material_match/`, 포탄 폭발의 현재 시안은 `design/stage1_3d/cannon_impact/shell_concepts/04-fragmentation-with-fire.png`이며 두 시점의 실제 렌더 검수는 `design/stage1_3d/cannon_impact/shell_runtime/`에 기록한다. `v2/runtime/`는 교체 전 화염구의 기록이다. Blender 시안과 실제 웹 실행 캡처는 구분한다.
+현행 자동 검증은 Godot 프레임 계약·브리지, 표시 입력의 저장 불변성·타일 클릭 역변환, 기존 카메라와 보상 선택 및 적 표시를 포함한다. 표시 통합은 추가로 세 묶음의 DTO·적용 확인·소수 viewport·수명/리셋, 짧은 효과 큐·단일 tick 생성/종료, Godot 라벨·선택·효과 및 보상 dim의 실제 픽셀 클립을 검사한다. ThreeJS 카메라·발사 효과·수명 테스트는 렌더러와 함께 보관했으며 현재 테스트 대상이 아니다. 최초 연결 검수는 `design/stage1_3d/runtime/`, 그래픽 마감과 대포 발사 영상은 `design/stage1_3d/polish_runtime/`, 기관총 이펙트 가독성 수정은 `design/stage1_3d/machinegun_visibility/`에 기록한다. 원본 전체 환경과 반사광 연결 검수는 `design/stage1_3d/material_match/`, 포탄 폭발의 현재 원본과 실제 전투 검수는 `design/effects/cannon_explosion_flipbook/`, 교체 전 체적 폭발의 기록은 `design/stage1_3d/cannon_impact/`에 있다. Blender 시안과 실제 웹 실행 캡처는 구분한다.
 
-모바일 우선안의 구현과 후속 후보는 [모바일 포탄 폭발 조사](analysis/mobile_cannon_vfx_20260911.md)에 정리한다. 실제 전투의 URL 없는 네이티브 진입점과 1×/4× 재현은 [모바일 프로파일 실행](../design/stage1_3d/mobile_profile/README.md), 캐시 제작 원본·수치 검증은 [체적 캐시 제작](../design/stage1_3d/cannon_impact/field_cache/README.md)을 따른다. 실기기 프레임 측정은 별도로 남아 있다.
+모바일 우선안의 구현과 후속 후보는 [모바일 포탄 폭발 조사](analysis/mobile_cannon_vfx_20260911.md)에 정리한다. 실제 전투의 URL 없는 네이티브 진입점과 1×/4× 재현은 [모바일 프로파일 실행](../design/stage1_3d/mobile_profile/README.md)을 따른다. 이 조사는 교체 전 체적 폭발 기준이다. 실기기 프레임 측정은 별도로 남아 있다.
 
 ### 3D 전장의 화염·냉각 명중 표시
 

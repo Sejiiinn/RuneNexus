@@ -21,8 +21,6 @@ class Battle extends Node3D:
 	var _stage_manifest := {}
 	var _stage_preparation_generation := 0
 	var last_frame := {"time": 0.0}
-	var field: Dictionary:
-		get: return _projectile_renderer.field
 	func _ready():
 		add_child(world)
 		add_child(camera)
@@ -61,7 +59,7 @@ func run():
 	scene=Battle.new();root.add_child(scene)
 	select(["normal"],["arrow"])
 	check(await prepare(), "arrow-only preparation succeeds without cannon")
-	check(scene.field.is_empty(), "no cannon field on arrow stage")
+	check(FlipbookImpact._sheet == null, "no cannon explosion sheet on arrow stage")
 	check(scene._projectile_renderer._ballistic_pool.arrow.size()==2, "arrow reserves prepared")
 	check(Fire._meshes.is_empty() and Burn._material==null and Frost._coat==null and Lightning._mesh_cache.is_empty(), "ineligible effect families stay cold")
 	var arrow = scene._projectile_renderer._ballistic_pool.arrow.back()
@@ -72,12 +70,12 @@ func run():
 	check(Burn._multimeshes.keys()==["armored"] and Frost._multimeshes.keys()==["armored"], "rigid status geometry created for required family only")
 	var coat = Frost._coat
 	var normal_status = Status._materials["EnemyFrost:normal"][0]
-	var field_ref = weakref(scene.field.texture)
+	check(FlipbookImpact._sheet != null, "cannon explosion sheet prepared")
 	select(["normal"],["magic","frost"])
 	check(Frost._coat==coat and Status._materials["EnemyFrost:normal"][0]==normal_status, "overlapping status materials retained")
 	check(Burn._multimeshes.is_empty() and Frost._multimeshes.is_empty(), "obsolete rigid family geometry evicted")
 	check(scene._projectile_renderer.impact_pool.is_empty() and scene._projectile_renderer._ballistic_pool.cannon.is_empty(), "obsolete cannon pools evicted")
-	check(field_ref.get_ref()==null, "cannon field GPU resource released after last owner")
+	check(FlipbookImpact._sheet == null, "cannon explosion sheet released on a stage without cannon")
 	check(await prepare(), "retained family re-prepares")
 	select(["shielded"],["magic","frost"])
 	check(await prepare(), "moving shielded status preparation succeeds")

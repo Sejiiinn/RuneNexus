@@ -24,8 +24,7 @@ const EFFECT_CACHES := [
 	preload("res://effects/machinegun_muzzle.gd"),
 	Ricochet,
 	preload("res://effects/cannon_flight.gd"),
-	preload("res://effects/godot_impact.gd"),
-	preload("res://effects/field_cache.gd"),
+	preload("res://effects/flipbook_impact.gd"),
 	preload("res://effects/ballistic_projectile.gd"),
 	preload("res://effects/sniper_vfx.gd"),
 	TargetSurface,
@@ -34,7 +33,8 @@ const EFFECT_CACHES := [
 ]
 const TOWER_PATHS := {
 	"arrow": ["res://assets/effects/machinegun_muzzle.glb"],
-	"cannon": ["res://assets/projectiles/cannonball.glb", "res://assets/effects/muzzle_flash.png", "res://assets/effects/gun_smoke.png"],
+	"cannon": ["res://assets/projectiles/cannonball.glb", "res://assets/effects/muzzle_flash.png", "res://assets/effects/gun_smoke.png",
+		"res://assets/effects/cannon_explosion_sheet.png"],
 	"magic": ["res://assets/effects/runic_fire.glb"],
 	"frost": ["res://assets/effects/frost_tower/mist-volume.glb"],
 	"sniper": ["res://assets/effects/sniper/flash.glb", "res://assets/effects/sniper/aim_line.glb"],
@@ -131,11 +131,6 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 		world.add_child(ricochet)
 	units.failure.connect(func(_message): _failed = true)
 	projectiles.failure.connect(func(_message): _failed = true)
-	# Cannon owns the large impact field. A stage without cannon needs none.
-	projectiles.field = scene.field
-	if "cannon" in tower_types and projectiles.field.is_empty():
-		_dispose(scene, units, projectiles, viewport)
-		return false
 	var options := {"volume":true, "burn_effects":true}
 	units.configure(0.0, Vector2i(8, 10), options)
 	# Instance one additional tower family per feedback frame. GPU driver work
@@ -249,9 +244,6 @@ func _dispose(scene, units, projectiles, viewport: SubViewport) -> void:
 	units.clear()
 	units.retain_stage([])
 	projectiles.clear()
-	# A suspended caller can retain this local presenter until its coroutine
-	# unwinds. Release the borrowed field immediately, before a stage switch.
-	projectiles.field = {}
 	# Rehearsal uses presentation clocks. Restore a paused restored run's clocks.
 	var real_time := float(scene.last_frame.get("time", 0.0))
 	Burn.set_time(real_time)

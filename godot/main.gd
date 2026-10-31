@@ -68,7 +68,6 @@ func _exit_tree() -> void:
 	_units.clear()
 	_units.retain_stage([])
 	_projectile_renderer.clear()
-	_projectile_renderer.field = {}
 	_projectile_renderer._projectile_meshes.clear()
 	_lightning_presentation.clear()
 	_machinegun_ricochet.clear()

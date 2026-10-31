@@ -49,11 +49,10 @@ func run() -> void:
 	var motion: CountingMotion = scene._units._guardian_preview
 	var before: Dictionary = scene.last_frame.duplicate(true)
 	var rng_state: int = scene.combat_runtime.rng.state
-	var field: Texture3D = scene.field.texture
 	check(await scene.prepare_effects(), "Effect preparation succeeds")
 	check(scene.effects_prepared and not scene._effects_preparing, "Readiness follows complete preparation")
 	check(scene.last_frame == before and scene.combat_runtime.rng.state == rng_state, "Presentation preparation preserves frame and combat RNG")
-	check(scene.field.texture == field, "Large impact field is reused")
+	check(FlipbookImpact._sheet != null and scene.impact_pool.size() > 0, "Rehearsal prepares the cannon explosion sheet and pool")
 	check(motion._boss_head_bounds_ready and motion._boss_scene == null, "Successful rehearsal transfers boss bounds without retaining its scene or rig")
 	# The first kill of each species reuses the corpse materials its rehearsal compiled.
 	check(not NormalDeath._materials.is_empty() and not HoundDeath._body_materials.is_empty() and HoundDeath._material != null, "Rehearsal prepares normal and hound corpse materials")

@@ -50,9 +50,9 @@ func _verify() -> void:
 	var target: Array = frame["enemies"][1]
 	frame["impacts"] = [[100, target[1], target[2], 1.2, 0.52]]
 	scene.apply_frame(frame)
-	var material: ShaderMaterial = scene.impacts[100]._volume_material
-	var initial_ray: Vector3 = material.get_shader_parameter("u_ray_direction")
-	var age: float = material.get_shader_parameter("u_age")
+	var impact: Node3D = scene.impacts[100]
+	var initial_card: Vector3 = impact._card.global_transform.basis.z.normalized()
+	var age: float = impact._card_material.get_shader_parameter("frame")
 	scene.options["camera"] = "drone"
 	scene.apply_options()
 	_check(camera.transform.is_equal_approx(initial), "버튼 입력 순간 시점이 점프함")
@@ -67,8 +67,9 @@ func _verify() -> void:
 		_check_depth(scene, "고정→드론 전환 %d" % index)
 	_check(distances[0] > distances[1] and distances[1] > distances[2] and distances[2] > distances[3], "전환 후반 감속 실패")
 	_check(camera.position.distance_to(expected_drone) < 0.0001, "드론 시점 도착 오차")
-	_check(initial_ray.distance_to(material.get_shader_parameter("u_ray_direction")) > 0.1, "정지 전투의 볼륨 광선 갱신 누락")
-	_check(is_equal_approx(age, material.get_shader_parameter("u_age")), "카메라 이동이 정지한 전투 시계를 변경함")
+	var card_normal: Vector3 = impact._card.global_transform.basis.z.normalized()
+	_check(initial_card.distance_to(card_normal) > 0.1 and card_normal.dot(camera.get_camera_transform().basis.z) > 0.9999, "정지 전투의 폭발 카드 방향 갱신 누락")
+	_check(is_equal_approx(age, impact._card_material.get_shader_parameter("frame")), "카메라 이동이 정지한 전투 시계를 변경함")
 	var settled := camera.transform
 	transition.custom_step(1.0)
 	_check(camera.transform.is_equal_approx(settled), "도착 후 시점 흔들림")

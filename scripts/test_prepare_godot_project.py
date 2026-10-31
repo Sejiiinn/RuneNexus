@@ -311,8 +311,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
                          "tank_status_frost_grains.res", "boss_status_burn.res",
                          "boss_status_frost_shards.res", "boss_status_frost_grains.res"):
                 write(assets / "enemies" / name, b"rig fixture")
-            for name in ("muzzle_flash.png", "gun_smoke.png", "cannon_field.json",
-                         "cannon_field.bin", "machinegun_muzzle_noise.bin", "placement_dust.json"):
+            for name in ("muzzle_flash.png", "gun_smoke.png", "cannon_explosion_sheet.png",
+                         "machinegun_muzzle_noise.bin", "placement_dust.json"):
                 write(assets / "effects" / name, b"asset fixture")
             for name in ("crystals.glb", "attachments.json", "rime_mask.bin", "grain.png"):
                 write(assets / "effects/enemy_frost" / name, b"frost fixture")

@@ -1,0 +1,9 @@
+__pycache__/
+*.blend1
+# PoE2 레퍼런스가 담긴 비교본과 중간 판 영상은 로컬에만 둔다.
+review/cannon_explosion_poe2_*.mp4
+review/cannon_explosion_current_vs_v*.mp4
+review/cannon_battle_current_vs_flipbook.mp4
+review/cannon_battle_size_fit.mp4
+# 미리보기 시트는 게임용 시트의 복사본이다(README의 다시 만들기 3단계).
+godot_preview/cannon_explosion_sheet.png

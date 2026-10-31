@@ -1,14 +1,13 @@
 extends RefCounted
-## Owns projectiles, explosion fields, and reusable effect pools.
+## Owns projectiles, impact effects, and reusable effect pools.
 signal failure(message: String)
 
-const Impact = preload("res://effects/godot_impact.gd")
+const Impact = preload("res://effects/flipbook_impact.gd")
 const SniperBlast = preload("res://effects/sniper_energy_blast.gd")
 const VenomSplash = preload("res://effects/venom_splash.gd")
 const SNIPER_VARIANT := "sniperEnergy"
 const VENOM_VARIANT := "venom"
 const IMPACT_LIGHT_COLORS := {"": Color(1.0, 0.42, 0.08), SNIPER_VARIANT: Color(0.32, 0.86, 1.0), VENOM_VARIANT: Color(0.3, 0.9, 0.4)}
-const FieldCache = preload("res://effects/field_cache.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
 const VenomProjectile = preload("res://effects/venom_projectile.gd")
@@ -27,7 +26,6 @@ var impact_pool: Array[Node3D] = []
 var sniper_blast_pool: Array[Node3D] = []
 var venom_splash_pool: Array[Node3D] = []
 var impact_lights: Array[OmniLight3D] = []
-var field: Dictionary
 var _projectile_meshes := {}
 var _ballistic_pool := {"arrow": [], "cannon": []}
 var _fire_projectile_pool: Array[Node3D] = []
@@ -48,17 +46,7 @@ func initialize() -> bool:
 	return true
 
 
-func _ensure_field() -> bool:
-	if not field.is_empty(): return true
-	field = FieldCache.load_shared()
-	if field.is_empty():
-		failure.emit("폭발 필드 캐시를 불러오지 못했습니다.")
-		return false
-	_ensure_lights()
-	return true
-
-
-## Shared by cannon and explosion-sniper blasts; sniper needs no field cache.
+## Shared by cannon, explosion-sniper and venom blasts.
 func _ensure_lights() -> void:
 	if not impact_lights.is_empty(): return
 	for index in range(4):
@@ -81,9 +69,10 @@ func configure_stage(tower_types: Array) -> bool:
 		if not kind in tower_types: _projectile_meshes.erase(kind)
 	if not "sniper" in tower_types: _free_pool(sniper_blast_pool)
 	if not "poison" in tower_types: _free_pool(venom_splash_pool)
-	if "cannon" in tower_types: return _ensure_field()
+	if "cannon" in tower_types:
+		_ensure_lights()
+		return true
 	_free_pool(impact_pool)
-	field = {}
 	if not "sniper" in tower_types and not "poison" in tower_types:
 		for light in impact_lights: light.free()
 		impact_lights.clear()
@@ -339,8 +328,6 @@ func _update_fire_projectile(entry: Dictionary, row: FrameRows.Projectile, turre
 
 func _update_impacts(units: Array) -> void:
 	var rows_list := FrameRows.rows("impacts", units)
-	# Only cannon shell blasts need the large field cache.
-	if rows_list.any(func(row: FrameRows.Impact): return row.variant not in [SNIPER_VARIANT, VENOM_VARIANT]) and not _ensure_field(): return
 	if not rows_list.is_empty(): _ensure_lights()
 	var alive := {}
 	for light in impact_lights:
@@ -368,7 +355,7 @@ func _update_impacts(units: Array) -> void:
 			elif impact_pool.is_empty():
 				effect = Impact.new()
 				world.add_child(effect)
-				effect.configure(field["texture"], field["manifest"])
+				effect.configure()
 			else:
 				effect = impact_pool.pop_back()
 			impacts[id] = effect
@@ -382,7 +369,7 @@ func _update_impacts(units: Array) -> void:
 				if row.progress < 0.4: sniper_lights.append([effect, row])
 			elif row.variant == VENOM_VARIANT:
 				if row.progress < 0.22: venom_lights.append([effect, row])
-			elif row.progress < 0.68:
+			elif row.progress < 0.28:
 				cannon_lights.append([effect, row])
 	# Cannon blasts keep their lights first; explosion-sniper and venom splashes use what is left.
 	var light_index := 0
@@ -392,13 +379,18 @@ func _update_impacts(units: Array) -> void:
 		var row: FrameRows.Impact = request[1]
 		var sniper: bool = row.variant == SNIPER_VARIANT
 		var venom: bool = row.variant == VENOM_VARIANT
-		# The sniper light stays near its splash radius and fades with the flash.
-		var light_end := 0.4 if sniper else (0.22 if venom else 0.68)
 		var light := impact_lights[light_index]
 		light.position = effect.position + Vector3(0, 0.3 + row.radius * 0.12, 0)
-		light.omni_range = row.radius * (1.8 if sniper else (3.0 if venom else 3.2))
 		light.light_color = IMPACT_LIGHT_COLORS[row.variant if sniper or venom else ""]
-		light.light_energy = (1.4 if sniper else (0.45 if venom else 1.6)) * pow(1.0 - row.progress / light_end, 2)
+		if sniper or venom:
+			# The sniper light stays near its splash radius and fades with the flash.
+			light.omni_range = row.radius * (1.8 if sniper else 3.0)
+			light.light_energy = (1.4 if sniper else 0.45) * pow(1.0 - row.progress / (0.4 if sniper else 0.22), 2)
+		else:
+			# 대포 섬광: 착탄 프레임부터 절반 밝기로 켜져 0.03초에 최대, 0.25초까지 지수 감소, 반경 약 1.7배.
+			var age: float = row.progress * Impact.DURATION
+			light.omni_range = row.radius * 1.714
+			light.light_energy = 4.5 * (0.5 + 0.5 * age / 0.03 if age < 0.03 else exp(-(age - 0.03) * 14.0))
 		light_index += 1
 	# Unused pool lights add nothing but still occupy per-object light lists.
 	for light in impact_lights:

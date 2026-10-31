@@ -478,8 +478,16 @@ def prepare() -> Path:
         target = ASSETS / "effects" / filename
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(SOURCE_ASSETS / "effects" / filename, target)
-    for filename in ("cannon_field.json", "machinegun_muzzle_noise.bin"):
-        shutil.copy2(SOURCE_ASSETS / "effects" / filename, ASSETS / filename)
+    # 대포 폭발 플립북(8x8칸, 2048²). 고품질 VRAM 압축(모바일 ASTC)으로 약 5MB에 올리고,
+    # 칸 사이가 투명해 밉맵이 이웃 칸으로 번지지 않는다.
+    flipbook = ASSETS / "effects/cannon_explosion_sheet.png"
+    shutil.copy2(SOURCE_ASSETS / "effects/cannon_explosion_sheet.png", flipbook)
+    flipbook.with_suffix(".png.import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        '[params]\ncompress/mode=2\ncompress/high_quality=true\n'
+        'compress/normal_map=2\nmipmaps/generate=true\ndetect_3d/compress_to=0\n'
+    )
+    shutil.copy2(SOURCE_ASSETS / "effects/machinegun_muzzle_noise.bin", ASSETS / "machinegun_muzzle_noise.bin")
     frost_source = SOURCE_ASSETS / "effects/enemy_frost"
     shutil.copy2(frost_source / "attachments.json", ASSETS / "enemy_frost.json")
     (ASSETS / "enemy_frost_mask.bin.gz").write_bytes(
@@ -502,10 +510,6 @@ def prepare() -> Path:
         '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
         '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
         'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
-    )
-    field_bytes = (SOURCE_ASSETS / "effects/cannon_field.bin").read_bytes()
-    (ASSETS / "cannon_field.bin.gz").write_bytes(
-        gzip.compress(field_bytes, compresslevel=9, mtime=0)
     )
 
     # 같은 빌드의 GLB에서 추출: Godot importer의 extras 보존 여부에 의존하지 않음.

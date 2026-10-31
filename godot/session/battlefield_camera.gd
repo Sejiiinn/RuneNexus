@@ -272,7 +272,7 @@ func update_envelope(terrain: Node3D, last_frame: Dictionary, map_size: Vector2i
 	# 포구 연기는 총구에서 최대 0.37 전진 + 반길이 0.35, 위로 0.17 + 반폭 0.22.
 	# 1타일 여유는 포구 화염·반동·건설 미리보기의 0.12 부유도 포함한다.
 	var actor := AABB(_camera_actor_bounds.position * _camera_enemy_scale, _camera_actor_bounds.size * _camera_enemy_scale).grow(1.0)
-	# 1.35타일 예광과 포탄 코끝을 포함. 폭발은 godot_impact.gd의 전체 입자 AABB.
+	# 1.35타일 예광과 포탄 코끝을 포함. 폭발은 flipbook_impact.gd의 파편·잉걸불 AABB와 화면 평행 카드.
 	var horizontal := maxf(1.35, maxf(actor.end.x, 5.0 * _camera_impact_radius))
 	var low := minf(_camera_map_bounds.position.y, minf(actor.position.y, -0.25 * _camera_impact_radius))
 	var high := maxf(_camera_map_bounds.end.y, maxf(actor.end.y, 3.75 * _camera_impact_radius))

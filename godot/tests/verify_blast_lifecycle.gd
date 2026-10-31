@@ -13,6 +13,9 @@ func _check(value: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+func _age(impact: Node3D) -> float:
+	return float(impact._card_material.get_shader_parameter("frame")) / 60.0
+
 func _verify() -> void:
 	var scene: Node3D = load("res://main.tscn").instantiate()
 	root.add_child(scene)
@@ -34,19 +37,17 @@ func _verify() -> void:
 	_check(scene.impacts.has(100) and effects._effect_nodes.has(101), "mixed events must route to their existing independent renderers")
 	_check(not effects._effect_nodes.has(100) and effects.items.size() == 1, "blast must never create a Canvas surface")
 	var impact: Node3D = scene.impacts[100]
-	var sparks: MultiMesh = impact._sparks.multimesh
-	var fragments: MultiMesh = impact._fragments.multimesh
-	_check(sparks.instance_count == 56 and fragments.instance_count == 34, "existing batched particle counts changed")
-	_check(is_equal_approx(impact._last_radius, 1.5), "source-pixel blast radius must convert to tiles exactly once")
+	var card_material: ShaderMaterial = impact._card_material
+	_check(impact is FlipbookImpact and impact._blast.get_child_count() == 4, "cannon blast must use the flipbook card, debris, embers and scorch")
+	_check(impact._blast.scale.is_equal_approx(Vector3.ONE * 1.5 / FlipbookImpact.REFERENCE_RADIUS), "source-pixel blast radius must convert to tiles exactly once")
 	_check(impact.position.is_equal_approx(Vector3(4.0 - scene.columns / 2.0, 0, 5.0 - scene.rows / 2.0)), "3D anchor moved")
 	frame["seq"] = 1
 	frame["presentation"]["effects"]["clock"] = 5.425
 	frame["presentation"]["effects"]["events"] = [] # ACK removes creation payload only.
 	scene.apply_frame(frame)
-	_check(scene.impacts[100] == impact and impact._sparks.multimesh == sparks and impact._fragments.multimesh == fragments, "same ID must reuse all existing 3D resources")
-	_check(is_equal_approx(impact._volume_material.get_shader_parameter("u_progress"), 0.25), "instance duration must control progress, not the default duration")
-	_check(is_equal_approx(impact._spark_material.get_shader_parameter("u_age"), 0.275), "existing GPU progress-to-age mapping changed")
-	_check(is_equal_approx(impact._volume_material.get_shader_parameter("u_angle"), float(100 % 23) * 0.317), "ID-seeded appearance changed")
+	_check(scene.impacts[100] == impact and impact._card_material == card_material, "same ID must reuse all existing 3D resources")
+	_check(is_equal_approx(_age(impact), 0.275), "instance duration must control progress, not the default duration")
+	_check(is_equal_approx(impact._blast.rotation.y, float(100 % 23) * 0.317), "ID-seeded appearance changed")
 	_check(scene.impact_lights[0].light_energy > 0 and scene.impact_lights[0].visible, "existing shared impact light missing")
 	_check(scene.impact_lights.slice(1).all(func(light): return not light.visible), "unused zero-energy impact lights must stay hidden")
 	var saved: Array = FrameRows.serialized(scene.last_frame).impacts
@@ -61,12 +62,12 @@ func _verify() -> void:
 	_check(not impact.visible, "volume option must affect native event blasts")
 	scene.options["volume"] = true
 	scene.apply_options()
-	_check(impact.visible and is_equal_approx(impact._volume_material.get_shader_parameter("u_progress"), .25), "volume restore must retain current age")
+	_check(impact.visible and is_equal_approx(_age(impact), 0.275), "volume restore must retain current age")
 	# Legacy fallback is newer authority for a duplicate ID.
 	frame["seq"] = 2
 	frame["impacts"] = [[100, 4.0, 5.0, 1.5, 0.4]]
 	scene.apply_frame(frame)
-	_check(scene.last_frame["impacts"].size() == 1 and is_equal_approx(impact._volume_material.get_shader_parameter("u_progress"), .4), "legacy/native collision must prefer legacy without duplicate nodes")
+	_check(scene.last_frame["impacts"].size() == 1 and is_equal_approx(_age(impact), 0.4 * FlipbookImpact.DURATION), "legacy/native collision must prefer legacy without duplicate nodes")
 	frame["seq"] = 3
 	frame["impacts"] = []
 	frame["presentation"]["effects"]["clock"] = 6.7
@@ -83,7 +84,7 @@ func _verify() -> void:
 	frame["seq"] = 5
 	frame["presentation"]["effects"]["events"] = [second]
 	scene.apply_frame(frame)
-	_check(scene.impacts[102] == impact and impact._sparks.multimesh == sparks, "new blast must reuse the existing pool")
+	_check(scene.impacts[102] == impact and impact._card_material == card_material, "new blast must reuse the existing pool")
 	# Explosion sniper blasts use their own pooled node and need no field cache.
 	var energy := second.duplicate(true)
 	energy["id"] = 103
@@ -119,10 +120,10 @@ func _verify() -> void:
 	frame.erase("presentation")
 	frame["impacts"] = [[200, 4, 5, 1.2, .3]]
 	scene.apply_frame(frame)
-	_check(scene.impacts.has(200) and is_equal_approx(scene.impacts[200]._volume_material.get_shader_parameter("u_progress"), .3), "legacy full impacts preview regressed")
+	_check(scene.impacts.has(200) and is_equal_approx(_age(scene.impacts[200]), 0.3 * FlipbookImpact.DURATION), "legacy full impacts preview regressed")
 	# Cannon blasts keep their lights ahead of explosion-sniper blasts.
 	scene._update_impacts([[300, 1, 1, .9, .1, "sniperEnergy"], [301, 2, 1, .9, .1, "sniperEnergy"],
-		[302, 3, 1, .9, .1, "sniperEnergy"], [303, 4, 1, .9, .1, "sniperEnergy"], [304, 5, 5, 1.2, .3]])
+		[302, 3, 1, .9, .1, "sniperEnergy"], [303, 4, 1, .9, .1, "sniperEnergy"], [304, 5, 5, 1.2, .1]])
 	_check(scene.impact_lights.any(func(light): return light.visible and light.light_color.is_equal_approx(Projectiles.IMPACT_LIGHT_COLORS[""])), "sniper blasts must not take the cannon blast light")
 	scene._update_impacts([])
 	scene.queue_free()
