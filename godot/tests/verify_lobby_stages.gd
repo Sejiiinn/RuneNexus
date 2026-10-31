@@ -20,11 +20,14 @@ class Host extends Control:
 	var p := {"unlockedStageCount":7, "clearedStageNumbers":[1,2,3,4,5,6], "bestRoundsByStage":{"1":40}, "researchLevels":{}, "runes":42}
 	var modal: VBoxContainer
 	var started := -1
+	var started_difficulty := ""
 	var opened_modals := 0
 	func _init() -> void: name = "Host"
 	func progression() -> Dictionary: return p
 	func has_active_run() -> bool: return not app.run_domain.state.is_empty()
-	func request_stage_start(index: int) -> void: started = index
+	func request_stage_start(index: int, difficulty: String = "normal") -> void:
+		started = index
+		started_difficulty = difficulty
 	func show_failure() -> void: assert(false)
 	func close_modal() -> void:
 		if is_instance_valid(modal): remove_child(modal); modal.queue_free(); modal = null
@@ -70,6 +73,7 @@ func verify() -> void:
 	assert(host.started == -1)
 	ui.start(7)
 	assert(host.started == 6)
+	await verify_difficulty(ui, host)
 	ui.ensure_selection()
 	assert(ui.chapter == 2 and ui.selected == 7, "Opens on the newest chapter at its first unlocked, uncleared stage")
 	ui.select_chapter(3)
@@ -136,8 +140,10 @@ func verify_map_and_card(ui, host) -> void:
 			card.size = Vector2(dimensions.x - 24, StageCard.HEIGHT)
 			card.show_stage(stage)
 			var rect := Rect2(Vector2.ZERO, card.size)
+			# Only the difficulty tabs sit on the card's top edge, inside its width.
+			var tab_band := Rect2(0, -StageCard.TAB_HEIGHT, card.size.x, card.size.y + StageCard.TAB_HEIGHT)
 			for child in card.get_children():
-				if child is Control: assert(rect.grow(1).encloses(Rect2(child.position, child.size)), "%s outside card at %s" % [child.name, dimensions])
+				if child is Control: assert((tab_band if str(child.name).begins_with("Difficulty") else rect).grow(1).encloses(Rect2(child.position, child.size)), "%s outside card at %s" % [child.name, dimensions])
 			var action: Button = card.find_child("StageStart", false, false) if ui.unlocked(stage) else card.find_child("StageLocked", false, false)
 			assert(action != null and action.disabled == not ui.unlocked(stage))
 			assert(card.get_node("RoundTrack").position.x + card.get_node("RoundTrack").size.x <= action.position.x - 11, "Round bar stops before the action")
@@ -221,3 +227,33 @@ func verify_rune_rewards(ui, host) -> void:
 
 func expected_unrounded(ordinal: int, level: int) -> float:
 	return 150.0 * pow(1.18, ordinal - 1) * (1.0 + level * 0.02)
+
+## Hard opens per stage after its normal clear; the card keeps the picked tab.
+func verify_difficulty(ui, host) -> void:
+	var previous: int = host.started
+	ui.difficulty = "hard"
+	ui.start(7)
+	assert(host.started == 6 and host.started_difficulty == "normal", "Uncleared stage starts normal")
+	ui.start(6)
+	assert(host.started == 5 and host.started_difficulty == "hard", "Cleared stage starts the picked hard")
+	# Rounded once after the multiplier, so it can differ from 1.5x the rounded normal by one.
+	assert(absi(ui.rune_reward(6, "hard") - int(ui.rune_reward(6) * 1.5)) <= 1)
+	host.p.hardBestRoundsByStage = {"6": 12}
+	var card = StageCard.new()
+	card.stages = ui
+	host.add_child(card)
+	card.size = Vector2(416, StageCard.HEIGHT)
+	card.show_stage(6)
+	assert(card.find_child("HardMultiplier", true, false) != null, "Hard card shows the rune multiplier")
+	assert(card.find_child("RuneAmount", true, false).text == StageCard.Numbers.compact_integer(ui.rune_reward(6, "hard")))
+	assert(card.find_child("RoundCount", false, false).text.begins_with("12 /"), "Hard card shows the hard record")
+	assert(card.find_children("Unlock*", "Button", false, false).is_empty(), "Hard has no first-clear unlocks yet")
+	assert(card.get_node("CardFrame").modulate == StageCard.HARD_TINT)
+	card.show_stage(7)
+	assert(card.get_node("DifficultyHard").disabled and card.find_child("HardMultiplier", true, false) == null, "Locked hard falls back to normal")
+	card.get_node("DifficultyNormal").pressed.emit()
+	await process_frame
+	assert(ui.difficulty == "normal")
+	card.free()
+	host.p.erase("hardBestRoundsByStage")
+	host.started = previous

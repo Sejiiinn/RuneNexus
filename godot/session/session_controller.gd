@@ -1,5 +1,6 @@
 extends Node
 const StageProgression = preload("res://content/stage_progression.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 ## Shared content session orchestration; app and development UI own their lifecycle.
 const Catalog = preload("res://content/content_catalog.gd")
 const CombatKinds = preload("res://combat/combat_kinds.gd")
@@ -22,6 +23,8 @@ var next_enemy_id := 100000
 var spawn_rng := RandomNumberGenerator.new()
 var scene: Node3D
 var stage := 0
+## Difficulty of the next new run (StageDifficulty); consumed by enter_stage.
+var requested_difficulty := "normal"
 var epoch := 1000
 var selected := Vector2i(-1, -1)
 var checkpoint = preload("res://session/session_checkpoint.gd").new()
@@ -98,6 +101,7 @@ func settle_pending_rewards(context: Dictionary, sync_save: Callable, transport:
 
 func enter_next() -> void:
 	if stage_count() <= 0 or not _can_replace_run(): return
+	requested_difficulty = StageDifficulty.NORMAL
 	if is_content_session():
 		var ordinal := StageProgression.ordinal_for(catalog.stage_id(stage))
 		if ordinal > 0 and ordinal < StageProgression.ORDER.size(): enter_stage(catalog.stage_index(int(StageProgression.ORDER[ordinal])))
@@ -107,6 +111,7 @@ func retry_stage() -> bool:
 	if not _can_replace_run(): return false
 	if is_content_session() and not run_domain.state.is_empty():
 		progression_inputs = run_domain.state.progression.duplicate(true)
+		requested_difficulty = StageDifficulty.of(run_domain.state)
 	return enter_stage(stage)
 
 ## Starts a combat generation for the stage. False when content cannot be
@@ -126,10 +131,15 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	scene.combat_base_frame = frame
 	var path: Array = catalog.world_path(stage) if is_content_session() else stage_source(stage).path
 	var initial := {"path":path,"tileSize":1.0,"boardDistanceScale":1.0/48.0,"defense":{"config":{"maxHp":100.0}}}
+	# A new run takes the requested difficulty once; a restored run keeps its own.
+	var difficulty := requested_difficulty
+	requested_difficulty = StageDifficulty.NORMAL
 	if is_content_session():
 		if not run_domain.initialize(catalog, progression_inputs, stage, epoch, authority_run_id):
 			checkpoint.message = run_domain.error
 			return false
+		if difficulty == StageDifficulty.HARD and StageDifficulty.hard_unlocked(run_domain.state.progression, catalog.stage_id(stage)):
+			run_domain.state.difficulty = StageDifficulty.HARD
 		if not restored_state.is_empty():
 			run_domain.restore(restored_state)
 			progression_inputs = run_domain.state.progression.duplicate(true)
@@ -292,7 +302,7 @@ func start_wave() -> void:
 	if not inputs.has("initialDelay"):
 		inputs.initialDelay = catalog.initial_delay()
 	if not inputs.has("spawnValues"):
-		inputs.spawnValues = catalog.random_spawn_values(stage, next_round, spawn_rng)
+		inputs.spawnValues = catalog.random_spawn_values(stage, next_round, spawn_rng, StageDifficulty.promotion_seed(run_domain.state))
 	var wave: Dictionary = catalog.wave(stage, next_round, next_enemy_id, inputs)
 	if wave.is_empty():
 		checkpoint.message = catalog.error

@@ -538,21 +538,21 @@ func apply_growth_change(command: Dictionary, refresh_page := true) -> void:
 		_message_label.custom_minimum_size.y = _message_label.size.y
 		_message_label.text = ""
 
-func request_stage_start(index: int) -> void:
+func request_stage_start(index: int, difficulty: String = "normal") -> void:
 	if index < 0 or not Progression.stage_unlocked(progression(), index + 1) or app.get("startup_blocked") == true: return
 	if has_active_run():
 		var content := open_modal("새 전투 시작")
 		content.add_child(AppTheme.label("진행 중인 전투를 종료하고 스테이지 %s에 도전할까요?" % Progression.stage_label(index + 1), 13))
 		var confirm := AppTheme.button("새 전투 시작", func():
 			close_modal()
-			if not await app.start_stage(index): show_failure()
+			if not await app.start_stage(index, difficulty): show_failure()
 		)
 		confirm.name = "ConfirmNewRun"
 		content.add_child(confirm)
 		content.add_child(AppTheme.button("취소", close_modal))
 	else:
 		close_modal()
-		if not await app.start_stage(index): show_failure()
+		if not await app.start_stage(index, difficulty): show_failure()
 
 func _node_details(id: String) -> void: core.node_details(id)
 func _skills() -> void: core.skills()

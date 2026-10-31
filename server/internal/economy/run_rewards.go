@@ -14,8 +14,9 @@ import (
 )
 
 type runSettlementProgression struct {
-	BestRoundsByStage   map[string]int `json:"bestRoundsByStage"`
-	ClearedStageNumbers []int          `json:"clearedStageNumbers"`
+	BestRoundsByStage     map[string]int `json:"bestRoundsByStage"`
+	HardBestRoundsByStage map[string]int `json:"hardBestRoundsByStage"`
+	ClearedStageNumbers   []int          `json:"clearedStageNumbers"`
 }
 
 func (service *Service) SettleRun(
@@ -130,8 +131,10 @@ func (service *Service) SettleRun(
 		closingDeck = run.GemDeck
 	}
 	var progression runSettlementProgression
+	stageKey := fmt.Sprintf("%d", request.StageNumber)
+	// A hard run records its rounds separately; either record covers the run.
 	if json.Unmarshal(saveSnapshot.Progression, &progression) != nil ||
-		progression.BestRoundsByStage[fmt.Sprintf("%d", request.StageNumber)] < request.CompletedRounds ||
+		max(progression.BestRoundsByStage[stageKey], progression.HardBestRoundsByStage[stageKey]) < request.CompletedRounds ||
 		(request.Success && !intContains(progression.ClearedStageNumbers, request.StageNumber)) {
 		return CommandResult{}, ErrInvalidCommand
 	}

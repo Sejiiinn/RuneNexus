@@ -3,6 +3,7 @@ extends RefCounted
 const HudNumber = preload("res://ui/hud_number.gd")
 const Art = preload("res://ui/app_theme.gd")
 const Progression = preload("res://content/stage_progression.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const CYAN := Color("96eff4")
 const PALE := Color("e7f6ff")
 const MUTED := Color("a4c4d4")
@@ -65,7 +66,7 @@ func build(state: Dictionary) -> void:
 	text(body,"전투 기록",15,CYAN).name = "ResultRecordsHeading"
 	var records := VBoxContainer.new(); records.name = "ResultRecords"
 	records.add_theme_constant_override("separation",0); _section(body,records,"section_frame")
-	var best := int(p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1),0))
+	var best := StageDifficulty.best_rounds(p,hud.app.stage+1,StageDifficulty.of(state))
 	var greatest := _highest_damage(state)
 	var record_specs := [["도달 라운드","%dR" % int(state.get("completedRounds",0))],["기록",rewards._record_text(state,p,best)],["최고 피해",greatest],["현재 룬",HudNumber.compact_integer(int(p.get("runes",0)))]]
 	for i in record_specs.size():

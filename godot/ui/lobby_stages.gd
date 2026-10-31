@@ -3,12 +3,15 @@ extends RefCounted
 const Progression = preload("res://content/stage_progression.gd")
 const Quests = preload("res://app/quest_progress.gd")
 const RewardArt = preload("res://ui/stage_reward_art.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const CHAPTERS := ["초원 초입", "균열 장막", "공명 용광로"]
 
 var lobby
 var chapter := 0
 var selected := 0
 var active_stage_seen := 0
+## Card tab the player picked; stages whose hard is still locked show normal.
+var difficulty := StageDifficulty.NORMAL
 
 func setup(owner) -> void:
 	lobby = owner
@@ -28,13 +31,21 @@ func active(stage: int) -> bool:
 func cleared(stage: int) -> bool:
 	return stage in lobby.progression().get("clearedStageNumbers", [])
 
-func rune_reward(stage: int) -> int:
+func rune_reward(stage: int, mode: String = StageDifficulty.NORMAL) -> int:
 	# Pure preview of the existing settlement calculation; returned state is discarded.
-	var preview: Dictionary = Quests.new().finish(lobby.progression(), {"stageNumber":stage, "completedRounds":lobby.app.catalog.wave_count(stage - 1), "success":true, "grantEconomyRewardsLocally":false})
+	var preview: Dictionary = Quests.new().finish(lobby.progression(), {"stageNumber":stage, "completedRounds":lobby.app.catalog.wave_count(stage - 1), "success":true, "grantEconomyRewardsLocally":false, "difficulty":mode})
 	return int(preview.lastRunRuneReward)
 
-func best_rounds(stage: int) -> int:
-	return int(lobby.progression().get("bestRoundsByStage", {}).get(str(stage), 0))
+func best_rounds(stage: int, mode: String = StageDifficulty.NORMAL) -> int:
+	return StageDifficulty.best_rounds(lobby.progression(), stage, mode)
+
+func hard_open(stage: int) -> bool:
+	return StageDifficulty.hard_unlocked(lobby.progression(), stage)
+
+## The active run shows its own difficulty; otherwise the picked tab when open.
+func card_difficulty(stage: int) -> String:
+	if active(stage): return StageDifficulty.of(_state())
+	return StageDifficulty.HARD if difficulty == StageDifficulty.HARD and hard_open(stage) else StageDifficulty.NORMAL
 
 func reset_navigation() -> void:
 	chapter = 0
@@ -82,7 +93,7 @@ func start(stage: int) -> void:
 		return
 	if not unlocked(stage): return
 	lobby.close_modal()
-	lobby.request_stage_start(stage - 1)
+	lobby.request_stage_start(stage - 1, card_difficulty(stage))
 
 func unlock_items(stage: int) -> Array:
 	var items: Array = Progression.unlock_items(stage)

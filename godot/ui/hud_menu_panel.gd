@@ -39,7 +39,7 @@ func _has_stage_progress() -> bool:
 
 func _projected_failure_reward() -> int:
 	var state: Dictionary = hud.app.run_domain.state
-	var estimate: Dictionary = hud.app.run_domain.quests.finish(state.progression,{"stageNumber":hud.app.stage+1,"completedRounds":int(state.get("completedRounds",0)),"success":false,"runeResonanceBonusRate":float(hud.configuration_cache.derived(state,hud.app.run_domain.service).get("runeResonanceBonusRate",0.0))})
+	var estimate: Dictionary = hud.app.run_domain.quests.finish(state.progression,{"stageNumber":hud.app.stage+1,"completedRounds":int(state.get("completedRounds",0)),"success":false,"difficulty":state.get("difficulty","normal"),"runeResonanceBonusRate":float(hud.configuration_cache.derived(state,hud.app.run_domain.service).get("runeResonanceBonusRate",0.0))})
 	return int(estimate.lastRunRuneReward)
 
 func _end_stage_confirm() -> void:

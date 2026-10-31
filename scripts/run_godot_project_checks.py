@@ -37,6 +37,7 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_additional_hp_ui.gd": ("ADDITIONAL_HP_UI failures=[]", {}),
     "verify_app_lifecycle.gd": ("APP_LIFECYCLE failures=[]", {}),
     "verify_app_resume.gd": ("APP_RESUME failures=[]", {}),
+    "verify_stage_difficulty_app.gd": ("STAGE_DIFFICULTY_APP failures=[]", {}),
     "verify_native_frame_coalescing.gd": ("NATIVE_FRAME_COALESCING checks=", {}),
     "verify_auxiliary_display_cache.gd": ("Auxiliary display cache verification: 0 failures", {}),
     "verify_battlefield_effects.gd": ("Battlefield effects:", {}),

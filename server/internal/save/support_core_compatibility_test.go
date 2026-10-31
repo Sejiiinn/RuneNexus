@@ -22,7 +22,7 @@ func TestSupportCoreRequiresCurrentClient(t *testing.T) {
 			t.Fatalf("%s: reject=%v err=%v", tc.name, tc.reject, err)
 		}
 	}
-	if CurrentClientCompatibilityVersion != SupportCoreClientCompatibilityVersion {
+	if CurrentClientCompatibilityVersion < SupportCoreClientCompatibilityVersion {
 		t.Fatalf("current client generation %d", CurrentClientCompatibilityVersion)
 	}
 }

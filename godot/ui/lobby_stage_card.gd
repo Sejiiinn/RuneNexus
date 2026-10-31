@@ -2,12 +2,14 @@ extends Control
 ## Selected-stage card on the stage home. The number socket names the stage; the
 ## middle column shows round progress and the rune reward; the right column shows
 ## first-clear unlocks over the start/continue action. Tapping an unlock icon opens a
-## small bubble with its name and where it appears.
+## small bubble with its name and where it appears. Normal|hard tabs sit on the
+## card's top-right edge; hard tints the frame and action red and badges the runes.
 const T = preload("res://ui/app_theme.gd")
 const Numbers = preload("res://ui/hud_number.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const Stages = preload("res://ui/lobby_stages.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const HEIGHT := 96.0
 const TEAL := Color("5cf9e9")
 const GOLD := Color("e7c66a")
@@ -17,6 +19,10 @@ const SECONDARY := Color("b9d6e4")
 const BUTTON_WIDTH := 150.0
 const TILE := 32.0
 const TILE_STEP := 36.0
+const TAB_WIDTH := 58.0
+const TAB_HEIGHT := 24.0
+const HARD_RED := Color("ff7a52")
+const HARD_TINT := Color(1.0, 0.5, 0.42)
 
 class Check extends Control:
 	func _draw() -> void:
@@ -62,7 +68,12 @@ func _rebuild() -> void:
 	var active: bool = stages.active(stage)
 	var open: bool = active or stages.unlocked(stage)
 	var cleared: bool = stages.cleared(stage)
-	_framed("stage_details/ui/dialog_frame.png", Rect2(0, 0, w, HEIGHT), Rect2(14, 14, 240, 224))
+	var difficulty: String = stages.card_difficulty(stage)
+	var hard := difficulty == StageDifficulty.HARD
+	if open: _tabs(w, difficulty, active)
+	var card_frame := _framed("stage_details/ui/dialog_frame.png", Rect2(0, 0, w, HEIGHT), Rect2(14, 14, 240, 224))
+	card_frame.name = "CardFrame"
+	if hard: card_frame.modulate = HARD_TINT
 	var socket := _image("stage_map/stage_number_socket.png", Rect2(10, 12, 64, 72))
 	socket.name = "NumberSocket"
 	if not open: socket.modulate = Color(0.6, 0.6, 0.6)
@@ -78,7 +89,7 @@ func _rebuild() -> void:
 	var button_x := w - 14 - button_w
 	var bar_w := maxf(40.0, button_x - 12 - col_x)
 	var waves: int = stages.lobby.app.catalog.wave_count(stage - 1)
-	var done: int = int(stages._state().get("roundIndex", 0)) if active else (waves if cleared else stages.best_rounds(stage))
+	var done: int = int(stages._state().get("roundIndex", 0)) if active else (waves if cleared and not hard else stages.best_rounds(stage, difficulty))
 	done = clampi(done, 0, waves)
 	_place(_label("라운드", 10, MUTED, 700), Rect2(col_x, 12, 60, 14))
 	var count := _label("%d / %d" % [done, waves], 11, SECONDARY, 800)
@@ -101,22 +112,89 @@ func _rebuild() -> void:
 	var icon := _image("ui/hud/icons/rune.png", Rect2(0, 0, 17, 17), rune)
 	icon.custom_minimum_size = Vector2(17, 17)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var amount := _label(Numbers.compact_integer(stages.rune_reward(stage)), 17, Color("ffcf8a"), 800)
+	var amount := _label(Numbers.compact_integer(stages.rune_reward(stage, difficulty)), 17, Color("ffcf8a"), 800)
 	amount.name = "RuneAmount"
-	amount.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Hard sizes the amount to its text so the badge follows it.
+	amount.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if hard else Control.SIZE_EXPAND_FILL
+	amount.clip_text = not hard
 	rune.add_child(amount)
-	# Right column: first-clear unlocks, dimmed with a check once obtained.
-	var unlocks: Array = stages.unlock_items(stage)
+	if hard: rune.add_child(_multiplier_badge())
+	# Right column: first-clear unlocks, dimmed with a check once obtained. Hard
+	# first-clear rewards are not implemented yet, so hard leaves the slot empty.
+	var unlocks: Array = [] if hard else stages.unlock_items(stage)
 	var shown := mini(unlocks.size(), 3)
 	var claimed: bool = stages.reward_highlighted(stage)
 	for k in shown:
 		_unlock_tile(k, unlocks[k], Rect2(w - 14 - TILE_STEP * (shown - k), 10, TILE, TILE), claimed)
-	_action(Rect2(button_x, 48, button_w, 34), open, active)
+	_action(Rect2(button_x, 48, button_w, 34), open, active, hard)
 	if tooltip >= 0 and tooltip < shown: _tooltip(unlocks[tooltip], w - 14 - TILE_STEP * (shown - tooltip))
 	else: _close_catcher()
 
-func _action(rect: Rect2, open: bool, active: bool) -> void:
-	var art := _image("ui/stage_reference/continue_button_idle.png", rect)
+func _tabs(w: float, difficulty: String, active: bool) -> void:
+	var hard_open: bool = stages.hard_open(stage)
+	var specs := [[StageDifficulty.NORMAL, "노말", true], [StageDifficulty.HARD, "하드", hard_open]]
+	for k in specs.size():
+		var mode: String = specs[k][0]
+		var selected := mode == difficulty
+		var tab := Button.new()
+		tab.name = "DifficultyNormal" if mode == StageDifficulty.NORMAL else "DifficultyHard"
+		tab.focus_mode = Control.FOCUS_NONE
+		# A running run's difficulty is fixed; locked hard explains itself on hover.
+		tab.disabled = active or not bool(specs[k][2])
+		tab.tooltip_text = "" if specs[k][2] else "노말을 클리어하면 열립니다"
+		var red := mode == StageDifficulty.HARD
+		for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+			var box := StyleBoxFlat.new()
+			box.bg_color = (Color("6b2416f2") if red else Color("0e3a3cf2")) if selected else Color("0b141cdc")
+			box.border_color = (HARD_RED if red else GOLD) if selected else Color(MUTED, 0.55)
+			box.set_border_width_all(1)
+			box.border_width_bottom = 0
+			box.corner_radius_top_left = 7
+			box.corner_radius_top_right = 7
+			if state == "hover" and not selected: box.bg_color = Color("16242ee6")
+			tab.add_theme_stylebox_override(state, box)
+		_place(tab, Rect2(w - 14 - TAB_WIDTH * (2 - k) - 4 * (1 - k), -TAB_HEIGHT + 1, TAB_WIDTH, TAB_HEIGHT))
+		var label := _label(str(specs[k][1]), 12, (Color("ffe1d2") if red else GOLD) if selected else MUTED, 900)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.size = Vector2(TAB_WIDTH, TAB_HEIGHT)
+		tab.add_child(label)
+		if not bool(specs[k][2]):
+			# Lock glyph left of the muted name, centred together.
+			var lw := T.font(900).get_string_size(str(specs[k][1]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size.call(12))).x
+			var lock := Lock.new()
+			lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			lock.size = Vector2(9, 11)
+			lock.position = Vector2((TAB_WIDTH - lw - 13) / 2, (TAB_HEIGHT - 11) / 2)
+			label.position.x = 7
+			tab.add_child(lock)
+		tab.pressed.connect(func():
+			stages.difficulty = mode
+			tooltip = -1
+			_rebuild.call_deferred())
+
+func _multiplier_badge() -> Control:
+	var badge := PanelContainer.new()
+	badge.name = "HardMultiplier"
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("5a1d12e6")
+	box.border_color = HARD_RED
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(5)
+	box.content_margin_left = 5
+	box.content_margin_right = 5
+	box.content_margin_top = 0
+	box.content_margin_bottom = 0
+	badge.add_theme_stylebox_override("panel", box)
+	var text := _label("×%s" % str(StageDifficulty.RUNE_MULTIPLIER), 11, Color("ffd2c0"), 900)
+	text.clip_text = false
+	badge.add_child(text)
+	return badge
+
+func _action(rect: Rect2, open: bool, active: bool, hard := false) -> void:
+	var art := _image("results/ui/confirm_button_danger_frame.png" if hard and open else "ui/stage_reference/continue_button_idle.png", rect)
 	art.stretch_mode = TextureRect.STRETCH_SCALE
 	if not open: art.modulate = Color(0.32, 0.38, 0.44)
 	var button := Button.new()
@@ -133,8 +211,8 @@ func _action(rect: Rect2, open: bool, active: bool) -> void:
 	button.disabled = not open or stages.lobby.app.get("startup_blocked") == true
 	var id := stage
 	button.pressed.connect(func(): stages.start(id))
-	var label := _label(text, 14, Color("06141e") if open else MUTED, 900)
-	label.remove_theme_constant_override("outline_size")
+	var label := _label(text, 14, (Color("fff0db") if hard else Color("06141e")) if open else MUTED, 900)
+	if not hard: label.remove_theme_constant_override("outline_size")
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.size = rect.size

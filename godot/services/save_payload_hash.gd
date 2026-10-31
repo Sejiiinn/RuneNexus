@@ -60,7 +60,8 @@ const ORDERS = {
 		"unlockedStageIds",
 		"grandfatherUnlocks",
 		"gemResetTickets",
-		"corePassiveLegacyAllocation"
+		"corePassiveLegacyAllocation",
+		"hardBestRoundsByStage"
 	],
 	"SavedActiveResearch": [
 		"type",
@@ -207,7 +208,8 @@ const ORDERS = {
 		"nexusAdditionalHpGranted",
 		"indomitableUsedThisStage",
 		"nexusInvulnerableRemaining",
-		"supportCores"
+		"supportCores",
+		"difficulty"
 	],
 	"SavedSupportCore": [
 		"x",

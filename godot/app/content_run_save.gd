@@ -4,6 +4,7 @@ const Codec = preload("res://app/save_codec.gd")
 const CombatProjection = preload("res://app/run_save_adapter.gd")
 const Commands = preload("res://app/run_commands.gd")
 const GemSlots = preload("res://app/gem_slot_rules.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 var catalog
 var growth
 var error := ""
@@ -235,7 +236,7 @@ func _materialize_checkpoint(validated: Dictionary, spawn_rng: RandomNumberGener
 		# v2 stores only pending types/delays. Re-roll their spawn randomness using
 		# the same real-content rules; existing live enemies keep saved values.
 		var rng := spawn_rng if spawn_rng != null else RandomNumberGenerator.new()
-		var spawn_values: Array = catalog.random_spawn_values(stage,round_index,rng)
+		var spawn_values: Array = catalog.random_spawn_values(stage,round_index,rng,StageDifficulty.promotion_seed(run))
 		var pending_index := 0
 		for saved in run.spawnQueue:
 			var spawn_inputs := inputs.duplicate(true)

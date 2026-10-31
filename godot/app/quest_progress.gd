@@ -1,5 +1,6 @@
 extends RefCounted
 const StageProgression = preload("res://content/stage_progression.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 ## Pure progression transitions. Account currency is only granted by economy receipts.
 const DAILY := {"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5}
 const WEEKLY := {"clearWaves": 150, "killBosses": 15, "killEnemies": 500, "buyRunUpgrades": 25}
@@ -99,27 +100,31 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 	var rounds := int(event.get("completedRounds", 0))
 	var success := bool(event.get("success", false))
 	var cleared: Array = p.get("clearedStageNumbers", []).duplicate()
-	var first := success and stage > 0 and not stage in cleared
+	# Hard opens after the normal clear, so it never carries first-clear rewards.
+	var difficulty := StageDifficulty.HARD if event.get("difficulty") == StageDifficulty.HARD else StageDifficulty.NORMAL
+	var hard := difficulty == StageDifficulty.HARD
+	var first := success and stage > 0 and not stage in cleared and not hard
 	var resonance := float(event.get("runeResonanceBonusRate", float(p.get("researchLevels", {}).get("runeResonance", 0)) * 0.02))
 	var reward := 0
 	if rounds > 0:
 		var progress := (pow(1.04, clampi(rounds, 0, 40)) - 1.0) / (pow(1.04, 40) - 1.0)
-		reward = maxi(1, int(round(150.0 * progress * pow(1.18, maxi(1, StageProgression.reward_ordinal(stage)) - 1) * (1.0 + resonance))))
+		reward = maxi(1, int(round(150.0 * progress * pow(1.18, maxi(1, StageProgression.reward_ordinal(stage)) - 1) * (1.0 + resonance) * StageDifficulty.rune_multiplier(difficulty))))
 	p.lastRunRuneReward = reward
 	p.runes = int(p.get("runes", 0)) + reward
 	p.lastRunCorePointReward = 0
 	var core_reward := int(event.get("firstClearCorePointReward", 0))
 	var claimed: Array = p.get("claimedCorePointStageRewards", []).duplicate()
-	if success and stage > 0 and core_reward >= 0 and not stage in claimed:
+	if success and stage > 0 and core_reward >= 0 and not stage in claimed and not hard:
 		claimed.append(stage)
 		p.totalCorePoints = int(p.get("totalCorePoints", 0)) + core_reward
 		p.lastRunCorePointReward = core_reward
 	p.claimedCorePointStageRewards = claimed
 	if stage > 0:
 		if rounds > 0:
-			if not p.has("bestRoundsByStage"): p.bestRoundsByStage = {}
-			p.bestRoundsByStage[str(stage)] = maxi(int(p.bestRoundsByStage.get(str(stage), 0)), rounds)
-		if success and not stage in cleared: cleared.append(stage)
+			var key := StageDifficulty.best_rounds_key(difficulty)
+			if not p.has(key): p[key] = {}
+			p[key][str(stage)] = maxi(int(p[key].get(str(stage), 0)), rounds)
+		if success and not stage in cleared and not hard: cleared.append(stage)
 	p.clearedStageNumbers = cleared
 	if p.has("progressionVersion"):
 		p = StageProgression.migrate_progression(p)

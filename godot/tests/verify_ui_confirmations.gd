@@ -30,7 +30,7 @@ class FakeApp extends RefCounted:
 	func apply_growth_command(_command: Dictionary) -> bool: return true
 	func persist_progression() -> bool: return true
 	func resume_run() -> bool: return true
-	func start_stage(_index: int) -> bool: return true
+	func start_stage(_index: int, _difficulty: String = "normal") -> bool: return true
 	func request_quit() -> void: pass
 
 func _initialize() -> void: call_deferred("_verify")

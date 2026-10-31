@@ -737,11 +737,9 @@ static func _progression(v: Dictionary) -> Dictionary:
 	for key in ["claimedDailyQuestRewards", "claimedWeeklyQuestRewards"]: out[key] = _list(v.get(key), "DailyQuestType", true)
 	for key in ["weeklyAttendanceDayKeys", "clearedStageNumbers", "claimedCorePointStageRewards"]: out[key] = _list(v.get(key), "int", true)
 	out.claimedEventIds = _list(v.get("claimedEventIds"), "string", true)
-	out.bestRoundsByStage = {}
-	for key in _map(v.get("bestRoundsByStage")):
-		var n := _positive_stage_key(str(key))
-		var value: int = _int(v.bestRoundsByStage[key])
-		if n > 0 and value > 0: out.bestRoundsByStage[str(n)] = value
+	out.bestRoundsByStage = _stage_rounds(v.get("bestRoundsByStage"))
+	# Optional so progressions that never played hard keep their payload hash.
+	if v.has("hardBestRoundsByStage"): out.hardBestRoundsByStage = _stage_rounds(v.hardBestRoundsByStage)
 	for key in ["researchLevels", "researchElapsedMillis"]: out[key] = _enum_map("ResearchType", v.get(key))
 	out.activeResearches = _objects(v.get("activeResearches"), "SavedActiveResearch")
 	out.researchSlotTwoUnlocked = v.researchSlotTwoUnlocked if v.get("researchSlotTwoUnlocked") is bool else out.activeResearches.size() > 1
@@ -847,6 +845,17 @@ static func _run(v: Variant, skill: Variant, tree_revision: int = 4) -> Variant:
 	if v.has("gemDeckLog"): out.gemDeckLog = _deck_log(v.gemDeckLog)
 	# Optional so runs without support cores keep their payload hash.
 	if v.has("supportCores"): out.supportCores = _objects(v.supportCores, "SavedSupportCore")
+	# Absent means normal, so normal runs keep their payload hash.
+	if v.get("difficulty") == "hard": out.difficulty = "hard"
+	return out
+
+static func _stage_rounds(v: Variant) -> Dictionary:
+	var out := {}
+	var rounds := _map(v)
+	for key in rounds:
+		var n := _positive_stage_key(str(key))
+		var value: int = _int(rounds[key])
+		if n > 0 and value > 0: out[str(n)] = value
 	return out
 
 # Generation-10 deck runs: one entry per presented offer, replayed by the server.

@@ -174,7 +174,7 @@ func refresh(state: Dictionary) -> void:
 	if phase == "reward": next_key.append_array([state.get("economyRunId"),hud.app.stage,state.get("completedRounds"),_reroll_state(),_reroll_pending])
 	if phase in ["success","failure"]:
 		var p: Dictionary = state.get("progression",{})
-		next_key.append_array([hud.app.stage,state.get("completedRounds"),state.get("lastRunWasNewBestRound"),state.get("lastRunPreviousBestRound"),state.get("lastRunFirstClear"),p.get("lastRunRuneReward"),p.get("lastRunCorePointReward"),p.get("lastRunTurretModuleTicketReward"),p.get("runes"),p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("clearedStageNumbers",[]),_settlement_note(),_settlement_state()])
+		next_key.append_array([hud.app.stage,state.get("completedRounds"),state.get("lastRunWasNewBestRound"),state.get("lastRunPreviousBestRound"),state.get("lastRunFirstClear"),p.get("lastRunRuneReward"),p.get("lastRunCorePointReward"),p.get("lastRunTurretModuleTicketReward"),p.get("runes"),p.get("bestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("hardBestRoundsByStage",{}).get(str(hud.app.stage+1)),p.get("clearedStageNumbers",[]),_settlement_note(),_settlement_state()])
 	if key is Array and next_key == key:
 		_fit_modal()
 		if not _layout_pending and result_entrance.active and result_entrance.started_usec == 0:

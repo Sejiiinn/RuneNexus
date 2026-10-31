@@ -3,6 +3,7 @@ extends RefCounted
 const Growth = preload("res://app/growth_rules.gd")
 const Commands = preload("res://app/run_commands.gd")
 const QuestProgress = preload("res://app/quest_progress.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const CombatKinds = preload("res://combat/combat_kinds.gd")
 const RunKinds = preload("res://app/run_command_kinds.gd")
 var growth = Growth.new()
@@ -66,11 +67,12 @@ func finish(success: bool) -> void:
 	var stage: Dictionary = service.catalog.stage_summary(int(state.stage))
 	state.completedRounds = stage.waveCount if success else int(state.roundIndex)
 	# Presentation-only comparisons; old v2 terminal saves may omit them.
-	state.lastRunPreviousBestRound = int(state.progression.get("bestRoundsByStage", {}).get(str(stage.id), 0))
+	var difficulty := StageDifficulty.of(state)
+	state.lastRunPreviousBestRound = StageDifficulty.best_rounds(state.progression, int(stage.id), difficulty)
 	state.lastRunWasNewBestRound = int(state.completedRounds) > int(state.lastRunPreviousBestRound)
-	state.lastRunFirstClear = success and int(stage.id) not in state.progression.get("clearedStageNumbers", [])
+	state.lastRunFirstClear = success and int(stage.id) not in state.progression.get("clearedStageNumbers", []) and difficulty == StageDifficulty.NORMAL
 	state.progression = quests.finish(state.progression, {
-		"completedRounds":state.completedRounds, "success":success, "stageNumber":int(stage.id),
+		"completedRounds":state.completedRounds, "success":success, "stageNumber":int(stage.id), "difficulty":difficulty,
 		"firstClearCorePointReward":int(stage.firstClearCorePointReward),
 		"firstClearTurretModuleTicketReward":int(stage.firstClearTurretModuleTicketReward),
 		"grantEconomyRewardsLocally":false,

@@ -26,9 +26,9 @@ class CountingCatalog extends Catalog:
 	func enemy(stage_index: int, round_index: int, type: String, id: int = 100000, inputs: Dictionary = {}) -> Dictionary:
 		materialization_calls.enemy += 1
 		return super.enemy(stage_index,round_index,type,id,inputs)
-	func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator) -> Array:
+	func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator, hard_seed: String = "") -> Array:
 		materialization_calls.random += 1
-		return super.random_spawn_values(stage_index,round_index,rng)
+		return super.random_spawn_values(stage_index,round_index,rng,hard_seed)
 	func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 		materialization_calls.turret += 1
 		return super.turret(type,inputs)

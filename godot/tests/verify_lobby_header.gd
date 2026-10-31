@@ -20,7 +20,7 @@ class FakeApp extends RefCounted:
 	func resume_run() -> bool:
 		resumes += 1
 		return true
-	func start_stage(index: int) -> bool:
+	func start_stage(index: int, _difficulty: String = "normal") -> bool:
 		starts.append(index)
 		return true
 	func request_quit() -> void: quit_requested = true

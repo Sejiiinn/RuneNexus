@@ -21,7 +21,7 @@ import (
 // account's client generation floor blocks older clients (ValidateClientGenerationFloor).
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = SupportCoreClientCompatibilityVersion
+	CurrentClientCompatibilityVersion       = HardDifficultyClientCompatibilityVersion
 )
 
 var (

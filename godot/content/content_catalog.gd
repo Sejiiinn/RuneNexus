@@ -6,6 +6,7 @@ const Teleports = preload("res://combat/teleport_pairs.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const RuntimeFormat = preload("res://content/runtime_content_format.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 var _data: Dictionary = {}
 var _revision := 0
 var error: String = ""
@@ -436,7 +437,8 @@ func turret_stats(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary
 	var input := turret(type, inputs)
 	return {} if input.is_empty() else Stats.shared_stats_at(input, int(input.level))
 
-func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator) -> Array:
+## `hard_seed` (StageDifficulty.promotion_seed) is empty for normal runs.
+func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator, hard_seed: String = "") -> Array:
 	if not _valid_wave(stage_index, round_index): return []
 	if rng == null:
 		error = "Missing random number generator"
@@ -460,6 +462,13 @@ func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGe
 		var spawn: Dictionary = values[int(elite.spawnIndex)]
 		spawn.rarity = elite.rarity
 		spawn.affixes = elite.affixes.duplicate()
+	if not hard_seed.is_empty():
+		var schedule: Array = _schedule(stage_index, round_index)
+		var stage_number := int(_data.stages[stage_index].id)
+		for index in range(values.size()):
+			if values[index].has("rarity"): continue
+			var promoted := StageDifficulty.promote(hard_seed, stage_number, round_index, index, schedule[index][0], enemy_rarity_rules())
+			values[index].merge(promoted, true)
 	return values
 
 ## {spawnIndex: {rarity, affixes}}; both are fixed by the round design.

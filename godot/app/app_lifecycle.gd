@@ -157,7 +157,7 @@ func retry_load() -> bool:
 	refresh_ui()
 	return true
 
-func start_stage(index: int) -> bool:
+func start_stage(index: int, difficulty: String = StageDifficulty.NORMAL) -> bool:
 	if _gem_reroll_requesting or _pending_gem_reroll(): return false
 	if _battle_preparation_pending(): return false
 	if not _detached_debug_lifecycle() and (services == null or services.blocks_play()):
@@ -170,6 +170,9 @@ func start_stage(index: int) -> bool:
 	if not StageProgression.stage_unlocked(progression,catalog.stage_id(index)):
 		checkpoint.message = "아직 잠긴 스테이지입니다"
 		return false
+	if difficulty == StageDifficulty.HARD and not StageDifficulty.hard_unlocked(progression,catalog.stage_id(index)):
+		checkpoint.message = "노말을 클리어하면 하드가 열립니다"
+		return false
 	if save_failed and not persist_progression(): return false
 	var pause_generation := _pause_generation
 	_stage_entry_pending = true
@@ -181,17 +184,18 @@ func start_stage(index: int) -> bool:
 		var flushed: Dictionary = await services.sync()
 		if not flushed.get("ok", false):
 			checkpoint.message = "서버 보상 저장을 완료한 뒤 다시 시작해 주세요."
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 		if _stage_entry_cancelled: return _finish_stage_entry(false)
 	if not await _prepare_stage_resources(index):
-		return _finish_stage_entry(false, start_stage.bind(index))
+		return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 	if _stage_entry_cancelled: return _finish_stage_entry(false)
 	if _detached_debug_lifecycle():
 		if not prepare_run_transition():
 			_record_save_failure()
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
+		requested_difficulty = difficulty
 		if not enter_stage(index):
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 	else:
 		# Recover the exact pending lifecycle command before replacing its local
 		# provisional/checkpoint state. A retried start must not create two runs.
@@ -200,23 +204,24 @@ func start_stage(index: int) -> bool:
 			var recovered: Dictionary = await services.perform("refresh")
 			if not recovered.get("ok", false):
 				checkpoint.message = "서버 도전 상태를 확인하지 못했습니다. 다시 시도해 주세요."
-				return _finish_stage_entry(false, start_stage.bind(index))
+				return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 			if _stage_entry_cancelled: return _finish_stage_entry(false)
 			if recovering == "start_run" and stage == index and _server_run_matches():
 				return await _complete_server_stage_entry(index, pause_generation)
 		if not await _close_server_run():
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 		if _stage_entry_cancelled: return _finish_stage_entry(false)
 		# The server binds its UUID to this complete, pristine checkpoint. The
 		# provisional run is paused and cannot accept input or advance combat.
+		requested_difficulty = difficulty
 		if not enter_stage(index, {}, {"paused":true}, {}, ""):
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 		if run_domain.state.is_empty() or not persist_progression():
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 		var started: Dictionary = await services.perform("start_run", {"stageNumber":catalog.stage_id(index)})
 		if not started.get("ok", false) or stage != index or not _server_run_matches():
 			checkpoint.message = "서버에서 도전을 시작하지 못했습니다. 다시 시도해 주세요."
-			return _finish_stage_entry(false, start_stage.bind(index))
+			return _finish_stage_entry(false, start_stage.bind(index, difficulty))
 		if _stage_entry_cancelled: return _finish_stage_entry(false)
 		return await _complete_server_stage_entry(index, pause_generation)
 	if not persist_progression():
@@ -520,7 +525,7 @@ func _maybe_auto_start() -> void:
 	start_wave()
 
 func retry_stage() -> bool:
-	return await start_stage(stage)
+	return await start_stage(stage, StageDifficulty.of(run_domain.state))
 
 func enter_next() -> void:
 	var ordinal := StageProgression.ordinal_for(catalog.stage_id(stage))
