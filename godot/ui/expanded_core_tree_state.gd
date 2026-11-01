@@ -5,6 +5,7 @@ const AppTheme = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const CloseButton = preload("res://ui/close_button.gd")
 const Progression = preload("res://content/stage_progression.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const ROOT := "core_passive_tree/expanded/"
 const DETAIL_ZOOM := 0.40
 ## Node bounds including frames; the overview fits these, not the 2800-unit art square.
@@ -43,6 +44,9 @@ var earned_label: Label
 var draft_chip: Label
 var menu_button: Button
 var menu: PanelContainer
+var points_info_button: Button
+var points_info: PanelContainer
+var points_info_rows: Dictionary = {}
 
 class NodeArt extends Control:
 	var tree

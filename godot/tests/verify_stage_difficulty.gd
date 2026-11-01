@@ -7,6 +7,8 @@ const Rarity = preload("res://combat/enemy_rarity.gd")
 const Quests = preload("res://app/quest_progress.gd")
 const Codec = preload("res://app/save_codec.gd")
 const Hash = preload("res://services/save_payload_hash.gd")
+const Outbox = preload("res://app/reward_outbox.gd")
+const Settlement = preload("res://app/reward_settlement.gd")
 var checks := 0
 var failures: Array = []
 
@@ -21,6 +23,8 @@ func _initialize() -> void:
 	_reward_cases()
 	_save_cases()
 	_unlock_cases()
+	_hard_reward_cases()
+	_diamond_cases(catalog)
 	print("STAGE_DIFFICULTY checks=%d failures=%s" % [checks, failures])
 	quit(0 if failures.is_empty() else 1)
 
@@ -88,7 +92,8 @@ func _same_rarity(a: Array, b: Array) -> bool:
 
 func _reward_cases() -> void:
 	var quests = Quests.new()
-	var base := {"runes":0, "clearedStageNumbers":[1, 2, 3], "bestRoundsByStage":{"3":40}, "claimedCorePointStageRewards":[1, 2, 3], "totalCorePoints":6, "researchLevels":{}}
+	# Repeat hard runs: the hard first clear is already taken.
+	var base := {"runes":0, "clearedStageNumbers":[1, 2, 3], "bestRoundsByStage":{"3":40}, "claimedCorePointStageRewards":[1, 2, 3], "hardClearedStageNumbers":[3], "totalCorePoints":6, "researchLevels":{}}
 	for rounds in [1, 17, 40]:
 		var normal: Dictionary = quests.finish(base, {"stageNumber":3, "completedRounds":rounds, "success":rounds == 40})
 		var hard: Dictionary = quests.finish(base, {"stageNumber":3, "completedRounds":rounds, "success":rounds == 40, "difficulty":"hard"})
@@ -100,7 +105,7 @@ func _reward_cases() -> void:
 	var unclaimed := base.duplicate(true)
 	unclaimed.claimedCorePointStageRewards = []
 	var hard: Dictionary = quests.finish(unclaimed, {"stageNumber":3, "completedRounds":40, "success":true, "difficulty":"hard", "firstClearCorePointReward":2})
-	check(hard.totalCorePoints == 6 and hard.claimedCorePointStageRewards.is_empty(), "hard never claims the core point")
+	check(hard.totalCorePoints == 6 and hard.claimedCorePointStageRewards.is_empty(), "hard never claims the normal core point")
 
 func _envelope(run_extra: Dictionary, progression_extra: Dictionary) -> Dictionary:
 	var run := {"phase":"preparation", "stageNumber":3, "economyRunId":"run-1", "turrets":[], "enemies":[], "spawnQueue":[]}
@@ -125,3 +130,46 @@ func _save_cases() -> void:
 
 func _unlock_cases() -> void:
 	check(not Difficulty.hard_unlocked({"clearedStageNumbers":[1, 2]}, 3) and Difficulty.hard_unlocked({"clearedStageNumbers":[1, 2, 3]}, 3), "hard opens after the normal clear")
+
+func _hard_reward_cases() -> void:
+	var quests = Quests.new()
+	var base := {"runes":0, "clearedStageNumbers":[1, 2, 3], "bestRoundsByStage":{"3":40}, "claimedCorePointStageRewards":[1, 2, 3], "totalCorePoints":6, "researchLevels":{}}
+	var first: Dictionary = quests.finish(base, {"stageNumber":3, "completedRounds":40, "success":true, "difficulty":"hard"})
+	check(first.totalCorePoints == 7 and first.lastRunCorePointReward == 1 and first.lastRunTurretModuleTicketReward == 2 and first.hardClearedStageNumbers == [3], "hard first clear adds 1P and two tickets")
+	var again: Dictionary = quests.finish(first, {"stageNumber":3, "completedRounds":40, "success":true, "difficulty":"hard"})
+	check(again.totalCorePoints == 7 and again.lastRunCorePointReward == 0 and again.lastRunTurretModuleTicketReward == 0, "hard first clear is once per stage")
+	var failed: Dictionary = quests.finish(base, {"stageNumber":3, "completedRounds":30, "success":false, "difficulty":"hard"})
+	check(not failed.has("hardClearedStageNumbers") and failed.lastRunTurretModuleTicketReward == 0, "a hard failure is not a clear")
+	var decoded: Variant = Codec.decode(_envelope({}, {"hardClearedStageNumbers":[3, 3, "x"]}))
+	check(decoded.progression.hardClearedStageNumbers == [3], "hard clears normalize")
+	# Chances match server/internal/economy/hard_rewards.go.
+	check(is_equal_approx(Difficulty.ticket_chance(1), 0.05) and is_equal_approx(Difficulty.ticket_chance(30), 0.10), "ticket chance 1-1 5%, 3-10 10%")
+	check(is_equal_approx(Difficulty.loot_chance(1), 0.25) and is_equal_approx(Difficulty.loot_chance(30), 0.40) and is_equal_approx(Difficulty.loot_extra_chance(30), 0.30), "loot chances")
+	check(Difficulty.ticket_chance(15) > Difficulty.ticket_chance(14) and Difficulty.ticket_chance(999) == 0.0, "chances follow the progression ordinal")
+	check(Difficulty.percent_text(0.004) == "1%" and Difficulty.percent_text(0.3724) == "37%" and Difficulty.percent_text(0.999) == "99%", "tooltip percent text")
+	# The queued settlement carries the hard ticket gift; the server checks the run.
+	var reward := {"runId":"0198b955-3656-7c40-b3cb-87f427b90bf2", "stageNumber":3, "completedRounds":40, "success":true, "pendingDiamonds":0, "createdAtMillis":1, "firstClearModuleTickets":2}
+	check(Outbox.valid_reward(reward), "hard first-clear tickets queue")
+	reward.success = false
+	check(not Outbox.valid_reward(reward), "tickets need a clear")
+	var drops: Dictionary = Settlement.hard_rewards({"hardDropModuleTickets":1, "hardLootModules":[{"id":"m", "turretType":"cannon", "part":"core", "grade":"rare", "options":[]}]})
+	check(drops == {"moduleTickets":1, "modules":[{"turretType":"cannon", "part":"core", "grade":"rare"}]}, "receipt drops are kept for the result")
+	check(Settlement.hard_rewards({"grantedModuleTickets":5}).is_empty(), "no drop keeps nothing")
+
+func _diamond_cases(catalog) -> void:
+	# Same roll, wider carrier band: magic x2, rare x4 (their gold multipliers).
+	for roll in [0.0, 0.0049, 0.0051, 0.0099, 0.0101, 0.0199, 0.0201, 0.5]:
+		check((catalog._diamonds(roll, 1.0) > 0) == (roll < 0.005), "normal carrier %s" % roll)
+		check((catalog._diamonds(roll, 2.0) > 0) == (roll < 0.01), "magic carrier %s" % roll)
+		check((catalog._diamonds(roll, 4.0) > 0) == (roll < 0.02), "rare carrier %s" % roll)
+	check(catalog._diamonds(-1.0, 4.0) == 0, "bosses never carry")
+	var carried := {"": [0, 0], "magic": [0, 0], "rare": [0, 0]}
+	for seed in range(400):
+		var values := _rolled(catalog, catalog.stage_index(6), 34, seed, "run-%d" % seed)
+		for value in values:
+			var key: String = value.get("rarity", "")
+			carried[key][0] += 1
+			if int(value.diamondReward) > 0: carried[key][1] += 1
+	var base_rate := float(carried[""][1]) / maxf(1, carried[""][0])
+	var magic_rate := float(carried.magic[1]) / maxf(1, carried.magic[0])
+	check(base_rate < 0.0075 and magic_rate > base_rate * 1.3, "magic carries more often (%.4f vs %.4f)" % [magic_rate, base_rate])

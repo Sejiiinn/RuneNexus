@@ -417,7 +417,8 @@ func modules() -> void:
 	inventory_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	inventory.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var items := filtered_items()
-	if not items.is_empty():
+	# Bulk disassembly can also cover every turret, so it stays while any module exists.
+	if not items.is_empty() or not lobby.progression().get("turretModules",{}).get("items",[]).is_empty():
 		var info := HBoxContainer.new()
 		info.name = "ModuleInventoryInfo"
 		inventory.add_child(info)

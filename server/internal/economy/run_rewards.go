@@ -38,10 +38,9 @@ func (service *Service) SettleRun(
 		request.StageNumber > gamesave.CurrentStageCount || request.CompletedRounds < 0 || request.CompletedRounds > 40 ||
 		request.PendingDiamonds < 0 || request.PendingDiamonds > int64(request.CompletedRounds+1)*300 ||
 		request.FirstClearModuleTickets < 0 ||
-		request.FirstClearModuleTickets > StageElevenModuleTicketGift ||
-		(request.FirstClearModuleTickets > 0 &&
-			(!request.Success || request.StageNumber != 11 ||
-				request.FirstClearModuleTickets != StageElevenModuleTicketGift)) {
+		(request.FirstClearModuleTickets > 0 && (!request.Success ||
+			(request.FirstClearModuleTickets != HardFirstClearModuleTickets &&
+				(request.StageNumber != 11 || request.FirstClearModuleTickets != StageElevenModuleTicketGift)))) {
 		return CommandResult{}, ErrInvalidCommand
 	}
 	// UUID의 표기 대소문자는 보상 동일성에 영향을 주지 않는다.
@@ -107,6 +106,7 @@ func (service *Service) SettleRun(
 	}
 	var closingRun *RunState
 	var closingDeck []byte
+	hard := false
 	if economy.RunAuthorityEnabled || gamesave.ClientCompatibilityFromBody(request.RawBody) >= gamesave.RunAuthorityClientCompatibilityVersion {
 		if !economy.RunAuthorityEnabled {
 			if err := runstate.AdoptCanonical(ctx, txQueries, accountUUID, saveSnapshot.ActiveRun); err != nil {
@@ -123,10 +123,13 @@ func (service *Service) SettleRun(
 			Stage     int    `json:"stageNumber"`
 			Completed int    `json:"completedRounds"`
 			Phase     string `json:"phase"`
+			// Client-trusted like the rest of the run; only rolls are server-side.
+			Difficulty string `json:"difficulty"`
 		}
 		if json.Unmarshal(saveSnapshot.ActiveRun, &checkpoint) != nil || checkpoint.ID != request.RunID || checkpoint.Stage != request.StageNumber || checkpoint.Completed != request.CompletedRounds || (checkpoint.Phase != "success" && checkpoint.Phase != "failure") || (checkpoint.Phase == "success") != request.Success || run.StageNumber != int32(request.StageNumber) {
 			return CommandResult{}, ErrInvalidCommand
 		}
+		hard = checkpoint.Difficulty == "hard"
 		closingRun = &RunState{RunID: request.RunID, StageNumber: request.StageNumber, Status: "closed", LegacyImported: run.LegacyImported}
 		closingDeck = run.GemDeck
 	}
@@ -135,17 +138,21 @@ func (service *Service) SettleRun(
 	// A hard run records its rounds separately; either record covers the run.
 	if json.Unmarshal(saveSnapshot.Progression, &progression) != nil ||
 		max(progression.BestRoundsByStage[stageKey], progression.HardBestRoundsByStage[stageKey]) < request.CompletedRounds ||
-		(request.Success && !intContains(progression.ClearedStageNumbers, request.StageNumber)) {
+		(request.Success && !intContains(progression.ClearedStageNumbers, request.StageNumber)) ||
+		// Hard first clears carry their own ticket gift; normal never does.
+		(request.FirstClearModuleTickets == HardFirstClearModuleTickets) != (hard && request.FirstClearModuleTickets > 0) {
 		return CommandResult{}, ErrInvalidCommand
 	}
 	stageRewardKey := fmt.Sprintf("stage:%d:first_clear", request.StageNumber)
+	if hard {
+		stageRewardKey = fmt.Sprintf("stage:%d:hard_first_clear", request.StageNumber)
+	}
 	stageTickets := int64(0)
-	if request.Success && request.StageNumber == 11 &&
-		request.FirstClearModuleTickets == StageElevenModuleTicketGift {
+	if request.Success && request.FirstClearModuleTickets > 0 {
 		if _, claimErr := txQueries.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{
 			AccountID: accountUUID, RewardKey: stageRewardKey,
 		}); errors.Is(claimErr, pgx.ErrNoRows) {
-			stageTickets = StageElevenModuleTicketGift
+			stageTickets = request.FirstClearModuleTickets
 		} else if claimErr != nil {
 			return CommandResult{}, fmt.Errorf("check stage reward claim: %w", claimErr)
 		}
@@ -169,6 +176,7 @@ func (service *Service) SettleRun(
 		"completedRounds": request.CompletedRounds, "success": request.Success,
 		"pendingDiamonds":         request.PendingDiamonds,
 		"firstClearModuleTickets": request.FirstClearModuleTickets,
+		"hard":                    hard,
 	})
 	if err := txQueries.CreateEconomyRewardClaim(ctx, dbgen.CreateEconomyRewardClaimParams{
 		AccountID: accountUUID, RewardKey: rewardKey, CommandID: command.ID,
@@ -190,14 +198,43 @@ func (service *Service) SettleRun(
 	if err := chargeDeckRerolls(ctx, txQueries, accountUUID, closingDeck, saveSnapshot.ActiveRun, economy.GemResetTickets, command.ID, &entryOrder); err != nil {
 		return CommandResult{}, err
 	}
+	// Repeat hard rewards are rolled only on a hard clear, never per wave.
+	var drops hardClearRewards
+	if hard && request.Success {
+		drops, err = rollHardClearRewards(request.StageNumber, economy.ModuleDrawCount, unlockedTurretTypes(saveSnapshot.Progression))
+		if err != nil {
+			return CommandResult{}, err
+		}
+	}
+	sequence := economy.ModuleItemSequence
+	// Nil when nothing dropped, so stored receipts replay identically.
+	var loot []Module
+	for _, generated := range drops.Modules {
+		options, _ := json.Marshal(generated.Options)
+		sequence++
+		row, err := txQueries.CreatePlayerModule(ctx, dbgen.CreatePlayerModuleParams{
+			AccountID: accountUUID, TurretType: generated.TurretType, Part: generated.Part,
+			Family: generated.Family, Grade: generated.Grade, Options: options,
+			AcquiredOrder: sequence, AcquiredRevision: resultingRevision,
+			CreatedByCommandID: command.ID,
+		})
+		if err != nil {
+			return CommandResult{}, fmt.Errorf("create hard loot module: %w", err)
+		}
+		module, err := moduleFromRow(row)
+		if err != nil {
+			return CommandResult{}, err
+		}
+		loot = append(loot, module)
+	}
 	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
 		AccountID: accountUUID, Revision: resultingRevision,
 		FreeDiamonds:              economy.FreeDiamonds + request.PendingDiamonds,
 		PaidDiamonds:              economy.PaidDiamonds,
-		ModuleTickets:             economy.ModuleTickets + stageTickets,
+		ModuleTickets:             economy.ModuleTickets + stageTickets + drops.ModuleTickets,
 		ModuleDrawCount:           economy.ModuleDrawCount,
 		ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:        economy.ModuleItemSequence,
+		ModuleItemSequence:        sequence,
 		ResearchSlotTwoUnlocked:   economy.ResearchSlotTwoUnlocked,
 		Revision_2:                economy.Revision,
 	})
@@ -210,7 +247,16 @@ func (service *Service) SettleRun(
 		}
 	}
 	if stageTickets > 0 {
-		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "module_ticket", stageTickets, updated.ModuleTickets, "stage_first_clear"); err != nil {
+		reason := "stage_first_clear"
+		if hard {
+			reason = "hard_first_clear"
+		}
+		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "module_ticket", stageTickets, updated.ModuleTickets-drops.ModuleTickets, reason); err != nil {
+			return CommandResult{}, err
+		}
+	}
+	if drops.ModuleTickets > 0 {
+		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "module_ticket", drops.ModuleTickets, updated.ModuleTickets, "hard_clear_drop"); err != nil {
 			return CommandResult{}, err
 		}
 	}
@@ -229,7 +275,8 @@ func (service *Service) SettleRun(
 	}
 	result := CommandResult{
 		Snapshot: snapshot, RewardKey: rewardKey,
-		GrantedDiamonds: request.PendingDiamonds, GrantedModuleTickets: stageTickets,
+		GrantedDiamonds: request.PendingDiamonds, GrantedModuleTickets: stageTickets + drops.ModuleTickets,
+		HardDropModuleTickets: drops.ModuleTickets, HardLootModules: loot,
 		Run: closingRun,
 	}
 	if err := storeCommandResult(ctx, txQueries, command.ID, result); err != nil {

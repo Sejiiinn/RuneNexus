@@ -4,6 +4,7 @@ const HudNumber = preload("res://ui/hud_number.gd")
 const Art = preload("res://ui/app_theme.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
+const ModuleIcon = preload("res://ui/module_icon.gd")
 const CYAN := Color("96eff4")
 const PALE := Color("e7f6ff")
 const MUTED := Color("a4c4d4")
@@ -79,6 +80,7 @@ func build(state: Dictionary) -> void:
 		value.name = "Value"; value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		if i == 2: value.tooltip_text = _highest_damage(state,true)
 		elif i == 3: value.tooltip_text = str(p.get("runes",0))
+	if success and StageDifficulty.is_hard(state): _hard_loot(body)
 	if state.get("lastRunFirstClear",false): _unlocks(body,hud.app.stage+1)
 	# Preserve generous terminal-result space even when rewards/unlocks are absent.
 	var spacer := Control.new(); spacer.name = "ResultBreathingSpace"
@@ -145,6 +147,43 @@ func _unlocks(body: Node, stage: int) -> void:
 			symbol.add_theme_font_override("font",load("res://assets/ui/MaterialIcons-Regular.otf"))
 		else: rewards.reward_icon(row,item[1],28)
 		text(row,"%s · %s" % [item[2],item[0]],13,PALE)
+
+## Server-rolled repeat rewards of a hard clear, known only after settlement.
+func _hard_loot(body: Node) -> void:
+	text(body,"하드 전리품",15,CYAN).name = "ResultHardLootHeading"
+	var row := HBoxContainer.new(); row.name = "ResultHardLoot"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation",10); _section(body,row,"section_frame")
+	var status: Dictionary = rewards._settlement_state()
+	match str(status.get("status","")):
+		"completed": pass
+		"guest":
+			text(row,"게스트는 전리품을 받지 않습니다",13,MUTED,true).name = "HardLootUnavailable"
+			return
+		"rejected":
+			text(row,"정산이 거절되어 지급되지 않았습니다",13,MUTED,true).name = "HardLootUnavailable"
+			return
+		_:
+			text(row,"정산이 끝나면 지급됩니다",13,MUTED,true).name = "HardLootPending"
+			return
+	var drops: Dictionary = status.get("hardRewards",{})
+	if drops.is_empty():
+		text(row,"이번에는 전리품이 없습니다",13,MUTED,true).name = "HardLootNone"
+		return
+	# Loot lands on a random turret, so each icon names its turret.
+	for item in drops.get("modules",[]):
+		var column := VBoxContainer.new(); column.name = "HardLootModule"
+		column.add_theme_constant_override("separation",0); row.add_child(column)
+		var art := ModuleIcon.create_art(item, 40)
+		art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		column.add_child(art)
+		text(column,str(hud.TOWERS.get(item.turretType,item.turretType)),11,MUTED,true).autowrap_mode = TextServer.AUTOWRAP_OFF
+	if int(drops.get("moduleTickets",0)) > 0:
+		var ticket := VBoxContainer.new(); ticket.name = "HardLootTicket"
+		ticket.add_theme_constant_override("separation",0); row.add_child(ticket)
+		rewards.reward_icon(ticket,"stage_rewards/reward_module_ticket.png",40).size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		var amount := text(ticket,"모듈 티켓 +%d" % int(drops.moduleTickets),11,MUTED,true)
+		amount.autowrap_mode = TextServer.AUTOWRAP_OFF
 
 func _settlement(body: Node) -> void:
 	var status: Dictionary = rewards._settlement_state()

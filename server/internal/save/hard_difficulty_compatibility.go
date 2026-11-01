@@ -3,7 +3,7 @@ package save
 import "encoding/json"
 
 // Older codecs drop the hard difficulty of a run and the separate hard round
-// record, so saves that hold either must not be resumed or overwritten by them.
+// and clear records, so saves that hold any must not be resumed or overwritten by them.
 const HardDifficultyClientCompatibilityVersion = 15
 
 func validateHardDifficultyClient(progression, activeRun []byte, clientVersion int) error {
@@ -17,9 +17,10 @@ func validateHardDifficultyClient(progression, activeRun []byte, clientVersion i
 		return ErrClientUpdateRequired
 	}
 	var record struct {
-		HardBestRoundsByStage map[string]json.RawMessage `json:"hardBestRoundsByStage"`
+		HardBestRoundsByStage   map[string]json.RawMessage `json:"hardBestRoundsByStage"`
+		HardClearedStageNumbers []json.RawMessage          `json:"hardClearedStageNumbers"`
 	}
-	if len(progression) > 0 && json.Unmarshal(progression, &record) == nil && len(record.HardBestRoundsByStage) > 0 {
+	if len(progression) > 0 && json.Unmarshal(progression, &record) == nil && (len(record.HardBestRoundsByStage) > 0 || len(record.HardClearedStageNumbers) > 0) {
 		return ErrClientUpdateRequired
 	}
 	return nil

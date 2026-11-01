@@ -4,10 +4,21 @@ extends RefCounted
 ## their saves and payload hashes are unchanged.
 
 const Rarity = preload("res://combat/enemy_rarity.gd")
+const StageProgression = preload("res://content/stage_progression.gd")
 
 const NORMAL := "normal"
 const HARD := "hard"
 const RUNE_MULTIPLIER := 1.5
+## Extra first-clear rewards on top of normal. The server grants the tickets
+## (server/internal/economy/hard_rewards.go) and rolls the repeat rewards below.
+const FIRST_CLEAR_CORE_POINTS := 1
+const FIRST_CLEAR_MODULE_TICKETS := 2
+## Repeat hard-clear chances: [ordinal 1 (1-1), ordinal 30 (3-10)], linear in the
+## progression ordinal and still rising after 3-10. Loot chains up to 3 modules.
+const TICKET_CHANCE := [0.05, 0.10]
+const LOOT_FIRST_CHANCE := [0.25, 0.40]
+const LOOT_EXTRA_CHANCE := [0.20, 0.30]
+const LOOT_MAX_MODULES := 3
 ## [first 0-based round index, magic chance, rare chance]; later bands win.
 const PROMOTION_BANDS := [[0, 0.08, 0.0], [10, 0.12, 0.02], [20, 0.16, 0.04], [30, 0.20, 0.06]]
 ## Affixes that suit an enemy type are drawn twice as often, like authored rounds.
@@ -28,6 +39,27 @@ static func hard_unlocked(progression: Dictionary, stage_id: int) -> bool:
 
 static func rune_multiplier(difficulty: String) -> float:
 	return RUNE_MULTIPLIER if difficulty == HARD else 1.0
+
+static func hard_cleared(progression: Dictionary, stage_id: int) -> bool:
+	return stage_id in progression.get("hardClearedStageNumbers", [])
+
+static func _ordinal_chance(stage_id: int, bounds: Array) -> float:
+	var ordinal := StageProgression.ordinal_for(stage_id)
+	if ordinal < 1: return 0.0
+	return minf(1.0, float(bounds[0]) + float(ordinal - 1) * (float(bounds[1]) - float(bounds[0])) / 29.0)
+
+static func ticket_chance(stage_id: int) -> float:
+	return _ordinal_chance(stage_id, TICKET_CHANCE)
+
+static func loot_chance(stage_id: int) -> float:
+	return _ordinal_chance(stage_id, LOOT_FIRST_CHANCE)
+
+static func loot_extra_chance(stage_id: int) -> float:
+	return _ordinal_chance(stage_id, LOOT_EXTRA_CHANCE)
+
+## Whole percent for one-line tooltips, never shown as 0% or 100% by rounding.
+static func percent_text(chance: float) -> String:
+	return "%d%%" % clampi(int(round(chance * 100.0)), 1 if chance > 0.0 else 0, 99 if chance < 1.0 else 100)
 
 static func best_rounds_key(difficulty: String) -> String:
 	return "hardBestRoundsByStage" if difficulty == HARD else "bestRoundsByStage"

@@ -187,6 +187,9 @@ type CommandResult struct {
 	RewardKey              string             `json:"rewardKey,omitempty"`
 	GrantedDiamonds        int64              `json:"grantedDiamonds,omitempty"`
 	GrantedModuleTickets   int64              `json:"grantedModuleTickets,omitempty"`
+	// Hard clear rolls; grantedModuleTickets already includes the dropped ticket.
+	HardDropModuleTickets int64    `json:"hardDropModuleTickets,omitempty"`
+	HardLootModules       []Module `json:"hardLootModules,omitempty"`
 }
 
 type DrawRequest struct {

@@ -119,6 +119,14 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 		p.totalCorePoints = int(p.get("totalCorePoints", 0)) + core_reward
 		p.lastRunCorePointReward = core_reward
 	p.claimedCorePointStageRewards = claimed
+	# Hard adds its own first-clear bundle once per stage.
+	var hard_first := hard and success and stage > 0 and not StageDifficulty.hard_cleared(p, stage)
+	if hard_first:
+		var hard_cleared: Array = p.get("hardClearedStageNumbers", []).duplicate()
+		hard_cleared.append(stage)
+		p.hardClearedStageNumbers = hard_cleared
+		p.totalCorePoints = int(p.get("totalCorePoints", 0)) + StageDifficulty.FIRST_CLEAR_CORE_POINTS
+		p.lastRunCorePointReward = StageDifficulty.FIRST_CLEAR_CORE_POINTS
 	if stage > 0:
 		if rounds > 0:
 			var key := StageDifficulty.best_rounds_key(difficulty)
@@ -132,7 +140,7 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 		# Historical fixture/save compatibility; formal app migrates before play.
 		var unlocked := int(p.get("unlockedStageCount", 1))
 		if success and stage >= unlocked and unlocked < 15: p.unlockedStageCount = mini(15, stage + 1)
-	p.lastRunTurretModuleTicketReward = maxi(0, int(event.get("firstClearTurretModuleTicketReward", 0))) if first else 0
+	p.lastRunTurretModuleTicketReward = maxi(0, int(event.get("firstClearTurretModuleTicketReward", 0))) if first else (StageDifficulty.FIRST_CLEAR_MODULE_TICKETS if hard_first else 0)
 	if bool(event.get("grantEconomyRewardsLocally", false)):
 		if not p.has("turretModules"): p.turretModules = {}
 		p.turretModules.tickets = int(p.turretModules.get("tickets", 0)) + int(p.lastRunTurretModuleTicketReward)

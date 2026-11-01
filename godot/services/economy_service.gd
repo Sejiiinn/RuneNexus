@@ -45,7 +45,7 @@ func run_settlement_state(run_id: String) -> Dictionary:
 	if outbox == null or not outbox.loaded: return {"status":"save_failed","code":"OUTBOX_READ_FAILED"}
 	var rejected: Dictionary = outbox.state.get("rejectedRunCodes", {})
 	if rejected.has(run_id): return {"status":"rejected","code":rejected[run_id]}
-	if run_id in outbox.state.get("completedRunIds", []): return {"status":"completed","code":""}
+	if run_id in outbox.state.get("completedRunIds", []): return {"status":"completed","code":"","hardRewards":outbox.state.get("hardRewards", {}).get(run_id, {})}
 	for reward in outbox.state.pendingRewards:
 		if reward.runId != run_id: continue
 		if busy and run_id in _settling_runs: return {"status":"requesting","code":""}
@@ -251,7 +251,7 @@ func _allowed(command: Dictionary) -> bool:
 	var patterns := {"complete_research":"^v1/economy/researches/[A-Za-z][A-Za-z0-9]*/complete$","ack_progression_effect":"^v1/economy/progression-effects/[0-9a-fA-F-]{36}/ack$","mail_claim":"^v1/mailbox/[0-9a-fA-F-]{36}/claim$"}
 	return patterns.has(command.kind) and RegEx.create_from_string(patterns[command.kind]).search(command.path) != null
 
-func _retire(command: Dictionary, completed_run := false, rejection := "") -> bool:
+func _retire(command: Dictionary, completed_run := false, rejection := "", receipt: Dictionary = {}) -> bool:
 	if outbox.state.inFlight == null or outbox.state.inFlight.idempotencyKey != command.idempotencyKey: return false
 	var next: Dictionary = outbox.state.duplicate(true)
 	next.inFlight = null
@@ -260,6 +260,7 @@ func _retire(command: Dictionary, completed_run := false, rejection := "") -> bo
 		next.pendingRewards = next.pendingRewards.filter(func(reward): return reward.runId != id)
 		if not next.has("completedRunIds"): next.completedRunIds = []
 		if not id in next.completedRunIds: next.completedRunIds.append(id)
+		if rejection.is_empty(): outbox.record_hard_rewards(next, id, receipt)
 		if not rejection.is_empty():
 			if not next.has("rejectedRunCodes"): next.rejectedRunCodes = {}
 			next.rejectedRunCodes[id] = rejection
@@ -319,7 +320,7 @@ func _send(command: Dictionary, token: int, recovering := false) -> Dictionary:
 	else:
 		var applied: Dictionary = await _apply(data.get("economy", {}), token)
 		if not applied.get("ok", false): return applied
-	if not _retire(command, command.kind == "run_settlement"): return _failure("OUTBOX_WRITE_FAILED")
+	if not _retire(command, command.kind == "run_settlement", "", data): return _failure("OUTBOX_WRITE_FAILED")
 	if command.kind in ["mail_claim", "mail_claim_all"]: mail_claimed.emit()
 	return {"ok":true,"body":data}
 

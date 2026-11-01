@@ -7,6 +7,15 @@ extends "res://ui/expanded_core_tree_drawing.gd"
 ## layers below it (state -> drawing) may only call downward; GDScript rejects
 ## an upward call at parse time.
 
+## Outlined "i" in a circle, drawn like the card's lock and check marks.
+class InfoMark extends Control:
+	func _draw() -> void:
+		var center := size / 2
+		var radius := minf(size.x, size.y) * 0.36
+		draw_arc(center, radius, 0, TAU, 24, MUTED, 1.4, true)
+		draw_circle(center + Vector2(0, -radius * 0.48), radius * 0.13, MUTED)
+		draw_line(center + Vector2(0, -radius * 0.15), center + Vector2(0, radius * 0.55), MUTED, 1.6, true)
+
 # ---- input ----
 func select_at(owner, location: Vector2) -> void:
 	close_menu()
@@ -109,6 +118,24 @@ func build_overlay(owner) -> void:
 	earned_label = _plain("",12,MUTED)
 	earned_label.size_flags_vertical = Control.SIZE_SHRINK_END
 	values.add_child(earned_label)
+	# Stage first clears are the main source; the bubble names them without
+	# implying they are the only one.
+	points_info_button = Button.new()
+	points_info_button.name = "CorePointsInfo"
+	points_info_button.tooltip_text = "스테이지 첫 클리어 보상"
+	points_info_button.focus_mode = Control.FOCUS_NONE
+	points_info_button.custom_minimum_size = Vector2(22,22)
+	points_info_button.size_flags_vertical = Control.SIZE_SHRINK_END
+	for state in ["normal","hover","pressed","focus","disabled"]: points_info_button.add_theme_stylebox_override(state,StyleBoxEmpty.new())
+	var info_glyph := InfoMark.new()
+	info_glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	info_glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	points_info_button.add_child(info_glyph)
+	points_info_button.pressed.connect(func():
+		points_info.visible = not points_info.visible
+		menu.visible = false
+		layout(owner))
+	values.add_child(points_info_button)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
@@ -150,6 +177,7 @@ func build_overlay(owner) -> void:
 	owner.reset_button = _button("전체 초기화","danger",func(): close_menu(); owner.confirm_reset())
 	owner.reset_button.custom_minimum_size.x = 150
 	menu.add_child(owner.reset_button)
+	_build_points_info(owner)
 	# One grouped camera control; hidden while a sheet is open (pinch still works).
 	var group := PanelContainer.new()
 	group.name = "CoreZoomControls"
@@ -186,6 +214,47 @@ func build_overlay(owner) -> void:
 
 func close_menu() -> void:
 	if is_instance_valid(menu): menu.visible = false
+	if is_instance_valid(points_info): points_info.visible = false
+
+func _build_points_info(owner) -> void:
+	points_info = PanelContainer.new()
+	points_info.name = "CorePointsInfoBubble"
+	points_info.add_theme_stylebox_override("panel",_frame("ui/components/panel_frame.png",10))
+	points_info.visible = false
+	points_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	owner.view.add_child(points_info)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation",6)
+	points_info.add_child(body)
+	body.add_child(_plain("스테이지 첫 클리어 보상",13,Color("ffd27a"),800))
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation",18)
+	grid.add_theme_constant_override("v_separation",4)
+	body.add_child(grid)
+	points_info_rows = {}
+	for row in [["normal","노말"],["hard","하드"]]:
+		var name_label := _plain(row[1],12,Color("e8f8ff"),800)
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(name_label)
+		var points := _plain("",12,Color("ffd27a"),800)
+		points.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		grid.add_child(points)
+		var progress := _plain("",12,MUTED)
+		progress.name = "CorePointsInfo_" + row[0]
+		progress.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		grid.add_child(progress)
+		points_info_rows[row[0]] = [points,progress]
+
+func _update_points_info(owner) -> void:
+	if points_info_rows.is_empty(): return
+	var p: Dictionary = owner.lobby.progression()
+	var stages: int = Progression.ORDER.size()
+	var normal_points := int(owner.lobby.app.catalog.stage_summary(0).get("firstClearCorePointReward",0))
+	var rows := {"normal":[normal_points,p.get("claimedCorePointStageRewards",[]).size()],"hard":[StageDifficulty.FIRST_CLEAR_CORE_POINTS,p.get("hardClearedStageNumbers",[]).size()]}
+	for key in rows:
+		points_info_rows[key][0].text = "%dP" % int(rows[key][0])
+		points_info_rows[key][1].text = "%d / %d" % [mini(int(rows[key][1]),stages),stages]
 
 func update_overlay(owner) -> void:
 	if not is_instance_valid(point_bar): return
@@ -193,6 +262,7 @@ func update_overlay(owner) -> void:
 	var delta: int = owner.spent(owner.lobby.core_draft)-owner.spent(owner.actual())
 	remaining_label.text = str(owner.total()-owner.spent(owner.actual()))
 	earned_label.text = "· 획득 %d" % owner.total()
+	_update_points_info(owner)
 	draft_chip.text = ("−%dP 예정" % delta) if delta >= 0 else ("+%dP 반환" % -delta)
 	draft_chip.visible = drafting
 	owner.cancel_button.visible = drafting
@@ -223,6 +293,9 @@ func layout(owner) -> void:
 	if is_instance_valid(menu) and is_instance_valid(point_bar):
 		menu.size = menu.get_combined_minimum_size()
 		menu.position = Vector2(view_size.x-menu.size.x-12,point_bar.position.y+point_bar.size.y+4)
+	if is_instance_valid(points_info) and is_instance_valid(point_bar):
+		points_info.size = points_info.get_combined_minimum_size()
+		points_info.position = Vector2(12,point_bar.position.y+point_bar.size.y+4)
 	# Opening or closing a sheet changes the covered height; ease back inside it.
 	if camera.is_empty():
 		var target := destination(owner,clamp_view.bind(owner))

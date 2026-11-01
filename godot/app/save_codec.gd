@@ -740,6 +740,7 @@ static func _progression(v: Dictionary) -> Dictionary:
 	out.bestRoundsByStage = _stage_rounds(v.get("bestRoundsByStage"))
 	# Optional so progressions that never played hard keep their payload hash.
 	if v.has("hardBestRoundsByStage"): out.hardBestRoundsByStage = _stage_rounds(v.hardBestRoundsByStage)
+	if v.has("hardClearedStageNumbers"): out.hardClearedStageNumbers = _list(v.hardClearedStageNumbers, "int", true)
 	for key in ["researchLevels", "researchElapsedMillis"]: out[key] = _enum_map("ResearchType", v.get(key))
 	out.activeResearches = _objects(v.get("activeResearches"), "SavedActiveResearch")
 	out.researchSlotTwoUnlocked = v.researchSlotTwoUnlocked if v.get("researchSlotTwoUnlocked") is bool else out.activeResearches.size() > 1

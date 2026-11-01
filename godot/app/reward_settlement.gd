@@ -97,8 +97,19 @@ func _settle(context: Dictionary, sync_save: Callable, apply_snapshot: Callable,
 	completed.pendingRewards = completed.pendingRewards.filter(func(reward): return reward.runId != run_id)
 	if not completed.has("completedRunIds"): completed.completedRunIds = []
 	if not run_id in completed.completedRunIds: completed.completedRunIds.append(run_id)
+	outbox.record_hard_rewards(completed, run_id, decoded)
 	if outbox.save_state(completed) != OK: return {"ok": false, "code": "OUTBOX_WRITE_FAILED"}
 	return {"ok": true, "code": "SETTLED", "runId": run_id}
+
+## Hard clear drops of a settlement receipt; empty when nothing dropped.
+static func hard_rewards(receipt: Dictionary) -> Dictionary:
+	var tickets: Variant = receipt.get("hardDropModuleTickets", 0)
+	var modules: Array = []
+	for item in receipt.get("hardLootModules", []) if receipt.get("hardLootModules") is Array else []:
+		if item is Dictionary: modules.append({"turretType":str(item.get("turretType", "")), "part":str(item.get("part", "")), "grade":str(item.get("grade", ""))})
+	var drops := {"moduleTickets":int(tickets) if tickets is int or tickets is float else 0, "modules":modules}
+	if int(drops.moduleTickets) <= 0 and modules.is_empty(): return {}
+	return drops if preload("res://app/reward_outbox.gd").valid_hard_rewards(drops) else {}
 
 func _matches_pending(command: Dictionary) -> bool:
 	if command.path != "v1/economy/runs/settle": return false

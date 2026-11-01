@@ -61,7 +61,8 @@ const ORDERS = {
 		"grandfatherUnlocks",
 		"gemResetTickets",
 		"corePassiveLegacyAllocation",
-		"hardBestRoundsByStage"
+		"hardBestRoundsByStage",
+		"hardClearedStageNumbers"
 	],
 	"SavedActiveResearch": [
 		"type",

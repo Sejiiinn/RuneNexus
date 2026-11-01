@@ -39,8 +39,8 @@ func _verify() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations", true)
 	root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
-	root.content_scale_size = Vector2i(320, 568)
-	root.size = Vector2i(320, 568)
+	root.content_scale_size = Vector2i(440, 760)
+	root.size = Vector2i(440, 760)
 	var app := FakeApp.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.growth.load_catalog())
@@ -48,14 +48,14 @@ func _verify() -> void:
 	lobby.app = app
 	root.add_child(lobby)
 	await process_frame
-	lobby.size = Vector2(320, 568)
+	lobby.size = Vector2(440, 760)
 	await _research_checks(lobby, app)
 	await _slot_checks(lobby, app)
 	await _module_entry_checks(lobby, app)
 	await _module_checks(lobby, app)
 	await _module_identity_checks(lobby, app)
 	await _draw_checks(lobby, app)
-	print("PASS ui confirmations: preview, explicit confirm, single flight, stale state, module target/refund, 320x568")
+	print("PASS ui confirmations: preview, explicit confirm, single flight, stale state, module target/refund, 440x760")
 	lobby.free()
 	quit()
 
@@ -209,12 +209,12 @@ func _module_entry_checks(lobby: Control, app: FakeApp) -> void:
 	await _settle(lobby)
 	assert(is_instance_valid(lobby.modal) and lobby._services.page == "모듈 일괄 분해", "Connected bulk inventory button opens confirmation")
 	assert(lobby._services.context.ids == ["entry-normal", "entry-equipped", "entry-unique"])
-	assert(app.services.calls.is_empty() and _text(lobby.modal_body).contains("52"), "Bulk preview excludes equipped modules and shows the server refund")
+	assert(app.services.calls.is_empty() and _text(lobby.modal_body).contains("모듈 1개 분해") and _text(lobby.modal_body).contains("+2"), "Bulk preview starts with normal grade only and shows the server refund")
 	confirm = lobby.modal_body.find_child("DisassembleModulesConfirm", true, false) as Button
 	assert(confirm != null and not confirm.disabled)
 	confirm.pressed.emit()
 	confirm.pressed.emit()
-	assert(app.services.calls == [{"action":"disassemble_modules", "values":{"ids":["entry-normal","entry-unique"]}}], "Bulk confirmation sends only unequipped inventory IDs once")
+	assert(app.services.calls == [{"action":"disassemble_modules", "values":{"ids":["entry-normal"]}}], "Bulk confirmation sends only unequipped selected-grade IDs once; uniques never go")
 	app.services.release_request.emit()
 	await _settle(lobby)
 	lobby.close_modal()
@@ -235,22 +235,36 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	var items: Array = [
 		_module("normal-a", "normal", false),
 		_module("rare-equipped", "rare", true),
-		_module("unique-c", "unique", false)
+		_module("unique-c", "unique", false),
+		_module("magic-d", "magic", false)
 	]
 	app.progression_inputs.turretModules.items = items
-	lobby.open_service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped", "unique-c", "normal-a", "missing"]})
+	lobby.open_service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped", "unique-c", "magic-d", "normal-a", "missing"]})
 	await _settle(lobby)
 	assert(app.services.calls.is_empty(), "Opening disassembly preview must not mutate inventory")
 	var preview := _text(lobby.modal_body)
-	assert(preview.contains("일반 1") and preview.contains("유니크 1") and preview.contains("2개"), "Preview shows actual eligible grades and count")
-	assert(preview.contains("52"), "Preview sums only eligible module refunds")
+	assert(preview.contains("1개") and lobby.modal_body.find_child("ModulePreview_magic-d", true, false) == null, "Bulk starts with the normal grade only")
+	# Chips count each grade in scope before the filter; equipped ones are left out.
+	assert((lobby.modal_body.find_child("BulkGrade_normal", true, false) as Button).text == "✓ 일반 1")
+	assert((lobby.modal_body.find_child("BulkGrade_magic", true, false) as Button).text == "마법 1")
+	assert((lobby.modal_body.find_child("BulkGrade_rare", true, false) as Button).text == "희귀 0")
+	# Magic and rare are opt-in; uniques are never offered (the server refuses them).
+	assert(lobby.modal_body.find_child("BulkGrade_unique", true, false) == null)
+	(lobby.modal_body.find_child("BulkGrade_magic", true, false) as Button).pressed.emit()
+	await _settle(lobby)
+	(lobby.modal_body.find_child("BulkGrade_rare", true, false) as Button).pressed.emit()
+	await _settle(lobby)
+	preview = _text(lobby.modal_body)
+	assert(preview.contains("✓ 마법 1") and preview.contains("대상 2개"), "Preview shows actual eligible grades and count")
+	assert(preview.contains("+7"), "Preview sums only eligible module refunds")
 	assert(not preview.contains("missing"), "Unknown ID does not appear in the preview")
-	assert(not preview.contains("희귀"), "Equipped module is excluded from preview")
+	assert(not preview.contains("유니크 1"), "Unique modules are never bulk targets")
 	assert(lobby.modal_body.find_child("ModulePreview_normal-a", true, false) != null)
-	assert(lobby.modal_body.find_child("ModulePreview_unique-c", true, false) != null)
+	assert(lobby.modal_body.find_child("ModulePreview_magic-d", true, false) != null)
+	assert(lobby.modal_body.find_child("ModulePreview_unique-c", true, false) == null)
 	assert(lobby.modal_body.find_child("ModulePreview_rare-equipped", true, false) == null)
-	for grade in ["normal", "unique"]:
-		var row: Node = lobby.modal_body.find_child("ModulePreview_" + ("normal-a" if grade == "normal" else "unique-c"), true, false)
+	for grade in ["normal", "magic"]:
+		var row: Node = lobby.modal_body.find_child("ModulePreview_" + ("normal-a" if grade == "normal" else "magic-d"), true, false)
 		var art := row.find_child("ModuleIconTexture", true, false) as TextureRect
 		assert(art != null and art.texture != null and art.modulate == Color.WHITE, "Disassembly review uses the same final module artwork")
 		assert(art.get_meta("icon_path").ends_with("_%s.png" % grade), "Disassembly review shows the current grade")
@@ -264,14 +278,30 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	assert(app.services.calls.is_empty(), "A stale preview cannot disassemble newly equipped modules")
 	await _settle(lobby)
 	preview = _text(lobby.modal_body)
-	assert(preview.contains("1개") and preview.contains("50"), "Refreshed preview reflects changed equipment")
+	assert(preview.contains("1개") and preview.contains("+5"), "Refreshed preview reflects changed equipment")
 	confirm = _button(lobby.modal_body, "분해")
 	assert(confirm != null and not confirm.disabled)
 	confirm.pressed.emit()
 	assert(app.services.calls.size() == 1)
-	assert(app.services.calls[0].action == "disassemble_modules" and app.services.calls[0].values.get("ids") == ["unique-c"], "Only the re-confirmed target is sent once")
+	assert(app.services.calls[0].action == "disassemble_modules" and app.services.calls[0].values.get("ids") == ["magic-d"], "Only the re-confirmed target is sent once")
 	confirm.pressed.emit()
 	assert(app.services.calls.size() == 1, "Pending disassembly ignores a second press")
+	app.services.release_request.emit()
+	await process_frame
+	app.services.calls.clear()
+	# Every turret: the whole inventory, still without uniques or equipped modules.
+	items[0].equipped = false
+	var other := _module("cannon-normal", "normal", false)
+	other.turretType = "cannon"
+	items.append(other)
+	lobby.open_service("모듈 일괄 분해", {"ids": ["normal-a"]})
+	await _settle(lobby)
+	(lobby.modal_body.find_child("BulkScopeAll", true, false) as Button).pressed.emit()
+	await _settle(lobby)
+	assert(lobby.modal_body.find_child("ModulePreview_cannon-normal", true, false) != null and lobby.modal_body.find_child("ModulePreview_normal-a", true, false) != null, "Every-turret scope covers other turrets")
+	confirm = _button(lobby.modal_body, "분해")
+	confirm.pressed.emit()
+	assert(app.services.calls.size() == 1 and app.services.calls[0].values.get("ids") == ["normal-a", "cannon-normal"], "Every-turret scope sends the whole normal inventory")
 	app.services.release_request.emit()
 	await process_frame
 	app.services.calls.clear()
@@ -280,16 +310,16 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	confirm = _button(lobby.modal_body, "분해")
 	assert(confirm == null or confirm.disabled, "Missing module ID cannot be submitted")
 	assert(app.services.calls.is_empty())
-	lobby.open_service("모듈 일괄 분해", {"ids": ["normal-a", "rare-equipped"]})
+	lobby.open_service("모듈 일괄 분해", {"ids": ["rare-equipped", "unique-c"]})
 	await _settle(lobby)
 	confirm = _button(lobby.modal_body, "분해")
-	assert(confirm == null or confirm.disabled, "Equipped-only selection cannot be submitted")
+	assert(confirm == null or confirm.disabled, "Equipped-only or unique-only selection cannot be submitted")
 	var many: Array = []
 	var ids: Array = []
 	for i in 30:
 		var id := "module-%02d" % i
 		ids.append(id)
-		many.append(_module(id, "magic", false))
+		many.append(_module(id, "normal", false))
 	app.progression_inputs.turretModules.items = many
 	lobby.open_service("모듈 일괄 분해", {"ids": ids})
 	await _settle(lobby)
@@ -298,7 +328,7 @@ func _module_checks(lobby: Control, app: FakeApp) -> void:
 	_check_modal_bounds(lobby)
 	var preview_scroll := lobby.modal_body.find_child("ModuleDisassemblyPreview", true, false) as ScrollContainer
 	assert(preview_scroll != null, "Large disassembly has a dedicated bounded preview")
-	assert(lobby.modal_body.get_combined_minimum_size().x <= lobby.modal_scroll.size.x + 1, "Many-module preview fits 320 px width")
+	assert(lobby.modal_body.get_combined_minimum_size().x <= lobby.modal_scroll.size.x + 1, "Many-module preview fits 440 px width")
 	for id in ids:
 		assert(preview_scroll.find_child("ModulePreview_" + id, true, false) != null, "Every chosen module appears exactly in the review: " + id)
 	assert(preview_scroll.get_v_scroll_bar().max_value > preview_scroll.size.y, "Many-module preview scrolls vertically")
@@ -320,13 +350,13 @@ func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
 	lobby.open_service("모듈 일괄 분해", {"ids": ["last", "duplicate", "locked", "missing", 17, "17", "duplicate"]})
 	await _settle(lobby)
 	var before := var_to_bytes(items)
+	lobby._services.bulk_grades = {"normal":true, "magic":true, "rare":true}
 	var plan: Dictionary = lobby._services._module_plan()
-	assert(plan.items == [items[3], first, items[4]], "Plan retains requested order and first persisted ID match")
+	assert(plan.items == [items[3], first], "Plan retains requested order and first persisted ID match")
 	assert(plan.signature == [["last", "magic", "arrow", "core", false],
 		["duplicate", "normal", "arrow", "core", false],
-		["locked", "rare", "arrow", "core", true], ["missing", "missing"],
-		["17", "unique", "arrow", "core", false]], "Signature retains normalized dedupe, missing and equipment state")
-	assert(plan.excluded == 2 and plan.diamonds == 57 and plan.counts == {"normal":1,"magic":1,"rare":0,"unique":1}, "Quote excludes equipped/missing targets and keeps grade refunds")
+		["locked", "rare", "arrow", "core", true], ["missing", "missing"]], "Signature retains normalized dedupe, missing and equipment state; uniques never enter")
+	assert(plan.excluded == 2 and plan.diamonds == 7 and plan.counts == {"normal":1,"magic":1,"rare":0,"unique":0}, "Quote excludes equipped/missing targets and keeps grade refunds")
 	assert(var_to_bytes(items) == before, "Planning never mutates persisted inventory")
 	lobby._services.context = {"id":"duplicate", "ids":["last"]}
 	assert(lobby._services._module_plan().items == [first], "Single-ID selection takes precedence over bulk IDs")
@@ -337,12 +367,14 @@ func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
 	var confirm := _button(lobby.modal_body, "분해")
 	# Replacing the inventory object (not only editing it in place) must cause a
 	# new live quote. An index from the initial preview must never be reused.
-	app.progression_inputs.turretModules.items = [_module("duplicate", "unique", false)]
+	var moved := _module("duplicate", "normal", false)
+	moved.turretType = "cannon"
+	app.progression_inputs.turretModules.items = [moved]
 	confirm.pressed.emit()
-	assert(app.services.calls.is_empty(), "Removed targets and changed grade reject the previous quote after inventory replacement")
+	assert(app.services.calls.is_empty(), "Removed targets and changed identity reject the previous quote after inventory replacement")
 	await _settle(lobby)
 	plan = lobby._services._module_plan()
-	assert(plan.items.size() == 1 and plan.items[0].grade == "unique" and plan.diamonds == 50 and plan.excluded == 1, "New quote reads current inventory and refund")
+	assert(plan.items.size() == 1 and plan.items[0].turretType == "cannon" and plan.diamonds == 2 and plan.excluded == 1, "New quote reads current inventory and refund")
 	confirm = _button(lobby.modal_body, "분해")
 	confirm.pressed.emit()
 	assert(app.services.calls.size() == 1 and app.services.calls[0] == {"action":"disassemble_modules","values":{"ids":["duplicate"]}}, "Reconfirmation sends only current eligible IDs through the service contract")
@@ -407,13 +439,13 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	var action_rect: Rect2 = _button(lobby.modal_body,"뽑기").get_global_rect()
 	assert(lobby.modal_frame.get_global_rect().encloses(action_rect), "Draw action remains fully visible")
 	assert(lobby.modal_frame.get_global_rect().end.y - action_rect.end.y <= 14, "Confirmation has no unused space below its action")
-	root.content_scale_size = Vector2i(320, 960)
-	root.size = Vector2i(320, 960)
+	root.content_scale_size = Vector2i(440, 960)
+	root.size = Vector2i(440, 960)
 	await _settle(lobby)
 	assert(absf(lobby.modal_frame.size.y - compact_height) <= 1, "Tall phones do not stretch the confirmation")
 	_check_modal_bounds(lobby)
-	root.content_scale_size = Vector2i(320, 568)
-	root.size = Vector2i(320, 568)
+	root.content_scale_size = Vector2i(440, 760)
+	root.size = Vector2i(440, 760)
 	await _settle(lobby)
 	assert(_buttons(lobby.modal_body).size() == 1 and _button(lobby.modal_body,"뽑기").text == "5개 뽑기", "Only the requested draw CTA is shown")
 	for label in _labels(lobby.modal_body):
@@ -434,7 +466,7 @@ func _draw_checks(lobby: Control, app: FakeApp) -> void:
 	lobby.refresh()
 	await _settle(lobby)
 	assert(lobby.warning_toast == toast and toast.visible, "Lobby refresh preserves transient warning lifetime")
-	assert(Rect2(Vector2.ZERO,Vector2(320,568)).encloses(lobby.modal_frame.get_global_rect()),"Reconfirmation modal remains inside 320x568")
+	assert(Rect2(Vector2.ZERO,Vector2(440,760)).encloses(lobby.modal_frame.get_global_rect()),"Reconfirmation modal remains inside 440x760")
 	assert(_button(lobby.modal_body,"뽑기").size.y >= 44,"Draw confirmation preserves its existing button size")
 	confirm = _button(lobby.modal_body,"뽑기")
 	confirm.pressed.emit()

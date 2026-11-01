@@ -137,6 +137,7 @@
   "turret_modules/icons/unique_backglow.png",
   "ui/components/card_frame.png",
   "ui/components/segment_selected_gold.png",
+  "ui/components/segment_selected_neutral.png",
   "ui/components/segment_selected_cyan.png",
   "ui/components/row_frame_locked.png",
   "ui/components/chip_frame.png",

@@ -1,5 +1,8 @@
 extends "res://app/local_save_store.gd"
 const StageProgression = preload("res://content/stage_progression.gd")
+## Only recent hard drops are kept; the result screen shows the latest run.
+const HARD_REWARD_HISTORY := 8
+const HARD_FIRST_CLEAR_TICKETS: int = preload("res://content/stage_difficulty.gd").FIRST_CLEAR_MODULE_TICKETS
 ## Account-compatible Dart economy outbox. Guest queue is local only and never
 ## automatically transferred to an account. Failed reads never initialize over data.
 var owner: String
@@ -88,6 +91,10 @@ func valid_state(value: Variant) -> bool:
 	if not rejected is Dictionary: return false
 	for id in rejected:
 		if not id in value.get("completedRunIds", []) or not rejected[id] is String or rejected[id].is_empty(): return false
+	var hard: Variant = value.get("hardRewards", {})
+	if not hard is Dictionary or hard.size() > HARD_REWARD_HISTORY: return false
+	for id in hard:
+		if not id in value.get("completedRunIds", []) or not valid_hard_rewards(hard[id]): return false
 	var seen := {}
 	for reward in value.pendingRewards:
 		if not valid_reward(reward) or seen.has(reward.runId): return false
@@ -101,12 +108,31 @@ func valid_state(value: Variant) -> bool:
 		if not SaveJson.parse(command.encodedBody) is Dictionary: return false
 	return SaveJson.is_json_value(value)
 
+## Keeps a settled run's hard drops (from its receipt) in `next`, newest last.
+static func record_hard_rewards(next: Dictionary, run_id: String, receipt: Dictionary) -> void:
+	var drops: Dictionary = load("res://app/reward_settlement.gd").hard_rewards(receipt)
+	if drops.is_empty(): return
+	var kept: Dictionary = next.get("hardRewards", {}).duplicate(true)
+	kept[run_id] = drops
+	while kept.size() > HARD_REWARD_HISTORY: kept.erase(kept.keys()[0])
+	next.hardRewards = kept
+
+## Server-rolled hard clear drops kept for the result screen: {moduleTickets, modules:[{turretType, part, grade}]}.
+static func valid_hard_rewards(value: Variant) -> bool:
+	if not value is Dictionary or not value.get("moduleTickets") is int or value.moduleTickets < 0 or not value.get("modules") is Array or value.modules.size() > 3: return false
+	for module in value.modules:
+		if not module is Dictionary: return false
+		for key in ["turretType", "part", "grade"]:
+			if not module.get(key) is String or module[key].is_empty(): return false
+	return true
+
 static func valid_reward(value: Variant) -> bool:
 	if not value is Dictionary or not value.get("runId") is String or Slot.account(value.runId) == null or not value.get("success") is bool: return false
 	for key in ["stageNumber", "completedRounds", "pendingDiamonds", "createdAtMillis"]:
 		if not value.get(key) is int or value[key] < 0: return false
 	var tickets: Variant = value.get("firstClearModuleTickets", 0)
-	return StageProgression.ordinal_for(value.stageNumber) > 0 and value.completedRounds <= 40 and value.pendingDiamonds <= (value.completedRounds + 1) * 300 and tickets is int and (tickets == 0 or (tickets == 5 and value.success and value.stageNumber == 11))
+	# Hard first clears carry their own gift; the server checks it against the run's difficulty.
+	return StageProgression.ordinal_for(value.stageNumber) > 0 and value.completedRounds <= 40 and value.pendingDiamonds <= (value.completedRounds + 1) * 300 and tickets is int and (tickets == 0 or (value.success and (tickets == HARD_FIRST_CLEAR_TICKETS or (tickets == 5 and value.stageNumber == 11))))
 
 func _recover(path: String) -> Error:
 	var _transaction_scope = transaction_scope()

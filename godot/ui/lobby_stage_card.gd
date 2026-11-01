@@ -19,6 +19,7 @@ const SECONDARY := Color("b9d6e4")
 const BUTTON_WIDTH := 150.0
 const TILE := 32.0
 const TILE_STEP := 36.0
+const REPEAT_ICON := 22.0
 const TAB_WIDTH := 58.0
 const TAB_HEIGHT := 24.0
 const HARD_RED := Color("ff7a52")
@@ -39,6 +40,8 @@ var stages
 var font_size: Callable = func(px: int) -> int: return px
 var stage := 0
 var tooltip := -1
+## Repeat-reward key ("loot"/"ticket") whose one-line chance bubble is open.
+var repeat_tip := ""
 var _catcher: Control
 
 func _ready() -> void:
@@ -47,15 +50,18 @@ func _ready() -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	# A tap on the card itself, outside its buttons, also closes the bubble.
-	if tooltip >= 0 and event is InputEventMouseButton and event.pressed:
+	if (tooltip >= 0 or not repeat_tip.is_empty()) and event is InputEventMouseButton and event.pressed:
 		tooltip = -1
+		repeat_tip = ""
 		_rebuild.call_deferred()
 
 func _exit_tree() -> void:
 	if is_instance_valid(_catcher): _catcher.queue_free()
 
 func show_stage(id: int) -> void:
-	if id != stage: tooltip = -1
+	if id != stage:
+		tooltip = -1
+		repeat_tip = ""
 	stage = id
 	_rebuild()
 
@@ -118,17 +124,18 @@ func _rebuild() -> void:
 	amount.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if hard else Control.SIZE_EXPAND_FILL
 	amount.clip_text = not hard
 	rune.add_child(amount)
-	if hard: rune.add_child(_multiplier_badge())
-	# Right column: first-clear unlocks, dimmed with a check once obtained. Hard
-	# first-clear rewards are not implemented yet, so hard leaves the slot empty.
-	var unlocks: Array = [] if hard else stages.unlock_items(stage)
+	if hard:
+		rune.add_child(_multiplier_badge())
+		for spec in stages.hard_repeat_rewards(stage): rune.add_child(_repeat_icon(spec))
+	# Right column: first-clear rewards, dimmed with a check once obtained.
+	var unlocks: Array = stages.hard_unlock_items(stage) if hard else stages.unlock_items(stage)
 	var shown := mini(unlocks.size(), 3)
-	var claimed: bool = stages.reward_highlighted(stage)
+	var claimed: bool = stages.hard_cleared(stage) if hard else stages.reward_highlighted(stage)
 	for k in shown:
 		_unlock_tile(k, unlocks[k], Rect2(w - 14 - TILE_STEP * (shown - k), 10, TILE, TILE), claimed)
 	_action(Rect2(button_x, 48, button_w, 34), open, active, hard)
 	if tooltip >= 0 and tooltip < shown: _tooltip(unlocks[tooltip], w - 14 - TILE_STEP * (shown - tooltip))
-	else: _close_catcher()
+	elif repeat_tip.is_empty(): _close_catcher()
 
 func _tabs(w: float, difficulty: String, active: bool) -> void:
 	var hard_open: bool = stages.hard_open(stage)
@@ -171,7 +178,55 @@ func _tabs(w: float, difficulty: String, active: bool) -> void:
 		tab.pressed.connect(func():
 			stages.difficulty = mode
 			tooltip = -1
+			repeat_tip = ""
 			_rebuild.call_deferred())
+
+## Small socketed icon beside the runes; a tap shows its chance in one line.
+func _repeat_icon(spec: Array) -> Control:
+	var key: String = spec[0]
+	var button := Button.new()
+	button.name = "HardRepeat_" + key
+	button.tooltip_text = str(spec[2])
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(REPEAT_ICON, REPEAT_ICON)
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]: button.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	var frame := _framed("quests/ui/icon_socket.png", Rect2(Vector2.ZERO, Vector2(REPEAT_ICON, REPEAT_ICON)), Rect2(), 4.0, button)
+	if repeat_tip == key: frame.modulate = Color(1.3, 1.15, 0.9)
+	_image(str(spec[1]), Rect2(Vector2(3, 3), Vector2(REPEAT_ICON - 6, REPEAT_ICON - 6)), button)
+	button.pressed.connect(func():
+		repeat_tip = "" if repeat_tip == key else key
+		tooltip = -1
+		_rebuild.call_deferred())
+	if repeat_tip == key: _repeat_bubble(button, str(spec[2]))
+	return button
+
+func _repeat_bubble(anchor: Control, value: String) -> void:
+	var px := int(font_size.call(12))
+	var bubble_w := T.font(800).get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x + 24
+	var bubble_h := float(px) + 16
+	var bubble := Panel.new()
+	bubble.name = "RepeatTooltip"
+	bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bubble.z_index = 10
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("0b1620f5")
+	box.border_color = Color(GOLD, 0.7)
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(7)
+	bubble.add_theme_stylebox_override("panel", box)
+	_place(bubble, Rect2(REPEAT_ICON / 2 - bubble_w / 2, -8 - bubble_h, bubble_w, bubble_h), anchor)
+	var arrow := Polygon2D.new()
+	arrow.color = Color(GOLD, 0.7)
+	arrow.polygon = PackedVector2Array([Vector2(bubble_w / 2 - 6, bubble_h), Vector2(bubble_w / 2 + 6, bubble_h), Vector2(bubble_w / 2, bubble_h + 7)])
+	bubble.add_child(arrow)
+	var label := _label(value, 12, WHITE, 800)
+	label.name = "RepeatTooltipText"
+	label.clip_text = false
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_place(label, Rect2(Vector2.ZERO, Vector2(bubble_w, bubble_h)), bubble)
+	_open_catcher()
 
 func _multiplier_badge() -> Control:
 	var badge := PanelContainer.new()
@@ -248,6 +303,7 @@ func _unlock_tile(index: int, item: Array, rect: Rect2, claimed: bool) -> void:
 		tile.add_child(check)
 	tile.pressed.connect(func():
 		tooltip = -1 if tooltip == index else index
+		repeat_tip = ""
 		_rebuild.call_deferred())
 
 func _tooltip(item: Array, icon_x: float) -> void:
@@ -304,6 +360,7 @@ func _open_catcher() -> void:
 	_catcher.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed:
 			tooltip = -1
+			repeat_tip = ""
 			_rebuild.call_deferred())
 	get_parent().add_child(_catcher)
 	get_parent().move_child(_catcher, get_index())

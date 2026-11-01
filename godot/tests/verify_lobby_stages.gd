@@ -7,6 +7,7 @@ const Codec = preload("res://app/save_codec.gd")
 const Store = preload("res://app/local_save_store.gd")
 const StageMap = preload("res://ui/stage_map_view.gd")
 const StageCard = preload("res://ui/lobby_stage_card.gd")
+const StageDifficulty = preload("res://content/stage_difficulty.gd")
 class App extends RefCounted:
 	var catalog
 	var run_domain := {"state":{}}
@@ -247,7 +248,38 @@ func verify_difficulty(ui, host) -> void:
 	assert(card.find_child("HardMultiplier", true, false) != null, "Hard card shows the rune multiplier")
 	assert(card.find_child("RuneAmount", true, false).text == StageCard.Numbers.compact_integer(ui.rune_reward(6, "hard")))
 	assert(card.find_child("RoundCount", false, false).text.begins_with("12 /"), "Hard card shows the hard record")
-	assert(card.find_children("Unlock*", "Button", false, false).is_empty(), "Hard has no first-clear unlocks yet")
+	var hard_tiles := card.find_children("Unlock*", "Button", false, false)
+	assert(hard_tiles.size() == 1 and hard_tiles[0].tooltip_text == "모듈 티켓 2장", "Hard's slot shows its ticket gift")
+	assert(hard_tiles[0].get_child_count() == 2, "Unclaimed hard gift has no check")
+	# Repeat rewards: one-line chance bubbles, one open at a time.
+	var loot: Button = card.find_child("HardRepeat_loot", true, false)
+	var ticket: Button = card.find_child("HardRepeat_ticket", true, false)
+	assert(loot != null and ticket != null and loot.tooltip_text == "전리품 모듈 %s" % StageDifficulty.percent_text(StageDifficulty.loot_chance(6)))
+	var rune_row: Control = card.get_node("RuneReward")
+	await process_frame
+	assert(rune_row.get_combined_minimum_size().x <= rune_row.size.x + 1, "Rune row with badge and repeat icons fits before the action")
+	var loot_text := loot.tooltip_text
+	loot.pressed.emit()
+	await process_frame
+	assert(card.find_child("RepeatTooltipText", true, false).text == loot_text)
+	card.find_child("HardRepeat_ticket", true, false).pressed.emit()
+	await process_frame
+	assert(card.find_children("RepeatTooltip", "Panel", true, false).size() == 1 and card.find_child("RepeatTooltipText", true, false).text.begins_with("모듈 티켓 "), "Bubbles switch")
+	card._gui_input(_button(Vector2(40, 40), true))
+	await process_frame
+	assert(card.find_child("RepeatTooltip", true, false) == null, "Tap inside the card closes the bubble")
+	card.find_child("HardRepeat_loot", true, false).pressed.emit()
+	await process_frame
+	card.get_node("DifficultyNormal").pressed.emit()
+	await process_frame
+	assert(card.repeat_tip.is_empty(), "Difficulty switch closes the bubble")
+	card.get_node("DifficultyHard").pressed.emit()
+	await process_frame
+	assert(card.find_child("RepeatTooltip", true, false) == null, "Returning to hard keeps the bubble closed")
+	host.p.hardClearedStageNumbers = [6]
+	card.show_stage(6)
+	assert(card.find_child("Unlock0", false, false).get_child_count() == 3, "Claimed hard gift shows its check")
+	host.p.erase("hardClearedStageNumbers")
 	assert(card.get_node("CardFrame").modulate == StageCard.HARD_TINT)
 	card.show_stage(7)
 	assert(card.get_node("DifficultyHard").disabled and card.find_child("HardMultiplier", true, false) == null, "Locked hard falls back to normal")

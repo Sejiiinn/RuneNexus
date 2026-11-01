@@ -506,7 +506,7 @@ func run_settlement_state(run_id: String) -> Dictionary:
 	if app.checkpoint.owner == "guest": return {"status":"guest","code":"ACCOUNT_REQUIRED"}
 	var rejected: Dictionary = box.state.get("rejectedRunCodes", {})
 	if rejected.has(run_id): return {"status":"rejected","code":rejected[run_id]}
-	if run_id in box.state.get("completedRunIds", []): return {"status":"completed","code":""}
+	if run_id in box.state.get("completedRunIds", []): return {"status":"completed","code":"","hardRewards":box.state.get("hardRewards", {}).get(run_id, {})}
 	if economy == null or not connected(): return {"status":"offline","code":"ACCOUNT_REQUIRED"}
 	if not online_ready: return {"status":"offline","code":"SAVE_SYNC_REQUIRED"}
 	if app.checkpoint.owner != str(account.credentials.accountId).to_lower() or economy.outbox != box: return {"status":"offline","code":"STALE_BINDING"}

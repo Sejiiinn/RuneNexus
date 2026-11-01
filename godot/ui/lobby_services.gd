@@ -19,6 +19,11 @@ var pending := false
 var view_epoch := 0
 var nickname_draft := ""
 var module_confirmation: Array = []
+## Bulk disassembly choices: this turret or every turret, and which grades.
+## Unique and equipped modules are never offered (the server refuses uniques).
+var bulk_all_turrets := false
+var bulk_grades := {"normal":true,"magic":false,"rare":false}
+const BULK_LIMIT := 500
 var draw_confirmation_epoch := 0
 var mailbox = MailboxController.new()
 
@@ -30,6 +35,8 @@ func open(title: String, values: Dictionary = {}) -> void:
 	notice = ""
 	data = {}
 	module_confirmation = []
+	bulk_all_turrets = false
+	bulk_grades = {"normal":true,"magic":false,"rare":false}
 	view_epoch += 1
 	pending = false
 	if title == "우편함":
@@ -398,8 +405,24 @@ func _slot_confirmation(body: VBoxContainer) -> void:
 	if lobby.diamonds() < cost: body.add_child(T.label("다이아가 부족합니다.",12))
 	_confirm_actions(body,"슬롯 해금 · %d" % cost,_perform.bind("unlock_research_slot_two",{"quoted_cost":cost}),lobby.diamonds()>=cost,"UnlockResearchSlotConfirm")
 
+## Bulk targets keep the requested order (or inventory order for every turret).
+## Unselected grades and uniques drop out; missing and equipped IDs stay so the
+## plan can count them as excluded.
+func _bulk_ids() -> Array:
+	var inventory: Array = lobby.progression().get("turretModules",{}).get("items",[])
+	var grade_of := {}
+	for item in inventory:
+		var id := str(item.get("id",""))
+		if not grade_of.has(id): grade_of[id] = str(item.get("grade",""))
+	var source: Array = inventory.map(func(item): return item.get("id","")) if bulk_all_turrets else context.get("ids",[])
+	var ids: Array = []
+	for id in source:
+		if not grade_of.has(str(id)) or bulk_grades.get(grade_of[str(id)],false): ids.append(id)
+	return ids.slice(0,BULK_LIMIT)
+
 func _module_plan() -> Dictionary:
-	var requested: Array = [context.id] if context.has("id") else context.get("ids",[]).duplicate()
+	var bulk := page == "모듈 일괄 분해"
+	var requested: Array = [context.id] if context.has("id") else (_bulk_ids() if bulk else context.get("ids",[]).duplicate())
 	# Rebuild from live inventory for every quote and confirmation. Keep the first
 	# occurrence of an ID, matching the former per-request linear search.
 	var by_id := {}
@@ -433,15 +456,21 @@ func _disassembly_confirmation(body: VBoxContainer) -> void:
 	var plan := _module_plan()
 	module_confirmation = plan.signature.duplicate(true)
 	var count: int = plan.items.size()
-	body.add_child(T.label("장착 중인 모듈은 제외됩니다. 분해한 모듈은 복구할 수 없습니다.",12))
+	var bulk := page == "모듈 일괄 분해"
+	if bulk: _bulk_choices(body)
+	else: body.add_child(T.label("장착 중인 모듈은 제외됩니다. 분해한 모듈은 복구할 수 없습니다.",12))
 	if int(plan.excluded) > 0: body.add_child(T.label("장착 중이거나 없는 대상 %d개 제외" % int(plan.excluded),11))
-	var summary := _framed_row(body)
-	var counts: Array = []
-	for grade in ["normal","magic","rare","unique"]:
-		if int(plan.counts[grade]) > 0: counts.append("%s %d" % [CollectionUI.GRADES[grade],int(plan.counts[grade])])
-	var summary_text := T.label(" · ".join(counts) if not counts.is_empty() else "분해할 모듈이 없습니다.",12)
-	summary_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	summary.add_child(summary_text)
+	if bulk:
+		# Grade counts live on the chips; only an empty selection needs words here.
+		if count == 0: body.add_child(T.label("분해할 모듈이 없습니다.",12))
+	else:
+		var summary := _framed_row(body)
+		var counts: Array = []
+		for grade in ["normal","magic","rare","unique"]:
+			if int(plan.counts[grade]) > 0: counts.append("%s %d" % [CollectionUI.GRADES[grade],int(plan.counts[grade])])
+		var summary_text := T.label(" · ".join(counts) if not counts.is_empty() else "분해할 모듈이 없습니다.",12)
+		summary_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		summary.add_child(summary_text)
 	if count > 0:
 		var preview := ScrollContainer.new()
 		preview.name = "ModuleDisassemblyPreview"
@@ -468,11 +497,106 @@ func _disassembly_confirmation(body: VBoxContainer) -> void:
 			names.add_child(T.label("%s · %s" % [lobby.NAMES.get(item.get("turretType",""),item.get("turretType","")),CollectionUI.PARTS.get(item.get("part",""),item.get("part",""))],10))
 			_diamond_amount(row,str(int(MODULE_DIAMONDS.get(grade,0))),12)
 	var reward := _framed_row(body)
-	var reward_title := T.label("획득 다이아",13)
+	var reward_title := T.label("대상 %d개 · 획득 다이아" % count if bulk else "획득 다이아",13)
 	reward_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reward.add_child(reward_title)
 	_diamond_amount(reward,"+%d" % int(plan.diamonds))
+	if bulk: _muted(body,"분해한 모듈은 복구할 수 없습니다.",11)
 	_confirm_actions(body,"모듈 %d개 분해" % count,_perform.bind("disassemble_modules",{"ids":plan.items.map(func(item): return item.id)}),count>0,"DisassembleModulesConfirm","danger")
+
+## Scope is a pick-one segment and grades are multi-select chips in their own
+## grade colours, so only Cancel and the danger action read as buttons.
+func _bulk_choices(body: VBoxContainer) -> void:
+	_muted(body,"분해 범위",11)
+	var track := PanelContainer.new()
+	track.name = "BulkScope"
+	var frame := Frame.new("ui/components/segmented_control_frame.png",3)
+	frame.source_center = Rect2(8,8,122,27)
+	track.add_theme_stylebox_override("panel",frame)
+	body.add_child(track)
+	var scope := HBoxContainer.new()
+	scope.add_theme_constant_override("separation",0)
+	track.add_child(scope)
+	var here := str(lobby.NAMES.get(context.get("turretType",""),"이 포탑"))
+	var part := str(CollectionUI.PARTS.get(context.get("part",""),""))
+	if not part.is_empty(): here += " · " + part
+	for option in [[false,here,"BulkScopeTurret"],[true,"전체 포탑","BulkScopeAll"]]:
+		var chosen: bool = bulk_all_turrets == option[0]
+		var button := _choice(scope,option[1],func():
+			bulk_all_turrets = option[0]
+			_render())
+		button.name = option[2]
+		var selected := Frame.new("ui/components/segment_selected_gold.png",4)
+		selected.source_center = Rect2(6,6,52,20)
+		for state in ["normal","hover","pressed","hover_pressed","disabled"]:
+			button.add_theme_stylebox_override(state,selected if chosen else StyleBoxEmpty.new())
+		button.add_theme_color_override("font_color",Color("f3e2a6") if chosen else Color("6f8796"))
+		button.add_theme_color_override("font_hover_color",Color("f3e2a6") if chosen else Color("a9c2cf"))
+	var heading := HBoxContainer.new()
+	body.add_child(heading)
+	var grade_title := _muted(heading,"등급",11)
+	grade_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_muted(heading,"유니크·장착 제외",11).autowrap_mode = TextServer.AUTOWRAP_OFF
+	var counts := _bulk_grade_counts()
+	var grades := HBoxContainer.new()
+	grades.name = "BulkGrades"
+	grades.add_theme_constant_override("separation",6)
+	body.add_child(grades)
+	for grade in ["normal","magic","rare"]:
+		var on: bool = bulk_grades[grade]
+		var button := _choice(grades,("✓ " if on else "") + "%s %d" % [CollectionUI.GRADES[grade],int(counts[grade])],func():
+			bulk_grades[grade] = not bulk_grades[grade]
+			_render())
+		button.name = "BulkGrade_" + grade
+		var color: Color = CollectionUI.COLORS[grade]
+		# The selected-segment plate in grey, tinted per grade: lit when picked, dim when not.
+		var chip := Frame.new("ui/components/segment_selected_neutral.png",4)
+		chip.source_center = Rect2(6,6,52,20)
+		chip.modulate_color = color if on else Color(0.42,0.5,0.56,0.4)
+		for state in ["normal","hover","pressed","hover_pressed","disabled"]:
+			button.add_theme_stylebox_override(state,chip)
+		button.add_theme_color_override("font_color",color.lightened(0.45) if on else Color("6f8796"))
+		button.add_theme_color_override("font_hover_color",color.lightened(0.6) if on else Color("a9c2cf"))
+	body.add_child(HSeparator.new())
+
+## Plain touch target for the bulk choices; the caller sets its frame.
+func _choice(parent: Node, text: String, callback: Callable) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size.y = 44
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.add_theme_font_override("font",T.font(800))
+	button.add_theme_font_size_override("font_size",13)
+	button.add_theme_color_override("font_pressed_color",Color("e8f8ff"))
+	button.add_theme_color_override("font_disabled_color",Color("4f6270"))
+	button.disabled = pending or (_services() != null and _services().busy)
+	button.pressed.connect(callback)
+	parent.add_child(button)
+	return button
+
+func _muted(parent: Node, text: String, size: int) -> Label:
+	var label := T.label(text,size)
+	label.add_theme_color_override("font_color",Color("7f97a5"))
+	parent.add_child(label)
+	return label
+
+## Unequipped modules per grade in the chosen scope, before the grade filter.
+func _bulk_grade_counts() -> Dictionary:
+	var by_id := {}
+	for item in lobby.progression().get("turretModules",{}).get("items",[]):
+		var id := str(item.get("id",""))
+		if not by_id.has(id): by_id[id] = item
+	var source: Array = by_id.keys() if bulk_all_turrets else context.get("ids",[])
+	var seen := {}
+	var counts := {"normal":0,"magic":0,"rare":0}
+	for raw_id in source:
+		var item: Dictionary = by_id.get(str(raw_id),{})
+		if seen.has(str(raw_id)) or item.is_empty() or item.get("equipped",false): continue
+		seen[str(raw_id)] = true
+		var grade := str(item.get("grade",""))
+		if counts.has(grade): counts[grade] += 1
+	return counts
 
 func _perform(action: String, values: Dictionary) -> void:
 	if pending or _services() == null or _services().busy: return

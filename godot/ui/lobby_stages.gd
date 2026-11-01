@@ -39,6 +39,20 @@ func rune_reward(stage: int, mode: String = StageDifficulty.NORMAL) -> int:
 func best_rounds(stage: int, mode: String = StageDifficulty.NORMAL) -> int:
 	return StageDifficulty.best_rounds(lobby.progression(), stage, mode)
 
+func hard_cleared(stage: int) -> bool:
+	return StageDifficulty.hard_cleared(lobby.progression(), stage)
+
+## Hard's first-clear slot shows its ticket gift; its core point is common to every stage.
+func hard_unlock_items(_stage: int) -> Array:
+	return [["모듈 티켓 %d장" % StageDifficulty.FIRST_CLEAR_MODULE_TICKETS, "stage_rewards/reward_module_ticket.png", "티켓"]]
+
+## One-line chances of the repeat hard-clear rewards: [key, icon, text].
+func hard_repeat_rewards(stage: int) -> Array:
+	return [
+		["loot", "turret_modules/icons/core_rare.png", "전리품 모듈 %s" % StageDifficulty.percent_text(StageDifficulty.loot_chance(stage))],
+		["ticket", "stage_rewards/reward_module_ticket.png", "모듈 티켓 %s" % StageDifficulty.percent_text(StageDifficulty.ticket_chance(stage))],
+	]
+
 func hard_open(stage: int) -> bool:
 	return StageDifficulty.hard_unlocked(lobby.progression(), stage)
 

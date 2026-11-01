@@ -402,6 +402,7 @@ reward key는 서버가 정규화한다.
 - `weekly:2026-W35:all_complete`
 - `attendance:daily:2026-08-26`
 - `stage:11:first_clear`
+- `stage:<id>:hard_first_clear`
 - `run:<run-uuid>:settlement`
 
 클라이언트가 보상 금액이나 지급 자산을 직접 보내지 않는다. 서버 카탈로그가 reward
@@ -470,7 +471,7 @@ revision 증가를 한 transaction으로 처리한다. 같은 effect의 반복 a
 | `POST` | `/v1/economy/research-slots/2/unlock` | 조건 확인과 다이아 차감 |
 | `POST` | `/v1/economy/progression-effects/{effectId}/ack` | effect가 반영된 save revision 확인 |
 | `POST` | `/v1/economy/rewards/claim` | 일·주간·출석 보상 지급 |
-| `POST` | `/v1/economy/runs/settle` | 런 다이아와 최초 클리어 모듈권 정산 |
+| `POST` | `/v1/economy/runs/settle` | 런 다이아, 최초 클리어 모듈권, 하드 클리어 반복 모듈권·전리품 모듈 정산 |
 | `POST` | `/v1/purchases/google/verify` | 후속 단계의 Play 구매 검증과 지급 |
 
 `PATCH /v1/economy`나 `setDiamonds` 같은 직접 값 설정 API는 만들지 않는다.

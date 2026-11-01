@@ -33,12 +33,13 @@ func _find(node: Node, label: String) -> Button:
 		if found: return found
 	return null
 
-func _assert_empty_inventory(body: Control, width: int) -> void:
+func _assert_empty_inventory(body: Control, width: int, has_modules := false) -> void:
 	var grid := body.find_child("ModuleInventoryGrid", true, false) as GridContainer
 	assert(grid != null and grid.columns == (5 if width == 320 else 6))
 	assert(grid.get_child_count() == grid.columns, "Empty inventory shows exactly one row")
 	assert(not "획득한 " in _texts(body), "Empty inventory has no acquired-none message")
-	assert(body.find_child("ModuleBulkDisassembleAction", true, false) == null)
+	# Bulk stays reachable for other turrets' modules, never for an empty inventory.
+	assert((body.find_child("ModuleBulkDisassembleAction", true, false) != null) == has_modules)
 	for cell in grid.get_children():
 		assert(cell is PanelContainer and cell.get_child_count() == 0, "Empty cells have no item or action")
 		assert(cell.get_theme_stylebox("panel") is StyleBoxTexture)
@@ -112,7 +113,7 @@ func _run() -> void:
 		host.body.size = Vector2(width - 24, 850)
 		helper.modules()
 		for i in range(6): await process_frame
-		_assert_empty_inventory(host.body, width)
+		_assert_empty_inventory(host.body, width, true)
 	helper.select_part("core")
 	helper.select_item(item)
 	assert("과열 연산 코어" in _texts(host.body))

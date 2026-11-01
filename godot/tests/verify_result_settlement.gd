@@ -241,6 +241,19 @@ func run():
 	await frames()
 	check(http.sent.is_empty() and service.run_settlement_state(run_id).status == "guest", "guest outbox never leaks to account transport")
 	free_app(app)
+	# Hard clears: server-rolled drops of the receipt are kept for the result screen.
+	app = make_app("hard")
+	check(await app.start_stage(0), "hard fixture starts")
+	service = attach(app); http = service.account.transport
+	http.response.body.hardDropModuleTickets = 1
+	http.response.body.grantedModuleTickets = 1
+	http.response.body.hardLootModules = [{"id":"0198b955-3656-7c40-b3cb-87f427b90b01","turretType":"cannon","part":"core","family":"blastCore","grade":"magic","options":[]}]
+	run_id = finish(app)
+	await frames()
+	var drops: Dictionary = service.run_settlement_state(run_id).get("hardRewards", {})
+	check(drops == {"moduleTickets":1,"modules":[{"turretType":"cannon","part":"core","grade":"magic"}]}, "hard drops survive settlement for the result")
+	check(app.checkpoint.rewards().valid_state(app.checkpoint.rewards().state), "outbox with hard drops stays valid")
+	free_app(app)
 	print("RESULT_SETTLEMENT checks=",checks," failures=",failures.size()," ",failures)
 	_remove(directory)
 	quit(0 if failures.is_empty() else 1)

@@ -444,19 +444,16 @@ func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGe
 		error = "Missing random number generator"
 		return []
 	var values: Array = []
+	var rolls: Array = []
 	var rules: Dictionary = _data.randomization
 	for spawn in _schedule(stage_index, round_index):
 		var type: String = spawn[0]
 		var lane: float = (rng.randf() * 2.0 - 1.0) * rules.laneOffsetAmplitudes[type]
 		var phase := rng.randf()
-		var reward := 0
-		if not type in rules.bossTypes:
-			var roll := rng.randf()
-			var boundary: float = rules.carrierChance * rules.oneDiamondChanceGivenCarrier
-			if roll < boundary: reward = 1
-			elif roll < boundary + rules.carrierChance * rules.twoDiamondChanceGivenCarrier: reward = 2
-			elif roll < boundary + rules.carrierChance * (rules.twoDiamondChanceGivenCarrier + rules.threeDiamondChanceGivenCarrier): reward = 3
-		values.append({"laneOffsetRatio": lane, "visualPhase": phase, "diamondReward": reward})
+		var roll := -1.0
+		if not type in rules.bossTypes: roll = rng.randf()
+		rolls.append(roll)
+		values.append({"laneOffsetRatio": lane, "visualPhase": phase, "diamondReward": _diamonds(roll, 1.0)})
 	# Authored magic/rare identity consumes no draws, so ordinary values are unchanged.
 	for elite in _data.stages[stage_index].waves[round_index].get("eliteSpawns", []):
 		var spawn: Dictionary = values[int(elite.spawnIndex)]
@@ -469,7 +466,25 @@ func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGe
 			if values[index].has("rarity"): continue
 			var promoted := StageDifficulty.promote(hard_seed, stage_number, round_index, index, schedule[index][0], enemy_rarity_rules())
 			values[index].merge(promoted, true)
+	# Magic and rare carry diamonds as much more often as they pay gold. Only the
+	# boundaries scale, so the draws and their order stay those of a normal spawn.
+	var rarity_rules: Dictionary = enemy_rarity_rules()
+	for index in range(values.size()):
+		var rarity: String = values[index].get("rarity", "")
+		if not rarity.is_empty() and rarity_rules.get("rarities", {}).has(rarity):
+			values[index].diamondReward = _diamonds(rolls[index], float(rarity_rules.rarities[rarity].rewardGoldMultiplier))
 	return values
+
+## Diamonds for one carrier roll (negative for bosses); `scale` multiplies the carrier chance.
+func _diamonds(roll: float, scale: float) -> int:
+	if roll < 0.0: return 0
+	var rules: Dictionary = _data.randomization
+	var carrier: float = minf(1.0, rules.carrierChance * scale)
+	var boundary: float = carrier * rules.oneDiamondChanceGivenCarrier
+	if roll < boundary: return 1
+	if roll < boundary + carrier * rules.twoDiamondChanceGivenCarrier: return 2
+	if roll < boundary + carrier * (rules.twoDiamondChanceGivenCarrier + rules.threeDiamondChanceGivenCarrier): return 3
+	return 0
 
 ## {spawnIndex: {rarity, affixes}}; both are fixed by the round design.
 func elite_spawns(stage_index: int, round_index: int) -> Dictionary:

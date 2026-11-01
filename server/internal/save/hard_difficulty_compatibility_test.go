@@ -15,6 +15,7 @@ func TestHardDifficultyRequiresCurrentClient(t *testing.T) {
 	}{
 		{"hard run old client", `{}`, `{"difficulty":"hard"}`, 14, true},
 		{"hard record old client", `{"hardBestRoundsByStage":{"3":12}}`, `null`, 14, true},
+		{"hard clear old client", `{"hardClearedStageNumbers":[3]}`, `null`, 14, true},
 		{"hard run current client", `{"hardBestRoundsByStage":{"3":12}}`, `{"difficulty":"hard"}`, 15, false},
 		{"normal old client", `{"bestRoundsByStage":{"3":40}}`, `{"stageNumber":3}`, 14, false},
 		{"empty hard record old client", `{"hardBestRoundsByStage":{}}`, `null`, 14, false},
