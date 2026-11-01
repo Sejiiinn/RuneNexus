@@ -112,7 +112,7 @@ func _verify() -> void:
 	await process_frame
 	assert(lobby.home.modal_scroll is ScrollContainer)
 	assert(lobby.home.modal_frame.scale == Vector2.ONE)
-	lobby.home.size = Vector2(320,220)
+	lobby.home.size = Vector2(440,220)
 	lobby.home._layout_modal()
 	assert(lobby.home.modal_frame.scale == Vector2.ONE, "Short home modal must scroll rather than shrink touch targets")
 	assert(lobby.home.modal_frame.size.y <= 220*0.85+1)
@@ -132,7 +132,7 @@ func _verify() -> void:
 	assert(lobby.home.find_child("ContinueRun",true,false) != null and lobby.stages.selected == 1, "An active run selects its stage with a continue action")
 	lobby.home.find_child("ContinueRun",true,false).pressed.emit()
 	assert(app.resumes == 1)
-	for dimensions in [Vector2(320, 568), Vector2(440, 988)]:
+	for dimensions in [Vector2(440, 568), Vector2(440, 988)]:
 		lobby.home.size = dimensions
 		lobby.home._layout()
 		var bounds := Rect2(lobby.home.global_position, dimensions)
@@ -144,7 +144,7 @@ func _verify() -> void:
 	enlarged.lobby = lobby
 	root.add_child(enlarged)
 	enlarged.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	enlarged.size = Vector2(320,568)
+	enlarged.size = Vector2(440,568)
 	enlarged._layout()
 	assert(enlarged._font_size(12) == 24 and enlarged._font_size(20) == 36, "SP conversion must preserve per-size nonlinear scaling")
 	for id in ["Settings","ContinueRun","Mailbox","TabCore","TabTurret"]:

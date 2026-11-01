@@ -57,7 +57,7 @@ func run() -> void:
 	var lobby := Lobby.new()
 	lobby.app = app
 	root.add_child(lobby)
-	for width in [320,440]:
+	for width in [440]:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = Vector2i(width,760)
 		for stage in [1,8,11]:
@@ -113,8 +113,8 @@ func run() -> void:
 	await UiTweens.finished(self)
 	check(lobby)
 	# In a short logical viewport only body content scrolls; close remains fixed.
-	root.content_scale_size = Vector2i(320,260)
-	root.size = Vector2i(320,260)
+	root.content_scale_size = Vector2i(440,260)
+	root.size = Vector2i(440,260)
 	await UiTweens.finished(self)
 	check(lobby)
 	assert(lobby.modal_scroll.get_v_scroll_bar().max_value > lobby.modal_scroll.size.y)
@@ -126,6 +126,6 @@ func run() -> void:
 	click(close)
 	await process_frame
 	assert(not is_instance_valid(lobby.modal))
-	print("PASS lobby_modal: animations ON, 320/440 physical900 logical760 expand, caption lines, actual card start/confirm/unlock bubble hits, resize during tween, short viewport scroll")
+	print("PASS lobby_modal: animations ON, 440 physical900 logical760 expand, caption lines, actual card start/confirm/unlock bubble hits, resize during tween, short viewport scroll")
 	lobby.free()
 	quit()

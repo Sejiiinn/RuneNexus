@@ -40,7 +40,7 @@ func run() -> void:
 	hud.refresh()
 	await frames()
 	check(entrance.started_usec == start and entrance.elapsed() > 0.18,"content rebuild keeps real elapsed timeline")
-	root.size = Vector2i(320,680)
+	root.size = Vector2i(440,680)
 	root.content_scale_size = root.size
 	hud.refresh()
 	await frames()

@@ -35,7 +35,8 @@ func run() -> void:
 	var lobby := Lobby.new()
 	lobby.app = app
 	root.add_child(lobby)
-	for width in [320,440]:
+	# Logical width never drops below 440 (440x760 base, expand); 600 covers wide screens.
+	for width in [440,600]:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = Vector2i(width,900)
 		for long_balance in [false,true]:
@@ -84,7 +85,7 @@ func run() -> void:
 				lobby.open_page(page)
 				lobby.find_child("TabResearch",true,false).pressed.emit()
 				assert(lobby.page == "연구", "Footer page transition")
-	print("PASS lobby_header: 320/440, five pages, 18-digit balances, stage map header and tab headers, bounds/no overlap, pointer stage tab return")
+	print("PASS lobby_header: 440/600, five pages, 18-digit balances, stage map header and tab headers, bounds/no overlap, pointer stage tab return")
 	lobby.free()
 	quit()
 

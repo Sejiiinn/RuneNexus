@@ -81,7 +81,7 @@ func run() -> void:
 	quote=app.run_domain.growth.research_quote(app.progression_inputs,"towerDamageLimitExpansion")
 	assert(app.apply_growth_command({"kind":"startResearch","id":"towerDamageLimitExpansion","nowMillis":int(Time.get_unix_time_from_system()*1000)-int(quote.durationMillis)/4}))
 	lobby.refresh(); await settle()
-	for width in [440,320]:
+	for width in [440]:
 		root.size=Vector2i(width,900); root.content_scale_size=root.size; await settle(); layout(lobby)
 		assert(fills(lobby).size()==2 and fills(lobby)[1].progress>0.24 and fills(lobby)[1].progress<0.3)
 		await capture("two-slots-%d"%width)
@@ -101,7 +101,7 @@ func run() -> void:
 	active.startedAtMillis=int(Time.get_unix_time_from_system()*1000)-int(active.durationMillis)-1000
 	timer(fill).timeout.emit(); await UiTweens.finished(self)
 	assert(clock(fill).text=="연구 완료" and fill.progress>0.999,"Expired clock/fill reach completion: %s / %.6f"%[clock(fill).text,fill.progress])
-	await capture("dynamic-complete-320")
+	await capture("dynamic-complete-440")
 	# The actual instant control retains its confirmation and real completion command.
 	await click(card(fill).find_child("ResearchSlotInstant",true,false))
 	assert(lobby.modal!=null)
@@ -115,16 +115,16 @@ func run() -> void:
 	remaining.durationMillis=123*60000
 	lobby.refresh(); await settle()
 	fill=fills(lobby)[0]
-	(card(fill).find_child("ResearchSlotTitle",true,false) as Label).text="포탑 화력 최대 레벨 확장 연구"
+	(card(fill).find_child("ResearchSlotTitle",true,false) as Label).text="포탑 화력 최대 레벨 확장 연구 · 장기 효율 강화 · 추가 보정 단계 해금"
 	(card(fill).find_child("ResearchSlotLevel",true,false) as Label).text="Lv.99/100"
-	root.size=Vector2i(320,640); root.content_scale_size=root.size; await settle(); layout(lobby)
+	root.size=Vector2i(440,640); root.content_scale_size=root.size; await settle(); layout(lobby)
 	assert(cost(fill).text=="123" and clock(fill).text.begins_with("2시간"))
 	assert((card(fill).find_child("ResearchSlotTitle",true,false) as Label).get_line_count()>1,"Long identity wraps instead of clipping")
-	await capture("long-title-cost-320x640")
+	await capture("long-title-cost-440x640")
 	# Expired instant confirmation uses the existing domain path; an empty slot is retained.
 	remaining.startedAtMillis-=remaining.durationMillis+1000
 	assert(app.apply_growth_command({"kind":"completeFinishedResearches","nowMillis":int(Time.get_unix_time_from_system()*1000)}))
 	lobby.refresh(); await settle(); layout(lobby)
 	assert(fills(lobby).is_empty() and button(lobby.body,"중단")==null)
-	await capture("empty-slots-320x640")
-	lobby.free(); print("PASS research slots: visible stop/instant text 440/320, initial/resumed progress, real stop keep/resume, two slots, timer minute/cost/balance/completion and instant confirmation"); quit()
+	await capture("empty-slots-440x640")
+	lobby.free(); print("PASS research slots: visible stop/instant text 440, initial/resumed progress, real stop keep/resume, two slots, timer minute/cost/balance/completion and instant confirmation"); quit()

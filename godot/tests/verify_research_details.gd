@@ -53,7 +53,7 @@ func run() -> void:
 	var baseline: Dictionary=app.run_domain.growth.data.defaultProgression.duplicate(true); baseline.runes=1000
 	app.progression_inputs=baseline.duplicate(true)
 	var lobby := Lobby.new(); lobby.app=app; root.add_child(lobby); await settle(); lobby.open_page("연구"); await settle()
-	for width in [440,320]:
+	for width in [440]:
 		root.size=Vector2i(width,900); root.content_scale_size=root.size; await settle()
 		lobby.growth._details("researchEfficiency"); await settle(); layout(lobby,"researchEfficiency")
 		var quote: Dictionary=app.run_domain.growth.research_quote(app.progression_inputs,"researchEfficiency")
@@ -72,7 +72,7 @@ func run() -> void:
 	app.progression_inputs.freeDiamonds=100
 	lobby.growth._details("researchEfficiency"); await settle(); layout(lobby,"researchEfficiency")
 	assert(button(lobby.modal_body,"연구 중단")!=null and texts(lobby.modal_body).contains("즉시 완료"))
-	await capture("research-active-320")
+	await capture("research-active-440")
 	app.progression_inputs.activeResearches[0].startedAtMillis=int(Time.get_unix_time_from_system()*1000)-int(app.progression_inputs.activeResearches[0].durationMillis)+59000
 	for child in lobby.modal_body.get_children():
 		if child is Timer: child.timeout.emit()
@@ -108,18 +108,18 @@ func run() -> void:
 	assert((lobby.modal_frame.find_child("ResearchDetailLevel",true,false) as Label).text=="Lv.1 / 20")
 	assert(texts(lobby.modal_body).contains("필요 룬 %d" % int(quote.cost)))
 	# Short windows scroll content instead of shrinking its button/text.
-	root.size=Vector2i(320,220); root.content_scale_size=root.size; await settle(); lobby.growth._details("researchCostEfficiency"); await settle(); layout(lobby,"researchCostEfficiency")
+	root.size=Vector2i(440,220); root.content_scale_size=root.size; await settle(); lobby.growth._details("researchCostEfficiency"); await settle(); layout(lobby,"researchCostEfficiency")
 	assert(lobby.modal_body.get_combined_minimum_size().y>lobby.modal_scroll.size.y)
 	lobby.modal_scroll.scroll_vertical=10000; await settle()
 	var action := button(lobby.modal_body,"연구 시작")
 	assert(action!=null and action.size.y>=44 and lobby.modal_frame.get_global_rect().encloses(action.get_global_rect()),"Start is reachable by internal scrolling")
-	await capture("research-short-320")
+	await capture("research-short-440")
 	# Maximum research does not offer a next effect or a start command.
-	root.size=Vector2i(320,900); root.content_scale_size=root.size; await settle()
+	root.size=Vector2i(440,900); root.content_scale_size=root.size; await settle()
 	app.progression_inputs.researchLevels={"researchEfficiency":20}; lobby.growth._details("researchEfficiency"); await settle(); layout(lobby,"researchEfficiency")
 	assert(button(lobby.modal_body,"연구 완료").disabled and lobby.modal_body.find_child("ResearchDetailNext",true,false)==null)
 	var maximum_effect: Label=lobby.modal_body.find_child("ResearchDetailEffect",true,false).get_child(0)
 	assert(maximum_effect.size.x>70 and maximum_effect.get_line_count()==1,"Maximum current effect remains readable without a next column")
 	lobby.close_modal(); lobby.refresh(); await settle(); assert(lobby.modal==null,"Refresh cannot reopen a dismissed research detail")
-	print("PASS research details: title/effect/quote 440/320, real start cost, active timer, expired collection, unlock/rune/slot gates, long values, refresh, max and 320x220 scrolling")
+	print("PASS research details: title/effect/quote 440, real start cost, active timer, expired collection, unlock/rune/slot gates, long values, refresh, max and 440x220 scrolling")
 	lobby.free(); quit()

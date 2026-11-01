@@ -42,7 +42,7 @@ func verify_stable_reward_layout(app, hud) -> void:
 	var original: Array = state.rewardOptions.duplicate()
 	var view: Dictionary = app.reroll_view.duplicate(true)
 	var groups := [["attackSpeed","range","physicalDamage"],["elementalDamage","lightWeapon","heavyWeapon"],["damageOverTime","explosion","chain"],["criticalChance","aimSpeed","damageAmplifier"],["armorPiercing","multipleProjectiles","range"]]
-	for width in [440,320]:
+	for width in [440]:
 		root.size = Vector2i(width,900 if width == 440 else 736); root.content_scale_size = root.size
 		state.rewardOptions = original.duplicate(); hud.refresh(); await frames()
 		var expected := reward_bounds(hud)
@@ -87,7 +87,7 @@ func run() -> void:
 	check(app.requests == 0,"entrance prevents reroll")
 	hud.rewards.gem_entrance._apply(1.0)
 	await verify_stable_reward_layout(app,hud)
-	for width in [440,320]:
+	for width in [440]:
 		root.size = Vector2i(width,900 if width == 440 else 736); root.content_scale_size = root.size
 		hud.refresh(); await frames()
 		var hit: Button = hud.overlay_body.find_child("GemRewardReroll",true,false)
@@ -124,7 +124,7 @@ func run() -> void:
 	check(not hud.rewards.gem_entrance.active,"reroll does not replay wave entrance")
 	stale_card.call(); stale_reroll.call()
 	check(app.requests == 1 and hud.rewards.pending_gem.is_empty(),"old rendered callbacks stay stale after success")
-	for width in [440,320]:
+	for width in [440]:
 		root.size = Vector2i(width,900 if width == 440 else 736); root.content_scale_size = root.size
 		hud.refresh(); await frames()
 		hit = hud.overlay_body.find_child("GemRewardReroll",true,false)
@@ -138,7 +138,7 @@ func run() -> void:
 		hit = hud.overlay_body.find_child("GemRewardReroll",true,false)
 		check(not hit.disabled and hit.get_node("RerollCost").text == "재시도","recovery remains retryable: "+status)
 		check(hud.rewards.close_back() and hud.overlay_body.find_child("GemRewardCards",true,false).get_child(0).disabled,"recovery still blocks settlement: "+status)
-		if status == "recovering": await capture("reward-recovering-320")
+		if status == "recovering": await capture("reward-recovering-440")
 		var prior_requests := app.requests
 		hit.pressed.emit()
 		check(app.requests == prior_requests+1,"locked recovery action really retries: "+status)
@@ -153,7 +153,7 @@ func run() -> void:
 	hud.refresh(); await frames()
 	hit = hud.overlay_body.find_child("GemRewardReroll",true,false)
 	check(hit.disabled and hit.get_node("RerollRemaining/Count").text == "0" and hit.get_node("RerollCost").text == "소진","exhausted total and cost")
-	await capture("reward-exhausted-320")
+	await capture("reward-exhausted-440")
 	state.isPurchasedGemReward = true; hud.refresh(); await frames()
 	check(hud.overlay_body.find_child("GemRewardReroll",true,false) == null,"purchased gem choices excluded")
 	state.isPurchasedGemReward = false

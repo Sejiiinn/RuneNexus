@@ -24,7 +24,7 @@ func run() -> void:
 	assert(app.catalog.load_catalog() and app.run_domain.initialize(app.catalog,{},0,100))
 	root.add_child(app)
 	var hud := preload("res://ui/battle_hud.gd").new(); hud.app = app; app.hud = hud; root.add_child(hud)
-	for width in [320,440]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,900); root.size = root.content_scale_size
 		hud.main_tab = "turrets"; hud.body_key = ""; hud.refresh()
 		await process_frame; await process_frame; await process_frame
@@ -39,5 +39,5 @@ func run() -> void:
 		assert(hud.start.size == Vector2(76,36))
 		assert(hud.top.get_node("ResourceHUD").theme_type_variation == "ResourceHUD")
 	hud.queue_free(); app.queue_free(); await process_frame
-	print("PASS native HUD frames: primary/popup/dock texture styles, fixed margins, states, edge attachment, 320/440 geometry")
+	print("PASS native HUD frames: primary/popup/dock texture styles, fixed margins, states, edge attachment, 440 geometry")
 	quit()

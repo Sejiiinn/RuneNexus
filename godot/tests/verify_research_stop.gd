@@ -21,7 +21,7 @@ func _button(node: Node, name: String) -> Button:
 
 func _confirm_layout(lobby: Control) -> void:
 	assert(_label(lobby.modal_frame,"연구를 중단할까요?") != null,"Stop confirmation title")
-	assert(Rect2(Vector2.ZERO,lobby.size).encloses(lobby.modal_frame.get_global_rect()),"Stop confirmation fits 320 viewport")
+	assert(Rect2(Vector2.ZERO,lobby.size).encloses(lobby.modal_frame.get_global_rect()),"Stop confirmation fits 440 viewport")
 	for name in ["StopResearch","KeepResearch"]:
 		var action := _button(lobby.modal_frame,name)
 		assert(action != null and action.visible,"Missing stop action: "+name)
@@ -32,8 +32,8 @@ func _verify() -> void:
 	# Measure the settled touch targets; modal entrance animation is covered by
 	# the separate visual UI check.
 	ProjectSettings.set_setting("accessibility/disable_animations",true)
-	root.size = Vector2i(320,568)
-	root.content_scale_size = Vector2i(320,568)
+	root.size = Vector2i(440,568)
+	root.content_scale_size = Vector2i(440,568)
 	var app := LobbyFixture.FakeApp.new()
 	assert(app.catalog.load_catalog())
 	assert(app.run_domain.growth.load_catalog())
@@ -133,6 +133,6 @@ func _verify() -> void:
 	await _settle()
 	assert(lobby.message.contains("못했습니다"),"Rejected stale stop reports failure")
 
-	print("PASS research stop: detail/list keep, 320 bounds and touch, actual refund and elapsed time, expired completion, lifecycle completion, missing active, rejected stale stop")
+	print("PASS research stop: detail/list keep, 440 bounds and touch, actual refund and elapsed time, expired completion, lifecycle completion, missing active, rejected stale stop")
 	lobby.free()
 	quit()

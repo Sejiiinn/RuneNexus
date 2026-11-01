@@ -63,7 +63,7 @@ func run() -> void:
 	check(Device.write({"msaa":2,"shadow":2048}) and Device.read().camera=="drone","Graphics-only writes keep the stored camera view")
 	var restored := {}; Device.apply(restored)
 	check(restored.get("camera","")=="drone","Stored camera view applies at launch")
-	await dimensions(320,220)
+	await dimensions(440,220)
 	var app := App.new()
 	app.catalog.load_catalog(); app.run_domain.growth.load_catalog()
 	app.progression_inputs = {"runes":10000,"clearedStageNumbers":[1,2,3,4,5,6],"unlockedStageCount":7,"researchLevels":{},"activeResearches":[],"turretModules":{"items":[],"tickets":0}}
@@ -108,7 +108,7 @@ func run() -> void:
 	var events_ids := home_ids(lobby.home)
 	await UiTweens.finished(self)
 	check(home_ids(lobby.home)==events_ids and not texts(lobby.home.modal).contains("MSAA"),"Delayed focus cannot replace an intentional dialog transition")
-	await dimensions(320,100)
+	await dimensions(440,100)
 	lobby.home.modal_scroll.scroll_vertical=30; await settle()
 	var events_scroll: int=lobby.home.modal_scroll.scroll_vertical
 	lobby.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN); await settle()
@@ -123,7 +123,7 @@ func run() -> void:
 	check(is_zero_approx(lobby.modal_visual.modulate.a),"Initial research detail has an entrance")
 	await UiTweens.finished(self)
 	var research_ids := lobby_ids(lobby)
-	await dimensions(320,220)
+	await dimensions(440,220)
 	lobby.modal_scroll.scroll_vertical=30; await settle()
 	var research_scroll: int=lobby.modal_scroll.scroll_vertical
 	app.progression_inputs.runes=0
@@ -170,7 +170,7 @@ func run() -> void:
 	(hud.modal_body.find_child("TraitChoice_"+first,true,false) as Button).pressed.emit()
 	await click(hud.modal_body.find_child("TraitTier1",true,false) as Button)
 	check(battle_ids(hud)==trait_ids and hud.trait_preview==first and (hud.modal_body.find_child("TraitTier1",true,false) as Button).button_pressed,"Native click on the selected trait tier preserves its preview, panel and selection")
-	await dimensions(320,300)
+	await dimensions(440,300)
 	hud.modal_scroll.scroll_vertical=40; await settle()
 	var trait_scroll: int=hud.modal_scroll.scroll_vertical
 	(hud.modal_body.find_child("TraitTier2",true,false) as Button).pressed.emit()

@@ -35,7 +35,7 @@ func _find(node: Node, label: String) -> Button:
 
 func _assert_empty_inventory(body: Control, width: int, has_modules := false) -> void:
 	var grid := body.find_child("ModuleInventoryGrid", true, false) as GridContainer
-	assert(grid != null and grid.columns == (5 if width == 320 else 6))
+	assert(grid != null and grid.columns == 6)
 	assert(grid.get_child_count() == grid.columns, "Empty inventory shows exactly one row")
 	assert(not "획득한 " in _texts(body), "Empty inventory has no acquired-none message")
 	# Bulk stays reachable for other turrets' modules, never for an empty inventory.
@@ -93,7 +93,7 @@ func _run() -> void:
 	helper.setup(host)
 	host.helper = helper
 	helper.modules()
-	for width in [320, 440]:
+	for width in [440]:
 		host.size = Vector2(width, 900)
 		host.body.size = Vector2(width - 24, 850)
 		helper.modules()
@@ -108,7 +108,7 @@ func _run() -> void:
 	assert(helper.filtered_items().size() == 2)
 	helper.select_part("barrel")
 	assert(helper.filtered_items().is_empty())
-	for width in [320, 440]:
+	for width in [440]:
 		host.size = Vector2(width, 900)
 		host.body.size = Vector2(width - 24, 850)
 		helper.modules()
@@ -127,7 +127,7 @@ func _run() -> void:
 	helper._module_service("모듈 뽑기")
 	assert(host.progression_state == original)
 	assert("계정 서버 연결" in _texts(host.body))
-	for width in [320, 440]:
+	for width in [440]:
 		host.size = Vector2(width, 1100)
 		host.body.size = Vector2(width - 24, 1050)
 		helper.modules()
@@ -139,7 +139,7 @@ func _run() -> void:
 		assert(grid != null)
 		assert(grid.columns == (5 if grid.size.x<324 else 6))
 		assert(grid.get_child_count()%grid.columns==0,"Final inventory row filled with empty slots")
-		assert(grid.columns == (5 if width==320 else 6),"Responsive 5/6 columns")
+		assert(grid.columns == 6,"Six columns at 440")
 		for cell in grid.get_children(): assert(absf(cell.size.x-cell.size.y)<1.1,"Inventory cells stay square")
 	# The module page reserves the same details/action band for 0/1/3 options.
 	var saved_items: Array = host.progression_state.turretModules.items.duplicate(true)
@@ -158,7 +158,7 @@ func _run() -> void:
 		var extra: Dictionary = item.duplicate(true)
 		extra.id = "inventory_%d" % i
 		host.progression_state.turretModules.items.append(extra)
-	for width in [320, 440]:
+	for width in [440]:
 		host.body.size = Vector2(width - 24, 620)
 		helper.select_part("")
 		for i in range(6): await process_frame
@@ -233,7 +233,7 @@ func _run() -> void:
 	helper.set_period("weekly", host.body)
 	assert("웨이브 150회 클리어" in _texts(host.body))
 	assert("30 / 150" in _texts(host.body))
-	for width in [320, 440]:
+	for width in [440]:
 		host.body.size = Vector2(width - 64, 1050)
 		helper.quests(host.body)
 		await process_frame
@@ -247,7 +247,7 @@ func _run() -> void:
 	host.progression_state.dailyQuestClockRollbackDetected = true
 	helper.set_period("daily", host.body)
 	assert(_find(host.body, "수령") == null)
-	print("PASS lobby_collection: module filter/equip/unequip, service immutability, daily/weekly progress/claimed/clock guard, 320/440 widths, fixed module bounds, upper-right metallic actions/all grade refunds/compact bulk, inventory-only hidden-bar scroll position, equipped part/grade icons")
+	print("PASS lobby_collection: module filter/equip/unequip, service immutability, daily/weekly progress/claimed/clock guard, 440 widths, fixed module bounds, upper-right metallic actions/all grade refunds/compact bulk, inventory-only hidden-bar scroll position, equipped part/grade icons")
 	host.queue_free()
 	await process_frame
 	quit()

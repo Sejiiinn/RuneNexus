@@ -64,7 +64,7 @@ func run() -> void:
 	lobby.open_page("연구"); await settle()
 	lobby.growth._details("researchEfficiency"); await settle()
 	var research_modal_id: int = lobby.modal.get_instance_id()
-	for width in [440,320,440]:
+	for width in [440,600,440]:
 		await dimensions(width,900)
 		lobby.refresh(); await settle()
 		assert(lobby.modal.get_instance_id() == research_modal_id,"Research refresh keeps the same modal shell")
@@ -72,7 +72,7 @@ func run() -> void:
 		assert(lobby.modal_frame.size.y < 500,"Short research details must not fill the viewport")
 	lobby.close_modal()
 	app.progression_inputs.turretModules.items = [{"id":"a","turretType":"arrow","part":"core","grade":"rare","equipped":false,"options":[]}]
-	for width in [320,440]:
+	for width in [440]:
 		await dimensions(width,900)
 		lobby.open_page("포탑"); await settle()
 		var count := find_text(lobby,"보유 1개")
@@ -92,7 +92,7 @@ func run() -> void:
 	battle.selected = Vector2i(index % int(map.columns),index / int(map.columns))
 	assert(battle.apply_run_command({"kind":"build","x":battle.selected.x,"y":battle.selected.y,"type":"arrow"}))
 	hud.on_board_selection(); hud.refresh(); await settle()
-	for width in [440,320]:
+	for width in [440]:
 		await dimensions(width,900)
 		var dock_bounds: Rect2 = hud.dock.get_global_rect()
 		var stat_scroll: ScrollContainer = hud.body.find_child("TurretStatsScroll",true,false)
@@ -132,7 +132,7 @@ func run() -> void:
 			await process_frame
 			assert(hud.dock.get_global_rect() == dock_bounds,"Cancelling preview must preserve the dock")
 		print("PASS upgrade layout width=",width," dock=",dock_bounds)
-	for width in [440,320]:
+	for width in [440]:
 		await dimensions(width,900)
 		hud.turret_panel._open_current_traits(); await UiTweens.finished(self); await settle()
 		var panel: PanelContainer = hud.modal_panel
@@ -160,12 +160,12 @@ func run() -> void:
 		print("PASS trait selection layout width=",width," modal=",bounds)
 	await dimensions(440,900)
 	hud.menu_panel._stage_menu(); await check_first_visible_frames(hud,200)
-	for resolution in [Vector2i(440,900),Vector2i(320,568),Vector2i(440,900)]:
+	for resolution in [Vector2i(440,900),Vector2i(600,900),Vector2i(440,900)]:
 		await dimensions(resolution.x,resolution.y)
 		assert(hud.modal_panel.size.x <= resolution.x-36+0.1,"Open battle modal must follow viewport width")
 		assert(Rect2(Vector2.ZERO,root.size).encloses(hud.modal_panel.get_global_rect()),"Battle modal remains inside viewport")
 		await capture("battle-menu-"+str(resolution.x))
-	await dimensions(320,568)
+	await dimensions(440,568)
 	hud.menu_panel._end_stage_confirm()
 	await check_first_visible_frames(hud,360)
 	await dimensions(440,900)
@@ -182,8 +182,8 @@ func run() -> void:
 	hud.close_modal(); await UiTweens.finished(self)
 	hud.menu_panel._portal_details({"previewText":"포탈의 적 출현 정보입니다.","enemyCounts":{}},0)
 	await settle()
-	await dimensions(320,568)
-	assert(hud.modal_panel.size.x <= 296.1)
+	await dimensions(440,568)
+	assert(hud.modal_panel.size.x <= 416.1)
 	assert(hud.modal_panel.get_global_rect().end.y <= 568.1)
 	await capture("battle-bottom-sheet")
 	hud.close_modal(); await UiTweens.finished(self)

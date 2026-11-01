@@ -44,7 +44,7 @@ func run() -> void:
 	hud.menu_panel._refresh_core()
 	check(hud.find_child("AdditionalCoreHp",true,false)==null,"separate top HP row removed")
 	check(HealthBar.ADDITIONAL_COLOR.get_luminance()>HealthBar.ORDINARY_COLOR.get_luminance(),"bonus green brighter than original green")
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,760)
 		root.size = Vector2i(width,900)
 		app.scene.combat_runtime.defense.hp = 100.0

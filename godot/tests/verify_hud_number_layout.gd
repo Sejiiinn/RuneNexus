@@ -23,7 +23,7 @@ func check(ok: bool, msg: String):
 	if not ok: failures.append(msg); printerr(msg)
 func _initialize(): call_deferred("run")
 func run():
-	for width in [320,360,440,320]:
+	for width in [440,600,440]:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = Vector2i(width,900)
 		for price in [1250,9999,12500,123456,999949,123456789,-1]:

@@ -71,8 +71,8 @@ func check_steady(expected: Dictionary, label: String) -> void:
 		var node: Control = hud.overlay_body.find_child(name,true,false)
 		check(node == expected[name].node and node.get_global_rect().is_equal_approx(expected[name].rect),label+" steady "+name)
 func short_clip() -> void:
-	await reset(320)
-	root.size = Vector2i(320,400); root.content_scale_size = root.size
+	await reset(440)
+	root.size = Vector2i(440,400); root.content_scale_size = root.size
 	for gem in hud.rewards.GEM_COLORS: app.run_domain.state.gemInventory[gem] = 4
 	hud.refresh(); await frames()
 	hit().pressed.emit(); await frames(); commit(NEW); available(); complete()
@@ -99,9 +99,9 @@ func short_clip() -> void:
 			for x in rendered.get_width():
 				if not expected.has_point(Vector2(x+0.5,y+0.5)) and rendered.get_pixel(x,y) != baseline.get_pixel(x,y): leaked += 1
 		check(leaked == 0,"actual GL composite has zero pixels outside scroll clip")
-	await capture("flip-scroll-320x400-front")
-	flip._apply(0.18); await frames(); await capture("flip-scroll-320x400-edge")
-	flip._apply(0.27); await frames(); await capture("flip-scroll-320x400-new")
+	await capture("flip-scroll-440x400-front")
+	flip._apply(0.18); await frames(); await capture("flip-scroll-440x400-edge")
+	flip._apply(0.27); await frames(); await capture("flip-scroll-440x400-new")
 	flip._apply(0.6); await frames()
 	check(flip.get_child_count() == 0,"short scrolled composite cleans up")
 	await destroy()
@@ -122,7 +122,7 @@ func immediate_flip() -> void:
 func run() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture-dir="): capture_dir = argument.trim_prefix("--capture-dir=")
-	for width in [440,320]:
+	for width in [440]:
 		await reset(width)
 		var old_callback: Callable = cards().get_child(0).pressed.get_connections()[0].callable
 		await capture("flip-before-"+str(width))
@@ -175,7 +175,7 @@ func run() -> void:
 	await short_clip()
 	await immediate_flip()
 	# An already-open shard confirmation keeps its geometry and cannot settle.
-	await reset(320)
+	await reset(440)
 	hud.overlay_body.find_child("GemRewardShards",true,false).pressed.emit(); await frames()
 	var confirm: Button
 	for button in hud.overlay_body.find_children("*","Button",true,false):
@@ -195,7 +195,7 @@ func run() -> void:
 	check(hud.rewards.shard_selected and not confirm.disabled and confirm.get_global_rect().is_equal_approx(confirm_rect),"completed flip preserves open shard confirmation")
 	await destroy()
 	# Recovery completing during the initial entrance must wait, not compete.
-	await reset(320)
+	await reset(440)
 	app.run_domain.state.economyRunId = "entrance-recovery"
 	hud.refresh(); await frames()
 	hud.rewards.gem_entrance.set_process(false)
@@ -213,7 +213,7 @@ func run() -> void:
 	check(faces() == NEW and not cards().get_child(0).disabled,"serialized recovery finishes and unlocks")
 	await destroy()
 	# Confirmed failure without a candidate commit restores ordinary selection.
-	await reset(320)
+	await reset(440)
 	hit().pressed.emit(); await frames(); available(); complete(false); await frames()
 	check(not hud.rewards.gem_flip.active and faces() == OLD and not cards().get_child(0).disabled,"definite failure retains face and unlocks")
 	# A delayed rejection/ordinary save retry can unlock without changing offers.
@@ -248,7 +248,7 @@ func run() -> void:
 	check(faces() == NEW and not hud.rewards.gem_flip.active and cards().get_child(0).scale == Vector2.ONE,"dropped frame swaps and restores")
 	await destroy()
 	# Background recovery requires its lock to be released after the commit.
-	await reset(320)
+	await reset(440)
 	app.reroll_view.merge({"status":"recovering","available":true,"locked":true},true); hud.refresh()
 	commit(NEW); await frames(); check(faces() == OLD and not hud.rewards.gem_flip.active,"background unconfirmed commit stays old")
 	available(); hud.refresh(); await frames(); check(hud.rewards.gem_flip.active,"background confirmed recovery flips")
@@ -290,7 +290,7 @@ func run() -> void:
 	await destroy()
 	if not capture_dir.is_empty():
 		# Deterministic 60fps samples from the actual GL viewport, for GIF evidence.
-		for width in [440,320]:
+		for width in [440]:
 			await reset(width)
 			hit().pressed.emit(); await frames(); commit(NEW); available(); complete()
 			var flip = hud.rewards.gem_flip

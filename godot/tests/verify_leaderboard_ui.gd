@@ -110,7 +110,7 @@ func check_popup(name: String, expected: String) -> void:
 	check(popup != null and popup.visible,"Information popup opens")
 	if popup == null: return
 	check(labels(popup).contains(expected),"Information popup retains requested server data")
-	check(popup.size.x <= 320 and popup.size.y <= 568,"Large text popup fits the small viewport")
+	check(popup.size.x <= 440 and popup.size.y <= 760,"Large text popup fits the small viewport")
 	if not capture_dir.is_empty():
 		await RenderingServer.frame_post_draw
 		popup.get_texture().get_image().save_png(capture_dir.path_join(name+".png"))
@@ -195,32 +195,29 @@ func run() -> void:
 		await click(first)
 		check(labels(lobby.modal) != previous_text,"Selecting a row reveals server confirmation detail")
 		await capture("leaderboard-record-detail")
-	dimensions(Vector2i(320,568))
+	dimensions(Vector2i(440,760))
 	service.reply.body.entries[0].displayName = "아주긴별빛수호자이름#1042"
 	await lobby._services._fetch()
 	await settle()
-	check(lobby.modal_frame.get_global_rect().end.x <= 320.1,"Narrow modal fits horizontally")
-	check(lobby.modal_frame.get_global_rect().end.y <= 568.1,"Narrow modal fits vertically")
+	check(lobby.modal_frame.get_global_rect().end.x <= 440.1,"Narrow modal fits horizontally")
+	check(lobby.modal_frame.get_global_rect().end.y <= 760.1,"Narrow modal fits vertically")
 	check(labels(lobby.modal).contains("아주긴별빛수호자이름#1042"),"Long names and tags are retained")
 	await check_fixed_list()
-	await capture("leaderboard-320")
+	await capture("leaderboard-440")
 	for pixels in range(1,65): lobby.home._font_sizes[pixels] = pixels*2
 	own_name = "별빛수호자기사단#4821"
 	service.reply.body.myEntry.displayName = own_name
 	await lobby._services._fetch()
 	await settle()
-	check(lobby.modal_frame.get_global_rect().end.x <= 320.1,"Large text modal fits horizontally")
-	check(lobby.modal_frame.get_global_rect().end.y <= 568.1,"Large text modal fits vertically")
+	check(lobby.modal_frame.get_global_rect().end.x <= 440.1,"Large text modal fits horizontally")
+	check(lobby.modal_frame.get_global_rect().end.y <= 760.1,"Large text modal fits vertically")
 	check(find_node("LeaderboardHeader").get_global_rect().position.y >= 0,"Large text header stays on screen")
 	var display_name: Label = find_node("LeaderboardMyRow").find_child("DisplayName",true,false)
 	check(display_name.get_theme_font_size("font_size") == 28,"Large text exercises actual doubled fonts")
 	await check_fixed_list()
-	await capture("leaderboard-320-large-text")
-	var guide := find_node("LeaderboardGuide") as Control
-	check(guide != null,"Large text keeps ranking guidance accessible")
-	if guide != null:
-		await click(guide)
-		await check_popup("leaderboard-large-text-guide","서버 확정 시각 기준")
+	await capture("leaderboard-440-large-text")
+	# The 440 base width keeps the ranking guidance inline even with doubled fonts.
+	check(labels(lobby.modal).contains("서버 확정 시각 기준"),"Large text keeps ranking guidance accessible")
 	await click(find_node("LeaderboardMyRow"))
 	await check_popup("leaderboard-large-text-my-record","2026.09.07")
 	check(find_node("LeaderboardList").size.y >= 64,"Own record detail does not consume list space")

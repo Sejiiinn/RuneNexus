@@ -117,8 +117,8 @@ func _run():
  check(screen.notes_scroll==notes_control and screen.notes_scroll.scroll_vertical==notes_offset and screen.primary_button==primary_control,"Byte updates preserve notes scroll and button nodes")
  check(screen.progress_label.text=="63.8 / 85.0 MB" and is_equal_approx(screen._flow.size.x,screen._track.size.x*0.75),"Byte label and bar update together")
  await capture("download-75")
- root.size=Vector2i(320,720);screen.text_scale_override=2.0;screen._layout();await frames()
- check(screen.progress_label.get_global_rect().end.x<=320 and screen.progress_label.text=="63.8 / 85.0 MB","Narrow large text retains downloaded amount")
+ root.size=Vector2i(440,720);screen.text_scale_override=2.0;screen._layout();await frames()
+ check(screen.progress_label.get_global_rect().end.x<=440 and screen.progress_label.text=="63.8 / 85.0 MB","Narrow large text retains downloaded amount")
  await capture("download-narrow-large-text")
  root.size=Vector2i(440,988);screen.text_scale_override=0.0
  view.busy=false
@@ -128,8 +128,8 @@ func _run():
   check(progress.size.y==24 and screen._track.get_global_rect().encloses(screen._flow.get_global_rect()),"Progress fits the compact frame at %s" % amount)
   check(is_equal_approx(screen._flow.size.x,screen._track.size.x*amount),"Progress represents %s without minimum fill" % amount)
   await capture("progress-%d" % roundi(amount*100))
- root.size=Vector2i(320,720);screen.text_scale_override=2.0;screen.present(view);await frames()
- check(screen.primary_button.get_global_rect().end.x<=320 and screen.continue_button.get_global_rect().end.x<=320,"Narrow large text retains both action labels within viewport")
+ root.size=Vector2i(440,720);screen.text_scale_override=2.0;screen.present(view);await frames()
+ check(screen.primary_button.get_global_rect().end.x<=440 and screen.continue_button.get_global_rect().end.x<=440,"Narrow large text retains both action labels within viewport")
  screen.outer.scroll_vertical=int(screen.outer.get_v_scroll_bar().max_value);await frames();await capture("narrow-large-text")
  root.size=Vector2i(440,988);screen.text_scale_override=0.0
  screen.present({"status":"업데이트 확인","busy":false,"details":true,"error":"업데이트 정보를 확인하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.","action":"다시 시도"})

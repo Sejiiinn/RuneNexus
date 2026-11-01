@@ -241,7 +241,7 @@ func _assert_owned_gem_layout(hud, app) -> void:
 	app.run_domain.state.turrets = []
 	hud.rewards.pending_gem = ""
 	hud.rewards.replacement_id = -1
-	for width in [440,320]:
+	for width in [440]:
 		root.size = Vector2i(width,900)
 		root.content_scale_size = Vector2i(width,900)
 		for many in [false,true]:
@@ -266,7 +266,7 @@ func _assert_owned_gem_layout(hud, app) -> void:
 	root.size = original_size; root.content_scale_size = original_scale
 	hud.rewards.key = ""; hud.refresh()
 	for i in range(12): await process_frame
-	print("PASS owned gem labels: two/all gems with quantities, one-line entries at 320/440")
+	print("PASS owned gem labels: two/all gems with quantities, one-line entries at 440")
 
 func _button_text(node: Node,prefix: String) -> Button:
 	for button in node.find_children("*","Button",true,false):
@@ -287,7 +287,7 @@ func _assert_no_reward_overshoot(history: Array[Rect2],before: Rect2,after: Rect
 func _assert_reward_selection_layout(hud,app) -> void:
 	var original_size := root.size
 	var original_scale := root.content_scale_size
-	for width in [440,320]:
+	for width in [440]:
 		root.size = Vector2i(width,760); root.content_scale_size = root.size
 		for purchased in [false,true]:
 			var state: Dictionary = app.run_domain.state
@@ -353,7 +353,7 @@ func _assert_replacement_layout(hud,app) -> void:
 	var original_size := root.size
 	var original_scale := root.content_scale_size
 	var before: Dictionary = app.run_domain.state.duplicate(true)
-	for width in [440,320]:
+	for width in [440]:
 		root.size = Vector2i(width,760); root.content_scale_size = root.size
 		# Viewport scaling changes become visible on the following frame.
 		await process_frame
@@ -407,7 +407,7 @@ func _assert_replacement_content(node: Node,frame: Rect2) -> void:
 		assert(not node.text.contains(" G") and not node.text.contains(" g"),"Gold units use the existing PNG")
 		assert(not node.text.contains("남음") and not node.text.contains("효과 제거"),"Do not restore the removed explanation band")
 		assert(node.get_global_rect().position.x >= frame.position.x-0.5)
-		assert(node.get_global_rect().end.x <= frame.end.x+0.5,"Replacement content fits 320/440 width: "+node.text)
+		assert(node.get_global_rect().end.x <= frame.end.x+0.5,"Replacement content fits 440 width: "+node.text)
 	for child in node.get_children(): _assert_replacement_content(child,frame)
 
 func _assert_invalidated_purchase(hud,app) -> void:
@@ -444,7 +444,7 @@ func _assert_invalidated_purchase(hud,app) -> void:
 	print("PASS invalidated reward purchase: gold, level and research changes disable confirmation")
 
 func _assert_large_number_summaries(hud,app) -> void:
-	for width in [320,440]:
+	for width in [440]:
 		root.size = Vector2i(width,900); root.content_scale_size = root.size
 		var parent := VBoxContainer.new(); root.add_child(parent)
 		var money: HBoxContainer = hud.rewards._replacement_money(parent,"필요",12500,"QuotedMoney",12)

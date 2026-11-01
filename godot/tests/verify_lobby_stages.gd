@@ -91,12 +91,12 @@ func verify() -> void:
 	assert(Stages.unlock_destination(ui.unlock_items(11)[0]) == "모듈 티켓 지급" and Stages.previous_stage(8) == 7)
 	host.app.run_domain.state = {}
 	await verify_map_and_card(ui, host)
-	print("PASS stage restoration: stage map 320/440 short/normal/tall, map tap/drag, card bar/actions/unlock bubble, active/locked/continue, 25-stage monotonic rune preview/settlement, preserved wallet/save, canonical rewards and unlock lists")
+	print("PASS stage restoration: stage map 440 short/normal/tall, map tap/drag, card bar/actions/unlock bubble, active/locked/continue, 25-stage monotonic rune preview/settlement, preserved wallet/save, canonical rewards and unlock lists")
 	host.free()
 	quit()
 
 func verify_map_and_card(ui, host) -> void:
-	for dimensions in [Vector2(320, 520), Vector2(440, 700), Vector2(440, 940)]:
+	for dimensions in [Vector2(440, 520), Vector2(440, 700), Vector2(440, 940)]:
 		for chapter in [1, 2, 3]:
 			ui.select_chapter(chapter)
 			var map = StageMap.new()

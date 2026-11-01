@@ -213,12 +213,12 @@ func run() -> void:
 	check(service.requests.count("GET v1/mailbox?cursor=page2") == repeated_count, "Repeated cursor never loops")
 	service.repeat_cursor = false
 
-	dimensions(Vector2i(320, 568))
+	dimensions(Vector2i(440, 568))
 	service.page_size = 6
 	for i in range(4, 9): service.mails.append(mail("mail-%d" % i, "추가 보상 우편 %d" % i, "추가 본문 %d" % i, i * 10, 0))
 	lobby.open_service("우편함")
 	await settle()
-	check(lobby.modal_frame.get_global_rect().end.x <= 320.1 and lobby.modal_frame.get_global_rect().end.y <= 568.1, "Narrow modal fits viewport")
+	check(lobby.modal_frame.get_global_rect().end.x <= 440.1 and lobby.modal_frame.get_global_rect().end.y <= 568.1, "Narrow modal fits viewport")
 	var scroll_page_count := service.requests.count("GET v1/mailbox?cursor=page2")
 	check(find_node("MailCard5") != null and find_node("MailCard6") == null, "Scrollable first page waits for bottom")
 	check(find_node("MoreMail") == null, "Normal page has no more button")
@@ -234,7 +234,7 @@ func run() -> void:
 	for label in gem_mail.find_children("*", "Label", true, false):
 		if label.text == "젬 리셋권 7":
 			check(label.get_global_rect().end.x <= gem_mail.get_global_rect().end.x, "Gem ticket quantity fits the narrow reward row")
-	await capture("mailbox-auto-320-before-scroll")
+	await capture("mailbox-auto-440-before-scroll")
 	service.hold_page = true
 	for i in range(25): await wheel_down()
 	await settle()
@@ -248,12 +248,12 @@ func run() -> void:
 	check(service.requests.count("GET v1/mailbox?cursor=page2") == scroll_page_count + 1, "Repeated bottom signals do not duplicate fetch")
 	lobby.modal_scroll.scroll_vertical = 10000
 	await settle()
-	await capture("mailbox-auto-320-after-scroll")
+	await capture("mailbox-auto-440-after-scroll")
 	check(find_node("MailboxFooter") != null and lobby.modal_scroll.get_global_rect().intersects(find_node("MailboxFooter").get_global_rect()), "Bulk claim remains reachable after append")
 	find_node("MailTitle7").pressed.emit()
 	await settle()
 	check(find_node("MailBody7") != null, "Last-page mail can expand")
-	await capture("mailbox-auto-320-last-expanded")
+	await capture("mailbox-auto-440-last-expanded")
 	find_node("ClaimAllMail").pressed.emit()
 	var claim_ids := modal_ids()
 	await settle()

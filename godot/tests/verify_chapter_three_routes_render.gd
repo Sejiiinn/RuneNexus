@@ -161,8 +161,8 @@ func run() -> void:
 	var narrow := "--narrow-modals" in OS.get_cmdline_user_args()
 	var guides_only := "--guides-only" in OS.get_cmdline_user_args()
 	if narrow:
-		root.size = Vector2i(320,900)
-		root.content_scale_size = Vector2i(320,760)
+		root.size = Vector2i(440,900)
+		root.content_scale_size = Vector2i(440,760)
 	# Remove deferred network services before yielding to their startup.
 	var services = app.services
 	app.services = null

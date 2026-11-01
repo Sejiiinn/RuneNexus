@@ -136,7 +136,7 @@ func run() -> void:
 	# Disable periodic refresh so layout must position the camera itself.
 	hud.set_process(false)
 	# Currency and HP thresholds use the same display policy at both phone widths.
-	for width in [320,440]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		for sample in [[1250,"1,250"],[9999,"9,999"],[10000,"10K"],[12500,"12.5K"],[999950,"1M"]]:
 			app.run_domain.state.gold = sample[0]; app.run_domain.state.gemShards = sample[0]
@@ -179,7 +179,7 @@ func run() -> void:
 	assert_wallet_refresh(app,hud,level_button,"gold",int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level))
 	assert(hud.top.size.y <= 100)
 	assert(hud.body.get_child(0).size.y <= 94)
-	for width in [320,440]:
+	for width in [440]:
 		root.content_scale_size.x = width; root.size.x = width
 		await process_frame; await process_frame; await process_frame
 		var panel: Control = hud.body.find_child("TurretActionPanel",true,false)
@@ -288,7 +288,7 @@ func run() -> void:
 	assert(not app.scene.combat_runtime.session.paused)
 	app.run_domain.state.progression["researchLevels"] = {"turretTargetPriority":1}
 	hud.refresh()
-	for width in [320,440]:
+	for width in [440]:
 		root.content_scale_size.x = width; root.size.x = width; hud.refresh()
 		for frame in range(8): await process_frame
 		var priority: Button = hud.body.find_child("TurretTargetPriority",true,false)
@@ -300,8 +300,8 @@ func run() -> void:
 		assert(absf(priority.get_global_rect().end.x-hud.body.get_global_rect().end.x) <= 1.0,"Target icon aligns with the right edge of the selected panel")
 		assert(absf(priority.get_global_rect().get_center().y-gems.get_global_rect().get_center().y) <= 1.0,"Tab-row controls share a center after pixel rounding")
 		var expanded_stats: ScrollContainer = hud.body.find_child("TurretStatsScroll",true,false)
-		assert(is_equal_approx(expanded_stats.size.y,117 if width == 320 else 124),"Reclaim summary space after compensating for the target touch area")
-		assert(is_equal_approx(hud.dock.size.y,335 if width == 320 else 361),"Preserve the previous selected-turret dock height")
+		assert(is_equal_approx(expanded_stats.size.y,124),"Reclaim summary space after compensating for the target touch area")
+		assert(is_equal_approx(hud.dock.size.y,361),"Preserve the previous selected-turret dock height")
 	hud.turret_panel._priority()
 	assert(hud.target_priority_popup.visible and not hud.modal_active())
 	assert(not app.scene.combat_runtime.session.paused,"The target list does not pause combat")
@@ -417,8 +417,8 @@ func run() -> void:
 	app.run_domain.state.phase = "failure"
 	hud.refresh()
 	assert(initial_bounds == hud.battlefield_rect())
-	root.content_scale_size = Vector2i(390,844)
-	root.size = Vector2i(390,844)
+	root.content_scale_size = Vector2i(600,844)
+	root.size = Vector2i(600,844)
 	await process_frame
 	hud.refresh()
 	print("Layout sizes ", hud.size, " dock ",hud.dock.size)
@@ -430,7 +430,7 @@ func run() -> void:
 		app.selected = Vector2i(tile_index % int(map.columns),tile_index / int(map.columns))
 		hud.refresh()
 	app.selected = Vector2i(-1,-1); hud.main_tab = "turrets"
-	for width in [320,390,440]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,844); root.size = Vector2i(width,844); hud.body_key = ""; hud.refresh(); await process_frame; await process_frame
 		assert(hud.dock.size.x <= hud.size.x)
 		assert(hud.body.get_combined_minimum_size().x <= hud.scroll.size.x+1)
@@ -441,11 +441,11 @@ func run() -> void:
 		assert(hud.body.get_child(0).size.y <= 96,"Keep the action panel compact with the 32px target touch area")
 		app.selected = Vector2i(-1,-1)
 	# Late-wave enemy counts and larger wallets must not wrap the +N marker.
-	root.content_scale_size = Vector2i(320,844); root.size = Vector2i(320,844)
+	root.content_scale_size = Vector2i(440,844); root.size = Vector2i(440,844)
 	var old_round: int = app.run_domain.state.completedRounds
 	app.run_domain.state.completedRounds = 9
 	hud.refresh(); await process_frame; await process_frame
-	assert(hud.top.size.y <= 100 and hud.top.size.x <= 304)
+	assert(hud.top.size.y <= 100 and hud.top.size.x <= 424)
 	# The top row states the wave total and boss presence; no per-type icons.
 	var late_wave: Dictionary = app.catalog.wave_summary(app.stage,9)
 	var enemy_summary: Button = hud.enemy_intel.find_child("WaveEnemySummary",true,false)
@@ -651,7 +651,7 @@ func run() -> void:
 	assert(hud.build_panel._upgrade_value("waveGold",12500) == "+12.5K G")
 	assert(hud.build_panel._upgrade_value("towerDamage",0.25) == "+25%")
 	# Narrow purchase controls keep the 9,999 boundary legible and charges exact.
-	for width in [320,440]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		for cost in [9999,10000,12500]:
 			app.run_domain.growth.data.runUpgrades.towerDamage.baseCost = cost

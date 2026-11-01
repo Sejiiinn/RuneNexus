@@ -102,7 +102,7 @@ func run() -> void:
 	check(not host.state.corePassiveNodeRanks.is_empty(),"reset requires confirmation")
 	host.close_modal()
 	check(not host.state.corePassiveNodeRanks.is_empty(),"reset cancellation preserves ranks")
-	for dimensions in [Vector2(320,480),Vector2(800,360),Vector2(400,640)]:
+	for dimensions in [Vector2(440,480),Vector2(800,360),Vector2(400,640)]:
 		core.view.size = dimensions
 		core._resize()
 		check(core.zoom>0 and core.offset.is_finite(),"viewport %s" % dimensions)

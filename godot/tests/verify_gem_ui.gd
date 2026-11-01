@@ -30,20 +30,20 @@ func run() -> void:
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--empty-only" in OS.get_cmdline_user_args():
 		await check_empty_inventory()
-		print("PASS responsive turret inventory: owned 0/1/6/14 at 320/440, fixed square cells filling row, noninteractive blanks, overflow scrolling; global empty help preserved")
+		print("PASS responsive turret inventory: owned 0/1/6/14 at 440, fixed square cells filling row, noninteractive blanks, overflow scrolling; global empty help preserved")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--unlock-only" in OS.get_cmdline_user_args():
 		await check_popup_unlock()
-		print("PASS unified unlock plate: one price/metal frame, no stem, stationary inventory, actual pointer purchase/outside dismissal, 3-6 slots at 320/440")
+		print("PASS unified unlock plate: one price/metal frame, no stem, stationary inventory, actual pointer purchase/outside dismissal, 3-6 slots at 440")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--layout-only" in OS.get_cmdline_user_args():
 		await check_changed_layout()
-		print("PASS gem UI changed layout: dock/body viewport bounds, same six-socket nodes resized 440 to 320, 12x8 connectors, primary unlock, 34px inventory in 3/2 columns")
+		print("PASS gem UI changed layout: dock/body viewport bounds, same six-socket nodes resized 440, 12x8 connectors, primary unlock, 34px inventory in 3/2 columns")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--strip-only" in OS.get_cmdline_user_args():
 		await check_responsive_strip()
 		await check_gem_inventory_actions()
-		print("PASS gem UI changed strip: responsive square tiles filling width, separate quantities, quick equip/remove/compatibility, every catalog gem image at 320/440")
+		print("PASS gem UI changed strip: responsive square tiles filling width, separate quantities, quick equip/remove/compatibility, every catalog gem image at 440")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	await check_popup_unlock()
 	assert(int(turret().slotLimit) == 1)
@@ -104,7 +104,7 @@ func run() -> void:
 	assert(int(turret().slotLimit) == 3)
 	await check_later_link_levels()
 	# Future capacities are presentation-only fixtures: no new progression rule is added.
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		panel.refresh(); await settle()
 		for capacity in [3,4,5,6]:
@@ -113,7 +113,7 @@ func run() -> void:
 			check_socket_count(capacity)
 			check_inline_bounds(width)
 	await check_gem_inventory_actions()
-	print("PASS gem UI: real costs, cancel, funds, level gate, duplicate input, sequential purchases, research capacity, 3-6 inline at 320/440, equip/remove/compatibility, every catalog gem image")
+	print("PASS gem UI: real costs, cancel, funds, level gate, duplicate input, sequential purchases, research capacity, 3-6 inline at 440, equip/remove/compatibility, every catalog gem image")
 	panel.queue_free(); fixture.queue_free(); await process_frame; quit()
 
 func check_gem_inventory_actions() -> void:
@@ -138,13 +138,13 @@ func check_gem_inventory_actions() -> void:
 	# Global inventory keeps every catalog gem image, independent quantity labels, responsive columns.
 	for type in fixture.run_domain.growth.data.gems: fixture.run_domain.state.gemInventory[type] = 2
 	panel.main_tab = "gems"
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		panel.refresh(); await settle()
 		check_inventory(width)
 func check_empty_inventory() -> void:
 	await check_responsive_strip()
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		fixture.run_domain.state.gemInventory = {}
 		panel.main_tab = "gems"; panel.refresh(); await settle()
@@ -154,7 +154,7 @@ func check_empty_inventory() -> void:
 func check_responsive_strip() -> void:
 	panel.set_process(false)
 	var types: Array = fixture.run_domain.growth.data.gems
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		for owned in [0,1,6,14]:
 			fixture.run_domain.state.gemInventory = {}
@@ -218,7 +218,7 @@ func check_later_link_levels() -> void:
 func check_popup_unlock() -> void:
 	panel.set_process(false)
 	var initial: Dictionary = fixture.run_domain.state.duplicate(true)
-	for width in [440,320]:
+	for width in [440]:
 		for capacity in [3,4,5,6]:
 			fixture.run_domain.state = initial.duplicate(true)
 			fixture.run_domain.state.gemInventory = {"attackSpeed":2,"heavyWeapon":1}
@@ -302,7 +302,7 @@ func check_popup_unlock() -> void:
 	await check_detail_text_bounds()
 
 func check_detail_text_bounds() -> void:
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		for type in fixture.run_domain.growth.data.gems:
 			fixture.run_domain.state.gemInventory[type] = 2
@@ -324,10 +324,10 @@ func check_changed_layout() -> void:
 	panel.body_key = null; panel.refresh(); await settle()
 	check_socket_count(6); check_inline_bounds(440)
 	var same_socket := named_button("EquippedSlot5")
-	root.content_scale_size = Vector2i(320,880); root.size = Vector2i(320,880)
+	root.content_scale_size = Vector2i(440,880); root.size = Vector2i(440,880)
 	await settle(); await settle()
 	assert(named_button("EquippedSlot5") == same_socket,"Resize must exercise the same existing six-slot row")
-	check_inline_bounds(320)
+	check_inline_bounds(440)
 	var row: Node = panel.body.find_child("EquippedSocketRows",true,false)
 	var connectors := 0
 	for child in descendants(row):
@@ -336,11 +336,11 @@ func check_changed_layout() -> void:
 			connectors += 1
 	assert(connectors == 5)
 	click_slot(1); await settle()
-	check_inline_bounds(320)
+	check_inline_bounds(440)
 	assert(named_button("UnlockGemSlot").get_theme_stylebox("normal") is StyleBoxEmpty)
 	for type in fixture.run_domain.growth.data.gems: fixture.run_domain.state.gemInventory[type] = 2
 	panel.main_tab = "gems"
-	for width in [440,320]:
+	for width in [440]:
 		root.content_scale_size = Vector2i(width,880); root.size = Vector2i(width,880)
 		panel.refresh(); await settle()
 		check_container_bounds(width); check_inventory(width)

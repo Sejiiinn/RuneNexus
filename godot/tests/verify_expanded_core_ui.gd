@@ -212,7 +212,7 @@ func run() -> void:
 	core.node_details("C12")
 	await settle()
 	check(core.inline_body.find_child("CoreCurrentEffect",true,false).text.contains("회복 불가"),"C12 latest nonrecoverable HP detail")
-	for size in [Vector2i(320,480),Vector2i(800,360),Vector2i(440,900)]:
+	for size in [Vector2i(440,480),Vector2i(800,360),Vector2i(440,900)]:
 		root.size = size
 		await settle()
 		core.node_details("K2")
@@ -221,7 +221,7 @@ func run() -> void:
 		check(core.inline_scroll.size.x<=core.view.size.x,"no horizontal sheet overflow at %s" % size)
 		var purchase: Button = core.inline_body.find_child("CorePurchaseRank",true,false)
 		check(purchase.size.y>=44,"44px actions at %s" % size)
-		if size==Vector2i(320,480): await capture("expanded-tree-detail-320")
+		if size==Vector2i(440,480): await capture("expanded-tree-detail-440")
 	root.size = Vector2i(440,900)
 	await settle()
 	check(not core.zoom_controls.visible,"camera controls hide while a sheet is open")
