@@ -38,7 +38,7 @@ func run() -> void:
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--layout-only" in OS.get_cmdline_user_args():
 		await check_changed_layout()
-		print("PASS gem UI changed layout: dock/body viewport bounds, same six-socket nodes resized 440, 12x8 connectors, primary unlock, 34px inventory in 3/2 columns")
+		print("PASS gem UI changed layout: dock/body viewport bounds, same six-socket nodes resized 440 to 600, 12x8 connectors, primary unlock, 34px inventory in 3/2 columns")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--strip-only" in OS.get_cmdline_user_args():
 		await check_responsive_strip()
@@ -324,10 +324,10 @@ func check_changed_layout() -> void:
 	panel.body_key = null; panel.refresh(); await settle()
 	check_socket_count(6); check_inline_bounds(440)
 	var same_socket := named_button("EquippedSlot5")
-	root.content_scale_size = Vector2i(440,880); root.size = Vector2i(440,880)
+	root.content_scale_size = Vector2i(600,880); root.size = Vector2i(600,880)
 	await settle(); await settle()
 	assert(named_button("EquippedSlot5") == same_socket,"Resize must exercise the same existing six-slot row")
-	check_inline_bounds(440)
+	check_inline_bounds(600)
 	var row: Node = panel.body.find_child("EquippedSocketRows",true,false)
 	var connectors := 0
 	for child in descendants(row):
@@ -336,7 +336,7 @@ func check_changed_layout() -> void:
 			connectors += 1
 	assert(connectors == 5)
 	click_slot(1); await settle()
-	check_inline_bounds(440)
+	check_inline_bounds(600)
 	assert(named_button("UnlockGemSlot").get_theme_stylebox("normal") is StyleBoxEmpty)
 	for type in fixture.run_domain.growth.data.gems: fixture.run_domain.state.gemInventory[type] = 2
 	panel.main_tab = "gems"

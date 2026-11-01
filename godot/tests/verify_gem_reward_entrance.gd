@@ -75,7 +75,7 @@ func run() -> void:
 	var rebuilt_position: Vector2 = entrance._frame_track.position
 	entrance._apply(0.20)
 	check(entrance._frame_track.position == rebuilt_position,"repeated frame sampling does not accumulate animated displacement after rebuild")
-	root.size = Vector2i(440,736)
+	root.size = Vector2i(600,736)
 	root.content_scale_size = root.size
 	hud.refresh()
 	await frames()

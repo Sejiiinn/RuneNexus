@@ -233,7 +233,7 @@ func run() -> void:
 	check(hud.rewards.gem_flip.active,"retry confirmed prior commit flips once")
 	hud.rewards.gem_flip.set_process(false)
 	# Resize before midpoint, then drop directly past the end.
-	root.size = Vector2i(440,900); root.content_scale_size = root.size; hud.refresh(); await frames()
+	root.size = Vector2i(600,900); root.content_scale_size = root.size; hud.refresh(); await frames()
 	hud.rewards.gem_flip._apply(0.09); await frames()
 	for card in cards().get_children(): check(card.pivot_offset == Vector2.ZERO and card.scale == Vector2.ONE,"resize retains native card geometry")
 	var swaps := [0]
