@@ -82,14 +82,6 @@ func (service *Service) ClaimStageChallenge(
 	sessionID string,
 	request StageChallengeClaimRequest,
 ) (CommandResult, error) {
-	accountUUID, err := parseUUID(accountID)
-	if err != nil {
-		return CommandResult{}, fmt.Errorf("parse challenge claim account ID: %w", err)
-	}
-	sessionUUID, err := parseUUID(sessionID)
-	if err != nil {
-		return CommandResult{}, fmt.Errorf("parse challenge claim session ID: %w", err)
-	}
 	if request.StageNumber < 1 || request.StageNumber > gamesave.CurrentStageCount || (request.Difficulty != "normal" && request.Difficulty != "hard") {
 		return CommandResult{}, ErrInvalidCommand
 	}
@@ -98,8 +90,45 @@ func (service *Service) ClaimStageChallenge(
 	if !granted {
 		return CommandResult{}, ErrInvalidCommand
 	}
-	rewardKey := stageChallengeRewardKey(request.StageNumber, hard)
-	identity, err := newCommandIdentity(request.IdempotencyKey, "reward_claim", rewardKey, request.RawBody)
+	return service.claimProgressionReward(ctx, accountID, sessionID, progressionRewardClaim{
+		IdempotencyKey: request.IdempotencyKey, RawBody: request.RawBody,
+		ExpectedRevision: request.ExpectedRevision, ExpectedCatalogVersion: request.ExpectedCatalogVersion,
+		WriterGeneration: request.WriterGeneration, SourceSaveRevision: request.SourceSaveRevision,
+		RewardKey: stageChallengeRewardKey(request.StageNumber, hard), Reward: reward, Reason: "stage_challenge",
+		Evidence: map[string]any{"stageNumber": request.StageNumber, "difficulty": request.Difficulty},
+		Earned: func(progression []byte, _ dbgen.PlayerEconomy) bool {
+			return stageChallengeAchieved(progression, request.StageNumber, hard)
+		},
+	})
+}
+
+// progressionRewardClaim grants one reward earned in client-trusted progression
+// (or the economy) once under its reward key.
+type progressionRewardClaim struct {
+	IdempotencyKey         string
+	RawBody                []byte
+	ExpectedRevision       int64
+	ExpectedCatalogVersion int32
+	WriterGeneration       int64
+	SourceSaveRevision     int64
+	RewardKey              string
+	Reward                 challengeReward
+	Reason                 string
+	Evidence               map[string]any
+	// Earned checks the locked save's progression and economy.
+	Earned func(progression []byte, economy dbgen.PlayerEconomy) bool
+}
+
+func (service *Service) claimProgressionReward(ctx context.Context, accountID string, sessionID string, claim progressionRewardClaim) (CommandResult, error) {
+	accountUUID, err := parseUUID(accountID)
+	if err != nil {
+		return CommandResult{}, fmt.Errorf("parse %s claim account ID: %w", claim.Reason, err)
+	}
+	sessionUUID, err := parseUUID(sessionID)
+	if err != nil {
+		return CommandResult{}, fmt.Errorf("parse %s claim session ID: %w", claim.Reason, err)
+	}
+	identity, err := newCommandIdentity(claim.IdempotencyKey, "reward_claim", claim.RewardKey, claim.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -107,47 +136,47 @@ func (service *Service) ClaimStageChallenge(
 	if result, found, err := storedCommandResult[CommandResult](ctx, queries, accountUUID, identity); found || err != nil {
 		return result, err
 	}
-	if gamesave.ClientCompatibilityFromBody(request.RawBody) < gamesave.StageChallengeClientCompatibilityVersion {
+	if gamesave.ClientCompatibilityFromBody(claim.RawBody) < gamesave.StageChallengeClientCompatibilityVersion {
 		return CommandResult{}, gamesave.ErrClientUpdateRequired
 	}
 	tx, err := service.database.Begin(ctx)
 	if err != nil {
-		return CommandResult{}, fmt.Errorf("begin challenge claim: %w", err)
+		return CommandResult{}, fmt.Errorf("begin %s claim: %w", claim.Reason, err)
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	writer, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
+	writer, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, claim.WriterGeneration, claim.SourceSaveRevision, claim.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
-	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID, request.RawBody)
+	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID, claim.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
 	if result, found, err := storedCommandResult[CommandResult](ctx, txQueries, accountUUID, identity); found || err != nil {
 		return result, err
 	}
-	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+	if err := gamesave.ValidateClientGenerationFloor(writer, gamesave.ClientCompatibilityFromBody(claim.RawBody)); err != nil {
 		return CommandResult{}, err
 	}
-	if err := validateExpectedEconomy(economy, request.ExpectedRevision, request.ExpectedCatalogVersion); err != nil {
+	if err := validateExpectedEconomy(economy, claim.ExpectedRevision, claim.ExpectedCatalogVersion); err != nil {
 		return CommandResult{}, err
 	}
-	if !stageChallengeAchieved(saveSnapshot.Progression, request.StageNumber, hard) {
+	if !claim.Earned(saveSnapshot.Progression, economy) {
 		return CommandResult{}, ErrInvalidCommand
 	}
 	// An already claimed key is rejected; the snapshot's claim keys show it.
 	if _, claimErr := txQueries.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{
-		AccountID: accountUUID, RewardKey: rewardKey,
+		AccountID: accountUUID, RewardKey: claim.RewardKey,
 	}); claimErr == nil {
 		return CommandResult{}, ErrInvalidCommand
 	} else if !errors.Is(claimErr, pgx.ErrNoRows) {
-		return CommandResult{}, fmt.Errorf("check challenge reward claim: %w", claimErr)
+		return CommandResult{}, fmt.Errorf("check %s reward claim: %w", claim.Reason, claimErr)
 	}
 	resultingRevision := economy.Revision + 1
 	system, err := txQueries.GetEconomySystemState(ctx)
 	if err != nil {
-		return CommandResult{}, fmt.Errorf("get challenge claim authority epoch: %w", err)
+		return CommandResult{}, fmt.Errorf("get %s claim authority epoch: %w", claim.Reason, err)
 	}
 	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
 		AccountID: accountUUID, IdempotencyKey: identity.key, CommandType: identity.commandType,
@@ -156,16 +185,17 @@ func (service *Service) ClaimStageChallenge(
 		ResponsePayload: []byte(`{}`),
 	})
 	if err != nil {
-		return CommandResult{}, fmt.Errorf("create challenge claim command: %w", err)
+		return CommandResult{}, fmt.Errorf("create %s claim command: %w", claim.Reason, err)
 	}
-	evidence, _ := json.Marshal(map[string]any{"stageNumber": request.StageNumber, "difficulty": request.Difficulty})
+	evidence, _ := json.Marshal(claim.Evidence)
 	if err := txQueries.CreateEconomyRewardClaim(ctx, dbgen.CreateEconomyRewardClaimParams{
-		AccountID: accountUUID, RewardKey: rewardKey, CommandID: command.ID,
+		AccountID: accountUUID, RewardKey: claim.RewardKey, CommandID: command.ID,
 		WriterGeneration: int8(writer.Generation), OriginSaveRevision: int8(saveSnapshot.Revision),
 		Evidence: evidence,
 	}); err != nil {
-		return CommandResult{}, fmt.Errorf("create challenge reward claim: %w", err)
+		return CommandResult{}, fmt.Errorf("create %s reward claim: %w", claim.Reason, err)
 	}
+	reward := claim.Reward
 	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
 		AccountID: accountUUID, Revision: resultingRevision,
 		FreeDiamonds:              economy.FreeDiamonds + reward.Diamonds,
@@ -178,16 +208,16 @@ func (service *Service) ClaimStageChallenge(
 		Revision_2:                economy.Revision,
 	})
 	if err != nil {
-		return CommandResult{}, fmt.Errorf("update economy after challenge claim: %w", err)
+		return CommandResult{}, fmt.Errorf("update economy after %s claim: %w", claim.Reason, err)
 	}
 	entryOrder := int16(0)
 	if reward.Diamonds > 0 {
-		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "free_diamond", reward.Diamonds, updated.FreeDiamonds, "stage_challenge"); err != nil {
+		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "free_diamond", reward.Diamonds, updated.FreeDiamonds, claim.Reason); err != nil {
 			return CommandResult{}, err
 		}
 	}
 	if reward.ModuleTickets > 0 {
-		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "module_ticket", reward.ModuleTickets, updated.ModuleTickets, "stage_challenge"); err != nil {
+		if err := createLedger(ctx, txQueries, command.ID, &entryOrder, "module_ticket", reward.ModuleTickets, updated.ModuleTickets, claim.Reason); err != nil {
 			return CommandResult{}, err
 		}
 	}
@@ -196,14 +226,14 @@ func (service *Service) ClaimStageChallenge(
 		return CommandResult{}, err
 	}
 	result := CommandResult{
-		Snapshot: snapshot, RewardKey: rewardKey,
+		Snapshot: snapshot, RewardKey: claim.RewardKey,
 		GrantedDiamonds: reward.Diamonds, GrantedModuleTickets: reward.ModuleTickets,
 	}
 	if err := storeCommandResult(ctx, txQueries, command.ID, result); err != nil {
 		return CommandResult{}, err
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return CommandResult{}, fmt.Errorf("commit challenge claim: %w", err)
+		return CommandResult{}, fmt.Errorf("commit %s claim: %w", claim.Reason, err)
 	}
 	return result, nil
 }

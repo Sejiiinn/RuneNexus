@@ -66,7 +66,10 @@ const ORDERS = {
 		"challengeStageNumbers",
 		"hardChallengeStageNumbers",
 		"claimedChallengeCorePointStages",
-		"claimedCollectionMedals"
+		"claimedCollectionMedals",
+		"achievementCounters",
+		"achievementAttendanceDayKey",
+		"claimedAchievementMedals"
 	],
 	"SavedActiveResearch": [
 		"type",

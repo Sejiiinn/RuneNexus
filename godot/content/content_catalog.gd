@@ -8,7 +8,7 @@ const RuntimeFormat = preload("res://content/runtime_content_format.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
 ## Medal achievement stat inputs: [minimum, maximum, neutral].
-const ACHIEVEMENT_STAT_INPUTS := {"achievementTurretDamageMultiplier": [1.0, 2.0, 1.0], "achievementRangeMultiplier": [1.0, 2.0, 1.0], "achievementCriticalDamageBonusRate": [0.0, 1.0, 0.0]}
+const ACHIEVEMENT_STAT_INPUTS := {"achievementTurretDamageMultiplier": [1.0, 2.0, 1.0], "achievementRangeMultiplier": [1.0, 2.0, 1.0], "achievementCriticalDamageBonusRate": [0.0, 1.0, 0.0], "achievementAttackSpeedMultiplier": [1.0, 2.0, 1.0], "achievementCriticalChanceBonusRate": [0.0, 1.0, 0.0]}
 var _data: Dictionary = {}
 var _revision := 0
 var error: String = ""

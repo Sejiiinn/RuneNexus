@@ -111,6 +111,8 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 	damage *= float(i.get("achievementTurretDamageMultiplier", 1.0))
 	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate + float(core.get("rangeIncrease", 0.0))) * i.boardDistanceScale * float(i.get("achievementRangeMultiplier", 1.0))
 	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.15 if p == "pressurizedFeed" else 1.0) * (VENOM_POOL_RATE if p == "venomPool" else 1.0) * (1.0 + m.attackRateIncreaseRate + float(core.get("attackRateIncrease", 0.0)))
+	# Before the transient multipliers, which shared_stats_at reapplies in order.
+	rate *= float(i.get("achievementAttackSpeedMultiplier", 1.0))
 	if i.chainCleanupActive:
 		rate *= 1.4
 	rate *= i.corePassiveTurretAttackRateMultiplier
@@ -160,7 +162,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		if p == "focusedLightning":
 			jumps -= 1
 		jumps = maxi(0, jumps)
-	var crit_bonus: float = (i.criticalChanceGemValue * gem if "criticalChance" in gems else 0.0) + i.criticalChanceProgressionBonusRate + m.criticalChanceBonusRate + float(core.get("criticalChanceBonus", 0.0)) + (0.2 if p == "deadeyeFocus" else 0.0) - (0.05 if p == "quickScope" else 0.0)
+	var crit_bonus: float = (i.criticalChanceGemValue * gem if "criticalChance" in gems else 0.0) + i.criticalChanceProgressionBonusRate + m.criticalChanceBonusRate + float(core.get("criticalChanceBonus", 0.0)) + (0.2 if p == "deadeyeFocus" else 0.0) - (0.05 if p == "quickScope" else 0.0) + float(i.get("achievementCriticalChanceBonusRate", 0.0))
 	var aim: float = d.aimDuration
 	if d.instantHit and aim > 0:
 		var gem_aim: float = 1.0 + i.aimSpeedGemValue * gem if "aimSpeed" in gems else 1.0

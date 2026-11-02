@@ -744,6 +744,15 @@ static func _progression(v: Dictionary) -> Dictionary:
 	# Optional so progressions without challenges keep their payload hash.
 	for key in ["challengeStageNumbers", "hardChallengeStageNumbers", "claimedChallengeCorePointStages", "claimedCollectionMedals"]:
 		if v.has(key): out[key] = _list(v[key], "int", true)
+	# Optional cumulative achievement progress, absent until first recorded.
+	if v.has("achievementCounters"):
+		# Fixed key order keeps the payload hash independent of stored key order.
+		var counters := _map(v.achievementCounters)
+		out.achievementCounters = {}
+		for key in ["attendance", "clearWaves", "killBosses", "killEnemies"]:
+			if counters.has(key): out.achievementCounters[key] = maxi(0, _int(counters[key]))
+	if v.has("achievementAttendanceDayKey"): out.achievementAttendanceDayKey = maxi(0, _int(v.achievementAttendanceDayKey))
+	if v.has("claimedAchievementMedals"): out.claimedAchievementMedals = _list(v.claimedAchievementMedals, "string", true)
 	for key in ["researchLevels", "researchElapsedMillis"]: out[key] = _enum_map("ResearchType", v.get(key))
 	out.activeResearches = _objects(v.get("activeResearches"), "SavedActiveResearch")
 	out.researchSlotTwoUnlocked = v.researchSlotTwoUnlocked if v.get("researchSlotTwoUnlocked") is bool else out.activeResearches.size() > 1

@@ -169,7 +169,7 @@ func _medal_cases() -> void:
 	var keys: Array = chapter_one.map(func(id): return Challenges.reward_key(id, "normal"))
 	check(Challenges.medal_ready(p, 11) and not Challenges.medal_ready(p, 12) and not Challenges.medal_ready(p, 21), "chapter 1 normal collection is complete")
 	check(Challenges.any_claimable(p, keys), "a ready medal lights the lobby badge")
-	check(Challenges.achievement_count(p) == [11, 66], "achievements count challenges and completed collections")
+	check(Challenges.achievement_count(p) == [11, 91], "achievements count challenges, completed collections and cumulative tiers")
 	var rejected: Dictionary = growth.execute(p, {"kind":"claimCollectionMedal", "medalId":12})
 	check(not rejected.ok, "an incomplete collection gives no medal")
 	var claimed: Dictionary = growth.execute(p, {"kind":"claimCollectionMedal", "medalId":11})

@@ -53,6 +53,7 @@ SCRIPTS = {
     "verify_enemy_rarity.gd": "ENEMY_RARITY checks=",
     "verify_stage_difficulty.gd": "STAGE_DIFFICULTY checks=",
     "verify_stage_challenges.gd": "STAGE_CHALLENGES checks=",
+    "verify_cumulative_achievements.gd": "CUMULATIVE_ACHIEVEMENTS checks=",
     "verify_startup_screen.gd": "STARTUP_SCREEN failures=0",
     "verify_boot_load_lifecycle.gd": "BOOT_LOAD_LIFECYCLE checks=",
     "verify_economy_service.gd": "ECONOMY_SERVICE failures=0",

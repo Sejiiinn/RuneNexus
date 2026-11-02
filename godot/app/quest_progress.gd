@@ -2,6 +2,7 @@ extends RefCounted
 const StageProgression = preload("res://content/stage_progression.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const StageChallenges = preload("res://content/stage_challenges.gd")
+const Cumulative = preload("res://content/cumulative_achievements.gd")
 ## Pure progression transitions. Account currency is only granted by economy receipts.
 const DAILY := {"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5}
 const WEEKLY := {"clearWaves": 150, "killBosses": 15, "killEnemies": 500, "buyRunUpgrades": 25}
@@ -39,6 +40,7 @@ func needs_refresh(p: Dictionary, now_millis: int) -> bool:
 	if last == 0 or now_millis - last >= 60000: return true
 	if last > 0 and now_millis + 300000 < last and not p.get("dailyQuestClockRollbackDetected", false): return true
 	if int(p.get("weeklyQuestWeekKey", -1)) != int(float(day + 3) / 7.0): return true
+	if int(p.get(Cumulative.ATTENDANCE_DAY_FIELD, -1)) < day: return true
 	return not p.has("weeklyAttendanceDayKeys") or not day in p.weeklyAttendanceDayKeys
 
 ## Internal transaction path: caller exclusively owns p and all nested values.
@@ -67,6 +69,7 @@ func refresh_owned(p: Dictionary, now_millis: int) -> Dictionary:
 		p.weeklyAttendanceRewardClaimed = false
 	if not p.has("weeklyAttendanceDayKeys"): p.weeklyAttendanceDayKeys = []
 	if not day in p.weeklyAttendanceDayKeys: p.weeklyAttendanceDayKeys.append(day)
+	Cumulative.record_attendance_owned(p, day)
 	return p
 
 func record(progression: Dictionary, type: String, amount: int, now_millis: int) -> Dictionary:
@@ -75,6 +78,7 @@ func record(progression: Dictionary, type: String, amount: int, now_millis: int)
 func record_owned(p: Dictionary, type: String, amount: int, now_millis: int) -> Dictionary:
 	if amount <= 0: return p
 	refresh_owned(p, now_millis)
+	Cumulative.record_owned(p, type, amount)
 	if not DAILY.has(type): return p
 	for period in ["daily", "weekly"]:
 		var field: String = period + "QuestProgress"

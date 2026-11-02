@@ -1,6 +1,7 @@
 extends RefCounted
 const StageProgression = preload("res://content/stage_progression.gd")
 const StageChallenges = preload("res://content/stage_challenges.gd")
+const Cumulative = preload("res://content/cumulative_achievements.gd")
 ## Local session progression rules. Never performs network or persistent writes.
 const Json = preload("res://app/save_json.gd")
 const Modules = preload("res://content/module_catalog.gd")
@@ -202,6 +203,8 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		if achievement.has("turretDamage"): result.turretStatInputs[type].achievementTurretDamageMultiplier = 1.0 + achievement.turretDamage
 		if achievement.has("range"): result.turretStatInputs[type].achievementRangeMultiplier = 1.0 + achievement.range
 		if achievement.has("criticalDamage"): result.turretStatInputs[type].achievementCriticalDamageBonusRate = achievement.criticalDamage
+		if achievement.has("attackSpeed"): result.turretStatInputs[type].achievementAttackSpeedMultiplier = 1.0 + achievement.attackSpeed
+		if achievement.has("criticalChance"): result.turretStatInputs[type].achievementCriticalChanceBonusRate = achievement.criticalChance
 	return result
 
 func combat_config(effects: Dictionary) -> Dictionary:
@@ -313,6 +316,8 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 			if not StageChallenges.claim_core_point(state, int(command.get("stageNumber", 0))): return rejected
 		"claimCollectionMedal":
 			if not StageChallenges.claim_medal(state, int(command.get("medalId", 0))): return rejected
+		"claimCumulativeMedal":
+			if not Cumulative.claim_medal(state, str(command.get("achievementId", ""))): return rejected
 		"equipCoreCombatSkill":
 			if not id in ["guardianBeam", "riftMark"] or not StageProgression.has_unlock(state,"core",id): return rejected
 			state.coreCombatSkill = id

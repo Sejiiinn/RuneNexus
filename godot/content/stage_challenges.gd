@@ -6,6 +6,7 @@ extends RefCounted
 ## rewards stay in client progression like first-clear core points.
 
 const StageProgression = preload("res://content/stage_progression.gd")
+const Cumulative = preload("res://content/cumulative_achievements.gd")
 
 const MAX_TURRETS := 7
 const NORMAL_FIELD := "challengeStageNumbers"
@@ -38,7 +39,7 @@ const MEDAL_FIELD := "claimedCollectionMedals"
 ## Permanent achievement stats per medal [stat, rate] (temporary values). Same
 ## stats add inside the achievement layer and multiply once (damage rules).
 const MEDAL_STATS := {11: ["nexusHp", 0.05], 12: ["turretDamage", 0.03], 21: ["criticalDamage", 0.10], 22: ["bossDamage", 0.05], 31: ["range", 0.03], 32: ["turretDamage", 0.03]}
-const STAT_NAMES := {"nexusHp":"코어 내구도", "turretDamage":"모든 포탑 피해 증폭", "criticalDamage":"치명타 피해", "bossDamage":"보스 대상 피해 증폭", "range":"포탑 사거리"}
+const STAT_NAMES := {"nexusHp":"코어 내구도", "turretDamage":"모든 포탑 피해 증폭", "criticalDamage":"치명타 피해", "bossDamage":"보스 대상 피해 증폭", "range":"포탑 사거리", "attackSpeed":"포탑 공격 속도", "criticalChance":"치명타 확률"}
 
 static func condition(stage_id: int) -> Array:
 	var rows: Array = CONDITIONS.get(StageProgression.chapter_for(stage_id), [])
@@ -159,7 +160,7 @@ static func any_claimable(progression: Dictionary, claimed_keys: Array) -> bool:
 			if achieved(progression, stage_id, difficulty) and not claimed(progression, claimed_keys, stage_id, difficulty): return true
 	for id in MEDAL_STATS:
 		if medal_ready(progression, id) and not medal_owned(progression, id): return true
-	return false
+	return Cumulative.any_claimable(progression, claimed_keys)
 
 static func medal_id(chapter: int, difficulty: String) -> int:
 	return chapter * 10 + (2 if difficulty == "hard" else 1)
@@ -186,20 +187,28 @@ static func claim_medal(progression: Dictionary, id: int) -> bool:
 	progression[MEDAL_FIELD] = ids
 	return true
 
-## Summed achievement stat rates of owned medals, by stat.
+## Summed achievement stat rates of owned collection and cumulative medals.
 static func achievement_stats(progression: Dictionary) -> Dictionary:
-	var stats := {}
+	var specs := []
 	for id in progression.get(MEDAL_FIELD, []):
-		if not MEDAL_STATS.has(int(id)): continue
-		var spec: Array = MEDAL_STATS[int(id)]
+		if MEDAL_STATS.has(int(id)): specs.append(MEDAL_STATS[int(id)])
+	for id in progression.get(Cumulative.MEDAL_FIELD, []):
+		if Cumulative.MEDAL_STATS.has(str(id)): specs.append(Cumulative.MEDAL_STATS[str(id)])
+	var stats := {}
+	for spec in specs:
 		stats[spec[0]] = float(stats.get(spec[0], 0.0)) + float(spec[1])
 	return stats
+
+## Owned medals of both kinds.
+static func medal_total(progression: Dictionary) -> int:
+	return progression.get(MEDAL_FIELD, []).size() + progression.get(Cumulative.MEDAL_FIELD, []).size()
 
 ## "코어 내구도 +5%" style label of one stat rate.
 static func stat_text(stat: String, rate: float) -> String:
 	return "%s +%s%%" % [STAT_NAMES.get(stat, stat), String.num(rate * 100.0, 1).trim_suffix(".0")]
 
-## [achieved, total] over stage challenges (normal and hard) and collections.
+## [achieved, total] over stage challenges (normal and hard), collections and
+## cumulative tiers.
 static func achievement_count(progression: Dictionary) -> Array:
 	var done := 0
 	var total := 0
@@ -211,7 +220,8 @@ static func achievement_count(progression: Dictionary) -> Array:
 	for id in MEDAL_STATS:
 		total += 1
 		if medal_ready(progression, id): done += 1
-	return [done, total]
+	var cumulative: Array = Cumulative.achievement_count(progression)
+	return [done + int(cumulative[0]), total + int(cumulative[1])]
 
 ## Achieved count of one chapter and difficulty (collection progress).
 static func chapter_count(progression: Dictionary, chapter: int, difficulty: String) -> int:

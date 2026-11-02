@@ -5,6 +5,7 @@ const Json = preload("res://app/save_json.gd")
 const GemResult = preload("res://app/gem_command_result.gd")
 const GemDeck = preload("res://app/gem_deck.gd")
 const StageChallenges = preload("res://content/stage_challenges.gd")
+const Cumulative = preload("res://content/cumulative_achievements.gd")
 const COMPATIBILITY := 16
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
@@ -154,6 +155,13 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 			path = "v1/economy/challenges/claim"
 			body.merge(_save_fields(sync))
 			body.merge({"stageNumber":values.get("stageNumber", 0), "difficulty":values.get("difficulty", "")})
+		"claim_achievement":
+			# Same lost-response recovery as challenges.
+			if Cumulative.reward_key(str(values.get("achievementId", "")), int(values.get("tier", 0))) in snapshot.get("claimedRewardKeys", []):
+				return {"ok": true, "body": snapshot}
+			path = "v1/economy/achievements/claim"
+			body.merge(_save_fields(sync))
+			body.merge({"achievementId":values.get("achievementId", ""), "tier":values.get("tier", 0)})
 		"claim_reward":
 			kind = "weekly_reward" if values.get("period") == "weekly" else "daily_reward"
 			path = "v1/economy/rewards/claim"
@@ -254,7 +262,7 @@ func _prepare(kind: String, path: String, body: Dictionary, token: int, equip_in
 	return await _send(command, token)
 
 func _allowed(command: Dictionary) -> bool:
-	var exact := {"start_run":"v1/economy/runs/start","close_run":"v1/economy/runs/close","purchase_gems":"v1/economy/gems/purchase","offer_gems":"v1/economy/gems/offer","choose_gem":"v1/economy/gems/choose","reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","claim_challenge":"v1/economy/challenges/claim","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
+	var exact := {"start_run":"v1/economy/runs/start","close_run":"v1/economy/runs/close","purchase_gems":"v1/economy/gems/purchase","offer_gems":"v1/economy/gems/offer","choose_gem":"v1/economy/gems/choose","reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","claim_challenge":"v1/economy/challenges/claim","claim_achievement":"v1/economy/achievements/claim","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
 	if exact.has(command.kind): return command.path == exact[command.kind]
 	var patterns := {"complete_research":"^v1/economy/researches/[A-Za-z][A-Za-z0-9]*/complete$","ack_progression_effect":"^v1/economy/progression-effects/[0-9a-fA-F-]{36}/ack$","mail_claim":"^v1/mailbox/[0-9a-fA-F-]{36}/claim$"}
 	return patterns.has(command.kind) and RegEx.create_from_string(patterns[command.kind]).search(command.path) != null

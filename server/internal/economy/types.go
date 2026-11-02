@@ -242,6 +242,17 @@ type StageChallengeClaimRequest struct {
 	SourceSaveRevision     int64
 }
 
+type CumulativeAchievementClaimRequest struct {
+	IdempotencyKey         string
+	RawBody                []byte
+	ExpectedRevision       int64
+	ExpectedCatalogVersion int32
+	AchievementID          string
+	Tier                   int
+	WriterGeneration       int64
+	SourceSaveRevision     int64
+}
+
 type EffectAckRequest struct {
 	IdempotencyKey      string
 	RawBody             []byte

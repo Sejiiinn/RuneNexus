@@ -189,7 +189,7 @@ func _achievement_record(body: VBoxContainer) -> void:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	row.add_child(icon)
-	var label := T.label("업적 %d / %d · 훈장 %d" % [count[0], count[1], p.get(StageChallenges.MEDAL_FIELD, []).size()],13)
+	var label := T.label("업적 %d / %d · 훈장 %d" % [count[0], count[1], StageChallenges.medal_total(p)],13)
 	label.add_theme_color_override("font_color",Color("e7c66a"))
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)

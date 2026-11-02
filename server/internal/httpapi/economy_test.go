@@ -94,3 +94,29 @@ func TestChallengeClaimAcceptsCurrentClientBody(t *testing.T) {
 		`{"stageNumber":11,"difficulty":"normal","sourceSaveRevision":2,"writerGeneration":1,"clientCompatibilityVersion":16}`))
 	requireAPIError(t, missing, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST")
 }
+
+type achievementClaimStub struct {
+	EconomyService
+	request economy.CumulativeAchievementClaimRequest
+	called  bool
+}
+
+func (stub *achievementClaimStub) ClaimCumulativeAchievement(_ context.Context, _ string, _ string, request economy.CumulativeAchievementClaimRequest) (economy.CommandResult, error) {
+	stub.called, stub.request = true, request
+	return economy.CommandResult{RewardKey: "achievement:attendance:1", GrantedDiamonds: 300}, nil
+}
+
+func TestAchievementClaimAcceptsCurrentClientBody(t *testing.T) {
+	stub := &achievementClaimStub{}
+	handler := economyHandler{economy: stub, logger: slog.New(slog.NewTextHandler(io.Discard, nil)), minimumClientCompatibilityVersion: 1}
+	response := httptest.NewRecorder()
+	handler.claimCumulativeAchievement(response, economyRequest(http.MethodPost, "/v1/economy/achievements/claim",
+		`{"expectedEconomyRevision":3,"expectedCatalogVersion":2,"achievementId":"attendance","tier":1,"sourceSaveRevision":2,"writerGeneration":1,"clientCompatibilityVersion":16}`))
+	if response.Code != http.StatusOK || !stub.called || stub.request.AchievementID != "attendance" || stub.request.Tier != 1 || stub.request.ExpectedRevision != 3 {
+		t.Fatalf("status=%d called=%v request=%+v body=%s", response.Code, stub.called, stub.request, response.Body.String())
+	}
+	missing := httptest.NewRecorder()
+	handler.claimCumulativeAchievement(missing, economyRequest(http.MethodPost, "/v1/economy/achievements/claim",
+		`{"expectedEconomyRevision":3,"expectedCatalogVersion":2,"achievementId":"attendance","sourceSaveRevision":2,"writerGeneration":1,"clientCompatibilityVersion":16}`))
+	requireAPIError(t, missing, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST")
+}

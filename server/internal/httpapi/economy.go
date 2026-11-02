@@ -33,6 +33,7 @@ type EconomyService interface {
 	CompleteResearch(context.Context, string, string, economy.ResearchCompleteRequest) (economy.CommandResult, error)
 	UnlockResearchSlotTwo(context.Context, string, string, economy.ResearchSlotUnlockRequest) (economy.CommandResult, error)
 	ClaimStageChallenge(context.Context, string, string, economy.StageChallengeClaimRequest) (economy.CommandResult, error)
+	ClaimCumulativeAchievement(context.Context, string, string, economy.CumulativeAchievementClaimRequest) (economy.CommandResult, error)
 	AcknowledgeProgressionEffect(context.Context, string, string, economy.EffectAckRequest) (economy.CommandResult, error)
 	SettleRun(context.Context, string, string, economy.RunSettlementRequest) (economy.CommandResult, error)
 }
@@ -188,6 +189,16 @@ type economyChallengeClaimRequest struct {
 	ExpectedCatalogVersion     *int32 `json:"expectedCatalogVersion"`
 	StageNumber                *int   `json:"stageNumber"`
 	Difficulty                 string `json:"difficulty"`
+	SourceSaveRevision         *int64 `json:"sourceSaveRevision"`
+	WriterGeneration           *int64 `json:"writerGeneration"`
+	ClientCompatibilityVersion *int   `json:"clientCompatibilityVersion"`
+}
+
+type economyAchievementClaimRequest struct {
+	ExpectedEconomyRevision    *int64 `json:"expectedEconomyRevision"`
+	ExpectedCatalogVersion     *int32 `json:"expectedCatalogVersion"`
+	AchievementID              string `json:"achievementId"`
+	Tier                       *int   `json:"tier"`
 	SourceSaveRevision         *int64 `json:"sourceSaveRevision"`
 	WriterGeneration           *int64 `json:"writerGeneration"`
 	ClientCompatibilityVersion *int   `json:"clientCompatibilityVersion"`
@@ -368,6 +379,29 @@ func (handler economyHandler) claimStageChallenge(response http.ResponseWriter, 
 	writeJSON(response, http.StatusOK, result)
 }
 
+func (handler economyHandler) claimCumulativeAchievement(response http.ResponseWriter, request *http.Request) {
+	principal, key, raw, input, ok := decodeEconomyCommand[economyAchievementClaimRequest](handler, response, request)
+	if !ok {
+		return
+	}
+	if input.ExpectedEconomyRevision == nil || input.ExpectedCatalogVersion == nil ||
+		input.Tier == nil || input.SourceSaveRevision == nil || input.WriterGeneration == nil {
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST", "업적 보상 요청 정보가 부족합니다.")
+		return
+	}
+	result, err := handler.economy.ClaimCumulativeAchievement(request.Context(), principal.AccountID, principal.SessionID, economy.CumulativeAchievementClaimRequest{
+		IdempotencyKey: key, RawBody: raw,
+		ExpectedRevision:       *input.ExpectedEconomyRevision,
+		ExpectedCatalogVersion: *input.ExpectedCatalogVersion,
+		AchievementID:          input.AchievementID, Tier: *input.Tier,
+		SourceSaveRevision: *input.SourceSaveRevision, WriterGeneration: *input.WriterGeneration,
+	})
+	if handler.writeEconomyError(response, request, err) {
+		return
+	}
+	writeJSON(response, http.StatusOK, result)
+}
+
 func (handler economyHandler) acknowledgeEffect(response http.ResponseWriter, request *http.Request) {
 	principal, key, raw, input, ok := decodeEconomyCommand[economyEffectAckRequest](handler, response, request)
 	if !ok {
@@ -486,6 +520,8 @@ func compatibilityVersion(value any) *int {
 	case economyRunSettlementRequest:
 		return input.ClientCompatibilityVersion
 	case economyChallengeClaimRequest:
+		return input.ClientCompatibilityVersion
+	case economyAchievementClaimRequest:
 		return input.ClientCompatibilityVersion
 	default:
 		return nil
