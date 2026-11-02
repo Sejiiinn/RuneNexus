@@ -65,7 +65,8 @@ const ORDERS = {
 		"hardClearedStageNumbers",
 		"challengeStageNumbers",
 		"hardChallengeStageNumbers",
-		"claimedChallengeCorePointStages"
+		"claimedChallengeCorePointStages",
+		"claimedCollectionMedals"
 	],
 	"SavedActiveResearch": [
 		"type",

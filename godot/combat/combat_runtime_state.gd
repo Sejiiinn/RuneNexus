@@ -88,6 +88,7 @@ var _sync_stats_damage := 1.0
 var _sync_stats_rate := 1.0
 # Account growth is read at each hit/tick; it is never checkpoint state.
 var _boss_damage_bonus_rate := 0.0
+var _achievement_boss_damage_rate := 0.0
 var _direct_damage_training_bonus_rate := 0.0
 var _splash_damage_training_bonus_rate := 0.0
 var _damage_over_time_training_bonus_rate := 0.0
@@ -134,7 +135,9 @@ func _training_rate(value: Variant) -> float:
 	return clampf(rate, 0.0, 0.4) if is_finite(rate) else 0.0
 
 func _target_damage_multiplier(e: Dictionary) -> float:
-	return 1.0 + _boss_damage_bonus_rate if _boss_damage_bonus_rate > 0.0 and _boss(e) else 1.0
+	if not _boss(e): return 1.0
+	# Training and the medal achievement are separate layers, multiplied.
+	return (1.0 + _boss_damage_bonus_rate) * (1.0 + _achievement_boss_damage_rate)
 
 func _boss(e: Dictionary) -> bool:
 	return Enemy.is_boss(e)

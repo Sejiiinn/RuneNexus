@@ -53,7 +53,7 @@ static func shared_stats_at(i: Dictionary, level: int) -> Dictionary:
 	# never alter cached neutral values or another consumer's transient buffs.
 	var out: Dictionary = found.stats.duplicate()
 	var m: Dictionary = i.moduleEffect
-	out.damage = float(found.parts.damagePrefix) * ((1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in i.gems else 1.0))
+	out.damage = float(found.parts.damagePrefix) * ((1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in i.gems else 1.0)) * float(i.get("achievementTurretDamageMultiplier", 1.0))
 	if i.chainCleanupActive: out.attackRate *= 1.4
 	out.attackRate *= i.corePassiveTurretAttackRateMultiplier
 	for field in ["range","projectileSpeed","splashRadius"]:
@@ -107,7 +107,9 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		damage *= 1.0 + 0.25 * gem
 	intermediates.damagePrefix = damage
 	damage *= (1.0 + m.damageIncreaseRate) * i.towerDamageMultiplier * i.corePassiveTurretDamageMultiplier * (0.5 if "multipleProjectiles" in gems else 1.0)
-	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate + float(core.get("rangeIncrease", 0.0))) * i.boardDistanceScale
+	# Medal achievement layers: one amplification each, after every other layer.
+	damage *= float(i.get("achievementTurretDamageMultiplier", 1.0))
+	var range_value: float = d.range * (1.0 + (target_level - 1) * 0.033) * (1.0 + 0.2 * gem if "range" in gems else 1.0) * (1.15 if p == "spreadingChill" else 1.0) * (1.0 + m.rangeIncreaseRate + float(core.get("rangeIncrease", 0.0))) * i.boardDistanceScale * float(i.get("achievementRangeMultiplier", 1.0))
 	var rate: float = d.attackRate * pow(1.05, target_level - 1) * (1.0 + 0.4 * gem if "attackSpeed" in gems else 1.0) * (1.0 + 0.2 * gem if "light" in d.attackTags and "lightWeapon" in gems else 1.0) * (1.1 if p == "lightweightBarrel" else 1.0) * (0.9 if p == "compressedCharge" else 1.0) * (1.2 if p == "coolingCycle" else 1.0) * (1.15 if p == "pressurizedFeed" else 1.0) * (VENOM_POOL_RATE if p == "venomPool" else 1.0) * (1.0 + m.attackRateIncreaseRate + float(core.get("attackRateIncrease", 0.0)))
 	if i.chainCleanupActive:
 		rate *= 1.4
@@ -186,7 +188,7 @@ static func stats_at(i: Dictionary, level: int, intermediates: Dictionary = {}) 
 		"lightningChainDamageMultiplier": (0.7 if s == "currentAmplification" else 0.5) * (1.0 + m.lightningChainDamageIncreaseRate),
 		"appliesLightningRecovery": s == "lightningRecovery",
 		"criticalChance": clampf(d.criticalChance + crit_bonus, 0.0, 1.0),
-		"criticalDamageMultiplier": d.criticalDamageMultiplier + i.criticalDamageProgressionBonusRate + m.criticalDamageBonusRate + float(core.get("criticalDamageBonus", 0.0)),
+		"criticalDamageMultiplier": d.criticalDamageMultiplier + i.criticalDamageProgressionBonusRate + m.criticalDamageBonusRate + float(core.get("criticalDamageBonus", 0.0)) + float(i.get("achievementCriticalDamageBonusRate", 0.0)),
 		"aimDuration": aim,
 	}
 

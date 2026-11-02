@@ -22,6 +22,8 @@ func _start_wave(raw: Dictionary, reset_core: bool) -> void:
 
 func _configure_combat(config: Dictionary) -> void:
 	_boss_damage_bonus_rate = clampf(float(config.get("bossDamageBonusRate", 0.0)), 0.0, 0.2)
+	var achievement := float(config.get("achievementBossDamageRate", 0.0))
+	_achievement_boss_damage_rate = clampf(achievement, 0.0, 0.5) if is_finite(achievement) else 0.0
 	_direct_damage_training_bonus_rate = _training_rate(config.get("directDamageTrainingBonusRate", 0.0))
 	_splash_damage_training_bonus_rate = _training_rate(config.get("splashDamageTrainingBonusRate", 0.0))
 	_damage_over_time_training_bonus_rate = _training_rate(config.get("damageOverTimeTrainingBonusRate", 0.0))

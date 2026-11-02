@@ -7,6 +7,8 @@ const Stats = preload("res://combat/turret_stat_calculation.gd")
 const RuntimeFormat = preload("res://content/runtime_content_format.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
+## Medal achievement stat inputs: [minimum, maximum, neutral].
+const ACHIEVEMENT_STAT_INPUTS := {"achievementTurretDamageMultiplier": [1.0, 2.0, 1.0], "achievementRangeMultiplier": [1.0, 2.0, 1.0], "achievementCriticalDamageBonusRate": [0.0, 1.0, 0.0]}
 var _data: Dictionary = {}
 var _revision := 0
 var error: String = ""
@@ -423,6 +425,15 @@ func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 				error = "Invalid damage over time training bonus"
 				return {}
 			if rate > 0.0: result[key] = rate
+			continue
+		# Medal achievement layers are optional; neutral values are omitted.
+		if key in ACHIEVEMENT_STAT_INPUTS:
+			var value := float(inputs.statInput[key])
+			var bounds: Array = ACHIEVEMENT_STAT_INPUTS[key]
+			if not is_finite(value) or value < bounds[0] or value > bounds[1]:
+				error = "Invalid achievement stat input"
+				return {}
+			if value != bounds[2]: result[key] = value
 			continue
 		if key == "coreEffects" and inputs.statInput[key] is Dictionary:
 			result[key] = inputs.statInput[key].duplicate(true)

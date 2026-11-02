@@ -155,6 +155,10 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		"coreEffects": core,
 		"runUpgradeMaxLevelBonuses": {}, "turretStatInputs": {},
 	}
+	# Medal achievement stats form their own layer, multiplied once.
+	var achievement := StageChallenges.achievement_stats(p)
+	result.maxNexusHp *= 1.0 + float(achievement.get("nexusHp", 0.0))
+	if achievement.has("bossDamage"): result.achievementBossDamageRate = achievement.bossDamage
 	result.defenseConfig = {"maxHp": result.maxNexusHp}
 	if int(p.get("corePassiveTreeRevision", 4)) >= 5:
 		result.defenseConfig.nexusAdditionalHpRate = core.get("nexusAdditionalHpRate", 0.0)
@@ -195,12 +199,16 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		# statistic includes training; firing strips it before storing raw DPS.
 		if result.damageOverTimeTrainingBonusRate > 0.0:
 			result.turretStatInputs[type].damageOverTimeTrainingBonusRate = result.damageOverTimeTrainingBonusRate
+		if achievement.has("turretDamage"): result.turretStatInputs[type].achievementTurretDamageMultiplier = 1.0 + achievement.turretDamage
+		if achievement.has("range"): result.turretStatInputs[type].achievementRangeMultiplier = 1.0 + achievement.range
+		if achievement.has("criticalDamage"): result.turretStatInputs[type].achievementCriticalDamageBonusRate = achievement.criticalDamage
 	return result
 
 func combat_config(effects: Dictionary) -> Dictionary:
 	var result := {}
 	for key in ["bossDamageBonusRate", "directDamageTrainingBonusRate", "splashDamageTrainingBonusRate", "damageOverTimeTrainingBonusRate"]:
 		result[key] = effects.get(key, 0.0)
+	if effects.has("achievementBossDamageRate"): result.achievementBossDamageRate = effects.achievementBossDamageRate
 	return result
 
 func research_quote(p: Dictionary, type: String) -> Dictionary:
@@ -303,6 +311,8 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 			state.corePassiveTreeRevision = int(state.get("corePassiveTreeRevision", 4))
 		"claimChallengeCorePoint":
 			if not StageChallenges.claim_core_point(state, int(command.get("stageNumber", 0))): return rejected
+		"claimCollectionMedal":
+			if not StageChallenges.claim_medal(state, int(command.get("medalId", 0))): return rejected
 		"equipCoreCombatSkill":
 			if not id in ["guardianBeam", "riftMark"] or not StageProgression.has_unlock(state,"core",id): return rejected
 			state.coreCombatSkill = id

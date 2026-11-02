@@ -9,6 +9,7 @@ const DrawConfirmation = preload("res://ui/module_draw_confirmation.gd")
 const LeaderboardView = preload("res://ui/leaderboard_view.gd")
 const MailboxController = preload("res://ui/mailbox_controller.gd")
 const EconomyService = preload("res://services/economy_service.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 const MODULE_DIAMONDS := {"normal":2,"magic":5,"rare":20,"unique":50}
 var lobby
 var page := ""
@@ -140,6 +141,7 @@ func _account(body: VBoxContainer) -> void:
 	if profile.get("nickname") is String and not profile.nickname.is_empty():
 		body.add_child(T.label(str(profile.nickname)+"#"+str(profile.get("tag","")),18))
 		body.add_child(T.label("온라인 저장 연결됨" if service.online_ready and service.issue.is_empty() else "온라인 저장 상태를 확인해 주세요",12))
+		_achievement_record(body)
 	elif profile.is_empty():
 		body.add_child(T.label("계정 정보를 확인하지 못했습니다. 다시 시도해 주세요.",12))
 	else:
@@ -174,6 +176,23 @@ func _account(body: VBoxContainer) -> void:
 		body.add_child(T.label("설정 후 변경할 수 없습니다.",12))
 	_account_management(body)
 	if not service.issue.is_empty(): body.add_child(T.label(_error(service.issue),12))
+
+## "업적 N / M · 훈장 K" under the account name.
+func _achievement_record(body: VBoxContainer) -> void:
+	var p: Dictionary = lobby.progression()
+	var count: Array = StageChallenges.achievement_count(p)
+	var row := HBoxContainer.new(); row.name = "AccountAchievements"
+	row.add_theme_constant_override("separation",6); body.add_child(row)
+	var icon := TextureRect.new()
+	icon.texture = T.texture("lobby_challenge_icon.png")
+	icon.custom_minimum_size = Vector2(20,20)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(icon)
+	var label := T.label("업적 %d / %d · 훈장 %d" % [count[0], count[1], p.get(StageChallenges.MEDAL_FIELD, []).size()],13)
+	label.add_theme_color_override("font_color",Color("e7c66a"))
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
 
 func _account_management(body: VBoxContainer) -> void:
 	var divider = HSeparator.new()

@@ -742,7 +742,7 @@ static func _progression(v: Dictionary) -> Dictionary:
 	if v.has("hardBestRoundsByStage"): out.hardBestRoundsByStage = _stage_rounds(v.hardBestRoundsByStage)
 	if v.has("hardClearedStageNumbers"): out.hardClearedStageNumbers = _list(v.hardClearedStageNumbers, "int", true)
 	# Optional so progressions without challenges keep their payload hash.
-	for key in ["challengeStageNumbers", "hardChallengeStageNumbers", "claimedChallengeCorePointStages"]:
+	for key in ["challengeStageNumbers", "hardChallengeStageNumbers", "claimedChallengeCorePointStages", "claimedCollectionMedals"]:
 		if v.has(key): out[key] = _list(v[key], "int", true)
 	for key in ["researchLevels", "researchElapsedMillis"]: out[key] = _enum_map("ResearchType", v.get(key))
 	out.activeResearches = _objects(v.get("activeResearches"), "SavedActiveResearch")

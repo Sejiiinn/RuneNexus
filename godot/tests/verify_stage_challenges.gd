@@ -1,7 +1,7 @@
 extends SceneTree
 ## Stage challenges: condition text, reward table (same as the server), run
-## tracking through builds, achievement on clear, core point claims and the
-## optional save fields.
+## tracking through builds, achievement on clear, core point claims, collection
+## medals with their achievement stat layers, and the optional save fields.
 const Catalog = preload("res://content/content_catalog.gd")
 const Growth = preload("res://app/growth_rules.gd")
 const Commands = preload("res://app/run_commands.gd")
@@ -10,6 +10,9 @@ const Quests = preload("res://app/quest_progress.gd")
 const Codec = preload("res://app/save_codec.gd")
 const Hash = preload("res://services/save_payload_hash.gd")
 const RunSession = preload("res://session/run_session.gd")
+const Progression = preload("res://content/stage_progression.gd")
+const Stats = preload("res://combat/turret_stat_calculation.gd")
+const Runtime = preload("res://combat/native_combat_runtime.gd")
 
 class FakeRuntime extends RefCounted:
 	var epoch := 1
@@ -32,6 +35,7 @@ func _initialize() -> void:
 	_achievement_cases()
 	_claim_cases()
 	_session_cases()
+	_medal_cases()
 	_save_cases()
 	print("STAGE_CHALLENGES checks=%d failures=%s" % [checks, failures])
 	quit(0 if failures.is_empty() else 1)
@@ -148,6 +152,50 @@ func _session_cases() -> void:
 	var debug = _session({"8":{"type":"normal", "isDebug":true}})
 	check(not debug.state.has("challengeCoreReached") and debug.state.lastRunChallengeAchieved, "debug enemies do not count")
 
+func _arrow_stats(catalog, derived: Dictionary) -> Dictionary:
+	var input: Dictionary = derived.turretStatInputs.arrow.duplicate(true)
+	input.merge({"level":1, "primaryTrait":"", "secondaryTrait":"", "gems":[]}, true)
+	var stat: Dictionary = catalog.turret("arrow", {"tileSize":1.0, "statInput":input})
+	check(not stat.is_empty(), "medal stat inputs pass the catalog (%s)" % catalog.error)
+	return Stats.shared_stats_at(stat, 1) if not stat.is_empty() else {}
+
+func _medal_cases() -> void:
+	var catalog = Catalog.new()
+	var growth = Growth.new()
+	check(catalog.load_catalog() and growth.load_catalog(), "medal content")
+	var service = Commands.new(catalog, growth)
+	var chapter_one: Array = Progression.ids_for_chapter(1)
+	var p := {"clearedStageNumbers":chapter_one.duplicate(), "challengeStageNumbers":chapter_one.duplicate()}
+	var keys: Array = chapter_one.map(func(id): return Challenges.reward_key(id, "normal"))
+	check(Challenges.medal_ready(p, 11) and not Challenges.medal_ready(p, 12) and not Challenges.medal_ready(p, 21), "chapter 1 normal collection is complete")
+	check(Challenges.any_claimable(p, keys), "a ready medal lights the lobby badge")
+	check(Challenges.achievement_count(p) == [11, 66], "achievements count challenges and completed collections")
+	var rejected: Dictionary = growth.execute(p, {"kind":"claimCollectionMedal", "medalId":12})
+	check(not rejected.ok, "an incomplete collection gives no medal")
+	var claimed: Dictionary = growth.execute(p, {"kind":"claimCollectionMedal", "medalId":11})
+	check(claimed.ok and claimed.state.claimedCollectionMedals == [11] and not Challenges.any_claimable(claimed.state, keys), "chapter 1 normal medal")
+	check(not growth.execute(claimed.state, {"kind":"claimCollectionMedal", "medalId":11}).ok, "a medal is claimed once")
+	# Stats: core durability on the normal medal, turret damage on the hard one.
+	var base: Dictionary = service.derived(service.initial_state({}))
+	var with_core: Dictionary = service.derived(service.initial_state(claimed.state))
+	check(is_equal_approx(with_core.maxNexusHp, base.maxNexusHp * 1.05), "core durability +5%")
+	check(not base.turretStatInputs.arrow.has("achievementTurretDamageMultiplier"), "no medal leaves stat inputs unchanged")
+	var all_medals := {"claimedCollectionMedals":[11, 12, 21, 22, 31, 32]}
+	var full: Dictionary = service.derived(service.initial_state(all_medals))
+	check(is_equal_approx(full.turretStatInputs.arrow.achievementTurretDamageMultiplier, 1.06), "two turret damage medals add, then multiply once")
+	var plain := _arrow_stats(catalog, base)
+	var boosted := _arrow_stats(catalog, full)
+	check(is_equal_approx(boosted.damage, plain.damage * 1.06), "turret damage amplification layer")
+	check(is_equal_approx(boosted.range, plain.range * 1.03), "turret range layer")
+	check(is_equal_approx(boosted.criticalDamageMultiplier, plain.criticalDamageMultiplier + 0.10), "critical damage adds percentage points")
+	var config: Dictionary = growth.combat_config(full)
+	check(is_equal_approx(config.achievementBossDamageRate, 0.05) and not growth.combat_config(base).has("achievementBossDamageRate"), "boss medal reaches the combat config")
+	var runtime = Runtime.new()
+	runtime._configure_combat({"bossDamageBonusRate":0.2, "achievementBossDamageRate":0.05})
+	check(is_equal_approx(runtime._target_damage_multiplier({"type":"boss"}), 1.2 * 1.05) and runtime._target_damage_multiplier({"type":"normal"}) == 1.0, "boss training and medal multiply")
+	var stats: Dictionary = Challenges.achievement_stats(all_medals)
+	check(Challenges.stat_text("turretDamage", stats.turretDamage) == "모든 포탑 피해 증폭 +6%" and Challenges.stat_text("criticalDamage", 0.1) == "치명타 피해 +10%", "stat labels")
+
 func _envelope(run_extra: Dictionary, progression_extra: Dictionary) -> Dictionary:
 	var run := {"phase":"preparation", "stageNumber":3, "economyRunId":"run-1", "turrets":[], "enemies":[], "spawnQueue":[]}
 	run.merge(run_extra, true)
@@ -158,8 +206,8 @@ func _envelope(run_extra: Dictionary, progression_extra: Dictionary) -> Dictiona
 func _save_cases() -> void:
 	var plain: Variant = Codec.decode(_envelope({}, {}))
 	check(plain != null and not plain.activeRun.has("challengePeakTurrets") and not plain.progression.has("challengeStageNumbers"), "saves without challenges carry no fields")
-	var tracked: Variant = Codec.decode(_envelope({"challengePeakTurrets":4, "challengeTurretTypes":["arrow", "bogus", "arrow"], "challengeCoreReached":true}, {"challengeStageNumbers":[3, 3, "x"], "hardChallengeStageNumbers":[2], "claimedChallengeCorePointStages":[5]}))
+	var tracked: Variant = Codec.decode(_envelope({"challengePeakTurrets":4, "challengeTurretTypes":["arrow", "bogus", "arrow"], "challengeCoreReached":true}, {"challengeStageNumbers":[3, 3, "x"], "hardChallengeStageNumbers":[2], "claimedChallengeCorePointStages":[5], "claimedCollectionMedals":[11]}))
 	check(tracked.activeRun.challengePeakTurrets == 4 and tracked.activeRun.challengeTurretTypes == ["arrow"] and tracked.activeRun.challengeCoreReached == true, "run tracking round trips and normalizes")
-	check(tracked.progression.challengeStageNumbers == [3] and tracked.progression.hardChallengeStageNumbers == [2] and tracked.progression.claimedChallengeCorePointStages == [5], "achievements round trip")
+	check(tracked.progression.challengeStageNumbers == [3] and tracked.progression.hardChallengeStageNumbers == [2] and tracked.progression.claimedChallengeCorePointStages == [5] and tracked.progression.claimedCollectionMedals == [11], "achievements and medals round trip")
 	check(Hash.hash_payload(tracked) != Hash.hash_payload(plain), "challenge fields are hashed")
 	check(Hash.hash_payload(Codec.decode(tracked)) == Hash.hash_payload(tracked), "challenge save is stable on re-decode")

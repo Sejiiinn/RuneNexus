@@ -32,6 +32,13 @@ const CONDITIONS := {
 ## Chapter 3 is the cap for later chapters.
 const REWARDS := {1: [100, 200, 4, 5], 2: [200, 300, 5, 6], 3: [300, 400, 6, 7]}
 const HARD_CORE_POINTS := 1
+## Collection medals: all of a chapter's challenges of one difficulty. A medal
+## id is chapter * 10 + 1 (normal) or + 2 (hard); claimed ids are progression.
+const MEDAL_FIELD := "claimedCollectionMedals"
+## Permanent achievement stats per medal [stat, rate] (temporary values). Same
+## stats add inside the achievement layer and multiply once (damage rules).
+const MEDAL_STATS := {11: ["nexusHp", 0.05], 12: ["turretDamage", 0.03], 21: ["criticalDamage", 0.10], 22: ["bossDamage", 0.05], 31: ["range", 0.03], 32: ["turretDamage", 0.03]}
+const STAT_NAMES := {"nexusHp":"코어 내구도", "turretDamage":"모든 포탑 피해 증폭", "criticalDamage":"치명타 피해", "bossDamage":"보스 대상 피해 증폭", "range":"포탑 사거리"}
 
 static func condition(stage_id: int) -> Array:
 	var rows: Array = CONDITIONS.get(StageProgression.chapter_for(stage_id), [])
@@ -145,12 +152,66 @@ static func claim_core_point(progression: Dictionary, stage_id: int) -> bool:
 	progression.totalCorePoints = int(progression.get("totalCorePoints", 0)) + HARD_CORE_POINTS
 	return true
 
-## Any achieved, unclaimed reward (lobby badge).
+## Any achieved, unclaimed reward or ready medal (lobby badge).
 static func any_claimable(progression: Dictionary, claimed_keys: Array) -> bool:
 	for stage_id in StageProgression.ordered_ids():
 		for difficulty in ["normal", "hard"]:
 			if achieved(progression, stage_id, difficulty) and not claimed(progression, claimed_keys, stage_id, difficulty): return true
+	for id in MEDAL_STATS:
+		if medal_ready(progression, id) and not medal_owned(progression, id): return true
 	return false
+
+static func medal_id(chapter: int, difficulty: String) -> int:
+	return chapter * 10 + (2 if difficulty == "hard" else 1)
+
+static func medal_chapter(id: int) -> int:
+	return id / 10
+
+static func medal_difficulty(id: int) -> String:
+	return "hard" if id % 10 == 2 else "normal"
+
+## The medal's collection is complete: every challenge of its chapter and difficulty.
+static func medal_ready(progression: Dictionary, id: int) -> bool:
+	var ids: Array = StageProgression.ids_for_chapter(medal_chapter(id))
+	return not ids.is_empty() and chapter_count(progression, medal_chapter(id), medal_difficulty(id)) == ids.size()
+
+static func medal_owned(progression: Dictionary, id: int) -> bool:
+	return id in progression.get(MEDAL_FIELD, [])
+
+## Claims a completed collection's medal once; false when not claimable.
+static func claim_medal(progression: Dictionary, id: int) -> bool:
+	if not MEDAL_STATS.has(id) or not medal_ready(progression, id) or medal_owned(progression, id): return false
+	var ids: Array = progression.get(MEDAL_FIELD, []).duplicate()
+	ids.append(id)
+	progression[MEDAL_FIELD] = ids
+	return true
+
+## Summed achievement stat rates of owned medals, by stat.
+static func achievement_stats(progression: Dictionary) -> Dictionary:
+	var stats := {}
+	for id in progression.get(MEDAL_FIELD, []):
+		if not MEDAL_STATS.has(int(id)): continue
+		var spec: Array = MEDAL_STATS[int(id)]
+		stats[spec[0]] = float(stats.get(spec[0], 0.0)) + float(spec[1])
+	return stats
+
+## "코어 내구도 +5%" style label of one stat rate.
+static func stat_text(stat: String, rate: float) -> String:
+	return "%s +%s%%" % [STAT_NAMES.get(stat, stat), String.num(rate * 100.0, 1).trim_suffix(".0")]
+
+## [achieved, total] over stage challenges (normal and hard) and collections.
+static func achievement_count(progression: Dictionary) -> Array:
+	var done := 0
+	var total := 0
+	for stage_id in StageProgression.ordered_ids():
+		if not has_challenge(stage_id): continue
+		for difficulty in ["normal", "hard"]:
+			total += 1
+			if achieved(progression, stage_id, difficulty): done += 1
+	for id in MEDAL_STATS:
+		total += 1
+		if medal_ready(progression, id): done += 1
+	return [done, total]
 
 ## Achieved count of one chapter and difficulty (collection progress).
 static func chapter_count(progression: Dictionary, chapter: int, difficulty: String) -> int:
