@@ -100,9 +100,11 @@ func show(kind: String, stage_id: int, hard: bool) -> void:
 	place.call_deferred(notice)
 
 ## Centers the strip under the top HUD between the side controls; a strip too
-## wide for that gap drops below them to the full width.
-func place(target: PanelContainer) -> void:
-	if not is_instance_valid(target) or target != notice: return
+## wide for that gap drops below them to the full width. Untyped: a notice
+## cleared before this deferred call arrives as a freed instance.
+func place(pending) -> void:
+	if not is_instance_valid(pending) or pending != notice: return
+	var target: PanelContainer = pending
 	var insets: Vector4 = hud.safe_insets()
 	var width := hud.get_viewport_rect().size.x
 	var y: float = hud.top.offset_top + hud.top.size.y + 6
