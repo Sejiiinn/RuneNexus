@@ -905,3 +905,6 @@ __pycache__/
 /docs/**/*.zip
 /docs/**/*.gz
 /docs/**/*.log
+/design/challenge_collection_concepts/2026-11-02/capture_card.gd
+/design/challenge_collection_concepts/2026-11-02/capture_challenge.gd
+/design/challenge_collection_concepts/2026-11-02/capture_popup3.gd
