@@ -159,6 +159,9 @@ TIMEOUTS = {
     "verify_server_run_lifecycle.gd": 60, "verify_async_checkpoint.gd": 60,
     # Enumerates every authored spawn and simulates all chapter endpoints.
     "verify_content_catalog.gd": 60,
+    # Lays the result screen out at every height and reward mix; ~16s on CI
+    # alone, so parallel load pushes it past the short-case budget.
+    "verify_result_fit.gd": 60,
 }
 SERIAL = frozenset(TIMEOUTS)
 # Scripts and data load directly; only these need no editor import when changed.
