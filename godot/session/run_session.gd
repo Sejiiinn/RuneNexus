@@ -4,6 +4,7 @@ const Growth = preload("res://app/growth_rules.gd")
 const Commands = preload("res://app/run_commands.gd")
 const QuestProgress = preload("res://app/quest_progress.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 const CombatKinds = preload("res://combat/combat_kinds.gd")
 const RunKinds = preload("res://app/run_command_kinds.gd")
 var growth = Growth.new()
@@ -71,8 +72,10 @@ func finish(success: bool) -> void:
 	state.lastRunPreviousBestRound = StageDifficulty.best_rounds(state.progression, int(stage.id), difficulty)
 	state.lastRunWasNewBestRound = int(state.completedRounds) > int(state.lastRunPreviousBestRound)
 	state.lastRunFirstClear = success and int(stage.id) not in state.progression.get("clearedStageNumbers", []) and difficulty == StageDifficulty.NORMAL
+	var challenge := success and StageChallenges.met(state, int(stage.id))
+	state.lastRunChallengeAchieved = challenge and not StageChallenges.achieved(state.progression, int(stage.id), difficulty)
 	state.progression = quests.finish(state.progression, {
-		"completedRounds":state.completedRounds, "success":success, "stageNumber":int(stage.id), "difficulty":difficulty,
+		"completedRounds":state.completedRounds, "success":success, "stageNumber":int(stage.id), "difficulty":difficulty, "challengeMet":challenge,
 		"firstClearCorePointReward":int(stage.firstClearCorePointReward),
 		"firstClearTurretModuleTicketReward":int(stage.firstClearTurretModuleTicketReward),
 		"grantEconomyRewardsLocally":false,
@@ -137,6 +140,9 @@ func collect(runtime) -> Dictionary:
 					# The pure wave transaction already returns deeply owned state.
 					if result.get("ok",false): progression_owned = true
 					quest_types.append("clearWaves")
+			CombatKinds.ARRIVAL:
+				# Any contact breaks a no-core-damage challenge, even when prevented.
+				if not bool(runtime.enemies.get(str(event.enemyId), {}).get("isDebug", false)): state[StageChallenges.CORE_FIELD] = true
 			CombatKinds.CORE_DEFEATED:
 				state.phase = "coreDestruction"
 		if not result.get("ok", false):

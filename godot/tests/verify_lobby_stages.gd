@@ -141,10 +141,13 @@ func verify_map_and_card(ui, host) -> void:
 			card.size = Vector2(dimensions.x - 24, StageCard.HEIGHT)
 			card.show_stage(stage)
 			var rect := Rect2(Vector2.ZERO, card.size)
-			# Only the difficulty tabs sit on the card's top edge, inside its width.
+			# Only the difficulty tabs and the challenge line sit on the card's top edge, inside its width.
 			var tab_band := Rect2(0, -StageCard.TAB_HEIGHT, card.size.x, card.size.y + StageCard.TAB_HEIGHT)
 			for child in card.get_children():
-				if child is Control: assert((tab_band if str(child.name).begins_with("Difficulty") else rect).grow(1).encloses(Rect2(child.position, child.size)), "%s outside card at %s" % [child.name, dimensions])
+				if child is Control: assert((tab_band if str(child.name).begins_with("Difficulty") or child.name == "ChallengeStrip" else rect).grow(1).encloses(Rect2(child.position, child.size)), "%s outside card at %s" % [child.name, dimensions])
+			var strip: Control = card.get_node_or_null("ChallengeStrip")
+			var normal_tab: Control = card.get_node_or_null("DifficultyNormal")
+			if strip != null and normal_tab != null: assert(strip.position.x + strip.size.x <= normal_tab.position.x, "challenge line clear of the tabs at %s" % [dimensions])
 			var action: Button = card.find_child("StageStart", false, false) if ui.unlocked(stage) else card.find_child("StageLocked", false, false)
 			assert(action != null and action.disabled == not ui.unlocked(stage))
 			assert(card.get_node("RoundTrack").position.x + card.get_node("RoundTrack").size.x <= action.position.x - 11, "Round bar stops before the action")

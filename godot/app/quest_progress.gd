@@ -1,6 +1,7 @@
 extends RefCounted
 const StageProgression = preload("res://content/stage_progression.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 ## Pure progression transitions. Account currency is only granted by economy receipts.
 const DAILY := {"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5}
 const WEEKLY := {"clearWaves": 150, "killBosses": 15, "killEnemies": 500, "buyRunUpgrades": 25}
@@ -127,6 +128,7 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 		p.hardClearedStageNumbers = hard_cleared
 		p.totalCorePoints = int(p.get("totalCorePoints", 0)) + StageDifficulty.FIRST_CLEAR_CORE_POINTS
 		p.lastRunCorePointReward = StageDifficulty.FIRST_CLEAR_CORE_POINTS
+	if success and stage > 0 and bool(event.get("challengeMet", false)): StageChallenges.record(p, stage, difficulty)
 	if stage > 0:
 		if rounds > 0:
 			var key := StageDifficulty.best_rounds_key(difficulty)

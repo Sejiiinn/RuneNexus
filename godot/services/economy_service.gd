@@ -4,7 +4,8 @@ const Settlement = preload("res://app/reward_settlement.gd")
 const Json = preload("res://app/save_json.gd")
 const GemResult = preload("res://app/gem_command_result.gd")
 const GemDeck = preload("res://app/gem_deck.gd")
-const COMPATIBILITY := 15
+const StageChallenges = preload("res://content/stage_challenges.gd")
+const COMPATIBILITY := 16
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed
@@ -146,6 +147,13 @@ func _run(action: String, values: Dictionary, token: int) -> Dictionary:
 		"unlock_research_slot_two":
 			path = "v1/economy/research-slots/2/unlock"
 			body.merge(_save_fields(sync))
+		"claim_challenge":
+			# A retry after a lost response recovers the claim above; never claim twice.
+			if StageChallenges.reward_key(int(values.get("stageNumber", 0)), str(values.get("difficulty", ""))) in snapshot.get("claimedRewardKeys", []):
+				return {"ok": true, "body": snapshot}
+			path = "v1/economy/challenges/claim"
+			body.merge(_save_fields(sync))
+			body.merge({"stageNumber":values.get("stageNumber", 0), "difficulty":values.get("difficulty", "")})
 		"claim_reward":
 			kind = "weekly_reward" if values.get("period") == "weekly" else "daily_reward"
 			path = "v1/economy/rewards/claim"
@@ -246,7 +254,7 @@ func _prepare(kind: String, path: String, body: Dictionary, token: int, equip_in
 	return await _send(command, token)
 
 func _allowed(command: Dictionary) -> bool:
-	var exact := {"start_run":"v1/economy/runs/start","close_run":"v1/economy/runs/close","purchase_gems":"v1/economy/gems/purchase","offer_gems":"v1/economy/gems/offer","choose_gem":"v1/economy/gems/choose","reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
+	var exact := {"start_run":"v1/economy/runs/start","close_run":"v1/economy/runs/close","purchase_gems":"v1/economy/gems/purchase","offer_gems":"v1/economy/gems/offer","choose_gem":"v1/economy/gems/choose","reroll_gems":"v1/economy/gems/reroll","bootstrap":"v1/economy/bootstrap","run_settlement":"v1/economy/runs/settle","draw_modules":"v1/economy/turret-modules/draw","disassemble_modules":"v1/economy/turret-modules/disassemble","unlock_research_slot_two":"v1/economy/research-slots/2/unlock","claim_challenge":"v1/economy/challenges/claim","daily_reward":"v1/economy/rewards/claim","weekly_reward":"v1/economy/rewards/claim","mail_claim_all":"v1/mailbox/claim-all"}
 	if exact.has(command.kind): return command.path == exact[command.kind]
 	var patterns := {"complete_research":"^v1/economy/researches/[A-Za-z][A-Za-z0-9]*/complete$","ack_progression_effect":"^v1/economy/progression-effects/[0-9a-fA-F-]{36}/ack$","mail_claim":"^v1/mailbox/[0-9a-fA-F-]{36}/claim$"}
 	return patterns.has(command.kind) and RegEx.create_from_string(patterns[command.kind]).search(command.path) != null

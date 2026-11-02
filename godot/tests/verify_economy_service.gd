@@ -58,6 +58,7 @@ func run():
 	directory = OS.get_cache_dir().path_join("godot-economy-"+Id.uuid())
 	await _snapshot_dedup_tests()
 	await _draw_quote_tests()
+	await _challenge_claim_tests()
 	var box = Outbox.new(directory,ACCOUNT)
 	check(box.load_state() == OK,"outbox load")
 	var session = Session.new()
@@ -148,6 +149,32 @@ func run():
 	print("ECONOMY_SERVICE failures=",failures.size()," ",failures)
 	_remove(directory)
 	quit(0 if failures.is_empty() else 1)
+## Stage challenge claims post the synced save fields with the stage and difficulty.
+func _challenge_claim_tests():
+	var box = Outbox.new(directory.path_join("challenge"),ACCOUNT)
+	check(box.load_state() == OK,"challenge outbox load")
+	var session = Session.new()
+	root.add_child(session)
+	session.economy = snapshot()
+	var claimed := snapshot(4)
+	claimed.claimedRewardKeys = ["stage:3:challenge:normal"]
+	session.response = {"ok":true,"status":200,"body":{"economy":claimed,"rewardKey":"stage:3:challenge:normal","grantedDiamonds":100}}
+	var service = Service.new()
+	root.add_child(service)
+	service.configure(session,box,{"sync":sync,"snapshot":apply,"receipt":receipt,"effect":effect})
+	var result: Dictionary = await service.execute("claim_challenge",{"stageNumber":3,"difficulty":"normal"})
+	var posts: Array = session.sent.filter(func(item): return item.method == "POST")
+	var body: Dictionary = JSON.parse_string(posts.back().body) if not posts.is_empty() else {}
+	check(result.ok and posts.size() == 1 and posts[0].path == "v1/economy/challenges/claim" and body.get("stageNumber") == 3 and body.get("difficulty") == "normal" and body.get("sourceSaveRevision") == 8 and body.get("writerGeneration") == 2 and body.get("clientCompatibilityVersion") == 16,"challenge claim wire contract")
+	check(box.state.inFlight == null and "stage:3:challenge:normal" in service.snapshot.get("claimedRewardKeys",[]),"claim keys arrive with the economy snapshot")
+	check(body.has("expectedEconomyRevision") and body.has("expectedCatalogVersion"),"challenge claim carries the expected economy")
+	# A retry of an already claimed reward (e.g. after a lost response) succeeds without another claim.
+	session.economy = claimed
+	var retried: Dictionary = await service.execute("claim_challenge",{"stageNumber":3,"difficulty":"normal"})
+	var claims: Array = session.sent.filter(func(item): return item.method == "POST" and item.path == "v1/economy/challenges/claim")
+	check(retried.ok and claims.size() == 1 and box.state.inFlight == null,"claimed reward retry does not claim again")
+	service.free(); session.free()
+
 func _remove(path: String):
 	for file in DirAccess.get_files_at(path): DirAccess.remove_absolute(path.path_join(file))
 	for child in DirAccess.get_directories_at(path): _remove(path.path_join(child))

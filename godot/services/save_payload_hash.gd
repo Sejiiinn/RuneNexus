@@ -62,7 +62,10 @@ const ORDERS = {
 		"gemResetTickets",
 		"corePassiveLegacyAllocation",
 		"hardBestRoundsByStage",
-		"hardClearedStageNumbers"
+		"hardClearedStageNumbers",
+		"challengeStageNumbers",
+		"hardChallengeStageNumbers",
+		"claimedChallengeCorePointStages"
 	],
 	"SavedActiveResearch": [
 		"type",
@@ -210,7 +213,10 @@ const ORDERS = {
 		"indomitableUsedThisStage",
 		"nexusInvulnerableRemaining",
 		"supportCores",
-		"difficulty"
+		"difficulty",
+		"challengePeakTurrets",
+		"challengeTurretTypes",
+		"challengeCoreReached"
 	],
 	"SavedSupportCore": [
 		"x",

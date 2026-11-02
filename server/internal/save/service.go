@@ -20,8 +20,10 @@ import (
 // New save fields or content only raise CurrentClientCompatibilityVersion; the
 // account's client generation floor blocks older clients (ValidateClientGenerationFloor).
 const (
-	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = HardDifficultyClientCompatibilityVersion
+	CurrentSchemaVersion int32 = 2
+	// 16: stage challenge achievements, challenge core point claims and run tracking.
+	StageChallengeClientCompatibilityVersion = 16
+	CurrentClientCompatibilityVersion        = StageChallengeClientCompatibilityVersion
 )
 
 var (

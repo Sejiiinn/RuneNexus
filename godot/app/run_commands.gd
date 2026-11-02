@@ -7,6 +7,7 @@ const SupportCore = preload("res://app/support_core_rules.gd")
 const CombatKinds = preload("res://combat/combat_kinds.gd")
 const RunKinds = preload("res://app/run_command_kinds.gd")
 const GrowthRules = preload("res://app/growth_rules.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 var catalog
 var growth
 
@@ -34,6 +35,7 @@ func _derive_context(state: Dictionary) -> Dictionary:
 
 func initial_state(progression: Dictionary = {}, stage: int = 0) -> Dictionary:
 	var state := {"phase":"preparation", "stage":stage, "progression":progression.duplicate(true), "turrets":[], "gemInventory":{}, "runUpgradeLevels":{}, "nextTurretId":1000, "gold":0, "gemShards":0, "killGoldFractionWallet":0.0,"roundIndex":0,"completedRounds":0,"pendingEconomyDiamonds":0, "rewardOptions":[], "gemRerollsUsed":0}
+	StageChallenges.start(state)
 	var d := derived(state)
 	state.gold = int(d.get("initialGold", 160))
 	state.gemShards = int(d.get("startingGemShards", 0))
@@ -166,6 +168,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		t.aimAngle = initial_aim_angle(type)
 		next.nextTurretId += 1
 		next.turrets.append(t)
+		StageChallenges.track_build(next)
 	elif kind == RunKinds.BUILD_SUPPORT_CORE:
 		if not d.get("supportCoreUnlocked", false): return _reject(state,"locked")
 		var x := int(command.get("x",-1))

@@ -161,6 +161,7 @@ func NewHandler(
 			mux.Handle("POST /v1/economy/research-slots/2/unlock", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.unlockResearchSlot)))
 			mux.Handle("POST /v1/economy/progression-effects/{effectId}/ack", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.acknowledgeEffect)))
 			mux.Handle("POST /v1/economy/runs/settle", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.settleRun)))
+			mux.Handle("POST /v1/economy/challenges/claim", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.claimStageChallenge)))
 		}
 		if dependencies.LegacyTransferService != nil {
 			transfers := legacyTransferHandler{

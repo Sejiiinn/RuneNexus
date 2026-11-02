@@ -11,6 +11,7 @@ const Growth = preload("res://ui/lobby_growth.gd")
 const Core = preload("res://ui/lobby_core.gd")
 const Collection = preload("res://ui/lobby_collection.gd")
 const Stages = preload("res://ui/lobby_stages.gd")
+const Challenges = preload("res://ui/lobby_challenges.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const NAMES := {"startingGold":"초기 자금", "nexusHp":"코어 내구도", "supply":"보급", "fireTraining":"화력 훈련", "physicalDamageTraining":"물리 피해 훈련", "elementalDamageTraining":"원소 피해 훈련", "poisonDamageTraining":"독 피해 훈련", "criticalDamage":"치명타 피해", "killGold":"처치 골드", "bossBounty":"보스 현상금", "linkCostOptimization":"링크 비용 최적화", "turretLevelUpOptimization":"포탑 강화 비용 최적화", "researchEfficiency":"연구 효율", "researchCostEfficiency":"연구 비용 효율", "turretTargetPriority":"포탑 목표 우선순위", "linkExpansionOne":"링크 확장 I", "linkExpansionTwo":"링크 확장 II", "gemAttunement":"젬 조율", "criticalChance":"치명타 확률", "emergencySale":"긴급 매각", "linkMaintenance":"링크 정비", "crystalRecovery":"결정 회수", "runeResonance":"룬 공명", "runUpgradeCostOptimization":"전투 강화 비용 최적화", "towerDamageLimitExpansion":"화력 한계 확장", "killGoldLimitExpansion":"처치 보상 한계 확장", "waveGoldLimitExpansion":"보급 한계 확장", "guardianBeam":"수호 광선", "riftMark":"균열 낙인", "arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝", "poison":"독"}
 var app
@@ -26,6 +27,7 @@ var growth = Growth.new()
 var core = Core.new()
 var collection = Collection.new()
 var stages = Stages.new()
+var challenges = Challenges.new()
 var modal: Control
 var warning_toast: Control
 var modal_position: Control
@@ -44,13 +46,18 @@ func _ready() -> void:
 	theme = MenuTheme.create()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	core_names = JSON.parse_string(FileAccess.get_file_as_string("res://ui/core_names.json"))
-	for helper in [growth, core, collection, stages]: helper.setup(self)
+	for helper in [growth, core, collection, stages, challenges]: helper.setup(self)
 	resized.connect(_safe_layout)
 	refresh()
 
 func progression() -> Dictionary: return app.progression_inputs
 func diamonds() -> int: return int(progression().get("freeDiamonds",0)) + int(progression().get("paidDiamonds",0))
 func display_title(id: String) -> String: return str(Growth.TITLES.get(id, NAMES.get(id, core_names.get(id,id))))
+## Server reward claim keys; empty for guests and before the economy loads.
+func challenge_claim_keys() -> Array:
+	var services = app.get("services")
+	var economy = services.get("economy") if services is Object else null
+	return economy.snapshot.get("claimedRewardKeys", []) if economy is Object else []
 
 func safe_insets() -> Vector4:
 	if not OS.has_feature("mobile"): return Vector4.ZERO
@@ -214,6 +221,8 @@ func refresh_economy() -> void:
 	else:
 		refresh()
 		if is_instance_valid(modal) and modal.get_meta("quest_dialog",false): collection.quests(modal_body)
+	# Claim keys arrive with the economy snapshot.
+	challenges.refresh()
 
 func _quest_ready() -> bool:
 	var p := progression()
@@ -351,6 +360,10 @@ func open_page(value: String) -> void:
 	message = ""
 	if page == "코어": core_draft = progression().get("corePassiveNodeRanks", {}).duplicate()
 	refresh()
+
+func open_challenges() -> void:
+	if is_instance_valid(home): home.close_modal()
+	challenges.open()
 
 func open_quests() -> void:
 	if is_instance_valid(home): home.close_modal()

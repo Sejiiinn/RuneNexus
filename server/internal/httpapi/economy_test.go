@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/auth"
+	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
 )
 
 func TestEconomyCommandsRequireCurrentCompatibilityGeneration(t *testing.T) {
@@ -65,4 +66,31 @@ func TestGrowthCompatibilityEconomyErrorRequiresClientUpdate(t *testing.T) {
 		t.Fatal("error was not handled")
 	}
 	requireAPIError(t, response, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED")
+}
+
+type challengeClaimStub struct {
+	EconomyService
+	request economy.StageChallengeClaimRequest
+	called  bool
+}
+
+func (stub *challengeClaimStub) ClaimStageChallenge(_ context.Context, _ string, _ string, request economy.StageChallengeClaimRequest) (economy.CommandResult, error) {
+	stub.called, stub.request = true, request
+	return economy.CommandResult{RewardKey: "stage:11:challenge:normal", GrantedDiamonds: 300}, nil
+}
+
+// The client sends the common economy fields with every command.
+func TestChallengeClaimAcceptsCurrentClientBody(t *testing.T) {
+	stub := &challengeClaimStub{}
+	handler := economyHandler{economy: stub, logger: slog.New(slog.NewTextHandler(io.Discard, nil)), minimumClientCompatibilityVersion: 1}
+	response := httptest.NewRecorder()
+	handler.claimStageChallenge(response, economyRequest(http.MethodPost, "/v1/economy/challenges/claim",
+		`{"expectedEconomyRevision":3,"expectedCatalogVersion":2,"stageNumber":11,"difficulty":"normal","sourceSaveRevision":2,"writerGeneration":1,"clientCompatibilityVersion":16}`))
+	if response.Code != http.StatusOK || !stub.called || stub.request.ExpectedRevision != 3 || stub.request.ExpectedCatalogVersion != 2 || stub.request.StageNumber != 11 {
+		t.Fatalf("status=%d called=%v request=%+v body=%s", response.Code, stub.called, stub.request, response.Body.String())
+	}
+	missing := httptest.NewRecorder()
+	handler.claimStageChallenge(missing, economyRequest(http.MethodPost, "/v1/economy/challenges/claim",
+		`{"stageNumber":11,"difficulty":"normal","sourceSaveRevision":2,"writerGeneration":1,"clientCompatibilityVersion":16}`))
+	requireAPIError(t, missing, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST")
 }

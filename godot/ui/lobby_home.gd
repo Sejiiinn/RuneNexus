@@ -11,6 +11,7 @@ const Numbers = preload("res://ui/hud_number.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const StageMap = preload("res://ui/stage_map_view.gd")
 const StageCard = preload("res://ui/lobby_stage_card.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 const PRIMARY := Color("e8f8ff")
 const SECONDARY := Color("b9d6e4")
 const MAX_WIDTH := 460.0
@@ -301,6 +302,7 @@ func _shortcuts(rect: Rect2) -> void:
 		["Leaderboard", "리더보드", "lobby_leaderboard_icon.png", open_service.bind("리더보드")],
 		["Events", "이벤트", "lobby_event_icon.png", open_events],
 		["Mailbox", "우편함", "lobby_mailbox_icon.png", open_service.bind("우편함")],
+		["Challenges", "업적", "lobby_challenge_icon.png", func(): lobby.open_challenges()],
 	]
 	var natural: Array[float] = []
 	var spare := rect.size.x
@@ -322,9 +324,11 @@ func _shortcuts(rect: Rect2) -> void:
 		canvas.add_child(line)
 	var events: Button = cells["Events"]
 	var mailbox: Button = cells["Mailbox"]
+	var challenges: Button = cells["Challenges"]
 	# Keep both indicators so receipt updates do not rebuild home.
 	_alert_badge("QuestReadyDot", events.position + events.get_node("Icon").position + Vector2(18, -1), _claimable())
 	_alert_badge("MailboxReadyDot", mailbox.position + mailbox.get_node("Icon").position + Vector2(18, -1), _mail_claimable())
+	_alert_badge("ChallengeReadyDot", challenges.position + challenges.get_node("Icon").position + Vector2(18, -1), _challenge_claimable())
 
 func _alert_badge(id: String, at: Vector2, ready: bool) -> void:
 	var dot := Panel.new()
@@ -348,10 +352,15 @@ func refresh_quest_indicator() -> void:
 	if dot != null: dot.visible = _claimable()
 	var mail_dot := canvas.get_node_or_null("MailboxReadyDot")
 	if mail_dot != null: mail_dot.visible = _mail_claimable()
+	var challenge_dot := canvas.get_node_or_null("ChallengeReadyDot")
+	if challenge_dot != null: challenge_dot.visible = _challenge_claimable()
 
 func _mail_claimable() -> bool:
 	var services = lobby.app.get("services")
 	return services is Object and services.has_method("has_unclaimed_mail") and services.has_unclaimed_mail()
+
+func _challenge_claimable() -> bool:
+	return StageChallenges.any_claimable(lobby.progression(), lobby.challenge_claim_keys())
 
 func _claimable() -> bool:
 	var p: Dictionary = lobby.progression()

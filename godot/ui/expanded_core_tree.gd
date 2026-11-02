@@ -6,6 +6,7 @@ extends "res://ui/expanded_core_tree_drawing.gd"
 ## This entry owns the overlay: point bar, menu, node sheets and skills. The
 ## layers below it (state -> drawing) may only call downward; GDScript rejects
 ## an upward call at parse time.
+const StageChallenges = preload("res://content/stage_challenges.gd")
 
 ## Outlined "i" in a circle, drawn like the card's lock and check marks.
 class InfoMark extends Control:
@@ -233,7 +234,15 @@ func _build_points_info(owner) -> void:
 	grid.add_theme_constant_override("v_separation",4)
 	body.add_child(grid)
 	points_info_rows = {}
-	for row in [["normal","노말"],["hard","하드"]]:
+	for row in [["normal","노말"],["hard","하드"],["challenge","하드 도전과제 5·10번째"]]:
+		if row[0] == "challenge":
+			# Challenge core points are a second source with their own heading.
+			body.add_child(_plain("도전과제 보상",13,Color("ffd27a"),800))
+			grid = GridContainer.new()
+			grid.columns = 3
+			grid.add_theme_constant_override("h_separation",18)
+			grid.add_theme_constant_override("v_separation",4)
+			body.add_child(grid)
 		var name_label := _plain(row[1],12,Color("e8f8ff"),800)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		grid.add_child(name_label)
@@ -251,10 +260,11 @@ func _update_points_info(owner) -> void:
 	var p: Dictionary = owner.lobby.progression()
 	var stages: int = Progression.ORDER.size()
 	var normal_points := int(owner.lobby.app.catalog.stage_summary(0).get("firstClearCorePointReward",0))
-	var rows := {"normal":[normal_points,p.get("claimedCorePointStageRewards",[]).size()],"hard":[StageDifficulty.FIRST_CLEAR_CORE_POINTS,p.get("hardClearedStageNumbers",[]).size()]}
+	var challenge_stages: int = Progression.ORDER.filter(func(id): return StageChallenges.reward(id, "hard").get("kind") == "corePoints").size()
+	var rows := {"normal":[normal_points,p.get("claimedCorePointStageRewards",[]).size(),stages],"hard":[StageDifficulty.FIRST_CLEAR_CORE_POINTS,p.get("hardClearedStageNumbers",[]).size(),stages],"challenge":[StageChallenges.HARD_CORE_POINTS,p.get(StageChallenges.CORE_CLAIM_FIELD,[]).size(),challenge_stages]}
 	for key in rows:
 		points_info_rows[key][0].text = "%dP" % int(rows[key][0])
-		points_info_rows[key][1].text = "%d / %d" % [mini(int(rows[key][1]),stages),stages]
+		points_info_rows[key][1].text = "%d / %d" % [mini(int(rows[key][1]),int(rows[key][2])),int(rows[key][2])]
 
 func update_overlay(owner) -> void:
 	if not is_instance_valid(point_bar): return

@@ -741,6 +741,9 @@ static func _progression(v: Dictionary) -> Dictionary:
 	# Optional so progressions that never played hard keep their payload hash.
 	if v.has("hardBestRoundsByStage"): out.hardBestRoundsByStage = _stage_rounds(v.hardBestRoundsByStage)
 	if v.has("hardClearedStageNumbers"): out.hardClearedStageNumbers = _list(v.hardClearedStageNumbers, "int", true)
+	# Optional so progressions without challenges keep their payload hash.
+	for key in ["challengeStageNumbers", "hardChallengeStageNumbers", "claimedChallengeCorePointStages"]:
+		if v.has(key): out[key] = _list(v[key], "int", true)
 	for key in ["researchLevels", "researchElapsedMillis"]: out[key] = _enum_map("ResearchType", v.get(key))
 	out.activeResearches = _objects(v.get("activeResearches"), "SavedActiveResearch")
 	out.researchSlotTwoUnlocked = v.researchSlotTwoUnlocked if v.get("researchSlotTwoUnlocked") is bool else out.activeResearches.size() > 1
@@ -848,6 +851,10 @@ static func _run(v: Variant, skill: Variant, tree_revision: int = 4) -> Variant:
 	if v.has("supportCores"): out.supportCores = _objects(v.supportCores, "SavedSupportCore")
 	# Absent means normal, so normal runs keep their payload hash.
 	if v.get("difficulty") == "hard": out.difficulty = "hard"
+	# Challenge tracking appears with the first build or core contact.
+	if v.has("challengePeakTurrets"): out.challengePeakTurrets = clampi(_int(v.challengePeakTurrets), 0, 999)
+	if v.has("challengeTurretTypes"): out.challengeTurretTypes = _list(v.challengeTurretTypes, "TurretType", true)
+	_optional_bool(out, v, "challengeCoreReached")
 	return out
 
 static func _stage_rounds(v: Variant) -> Dictionary:

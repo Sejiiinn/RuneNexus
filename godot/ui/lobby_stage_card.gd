@@ -4,12 +4,15 @@ extends Control
 ## first-clear unlocks over the start/continue action. Tapping an unlock icon opens a
 ## small bubble with its name and where it appears. Normal|hard tabs sit on the
 ## card's top-right edge; hard tints the frame and action red and badges the runes.
+## The selected difficulty's challenge sits in one line left of the tabs; a tap
+## shows its failure rule, family turrets and reward.
 const T = preload("res://ui/app_theme.gd")
 const Numbers = preload("res://ui/hud_number.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const Stages = preload("res://ui/lobby_stages.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 const HEIGHT := 96.0
 const TEAL := Color("5cf9e9")
 const GOLD := Color("e7c66a")
@@ -42,6 +45,8 @@ var stage := 0
 var tooltip := -1
 ## Repeat-reward key ("loot"/"ticket") whose one-line chance bubble is open.
 var repeat_tip := ""
+## Whether the challenge bubble is open.
+var challenge_tip := false
 var _catcher: Control
 
 func _ready() -> void:
@@ -50,9 +55,10 @@ func _ready() -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	# A tap on the card itself, outside its buttons, also closes the bubble.
-	if (tooltip >= 0 or not repeat_tip.is_empty()) and event is InputEventMouseButton and event.pressed:
+	if (tooltip >= 0 or not repeat_tip.is_empty() or challenge_tip) and event is InputEventMouseButton and event.pressed:
 		tooltip = -1
 		repeat_tip = ""
+		challenge_tip = false
 		_rebuild.call_deferred()
 
 func _exit_tree() -> void:
@@ -62,6 +68,7 @@ func show_stage(id: int) -> void:
 	if id != stage:
 		tooltip = -1
 		repeat_tip = ""
+		challenge_tip = false
 	stage = id
 	_rebuild()
 
@@ -77,6 +84,7 @@ func _rebuild() -> void:
 	var difficulty: String = stages.card_difficulty(stage)
 	var hard := difficulty == StageDifficulty.HARD
 	if open: _tabs(w, difficulty, active)
+	if open and StageChallenges.has_challenge(stage): _challenge(w, difficulty)
 	var card_frame := _framed("stage_details/ui/dialog_frame.png", Rect2(0, 0, w, HEIGHT), Rect2(14, 14, 240, 224))
 	card_frame.name = "CardFrame"
 	if hard: card_frame.modulate = HARD_TINT
@@ -135,7 +143,7 @@ func _rebuild() -> void:
 		_unlock_tile(k, unlocks[k], Rect2(w - 14 - TILE_STEP * (shown - k), 10, TILE, TILE), claimed)
 	_action(Rect2(button_x, 48, button_w, 34), open, active, hard)
 	if tooltip >= 0 and tooltip < shown: _tooltip(unlocks[tooltip], w - 14 - TILE_STEP * (shown - tooltip))
-	elif repeat_tip.is_empty(): _close_catcher()
+	elif repeat_tip.is_empty() and not challenge_tip: _close_catcher()
 
 func _tabs(w: float, difficulty: String, active: bool) -> void:
 	var hard_open: bool = stages.hard_open(stage)
@@ -179,7 +187,99 @@ func _tabs(w: float, difficulty: String, active: bool) -> void:
 			stages.difficulty = mode
 			tooltip = -1
 			repeat_tip = ""
+			challenge_tip = false
 			_rebuild.call_deferred())
+
+## Challenge line on the card's top edge, left of the difficulty tabs.
+func _challenge(w: float, difficulty: String) -> void:
+	var progression: Dictionary = stages.lobby.progression()
+	var done := StageChallenges.achieved(progression, stage, difficulty)
+	var text_value: String = StageChallenges.lines(stage)[0]
+	var text_w := T.font(800).get_string_size(text_value, HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size.call(12))).x
+	var tabs_x := w - 14 - TAB_WIDTH * 2 - 4
+	var strip_w := minf(tabs_x - 6, text_w + 64 + (18 if done else 0))
+	var strip := Button.new()
+	strip.name = "ChallengeStrip"
+	strip.focus_mode = Control.FOCUS_NONE
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("0b141ce6")
+	box.border_color = Color(TEAL, 0.5) if done else Color(GOLD, 0.45)
+	box.set_border_width_all(1)
+	box.border_width_bottom = 0
+	box.corner_radius_top_left = 7
+	box.corner_radius_top_right = 7
+	for state in ["normal", "hover", "pressed", "focus"]: strip.add_theme_stylebox_override(state, box)
+	_place(strip, Rect2(0, -TAB_HEIGHT + 1, strip_w, TAB_HEIGHT))
+	_image("lobby_challenge_icon.png", Rect2(6, 2, 20, 20), strip)
+	var tag := _label("도전", 10, Color(TEAL, 0.9) if done else GOLD, 900)
+	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_place(tag, Rect2(28, 0, 26, TAB_HEIGHT), strip)
+	var text := _label(text_value, 12, Color("9fb3bf") if done else WHITE, 800)
+	text.name = "ChallengeText"
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_place(text, Rect2(55, 0, minf(text_w + 4, strip_w - 55 - (20 if done else 4)), TAB_HEIGHT), strip)
+	if done:
+		var check := Check.new()
+		check.name = "ChallengeCheck"
+		check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_place(check, Rect2(strip_w - 20, 5, 14, 14), strip)
+	strip.pressed.connect(func():
+		challenge_tip = not challenge_tip
+		tooltip = -1
+		repeat_tip = ""
+		_rebuild.call_deferred())
+	if challenge_tip: _challenge_bubble(difficulty, done)
+
+func _challenge_bubble(difficulty: String, done: bool) -> void:
+	var names := {}
+	for type in StageChallenges.FAMILIES: names[type] = stages.lobby.display_title(type)
+	var words: Array = StageChallenges.lines(stage)
+	var lines := [[words[0], 13, WHITE], [words[1], 11, MUTED]]
+	var members := StageChallenges.family_members(stage, names)
+	if not members.is_empty(): lines.append([members, 11, SECONDARY])
+	var bubble_w := 0.0
+	for line in lines: bubble_w = maxf(bubble_w, T.font(800).get_string_size(str(line[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size.call(int(line[1])))).x)
+	bubble_w = clampf(bubble_w + 28, minf(290.0, size.x - 4), size.x - 4)
+	var line_h: float = 19.0 * font_size.call(12) / 12.0
+	var bubble_h := 16.0 + lines.size() * line_h + 34
+	var bubble := Panel.new()
+	bubble.name = "ChallengeTooltip"
+	bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bubble.z_index = 10
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("0b1620f5")
+	box.border_color = Color(GOLD, 0.7)
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(7)
+	bubble.add_theme_stylebox_override("panel", box)
+	_place(bubble, Rect2(0, -TAB_HEIGHT - 8 - bubble_h, bubble_w, bubble_h))
+	var arrow := Polygon2D.new()
+	arrow.color = Color(GOLD, 0.7)
+	arrow.polygon = PackedVector2Array([Vector2(34, bubble_h), Vector2(46, bubble_h), Vector2(40, bubble_h + 7)])
+	bubble.add_child(arrow)
+	var y := 9.0
+	for line in lines:
+		var label := _label(str(line[0]), int(line[1]), line[2], 800 if int(line[1]) == 13 else 700)
+		_place(label, Rect2(13, y, bubble_w - 26, line_h), bubble)
+		y += line_h
+	var rule := ColorRect.new()
+	rule.color = Color(MUTED, 0.3)
+	_place(rule, Rect2(13, y + 5, bubble_w - 26, 1), bubble)
+	var hard := difficulty == StageDifficulty.HARD
+	var head := _label(("하드" if hard else "노말") + " 보상", 11, HARD_RED if hard else TEAL, 900)
+	_place(head, Rect2(13, y + 11, 60, 20), bubble)
+	var reward := StageChallenges.reward(stage, difficulty)
+	var kind := str(reward.get("kind", ""))
+	_image({"diamonds":"res://assets/ui/diamond_currency.png", "tickets":"stage_rewards/reward_module_ticket.png"}.get(kind, "stage_rewards/reward_core.png"), Rect2(74, y + 11, 20, 20), bubble)
+	var amount_text := str({"diamonds":"%d", "tickets":"%d장"}.get(kind, "코어 포인트 %dP")) % int(reward.get("amount", 0))
+	var amount := _label(amount_text, 12, Color("fff1c4"), 900)
+	amount.name = "ChallengeReward"
+	_place(amount, Rect2(98, y + 11, T.font(900).get_string_size(amount_text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size.call(12))).x + 6, 20), bubble)
+	var claimed := StageChallenges.claimed(stages.lobby.progression(), stages.lobby.challenge_claim_keys(), stage, difficulty)
+	var note := _label("받음" if done and claimed else "업적 화면에서 받기", 10, MUTED, 700)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_place(note, Rect2(bubble_w - 150, y + 12, 137, 20), bubble)
+	_open_catcher()
 
 ## Small socketed icon beside the runes; a tap shows its chance in one line.
 func _repeat_icon(spec: Array) -> Control:
@@ -197,6 +297,7 @@ func _repeat_icon(spec: Array) -> Control:
 	button.pressed.connect(func():
 		repeat_tip = "" if repeat_tip == key else key
 		tooltip = -1
+		challenge_tip = false
 		_rebuild.call_deferred())
 	if repeat_tip == key: _repeat_bubble(button, str(spec[2]))
 	return button
@@ -304,6 +405,7 @@ func _unlock_tile(index: int, item: Array, rect: Rect2, claimed: bool) -> void:
 	tile.pressed.connect(func():
 		tooltip = -1 if tooltip == index else index
 		repeat_tip = ""
+		challenge_tip = false
 		_rebuild.call_deferred())
 
 func _tooltip(item: Array, icon_x: float) -> void:
@@ -361,6 +463,7 @@ func _open_catcher() -> void:
 		if event is InputEventMouseButton and event.pressed:
 			tooltip = -1
 			repeat_tip = ""
+			challenge_tip = false
 			_rebuild.call_deferred())
 	get_parent().add_child(_catcher)
 	get_parent().move_child(_catcher, get_index())

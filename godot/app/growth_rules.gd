@@ -1,5 +1,6 @@
 extends RefCounted
 const StageProgression = preload("res://content/stage_progression.gd")
+const StageChallenges = preload("res://content/stage_challenges.gd")
 ## Local session progression rules. Never performs network or persistent writes.
 const Json = preload("res://app/save_json.gd")
 const Modules = preload("res://content/module_catalog.gd")
@@ -300,6 +301,8 @@ func execute(p: Dictionary, command: Dictionary) -> Dictionary:
 			if ranks == state.corePassiveNodeRanks or not valid_core_ranks(state, ranks): return rejected
 			state.corePassiveNodeRanks = ranks
 			state.corePassiveTreeRevision = int(state.get("corePassiveTreeRevision", 4))
+		"claimChallengeCorePoint":
+			if not StageChallenges.claim_core_point(state, int(command.get("stageNumber", 0))): return rejected
 		"equipCoreCombatSkill":
 			if not id in ["guardianBeam", "riftMark"] or not StageProgression.has_unlock(state,"core",id): return rejected
 			state.coreCombatSkill = id

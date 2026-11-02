@@ -231,6 +231,17 @@ type ResearchSlotUnlockRequest struct {
 	SourceSaveRevision     int64
 }
 
+type StageChallengeClaimRequest struct {
+	IdempotencyKey         string
+	RawBody                []byte
+	ExpectedRevision       int64
+	ExpectedCatalogVersion int32
+	StageNumber            int
+	Difficulty             string
+	WriterGeneration       int64
+	SourceSaveRevision     int64
+}
+
 type EffectAckRequest struct {
 	IdempotencyKey      string
 	RawBody             []byte

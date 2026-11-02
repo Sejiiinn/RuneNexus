@@ -24,7 +24,7 @@ func TestHardDifficultyRequiresCurrentClient(t *testing.T) {
 			t.Fatalf("%s: reject=%v err=%v", tc.name, tc.reject, err)
 		}
 	}
-	if CurrentClientCompatibilityVersion != HardDifficultyClientCompatibilityVersion {
+	if CurrentClientCompatibilityVersion < HardDifficultyClientCompatibilityVersion {
 		t.Fatalf("current client generation %d", CurrentClientCompatibilityVersion)
 	}
 }
