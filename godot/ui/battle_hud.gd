@@ -94,6 +94,7 @@ var build_panel = preload("res://ui/hud_build_panel.gd").new(self)
 var support_core_panel = preload("res://ui/hud_support_core_panel.gd").new(self)
 var menu_panel = preload("res://ui/hud_menu_panel.gd").new(self)
 var gem_shortcut = preload("res://ui/hud_gem_shortcut.gd").new(self)
+var challenge_notice = preload("res://ui/hud_challenge_notice.gd").new(self)
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(func(): _insets_valid = false)
@@ -322,6 +323,8 @@ func refresh(polled := false) -> void:
 	camera_button.text = ("드론" if app.scene.options.get("camera","angled") == "drone" else "고정")+" ↔"
 	_position_camera_button()
 	gem_shortcut.refresh(state)
+	# A new run enters after its stage resources load, so a shown HUD shows it.
+	if is_visible_in_tree(): challenge_notice.observe(state,int(app.catalog.stage_summary(app.stage).get("id",0)))
 	home.disabled = phase == "reward"
 	var auto_index: int = maxi(0,AUTO_MODES.find(app.auto_start_mode))
 	auto_start.text = AUTO_LABELS[auto_index]+(" ▴" if auto_start_popup.visible else " ▾")

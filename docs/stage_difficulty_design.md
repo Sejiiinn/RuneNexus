@@ -1,7 +1,7 @@
 # 스테이지 난이도·도전과제 설계
 
 역할: 스테이지별 노말·하드 난이도와 난이도별 도전과제의 제품 결정과 미정 항목. 정리: 2026-10-29 KST.
-상태: 하드 난이도와 보상(입장·해금, 적 승급, 룬 ×1.5, 하드 기록, 첫 클리어·반복 모듈권·전리품, 매직·희귀 다이아 운반, 전체 일괄 분해), 스테이지 도전과제(판정·보상 받기·화면), 컬렉션 훈장과 업적 능력치, 누적 업적을 구현했다. 계획 상태와 순서는 [TODO](TODO.md#스테이지-난이도와-도전과제)가 원본이다.
+상태: 하드 난이도와 보상(입장·해금, 적 승급, 룬 ×1.5, 하드 기록, 첫 클리어·반복 모듈권·전리품, 매직·희귀 다이아 운반, 전체 일괄 분해), 스테이지 도전과제(판정·보상 받기·화면), 컬렉션 훈장과 업적 능력치, 누적 업적, 전투 도전 조건 안내를 구현했다. 계획 상태와 순서는 [TODO](TODO.md#스테이지-난이도와-도전과제)가 원본이다.
 
 ## 목표
 
@@ -172,6 +172,7 @@
 2. 스테이지 도전과제: 판정·달성 기록·보상 받기·업적 팝업·카드 조건 줄(구현, 미배포)
 3. 훈장과 업적 능력치: 컬렉션 훈장 받기, 업적 능력치의 피해 계층 반영(구현, 미배포)
 4. 누적 업적: 평생 횟수 기록, 단계 보상 받기, 누적 탭과 누적 훈장(구현, 미배포)
+5. 전투 도전 조건 안내: 시작 안내와 실패 알림(구현, 미배포)
 
 ## 미정 항목
 
@@ -194,6 +195,7 @@
 - 도전과제 판정([규칙](../godot/content/stage_challenges.gd)): 새 런은 `challengePeakTurrets: 0`으로 시작하고, 건설할 때마다 런 선택 필드 `challengePeakTurrets`(동시에 설치된 포탑 수 최댓값)와 `challengeTurretTypes`(설치한 포탑 종류)를, 디버그가 아닌 적이 코어에 닿으면 `challengeCoreReached`를 남긴다. 판매·지원 코어는 세지 않는다. 성공 정산에서 조건을 만족하면 진행 선택 필드 `challengeStageNumbers`(노말)·`hardChallengeStageNumbers`(하드, 노말 목록에도 추가)에 스테이지 ID를 더하고, 결과 화면에 「도전과제 달성」을 보인다. 이 필드가 없는 런(추적 전에 시작해 이어한 런)은 조건을 확인할 수 없으므로 이후 건설해도 추적을 시작하지 않고 달성하지 않는다. 달성 기록은 다른 런 상태처럼 클라이언트를 믿는다.
 - 도전과제 받기: 다이아·모듈권은 업적 팝업 보상 칸을 눌러 `POST /v1/economy/challenges/claim`(저장 동기화 뒤 공통 경제 필드와 `stageNumber`·`difficulty`)으로 받는다. 응답을 잃은 뒤 다시 누르면 진행 중 명령을 먼저 복구하고, 키가 이미 받은 목록에 있으면 새 요청 없이 성공으로 처리한다. 서버는 저장된 진행의 달성 기록과 노말 클리어를 확인하고 보상 키 `stage:<id>:challenge:<normal|hard>`로 한 번만 지급한다([서버 표](../server/internal/economy/challenge_rewards.go), 원장 사유 `stage_challenge`). 받은 여부는 경제 스냅샷의 `claimedRewardKeys`로 판단한다. 하드 5·10번째의 코어 1P는 성장 명령 `claimChallengeCorePoint`로 클라이언트 진행에 더하고 `claimedChallengeCorePointStages`에 남긴다.
 - 서버 호환: 도전과제 필드 때문에 클라이언트 세대를 16으로 올렸다. 계정별 세대 하한이 16 미만 클라이언트의 쓰기를 막으며 기능별 호환 검사는 더하지 않았다. DB 마이그레이션은 없다(명령 종류는 기존 `reward_claim`).
+- 전투 안내([HUD 안내](../godot/ui/hud_challenge_notice.gd)): 전투 HUD가 갱신될 때 런을 관찰해, 추적 중이고 아직 달성하지 않은 도전이 처음 볼 때 지켜지고 있으면 시작 안내를, 그 뒤 `met`가 거짓으로 바뀌는 순간 실패 알림을 한 번 띄운다. 런 식별은 `economyRunId`·스테이지·난이도이고 저장 필드는 더하지 않는다. 외형과 시간은 [전투 UI 결정](design_decisions/combat_ui.md)의 「도전 조건 안내」 행을 따른다.
 - 로비: 단축 줄 5번째 칸 「업적」이 팝업을 열고, 받을 보상이 있으면 그 버튼에만 빨간 느낌표를 단다. 스테이지 카드 위 조건 줄과 업적 팝업 탭은 [로비 결정](design_decisions/lobby.md)의 「스테이지 난이도」·「업적」 행을 따른다.
 - 훈장: 챕터 × 난이도의 도전과제 10개를 모두 달성하면 업적 팝업 훈장 탭의 금색 칸을 눌러 받는다. 성장 명령 `claimCollectionMedal`(`medalId` = 챕터 × 10 + 노말 1·하드 2)이 진행 선택 필드 `claimedCollectionMedals`에 남긴다. 능력치는 다른 진행처럼 클라이언트를 믿고 서버 명령·DB 변경은 없으며, 세대 16에 포함한다. 받을 훈장이 있으면 로비 「업적」 빨간 느낌표를 켠다.
 - 업적 능력치: 받은 컬렉션·누적 훈장만 [업적 계층](damage_calculation_rules.md#업적-계층)으로 적용한다(포탑 입력의 `achievementTurretDamageMultiplier`·`achievementRangeMultiplier`·`achievementCriticalDamageBonusRate`·`achievementAttackSpeedMultiplier`·`achievementCriticalChanceBonusRate`, 전투 설정의 `achievementBossDamageRate`, 넥서스 최대 체력).

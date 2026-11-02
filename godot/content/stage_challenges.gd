@@ -67,6 +67,16 @@ static func lines(stage_id: int) -> Array:
 			return ["%s 포탑 없이 클리어" % name, "%s 계열 포탑을 설치하면 실패" % name]
 		_: return ["%s만으로 클리어" % _family_list(_families(spec)), "다른 계열 포탑을 설치하면 실패"]
 
+## Why a tracked run broke the condition, for the one-time battle notice.
+static func broken_line(stage_id: int) -> String:
+	var spec := condition(stage_id)
+	if spec.is_empty(): return ""
+	match str(spec[0]):
+		"core": return "적이 코어에 닿았습니다"
+		"turrets": return "포탑이 %d기를 넘었습니다" % MAX_TURRETS
+		"without": return "%s 포탑을 설치했습니다" % FAMILY_NAMES[_families(spec)[0]]
+		_: return "다른 계열 포탑을 설치했습니다"
+
 ## Turrets of each named family, for the condition bubble; "" when none apply.
 static func family_members(stage_id: int, turret_names: Dictionary) -> String:
 	var parts: Array = []

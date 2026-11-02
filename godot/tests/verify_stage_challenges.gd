@@ -13,6 +13,7 @@ const RunSession = preload("res://session/run_session.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
+const Notice = preload("res://ui/hud_challenge_notice.gd")
 
 class FakeRuntime extends RefCounted:
 	var epoch := 1
@@ -36,6 +37,7 @@ func _initialize() -> void:
 	_claim_cases()
 	_session_cases()
 	_medal_cases()
+	_notice_cases()
 	_save_cases()
 	print("STAGE_CHALLENGES checks=%d failures=%s" % [checks, failures])
 	quit(0 if failures.is_empty() else 1)
@@ -195,6 +197,41 @@ func _medal_cases() -> void:
 	check(is_equal_approx(runtime._target_damage_multiplier({"type":"boss"}), 1.2 * 1.05) and runtime._target_damage_multiplier({"type":"normal"}) == 1.0, "boss training and medal multiply")
 	var stats: Dictionary = Challenges.achievement_stats(all_medals)
 	check(Challenges.stat_text("turretDamage", stats.turretDamage) == "모든 포탑 피해 증폭 +6%" and Challenges.stat_text("criticalDamage", 0.1) == "치명타 피해 +10%", "stat labels")
+
+## Battle notice: the condition once when first seen intact, the failure once
+## when it breaks, nothing for untracked, achieved or already broken runs.
+func _notice_cases() -> void:
+	check(Challenges.broken_line(1) == "적이 코어에 닿았습니다" and Challenges.broken_line(6) == "포탑이 7기를 넘었습니다", "core and turret failure lines")
+	check(Challenges.broken_line(3) == "냉기 포탑을 설치했습니다" and Challenges.broken_line(8) == "다른 계열 포탑을 설치했습니다", "family failure lines")
+	var notice = Notice.new(null)
+	var run := {"phase":"preparation", "challengePeakTurrets":0, "turrets":[], "progression":{}}
+	check(notice.step(run, 3) == "start", "an intact condition is announced once")
+	check(notice.step(run, 3) == "", "the start notice does not repeat")
+	run.challengeTurretTypes = ["arrow"]
+	check(notice.step(run, 3) == "", "a permitted build keeps the condition")
+	run.challengeTurretTypes = ["arrow", "frost"]
+	check(notice.step(run, 3) == "fail", "a frost build breaks 1-3 once")
+	check(notice.step(run, 3) == "", "the failure does not repeat")
+	var resumed = Notice.new(null)
+	check(resumed.step(run, 3) == "" and resumed.step(run, 3) == "", "a run already broken when first seen shows neither")
+	var untracked = Notice.new(null)
+	check(untracked.step({"phase":"wave", "turrets":[], "progression":{}}, 3) == "", "an untracked run shows nothing")
+	var done = Notice.new(null)
+	check(done.step({"phase":"wave", "challengePeakTurrets":0, "turrets":[], "progression":{"challengeStageNumbers":[3]}}, 3) == "", "an achieved challenge shows nothing")
+	var hard = Notice.new(null)
+	check(hard.step({"phase":"wave", "difficulty":"hard", "challengePeakTurrets":0, "turrets":[], "progression":{"challengeStageNumbers":[3]}}, 3) == "start", "normal achievement still announces hard")
+	var reward = Notice.new(null)
+	check(reward.step({"phase":"reward", "challengePeakTurrets":0, "turrets":[], "progression":{}}, 3) == "" and reward.step({"phase":"wave", "challengePeakTurrets":0, "turrets":[], "progression":{}}, 3) == "start", "waits for a battle phase")
+	var core = Notice.new(null)
+	var defended := {"phase":"wave", "challengePeakTurrets":2, "turrets":[], "progression":{}}
+	core.step(defended, 1)
+	defended.challengeCoreReached = true
+	check(core.step(defended, 1) == "fail", "a core arrival breaks 1-1")
+	var shown = Notice.new(null)
+	var strip := PanelContainer.new()
+	shown.notice = strip
+	shown.observe({"phase":"reward", "challengePeakTurrets":0, "turrets":[], "progression":{}}, 3)
+	check(shown.notice == null and strip.is_queued_for_deletion(), "rewards and results clear a showing notice")
 
 func _envelope(run_extra: Dictionary, progression_extra: Dictionary) -> Dictionary:
 	var run := {"phase":"preparation", "stageNumber":3, "economyRunId":"run-1", "turrets":[], "enemies":[], "spawnQueue":[]}
