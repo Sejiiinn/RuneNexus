@@ -107,6 +107,10 @@ func bind_body() -> void:
 			index += 1
 	for node_name in ["ResultRecordsHeading","ResultRecordsFrame"]:
 		_rise(node_name,0.23,reveal+0.155)
+	for node_name in ["ResultHardLootHeading","ResultHardLootFrame"]:
+		_rise(node_name,0.23,reveal+0.18)
+	for node_name in ["ResultChallengeHeading","ResultChallengeFrame"]:
+		_rise(node_name,0.23,reveal+0.205)
 	for node_name in ["ResultUnlockHeading","ResultUnlocksFrame"]:
 		_rise(node_name,0.23,reveal+0.23)
 	for node_name in ["ResultSettlementStatus","ResultSettlementRetry","ResultActions"]:

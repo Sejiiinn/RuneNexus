@@ -58,6 +58,7 @@ SCRIPTS = {
     "verify_economy_service.gd": "ECONOMY_SERVICE failures=0",
     "verify_result_settlement.gd": "failures=0",
     "verify_battle_result_entrance.gd": "RESULT_ENTRANCE checks=",
+    "verify_result_fit.gd": "RESULT_FIT checks=",
     "verify_gem_reward_entrance.gd": "GEM_REWARD_ENTRANCE checks=",
     "verify_gem_equip_burst.gd": "GEM_EQUIP_BURST checks=",
     "verify_update_service.gd": "UPDATE_SERVICE failures=0",

@@ -885,6 +885,8 @@ func _fit_modal() -> void:
 	var style: StyleBox = hud.overlay.get_theme_stylebox("panel")
 	var padding := style.get_content_margin(SIDE_TOP)+style.get_content_margin(SIDE_BOTTOM)
 	var available := maxf(1,viewport.y-safe.y-safe.w-24)
+	var result_body: Control = hud.overlay_body.get_node_or_null("ResultBody")
+	if result_body != null: ResultPresenter.fit(result_body, available-padding)
 	var content_height: float = hud.overlay_body.get_combined_minimum_size().y+padding
 	var next_fit := [viewport,safe,hud.overlay.size.x,content_height]
 	if next_fit == _fit_key: return
