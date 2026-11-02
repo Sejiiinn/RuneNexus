@@ -234,7 +234,7 @@ func _build_points_info(owner) -> void:
 	grid.add_theme_constant_override("v_separation",4)
 	body.add_child(grid)
 	points_info_rows = {}
-	for row in [["normal","노말"],["hard","하드"],["challenge","하드 도전과제 5·10번째"]]:
+	for row in [["normal","노말"],["hard","하드"],["challenge","하드 도전과제"]]:
 		if row[0] == "challenge":
 			# Challenge core points are a second source with their own heading.
 			body.add_child(_plain("도전과제 보상",13,Color("ffd27a"),800))
