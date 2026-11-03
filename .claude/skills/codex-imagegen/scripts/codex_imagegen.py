@@ -4,7 +4,7 @@
 예:
   codex_imagegen.py --out design/foo/rune-icon.png --prompt "..."
   codex_imagegen.py --out design/foo/rune-icon.png --prompt-file prompt.txt \
-      --ref assets/images/ui/hud/resource_runic_panel.png --transparent --count 2
+      --ref design/foo/reference.png --transparent --count 2
 """
 
 from __future__ import annotations

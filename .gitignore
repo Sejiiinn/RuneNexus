@@ -49,6 +49,7 @@ android/key.properties
 __pycache__/
 *.pyc
 *.blend[0-9]*
+waveletNoiseTile.bin
 
 # Rejected map-batch experiments: local originals/exports, per optimization/README.md.
 /design/chapter2_3d/optimization/rejected-map-batches/
