@@ -459,7 +459,13 @@ func turret_stats(state: Dictionary,turret: Dictionary) -> Dictionary:
 	return configuration_cache.stats(app.catalog,turret,_stat_input(state,turret),48.0)
 
 func dps(stats: Dictionary,type: String) -> float:
-	return float(stats.damage)*float(stats.attackRate)+(float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) if type == "flame" else 0.0)
+	return float(stats.damage)*shots_per_second(stats)+(float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) if type == "flame" else 0.0)
+
+## Instant-hit turrets start aiming only after the cooldown, so a shot takes both.
+static func shots_per_second(stats: Dictionary) -> float:
+	var rate := float(stats.attackRate)
+	var aim := float(stats.get("aimDuration",0.0))
+	return 1.0/(1.0/rate+aim) if aim > 0.0 and rate > 0.0 else rate
 
 func track_purchase_button(button: Button,currency: String,cost: int,blocked: bool) -> void:
 	for entry in body_purchase_buttons:
