@@ -22,12 +22,23 @@ func TestAccessorsReturnIndependentCopies(t *testing.T) {
 	if GemTypes()[0] == "changed" || !ValidGem(GemTypes()[0]) {
 		t.Fatal("gem registry was mutated through a returned slice")
 	}
-	pool := ModulePool("arrow", "core")
+	pool := ModulePool("machinegun", "core")
 	pool[0] = "changed"
-	if ModulePool("arrow", "core")[0] == "changed" {
+	if ModulePool("machinegun", "core")[0] == "changed" {
 		t.Fatal("module pool was mutated through a returned slice")
 	}
 	if ValidTurret("unknown") || ModuleFamily("unknown", "core") != "" || len(ModulePool("unknown", "core")) != 0 {
 		t.Fatal("unknown turret must not resolve")
+	}
+}
+
+func TestCanonicalTurretMapsOnlyRenamedIds(t *testing.T) {
+	for legacy, current := range map[string]string{"arrow": "machinegun", "magic": "flame", "machinegun": "machinegun", "cannon": "cannon", "unknown": "unknown"} {
+		if got := CanonicalTurret(legacy); got != current {
+			t.Fatalf("CanonicalTurret(%q) = %q, want %q", legacy, got, current)
+		}
+	}
+	if ValidTurret("arrow") || ValidTurret("magic") || !ValidTurret("machinegun") || !ValidTurret("flame") {
+		t.Fatal("only current turret ids are valid content")
 	}
 }

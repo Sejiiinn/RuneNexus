@@ -49,7 +49,7 @@ func _text_cases() -> void:
 	check(Challenges.lines(6) == ["포탑 7기 이하로 클리어", "동시에 설치된 포탑 수 기준"], "2-1 turret limit")
 	check(Challenges.lines(8) == ["물리·라이트닝만으로 클리어", "다른 계열 포탑을 설치하면 실패"], "2-3 only")
 	check(Challenges.lines(24) == ["화염·냉기·라이트닝만으로 클리어", "다른 계열 포탑을 설치하면 실패"], "2-9 three families")
-	var names := {"arrow":"기관총", "cannon":"대포", "sniper":"저격", "lightning":"라이트닝"}
+	var names := {"machinegun":"기관총", "cannon":"대포", "sniper":"저격", "lightning":"라이트닝"}
 	check(Challenges.family_members(8, names) == "물리 계열: 기관총·대포·저격 포탑 · 라이트닝 계열: 라이트닝 포탑", "family bubble")
 	check(Challenges.family_members(1, names) == "", "no families for core")
 	var counted := 0
@@ -66,8 +66,8 @@ func _reward_cases() -> void:
 func _condition_cases() -> void:
 	check(Challenges.met({"challengePeakTurrets":7}, 6) and not Challenges.met({"challengePeakTurrets":8}, 6), "seven turrets at once")
 	check(Challenges.met({"challengePeakTurrets":0}, 6), "no build meets the limit")
-	check(not Challenges.met({"challengePeakTurrets":2, "challengeTurretTypes":["arrow", "frost"]}, 3) and Challenges.met({"challengePeakTurrets":2, "challengeTurretTypes":["arrow", "magic"]}, 3), "without frost")
-	check(Challenges.met({"challengePeakTurrets":3, "challengeTurretTypes":["arrow", "sniper", "lightning"]}, 8) and not Challenges.met({"challengePeakTurrets":2, "challengeTurretTypes":["arrow", "magic"]}, 8), "only physical and lightning")
+	check(not Challenges.met({"challengePeakTurrets":2, "challengeTurretTypes":["machinegun", "frost"]}, 3) and Challenges.met({"challengePeakTurrets":2, "challengeTurretTypes":["machinegun", "flame"]}, 3), "without frost")
+	check(Challenges.met({"challengePeakTurrets":3, "challengeTurretTypes":["machinegun", "sniper", "lightning"]}, 8) and not Challenges.met({"challengePeakTurrets":2, "challengeTurretTypes":["machinegun", "flame"]}, 8), "only physical and lightning")
 	check(Challenges.met({"challengePeakTurrets":0}, 1) and not Challenges.met({"challengePeakTurrets":0, "challengeCoreReached":true}, 1), "no core contact")
 	check(not Challenges.met({"challengePeakTurrets":0}, 99), "no challenge, never met")
 	# A run saved before tracking existed (no peak field) cannot prove its play.
@@ -88,18 +88,18 @@ func _build_cases() -> void:
 	var built: Dictionary = state
 	for k in 3:
 		var tile: int = tiles[k]
-		built = service.apply(built, {"kind":"build", "type":["arrow", "frost", "arrow"][k], "x":tile % int(map.columns), "y":tile / int(map.columns)}).state
-	check(built.challengePeakTurrets == 3 and built.challengeTurretTypes == ["arrow", "frost"], "builds record the peak and types")
+		built = service.apply(built, {"kind":"build", "type":["machinegun", "frost", "machinegun"][k], "x":tile % int(map.columns), "y":tile / int(map.columns)}).state
+	check(built.challengePeakTurrets == 3 and built.challengeTurretTypes == ["machinegun", "frost"], "builds record the peak and types")
 	var sold: Dictionary = service.apply(built, {"kind":"sell", "id":int(built.turrets[0].id)})
 	check(sold.ok and sold.state.turrets.size() == 2 and sold.state.challengePeakTurrets == 3, "a sale keeps the peak")
-	var rebuilt: Dictionary = service.apply(sold.state, {"kind":"build", "type":"magic", "x":tiles[0] % int(map.columns), "y":tiles[0] / int(map.columns)}).state
-	check(rebuilt.challengePeakTurrets == 3 and rebuilt.challengeTurretTypes == ["arrow", "frost", "magic"], "a later build adds its type")
+	var rebuilt: Dictionary = service.apply(sold.state, {"kind":"build", "type":"flame", "x":tiles[0] % int(map.columns), "y":tiles[0] / int(map.columns)}).state
+	check(rebuilt.challengePeakTurrets == 3 and rebuilt.challengeTurretTypes == ["machinegun", "frost", "flame"], "a later build adds its type")
 	# A run saved before tracking existed: selling and building again must not start tracking.
 	var legacy: Dictionary = built.duplicate(true)
 	legacy.erase(Challenges.PEAK_FIELD)
 	legacy.erase(Challenges.TYPES_FIELD)
 	var legacy_sold: Dictionary = service.apply(legacy, {"kind":"sell", "id":int(legacy.turrets[1].id)}).state
-	var legacy_built: Dictionary = service.apply(legacy_sold, {"kind":"build", "type":"arrow", "x":tiles[1] % int(map.columns), "y":tiles[1] / int(map.columns)}).state
+	var legacy_built: Dictionary = service.apply(legacy_sold, {"kind":"build", "type":"machinegun", "x":tiles[1] % int(map.columns), "y":tiles[1] / int(map.columns)}).state
 	check(not legacy_built.has(Challenges.PEAK_FIELD) and not legacy_built.has(Challenges.TYPES_FIELD) and not Challenges.met(legacy_built, 3), "an untracked run stays untracked after building")
 
 func _achievement_cases() -> void:
@@ -155,9 +155,9 @@ func _session_cases() -> void:
 	check(not debug.state.has("challengeCoreReached") and debug.state.lastRunChallengeAchieved, "debug enemies do not count")
 
 func _arrow_stats(catalog, derived: Dictionary) -> Dictionary:
-	var input: Dictionary = derived.turretStatInputs.arrow.duplicate(true)
+	var input: Dictionary = derived.turretStatInputs.machinegun.duplicate(true)
 	input.merge({"level":1, "primaryTrait":"", "secondaryTrait":"", "gems":[]}, true)
-	var stat: Dictionary = catalog.turret("arrow", {"tileSize":1.0, "statInput":input})
+	var stat: Dictionary = catalog.turret("machinegun", {"tileSize":1.0, "statInput":input})
 	check(not stat.is_empty(), "medal stat inputs pass the catalog (%s)" % catalog.error)
 	return Stats.shared_stats_at(stat, 1) if not stat.is_empty() else {}
 
@@ -181,10 +181,10 @@ func _medal_cases() -> void:
 	var base: Dictionary = service.derived(service.initial_state({}))
 	var with_core: Dictionary = service.derived(service.initial_state(claimed.state))
 	check(is_equal_approx(with_core.maxNexusHp, base.maxNexusHp * 1.05), "core durability +5%")
-	check(not base.turretStatInputs.arrow.has("achievementTurretDamageMultiplier"), "no medal leaves stat inputs unchanged")
+	check(not base.turretStatInputs.machinegun.has("achievementTurretDamageMultiplier"), "no medal leaves stat inputs unchanged")
 	var all_medals := {"claimedCollectionMedals":[11, 12, 21, 22, 31, 32]}
 	var full: Dictionary = service.derived(service.initial_state(all_medals))
-	check(is_equal_approx(full.turretStatInputs.arrow.achievementTurretDamageMultiplier, 1.06), "two turret damage medals add, then multiply once")
+	check(is_equal_approx(full.turretStatInputs.machinegun.achievementTurretDamageMultiplier, 1.06), "two turret damage medals add, then multiply once")
 	var plain := _arrow_stats(catalog, base)
 	var boosted := _arrow_stats(catalog, full)
 	check(is_equal_approx(boosted.damage, plain.damage * 1.06), "turret damage amplification layer")
@@ -207,9 +207,9 @@ func _notice_cases() -> void:
 	var run := {"phase":"preparation", "challengePeakTurrets":0, "turrets":[], "progression":{}}
 	check(notice.step(run, 3) == "start", "an intact condition is announced once")
 	check(notice.step(run, 3) == "", "the start notice does not repeat")
-	run.challengeTurretTypes = ["arrow"]
+	run.challengeTurretTypes = ["machinegun"]
 	check(notice.step(run, 3) == "", "a permitted build keeps the condition")
-	run.challengeTurretTypes = ["arrow", "frost"]
+	run.challengeTurretTypes = ["machinegun", "frost"]
 	check(notice.step(run, 3) == "fail", "a frost build breaks 1-3 once")
 	check(notice.step(run, 3) == "", "the failure does not repeat")
 	var resumed = Notice.new(null)
@@ -243,8 +243,8 @@ func _envelope(run_extra: Dictionary, progression_extra: Dictionary) -> Dictiona
 func _save_cases() -> void:
 	var plain: Variant = Codec.decode(_envelope({}, {}))
 	check(plain != null and not plain.activeRun.has("challengePeakTurrets") and not plain.progression.has("challengeStageNumbers"), "saves without challenges carry no fields")
-	var tracked: Variant = Codec.decode(_envelope({"challengePeakTurrets":4, "challengeTurretTypes":["arrow", "bogus", "arrow"], "challengeCoreReached":true}, {"challengeStageNumbers":[3, 3, "x"], "hardChallengeStageNumbers":[2], "claimedChallengeCorePointStages":[5], "claimedCollectionMedals":[11]}))
-	check(tracked.activeRun.challengePeakTurrets == 4 and tracked.activeRun.challengeTurretTypes == ["arrow"] and tracked.activeRun.challengeCoreReached == true, "run tracking round trips and normalizes")
+	var tracked: Variant = Codec.decode(_envelope({"challengePeakTurrets":4, "challengeTurretTypes":["machinegun", "bogus", "machinegun"], "challengeCoreReached":true}, {"challengeStageNumbers":[3, 3, "x"], "hardChallengeStageNumbers":[2], "claimedChallengeCorePointStages":[5], "claimedCollectionMedals":[11]}))
+	check(tracked.activeRun.challengePeakTurrets == 4 and tracked.activeRun.challengeTurretTypes == ["machinegun"] and tracked.activeRun.challengeCoreReached == true, "run tracking round trips and normalizes")
 	check(tracked.progression.challengeStageNumbers == [3] and tracked.progression.hardChallengeStageNumbers == [2] and tracked.progression.claimedChallengeCorePointStages == [5] and tracked.progression.claimedCollectionMedals == [11], "achievements and medals round trip")
 	check(Hash.hash_payload(tracked) != Hash.hash_payload(plain), "challenge fields are hashed")
 	check(Hash.hash_payload(Codec.decode(tracked)) == Hash.hash_payload(tracked), "challenge save is stable on re-decode")

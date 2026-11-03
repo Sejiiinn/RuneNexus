@@ -55,7 +55,7 @@
           "items": [
             {
               "id": "tm_1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -84,7 +84,7 @@
             {
               "id": "server-1",
               "legacyItemId": "tm_1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -107,7 +107,7 @@
             {
               "id": "server-2",
               "legacyItemId": "tm_1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -179,7 +179,7 @@
           "items": [
             {
               "id": "server-1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -198,7 +198,7 @@
             },
             {
               "id": "server-2",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -270,7 +270,7 @@
           "items": [
             {
               "id": "server-1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -289,7 +289,7 @@
             },
             {
               "id": "server-2",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -318,7 +318,7 @@
             {
               "id": "server-2",
               "legacyItemId": "tm_1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -333,7 +333,7 @@
             {
               "id": "server-1",
               "legacyItemId": "tm_1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -413,7 +413,7 @@
           "items": [
             {
               "id": "server-1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -432,7 +432,7 @@
             },
             {
               "id": "server-2",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -504,7 +504,7 @@
           "items": [
             {
               "id": "server-1",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",
@@ -523,7 +523,7 @@
             },
             {
               "id": "server-2",
-              "turretType": "arrow",
+              "turretType": "machinegun",
               "part": "core",
               "family": "rapidCore",
               "grade": "rare",

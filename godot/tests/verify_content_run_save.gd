@@ -29,7 +29,7 @@ class CountingCatalog extends Catalog:
 	func random_spawn_values(stage_index: int, round_index: int, rng: RandomNumberGenerator, hard_seed: String = "") -> Array:
 		materialization_calls.random += 1
 		return super.random_spawn_values(stage_index,round_index,rng,hard_seed)
-	func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+	func turret(type: String = "machinegun", inputs: Dictionary = {}) -> Dictionary:
 		materialization_calls.turret += 1
 		return super.turret(type,inputs)
 
@@ -47,7 +47,7 @@ func _initialize() -> void:
 	var state: Dictionary = service.initial_state({"growthVersion":1,"runes":1234,"startingGoldUpgradeLevel":2,"fireTrainingUpgradeLevel":3,"coreCombatSkill":null,"turretModules":{"tickets":17,"items":[]}},0)
 	var source: Dictionary = catalog.stage(0)
 	var cell: int = source.map.tiles.find("build")
-	var built: Dictionary = service.apply(state,{"kind":"build","type":"arrow","x":cell % int(source.map.columns),"y":cell / int(source.map.columns)})
+	var built: Dictionary = service.apply(state,{"kind":"build","type":"machinegun","x":cell % int(source.map.columns),"y":cell / int(source.map.columns)})
 	check(built.ok,"build")
 	state = built.state
 	state.turrets[0].slotLimit = 2

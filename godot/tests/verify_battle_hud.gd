@@ -29,7 +29,7 @@ class App extends Node:
 	var selected := Vector2i(-1,-1)
 	var stage := 0
 	var stage_source_calls := 0
-	var turret_type := "arrow"
+	var turret_type := "machinegun"
 	var selection_view := {"level_preview":false}
 	func refresh_selection() -> void: pass
 	func set_speed(value) -> void: scene.combat_runtime.session.speed = value
@@ -165,7 +165,7 @@ func run() -> void:
 	hud.refresh()
 	assert(app.stage_source_calls == 0 and app.catalog.stage_queries == 0 and app.catalog.wave_queries == 0)
 	var install := find_button(hud.body,"설치 · ")
-	assert_wallet_refresh(app,hud,install,"gold",app.run_domain.service.build_cost(app.run_domain.state,"arrow"))
+	assert_wallet_refresh(app,hud,install,"gold",app.run_domain.service.build_cost(app.run_domain.state,"machinegun"))
 	assert(app.stage_source_calls == 0 and app.catalog.stage_queries == 0 and app.catalog.wave_queries == 0)
 	var initial_bounds: Rect2 = hud.battlefield_rect()
 	# Re-tapping the selected type installs; the explicit button shares the command.
@@ -198,7 +198,7 @@ func run() -> void:
 		assert(absf(upgrade.size.x/traits.size.x-570.0/585.0) < 0.06)
 		for control in [panel]+panel.find_children("*","Control",true,false): assert(control.scale == Vector2.ONE)
 		var turret_art: AtlasTexture = panel.find_child("TurretIdentityIcon",true,false).texture
-		assert(turret_art.atlas.resource_path.ends_with("turrets_3d/arrow.png"))
+		assert(turret_art.atlas.resource_path.ends_with("turrets_3d/machinegun.png"))
 		assert(turret_art.region == Rect2(turret_art.atlas.get_image().get_used_rect()))
 		for label in panel.find_children("*","Label",true,false):
 			assert(label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x <= label.size.x+0.1)
@@ -551,7 +551,7 @@ func run() -> void:
 	assert(not buttons(picker).any(func(b): return b.text.begins_with("저격") or b.text.begins_with("라이트닝")))
 	app.turret_type = "sniper"
 	hud.refresh()
-	assert(app.turret_type == "arrow","Hidden locked choice must not remain selected")
+	assert(app.turret_type == "machinegun","Hidden locked choice must not remain selected")
 	app.run_domain.state.progression.clearedStageNumbers = [3]
 	hud.refresh()
 	await process_frame; await process_frame; await process_frame
@@ -632,8 +632,8 @@ func run() -> void:
 		var input: Dictionary = derived.turretStatInputs[turret.type].duplicate(true)
 		input.merge({"level":turret.level,"primaryTrait":turret.primaryTrait,"secondaryTrait":turret.secondaryTrait,"gems":turret.equippedGemSlots.filter(func(g): return g != null)},true)
 		var stats: Dictionary = app.catalog.turret_stats(turret.type,{"tileSize":48.0,"statInput":input})
-		exact_total += float(stats.damage)*float(stats.attackRate)*float(stats.projectileCount if turret.type in ["arrow","cannon"] else 1)
-		if turret.type == "magic": exact_total += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
+		exact_total += float(stats.damage)*float(stats.attackRate)*float(stats.projectileCount if turret.type in ["machinegun","cannon"] else 1)
+		if turret.type == "flame": exact_total += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
 	assert(is_equal_approx(hud.total_dps,exact_total))
 	assert(hud.resources.text == "전투력 "+HudNumber.compact(exact_total,0))
 	assert(hud.resources.tooltip_text == "전투력 %.1f" % exact_total)

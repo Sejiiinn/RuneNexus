@@ -2,6 +2,7 @@ extends RefCounted
 ## Converts the validated HTTP economy snapshot to local progression + inventory.
 const Codec = preload("res://app/save_codec.gd")
 const Modules = preload("res://content/module_catalog.gd")
+const TurretIdentity = preload("res://content/turret_identity.gd")
 var error := ""
 
 func _invalid(message: String) -> Dictionary:
@@ -31,6 +32,7 @@ func apply_authoritative(progression: Dictionary, snapshot: Dictionary) -> Dicti
 	var sequence := 0
 	for raw in inventory.items:
 		if not raw is Dictionary: return _invalid("Invalid module")
+		raw = TurretIdentity.migrate_save(raw)
 		if not raw.get("id") is String or raw.id.strip_edges().is_empty() or not _integer(raw.get("acquiredOrder"), 1) or not raw.get("options") is Array or raw.options.is_empty(): return _invalid("Invalid module identity or options")
 		for field in {"turretType": "TurretType", "part": "TurretModulePart", "family": "TurretModuleFamily", "grade": "TurretModuleGrade"}:
 			var enum_name: String = {"turretType": "TurretType", "part": "TurretModulePart", "family": "TurretModuleFamily", "grade": "TurretModuleGrade"}[field]

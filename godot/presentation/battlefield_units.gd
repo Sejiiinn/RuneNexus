@@ -25,9 +25,9 @@ const GuardianPreview = preload("res://presentation/guardian_preview.gd")
 const ShieldedPresentation = preload("res://presentation/shielded_presentation.gd")
 const FrameRows = preload("res://presentation/frame_rows.gd")
 const TURRET_MODELS := {
-	"arrow": "res://assets/turrets/arrow.glb",
+	"machinegun": "res://assets/turrets/machinegun.glb",
 	"cannon": "res://assets/turrets/cannon.glb",
-	"magic": "res://assets/turrets/magic.glb",
+	"flame": "res://assets/turrets/flame.glb",
 	"frost": "res://assets/turrets/frost.glb",
 	"sniper": "res://assets/turrets/sniper.glb",
 	"lightning": "res://assets/turrets/lightning.glb",
@@ -213,7 +213,7 @@ func _new_turret(type: String) -> Dictionary:
 		effect.configure(root)
 		entry["frost_effect"] = effect
 		return entry
-	if type == "magic":
+	if type == "flame":
 		# 발광 홈은 금속 반사광으로 희게 날리지 않고 원본 주황색을 유지한다.
 		for mesh: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
 			for surface in range(mesh.mesh.get_surface_count()):
@@ -225,7 +225,7 @@ func _new_turret(type: String) -> Dictionary:
 		entry["fire_effect"] = effect
 		entry["flame_port"] = root.find_child("upper_flame_port", true, false)
 		return entry
-	if type == "arrow":
+	if type == "machinegun":
 		var effect := MachineGunMuzzle.new()
 		root.add_child(effect)
 		entry["muzzle_effect"] = effect
@@ -237,12 +237,12 @@ func _new_turret(type: String) -> Dictionary:
 	for index in range(2):
 		var flash := WeaponAtlas.new()
 		flash.configure(true, Color("5ee07a") if type == "poison" else Color.WHITE)
-		flash.position.x = (-0.062 if index == 0 else 0.062) if type == "arrow" else 0.0
+		flash.position.x = (-0.062 if index == 0 else 0.062) if type == "machinegun" else 0.0
 		flash.position.z = 0.018
 		muzzle.add_child(flash)
 		entry["flashes"].append(flash)
 		var smoke := WeaponAtlas.new()
-		smoke.configure(false, Color("697586") if type == "arrow" else (Color("9fd9aa") if type == "poison" else Color.WHITE))
+		smoke.configure(false, Color("697586") if type == "machinegun" else (Color("9fd9aa") if type == "poison" else Color.WHITE))
 		smoke.position.x = flash.position.x
 		muzzle.add_child(smoke)
 		entry["smokes"].append(smoke)
@@ -291,7 +291,7 @@ func _sync_turrets(units: Array) -> void:
 			turrets[id] = _new_turret(type)
 			membership_changed = true
 		var entry: Dictionary = turrets[id]
-		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
+		entry["root"].visible = not (type == "flame" and options.get("runic_fire_mode", "all") == "no_model")
 		entry["level"] = row.level
 		entry["stockpileEnabled"] = row.stockpile_enabled()
 		entry["stockpileCharges"] = row.stockpile_charges()
@@ -365,13 +365,13 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 	entry["last_time"] = time
 	var age := maxf(0.0, time - float(entry["fire_start"]))
 	var heavy: bool = entry["type"] == "cannon"
-	var machine_gun: bool = entry["type"] == "arrow"
+	var machine_gun: bool = entry["type"] == "machinegun"
 	var mortar: bool = entry["type"] == "poison"
 	var duration := 0.11 if heavy else (0.12 if machine_gun else 0.085)
 	var recovery := 0.34 if heavy else (0.075 if machine_gun else (0.26 if mortar else 0.14))
 	var kick := age / 0.018 if age < 0.018 else pow(clampf(1.0 - (age - 0.018) / recovery, 0.0, 1.0), 2.0)
 	entry["barrel"].position.z = float(entry["barrel_rest_z"]) - kick * (0.12 if heavy else (0.025 if machine_gun else (0.075 if mortar else 0.045)))
-	if fired and (heavy or machine_gun or entry["type"] in ["magic", "poison"]):
+	if fired and (heavy or machine_gun or entry["type"] in ["flame", "poison"]):
 		var muzzle: Node3D = entry["muzzle"]
 		var pose := muzzle.global_transform.orthonormalized()
 		pose.origin = muzzle.to_global(Vector3((0.062 if int(entry["active_port"]) == 1 else -0.062) if machine_gun else 0.0, 0.0, 0.018))

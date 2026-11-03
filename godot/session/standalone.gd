@@ -32,7 +32,7 @@ func _ready() -> void:
 		panel.add_child(button)
 	if content_enabled:
 		turret_button = Button.new()
-		turret_button.text = "Tower: arrow"
+		turret_button.text = "Tower: machinegun"
 		turret_button.pressed.connect(cycle_turret)
 		panel.add_child(turret_button)
 		wave_button = Button.new()

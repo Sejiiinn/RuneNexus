@@ -83,7 +83,7 @@ func _construction(t: Dictionary) -> Dictionary:
 	state.gold = 2000
 	state.gemInventory = {"range":2, "chain":1}
 	for at in [t.east, t.south]:
-		state = service.apply(state, {"kind":"build", "type":"arrow", "x":at.x, "y":at.y}).state
+		state = service.apply(state, {"kind":"build", "type":"machinegun", "x":at.x, "y":at.y}).state
 	state.turrets[0].equippedGemSlots = ["attackSpeed"]
 	state.turrets[0].equippedGems = ["attackSpeed"]
 	var core := {"kind":"buildSupportCore", "x":t.core.x, "y":t.core.y, "gem":"range"}
@@ -108,7 +108,7 @@ func _construction(t: Dictionary) -> Dictionary:
 	deck_state.gemDeckLog = [{"kind":"wave", "wave":5, "rerolls":0, "choice":"chain"}]
 	var logged: Dictionary = service.apply(deck_state, last)
 	check(logged.ok and logged.state.gemDeckLog.back() == {"kind":"consume", "choice":"chain"} and not logged.state.gemInventory.has("chain"), "deck runs log the consumed gem")
-	var turret_on_core: Dictionary = service.apply(next, {"kind":"build", "type":"arrow", "x":t.core.x, "y":t.core.y})
+	var turret_on_core: Dictionary = service.apply(next, {"kind":"build", "type":"machinegun", "x":t.core.x, "y":t.core.y})
 	check(turret_on_core.error == "occupied", "turrets cannot be built on a core")
 	return logged.state if logged.ok else next
 
@@ -127,8 +127,8 @@ func _bonus(state: Dictionary, t: Dictionary) -> void:
 	check(SupportCore.bonuses_at(state, t.east.x, t.east.y) == {"damage":0.15}, "same family never stacks")
 	check(is_equal_approx(float(with_core.moduleEffect.damageIncreaseRate), rate + 0.15), "adjacent turret gains +15% in the module damage layer")
 	check(SupportCore.bonuses_at(state, t.diagonal.x, t.diagonal.y).is_empty(), "diagonal tiles are not adjacent")
-	var boosted: Dictionary = catalog.turret_stats("arrow", {"tileSize":1.0, "statInput":with_core})
-	var plain: Dictionary = catalog.turret_stats("arrow", {"tileSize":1.0, "statInput":without})
+	var boosted: Dictionary = catalog.turret_stats("machinegun", {"tileSize":1.0, "statInput":with_core})
+	var plain: Dictionary = catalog.turret_stats("machinegun", {"tileSize":1.0, "statInput":without})
 	check(is_equal_approx(float(boosted.damage) / float(plain.damage), (1.0 + rate + 0.15) / (1.0 + rate)), "damage scales with the summed increase")
 	var runtime_input: Dictionary = {}
 	for command in service.runtime_commands(state):

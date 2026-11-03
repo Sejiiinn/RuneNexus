@@ -3,7 +3,7 @@ extends SceneTree
 const Preparation = preload("res://presentation/effect_preparation.gd")
 const Resources = preload("res://presentation/stage_resources.gd")
 const ALL_ENEMIES := ["normal", "fast", "armored", "shielded", "tank", "boss", "shieldBoss", "forgeBoss"]
-const ALL_TOWERS := ["arrow", "cannon", "magic", "frost", "sniper", "lightning"]
+const ALL_TOWERS := ["machinegun", "cannon", "flame", "frost", "sniper", "lightning"]
 const NormalDeath = preload("res://effects/normal_death.gd")
 const HoundDeath = preload("res://effects/hound_death.gd")
 const TankDeath = preload("res://effects/tank_death.gd")
@@ -108,7 +108,7 @@ func run() -> void:
 	for emitter in fire._particles:
 		check(not emitter.visible and not emitter.emitting and fire._particle_tails[emitter] == 0.0, "No warmup particle tail survives")
 	scene.last_frame.time = 0.0
-	scene._sync_projectiles([[20,3.7,5.0,1.0,0.0,"cannon",3.0,5.0,null,1,false,-1.0,null,null], [21,4.7,5.0,1.0,0.0,"magic",4.0,5.0,null,1,false,-1.0,null,null]])
+	scene._sync_projectiles([[20,3.7,5.0,1.0,0.0,"cannon",3.0,5.0,null,1,false,-1.0,null,null], [21,4.7,5.0,1.0,0.0,"flame",4.0,5.0,null,1,false,-1.0,null,null]])
 	scene._update_impacts([[30,3.0,5.0,.8,.05],[33,5.0,5.0,.9,.05,"sniperEnergy"]])
 	check(scene.projectiles[20].root == cannon and scene.projectiles[21].root == fire and scene.impacts[30] == impact and scene.impacts[33] == sniper_blast, "First real effects consume prepared instances")
 	check(cannon.initialized and fire._last_time == 0.0, "First shot starts on real combat clock")

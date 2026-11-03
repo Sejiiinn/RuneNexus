@@ -19,7 +19,7 @@ const PEAK_FIELD := "challengePeakTurrets"
 const TYPES_FIELD := "challengeTurretTypes"
 const CORE_FIELD := "challengeCoreReached"
 
-const FAMILIES := {"arrow":"physical", "cannon":"physical", "sniper":"physical", "magic":"fire", "frost":"frost", "lightning":"lightning", "poison":"poison"}
+const FAMILIES := {"machinegun":"physical", "cannon":"physical", "sniper":"physical", "flame":"fire", "frost":"frost", "lightning":"lightning", "poison":"poison"}
 const FAMILY_ORDER := ["physical", "fire", "frost", "lightning", "poison"]
 const FAMILY_NAMES := {"physical":"물리", "fire":"화염", "frost":"냉기", "lightning":"라이트닝", "poison":"독"}
 ## [kind, families]; kinds: core = no core contact, turrets = at most MAX_TURRETS

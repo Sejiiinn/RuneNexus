@@ -1,5 +1,5 @@
 {
-  "arrow": {
+  "machinegun": {
     "name": "기관총",
     "cost": 60,
     "configuration": {
@@ -7,7 +7,7 @@
       "position": [24.0, 24.0],
       "statInput": {
         "definition": {
-          "type": "arrow",
+          "type": "machinegun",
           "damageFamily": "physical",
           "attackTags": ["light"],
           "attackCapabilities": ["projectile"],
@@ -47,7 +47,7 @@
       "state": {
         "x": 0,
         "y": 0,
-        "type": "arrow",
+        "type": "machinegun",
         "level": 1,
         "slotLimit": 1,
         "cooldown": 0.0,
@@ -153,7 +153,7 @@
       "lightningElapsed": 0.0
     }
   },
-  "magic": {
+  "flame": {
     "name": "화염",
     "cost": 80,
     "configuration": {
@@ -161,7 +161,7 @@
       "position": [24.0, 24.0],
       "statInput": {
         "definition": {
-          "type": "magic",
+          "type": "flame",
           "damageFamily": "elemental",
           "attackTags": ["damageOverTime"],
           "attackCapabilities": ["projectile"],
@@ -201,7 +201,7 @@
       "state": {
         "x": 0,
         "y": 0,
-        "type": "magic",
+        "type": "flame",
         "level": 1,
         "slotLimit": 1,
         "cooldown": 0.0,

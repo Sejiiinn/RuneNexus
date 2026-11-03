@@ -157,7 +157,7 @@ func run() -> void:
 	var map: Dictionary=battle.catalog.stage(0).map
 	var index: int=map.tiles.find("build")
 	battle.selected=Vector2i(index % int(map.columns),index / int(map.columns))
-	battle.apply_run_command({"kind":"build","x":battle.selected.x,"y":battle.selected.y,"type":"arrow"})
+	battle.apply_run_command({"kind":"build","x":battle.selected.x,"y":battle.selected.y,"type":"machinegun"})
 	battle.run_domain.state.turrets[0].level=7
 	var hud := HUD.new(); hud.app=battle; battle.hud=hud; root.add_child(hud)
 	await settle()

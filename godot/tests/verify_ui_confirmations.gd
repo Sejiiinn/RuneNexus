@@ -353,9 +353,9 @@ func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
 	lobby._services.bulk_grades = {"normal":true, "magic":true, "rare":true}
 	var plan: Dictionary = lobby._services._module_plan()
 	assert(plan.items == [items[3], first], "Plan retains requested order and first persisted ID match")
-	assert(plan.signature == [["last", "magic", "arrow", "core", false],
-		["duplicate", "normal", "arrow", "core", false],
-		["locked", "rare", "arrow", "core", true], ["missing", "missing"]], "Signature retains normalized dedupe, missing and equipment state; uniques never enter")
+	assert(plan.signature == [["last", "magic", "machinegun", "core", false],
+		["duplicate", "normal", "machinegun", "core", false],
+		["locked", "rare", "machinegun", "core", true], ["missing", "missing"]], "Signature retains normalized dedupe, missing and equipment state; uniques never enter")
 	assert(plan.excluded == 2 and plan.diamonds == 7 and plan.counts == {"normal":1,"magic":1,"rare":0,"unique":0}, "Quote excludes equipped/missing targets and keeps grade refunds")
 	assert(var_to_bytes(items) == before, "Planning never mutates persisted inventory")
 	lobby._services.context = {"id":"duplicate", "ids":["last"]}
@@ -383,7 +383,7 @@ func _module_identity_checks(lobby: Control, app: FakeApp) -> void:
 	app.services.calls.clear()
 
 func _module(id: String, grade: String, equipped: bool) -> Dictionary:
-	return {"id": id, "grade": grade, "equipped": equipped, "turretType": "arrow", "part": "core", "options": []}
+	return {"id": id, "grade": grade, "equipped": equipped, "turretType": "machinegun", "part": "core", "options": []}
 
 func _settle(lobby: Control) -> void:
 	await process_frame

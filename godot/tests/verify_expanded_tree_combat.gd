@@ -40,12 +40,12 @@ func input_for(type: String, effects: Dictionary = {}) -> Dictionary:
 	return input
 
 func _formulas() -> void:
-	var input := input_for("arrow", {"turretLevelDamageIncrease":0.295,"maxTurretLevelBonus":1})
+	var input := input_for("machinegun", {"turretLevelDamageIncrease":0.295,"maxTurretLevelBonus":1})
 	var base: float = input.definition.damage
 	near(Stats.stats_at(input,1).damage,base,"level bonus does not change level one")
 	near(Stats.stats_at(input,11).damage,base*(1.0+(pow(1.2,10)-1.0)*1.295),"earned level damage uses existing exponential curve through level11")
 	near(Stats.stats_at(input,99).damage,Stats.stats_at(input,11).damage,"elite level cap11 clamps excessive inputs")
-	var legacy := input_for("arrow")
+	var legacy := input_for("machinegun")
 	near(Stats.stats_at(legacy,11).damage,Stats.stats_at(legacy,10).damage,"legacy cap remains10")
 	input = input_for("cannon", {"rangeIncrease":0.05,"attackRateIncrease":0.03,"projectileSpeedIncrease":0.06,"criticalChanceBonus":0.02,"criticalDamageBonus":0.1,"splashRadiusIncrease":0.2,"splashSecondaryDamageBonus":0.15})
 	input.moduleEffect.rangeIncreaseRate = 0.2
@@ -117,7 +117,7 @@ func _damage_components() -> void:
 	r._impact(t,a,r.enemies["1"],Vector2(5,0))
 	near(10000-r.enemies["1"].hp,a.damage*1.23,"K4 does not alter primary explosion hit")
 	near(10000-r.enemies["2"].hp,a.damage*0.65*1.29,"secondary coefficient and same hit-increase layer applied once")
-	var magic = runtime("magic",{"directDamageIncrease":0.23,"damageOverTimeIncrease":0.153,"damageOverTimeSpeedMultiplier":1.5,"equippedGemDamageAmplificationPerGem":0.05})
+	var magic = runtime("flame",{"directDamageIncrease":0.23,"damageOverTimeIncrease":0.153,"damageOverTimeSpeedMultiplier":1.5,"equippedGemDamageAmplificationPerGem":0.05})
 	t = magic.turrets["1"]
 	t.statInput.gems = ["range","chain"]
 	t.stats = Stats.shared_stats_at(t.statInput,1)
@@ -125,14 +125,14 @@ func _damage_components() -> void:
 	magic._hit(t,a,magic.enemies["1"],1.0,"direct",true)
 	near(10000-magic.enemies["1"].hp,a.damage*1.23,"direct increase applies to existing direct hit")
 	near(magic.enemies["1"].burnInstances[0].damagePerSecond,a.damage*0.5*1.153*1.5,"direct-only increase does not leak into burn; K6 shared damage does")
-	var arrow = runtime("arrow",{"damageOverTimeIncrease":0.153,"damageOverTimeSpeedMultiplier":1.5})
+	var arrow = runtime("machinegun",{"damageOverTimeIncrease":0.153,"damageOverTimeSpeedMultiplier":1.5})
 	t = arrow.turrets["1"]
 	arrow._hit(t,attack_for(t),arrow.enemies["1"],1.0,"direct",true)
 	check(arrow.enemies["1"].burnInstances.is_empty() and arrow.enemies["1"].poisonRemaining == 0.0,"tree never invents DoT on attacks without one")
 
 func _chain_ranges() -> void:
 	for bonus in [0.0,0.135]:
-		var r = runtime("arrow",{"lightningChainRangeIncrease":bonus})
+		var r = runtime("machinegun",{"lightningChainRangeIncrease":bonus})
 		var t: Dictionary = r.turrets["1"]
 		t.statInput.gems = ["chain"]
 		t.stats = Stats.shared_stats_at(t.statInput,1)
@@ -152,7 +152,7 @@ func _chain_ranges() -> void:
 		check((r.enemies["2"].hp<10000.0) == (bonus>0.0),"lightning chain actually uses expanded search range")
 
 func _chain_layers() -> void:
-	for type in ["arrow", "lightning"]:
+	for type in ["machinegun", "lightning"]:
 		for module_increase in [0.0, 0.2]:
 			var r = runtime(type,{"directDamageIncrease":0.2,"splashDamageIncrease":0.3,"lightningChainDamageIncrease":0.4})
 			var t: Dictionary = r.turrets["1"]
@@ -170,7 +170,7 @@ func _chain_layers() -> void:
 			near(r.enemies["2"].burnInstances[0].damagePerSecond,a.damage*0.5*scale*0.5,type+" chain explosion DoT excludes hit-only increases")
 
 func _dot() -> void:
-	var normal := input_for("magic",{"damageOverTimeIncrease":0.153,"burnDurationIncrease":0.385})
+	var normal := input_for("flame",{"damageOverTimeIncrease":0.153,"burnDurationIncrease":0.385})
 	normal.gems = ["damageOverTime"]
 	normal.moduleEffect.damageOverTimeIncreaseRate = 0.25
 	normal.moduleEffect.burnDurationIncreaseRate = 0.1
@@ -240,7 +240,7 @@ func _core_charge() -> void:
 	c.guardian_beam_active_remaining = 0.5
 	c.cooldown = 5.0
 	near(c.charge_from_kill(),0.0,"active core does not bank charge")
-	var r = runtime("arrow")
+	var r = runtime("machinegun")
 	r.core.configure({"runSkill":"guardianBeam","guardianBeamInterval":5.0,"killCoreChargeRate":0.1})
 	r.enemies["1"].hp = 1.0
 	var t: Dictionary = r.turrets["1"]

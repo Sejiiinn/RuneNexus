@@ -577,12 +577,12 @@ func _ui_checks() -> void:
 	check(is_instance_valid(lobby.modal),"Required update modal cannot be dismissed")
 	service.updates.blocked=false
 	check(lobby.diamonds()==44,"Paid and free wallet fields supply UI balance")
-	ui.open("모듈 뽑기",{"count":1,"turretType":"arrow"})
+	ui.open("모듈 뽑기",{"count":1,"turretType":"machinegun"})
 	var draw_modal: int = lobby.modal.get_instance_id()
 	var ticket_amount = lobby.modal.find_child("ModuleTicketAmount", true, false)
 	var diamond_amount = lobby.modal.find_child("DrawDiamondAmount", true, false)
 	check(ticket_amount is Label and ticket_amount.text == "0장" and diamond_amount is Label and diamond_amount.text == "40개", "Draw confirmation displays server contract cost")
-	ui.data={"economy":server.economy_snapshot(),"drawnModules":[{"grade":"rare","turretType":"arrow","part":"core"}]}
+	ui.data={"economy":server.economy_snapshot(),"drawnModules":[{"grade":"rare","turretType":"machinegun","part":"core"}]}
 	ui._render()
 	check(lobby.modal.get_instance_id()==draw_modal,"Command results reuse their confirmation modal")
 	check("모듈 1개를 획득했습니다." in _labels(lobby.modal) and "희귀 · 과열 연산 코어" in _labels(lobby.modal) and not "확인" in _labels(lobby.modal),"Draw success shows localized result without duplicate purchase button")

@@ -46,7 +46,7 @@ func TestFifthLinkResearchSaveCompletionAndOldWriterProtection(t *testing.T) {
 	}
 	p["researchLevels"] = map[string]int{"linkExpansionOne": 1, "linkExpansionTwo": 1}
 	p["activeResearches"] = []any{}
-	run := json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90d00","stageNumber":1,"phase":"preparation","completedRounds":0,"gemRerollsUsed":0,"gemInventory":{},"gold":1000,"turrets":[{"type":"arrow","level":5,"slotLimit":5,"equippedGemSlots":["attackSpeed","range","physicalDamage","criticalChance","multipleProjectiles"]}]}`)
+	run := json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90d00","stageNumber":1,"phase":"preparation","completedRounds":0,"gemRerollsUsed":0,"gemInventory":{},"gold":1000,"turrets":[{"type":"machinegun","level":5,"slotLimit":5,"equippedGemSlots":["attackSpeed","range","physicalDamage","criticalChance","multipleProjectiles"]}]}`)
 	if err = save("0198b955-3656-7c40-b3cb-87f427b90c03", 1, gamesave.CurrentClientCompatibilityVersion, run); err != nil {
 		t.Fatalf("save five: %v", err)
 	}

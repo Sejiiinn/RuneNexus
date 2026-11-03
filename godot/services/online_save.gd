@@ -10,7 +10,7 @@ const SaveJson = preload("res://app/save_json.gd")
 const PayloadHash = preload("res://services/save_payload_hash.gd")
 signal changed
 signal _idle
-const COMPATIBILITY := 16
+const COMPATIBILITY := 17
 var session: Object
 var state: Dictionary = {}
 var requires_reload := false

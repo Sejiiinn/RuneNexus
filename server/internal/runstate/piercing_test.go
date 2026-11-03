@@ -6,10 +6,10 @@ import (
 )
 
 func TestPiercingOwnershipUsesAttackCapabilities(t *testing.T) {
-	for _, turret := range []string{"arrow", "cannon", "magic", "frost", "sniper", "lightning"} {
+	for _, turret := range []string{"machinegun", "cannon", "flame", "frost", "sniper", "lightning"} {
 		raw := []byte(fmt.Sprintf(`{"gemInventory":{"armorPiercing":1},"turrets":[{"type":%q,"equippedGemSlots":["piercing"]}]}`, turret))
 		owned, err := ReadOwnedGems(raw)
-		want := turret == "arrow" || turret == "cannon" || turret == "magic"
+		want := turret == "machinegun" || turret == "cannon" || turret == "flame"
 		if (err == nil) != want {
 			t.Fatalf("%s capability allocation: %v", turret, err)
 		}

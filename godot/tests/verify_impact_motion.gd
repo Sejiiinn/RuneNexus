@@ -96,7 +96,7 @@ func _verify() -> void:
 	other.free()
 	FlipbookImpact.retain_stage([], ["cannon"])
 	_check(FlipbookImpact._sheet != null, "대포 스테이지에서 공유 시트를 놓음")
-	FlipbookImpact.retain_stage([], ["arrow"])
+	FlipbookImpact.retain_stage([], ["machinegun"])
 	_check(FlipbookImpact._sheet == null and FlipbookImpact._ember_table == null, "대포 없는 스테이지에서 공유 자료가 남음")
 	camera.free()
 	print("IMPACT_MOTION_CONTRACT ", "PASS" if failures == 0 else "FAIL (%d)" % failures)

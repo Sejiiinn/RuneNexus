@@ -8,7 +8,7 @@ const AFTERIMAGE_SECONDS := 0.14
 const FrameRows = preload("res://presentation/frame_rows.gd")
 static var _templates := {}
 
-var type := "arrow"
+var type := "machinegun"
 var body := MeshInstance3D.new()
 var nose := MeshInstance3D.new()
 var tracer := MeshInstance3D.new()
@@ -21,7 +21,7 @@ var _cannon_model: Node3D
 var _cannon_flight: Node3D
 
 
-func _init(projectile_type: String = "arrow") -> void:
+func _init(projectile_type: String = "machinegun") -> void:
 	type = projectile_type
 	name = "Projectile_" + type
 	var heavy := type == "cannon"

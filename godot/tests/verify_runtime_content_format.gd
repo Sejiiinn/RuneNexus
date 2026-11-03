@@ -38,9 +38,9 @@ func _initialize() -> void:
 	var template := catalog.enemy_template("normal")
 	template.burnInstances.append({"caller": true})
 	_check(catalog.enemy_template("normal") == snapshot.enemies.normal, "enemy template nested ownership")
-	var turret := catalog.turret_definition("arrow")
+	var turret := catalog.turret_definition("machinegun")
 	turret.damage = 0.0
-	_check(catalog.turret_definition("arrow") == snapshot.turrets.arrow.configuration.statInput.definition, "turret definition owned")
+	_check(catalog.turret_definition("machinegun") == snapshot.turrets.machinegun.configuration.statInput.definition, "turret definition owned")
 	var rules := catalog.randomization()
 	rules.laneOffsetAmplitudes.normal = 0.0
 	_check(catalog.randomization() == snapshot.randomization, "randomization owned")

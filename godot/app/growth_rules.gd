@@ -6,7 +6,7 @@ const Cumulative = preload("res://content/cumulative_achievements.gd")
 const Json = preload("res://app/save_json.gd")
 const Modules = preload("res://content/module_catalog.gd")
 ## Always-available turrets; stage unlocks append the rest.
-const BASE_TURRET_TYPES := ["arrow", "cannon", "magic", "frost"]
+const BASE_TURRET_TYPES := ["machinegun", "cannon", "flame", "frost"]
 var data: Dictionary = {}
 var error := ""
 
@@ -181,7 +181,7 @@ func derive(p: Dictionary, context: Dictionary = {}) -> Dictionary:
 		if not StageProgression.has_unlock(p,"gem",gem): continue
 		result.availableGemTypes.append(gem)
 	for type in data.module.pools.keys():
-		var physical: bool = type in ["arrow", "cannon", "sniper"]
+		var physical: bool = type in ["machinegun", "cannon", "sniper"]
 		# Poison is its own family with its own training, never physical or elemental.
 		var family_key := "poisonDamageTraining" if type == "poison" else "physicalDamageTraining" if physical else "elementalDamageTraining"
 		var family_training: float = _level(p, family_key) * _c("familyDamageTrainingBonusPerUpgradeLevel")

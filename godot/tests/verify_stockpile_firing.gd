@@ -14,7 +14,7 @@ func _initialize() -> void:
 		var input: Dictionary = fixture.input
 		if input.level != 1 or not input.gems.is_empty(): continue
 		if input.definition.type == "sniper" and sniper.is_empty(): sniper = input.duplicate(true)
-		if input.definition.type == "arrow" and arrow.is_empty(): arrow = input.duplicate(true)
+		if input.definition.type == "machinegun" and arrow.is_empty(): arrow = input.duplicate(true)
 		if input.definition.type == "lightning" and lightning.is_empty(): lightning = input.duplicate(true)
 	sniper.level = 5
 	sniper.definition.criticalChance = 0.0

@@ -17,7 +17,7 @@ var next_terminal_save := 0
 var reward_worker
 var catalog = Catalog.new()
 var battle_inputs: Dictionary = {}
-var turret_type := "arrow"
+var turret_type := "machinegun"
 var next_round := 0
 var next_enemy_id := 100000
 var spawn_rng := RandomNumberGenerator.new()

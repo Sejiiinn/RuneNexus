@@ -165,7 +165,7 @@ func stage_cycles(scene, app, directory: String) -> void:
 	await wait_preparation(scene, "save seed")
 	var map: Dictionary = app.stage_map(app.stage)
 	var cell: int = map.tiles.find("build")
-	check(app.apply_run_command({"kind":"build", "type":"arrow", "x":cell % int(map.columns), "y":int(cell / int(map.columns))}), "seed a saved turret")
+	check(app.apply_run_command({"kind":"build", "type":"machinegun", "x":cell % int(map.columns), "y":int(cell / int(map.columns))}), "seed a saved turret")
 	app.start_wave()
 	for frame in 300:
 		scene.combat_runtime.advance_session(1.0 / 60.0)

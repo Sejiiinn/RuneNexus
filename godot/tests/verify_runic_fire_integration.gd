@@ -17,7 +17,7 @@ func _verify() -> void:
 	await process_frame
 	scene.set_process(false)
 	var frame: Dictionary = scene.last_frame.duplicate(true)
-	frame["turrets"] = [[701, 3.5, 3.5, 0.0, 0, 0.0, "magic", 1]]
+	frame["turrets"] = [[701, 3.5, 3.5, 0.0, 0, 0.0, "flame", 1]]
 	frame["enemies"] = []
 	frame["projectiles"] = []
 	frame["impacts"] = []
@@ -44,7 +44,7 @@ func _verify() -> void:
 		_check(mesh.global_transform.is_equal_approx(transforms[mesh]), "같은 전투 시각의 불꽃/포탑 변형 누적")
 	frame["seq"] += 1
 	frame["time"] = 2.08
-	frame["projectiles"] = [[801, 5.1, 3.5, 1.0, 0.0, "magic", 3.8, 3.5, 701, 1, false, -1.0, null, null]]
+	frame["projectiles"] = [[801, 5.1, 3.5, 1.0, 0.0, "flame", 3.8, 3.5, 701, 1, false, -1.0, null, null]]
 	scene.apply_frame(frame)
 	var projectile: Node3D = scene.projectiles[801]["root"]
 	var expected := Vector3(5.1 - scene.columns / 2.0, 0.45, 3.5 - scene.rows / 2.0)
@@ -61,7 +61,7 @@ func _verify() -> void:
 	frame["seq"] += 1
 	scene.apply_frame(frame)
 	_check(scene._fire_projectile_pool.size() == 1, "화염 탄환 풀 반환 누락")
-	frame["projectiles"] = [[802, 6.0, 4.0, 1.0, 0.0, "magic", 5.5, 4.0, null, 0, true, -1.0, null, null]]
+	frame["projectiles"] = [[802, 6.0, 4.0, 1.0, 0.0, "flame", 5.5, 4.0, null, 0, true, -1.0, null, null]]
 	frame["seq"] += 1
 	frame["time"] = 2.12
 	scene.apply_frame(frame)

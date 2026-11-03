@@ -2,7 +2,7 @@
   {
     "name": "arrow-0",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -14,7 +14,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -175,7 +175,7 @@
   {
     "name": "arrow-1",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [
         "physicalDamage",
@@ -191,7 +191,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -356,7 +356,7 @@
   {
     "name": "arrow-2",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [
         "attackSpeed",
@@ -372,7 +372,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -537,7 +537,7 @@
   {
     "name": "arrow-3",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [
         "explosion",
@@ -553,7 +553,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -717,7 +717,7 @@
   {
     "name": "arrow-4",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [
         "criticalChance",
@@ -733,7 +733,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -897,7 +897,7 @@
   {
     "name": "arrow-5",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [
         "damageOverTime",
@@ -913,7 +913,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -1078,7 +1078,7 @@
   {
     "name": "arrow-6",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 3,
       "gems": [],
       "primary": null,
@@ -1090,7 +1090,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -1251,7 +1251,7 @@
   {
     "name": "arrow-7",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 3,
       "gems": [
         "physicalDamage",
@@ -1267,7 +1267,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -1432,7 +1432,7 @@
   {
     "name": "arrow-8",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 3,
       "gems": [
         "attackSpeed",
@@ -1448,7 +1448,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -1613,7 +1613,7 @@
   {
     "name": "arrow-9",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 3,
       "gems": [
         "explosion",
@@ -1629,7 +1629,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -1793,7 +1793,7 @@
   {
     "name": "arrow-10",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 3,
       "gems": [
         "criticalChance",
@@ -1809,7 +1809,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -1973,7 +1973,7 @@
   {
     "name": "arrow-11",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 3,
       "gems": [
         "damageOverTime",
@@ -1989,7 +1989,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -2154,7 +2154,7 @@
   {
     "name": "arrow-12",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [],
       "primary": null,
@@ -2166,7 +2166,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -2327,7 +2327,7 @@
   {
     "name": "arrow-13",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -2343,7 +2343,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -2508,7 +2508,7 @@
   {
     "name": "arrow-14",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -2524,7 +2524,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -2689,7 +2689,7 @@
   {
     "name": "arrow-15",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "explosion",
@@ -2705,7 +2705,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -2869,7 +2869,7 @@
   {
     "name": "arrow-16",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -2885,7 +2885,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -3049,7 +3049,7 @@
   {
     "name": "arrow-17",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -3065,7 +3065,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -3230,7 +3230,7 @@
   {
     "name": "arrow-18",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [],
       "primary": null,
@@ -3242,7 +3242,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -3403,7 +3403,7 @@
   {
     "name": "arrow-19",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "physicalDamage",
@@ -3419,7 +3419,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -3584,7 +3584,7 @@
   {
     "name": "arrow-20",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "attackSpeed",
@@ -3600,7 +3600,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -3765,7 +3765,7 @@
   {
     "name": "arrow-21",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "explosion",
@@ -3781,7 +3781,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -3945,7 +3945,7 @@
   {
     "name": "arrow-22",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "criticalChance",
@@ -3961,7 +3961,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -4125,7 +4125,7 @@
   {
     "name": "arrow-23",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "damageOverTime",
@@ -4141,7 +4141,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -4306,7 +4306,7 @@
   {
     "name": "arrow-24",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -4322,7 +4322,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -4487,7 +4487,7 @@
   {
     "name": "arrow-25",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -4503,7 +4503,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -4668,7 +4668,7 @@
   {
     "name": "arrow-26",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "explosion",
@@ -4684,7 +4684,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -4848,7 +4848,7 @@
   {
     "name": "arrow-27",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -4864,7 +4864,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -5028,7 +5028,7 @@
   {
     "name": "arrow-28",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -5044,7 +5044,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -5209,7 +5209,7 @@
   {
     "name": "arrow-29",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -5225,7 +5225,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -5390,7 +5390,7 @@
   {
     "name": "arrow-30",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -5406,7 +5406,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -5571,7 +5571,7 @@
   {
     "name": "arrow-31",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "explosion",
@@ -5587,7 +5587,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -5751,7 +5751,7 @@
   {
     "name": "arrow-32",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -5767,7 +5767,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -5931,7 +5931,7 @@
   {
     "name": "arrow-33",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -5947,7 +5947,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -6112,7 +6112,7 @@
   {
     "name": "arrow-34",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -6128,7 +6128,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -6293,7 +6293,7 @@
   {
     "name": "arrow-35",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -6309,7 +6309,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -6474,7 +6474,7 @@
   {
     "name": "arrow-36",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "explosion",
@@ -6490,7 +6490,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -6654,7 +6654,7 @@
   {
     "name": "arrow-37",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -6670,7 +6670,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -6834,7 +6834,7 @@
   {
     "name": "arrow-38",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -6850,7 +6850,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -7015,7 +7015,7 @@
   {
     "name": "arrow-39",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -7031,7 +7031,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -7196,7 +7196,7 @@
   {
     "name": "arrow-40",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -7212,7 +7212,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -7377,7 +7377,7 @@
   {
     "name": "arrow-41",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "explosion",
@@ -7393,7 +7393,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -7557,7 +7557,7 @@
   {
     "name": "arrow-42",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -7573,7 +7573,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -7737,7 +7737,7 @@
   {
     "name": "arrow-43",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -7753,7 +7753,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -15842,7 +15842,7 @@
   {
     "name": "magic-88",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -15854,7 +15854,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -16015,7 +16015,7 @@
   {
     "name": "magic-89",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [
         "physicalDamage",
@@ -16031,7 +16031,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -16196,7 +16196,7 @@
   {
     "name": "magic-90",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [
         "attackSpeed",
@@ -16212,7 +16212,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -16377,7 +16377,7 @@
   {
     "name": "magic-91",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [
         "explosion",
@@ -16393,7 +16393,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -16557,7 +16557,7 @@
   {
     "name": "magic-92",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [
         "criticalChance",
@@ -16573,7 +16573,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -16737,7 +16737,7 @@
   {
     "name": "magic-93",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [
         "damageOverTime",
@@ -16753,7 +16753,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -16918,7 +16918,7 @@
   {
     "name": "magic-94",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 3,
       "gems": [],
       "primary": null,
@@ -16930,7 +16930,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -17091,7 +17091,7 @@
   {
     "name": "magic-95",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 3,
       "gems": [
         "physicalDamage",
@@ -17107,7 +17107,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -17272,7 +17272,7 @@
   {
     "name": "magic-96",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 3,
       "gems": [
         "attackSpeed",
@@ -17288,7 +17288,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -17453,7 +17453,7 @@
   {
     "name": "magic-97",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 3,
       "gems": [
         "explosion",
@@ -17469,7 +17469,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -17633,7 +17633,7 @@
   {
     "name": "magic-98",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 3,
       "gems": [
         "criticalChance",
@@ -17649,7 +17649,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -17813,7 +17813,7 @@
   {
     "name": "magic-99",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 3,
       "gems": [
         "damageOverTime",
@@ -17829,7 +17829,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -17994,7 +17994,7 @@
   {
     "name": "magic-100",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [],
       "primary": null,
@@ -18006,7 +18006,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -18167,7 +18167,7 @@
   {
     "name": "magic-101",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -18183,7 +18183,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -18348,7 +18348,7 @@
   {
     "name": "magic-102",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -18364,7 +18364,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -18529,7 +18529,7 @@
   {
     "name": "magic-103",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "explosion",
@@ -18545,7 +18545,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -18709,7 +18709,7 @@
   {
     "name": "magic-104",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -18725,7 +18725,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -18889,7 +18889,7 @@
   {
     "name": "magic-105",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -18905,7 +18905,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -19070,7 +19070,7 @@
   {
     "name": "magic-106",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 10,
       "gems": [],
       "primary": null,
@@ -19082,7 +19082,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -19243,7 +19243,7 @@
   {
     "name": "magic-107",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 10,
       "gems": [
         "physicalDamage",
@@ -19259,7 +19259,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -19424,7 +19424,7 @@
   {
     "name": "magic-108",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 10,
       "gems": [
         "attackSpeed",
@@ -19440,7 +19440,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -19605,7 +19605,7 @@
   {
     "name": "magic-109",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 10,
       "gems": [
         "explosion",
@@ -19621,7 +19621,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -19785,7 +19785,7 @@
   {
     "name": "magic-110",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 10,
       "gems": [
         "criticalChance",
@@ -19801,7 +19801,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -19965,7 +19965,7 @@
   {
     "name": "magic-111",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 10,
       "gems": [
         "damageOverTime",
@@ -19981,7 +19981,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -20146,7 +20146,7 @@
   {
     "name": "magic-112",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -20162,7 +20162,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -20327,7 +20327,7 @@
   {
     "name": "magic-113",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -20343,7 +20343,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -20508,7 +20508,7 @@
   {
     "name": "magic-114",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "explosion",
@@ -20524,7 +20524,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -20688,7 +20688,7 @@
   {
     "name": "magic-115",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -20704,7 +20704,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -20868,7 +20868,7 @@
   {
     "name": "magic-116",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -20884,7 +20884,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -21049,7 +21049,7 @@
   {
     "name": "magic-117",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -21065,7 +21065,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -21230,7 +21230,7 @@
   {
     "name": "magic-118",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -21246,7 +21246,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -21411,7 +21411,7 @@
   {
     "name": "magic-119",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "explosion",
@@ -21427,7 +21427,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -21591,7 +21591,7 @@
   {
     "name": "magic-120",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -21607,7 +21607,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -21771,7 +21771,7 @@
   {
     "name": "magic-121",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -21787,7 +21787,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -21952,7 +21952,7 @@
   {
     "name": "magic-122",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -21968,7 +21968,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -22133,7 +22133,7 @@
   {
     "name": "magic-123",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -22149,7 +22149,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -22314,7 +22314,7 @@
   {
     "name": "magic-124",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "explosion",
@@ -22330,7 +22330,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -22494,7 +22494,7 @@
   {
     "name": "magic-125",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -22510,7 +22510,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -22674,7 +22674,7 @@
   {
     "name": "magic-126",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -22690,7 +22690,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -22855,7 +22855,7 @@
   {
     "name": "magic-127",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "physicalDamage",
@@ -22871,7 +22871,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -23036,7 +23036,7 @@
   {
     "name": "magic-128",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "attackSpeed",
@@ -23052,7 +23052,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -23217,7 +23217,7 @@
   {
     "name": "magic-129",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "explosion",
@@ -23233,7 +23233,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -23397,7 +23397,7 @@
   {
     "name": "magic-130",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "criticalChance",
@@ -23413,7 +23413,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -23577,7 +23577,7 @@
   {
     "name": "magic-131",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 7,
       "gems": [
         "damageOverTime",
@@ -23593,7 +23593,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -49570,7 +49570,7 @@
   {
     "name": "arrow-276",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "aimSpeed",
@@ -49588,7 +49588,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -49752,7 +49752,7 @@
   {
     "name": "arrow-277",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "aimSpeed",
@@ -49770,7 +49770,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -49934,7 +49934,7 @@
   {
     "name": "arrow-278",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "aimSpeed",
@@ -49952,7 +49952,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -50116,7 +50116,7 @@
   {
     "name": "arrow-279",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "aimSpeed",
@@ -50134,7 +50134,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -50298,7 +50298,7 @@
   {
     "name": "arrow-280",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "aimSpeed",
@@ -50316,7 +50316,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -50480,7 +50480,7 @@
   {
     "name": "arrow-281",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 10,
       "gems": [
         "aimSpeed",
@@ -50498,7 +50498,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"

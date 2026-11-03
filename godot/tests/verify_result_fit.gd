@@ -58,7 +58,7 @@ func measure(size: Vector2i, extra: Dictionary, loot: Dictionary, stage := 0, st
 	return result
 
 func run() -> void:
-	var module := {"turretType":"arrow","grade":"rare","id":"fit","effects":[]}
+	var module := {"turretType":"machinegun","grade":"rare","id":"fit","effects":[]}
 	var cases := {
 		"plain": [{}, {}, 0],
 		"failure": [{"phase":"failure"}, {}, 0],

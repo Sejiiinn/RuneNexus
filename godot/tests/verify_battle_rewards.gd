@@ -173,7 +173,7 @@ func run() -> void:
 	hud.rewards.replacement_slot = -1; hud.rewards.key = ""; hud.refresh()
 	assert(hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)
 	assert(hud.overlay_body.find_child("AddSlotDescription",true,false).text == "포탑 Lv.7 필요")
-	var fifth_cost: int = app.run_domain.growth.data.turretRules.arrow.linkUpgradeCosts[3]
+	var fifth_cost: int = app.run_domain.growth.data.turretRules.machinegun.linkUpgradeCosts[3]
 	assert(hud.overlay_body.find_child("SlotPrice",true,false).get_node("Amount").text == HudNumber.compact_integer(fifth_cost))
 	app.run_domain.state.turrets[0].level = 7; hud.rewards.key = ""; hud.refresh()
 	assert(not hud.overlay_body.find_child("ReplacementAddSlot",true,false).disabled)

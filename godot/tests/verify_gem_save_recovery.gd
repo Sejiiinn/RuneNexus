@@ -249,7 +249,7 @@ func _equipment_backup_case() -> void:
 	var remote := Server.new()
 	remote.tree = self
 	var source := payload()
-	source.activeRun.turrets = [{"x":1,"y":1,"type":"arrow","level":1,"slotLimit":1,"equippedGemSlots":["range"],"equippedGems":["range"]}]
+	source.activeRun.turrets = [{"x":1,"y":1,"type":"machinegun","level":1,"slotLimit":1,"equippedGemSlots":["range"],"equippedGems":["range"]}]
 	source = Codec.decode(source)
 	remote.save = source
 	var online = make_online("equipment-backup", remote)
@@ -323,7 +323,7 @@ func _same_marker_backup_case() -> void:
 	remote.tree = self
 	var current := payload(true)
 	current.activeRun.gold = 777
-	current.activeRun.turrets = [{"x":1,"y":1,"type":"arrow","level":1,"slotLimit":1,"equippedGemSlots":["range"],"equippedGems":["range"]}]
+	current.activeRun.turrets = [{"x":1,"y":1,"type":"machinegun","level":1,"slotLimit":1,"equippedGemSlots":["range"],"equippedGems":["range"]}]
 	current = Codec.decode(current)
 	remote.save = current
 	var online = make_online("same-marker-backup", remote)

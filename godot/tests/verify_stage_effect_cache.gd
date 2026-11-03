@@ -57,42 +57,42 @@ func run():
 	for path: String in ["res://assets/enemies/boss.glb", "res://assets/effects/enemy_frost/crystals.glb", "res://assets/effects/enemy_burn/flame_atlas.png", "res://effects/lightning_attack_meshes/beam00.res"]:
 		check(not ResourceLoader.has_cached(path), "script graph does not eagerly preload " + path)
 	scene=Battle.new();root.add_child(scene)
-	select(["normal"],["arrow"])
+	select(["normal"],["machinegun"])
 	check(await prepare(), "arrow-only preparation succeeds without cannon")
 	check(FlipbookImpact._sheet == null, "no cannon explosion sheet on arrow stage")
-	check(scene._projectile_renderer._ballistic_pool.arrow.size()==2, "arrow reserves prepared")
+	check(scene._projectile_renderer._ballistic_pool.machinegun.size()==2, "arrow reserves prepared")
 	check(Fire._meshes.is_empty() and Burn._material==null and Frost._coat==null and Lightning._mesh_cache.is_empty(), "ineligible effect families stay cold")
-	var arrow = scene._projectile_renderer._ballistic_pool.arrow.back()
+	var arrow = scene._projectile_renderer._ballistic_pool.machinegun.back()
 	check(await prepare(), "repeat preparation succeeds")
-	check(scene._projectile_renderer._ballistic_pool.arrow.back()==arrow, "shared prepared reserve reused")
-	select(["normal","armored"],["arrow","cannon","magic","frost","lightning"])
+	check(scene._projectile_renderer._ballistic_pool.machinegun.back()==arrow, "shared prepared reserve reused")
+	select(["normal","armored"],["machinegun","cannon","flame","frost","lightning"])
 	check(await prepare(), "mixed preparation succeeds")
 	check(Burn._multimeshes.keys()==["armored"] and Frost._multimeshes.keys()==["armored"], "rigid status geometry created for required family only")
 	var coat = Frost._coat
 	var normal_status = Status._materials["EnemyFrost:normal"][0]
 	check(FlipbookImpact._sheet != null, "cannon explosion sheet prepared")
-	select(["normal"],["magic","frost"])
+	select(["normal"],["flame","frost"])
 	check(Frost._coat==coat and Status._materials["EnemyFrost:normal"][0]==normal_status, "overlapping status materials retained")
 	check(Burn._multimeshes.is_empty() and Frost._multimeshes.is_empty(), "obsolete rigid family geometry evicted")
 	check(scene._projectile_renderer.impact_pool.is_empty() and scene._projectile_renderer._ballistic_pool.cannon.is_empty(), "obsolete cannon pools evicted")
 	check(FlipbookImpact._sheet == null, "cannon explosion sheet released on a stage without cannon")
 	check(await prepare(), "retained family re-prepares")
-	select(["shielded"],["magic","frost"])
+	select(["shielded"],["flame","frost"])
 	check(await prepare(), "moving shielded status preparation succeeds")
 	check(ShieldedStatus._meshes.size() == 3 and Shielded._shell_material != null, "rehearsal disposal keeps three status batches and shield material warm")
 	var prepared_status := ShieldedStatus._meshes.values().duplicate()
 	check(await prepare(), "shielded repeated preparation succeeds")
 	check(ShieldedStatus._meshes.values() == prepared_status, "shielded immutable status meshes survive rehearsal and are reused")
-	select(["fast"],["arrow"])
+	select(["fast"],["machinegun"])
 	check(ShieldedStatus._surfaces.is_empty() and ShieldedStatus._meshes.is_empty() and Shielded._shell_material == null, "stage switch releases shielded sources and shield material")
 	check(Status._materials.is_empty() and Frost._body_materials.is_empty() and Frost._skinned_coats.is_empty(), "obsolete enemy source materials unpinned")
 	check(Fire._meshes.is_empty() and Burn._material==null and Frost._coat==null, "ineligible shared status/weapon caches evicted")
 	check(await prepare(), "new family prepares after eviction")
-	select(["normal"],["magic"])
+	select(["normal"],["flame"])
 	var outcomes=[]
 	cancelled_prepare(outcomes)
 	scene._stage_preparation_generation += 1
-	scene._stage_manifest = {"enemy_types":["fast"],"tower_types":["arrow"]}
+	scene._stage_manifest = {"enemy_types":["fast"],"tower_types":["machinegun"]}
 	await process_frame
 	await process_frame
 	check(outcomes==[false], "generation switch cancels rehearsal")

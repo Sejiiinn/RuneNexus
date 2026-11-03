@@ -441,13 +441,13 @@ func check_light_weapon_restriction() -> void:
 	fixture.run_domain.state.gemInventory = {"lightWeapon":1}
 	panel.selected_slot = 0
 	var original_type: String = turret().type
-	for type in ["arrow","cannon","magic","frost","sniper","lightning"]:
+	for type in ["machinegun","cannon","flame","frost","sniper","lightning"]:
 		turret().type = type
 		panel.configuration_cache._derived = {}
 		panel.selected_gem = "lightWeapon"; panel.body_key = null; panel.refresh(); await settle()
 		var reason: String = panel.gem_panel._gem_block_reason("lightWeapon",turret())
-		assert(reason.is_empty() == (type == "arrow"))
-		assert(find_exact(panel.body,"장착").disabled == (type != "arrow"))
+		assert(reason.is_empty() == (type == "machinegun"))
+		assert(find_exact(panel.body,"장착").disabled == (type != "machinegun"))
 		if type == "cannon":
 			assert(reason == "경량화기 포탑에만 장착 가능")
 			await capture_light_gem("cannon-equip-blocked")
@@ -487,7 +487,7 @@ func check_piercing_requirement() -> void:
 	fixture.run_domain.state.gemInventory = {"piercing":1}
 	for width in [440,360]:
 		root.size = Vector2i(width,880); root.content_scale_size = root.size
-		for type in ["arrow","sniper"]:
+		for type in ["machinegun","sniper"]:
 			turret().type = type
 			panel.main_tab = "turrets"; panel.tab = "gems"
 			panel.selected_slot = 0; panel.selected_gem = "piercing"
@@ -497,7 +497,7 @@ func check_piercing_requirement() -> void:
 			assert(condition == null)
 			assert(not all_text(panel.body).contains("장착 조건: 투사체"))
 			assert(not all_text(panel.body).contains("피해 감소 없음"))
-			var compatible: bool = type == "arrow"
+			var compatible: bool = type == "machinegun"
 			var blocked: Label
 			for node in descendants(panel.body):
 				if node is Label and node.text == "이 포탑에는 장착할 수 없습니다": blocked = node

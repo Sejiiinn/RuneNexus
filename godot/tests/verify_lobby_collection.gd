@@ -9,7 +9,7 @@ class Host extends Control:
 	var commands: Array = []
 	var growth
 	func progression() -> Dictionary: return progression_state
-	func display_title(value: String) -> String: return {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}.get(value, value)
+	func display_title(value: String) -> String: return {"machinegun":"기관총", "cannon":"대포", "flame":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}.get(value, value)
 	func apply_growth_change(command: Dictionary) -> void:
 		commands.append(command)
 		var request: Dictionary = command.duplicate()
@@ -99,7 +99,7 @@ func _run() -> void:
 		helper.modules()
 		for i in range(6): await process_frame
 		_assert_empty_inventory(host.body, width)
-	var item := {"id":"test_a", "turretType":"arrow", "part":"core", "grade":"rare", "equipped":false, "options":[{"type":"damageIncrease", "value":12}]}
+	var item := {"id":"test_a", "turretType":"machinegun", "part":"core", "grade":"rare", "equipped":false, "options":[{"type":"damageIncrease", "value":12}]}
 	var second: Dictionary = item.duplicate(true)
 	second.id = "test_b"
 	second.equipped = true
@@ -208,7 +208,7 @@ func _run() -> void:
 				for i in range(6): await process_frame
 				_assert_module_actions(host.body, choice)
 				host.progression_state.turretModules.items.pop_back()
-		helper.select_turret("arrow")
+		helper.select_turret("machinegun")
 	# New-progression saves follow fixed IDs: 2-1 (ID 6) is not lightning's 2-2 (ID 7).
 	for case in [[[6], false], [[7], true]]:
 		host.progression_state.progressionVersion = 1

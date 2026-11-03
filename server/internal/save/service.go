@@ -23,7 +23,9 @@ const (
 	CurrentSchemaVersion int32 = 2
 	// 16: stage challenge achievements, challenge core point claims and run tracking.
 	StageChallengeClientCompatibilityVersion = 16
-	CurrentClientCompatibilityVersion        = StageChallengeClientCompatibilityVersion
+	// 17: turret ids renamed to match display names (arrow → machinegun, magic → flame).
+	TurretIdentityClientCompatibilityVersion = 17
+	CurrentClientCompatibilityVersion        = TurretIdentityClientCompatibilityVersion
 )
 
 var (

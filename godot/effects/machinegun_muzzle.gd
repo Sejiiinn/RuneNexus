@@ -204,7 +204,7 @@ func update_camera(camera: Camera3D) -> void:
 
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
-	if "arrow" in tower_types: return
+	if "machinegun" in tower_types: return
 	_noise = null
 	_smoke_box = null
 	_spark_mesh = null

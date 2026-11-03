@@ -223,9 +223,9 @@
       "linkExpansionTwo": 30
     },
     "turret": {
-      "arrow": 0,
+      "machinegun": 0,
       "cannon": 0,
-      "magic": 0,
+      "flame": 0,
       "frost": 0,
       "sniper": 3,
       "lightning": 7,
@@ -276,9 +276,9 @@
       "towerDamageLimitExpansion": 15
     },
     "turret": {
-      "arrow": 0,
+      "machinegun": 0,
       "cannon": 0,
-      "magic": 0,
+      "flame": 0,
       "frost": 0,
       "sniper": 3,
       "lightning": 6

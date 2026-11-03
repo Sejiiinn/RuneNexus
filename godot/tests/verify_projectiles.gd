@@ -80,11 +80,11 @@ func _verify() -> void:
 	scene.set_process(false)
 	var frame: Dictionary = scene.last_frame.duplicate(true)
 	frame["time"] = 1.0
-	frame["turrets"] = [[701, 3.5, 4.5, 0.0, 1, 1.0, "arrow", 1], [702, 3.5, 6.5, 0.0, 1, 1.0, "cannon", 1]]
+	frame["turrets"] = [[701, 3.5, 4.5, 0.0, 1, 1.0, "machinegun", 1], [702, 3.5, 6.5, 0.0, 1, 1.0, "cannon", 1]]
 	frame["enemies"] = []
 	frame["impacts"] = []
 	frame["projectiles"] = [
-		[801, 5.4, 4.5, 1.0, 0.0, "arrow", 3.5, 4.5, 701, 1, false, -1.0, null, null],
+		[801, 5.4, 4.5, 1.0, 0.0, "machinegun", 3.5, 4.5, 701, 1, false, -1.0, null, null],
 		[802, 5.9, 6.5, 1.0, 0.0, "cannon", 3.5, 6.5, 702, 1, false, -1.0, null, null],
 	]
 	scene.apply_frame(frame)
@@ -100,7 +100,7 @@ func _verify() -> void:
 	_check(is_equal_approx(cannon.global_position.x + scene.columns / 2.0, 5.9) and is_equal_approx(cannon.global_position.z + scene.rows / 2.0, 6.5), "철구 표시를 위해 실제 비행 좌표를 변경함")
 
 	# live 프레임을 한 번도 받지 못한 근접 탄환. 판정점은 포신 앞쪽보다 가까움.
-	frame["projectiles"].append([803, 3.8, 4.5, 1.0, 0.0, "arrow", 3.5, 4.5, 701, 1, false, 1.0, 4.4, 4.5])
+	frame["projectiles"].append([803, 3.8, 4.5, 1.0, 0.0, "machinegun", 3.5, 4.5, 701, 1, false, 1.0, 4.4, 4.5])
 	frame["projectiles"][1][11] = 1.0
 	frame["projectiles"][1][12] = 6.1
 	frame["projectiles"][1][13] = 6.5
@@ -127,7 +127,7 @@ func _verify() -> void:
 	var recycled_id := completed.get_instance_id()
 	frame["projectiles"] = []
 	scene.apply_frame(frame)
-	_check(scene.projectiles.is_empty() and scene._ballistic_pool["arrow"].size() == 2 and scene._ballistic_pool["cannon"].size() == 1, "종료 탄환 모델 재사용 풀 누락")
+	_check(scene.projectiles.is_empty() and scene._ballistic_pool["machinegun"].size() == 2 and scene._ballistic_pool["cannon"].size() == 1, "종료 탄환 모델 재사용 풀 누락")
 
 	_check(not cannon.initialized and not cannon.visible and not cannon._cannon_flight.visible and is_zero_approx(cannon.trail_length) and is_zero_approx(cannon.opacity), "풀에 반환한 철구의 비행·잔여 효과 상태가 초기화되지 않음")
 	# headless dummy RenderingServer는 MultiMesh 버퍼를 저장하지 않고 identity를 반환한다.
@@ -147,7 +147,7 @@ func _verify() -> void:
 
 	# 타이머 순환과 연쇄 발사는 포탑 총구와 분리된 원점 사용.
 	frame["time"] = 0.02
-	frame["projectiles"] = [[804, 6.0, 4.5, 1.0, 0.0, "arrow", 5.0, 4.5, 701, 1, true, 1199.99, null, null]]
+	frame["projectiles"] = [[804, 6.0, 4.5, 1.0, 0.0, "machinegun", 5.0, 4.5, 701, 1, true, 1199.99, null, null]]
 	scene.apply_frame(frame)
 	var chain: Node3D = scene.projectiles[804]["root"]
 	_check(chain.get_instance_id() == recycled_id, "탄환 모델을 재사용하지 않음")
@@ -155,15 +155,15 @@ func _verify() -> void:
 	_check(chain.launch_position.is_equal_approx(Vector3(5.0 - scene.columns / 2.0, 0.45, 4.5 - scene.rows / 2.0)), "연쇄 탄환이 최초 포탑에서 다시 발사된 것으로 표시됨")
 	frame["projectiles"] = []
 	for index in range(150):
-		frame["projectiles"].append([900 + index, 5.4, 4.5, 1.0, 0.0, "arrow"])
+		frame["projectiles"].append([900 + index, 5.4, 4.5, 1.0, 0.0, "machinegun"])
 	scene.apply_frame(frame)
 	frame["projectiles"] = []
 	scene.apply_frame(frame)
-	_check(scene._ballistic_pool["arrow"].size() == 64, "발사 수에 따라 숨긴 탄환 모델이 무한히 쌓임")
+	_check(scene._ballistic_pool["machinegun"].size() == 64, "발사 수에 따라 숨긴 탄환 모델이 무한히 쌓임")
 	_verify_generic_pools(scene, frame)
-	var pooled: WeakRef = weakref(scene._ballistic_pool["arrow"][0])
+	var pooled: WeakRef = weakref(scene._ballistic_pool["machinegun"][0])
 	scene._clear_scene()
-	_check(pooled.get_ref() == null and scene._ballistic_pool["arrow"].is_empty() and scene._ballistic_pool["cannon"].is_empty() and scene._generic_projectile_pool["sniper"].is_empty() and scene._generic_projectile_pool["frost"].is_empty(), "전장 초기화 시 탄환 재사용 풀 잔류")
+	_check(pooled.get_ref() == null and scene._ballistic_pool["machinegun"].is_empty() and scene._ballistic_pool["cannon"].is_empty() and scene._generic_projectile_pool["sniper"].is_empty() and scene._generic_projectile_pool["frost"].is_empty(), "전장 초기화 시 탄환 재사용 풀 잔류")
 	print("Projectile verification: %d failures; arrow unchanged, round cannonball, terminal hit, muzzle, 140ms fade, wrap, chain origin, bounded reuse, cleanup" % failures)
 	scene.queue_free()
 	await process_frame

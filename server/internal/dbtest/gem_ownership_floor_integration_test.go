@@ -21,7 +21,7 @@ func gemFloorRun(t *testing.T, raw []byte) map[string]any {
 	return run
 }
 func gemFloorTurret(id int, slots ...any) map[string]any {
-	return map[string]any{"id": id, "type": "arrow", "slotLimit": len(slots), "equippedGemSlots": slots}
+	return map[string]any{"id": id, "type": "machinegun", "slotLimit": len(slots), "equippedGemSlots": slots}
 }
 func chooseGemFloorOffer(f *gemOfferFixture, offer economy.CommandResult, gem string) economy.CommandResult {
 	f.t.Helper()
@@ -139,7 +139,7 @@ func TestExactGemOwnershipCountsCopiesAndIgnoresMirror(t *testing.T) {
 	run["gemInventory"] = map[string]int64{}
 	run["turrets"] = []any{gemFloorTurret(1, "range"), gemFloorTurret(2, "range")}
 	saveGemFloorRun(f, run)
-	run["turrets"] = []any{map[string]any{"type": "arrow", "slotLimit": 1, "equippedGemSlots": []any{"range"}, "equippedGems": []any{"range"}}}
+	run["turrets"] = []any{map[string]any{"type": "machinegun", "slotLimit": 1, "equippedGemSlots": []any{"range"}, "equippedGems": []any{"range"}}}
 	rejectGemFloorRun(f, run)
 	run["gemInventory"] = map[string]int64{"range": 1}
 	saveGemFloorRun(f, run)
@@ -161,7 +161,7 @@ func TestExactGemOwnershipRejectsMalformedSlotsAndPurchasedFlagBypass(t *testing
 		},
 		func(r map[string]any) { r["paidGemRoll"] = true },
 		func(r map[string]any) {
-			r["turrets"] = []any{map[string]any{"type": "arrow", "slotLimit": nil, "equippedGemSlots": []any{}}}
+			r["turrets"] = []any{map[string]any{"type": "machinegun", "slotLimit": nil, "equippedGemSlots": []any{}}}
 		},
 		func(r map[string]any) {
 			r["turrets"] = []any{map[string]any{"type": "unknown", "equippedGemSlots": []any{}}}

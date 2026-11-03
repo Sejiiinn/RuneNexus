@@ -5,7 +5,7 @@
   "seed": 71423,
   "notes": "Existing variable-step implementation at 60 Hz and 1x. Magic and mixed are excluded because continuous-effect expiry integration is intentionally corrected. Burst is level-10 arrow with +500% attack rate and chain. Synthetic replay inputs and commands are defined in verify_fixed_combat_clock.gd.",
   "scenarios": {
-    "arrow": {
+    "machinegun": {
       "arrivals": [
         3,
         2,

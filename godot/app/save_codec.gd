@@ -4,6 +4,7 @@ extends RefCounted
 const CoreTree = preload("res://content/generated_core_tree.gd")
 const ContentRegistry = preload("res://content/generated_content_registry.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
+const TurretIdentity = preload("res://content/turret_identity.gd")
 const ENUMS = {
 	"ResearchType": [
 		"researchEfficiency",
@@ -692,7 +693,9 @@ static func _strict_core_ranks(value: Variant, revision: int) -> bool:
 # A writer must receive the equivalent of a typed GameSaveData.toJson(), not a
 # malformed dictionary whose fields would silently normalize to zero on reload.
 static func is_normalized_v2(v: Variant) -> bool:
-	return is_canonical_v2(v) and _same_typed_value(v, decode(v))
+	# Pre-rename turret ids are the only field the reader rewrites rather than
+	# normalizes; such a save still round-trips to the same content.
+	return is_canonical_v2(v) and _same_typed_value(TurretIdentity.migrate_save(v), decode(v))
 
 static func _same_typed_value(a: Variant, b: Variant) -> bool:
 	if typeof(a) != typeof(b): return false
@@ -710,6 +713,7 @@ static func _same_typed_value(a: Variant, b: Variant) -> bool:
 
 static func decode(v: Variant) -> Variant:
 	if not _is_map(v): return null
+	v = TurretIdentity.migrate_save(v)
 	if not _valid_core_revision(_map(v.get("progression")), "corePassiveTreeRevision"): return null
 	if not _valid_damage_training(_map(v.get("progression"))): return null
 	var legacy: bool = _int(v.get("version")) == 1

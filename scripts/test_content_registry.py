@@ -52,7 +52,7 @@ class ContentRegistryTests(unittest.TestCase):
             self._copy_sources(root)
             source_path = root / 'godot/content/source/turrets.json'
             source = json.loads(source_path.read_text())
-            source['futureTower'] = source['arrow']
+            source['futureTower'] = source['machinegun']
             source_path.write_text(json.dumps(source))
             with self.assertRaisesRegex(ValueError, 'Turret identities'):
                 generated_output(root)

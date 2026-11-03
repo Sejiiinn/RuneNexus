@@ -67,7 +67,7 @@ func TestPurchasedGemDebitSemanticRecoveryAndExactChoice(t *testing.T) {
 	var run map[string]any
 	_ = json.Unmarshal(f.runFor(purchased), &run)
 	run["gemInventory"] = map[string]int64{"range": 1}
-	run["turrets"] = []any{map[string]any{"id": 1, "type": "arrow", "slotLimit": 1, "equippedGemSlots": []any{"range"}}}
+	run["turrets"] = []any{map[string]any{"id": 1, "type": "machinegun", "slotLimit": 1, "equippedGemSlots": []any{"range"}}}
 	if err = f.saveRun(run); err != nil {
 		t.Fatal(err)
 	}

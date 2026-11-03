@@ -35,7 +35,7 @@ func run() -> void:
 	var tiles: Array[Vector2i] = []
 	for index in map.tiles.size():
 		if map.tiles[index] == "build": tiles.append(Vector2i(index%int(map.columns),index/int(map.columns)))
-	var kinds := ["arrow","cannon","magic","frost","sniper","lightning"]
+	var kinds := ["machinegun","cannon","flame","frost","sniper","lightning"]
 	var models := {}
 	var entries := {}
 	for index in kinds.size():
@@ -62,9 +62,9 @@ func run() -> void:
 	check(host.placement.shake_pixels().length() <= 4.0,"rapid placement impact stays within four actual pixels")
 	check(host.placement.shake_pixels().x == 0.0,"placement impact is strictly vertical")
 	var cues: int = host.accepted.size()
-	check(not app.apply_run_command({"kind":"build","x":tiles[0].x,"y":tiles[0].y,"type":"arrow"}) and host.accepted.size() == cues,"occupied failure does not animate")
+	check(not app.apply_run_command({"kind":"build","x":tiles[0].x,"y":tiles[0].y,"type":"machinegun"}) and host.accepted.size() == cues,"occupied failure does not animate")
 	app.run_domain.state.gold = 0
-	check(not app.apply_run_command({"kind":"build","x":tiles[6].x,"y":tiles[6].y,"type":"arrow"}) and host.accepted.size() == cues,"unaffordable failure does not animate")
+	check(not app.apply_run_command({"kind":"build","x":tiles[6].x,"y":tiles[6].y,"type":"machinegun"}) and host.accepted.size() == cues,"unaffordable failure does not animate")
 	app.board_tap(tiles[6])
 	check(host.accepted.size() == cues,"selection alone does not animate")
 	app.start_wave()

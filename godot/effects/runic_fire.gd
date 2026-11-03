@@ -379,7 +379,7 @@ static func _scroll_materials(time: float) -> void:
 
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
-	if "magic" in tower_types: return
+	if "flame" in tower_types: return
 	_meshes.clear()
 	_materials.clear()
 	_flame_noise = null

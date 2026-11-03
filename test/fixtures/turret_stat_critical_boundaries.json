@@ -2,7 +2,7 @@
   {
     "name": "critical-boundary-arrow-0",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -14,7 +14,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -175,7 +175,7 @@
   {
     "name": "critical-boundary-arrow-1",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -187,7 +187,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -348,7 +348,7 @@
   {
     "name": "critical-boundary-arrow-2",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -360,7 +360,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -521,7 +521,7 @@
   {
     "name": "critical-boundary-arrow-3",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -533,7 +533,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -694,7 +694,7 @@
   {
     "name": "critical-boundary-arrow-4",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -706,7 +706,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -867,7 +867,7 @@
   {
     "name": "critical-boundary-arrow-5",
     "config": {
-      "type": "arrow",
+      "type": "machinegun",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -879,7 +879,7 @@
     },
     "input": {
       "definition": {
-        "type": "arrow",
+        "type": "machinegun",
         "damageFamily": "physical",
         "attackTags": [
           "light"
@@ -2078,7 +2078,7 @@
   {
     "name": "critical-boundary-magic-12",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -2090,7 +2090,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -2251,7 +2251,7 @@
   {
     "name": "critical-boundary-magic-13",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -2263,7 +2263,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -2424,7 +2424,7 @@
   {
     "name": "critical-boundary-magic-14",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -2436,7 +2436,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -2597,7 +2597,7 @@
   {
     "name": "critical-boundary-magic-15",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -2609,7 +2609,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -2770,7 +2770,7 @@
   {
     "name": "critical-boundary-magic-16",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -2782,7 +2782,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"
@@ -2943,7 +2943,7 @@
   {
     "name": "critical-boundary-magic-17",
     "config": {
-      "type": "magic",
+      "type": "flame",
       "level": 1,
       "gems": [],
       "primary": null,
@@ -2955,7 +2955,7 @@
     },
     "input": {
       "definition": {
-        "type": "magic",
+        "type": "flame",
         "damageFamily": "elemental",
         "attackTags": [
           "damageOverTime"

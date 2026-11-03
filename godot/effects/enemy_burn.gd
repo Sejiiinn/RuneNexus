@@ -109,7 +109,7 @@ static func apply(entry: Dictionary, burning: bool, _combat_time: float) -> void
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
 	var kinds := {}
-	if "magic" in tower_types:
+	if "flame" in tower_types:
 		for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
 	for kind: String in _multimeshes.keys():
 		if not kinds.has(kind): _multimeshes.erase(kind)

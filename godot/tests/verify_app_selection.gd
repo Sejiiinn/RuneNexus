@@ -4,7 +4,7 @@ const Adapter = preload("res://ui/app_selection.gd")
 const Renderer = preload("res://ui/battlefield_selection.gd")
 class CountingCatalog extends "res://content/content_catalog.gd":
 	var stat_calls := 0
-	func turret_stats(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+	func turret_stats(type: String = "machinegun", inputs: Dictionary = {}) -> Dictionary:
 		stat_calls += 1
 		return super.turret_stats(type,inputs)
 class CountingCommands extends "res://app/run_commands.gd":
@@ -53,7 +53,7 @@ func _initialize() -> void:
 	assert(frame.buildPreview == null)
 	assert(frame.presentation.selection.state.turrets.filter(func(t): return t.selected).size() == 1)
 	var selected: Dictionary = frame.presentation.selection.state.turrets[0]
-	var runtime_stats: Dictionary = app.catalog.turret_stats("arrow",{"tileSize":1.0})
+	var runtime_stats: Dictionary = app.catalog.turret_stats("machinegun",{"tileSize":1.0})
 	assert(is_equal_approx(selected.range,runtime_stats.range))
 	adapter.level_preview = true
 	var derive_calls: int = app.run_domain.service.derive_calls
@@ -135,7 +135,7 @@ func _initialize() -> void:
 	var before_reload: Dictionary = fresh.duplicate(true)
 	var old_revision: int = adapter.configuration_cache.revision
 	var edited: Dictionary = app.catalog.domain_snapshot()
-	edited.turrets.arrow.configuration.statInput.definition.damage += 3.0
+	edited.turrets.machinegun.configuration.statInput.definition.damage += 3.0
 	assert(app.catalog.load_fixture_content(edited),"Catalog reload validates owned fixture")
 	app.scene.combat_base_frame.presentation.selection = {}
 	adapter.apply(app)

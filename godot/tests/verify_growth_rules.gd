@@ -71,15 +71,15 @@ func _init() -> void:
 	check(not growth.execute(p, {"type":"upgradePermanent", "id":"startingGold", "scope":"server"}).ok, "server scope rejected")
 	for kind in ["unlockResearchSlotTwo", "completeResearchWithDiamonds", "drawTurretModules", "disassembleTurretModule"]:
 		check(not growth.execute(p, {"type":kind}).ok, "authority retained " + kind)
-	var family: String = growth.data.module.families.arrow.core
-	p.turretModules = {"items":[{"id":"m1","turretType":"arrow","part":"core","family":family,"grade":"normal","equipped":false,"options":[{"type":"damageIncrease","value":999}]}]}
+	var family: String = growth.data.module.families.machinegun.core
+	p.turretModules = {"items":[{"id":"m1","turretType":"machinegun","part":"core","family":family,"grade":"normal","equipped":false,"options":[{"type":"damageIncrease","value":999}]}]}
 	var equip := growth.execute(p, {"type":"equipTurretModule", "id":"m1"})
 	check(equip.ok, "existing module equip")
-	var effect := growth.module_effect(equip.state, "arrow")
+	var effect := growth.module_effect(equip.state, "machinegun")
 	check(effect.damageIncreaseRate == float(growth.data.module.partRanges.core.damageIncrease.normal.max)/100.0, "module valid pool clamp uses core damage range")
 	var unique_core: Dictionary = equip.state.duplicate(true)
 	unique_core.turretModules.items[0].grade = "unique"; unique_core.turretModules.items[0].options[0].value = 36
-	check(is_equal_approx(growth.module_effect(unique_core, "arrow").damageIncreaseRate, 0.36), "unique core damage 36 is not clamped to the barrel range")
+	check(is_equal_approx(growth.module_effect(unique_core, "machinegun").damageIncreaseRate, 0.36), "unique core damage 36 is not clamped to the barrel range")
 	check(growth.execute(equip.state, {"type":"unequipTurretModule", "id":"m1"}).ok, "module unequip")
 	_initial_research(growth)
 	_boss_damage_training(growth)
@@ -228,8 +228,8 @@ func _poison_turret(growth) -> void:
 	var family: float = 10 * growth._c("familyDamageTrainingBonusPerUpgradeLevel")
 	var poison_family: float = 4 * growth._c("familyDamageTrainingBonusPerUpgradeLevel")
 	check(near(poison.get("towerDamageMultiplier", 0.0), 1.0 + fire + poison_family), "poison gets poison training, not physical/elemental")
-	check(near(open.turretStatInputs.magic.towerDamageMultiplier, 1.0 + fire + family), "elemental turret ignores poison training")
-	check(near(open.turretStatInputs.arrow.towerDamageMultiplier, 1.0 + fire + family), "physical turret ignores poison training")
+	check(near(open.turretStatInputs.flame.towerDamageMultiplier, 1.0 + fire + family), "elemental turret ignores poison training")
+	check(near(open.turretStatInputs.machinegun.towerDamageMultiplier, 1.0 + fire + family), "physical turret ignores poison training")
 	var definition: Dictionary = growth.data.permanentUpgrades.poisonDamageTraining
 	check(int(definition.maxLevel) == 50 and definition.costs == growth.data.permanentUpgrades.elementalDamageTraining.costs, "poison training shares the elemental curve")
 	var bought: Dictionary = growth.execute(p, {"kind":"upgradePermanent", "id":"poisonDamageTraining"})
@@ -239,11 +239,11 @@ func _poison_turret(growth) -> void:
 	var moduled := p.duplicate(true)
 	moduled.turretModules = {"items":[
 		{"id":"p1","turretType":"poison","part":"core","family":"venomCore","grade":"rare","equipped":true,"options":[{"type":"poisonDurationIncrease","value":20},{"type":"splashRadiusIncrease","value":10},{"type":"burnDurationIncrease","value":20}]},
-		{"id":"m1","turretType":"magic","part":"core","family":"ignitionCore","grade":"rare","equipped":true,"options":[{"type":"poisonDurationIncrease","value":20}]}]}
+		{"id":"m1","turretType":"flame","part":"core","family":"ignitionCore","grade":"rare","equipped":true,"options":[{"type":"poisonDurationIncrease","value":20}]}]}
 	var moduled_view: Dictionary = growth.derive(moduled)
 	var poison_module: Dictionary = moduled_view.turretStatInputs.poison.moduleEffect
 	check(near(poison_module.poisonDurationIncreaseRate, 0.2) and near(poison_module.splashRadiusIncreaseRate, 0.1) and near(poison_module.burnDurationIncreaseRate, 0.0), "poison core applies only its own pool")
-	check(near(moduled_view.turretStatInputs.magic.moduleEffect.poisonDurationIncreaseRate, 0.0), "flame core cannot roll poison duration")
+	check(near(moduled_view.turretStatInputs.flame.moduleEffect.poisonDurationIncreaseRate, 0.0), "flame core cannot roll poison duration")
 
 func _damage_type_training(growth) -> void:
 	var keys := ["directDamageTraining", "splashDamageTraining", "damageOverTimeTraining"]
@@ -295,6 +295,6 @@ func _damage_type_training(growth) -> void:
 		check(near(actual,neutral.turretStatInputs[type]),type+" training preserves base damage and other layers")
 	var catalog := Catalog.new()
 	check(catalog.load_catalog(),"damage training catalog load")
-	var trained_input: Dictionary = catalog.turret("magic",{"statInput":trained.turretStatInputs.magic})
+	var trained_input: Dictionary = catalog.turret("flame",{"statInput":trained.turretStatInputs.flame})
 	check(not trained_input.is_empty() and near(trained_input.get("damageOverTimeTrainingBonusRate"),0.4),"catalog accepts optional trained DoT scalar")
-	check(catalog.turret("magic",{"statInput":{"damageOverTimeTrainingBonusRate":0.41}}).is_empty(),"catalog rejects excessive training stat scalar")
+	check(catalog.turret("flame",{"statInput":{"damageOverTimeTrainingBonusRate":0.41}}).is_empty(),"catalog rejects excessive training stat scalar")

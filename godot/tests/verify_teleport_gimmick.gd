@@ -107,7 +107,7 @@ func _runtime() -> void:
 	# Ballistic projectiles only sweep their own trajectory against final enemy
 	# centers; the skipped enemy segment must never act as a collision surface.
 	runtime.turrets["1"] = {"id":1}
-	var projectile := {"id":1,"owner":"1","attack":{"projectileSpeed":1.0,"definition":{"type":"arrow"}},"position":Vector2(96,-10),"origin":Vector2(96,-10),"direction":Vector2.DOWN,"remaining":100.0,"excluded":[],"chains":0,"chained":false,"shot":0}
+	var projectile := {"id":1,"owner":"1","attack":{"projectileSpeed":1.0,"definition":{"type":"machinegun"}},"position":Vector2(96,-10),"origin":Vector2(96,-10),"direction":Vector2.DOWN,"remaining":100.0,"excluded":[],"chains":0,"chained":false,"shot":0}
 	runtime._move_projectile(projectile,20.0)
 	check(runtime.projectiles.size() == 1 and runtime.enemies["42"].hp == 800.0,"no projectile swept hit across teleport gap")
 	runtime.turrets.clear()

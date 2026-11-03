@@ -2,14 +2,14 @@
 package contentregistry
 
 var gemTypes = [...]string{"attackSpeed", "range", "physicalDamage", "elementalDamage", "lightWeapon", "heavyWeapon", "damageOverTime", "explosion", "chain", "criticalChance", "aimSpeed", "damageAmplifier", "armorPiercing", "multipleProjectiles", "piercing", "poisonDamage"}
-var turretTypes = [...]string{"arrow", "cannon", "magic", "frost", "sniper", "lightning", "poison"}
+var turretTypes = [...]string{"machinegun", "cannon", "flame", "frost", "sniper", "lightning", "poison"}
 var moduleParts = [...]string{"core", "barrel", "frame"}
 var moduleGrades = [...]string{"normal", "magic", "rare", "unique"}
 
 var moduleFamilies = map[string]map[string]string{
-	"arrow": {"core": "rapidCore", "barrel": "balancedBarrel", "frame": "stableFrame"},
+	"machinegun": {"core": "rapidCore", "barrel": "balancedBarrel", "frame": "stableFrame"},
 	"cannon": {"core": "blastCore", "barrel": "heavyBarrel", "frame": "reinforcedFrame"},
-	"magic": {"core": "ignitionCore", "barrel": "emberBarrel", "frame": "heatSinkFrame"},
+	"flame": {"core": "ignitionCore", "barrel": "emberBarrel", "frame": "heatSinkFrame"},
 	"frost": {"core": "frostCore", "barrel": "coldBarrel", "frame": "coolingFrame"},
 	"sniper": {"core": "scopeCore", "barrel": "precisionBarrel", "frame": "anchorFrame"},
 	"lightning": {"core": "currentCore", "barrel": "coilBarrel", "frame": "insulatedFrame"},
@@ -17,7 +17,7 @@ var moduleFamilies = map[string]map[string]string{
 }
 
 var modulePools = map[string]map[string][]string{
-	"arrow": {
+	"machinegun": {
 		"core": {"damageIncrease", "attackRateIncrease", "criticalChanceBonus", "projectileSpeedIncrease"},
 		"barrel": {"damageIncrease", "attackRateIncrease", "criticalChanceBonus", "criticalDamageBonus", "rangeIncrease"},
 		"frame": {"levelUpCostDiscount", "linkUpgradeCostDiscount", "buildCostDiscount", "highLevelUpgradeCostDiscount", "gemEffectIncrease"},
@@ -27,7 +27,7 @@ var modulePools = map[string]map[string][]string{
 		"barrel": {"damageIncrease", "attackRateIncrease", "criticalChanceBonus", "criticalDamageBonus", "rangeIncrease"},
 		"frame": {"levelUpCostDiscount", "linkUpgradeCostDiscount", "buildCostDiscount", "highLevelUpgradeCostDiscount", "gemEffectIncrease"},
 	},
-	"magic": {
+	"flame": {
 		"core": {"damageIncrease", "damageOverTimeIncrease", "burnDurationIncrease", "attackRateIncrease"},
 		"barrel": {"damageIncrease", "attackRateIncrease", "criticalChanceBonus", "criticalDamageBonus", "rangeIncrease"},
 		"frame": {"levelUpCostDiscount", "linkUpgradeCostDiscount", "buildCostDiscount", "highLevelUpgradeCostDiscount", "gemEffectIncrease"},

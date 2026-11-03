@@ -521,7 +521,7 @@ revision 증가를 한 transaction으로 처리한다. 같은 effect의 반복 a
   "expectedCatalogVersion": 1,
   "sourceSaveRevision": 12,
   "count": 5,
-  "turretType": "arrow",
+  "turretType": "machinegun",
   "buyMissingTicketsWithDiamonds": true
 }
 ```

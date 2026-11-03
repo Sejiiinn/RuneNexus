@@ -93,7 +93,7 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 		_lob(t, attack, _vec(t.position), target)
 	else:
 		var projectile_origin := _vec(t.position)
-		if definition.type == "magic":
+		if definition.type == "flame":
 			projectile_origin += Vector2.from_angle(t.aimAngle) * tile_size * 0.82 * 0.2
 		for index in range(int(s.projectileCount)):
 			var angle: float = t.aimAngle + (index - (int(s.projectileCount) - 1) / 2.0) * PI / 18.0
@@ -279,10 +279,10 @@ func _impact(t: Dictionary, a: Dictionary, target: Dictionary, at: Vector2, scal
 		# Presentation only: damage routing is unchanged.
 		style = "blast"
 		extra.merge({"variant":"sniperEnergy", "duration":SNIPER_BLAST_DURATION})
-	if terminal_impact and a.definition.type == "arrow" and direction != Vector2.ZERO:
+	if terminal_impact and a.definition.type == "machinegun" and direction != Vector2.ZERO:
 		# Presentation routing only: the 3D ricochet uses the incoming flight and
 		# the struck body's lane offset. Damage and collision stay unchanged.
-		extra.merge({"turretType":"arrow", "targetId":int(target.id), "direction":[direction.x, direction.y]})
+		extra.merge({"turretType":"machinegun", "targetId":int(target.id), "direction":[direction.x, direction.y]})
 	# 독액 착탄 연출은 웅덩이(_add_puddle)가 함께 그린다.
 	if style != "venom": _visual("blast" if style == "blast" else "impact", at, t, extra)
 	var impacted: Array = [target]

@@ -113,7 +113,7 @@ func TestReplayGemDeckLogFollowsTheDeck(t *testing.T) {
 		return map[string]any{
 			"phase": "reward", "gemRerollsUsed": 2, "rewardOptions": ten[1],
 			"gemInventory": map[string]any{},
-			"turrets":      []any{map[string]any{"type": "arrow", "slotLimit": 2, "equippedGemSlots": []any{purchase[1], nil}}},
+			"turrets":      []any{map[string]any{"type": "machinegun", "slotLimit": 2, "equippedGemSlots": []any{purchase[1], nil}}},
 			"gemDeckLog": []any{
 				map[string]any{"kind": "wave", "wave": 5, "rerolls": 1, "choice": "shards"},
 				map[string]any{"kind": "purchase", "sequence": 1, "choice": purchase[1]},

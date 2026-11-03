@@ -19,13 +19,13 @@ const QUEST_ICONS := {"clearWaves":"clear_waves", "killBosses":"kill_bosses", "k
 const OPTIONS := {"damageIncrease": "피해", "attackRateIncrease": "공격속도", "criticalChanceBonus": "치명타 확률", "criticalDamageBonus": "치명타 피해", "rangeIncrease": "사거리", "levelUpCostDiscount": "레벨업 비용", "linkUpgradeCostDiscount": "링크 확장 비용", "buildCostDiscount": "설치 비용", "highLevelUpgradeCostDiscount": "고레벨 강화 비용", "gemEffectIncrease": "장착 젬 효과", "splashRadiusIncrease": "폭발 반경", "damageOverTimeIncrease": "지속피해", "burnDurationIncrease": "화상 지속시간", "slowDurationIncrease": "둔화 지속시간", "slowStrengthBonus": "둔화 강도", "lightningChainDamageIncrease": "연쇄 피해", "projectileSpeedIncrease": "투사체 속도", "splashSecondaryDamageBonus": "광역 보조 피해", "lightningChainRangeIncrease": "연쇄 거리", "aimSpeedIncrease": "조준속도", "poisonDurationIncrease": "독 지속시간"}
 ## The poison mortar's splash is its landing and puddle radius.
 const TURRET_OPTIONS := {"poison": {"splashRadiusIncrease": "착탄 반경"}}
-const MODULE_NAMES := {"arrow_core": "과열 연산 코어", "arrow_barrel": "경량 총열", "arrow_frame": "안정 프레임", "cannon_core": "폭심 제어 코어", "cannon_barrel": "중장 포신", "cannon_frame": "보강 포가", "magic_core": "점화 증폭 코어", "magic_barrel": "잔열 포신", "magic_frame": "방열 프레임", "frost_core": "냉기 순환 코어", "frost_barrel": "냉각 포신", "frost_frame": "냉매 프레임", "sniper_core": "정밀 조준 코어", "sniper_barrel": "정밀 포신", "sniper_frame": "고정 프레임", "lightning_core": "전류 증폭 코어", "lightning_barrel": "코일 포신", "lightning_frame": "절연 프레임", "poison_core": "독액 농축 코어", "poison_barrel": "박격 포신", "poison_frame": "밀폐 프레임"}
+const MODULE_NAMES := {"machinegun_core": "과열 연산 코어", "machinegun_barrel": "경량 총열", "machinegun_frame": "안정 프레임", "cannon_core": "폭심 제어 코어", "cannon_barrel": "중장 포신", "cannon_frame": "보강 포가", "flame_core": "점화 증폭 코어", "flame_barrel": "잔열 포신", "flame_frame": "방열 프레임", "frost_core": "냉기 순환 코어", "frost_barrel": "냉각 포신", "frost_frame": "냉매 프레임", "sniper_core": "정밀 조준 코어", "sniper_barrel": "정밀 포신", "sniper_frame": "고정 프레임", "lightning_core": "전류 증폭 코어", "lightning_barrel": "코일 포신", "lightning_frame": "절연 프레임", "poison_core": "독액 농축 코어", "poison_barrel": "박격 포신", "poison_frame": "밀폐 프레임"}
 
 static func option_label(type: String, turret_type: String, fallback: String) -> String:
 	return str(TURRET_OPTIONS.get(turret_type, {}).get(type, OPTIONS.get(type, fallback)))
 
 var lobby
-var turret := "arrow"
+var turret := "machinegun"
 var part_filter := ""
 var selected_id := ""
 var period := "daily"
@@ -309,7 +309,7 @@ func modules() -> void:
 	parent.add_child(selector)
 	# Same unlock rule as the server draw, including legacy and grandfathered rights.
 	var types: Array = ContentRegistry.TURRET_TYPES.filter(func(type): return StageProgression.has_unlock(lobby.progression(), "turret", type))
-	if not turret in types: turret = "arrow"
+	if not turret in types: turret = "machinegun"
 	for type in types:
 		var token := _asset_button("", select_turret.bind(type), "ui/components/card_frame.png")
 		token.name = "TurretSelect_"+type

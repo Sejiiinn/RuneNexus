@@ -2744,7 +2744,7 @@
   ],
   "turret": {
     "definition": {
-      "type": "arrow",
+      "type": "machinegun",
       "damageFamily": "physical",
       "attackTags": [
         "light"

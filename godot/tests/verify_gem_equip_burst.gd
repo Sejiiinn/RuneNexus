@@ -50,7 +50,7 @@ func run() -> void:
 	app.run_domain.state.gold = 10000
 	var map: Dictionary = app.stage_map(0)
 	var tile: int = map.tiles.find("build")
-	check(app.apply_run_command({"kind":"build", "type":"arrow", "x":tile % int(map.columns), "y":tile / int(map.columns)}), "build")
+	check(app.apply_run_command({"kind":"build", "type":"machinegun", "x":tile % int(map.columns), "y":tile / int(map.columns)}), "build")
 	var id: int = app.run_domain.state.turrets[0].id
 	app.run_domain.state.gemInventory = {"attackSpeed":1, "range":1}
 	check(app.apply_run_command({"kind":"equipGem", "id":id, "type":"attackSpeed", "slot":0}), "inventory equip")
@@ -106,7 +106,7 @@ func run() -> void:
 	check(not result.ok and app._pending_gem_reroll(), "failed canonical choice save stays pending")
 	check(host.receipts.size() == 4 and app.run_domain.state.turrets[0].equippedGemSlots[0] == "range", "failed reward persistence does not equip or emit cue")
 	var posts: Array = http.sent.filter(func(item): return item.url.ends_with("/gems/choose"))
-	check(posts.size() == 4 and posts.all(func(item): return JSON.parse_string(item.body).clientCompatibilityVersion == 16 and item.headers.Authorization == "Bearer fixture-access"), "all reward choices use authenticated generation16 server transport")
+	check(posts.size() == 4 and posts.all(func(item): return JSON.parse_string(item.body).clientCompatibilityVersion == 17 and item.headers.Authorization == "Bearer fixture-access"), "all reward choices use authenticated generation16 server transport")
 	# Effect rendering, fade and lifetime are covered by the actual-renderer visual check.
 	check(host.combat_runtime.clock == 0.0, "feedback does not advance combat")
 	check(fixture.failures.is_empty() and gems.failures.is_empty(), "shared account/offer fixture setup")

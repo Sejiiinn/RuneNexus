@@ -48,21 +48,21 @@ func _initialize() -> void:
 	state.tileSize = 1.0
 	var map: Dictionary = catalog.stage_map(0)
 	var tile: int = map.tiles.find("build")
-	var built: Dictionary = service.apply(state, {"kind":"build", "type":"arrow", "x":tile % int(map.columns), "y":int(tile / int(map.columns))})
+	var built: Dictionary = service.apply(state, {"kind":"build", "type":"machinegun", "x":tile % int(map.columns), "y":int(tile / int(map.columns))})
 	check(built.ok, "build with frozen v5 loadout")
 	state = built.state
 	var id: int = state.turrets[0].id
 	state.turrets[0].level = 10
 	var before_gold: int = state.gold
 	var quoted: int = service.quotes(state, id).level
-	check(quoted > 0 and service._level_base_cost(growth.data.turretRules.arrow, 10) == 285, "elite level extends existing cost curve")
+	check(quoted > 0 and service._level_base_cost(growth.data.turretRules.machinegun, 10) == 285, "elite level extends existing cost curve")
 	var upgraded: Dictionary = service.apply(state, {"kind":"level", "id":id})
 	check(upgraded.ok and upgraded.state.turrets[0].level == 11 and upgraded.state.gold == before_gold - quoted, "elite level is purchased with gold")
 	state = upgraded.state
 	check(int(service.quotes(state, id).level) == 0 and not service.apply(state, {"kind":"level", "id":id}).ok, "level 11 remains the cap")
 	state.progression.corePassiveNodeRanks = {}
-	check(service.max_turret_level(state, "arrow") == 11, "account reset does not alter stage-frozen cap")
-	check(service.max_turret_level(service.initial_state(state.progression), "arrow") == 10, "next stage uses changed allocation")
+	check(service.max_turret_level(state, "machinegun") == 11, "account reset does not alter stage-frozen cap")
+	check(service.max_turret_level(service.initial_state(state.progression), "machinegun") == 10, "next stage uses changed allocation")
 	var defense_config: Dictionary = service.derived(state).defenseConfig
 	var bootstrap: Dictionary = catalog.bootstrap(0, {"defenseConfig":defense_config,"coreConfig":growth.core_config(state, 0, 0, catalog)})
 	bootstrap.turrets = service.runtime_commands(state).map(func(command): return command.turret)

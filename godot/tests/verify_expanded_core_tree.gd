@@ -107,7 +107,7 @@ func _initialize() -> void:
 	check(not legacy.activeRun.has("runCorePassiveTreeRevision") and not legacy.activeRun.has("nexusAdditionalHp"), "absent legacy fields remain absent")
 	var enemy: Dictionary = Codec._object("SavedEnemy",{"type":"normal","firstControlApplied":true,"stunRemaining":.4,"freezeRemaining":.2})
 	check(enemy.firstControlApplied and enemy.stunRemaining == .4 and enemy.freezeRemaining == .2, "control state saved")
-	var turret: Dictionary = Codec._object("SavedTurret",{"type":"arrow","stockpileCharges":2})
+	var turret: Dictionary = Codec._object("SavedTurret",{"type":"machinegun","stockpileCharges":2})
 	check(turret.stockpileCharges == 2, "stockpile charge saved")
 	print("EXPANDED_CORE_TREE assertions=%d failures=%s" % [assertions,JSON.stringify(failures)])
 	quit(0 if failures.is_empty() else 1)

@@ -88,7 +88,7 @@ func _initialize() -> void:
 			result=commands.apply(state,{"kind":"link","id":id}); check(result.ok,type+" sequential buy"); state=result.state
 			check(state.gold==before-int(expected),type+" gold deducted")
 		check(state.turrets[0].slotLimit==5 and not commands.apply(state,{"kind":"link","id":id}).ok,type+" sixth rejected")
-		var gems: Array=["attackSpeed","range","physicalDamage","criticalChance","multipleProjectiles"] if type=="arrow" else growth.data.turretRules[type].compatibleGems.slice(0,5)
+		var gems: Array=["attackSpeed","range","physicalDamage","criticalChance","multipleProjectiles"] if type=="machinegun" else growth.data.turretRules[type].compatibleGems.slice(0,5)
 		for i in range(5):
 			state.gemInventory[gems[i]]=1
 			result=commands.apply(state,{"kind":"equipGem","id":id,"slot":i,"type":gems[i]})
@@ -98,7 +98,7 @@ func _initialize() -> void:
 		var level: int=state.turrets[0].level
 		var expected: Dictionary=catalog.turret(type,{"tileSize":1.0,"statInput":{"level":level,"gems":gems}})
 		check(Stats.shared_stats_at(emitted.statInput,level)==Stats.stats_at(expected,level),type+" five gems calculated")
-		if type=="arrow":
+		if type=="machinegun":
 			var four: Dictionary=emitted.statInput.duplicate(true);four.gems=gems.slice(0,4)
 			var five_stats: Dictionary=Stats.shared_stats_at(emitted.statInput,level);var four_stats: Dictionary=Stats.shared_stats_at(four,level)
 			check(five_stats.projectileCount==four_stats.projectileCount+2 and is_equal_approx(five_stats.damage,four_stats.damage*0.5),"fifth gem changes real projectile count and damage")

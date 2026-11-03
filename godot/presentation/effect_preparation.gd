@@ -32,10 +32,10 @@ const EFFECT_CACHES := [
 	preload("res://effects/weapon_atlas.gd"),
 ]
 const TOWER_PATHS := {
-	"arrow": ["res://assets/effects/machinegun_muzzle.glb"],
+	"machinegun": ["res://assets/effects/machinegun_muzzle.glb"],
 	"cannon": ["res://assets/projectiles/cannonball.glb", "res://assets/effects/muzzle_flash.png", "res://assets/effects/gun_smoke.png",
 		"res://assets/effects/cannon_explosion_sheet.png"],
-	"magic": ["res://assets/effects/runic_fire.glb"],
+	"flame": ["res://assets/effects/runic_fire.glb"],
 	"frost": ["res://assets/effects/frost_tower/mist-volume.glb"],
 	"sniper": ["res://assets/effects/sniper/flash.glb", "res://assets/effects/sniper/aim_line.glb"],
 }
@@ -56,7 +56,7 @@ static func resource_paths(enemy_types: Array, tower_types: Array) -> Array[Stri
 	if "shielded" in enemy_types:
 		for path: String in [ShieldedDeath.ARC_MESH, ShieldedDeath.CONTACT_MESH]: unique[path] = true
 	if not enemy_types.is_empty():
-		if "magic" in tower_types: unique["res://assets/effects/enemy_burn/flame_atlas.png"] = true
+		if "flame" in tower_types: unique["res://assets/effects/enemy_burn/flame_atlas.png"] = true
 		if "frost" in tower_types:
 			unique["res://assets/effects/enemy_frost/crystals.glb"] = true
 			unique["res://assets/effects/enemy_frost/grain.png"] = true
@@ -66,7 +66,7 @@ static func resource_paths(enemy_types: Array, tower_types: Array) -> Array[Stri
 		if not GuardianStatus.MESHES.has(family): continue
 		for status: String in ["EnemyBurn", "EnemyFrost"]:
 			# Poison bubbles draw on the burn particle meshes.
-			if status == "EnemyBurn" and not ("magic" in tower_types or "poison" in tower_types): continue
+			if status == "EnemyBurn" and not ("flame" in tower_types or "poison" in tower_types): continue
 			if status == "EnemyFrost" and not "frost" in tower_types: continue
 			for path: String in GuardianStatus.MESHES[family][status]: unique[path] = true
 	var result: Array[String] = []
@@ -126,7 +126,7 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 		lightning = Lightning.new()
 		world.add_child(lightning)
 	var ricochet: Node3D
-	if "arrow" in tower_types:
+	if "machinegun" in tower_types:
 		ricochet = Ricochet.new()
 		world.add_child(ricochet)
 	units.failure.connect(func(_message): _failed = true)
@@ -150,7 +150,7 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 		_dispose(scene, units, projectiles, viewport)
 		return false
 	var noises: Array[NoiseTexture2D] = []
-	if "magic" in tower_types:
+	if "flame" in tower_types:
 		if Fire._flame_noise == null: _failed = true
 		else: noises.append(Fire._flame_noise)
 	if "frost" in tower_types:
@@ -169,7 +169,7 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 				return false
 	for kind: String in enemy_types:
 		var enemy := [10, 4.0, 5.0, 0.0, 0.0, 1.0, 0.0, kind,
-			"magic" in tower_types, "frost" in tower_types]
+			"flame" in tower_types, "frost" in tower_types]
 		if kind == "shielded": enemy.append_array([false, false, null, null, {"shield":100.0,"maxShield":100.0}])
 		units._sync_enemies([enemy])
 		# Prepare all possible stage targets while loading, not at first aim/fire.
@@ -208,7 +208,7 @@ func prepare(scene: Node3D, manifest: Dictionary) -> bool:
 			lightning.sample_discharge(Vector3(0, .45, 0), Vector3(1, .4, 1), time, .28, step)
 		if ricochet != null:
 			# Same shader variants as the first combat hit: sparks, flare and lamp.
-			ricochet.present([{"id":40,"kind":"impact","style":"spark","turretType":"arrow","x":4.0,"y":5.0,
+			ricochet.present([{"id":40,"kind":"impact","style":"spark","turretType":"machinegun","x":4.0,"y":5.0,
 				"direction":[1.0,0.0],"targetId":10,"age":.02 * step}], [], Vector2(8, 10), time, true)
 		units.configure(time, Vector2i(8, 10), options)
 		units._sync_turrets(_turrets(tower_types, 1))
@@ -264,7 +264,7 @@ func _turrets(tower_types: Array, shot: int) -> Array:
 func _projectiles(tower_types: Array) -> Array:
 	var result := []
 	for kind: String in tower_types:
-		if not kind in ["arrow", "cannon", "magic", "sniper"]: continue
+		if not kind in ["machinegun", "cannon", "flame", "sniper"]: continue
 		for index in 2:
 			result.append([20 + result.size(), 3.7, 5.0 + index * .3, 1.0, 0.0,
 				kind, 3.0, 5.0 + index * .3, null, 1, false, -1.0, null, null])

@@ -3685,7 +3685,7 @@
   },
   "module": {
     "pools": {
-      "arrow": {
+      "machinegun": {
         "core": [
           "damageIncrease",
           "attackRateIncrease",
@@ -3729,7 +3729,7 @@
           "gemEffectIncrease"
         ]
       },
-      "magic": {
+      "flame": {
         "core": [
           "damageIncrease",
           "damageOverTimeIncrease",
@@ -4243,7 +4243,7 @@
       }
     },
     "families": {
-      "arrow": {
+      "machinegun": {
         "core": "rapidCore",
         "barrel": "balancedBarrel",
         "frame": "stableFrame"
@@ -4253,7 +4253,7 @@
         "barrel": "heavyBarrel",
         "frame": "reinforcedFrame"
       },
-      "magic": {
+      "flame": {
         "core": "ignitionCore",
         "barrel": "emberBarrel",
         "frame": "heatSinkFrame"
@@ -6598,7 +6598,7 @@
     60
   ],
   "turretRules": {
-    "arrow": {
+    "machinegun": {
       "buildCost": 60,
       "maxLevel": 10,
       "baseMaxSlots": 3,
@@ -6704,7 +6704,7 @@
         "projectile"
       ]
     },
-    "magic": {
+    "flame": {
       "buildCost": 80,
       "maxLevel": 10,
       "baseMaxSlots": 3,

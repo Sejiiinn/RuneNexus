@@ -196,8 +196,8 @@ func write_account(app, directory: String) -> void:
 	app.run_domain.state.pendingEconomyDiamonds = 12
 	check(app.prepare_run_transition(), "account run durably queued")
 	write_expected(directory.path_join("account-old.json"), app.checkpoint.store.load_save())
-	var family: String = app.run_domain.growth.data.module.families.arrow.core
-	var snapshot := {"authorityState":"server_authoritative", "authorityEpoch":"epoch", "authorityVersion":1, "catalogVersion":1, "economyRevision":3, "serverTime":"2026-09-21T00:00:00Z", "wallet":{"freeDiamonds":42,"paidDiamonds":7,"moduleTickets":3}, "turretModules":{"drawCount":1,"ticketPurchaseCount":0,"items":[{"id":"server-module", "turretType":"arrow", "part":"core", "family":family, "grade":"normal", "acquiredOrder":1, "options":[{"type":"damageIncrease","value":2}]}]}, "entitlements":{"researchSlotTwoUnlocked":true}, "pendingProgressionEffects":[], "claimedRewardKeys":[]}
+	var family: String = app.run_domain.growth.data.module.families.machinegun.core
+	var snapshot := {"authorityState":"server_authoritative", "authorityEpoch":"epoch", "authorityVersion":1, "catalogVersion":1, "economyRevision":3, "serverTime":"2026-09-21T00:00:00Z", "wallet":{"freeDiamonds":42,"paidDiamonds":7,"moduleTickets":3}, "turretModules":{"drawCount":1,"ticketPurchaseCount":0,"items":[{"id":"server-module", "turretType":"machinegun", "part":"core", "family":family, "grade":"normal", "acquiredOrder":1, "options":[{"type":"damageIncrease","value":2}]}]}, "entitlements":{"researchSlotTwoUnlocked":true}, "pendingProgressionEffects":[], "claimedRewardKeys":[]}
 	var calls := [0]
 	var transport := func(_context, _command):
 		calls[0] += 1

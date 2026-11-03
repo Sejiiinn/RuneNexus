@@ -388,7 +388,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -453,7 +453,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -795,7 +795,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -860,7 +860,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -1202,7 +1202,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -1267,7 +1267,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -1609,7 +1609,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -1674,7 +1674,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -2016,7 +2016,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -2081,7 +2081,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -2423,7 +2423,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -2488,7 +2488,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -2830,7 +2830,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -2895,7 +2895,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -3237,7 +3237,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -3302,7 +3302,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -3644,7 +3644,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -3709,7 +3709,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -4051,7 +4051,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -4116,7 +4116,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -4458,7 +4458,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -4523,7 +4523,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -4865,7 +4865,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -4930,7 +4930,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -5272,7 +5272,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -5337,7 +5337,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -5679,7 +5679,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -5744,7 +5744,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -6086,7 +6086,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -6151,7 +6151,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -6470,7 +6470,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -6535,7 +6535,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1,
             "slotLimit": 1,
             "cooldown": 0.0,
@@ -6814,7 +6814,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -6879,7 +6879,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1,
             "slotLimit": 1,
             "cooldown": 0.0,
@@ -7158,7 +7158,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -7223,7 +7223,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1,
             "slotLimit": 1,
             "cooldown": 0.0,
@@ -7502,7 +7502,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -7567,7 +7567,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1,
             "slotLimit": 1,
             "cooldown": 0.0,
@@ -7846,7 +7846,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -7911,7 +7911,7 @@
           {
             "x": -4,
             "y": -4,
-            "type": "arrow",
+            "type": "machinegun",
             "level": -4,
             "slotLimit": -4,
             "cooldown": -4.0,
@@ -8190,7 +8190,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -8255,7 +8255,7 @@
           {
             "x": -2,
             "y": -2,
-            "type": "arrow",
+            "type": "machinegun",
             "level": -2,
             "slotLimit": -2,
             "cooldown": -2.9,
@@ -8534,7 +8534,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -8599,7 +8599,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 0,
             "slotLimit": 0,
             "cooldown": 0.0,
@@ -8878,7 +8878,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -8943,7 +8943,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1,
             "slotLimit": 1,
             "cooldown": 0.0,
@@ -9222,7 +9222,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -9287,7 +9287,7 @@
           {
             "x": 0,
             "y": 0,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1,
             "slotLimit": 1,
             "cooldown": 0.0,
@@ -9589,7 +9589,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -9654,7 +9654,7 @@
           {
             "x": 1000002,
             "y": 1000002,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 1000002,
             "slotLimit": 1000002,
             "cooldown": 1000002.0,
@@ -9989,7 +9989,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -10054,7 +10054,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -10396,7 +10396,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -10461,7 +10461,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -10803,7 +10803,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -10868,7 +10868,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -11210,7 +11210,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -11275,7 +11275,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -11617,7 +11617,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -11682,7 +11682,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -12024,7 +12024,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -12089,7 +12089,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -12431,7 +12431,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -12496,7 +12496,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -12838,7 +12838,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -12903,7 +12903,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -13245,7 +13245,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -13310,7 +13310,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -13652,7 +13652,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -13717,7 +13717,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -14059,7 +14059,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -14124,7 +14124,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -14466,7 +14466,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -14531,7 +14531,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -14873,7 +14873,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -14938,7 +14938,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -15280,7 +15280,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -15345,7 +15345,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -15695,7 +15695,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -15760,7 +15760,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -16105,7 +16105,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -16170,7 +16170,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -16515,7 +16515,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -16580,7 +16580,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -16922,7 +16922,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -16987,7 +16987,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -17329,7 +17329,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -17394,7 +17394,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,
@@ -17736,7 +17736,7 @@
         "items": [
           {
             "id": "synthetic-module-42",
-            "turretType": "arrow",
+            "turretType": "machinegun",
             "part": "core",
             "family": "rapidCore",
             "grade": "rare",
@@ -17801,7 +17801,7 @@
           {
             "x": 7,
             "y": 7,
-            "type": "arrow",
+            "type": "machinegun",
             "level": 7,
             "slotLimit": 7,
             "cooldown": 2.25,

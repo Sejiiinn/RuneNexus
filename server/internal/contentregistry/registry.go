@@ -20,6 +20,18 @@ func TurretTypes() []string { return slices.Clone(turretTypes[:]) }
 
 func ValidTurret(turret string) bool { return slices.Contains(turretTypes[:], turret) }
 
+// legacyTurrets maps turret ids renamed in client compatibility 17. Stored data
+// was migrated (023); only replayed requests from older clients still carry them.
+var legacyTurrets = map[string]string{"arrow": "machinegun", "magic": "flame"}
+
+// CanonicalTurret returns the current id for a renamed turret, else the input.
+func CanonicalTurret(turret string) string {
+	if current, ok := legacyTurrets[turret]; ok {
+		return current
+	}
+	return turret
+}
+
 func ModuleParts() []string { return slices.Clone(moduleParts[:]) }
 
 func ValidModulePart(part string) bool { return slices.Contains(moduleParts[:], part) }

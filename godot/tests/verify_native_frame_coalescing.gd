@@ -82,7 +82,7 @@ func run() -> void:
 	check(scene._build_preview.root.position.x == float(tiles[1].x) + 0.5 - scene.columns / 2.0, "latest build preview position wins")
 	check(scene._presentation_nodes.selection._show_all_ranges, "build selection shows all ranges")
 	before = scene.received_frames
-	check(app.apply_run_command({"kind":"build", "x":tiles[1].x, "y":tiles[1].y, "type":"arrow"}), "build accepted")
+	check(app.apply_run_command({"kind":"build", "x":tiles[1].x, "y":tiles[1].y, "type":"machinegun"}), "build accepted")
 	var id: int = app.run_domain.state.turrets[0].id
 	app.run_domain.state.gemInventory = {"attackSpeed":1}
 	check(app.apply_run_command({"kind":"equipGem", "id":id, "slot":0, "type":"attackSpeed"}), "same render equip accepted")

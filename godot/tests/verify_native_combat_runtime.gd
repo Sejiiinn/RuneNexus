@@ -57,7 +57,7 @@ func _check(condition: bool, message: String) -> void:
 func _initial_facing_checks(fixtures: Array) -> void:
 	var input: Dictionary = {}
 	for fixture in fixtures:
-		if fixture.input.definition.type == "arrow" and fixture.input.level == 1 and fixture.input.gems.is_empty():
+		if fixture.input.definition.type == "machinegun" and fixture.input.level == 1 and fixture.input.gems.is_empty():
 			input = fixture.input.duplicate(true)
 			break
 	var raw := {"id":1,"position":[0,0],"statInput":input,"state":{"aimAngle":3.0*PI/4.0}}
@@ -97,7 +97,7 @@ func _move_test_projectiles(r, distance: float) -> void:
 		r._move_projectile(p, distance / float(p.attack.projectileSpeed))
 
 func _projectile_travel_checks(fixtures: Array) -> void:
-	for type in ["arrow", "cannon", "magic"]:
+	for type in ["machinegun", "cannon", "flame"]:
 		var base: Dictionary = {}
 		for f in fixtures:
 			if f.input.definition.type == type and f.input.level == 1 and f.input.gems.is_empty():
@@ -396,7 +396,7 @@ func _training_near(actual: float,expected: float,label: String) -> void:
 # Two fire turrets keep separate burns on one target; each records its own share
 # and both enter armor at the fixed DoT factor.
 func _multi_burn_checks(fixtures: Array) -> void:
-	var input := _training_input(fixtures,"magic")
+	var input := _training_input(fixtures,"flame")
 	var r = Runtime.new()
 	r.start(100,{"combatConfig":{},"enemies":[{"id":1,"hp":10000.0,"maxHp":10000.0,"maxArmor":10000.0,"armor":10000.0,"x":50.0,"y":0.0,"speed":0.0}],
 		"turrets":[{"id":1,"position":[0,0],"statInput":input,"state":{"x":0,"y":0}},{"id":2,"position":[0,1],"statInput":input.duplicate(true),"state":{"x":0,"y":1}}]},
@@ -419,7 +419,7 @@ func _multi_burn_checks(fixtures: Array) -> void:
 func _damage_training_checks(fixtures: Array) -> void:
 	const Stats = preload("res://combat/turret_stat_calculation.gd")
 	var config := {"directDamageTrainingBonusRate":0.3,"splashDamageTrainingBonusRate":0.3,"damageOverTimeTrainingBonusRate":0.3}
-	var input := _training_input(fixtures,"arrow")
+	var input := _training_input(fixtures,"machinegun")
 	var r = _training_runtime(input,config)
 	var t: Dictionary = r.turrets["1"]
 	var attack := _training_attack(t)
@@ -463,7 +463,7 @@ func _damage_training_checks(fixtures: Array) -> void:
 	_training_near(1000.0-flight.enemies["1"].hp,130.0,"in-flight projectile reads newly bought hit training")
 	# The DoT display includes the same additive layer, while raw fired/stored
 	# DPS excludes training and preserves gems, acceleration, crit and resistance.
-	input = _training_input(fixtures,"magic")
+	input = _training_input(fixtures,"flame")
 	input.primaryTrait = "highHeatBurn"
 	input.moduleEffect.damageOverTimeIncreaseRate = 0.25
 	input.coreEffects = {"damageOverTimeIncrease":0.153,"damageOverTimeSpeedMultiplier":1.5}

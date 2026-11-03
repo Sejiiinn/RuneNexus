@@ -71,9 +71,9 @@ func _tier_cases() -> void:
 	check(Cumulative.DIAMONDS == [300, 500, 700, 1000], "tier diamonds match the server")
 
 func _arrow_stats(catalog, derived: Dictionary) -> Dictionary:
-	var input: Dictionary = derived.turretStatInputs.arrow.duplicate(true)
+	var input: Dictionary = derived.turretStatInputs.machinegun.duplicate(true)
 	input.merge({"level":1, "primaryTrait":"", "secondaryTrait":"", "gems":[]}, true)
-	var stat: Dictionary = catalog.turret("arrow", {"tileSize":1.0, "statInput":input})
+	var stat: Dictionary = catalog.turret("machinegun", {"tileSize":1.0, "statInput":input})
 	check(not stat.is_empty(), "cumulative stat inputs pass the catalog (%s)" % catalog.error)
 	return stat
 
@@ -100,7 +100,7 @@ func _medal_cases() -> void:
 	var base: Dictionary = service.derived(service.initial_state({}))
 	var full: Dictionary = service.derived(service.initial_state(state))
 	check(is_equal_approx(full.maxNexusHp, base.maxNexusHp * 1.08), "core durability adds before one multiply")
-	check(not base.turretStatInputs.arrow.has("achievementAttackSpeedMultiplier") and not base.turretStatInputs.arrow.has("achievementCriticalChanceBonusRate"), "no medal leaves stat inputs unchanged")
+	check(not base.turretStatInputs.machinegun.has("achievementAttackSpeedMultiplier") and not base.turretStatInputs.machinegun.has("achievementCriticalChanceBonusRate"), "no medal leaves stat inputs unchanged")
 	var plain_stat := _arrow_stats(catalog, base)
 	var boosted_stat := _arrow_stats(catalog, full)
 	if plain_stat.is_empty() or boosted_stat.is_empty(): return

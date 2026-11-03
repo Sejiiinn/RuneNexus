@@ -198,7 +198,7 @@ func deferred_save_integrity() -> void:
 	var warming_identity: String = app.run_domain.state.economyRunId
 	var warming_sequence: int = host.combat_runtime.sequence
 	check(not await app.start_stage(0) and not await app.retry_stage() and not await app.resume_run()
-		and not app.apply_run_command({"kind":"build","x":2,"y":1,"type":"arrow"}), "warmup blocks repeated entry and run commands")
+		and not app.apply_run_command({"kind":"build","x":2,"y":1,"type":"machinegun"}), "warmup blocks repeated entry and run commands")
 	app.start_wave()
 	app.toggle_pause()
 	app.toggle_speed()

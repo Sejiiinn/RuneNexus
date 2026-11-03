@@ -2,7 +2,7 @@ extends Node
 ## Inject authenticated context from account/save ownership. No login, bootstrap,
 ## credentials on disk, or guest-to-account adoption. All callbacks may be async.
 const SaveJson = preload("res://app/save_json.gd")
-const COMPATIBILITY_VERSION := 16
+const COMPATIBILITY_VERSION := 17
 var outbox
 var busy := false
 var binding_generation := 0
@@ -106,7 +106,7 @@ static func hard_rewards(receipt: Dictionary) -> Dictionary:
 	var tickets: Variant = receipt.get("hardDropModuleTickets", 0)
 	var modules: Array = []
 	for item in receipt.get("hardLootModules", []) if receipt.get("hardLootModules") is Array else []:
-		if item is Dictionary: modules.append({"turretType":str(item.get("turretType", "")), "part":str(item.get("part", "")), "grade":str(item.get("grade", ""))})
+		if item is Dictionary: modules.append({"turretType":str(preload("res://content/turret_identity.gd").canonical(item.get("turretType", ""))), "part":str(item.get("part", "")), "grade":str(item.get("grade", ""))})
 	var drops := {"moduleTickets":int(tickets) if tickets is int or tickets is float else 0, "modules":modules}
 	if int(drops.moduleTickets) <= 0 and modules.is_empty(): return {}
 	return drops if preload("res://app/reward_outbox.gd").valid_hard_rewards(drops) else {}

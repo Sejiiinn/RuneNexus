@@ -167,7 +167,7 @@ func _frost() -> void:
 	near(r.enemies["1"].hp,992.8,"explicit frost crit snapshot preserved")
 	check(r.rng.state==before,"explicit attack snapshot never rerolls critical")
 func _custom_multi(count: int = 1) -> Dictionary:
-	var i := _input("arrow")
+	var i := _input("machinegun")
 	i.definition.damage=100.0
 	i.definition.range=200.0
 	i.definition.attackRate=1.0
@@ -225,7 +225,7 @@ func _multi() -> void:
 	var multi := Stats.stats_at(boosted,3)
 	near(multi.damage/base.damage,0.5,"multi half damage remains fixed under numeric gem amplification")
 	near(multi.damage*multi.projectileCount/(base.damage*base.projectileCount),1.5,"multi total direct DPS increases fifty percent")
-	var fire := _input("magic")
+	var fire := _input("flame")
 	fire.gems=["multipleProjectiles","explosion"]
 	var burn = _runtime(fire,[_raw(1),_raw(2,10)])
 	burn._impact(burn.turrets["1"],_attack(burn,2),burn.enemies["1"],Vector2.ZERO)
@@ -245,7 +245,7 @@ func _multi() -> void:
 	near(chained.enemies["2"].hp,994.5,"multi chain splash burn ticks")
 
 func _dot_gem_amplification() -> void:
-	var i := _input("magic")
+	var i := _input("flame")
 	i.primaryTrait = "highHeatBurn"
 	i.moduleEffect.damageOverTimeIncreaseRate = 0.2
 	i.moduleEffect.burnDurationIncreaseRate = 0.1
@@ -265,7 +265,7 @@ func _dot_gem_amplification() -> void:
 	r._impact(r.turrets["1"],_attack(r),r.enemies["1"],Vector2.ZERO)
 	near(Enemy.snapshot(r.enemies["1"]).burnDamagePerSecond,float(base.damage)*0.5*2.233,"native burn uses amplified damage")
 	near(Enemy.snapshot(r.enemies["1"]).burnRemaining,3.28,"native burn duration keeps additive contract")
-	var non_dot := _input("arrow")
+	var non_dot := _input("machinegun")
 	non_dot.gems = ["damageOverTime"]
 	var ignored := Stats.stats_at(non_dot,1)
 	near(ignored.damageOverTimeDamageMultiplier,1.0,"DoT gem does not grant damage to unsupported attacks")
@@ -273,7 +273,7 @@ func _dot_gem_amplification() -> void:
 
 func _burn_critical() -> void:
 	# Exercise the shared burn path with a non-magic definition too: no type gate.
-	for type in ["magic", "cannon"]:
+	for type in ["flame", "cannon"]:
 		for critical in [1.0, 1.5, 2.0, 3.0]:
 			for chained in [false, true]:
 				var i := _input(type)
@@ -295,7 +295,7 @@ func _burn_critical() -> void:
 				near(Enemy.snapshot(r.enemies["1"]).burnRemaining,2.0,"critical and chain never change burn duration")
 				check(r.rng.state == before,"burn and secondary hits never reroll critical")
 	# A shot already in flight retains its critical result after stats change.
-	var i := _input("magic")
+	var i := _input("flame")
 	i.definition.damage = 100.0
 	i.definition.criticalChance = 1.0
 	i.definition.criticalDamageMultiplier = 2.0
@@ -317,7 +317,7 @@ func _burn_critical() -> void:
 	Enemy.step(restored,1)
 	near(restored.hp,hp-75,"restored burn stores resolved DPS without applying critical again")
 	# Derived fire effects consume resolved burn DPS, not another critical roll.
-	i = _input("magic")
+	i = _input("flame")
 	i.definition.damage = 100.0
 	i.secondaryTrait = "ignitionBurst"
 	r = _runtime(i,[_raw(1)])
@@ -333,7 +333,7 @@ func _burn_critical() -> void:
 	near(Enemy.snapshot(r.enemies["2"]).burnDamagePerSecond,75,"spread transfers critical burn without double scaling")
 	near(Enemy.snapshot(r.enemies["2"]).burnRemaining,1.2,"spread keeps existing sixty percent remaining duration")
 func _projectiles() -> void:
-	var r = _runtime(_input("arrow"),[_raw(1,80),_raw(2,40)])
+	var r = _runtime(_input("machinegun"),[_raw(1,80),_raw(2,40)])
 	r._projectile(r.turrets["1"],_attack(r),Vector2.ZERO,Vector2.RIGHT,2,[],false,200)
 	var p: Dictionary = r.projectiles[0]
 	_move_all(r,100.0/620.0)
@@ -341,7 +341,7 @@ func _projectiles() -> void:
 	near(r.enemies["1"].hp,1000,"segment does not hit farther endpoint first")
 	check(p.position.x>0 and p.position.x<40,"segment hit is first circle intersection")
 	check("2" in p.excluded,"collision adds actual direct hit to history")
-	var chain = _runtime(_input("arrow"),[_raw(1,0),_raw(2,90),_raw(3,45)])
+	var chain = _runtime(_input("machinegun"),[_raw(1,0),_raw(2,90),_raw(3,45)])
 	var visited: Array = ["1"]
 	chain._projectile(chain.turrets["1"],_attack(chain),Vector2.ZERO,Vector2.RIGHT,1,visited,true,110)
 	p=chain.projectiles[0]
@@ -350,13 +350,13 @@ func _projectiles() -> void:
 	near(chain.enemies["3"].hp,996.5,"chain strikes intervening body before intended enemy")
 	near(chain.enemies["2"].hp,1000,"intended target is not a homing hit")
 	check(visited==["1"] and p.excluded==["1","3"],"chain collision history does not mutate caller history")
-	var capped = _runtime(_input("arrow"),[_raw(1,100)])
+	var capped = _runtime(_input("machinegun"),[_raw(1,100)])
 	capped._projectile(capped.turrets["1"],_attack(capped),Vector2.ZERO,Vector2.RIGHT,0,[],false,20)
 	p=capped.projectiles[0]
 	_move_all(capped,200.0/620.0)
 	near(p.position.x,20,"long frame stops exactly at max travel distance")
 	near(capped.enemies["1"].hp,1000,"long frame never collides beyond travel limit")
-	var moving = _runtime(_input("arrow"),[_raw(1,90)])
+	var moving = _runtime(_input("machinegun"),[_raw(1,90)])
 	moving._projectile(moving.turrets["1"],_attack(moving),Vector2.ZERO,Vector2.RIGHT,1,[],true,110)
 	moving.enemies["1"].y=100.0
 	p=moving.projectiles[0]
@@ -364,7 +364,7 @@ func _projectiles() -> void:
 	near(p.position.x,100,"chain retains original launch direction x")
 	near(p.position.y,0,"chain retains original launch direction y")
 	near(moving.enemies["1"].hp,1000,"moving away avoids nonhoming projectile")
-	var nearest = _runtime(_input("arrow"),[_raw(1),_raw(2,20),_raw(3,111),_raw(4,105)])
+	var nearest = _runtime(_input("machinegun"),[_raw(1),_raw(2,20),_raw(3,111),_raw(4,105)])
 	nearest.enemies["2"].hp=0
 	check(nearest._target(Vector2.ZERO,110,"nearest",["1"]).id==4,"nearest chain target filters dead visited and outside range")
 func _global_attacks() -> void:
@@ -386,7 +386,7 @@ func _global_attacks() -> void:
 	crit._impact(crit.turrets["1"],a,crit.enemies["2"],Vector2(10,0),0.5,true)
 	near(crit.enemies["1"].hp,937.5,"critical chained splash preserves original crit")
 	near(crit.enemies["2"].hp,950,"critical chained direct preserves original crit")
-	i=_input("magic")
+	i=_input("flame")
 	i.gems=["explosion"]
 	var fire = _runtime(i,[_raw(1),_raw(2,10)])
 	fire._impact(fire.turrets["1"],_attack(fire),fire.enemies["1"],Vector2.ZERO,0.5,true)
@@ -398,7 +398,7 @@ func _global_attacks() -> void:
 	Enemy.step(fire.enemies["2"],1)
 	near(fire.enemies["1"].hp,988,"chain burn duration not attenuated")
 	near(fire.enemies["2"].hp,994,"chain splash burn ticks unshortened")
-	i=_input("arrow")
+	i=_input("machinegun")
 	i.gems=["chain"]
 	var arrow = _runtime(i,[_raw(1,40),_raw(2,120),_raw(3,200),_raw(4,280)])
 	arrow._projectile(arrow.turrets["1"],_attack(arrow),Vector2.ZERO,Vector2.RIGHT,2,[],false,160)
@@ -425,7 +425,7 @@ func _global_attacks() -> void:
 	lightning._release(next)
 	for index in range(3): near(lightning.enemies[str(index+1)].hp,[964.0,970.0,970.0][index],"lightning next splash may hit former chain target")
 func _traits() -> void:
-	var i := _input("arrow")
+	var i := _input("machinegun")
 	i.primaryTrait="overheatMagazine"
 	var r = _runtime(i,[_raw(1),_raw(2)])
 	var t: Dictionary = r.turrets["1"]
@@ -435,7 +435,7 @@ func _traits() -> void:
 	near(r._traits(t,a,r.enemies["2"]),1.02,"overheat target switch resets stacks")
 	for index in range(30): r._traits(t,a,r.enemies["2"])
 	near(r._traits(t,a,r.enemies["2"]),1.3,"overheat capped at fifteen stacks")
-	i=_input("arrow")
+	i=_input("machinegun")
 	i.secondaryTrait="suppressiveFire"
 	r=_runtime(i,[_raw(1)])
 	t=r.turrets["1"]
@@ -486,7 +486,7 @@ func _traits() -> void:
 	r.enemies["1"].armor=15
 	r.enemies["1"].shield=10
 	near(r._traits(r.turrets["1"],a,r.enemies["1"]),1.45,"finisher uses combined remaining durability threshold")
-	i=_input("arrow")
+	i=_input("machinegun")
 	i.secondaryTrait="chainCleanup"
 	r=_runtime(i,[_raw(1)])
 	r._traits(r.turrets["1"],_attack(r),r.enemies["1"])
@@ -511,7 +511,7 @@ func _traits() -> void:
 	r._lightning_complete(r.turrets["1"],a,1)
 	near(r.turrets["1"].cooldown,2.0/1.3-0.3,"unused lightning jumps improve reload denominator")
 func _area() -> void:
-	var i := _input("arrow")
+	var i := _input("machinegun")
 	i.gems=["explosion"]
 	var s := Stats.stats_at(i,1)
 	near(s.splashRadius,42.5,"explosion grants34 radius and25 percent area together")
@@ -546,7 +546,7 @@ func _area() -> void:
 	r._impact(r.turrets["1"],_attack(r),r.enemies["1"],Vector2(20,0))
 	sniper_visual = r.visual_effects.filter(func(v): return v.kind != "damage")[-1]
 	check(sniper_visual.kind=="impact" and sniper_visual.style=="spark","plain sniper hit keeps flat spark")
-	for type in ["arrow","cannon","magic","frost","sniper","lightning"]:
+	for type in ["machinegun","cannon","flame","frost","sniper","lightning"]:
 		i=_input(type)
 		i.gems=["chain"]
 		s=Stats.stats_at(i,1)
@@ -574,7 +574,7 @@ func _balance() -> void:
 		e.maxHp=e.hp
 		e.distanceTravelled=[90,10,50,50,50][index]
 		raw_enemies.append(e)
-	var r = _runtime(_input("arrow"),raw_enemies)
+	var r = _runtime(_input("machinegun"),raw_enemies)
 	for priority in ["first","last","strongest","weakest","nearest"]:
 		var expected: Dictionary = {"first":1,"last":2,"strongest":3,"weakest":4,"nearest":5}
 		check(int(r._target(Vector2.ZERO,100,priority).id)==expected[priority],"original target priority "+priority)
@@ -595,7 +595,7 @@ func _balance() -> void:
 	near(e.hp,93.4,"two poison stacks deal six with a 10% stack bonus")
 	for index in range(25): Enemy.add_poison(e,{"damagePerSecond":3,"duration":6})
 	check(e.poisonInstances.size()==Enemy.POISON_STACK_CAP,"poison maximum stack cap")
-	var i := _input("magic")
+	var i := _input("flame")
 	i.secondaryTrait="ignitionBurst"
 	r=_runtime(i,[_raw(1)])
 	e=r.enemies["1"]
@@ -624,7 +624,7 @@ func _balance() -> void:
 	r._collect(Enemy.step(r.enemies["2"],0.6))
 	near(r.enemies["1"].hp,0,"direct fire kill transfers newly applied stronger burn")
 	near(r.enemies["2"].hp,95.2,"fixed magic-88 base16*.5 native burn transferred for .6 seconds")
-	r=_runtime(_input("magic"),[target])
+	r=_runtime(_input("flame"),[target])
 	Enemy.add_burn(r.enemies["2"],{"damagePerSecond":10,"duration":2,"sourceX":0,"sourceY":0})
 	r._collect(Enemy.step(r.enemies["2"],1))
 	near(r.enemies["2"].hp,90,"original source credited burn damage")
@@ -632,13 +632,13 @@ func _balance() -> void:
 
 	# Refund removes attribution without removing the existing burn.
 	r._command({"kind":"removeTurret","id":1})
-	r._command({"kind":"turret","turret":{"id":2,"position":[0,0],"statInput":_input("arrow"),"state":{"x":0,"y":0}}})
+	r._command({"kind":"turret","turret":{"id":2,"position":[0,0],"statInput":_input("machinegun"),"state":{"x":0,"y":0}}})
 	r._collect(Enemy.step(r.enemies["2"],0.5))
 	near(r.enemies["2"].hp,85,"refund retains old burn damage")
 	near(r.turrets["2"].burnDamageDealt,0,"rebuilt turret never inherits refunded burn credit")
 	var body := _raw(1,105.9,0,5.04)
 	body.targetingRadius=6.0
-	r=_runtime(_input("arrow"),[body])
+	r=_runtime(_input("machinegun"),[body])
 	check(not r._target(Vector2.ZERO,100,"first",[],true).is_empty(),"body radius includes inner .1 boundary")
 	r.enemies["1"].x=106.1
 	check(r._target(Vector2.ZERO,100,"first",[],true).is_empty(),"body radius excludes outer .1 boundary")

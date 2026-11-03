@@ -34,14 +34,14 @@ func TestHardClearRewardsRollLootOnUnlockedTurrets(t *testing.T) {
 	counts := [hardLootMaxModules + 1]int{}
 	tickets := 0
 	for i := 0; i < runs; i++ {
-		rewards, err := rollHardClearRewards(30, 0, []string{"arrow", "cannon"})
+		rewards, err := rollHardClearRewards(30, 0, []string{"machinegun", "cannon"})
 		if err != nil {
 			t.Fatal(err)
 		}
 		counts[len(rewards.Modules)]++
 		tickets += int(rewards.ModuleTickets)
 		for _, module := range rewards.Modules {
-			if module.TurretType != "arrow" && module.TurretType != "cannon" {
+			if module.TurretType != "machinegun" && module.TurretType != "cannon" {
 				t.Fatalf("loot outside unlocked turrets: %s", module.TurretType)
 			}
 			if err := validateModule(module); err != nil {

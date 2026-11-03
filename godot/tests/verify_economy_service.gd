@@ -69,7 +69,7 @@ func run():
 	root.add_child(service)
 	var hooks := {"sync":sync,"snapshot":apply,"receipt":receipt,"effect":effect}
 	service.configure(session,box,hooks)
-	var result: Dictionary = await service.execute("draw_modules",{"count":1,"turretType":"arrow","buyMissingTicketsWithDiamonds":true,"approvedDrawQuote":{"moduleTickets":0,"diamonds":40}})
+	var result: Dictionary = await service.execute("draw_modules",{"count":1,"turretType":"machinegun","buyMissingTicketsWithDiamonds":true,"approvedDrawQuote":{"moduleTickets":0,"diamonds":40}})
 	check(not result.ok and box.state.inFlight != null,"lost response durable request")
 	var pending: Dictionary = box.state.inFlight.duplicate(true)
 	var original_bytes: String = pending.encodedBody
@@ -88,7 +88,7 @@ func run():
 	# Every economic command requires successful real save synchronization first.
 	synced = false
 	session.sent.clear()
-	result = await service.execute("draw_modules",{"count":1,"turretType":"arrow","buyMissingTicketsWithDiamonds":true,"approvedDrawQuote":{"moduleTickets":0,"diamonds":40}})
+	result = await service.execute("draw_modules",{"count":1,"turretType":"machinegun","buyMissingTicketsWithDiamonds":true,"approvedDrawQuote":{"moduleTickets":0,"diamonds":40}})
 	check(not result.ok and session.sent.all(func(item):return item.method == "GET") and recovered.state.inFlight == null,"failed save prohibits spending")
 	synced = true
 	# A server already-claimed receipt updates local flags and refreshes wallet.
@@ -165,7 +165,7 @@ func _challenge_claim_tests():
 	var result: Dictionary = await service.execute("claim_challenge",{"stageNumber":3,"difficulty":"normal"})
 	var posts: Array = session.sent.filter(func(item): return item.method == "POST")
 	var body: Dictionary = JSON.parse_string(posts.back().body) if not posts.is_empty() else {}
-	check(result.ok and posts.size() == 1 and posts[0].path == "v1/economy/challenges/claim" and body.get("stageNumber") == 3 and body.get("difficulty") == "normal" and body.get("sourceSaveRevision") == 8 and body.get("writerGeneration") == 2 and body.get("clientCompatibilityVersion") == 16,"challenge claim wire contract")
+	check(result.ok and posts.size() == 1 and posts[0].path == "v1/economy/challenges/claim" and body.get("stageNumber") == 3 and body.get("difficulty") == "normal" and body.get("sourceSaveRevision") == 8 and body.get("writerGeneration") == 2 and body.get("clientCompatibilityVersion") == 17,"challenge claim wire contract")
 	check(box.state.inFlight == null and "stage:3:challenge:normal" in service.snapshot.get("claimedRewardKeys",[]),"claim keys arrive with the economy snapshot")
 	check(body.has("expectedEconomyRevision") and body.has("expectedCatalogVersion"),"challenge claim carries the expected economy")
 	# A retry of an already claimed reward (e.g. after a lost response) succeeds without another claim.
@@ -270,7 +270,7 @@ func _draw_quote_tests():
 		if test.has("syncTickets"):
 			sync_hook = func(): service.snapshot.wallet.moduleTickets = test.syncTickets
 		var used: int = mini(5,test.approved)
-		var values := {"count":5,"turretType":"arrow","buyMissingTicketsWithDiamonds":used < 5,"approvedDrawQuote":{"moduleTickets":used,"diamonds":(5-used)*40}}
+		var values := {"count":5,"turretType":"machinegun","buyMissingTicketsWithDiamonds":used < 5,"approvedDrawQuote":{"moduleTickets":used,"diamonds":(5-used)*40}}
 		if test.get("missing",false): values.erase("approvedDrawQuote")
 		var result: Dictionary = await service.execute("draw_modules",values)
 		sync_hook = Callable()

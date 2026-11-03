@@ -22787,11 +22787,11 @@
   ],
   "turrets": [
     {
-      "type": "arrow",
+      "type": "machinegun",
       "grown": false,
       "input": {
         "definition": {
-          "type": "arrow",
+          "type": "machinegun",
           "damageFamily": "physical",
           "attackTags": [
             "light"
@@ -22950,11 +22950,11 @@
       }
     },
     {
-      "type": "arrow",
+      "type": "machinegun",
       "grown": true,
       "input": {
         "definition": {
-          "type": "arrow",
+          "type": "machinegun",
           "damageFamily": "physical",
           "attackTags": [
             "light"
@@ -23445,11 +23445,11 @@
       }
     },
     {
-      "type": "magic",
+      "type": "flame",
       "grown": false,
       "input": {
         "definition": {
-          "type": "magic",
+          "type": "flame",
           "damageFamily": "elemental",
           "attackTags": [
             "damageOverTime"
@@ -23608,11 +23608,11 @@
       }
     },
     {
-      "type": "magic",
+      "type": "flame",
       "grown": true,
       "input": {
         "definition": {
-          "type": "magic",
+          "type": "flame",
           "damageFamily": "elemental",
           "attackTags": [
             "damageOverTime"

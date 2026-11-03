@@ -37,7 +37,7 @@ func artwork_matrix() -> void:
 	var paths := {}
 	for part in ["core", "barrel", "frame"]:
 		for grade in ["normal", "magic", "rare", "unique"]:
-			var item := {"part":part, "grade":grade, "turretType":"arrow"}
+			var item := {"part":part, "grade":grade, "turretType":"machinegun"}
 			var icon = ModuleIcon.create(item, 64)
 			root.add_child(icon)
 			await settle()

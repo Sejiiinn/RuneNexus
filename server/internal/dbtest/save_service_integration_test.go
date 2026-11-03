@@ -231,7 +231,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 	seedPreAuthoritySave(t, fixture, accountID, gamesave.Data{
 		Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: progression,
-		TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":1,"items":[{"id":"disassembly-fixture","turretType":"arrow","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1}]}`),
+		TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":1,"items":[{"id":"disassembly-fixture","turretType":"machinegun","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1}]}`),
 		ActiveRun:     json.RawMessage(`{"economyRunId":"0198b955-3656-7c40-b3cb-87f427b90bf2","stageNumber":11,"phase":"preparation","completedRounds":0,"gemRerollsUsed":0,"gemInventory":{}}`),
 	})
 	bootstrapBody := []byte(`{"expectedSaveRevision":1,"writerGeneration":1,"clientCompatibilityVersion":9}`)
@@ -263,7 +263,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		RawBody:          []byte(`{"clientCompatibilityVersion":9,"expectedEconomyRevision":1,"count":1}`),
 		ExpectedRevision: 1, ExpectedCatalogVersion: economy.CatalogVersion,
 		SourceSaveRevision: 1, WriterGeneration: fixture.writerGeneration,
-		Count: 1, TurretType: "arrow",
+		Count: 1, TurretType: "machinegun",
 	})
 	if err != nil || draw.Snapshot.EconomyRevision != 2 || len(draw.DrawnModules) != 1 || draw.Snapshot.Wallet.ModuleTickets != 1 {
 		t.Fatalf("draw authoritative module: %#v, %v", draw, err)

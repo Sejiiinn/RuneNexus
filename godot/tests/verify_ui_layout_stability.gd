@@ -71,7 +71,7 @@ func run() -> void:
 		assert(lobby.modal_frame.size.x <= width-32+0.1)
 		assert(lobby.modal_frame.size.y < 500,"Short research details must not fill the viewport")
 	lobby.close_modal()
-	app.progression_inputs.turretModules.items = [{"id":"a","turretType":"arrow","part":"core","grade":"rare","equipped":false,"options":[]}]
+	app.progression_inputs.turretModules.items = [{"id":"a","turretType":"machinegun","part":"core","grade":"rare","equipped":false,"options":[]}]
 	for width in [440]:
 		await dimensions(width,900)
 		lobby.open_page("포탑"); await settle()
@@ -90,7 +90,7 @@ func run() -> void:
 	var map: Dictionary = battle.catalog.stage(0).map
 	var index: int = map.tiles.find("build")
 	battle.selected = Vector2i(index % int(map.columns),index / int(map.columns))
-	assert(battle.apply_run_command({"kind":"build","x":battle.selected.x,"y":battle.selected.y,"type":"arrow"}))
+	assert(battle.apply_run_command({"kind":"build","x":battle.selected.x,"y":battle.selected.y,"type":"machinegun"}))
 	hud.on_board_selection(); hud.refresh(); await settle()
 	for width in [440]:
 		await dimensions(width,900)

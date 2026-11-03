@@ -30,7 +30,7 @@ func check(ok: bool, label: String) -> void:
 	checks += 1
 	if not ok: failures.append(label); push_error(label)
 
-func input_for(type: String = "arrow", gems: Array = ["piercing"]) -> Dictionary:
+func input_for(type: String = "machinegun", gems: Array = ["piercing"]) -> Dictionary:
 	var input: Dictionary = catalog.turret(type, {"tileSize":48.0})
 	input.gems = gems.duplicate()
 	input.definition.damage = 100.0
@@ -69,7 +69,7 @@ func impact_count(runtime, kind: String) -> int:
 	return count
 
 func stat_checks() -> void:
-	for type in ["arrow", "cannon", "magic"]:
+	for type in ["machinegun", "cannon", "flame"]:
 		var input := input_for(type)
 		var stats := Stats.stats_at(input, 1)
 		check(stats.get("pierceCount", -1) == 2, type + " piercing adds exactly two continuations")
@@ -118,7 +118,7 @@ func swept_checks() -> void:
 	move(overlap, 0)
 	check(overlap_p.excluded == ["9","4","7"] and damage(overlap,[9,4,7,2]) == [100.0,100.0,100.0,0.0], "starting overlaps resolve once each in stable tie order")
 	check(overlap.projectiles.is_empty(), "zero-length overlapping sweep terminates without looping")
-	var ordinary = fired(input_for("arrow", []), [enemy(1,30),enemy(2,60)])
+	var ordinary = fired(input_for("machinegun", []), [enemy(1,30),enemy(2,60)])
 	move(ordinary, 100)
 	check(damage(ordinary,[1,2]) == [100.0,0.0] and ordinary.projectiles.is_empty(), "ordinary projectile retains one direct hit")
 
@@ -141,7 +141,7 @@ func lifecycle_checks() -> void:
 	check(miss.projectiles.is_empty() and damage(miss,[1,2]) == [100.0,0.0], "remaining pierces do not prevent travel expiry")
 
 func status_checks() -> void:
-	var input := input_for("magic")
+	var input := input_for("flame")
 	input.definition.slowMultiplier = 0.6
 	input.definition.slowDuration = 3.0
 	input.secondaryTrait = "frostCrack"
@@ -155,9 +155,9 @@ func status_checks() -> void:
 		check(is_equal_approx(e.elementalVulnerabilityRemaining,3.0) and is_equal_approx(e.elementalVulnerabilityBonus,0.15), "vulnerability on direct target " + str(id))
 
 func explosion_checks() -> void:
-	for type in ["arrow", "cannon"]:
-		var input := input_for(type,["piercing","explosion"] if type == "arrow" else ["piercing"])
-		if type == "arrow": input.explosionGemValue = 40.0
+	for type in ["machinegun", "cannon"]:
+		var input := input_for(type,["piercing","explosion"] if type == "machinegun" else ["piercing"])
+		if type == "machinegun": input.explosionGemValue = 40.0
 		else: input.definition.splashRadius = 50.0
 		var runtime = fired(input, [enemy(1,40),enemy(2,55),enemy(3,70),enemy(4,65,20)])
 		move(runtime, 40)
@@ -173,7 +173,7 @@ func explosion_checks() -> void:
 		check(expired.turrets["1"].splashDamageDealt == 0 and impact_count(expired,"blast") == 0, type + " expiry emits no splash or explosion visual")
 
 func chain_checks() -> void:
-	var runtime = fired(input_for("arrow",["piercing","chain"]), [enemy(1,30),enemy(2,60),enemy(3,90),enemy(4,90,40),enemy(5,90,80),enemy(6,90,120)])
+	var runtime = fired(input_for("machinegun",["piercing","chain"]), [enemy(1,30),enemy(2,60),enemy(3,90),enemy(4,90,40),enemy(5,90,80),enemy(6,90,120)])
 	move(runtime, 40)
 	check(runtime.projectiles.size() == 1 and not runtime.projectiles[0].chained and runtime.projectiles[0].chains == 2, "pierce precedes chain and preserves chain budget")
 	move(runtime, 60)
@@ -191,12 +191,12 @@ func chain_checks() -> void:
 	check(area.projectiles.size() == 1 and is_equal_approx(area.projectiles[0].remaining,330.0), "cannon creates ordinary chain after terminal explosion")
 	move(area, 80)
 	check(damage(area,[4,5,6]) == [50.0,25.0,0.0], "chained cannon keeps half damage and half splash radius")
-	var out_of_range = fired(input_for("arrow",["piercing","chain"]),[enemy(1,30),enemy(2,60),enemy(3,90),enemy(4,210)])
+	var out_of_range = fired(input_for("machinegun",["piercing","chain"]),[enemy(1,30),enemy(2,60),enemy(3,90),enemy(4,210)])
 	move(out_of_range, 100)
 	check(out_of_range.projectiles.is_empty() and damage(out_of_range,[4]) == [0.0], "chain cannot acquire outside existing 110-unit radius")
 
 func multishot_checks() -> void:
-	var runtime = fired(input_for("arrow",["piercing","multipleProjectiles"]),[enemy(1,30,0,8),enemy(2,60,0,8),enemy(3,90,0,14),enemy(4,120,0,20)])
+	var runtime = fired(input_for("machinegun",["piercing","multipleProjectiles"]),[enemy(1,30,0,8),enemy(2,60,0,8),enemy(3,90,0,14),enemy(4,120,0,20)])
 	check(runtime.projectiles.size() == 3, "multishot fires three real projectiles")
 	var shots: Array = runtime.projectiles.duplicate()
 	move(runtime, 40)

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "cases": [
     {
-      "name": "arrow_0",
+      "name": "machinegun_0",
       "before": {
         "gold": 100000,
         "gemShards": 1000,
@@ -25,7 +25,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -45,7 +45,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -127,7 +127,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -147,7 +147,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -204,7 +204,7 @@
       }
     },
     {
-      "name": "arrow_1",
+      "name": "machinegun_1",
       "before": {
         "gold": 0,
         "gemShards": 1000,
@@ -227,7 +227,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -247,7 +247,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -329,7 +329,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -349,7 +349,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -406,7 +406,7 @@
       }
     },
     {
-      "name": "arrow_2",
+      "name": "machinegun_2",
       "before": {
         "gold": 100000,
         "gemShards": 1000,
@@ -429,7 +429,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -449,7 +449,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -531,7 +531,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -551,7 +551,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -608,7 +608,7 @@
       }
     },
     {
-      "name": "arrow_3",
+      "name": "machinegun_3",
       "before": {
         "gold": 100000,
         "gemShards": 1000,
@@ -631,7 +631,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -651,7 +651,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -733,7 +733,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -754,7 +754,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -811,7 +811,7 @@
       }
     },
     {
-      "name": "arrow_4",
+      "name": "machinegun_4",
       "before": {
         "gold": 99910,
         "gemShards": 1000,
@@ -834,7 +834,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -855,7 +855,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -937,7 +937,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -958,7 +958,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1015,7 +1015,7 @@
       }
     },
     {
-      "name": "arrow_5",
+      "name": "machinegun_5",
       "before": {
         "gold": 99910,
         "gemShards": 1000,
@@ -1038,7 +1038,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1059,7 +1059,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1141,7 +1141,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 2,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1162,7 +1162,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1219,7 +1219,7 @@
       }
     },
     {
-      "name": "arrow_6",
+      "name": "machinegun_6",
       "before": {
         "gold": 99868,
         "gemShards": 1000,
@@ -1242,7 +1242,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 2,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1263,7 +1263,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1345,7 +1345,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 3,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1366,7 +1366,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1423,7 +1423,7 @@
       }
     },
     {
-      "name": "arrow_7",
+      "name": "machinegun_7",
       "before": {
         "gold": 99799,
         "gemShards": 1000,
@@ -1446,7 +1446,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 3,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1467,7 +1467,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1549,7 +1549,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 4,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1570,7 +1570,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1627,7 +1627,7 @@
       }
     },
     {
-      "name": "arrow_8",
+      "name": "machinegun_8",
       "before": {
         "gold": 99703,
         "gemShards": 1000,
@@ -1650,7 +1650,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 4,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1671,7 +1671,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1753,7 +1753,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 5,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1774,7 +1774,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1831,7 +1831,7 @@
       }
     },
     {
-      "name": "arrow_9",
+      "name": "machinegun_9",
       "before": {
         "gold": 99580,
         "gemShards": 1000,
@@ -1854,7 +1854,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 5,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1875,7 +1875,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -1957,7 +1957,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 6,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -1978,7 +1978,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2035,7 +2035,7 @@
       }
     },
     {
-      "name": "arrow_10",
+      "name": "machinegun_10",
       "before": {
         "gold": 99430,
         "gemShards": 1000,
@@ -2058,7 +2058,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 6,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2079,7 +2079,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2161,7 +2161,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 7,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2182,7 +2182,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2239,7 +2239,7 @@
       }
     },
     {
-      "name": "arrow_11",
+      "name": "machinegun_11",
       "before": {
         "gold": 99253,
         "gemShards": 1000,
@@ -2262,7 +2262,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 7,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2283,7 +2283,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2365,7 +2365,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 8,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2386,7 +2386,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2443,7 +2443,7 @@
       }
     },
     {
-      "name": "arrow_12",
+      "name": "machinegun_12",
       "before": {
         "gold": 99049,
         "gemShards": 1000,
@@ -2466,7 +2466,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 8,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2487,7 +2487,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2569,7 +2569,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 9,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2590,7 +2590,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2647,7 +2647,7 @@
       }
     },
     {
-      "name": "arrow_13",
+      "name": "machinegun_13",
       "before": {
         "gold": 98818,
         "gemShards": 1000,
@@ -2670,7 +2670,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 9,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2691,7 +2691,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2773,7 +2773,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2794,7 +2794,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2851,7 +2851,7 @@
       }
     },
     {
-      "name": "arrow_14",
+      "name": "machinegun_14",
       "before": {
         "gold": 98560,
         "gemShards": 1000,
@@ -2874,7 +2874,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2895,7 +2895,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -2977,7 +2977,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -2998,7 +2998,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3055,7 +3055,7 @@
       }
     },
     {
-      "name": "arrow_15",
+      "name": "machinegun_15",
       "before": {
         "gold": 98560,
         "gemShards": 1000,
@@ -3078,7 +3078,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -3099,7 +3099,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3181,7 +3181,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3203,7 +3203,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3260,7 +3260,7 @@
       }
     },
     {
-      "name": "arrow_16",
+      "name": "machinegun_16",
       "before": {
         "gold": 98380,
         "gemShards": 1000,
@@ -3283,7 +3283,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3305,7 +3305,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3389,7 +3389,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3411,7 +3411,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3468,7 +3468,7 @@
       }
     },
     {
-      "name": "arrow_17",
+      "name": "machinegun_17",
       "before": {
         "gold": 98380,
         "gemShards": 988,
@@ -3491,7 +3491,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3513,7 +3513,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3597,7 +3597,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3619,7 +3619,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3676,7 +3676,7 @@
       }
     },
     {
-      "name": "arrow_18",
+      "name": "machinegun_18",
       "before": {
         "gold": 98380,
         "gemShards": 988,
@@ -3699,7 +3699,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3721,7 +3721,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3805,7 +3805,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3827,7 +3827,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -3884,7 +3884,7 @@
       }
     },
     {
-      "name": "arrow_19",
+      "name": "machinegun_19",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -3907,7 +3907,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -3929,7 +3929,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4013,7 +4013,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4035,7 +4035,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4092,7 +4092,7 @@
       }
     },
     {
-      "name": "arrow_20",
+      "name": "machinegun_20",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -4115,7 +4115,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4137,7 +4137,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4221,7 +4221,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4245,7 +4245,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4304,7 +4304,7 @@
       }
     },
     {
-      "name": "arrow_21",
+      "name": "machinegun_21",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -4327,7 +4327,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4351,7 +4351,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4437,7 +4437,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4461,7 +4461,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4520,7 +4520,7 @@
       }
     },
     {
-      "name": "arrow_22",
+      "name": "machinegun_22",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -4543,7 +4543,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4567,7 +4567,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4653,7 +4653,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4677,7 +4677,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4736,7 +4736,7 @@
       }
     },
     {
-      "name": "arrow_23",
+      "name": "machinegun_23",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -4759,7 +4759,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4783,7 +4783,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4869,7 +4869,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4893,7 +4893,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -4952,7 +4952,7 @@
       }
     },
     {
-      "name": "arrow_24",
+      "name": "machinegun_24",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -4975,7 +4975,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -4999,7 +4999,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5085,7 +5085,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5109,7 +5109,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5168,7 +5168,7 @@
       }
     },
     {
-      "name": "arrow_25",
+      "name": "machinegun_25",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -5191,7 +5191,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5215,7 +5215,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5301,7 +5301,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5325,7 +5325,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5384,7 +5384,7 @@
       }
     },
     {
-      "name": "arrow_26",
+      "name": "machinegun_26",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -5407,7 +5407,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5431,7 +5431,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5517,7 +5517,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5541,7 +5541,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5600,7 +5600,7 @@
       }
     },
     {
-      "name": "arrow_27",
+      "name": "machinegun_27",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -5623,7 +5623,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5647,7 +5647,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5733,7 +5733,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5757,7 +5757,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5816,7 +5816,7 @@
       }
     },
     {
-      "name": "arrow_28",
+      "name": "machinegun_28",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -5839,7 +5839,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5863,7 +5863,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -5949,7 +5949,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -5973,7 +5973,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6032,7 +6032,7 @@
       }
     },
     {
-      "name": "arrow_29",
+      "name": "machinegun_29",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -6055,7 +6055,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6079,7 +6079,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6165,7 +6165,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6189,7 +6189,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6248,7 +6248,7 @@
       }
     },
     {
-      "name": "arrow_30",
+      "name": "machinegun_30",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -6271,7 +6271,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6295,7 +6295,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6381,7 +6381,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6405,7 +6405,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6464,7 +6464,7 @@
       }
     },
     {
-      "name": "arrow_31",
+      "name": "machinegun_31",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -6487,7 +6487,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6511,7 +6511,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6597,7 +6597,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6621,7 +6621,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6680,7 +6680,7 @@
       }
     },
     {
-      "name": "arrow_32",
+      "name": "machinegun_32",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -6703,7 +6703,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6727,7 +6727,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6813,7 +6813,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6837,7 +6837,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -6896,7 +6896,7 @@
       }
     },
     {
-      "name": "arrow_33",
+      "name": "machinegun_33",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -6919,7 +6919,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -6943,7 +6943,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7029,7 +7029,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7053,7 +7053,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7112,7 +7112,7 @@
       }
     },
     {
-      "name": "arrow_34",
+      "name": "machinegun_34",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -7135,7 +7135,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7159,7 +7159,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7245,7 +7245,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7269,7 +7269,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7328,7 +7328,7 @@
       }
     },
     {
-      "name": "arrow_35",
+      "name": "machinegun_35",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -7351,7 +7351,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7375,7 +7375,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7461,7 +7461,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7485,7 +7485,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7544,7 +7544,7 @@
       }
     },
     {
-      "name": "arrow_36",
+      "name": "machinegun_36",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -7567,7 +7567,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7591,7 +7591,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7677,7 +7677,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7701,7 +7701,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7760,7 +7760,7 @@
       }
     },
     {
-      "name": "arrow_37",
+      "name": "machinegun_37",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -7783,7 +7783,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7807,7 +7807,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7893,7 +7893,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -7917,7 +7917,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -7976,7 +7976,7 @@
       }
     },
     {
-      "name": "arrow_38",
+      "name": "machinegun_38",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -7999,7 +7999,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8023,7 +8023,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8109,7 +8109,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8133,7 +8133,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8192,7 +8192,7 @@
       }
     },
     {
-      "name": "arrow_39",
+      "name": "machinegun_39",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -8215,7 +8215,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8239,7 +8239,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8325,7 +8325,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8349,7 +8349,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8408,7 +8408,7 @@
       }
     },
     {
-      "name": "arrow_40",
+      "name": "machinegun_40",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -8431,7 +8431,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8455,7 +8455,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8541,7 +8541,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8565,7 +8565,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8624,7 +8624,7 @@
       }
     },
     {
-      "name": "arrow_41",
+      "name": "machinegun_41",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -8647,7 +8647,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8671,7 +8671,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8757,7 +8757,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8781,7 +8781,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8840,7 +8840,7 @@
       }
     },
     {
-      "name": "arrow_42",
+      "name": "machinegun_42",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -8863,7 +8863,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8887,7 +8887,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -8973,7 +8973,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -8997,7 +8997,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9056,7 +9056,7 @@
       }
     },
     {
-      "name": "arrow_43",
+      "name": "machinegun_43",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -9079,7 +9079,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9103,7 +9103,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9189,7 +9189,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9213,7 +9213,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9272,7 +9272,7 @@
       }
     },
     {
-      "name": "arrow_44",
+      "name": "machinegun_44",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -9295,7 +9295,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9319,7 +9319,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9405,7 +9405,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9429,7 +9429,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9488,7 +9488,7 @@
       }
     },
     {
-      "name": "arrow_45",
+      "name": "machinegun_45",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -9511,7 +9511,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9535,7 +9535,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9621,7 +9621,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9645,7 +9645,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9704,7 +9704,7 @@
       }
     },
     {
-      "name": "arrow_46",
+      "name": "machinegun_46",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -9727,7 +9727,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9751,7 +9751,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9837,7 +9837,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9861,7 +9861,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -9920,7 +9920,7 @@
       }
     },
     {
-      "name": "arrow_47",
+      "name": "machinegun_47",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -9943,7 +9943,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -9967,7 +9967,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -10053,7 +10053,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -10077,7 +10077,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -10136,7 +10136,7 @@
       }
     },
     {
-      "name": "arrow_48",
+      "name": "machinegun_48",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -10159,7 +10159,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -10183,7 +10183,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -10268,7 +10268,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -10290,7 +10290,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -10347,7 +10347,7 @@
       }
     },
     {
-      "name": "arrow_49",
+      "name": "machinegun_49",
       "before": {
         "gold": 98380,
         "gemShards": 964,
@@ -10370,7 +10370,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "arrow",
+          "type": "machinegun",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -10392,7 +10392,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "arrow",
+            "type": "machinegun",
             "damageFamily": "physical",
             "attackTags": [
               "light"
@@ -20950,7 +20950,7 @@
       }
     },
     {
-      "name": "magic_100",
+      "name": "flame_100",
       "before": {
         "gold": 100000,
         "gemShards": 1000,
@@ -20973,7 +20973,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -20993,7 +20993,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21075,7 +21075,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -21095,7 +21095,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21152,7 +21152,7 @@
       }
     },
     {
-      "name": "magic_101",
+      "name": "flame_101",
       "before": {
         "gold": 0,
         "gemShards": 1000,
@@ -21175,7 +21175,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -21195,7 +21195,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21277,7 +21277,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -21297,7 +21297,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21354,7 +21354,7 @@
       }
     },
     {
-      "name": "magic_102",
+      "name": "flame_102",
       "before": {
         "gold": 100000,
         "gemShards": 1000,
@@ -21377,7 +21377,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -21397,7 +21397,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21479,7 +21479,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -21499,7 +21499,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21556,7 +21556,7 @@
       }
     },
     {
-      "name": "magic_103",
+      "name": "flame_103",
       "before": {
         "gold": 100000,
         "gemShards": 1000,
@@ -21579,7 +21579,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 1,
           "cooldown": 0.0,
@@ -21599,7 +21599,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21681,7 +21681,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -21702,7 +21702,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21759,7 +21759,7 @@
       }
     },
     {
-      "name": "magic_104",
+      "name": "flame_104",
       "before": {
         "gold": 99880,
         "gemShards": 1000,
@@ -21782,7 +21782,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -21803,7 +21803,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21885,7 +21885,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -21906,7 +21906,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -21963,7 +21963,7 @@
       }
     },
     {
-      "name": "magic_105",
+      "name": "flame_105",
       "before": {
         "gold": 99880,
         "gemShards": 1000,
@@ -21986,7 +21986,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 1,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22007,7 +22007,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22089,7 +22089,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 2,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22110,7 +22110,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22167,7 +22167,7 @@
       }
     },
     {
-      "name": "magic_106",
+      "name": "flame_106",
       "before": {
         "gold": 99824,
         "gemShards": 1000,
@@ -22190,7 +22190,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 2,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22211,7 +22211,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22293,7 +22293,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 3,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22314,7 +22314,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22371,7 +22371,7 @@
       }
     },
     {
-      "name": "magic_107",
+      "name": "flame_107",
       "before": {
         "gold": 99732,
         "gemShards": 1000,
@@ -22394,7 +22394,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 3,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22415,7 +22415,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22497,7 +22497,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 4,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22518,7 +22518,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22575,7 +22575,7 @@
       }
     },
     {
-      "name": "magic_108",
+      "name": "flame_108",
       "before": {
         "gold": 99604,
         "gemShards": 1000,
@@ -22598,7 +22598,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 4,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22619,7 +22619,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22701,7 +22701,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 5,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22722,7 +22722,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22779,7 +22779,7 @@
       }
     },
     {
-      "name": "magic_109",
+      "name": "flame_109",
       "before": {
         "gold": 99440,
         "gemShards": 1000,
@@ -22802,7 +22802,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 5,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22823,7 +22823,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22905,7 +22905,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 6,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -22926,7 +22926,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -22983,7 +22983,7 @@
       }
     },
     {
-      "name": "magic_110",
+      "name": "flame_110",
       "before": {
         "gold": 99240,
         "gemShards": 1000,
@@ -23006,7 +23006,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 6,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23027,7 +23027,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23109,7 +23109,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 7,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23130,7 +23130,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23187,7 +23187,7 @@
       }
     },
     {
-      "name": "magic_111",
+      "name": "flame_111",
       "before": {
         "gold": 99004,
         "gemShards": 1000,
@@ -23210,7 +23210,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 7,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23231,7 +23231,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23313,7 +23313,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 8,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23334,7 +23334,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23391,7 +23391,7 @@
       }
     },
     {
-      "name": "magic_112",
+      "name": "flame_112",
       "before": {
         "gold": 98732,
         "gemShards": 1000,
@@ -23414,7 +23414,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 8,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23435,7 +23435,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23517,7 +23517,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 9,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23538,7 +23538,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23595,7 +23595,7 @@
       }
     },
     {
-      "name": "magic_113",
+      "name": "flame_113",
       "before": {
         "gold": 98424,
         "gemShards": 1000,
@@ -23618,7 +23618,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 9,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23639,7 +23639,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23721,7 +23721,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23742,7 +23742,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23799,7 +23799,7 @@
       }
     },
     {
-      "name": "magic_114",
+      "name": "flame_114",
       "before": {
         "gold": 98080,
         "gemShards": 1000,
@@ -23822,7 +23822,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23843,7 +23843,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -23925,7 +23925,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -23946,7 +23946,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24003,7 +24003,7 @@
       }
     },
     {
-      "name": "magic_115",
+      "name": "flame_115",
       "before": {
         "gold": 98080,
         "gemShards": 1000,
@@ -24026,7 +24026,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 2,
           "cooldown": 0.0,
@@ -24047,7 +24047,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24129,7 +24129,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24151,7 +24151,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24208,7 +24208,7 @@
       }
     },
     {
-      "name": "magic_116",
+      "name": "flame_116",
       "before": {
         "gold": 97840,
         "gemShards": 1000,
@@ -24231,7 +24231,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24253,7 +24253,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24337,7 +24337,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24359,7 +24359,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24416,7 +24416,7 @@
       }
     },
     {
-      "name": "magic_117",
+      "name": "flame_117",
       "before": {
         "gold": 97840,
         "gemShards": 988,
@@ -24439,7 +24439,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24461,7 +24461,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24545,7 +24545,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24567,7 +24567,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24624,7 +24624,7 @@
       }
     },
     {
-      "name": "magic_118",
+      "name": "flame_118",
       "before": {
         "gold": 97840,
         "gemShards": 988,
@@ -24647,7 +24647,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24669,7 +24669,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24753,7 +24753,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24775,7 +24775,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24832,7 +24832,7 @@
       }
     },
     {
-      "name": "magic_119",
+      "name": "flame_119",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -24855,7 +24855,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24877,7 +24877,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -24961,7 +24961,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -24983,7 +24983,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25040,7 +25040,7 @@
       }
     },
     {
-      "name": "magic_120",
+      "name": "flame_120",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -25063,7 +25063,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25085,7 +25085,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25169,7 +25169,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25193,7 +25193,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25252,7 +25252,7 @@
       }
     },
     {
-      "name": "magic_121",
+      "name": "flame_121",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -25275,7 +25275,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25299,7 +25299,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25385,7 +25385,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25409,7 +25409,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25468,7 +25468,7 @@
       }
     },
     {
-      "name": "magic_122",
+      "name": "flame_122",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -25491,7 +25491,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25515,7 +25515,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25601,7 +25601,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25625,7 +25625,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25684,7 +25684,7 @@
       }
     },
     {
-      "name": "magic_123",
+      "name": "flame_123",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -25707,7 +25707,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25731,7 +25731,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25817,7 +25817,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25841,7 +25841,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -25900,7 +25900,7 @@
       }
     },
     {
-      "name": "magic_124",
+      "name": "flame_124",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -25923,7 +25923,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -25947,7 +25947,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26033,7 +26033,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26057,7 +26057,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26116,7 +26116,7 @@
       }
     },
     {
-      "name": "magic_125",
+      "name": "flame_125",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -26139,7 +26139,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26163,7 +26163,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26249,7 +26249,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26273,7 +26273,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26332,7 +26332,7 @@
       }
     },
     {
-      "name": "magic_126",
+      "name": "flame_126",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -26355,7 +26355,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26379,7 +26379,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26465,7 +26465,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26489,7 +26489,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26548,7 +26548,7 @@
       }
     },
     {
-      "name": "magic_127",
+      "name": "flame_127",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -26571,7 +26571,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26595,7 +26595,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26681,7 +26681,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26705,7 +26705,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26764,7 +26764,7 @@
       }
     },
     {
-      "name": "magic_128",
+      "name": "flame_128",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -26787,7 +26787,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26811,7 +26811,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26897,7 +26897,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -26921,7 +26921,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -26980,7 +26980,7 @@
       }
     },
     {
-      "name": "magic_129",
+      "name": "flame_129",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -27003,7 +27003,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27027,7 +27027,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27113,7 +27113,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27137,7 +27137,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27196,7 +27196,7 @@
       }
     },
     {
-      "name": "magic_130",
+      "name": "flame_130",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -27219,7 +27219,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27243,7 +27243,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27329,7 +27329,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27353,7 +27353,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27412,7 +27412,7 @@
       }
     },
     {
-      "name": "magic_131",
+      "name": "flame_131",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -27435,7 +27435,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27459,7 +27459,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27545,7 +27545,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27569,7 +27569,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27628,7 +27628,7 @@
       }
     },
     {
-      "name": "magic_132",
+      "name": "flame_132",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -27651,7 +27651,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27675,7 +27675,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27761,7 +27761,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27785,7 +27785,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27844,7 +27844,7 @@
       }
     },
     {
-      "name": "magic_133",
+      "name": "flame_133",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -27867,7 +27867,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -27891,7 +27891,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -27977,7 +27977,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28001,7 +28001,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28060,7 +28060,7 @@
       }
     },
     {
-      "name": "magic_134",
+      "name": "flame_134",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -28083,7 +28083,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28107,7 +28107,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28193,7 +28193,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28217,7 +28217,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28276,7 +28276,7 @@
       }
     },
     {
-      "name": "magic_135",
+      "name": "flame_135",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -28299,7 +28299,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28323,7 +28323,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28409,7 +28409,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28433,7 +28433,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28492,7 +28492,7 @@
       }
     },
     {
-      "name": "magic_136",
+      "name": "flame_136",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -28515,7 +28515,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28539,7 +28539,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28625,7 +28625,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28649,7 +28649,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28708,7 +28708,7 @@
       }
     },
     {
-      "name": "magic_137",
+      "name": "flame_137",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -28731,7 +28731,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28755,7 +28755,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28841,7 +28841,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28865,7 +28865,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -28924,7 +28924,7 @@
       }
     },
     {
-      "name": "magic_138",
+      "name": "flame_138",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -28947,7 +28947,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -28971,7 +28971,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29057,7 +29057,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29081,7 +29081,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29140,7 +29140,7 @@
       }
     },
     {
-      "name": "magic_139",
+      "name": "flame_139",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -29163,7 +29163,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29187,7 +29187,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29273,7 +29273,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29297,7 +29297,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29356,7 +29356,7 @@
       }
     },
     {
-      "name": "magic_140",
+      "name": "flame_140",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -29379,7 +29379,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29403,7 +29403,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29489,7 +29489,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29513,7 +29513,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29572,7 +29572,7 @@
       }
     },
     {
-      "name": "magic_141",
+      "name": "flame_141",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -29595,7 +29595,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29619,7 +29619,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29705,7 +29705,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29729,7 +29729,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29788,7 +29788,7 @@
       }
     },
     {
-      "name": "magic_142",
+      "name": "flame_142",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -29811,7 +29811,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29835,7 +29835,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -29921,7 +29921,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -29945,7 +29945,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30004,7 +30004,7 @@
       }
     },
     {
-      "name": "magic_143",
+      "name": "flame_143",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -30027,7 +30027,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30051,7 +30051,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30137,7 +30137,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30161,7 +30161,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30220,7 +30220,7 @@
       }
     },
     {
-      "name": "magic_144",
+      "name": "flame_144",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -30243,7 +30243,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30267,7 +30267,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30353,7 +30353,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30377,7 +30377,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30436,7 +30436,7 @@
       }
     },
     {
-      "name": "magic_145",
+      "name": "flame_145",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -30459,7 +30459,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30483,7 +30483,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30569,7 +30569,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30593,7 +30593,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30652,7 +30652,7 @@
       }
     },
     {
-      "name": "magic_146",
+      "name": "flame_146",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -30675,7 +30675,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30699,7 +30699,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30785,7 +30785,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30809,7 +30809,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -30868,7 +30868,7 @@
       }
     },
     {
-      "name": "magic_147",
+      "name": "flame_147",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -30891,7 +30891,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -30915,7 +30915,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -31001,7 +31001,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -31025,7 +31025,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -31084,7 +31084,7 @@
       }
     },
     {
-      "name": "magic_148",
+      "name": "flame_148",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -31107,7 +31107,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -31131,7 +31131,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -31216,7 +31216,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -31238,7 +31238,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"
@@ -31295,7 +31295,7 @@
       }
     },
     {
-      "name": "magic_149",
+      "name": "flame_149",
       "before": {
         "gold": 97840,
         "gemShards": 964,
@@ -31318,7 +31318,7 @@
         "turret": {
           "x": 1,
           "y": 1,
-          "type": "magic",
+          "type": "flame",
           "level": 10,
           "slotLimit": 3,
           "cooldown": 0.0,
@@ -31340,7 +31340,7 @@
         },
         "statInput": {
           "definition": {
-            "type": "magic",
+            "type": "flame",
             "damageFamily": "elemental",
             "attackTags": [
               "damageOverTime"

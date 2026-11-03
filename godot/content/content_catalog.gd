@@ -405,7 +405,7 @@ func wave(stage_index: int, round_index: int, first_enemy_id: int = 100000, inpu
 		if prepared.has("routeId"): queue[-1].routeId = prepared.routeId
 	return {"id": source.round, "active": true, "spawnQueue": queue}
 
-func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+func turret(type: String = "machinegun", inputs: Dictionary = {}) -> Dictionary:
 	if not _data.get("turrets", {}).has(type):
 		error = "Unknown turret type"
 		return {}
@@ -444,7 +444,7 @@ func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
 		result[key] = inputs.statInput[key]
 	return result
 
-func turret_stats(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+func turret_stats(type: String = "machinegun", inputs: Dictionary = {}) -> Dictionary:
 	var input := turret(type, inputs)
 	return {} if input.is_empty() else Stats.shared_stats_at(input, int(input.level))
 

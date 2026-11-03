@@ -26,10 +26,10 @@ const POISON_PUDDLE := {"duration": 1.0, "tick": 0.5, "maxCount": 3, "hitShare":
 const VENOM_POOL_PUDDLE := {"duration": 3.0}
 ## 2차 특성 부식 독소: 이 포탑 독 3중첩 이상인 동안 물리 저항 -15%p. 조건이 끊긴 뒤 잠깐만 남는다.
 const CORROSION := {"stacks": 3, "bonus": 0.15, "linger": 0.25}
-const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0, "poison":4.0}
+const PROJECTILE_RADII: Dictionary = {"machinegun":3.5, "cannon":7.0, "flame":4.0, "poison":4.0}
 ## Turret-type presentation tables, shared instead of rebuilt per shot or hit.
-const IMPACT_STYLES := {"arrow":"spark", "magic":"flame", "cannon":"blast", "lightning":"lightning", "poison":"venom"}
-const VISUAL_COLORS := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff, "poison":0xffa6ff3a}
+const IMPACT_STYLES := {"machinegun":"spark", "flame":"flame", "cannon":"blast", "lightning":"lightning", "poison":"venom"}
+const VISUAL_COLORS := {"machinegun":0xffffdf9e, "cannon":0xffffb066, "flame":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff, "poison":0xffa6ff3a}
 # Extend fired shots without changing turret or chain target acquisition ranges.
 const PROJECTILE_TRAVEL_MULTIPLIER: float = 3.0
 # Game seconds, independent of render cadence and playback speed. Keep the

@@ -53,7 +53,7 @@ func _initialize() -> void:
 		check(Stats.shared_stats_at(input,5) == Stats.stats_at(input,5),type+": module edit invalidation")
 		check(Stats.shared_calculation_count == before+3,type+": changed module computes once")
 	Stats.clear_shared_cache()
-	var varied := catalog.turret("arrow")
+	var varied := catalog.turret("machinegun")
 	for index in range(Stats.SHARED_CACHE_LIMIT+7):
 		varied.towerDamageMultiplier = 1.0+index*0.01
 		Stats.shared_stats_at(varied,1)

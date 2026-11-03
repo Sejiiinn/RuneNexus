@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/auth"
+	"github.com/Sejiiinn/RuneNexus/server/internal/contentregistry"
 	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 )
@@ -284,7 +285,7 @@ func (handler economyHandler) draw(response http.ResponseWriter, request *http.R
 		ExpectedRevision:       *input.ExpectedEconomyRevision,
 		ExpectedCatalogVersion: *input.ExpectedCatalogVersion,
 		SourceSaveRevision:     *input.SourceSaveRevision, WriterGeneration: *input.WriterGeneration,
-		Count: *input.Count, TurretType: strings.TrimSpace(input.TurretType),
+		Count: *input.Count, TurretType: contentregistry.CanonicalTurret(strings.TrimSpace(input.TurretType)),
 		BuyMissingTicketsWithDiamonds: input.BuyMissingTicketsWithDiamonds,
 	})
 	if handler.writeEconomyError(response, request, err) {

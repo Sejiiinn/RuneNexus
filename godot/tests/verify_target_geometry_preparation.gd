@@ -210,13 +210,13 @@ func catalog_manifests() -> void:
 		var kinds := expected.keys()
 		kinds.sort()
 		var manifest := Manifest.for_stage(catalog, index,
-			{"availableTurretTypes": ["arrow"]}, {"turrets": [{"type": "sniper"}, {"type": "lightning"}]})
+			{"availableTurretTypes": ["machinegun"]}, {"turrets": [{"type": "sniper"}, {"type": "lightning"}]})
 		check(manifest.enemy_types == kinds, "stage %d manifest includes the complete spawn roster" % catalog.stage_id(index))
-		check(manifest.tower_types == ["arrow", "lightning", "sniper"], "stage %d restored contact weapons remain eligible" % catalog.stage_id(index))
+		check(manifest.tower_types == ["machinegun", "lightning", "sniper"], "stage %d restored contact weapons remain eligible" % catalog.stage_id(index))
 	print("TARGET_GEOMETRY_MANIFEST stages=", catalog.stage_count(), " waves=", waves, " enemy_kinds=", catalog_kinds.size())
 
 func status_transition() -> void:
-	select(["normal"], ["magic", "frost", "lightning"])
+	select(["normal"], ["flame", "frost", "lightning"])
 	check(await prepare(), "mixed-status contact stage prepares")
 	var with_status := Surface.cache_snapshot()
 	check(with_status.count == 4, "normal body and three authored status meshes are prewarmed")
@@ -251,7 +251,7 @@ func cancellation_and_error() -> void:
 		if Surface.cache_snapshot().count > 0 or not outcomes.is_empty(): break
 		await process_frame
 	check(Surface.cache_snapshot().count > 0 and outcomes.is_empty(), "cancellation fixture reaches a partially warmed rehearsal")
-	select(["armored"], ["arrow"])
+	select(["armored"], ["machinegun"])
 	for frame in 120:
 		if not outcomes.is_empty(): break
 		await process_frame
@@ -271,7 +271,7 @@ func run() -> void:
 	scene = Battle.new()
 	root.add_child(scene)
 	catalog_manifests()
-	select(ALL_ENEMIES, ["arrow"])
+	select(ALL_ENEMIES, ["machinegun"])
 	var before: int = Surface.cache_snapshot().builds
 	check(await prepare(), "weapon-ineligible all-enemy stage prepares")
 	check(Surface.cache_snapshot().count == 0 and Surface.cache_snapshot().builds == before, "arrow-only loading constructs no target geometry")
@@ -319,7 +319,7 @@ func run() -> void:
 	before = Surface.cache_snapshot().builds
 	check(await prepare(), "new family prepares after eviction")
 	check(Surface.cache_snapshot().count > 0 and Surface.cache_snapshot().builds > before, "new family builds during loading")
-	select(["fast"], ["arrow"])
+	select(["fast"], ["machinegun"])
 	check(Surface.cache_snapshot().count == 0, "weapon-ineligible stage releases even overlapping enemy geometry")
 	synthetic_fallback()
 	skin_interpretations()

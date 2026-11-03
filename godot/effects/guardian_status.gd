@@ -54,7 +54,7 @@ static func attach(entry: Dictionary, _templates: Array, materials: Array, label
 		effect.mesh = StageResources.load_resource(meshes[index]) as Mesh
 		# Target geometry must expire with its status family, even when the same
 		# enemy and sniper/lightning remain eligible in the next stage.
-		effect.set_meta("target_geometry_weapon", {"EnemyBurn": "magic", "EnemyPoison": "poison"}.get(label, "frost"))
+		effect.set_meta("target_geometry_weapon", {"EnemyBurn": "flame", "EnemyPoison": "poison"}.get(label, "frost"))
 		effect.skin = body.skin
 		effect.material_override = _materials[material_key][index]
 		effect.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -77,5 +77,5 @@ static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
 	for kind: String in enemy_types: kinds[AttachmentKind.resolve(kind)] = true
 	for key: String in _materials.keys():
 		var pieces := key.split(":")
-		if not kinds.has(pieces[1]) or (pieces[0] == "EnemyBurn" and not "magic" in tower_types) or (pieces[0] == "EnemyPoison" and not "poison" in tower_types) or (pieces[0] == "EnemyFrost" and not "frost" in tower_types):
+		if not kinds.has(pieces[1]) or (pieces[0] == "EnemyBurn" and not "flame" in tower_types) or (pieces[0] == "EnemyPoison" and not "poison" in tower_types) or (pieces[0] == "EnemyFrost" and not "frost" in tower_types):
 			_materials.erase(key)

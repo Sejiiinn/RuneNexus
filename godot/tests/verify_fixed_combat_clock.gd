@@ -21,7 +21,7 @@ class ClockApp extends "res://app/app_lifecycle.gd":
 		pass
 
 const STEP := 1.0 / 60.0
-const TYPES := ["arrow", "cannon", "magic", "frost", "sniper", "lightning"]
+const TYPES := ["machinegun", "cannon", "flame", "frost", "sniper", "lightning"]
 const PATTERNS := {
 	"120Hz": [1.0 / 120.0], "60Hz": [STEP], "30Hz": [1.0 / 30.0],
 	"20Hz": [1.0 / 20.0], "hitches": [1.0 / 240.0, STEP, 0.117, 0.002, 0.20, 1.0 / 30.0, 0.05, 0.007],
@@ -122,7 +122,7 @@ func setup(scenario: String, speed: float = 1.0):
 	if scenario == "mixed":
 		for i in range(TYPES.size()): towers.append(tower(TYPES[i], i + 1))
 	else:
-		towers.append(tower("arrow" if scenario == "burst" else scenario, 1, scenario == "burst"))
+		towers.append(tower("machinegun" if scenario == "burst" else scenario, 1, scenario == "burst"))
 	var queue: Array = []
 	for i in range(9):
 		queue.append({"enemyType":"normal","delay":0.05 + i * 0.31,"enemy":moving_enemy(i + 1, [18.0,75.0,10000.0][i % 3])})

@@ -11,9 +11,9 @@ func TestExactOwnershipConservesAllocationAndRejectsMintOrLoss(t *testing.T) {
 	expected := map[string]int64{"range": 2, "chain": 1}
 	for _, raw := range []string{
 		`{"gemInventory":{"range":2,"chain":1},"turrets":[]}`,
-		`{"gemInventory":{"range":1},"turrets":[{"type":"arrow","slotLimit":3,"equippedGemSlots":["range",null,"chain"],"equippedGems":["range","chain"]}]}`,
-		`{"gemInventory":{"chain":1},"turrets":[{"type":"arrow","equippedGemSlots":["range"]},{"type":"cannon","equippedGemSlots":["range"]}]}`,
-		`{"gemInventory":{"range":1},"turrets":[{"type":"arrow","slotLimit":2,"equippedGems":["range","chain"]}]}`,
+		`{"gemInventory":{"range":1},"turrets":[{"type":"machinegun","slotLimit":3,"equippedGemSlots":["range",null,"chain"],"equippedGems":["range","chain"]}]}`,
+		`{"gemInventory":{"chain":1},"turrets":[{"type":"machinegun","equippedGemSlots":["range"]},{"type":"cannon","equippedGemSlots":["range"]}]}`,
+		`{"gemInventory":{"range":1},"turrets":[{"type":"machinegun","slotLimit":2,"equippedGems":["range","chain"]}]}`,
 	} {
 		if err := ValidateOwnership([]byte(raw), expected); err != nil {
 			t.Fatalf("valid allocation rejected %s: %v", raw, err)
@@ -24,8 +24,8 @@ func TestExactOwnershipConservesAllocationAndRejectsMintOrLoss(t *testing.T) {
 		`{"gemInventory":{"range":2,"chain":1,"explosion":1}}`,
 		`{"gemInventory":{"range":1,"chain":1}}`,
 		`{"gemInventory":{"range":1,"chain":2}}`,
-		`{"gemInventory":{"range":1,"chain":1},"turrets":[{"type":"arrow","equippedGemSlots":[null],"equippedGems":["range"]}]}`,
-		`{"gemInventory":{"chain":1},"turrets":[{"type":"arrow","slotLimit":2,"equippedGemSlots":["range","range"]}]}`,
+		`{"gemInventory":{"range":1,"chain":1},"turrets":[{"type":"machinegun","equippedGemSlots":[null],"equippedGems":["range"]}]}`,
+		`{"gemInventory":{"chain":1},"turrets":[{"type":"machinegun","slotLimit":2,"equippedGemSlots":["range","range"]}]}`,
 		`{"isPurchasedGemReward":true,"gemInventory":{"range":3,"chain":1}}`,
 	} {
 		if !errors.Is(ValidateOwnership([]byte(raw), expected), ErrConflict) {
@@ -38,7 +38,7 @@ func TestExactOwnershipConservesAllocationAndRejectsMintOrLoss(t *testing.T) {
 }
 
 func TestOwnershipRejectsMalformedRepresentations(t *testing.T) {
-	for _, raw := range []string{`null`, `[]`, `{"gemInventory":null}`, `{"gemInventory":{"range":null}}`, `{"gemInventory":{"range":1.5}}`, `{"gemInventory":{"range":"1"}}`, `{"gemInventory":{"range":-1}}`, `{"gemInventory":{"range":9223372036854775808}}`, `{"gemInventory":{"unknown":0}}`, `{"turrets":null}`, `{"turrets":[null]}`, `{"turrets":[{"type":"arrow","slotLimit":null,"equippedGemSlots":[]}]}`, `{"turrets":[{"type":"laser","equippedGemSlots":["range"]}]}`, `{"gemInventory":{"range":9223372036854775807},"turrets":[{"type":"arrow","equippedGemSlots":["range"]}]}`} {
+	for _, raw := range []string{`null`, `[]`, `{"gemInventory":null}`, `{"gemInventory":{"range":null}}`, `{"gemInventory":{"range":1.5}}`, `{"gemInventory":{"range":"1"}}`, `{"gemInventory":{"range":-1}}`, `{"gemInventory":{"range":9223372036854775808}}`, `{"gemInventory":{"unknown":0}}`, `{"turrets":null}`, `{"turrets":[null]}`, `{"turrets":[{"type":"machinegun","slotLimit":null,"equippedGemSlots":[]}]}`, `{"turrets":[{"type":"laser","equippedGemSlots":["range"]}]}`, `{"gemInventory":{"range":9223372036854775807},"turrets":[{"type":"machinegun","equippedGemSlots":["range"]}]}`} {
 		if _, err := ReadOwnedGems([]byte(raw)); !errors.Is(err, ErrConflict) {
 			t.Fatalf("malformed representation accepted %s", raw)
 		}

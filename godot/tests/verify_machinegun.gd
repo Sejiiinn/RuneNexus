@@ -56,7 +56,7 @@ func _verify() -> void:
 	frame["zoom"] = 1.15
 	frame["seq"] = 101
 	frame["time"] = 1.0
-	frame["turrets"] = [[701, 3.5, 4.5, 0.0, 0, 0.0, "arrow", 1]]
+	frame["turrets"] = [[701, 3.5, 4.5, 0.0, 0, 0.0, "machinegun", 1]]
 	frame["enemies"] = []
 	frame["projectiles"] = []
 	frame["impacts"] = []

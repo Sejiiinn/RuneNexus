@@ -335,7 +335,7 @@ func save_session(app) -> Error:
 	})
 	var templates: Dictionary = {}
 	for turret in runtime.turrets.values():
-		templates[str(turret.id)] = {"type": "arrow", "x": turret.state.x, "y": turret.state.y, "level": 1}
+		templates[str(turret.id)] = {"type": "machinegun", "x": turret.state.x, "y": turret.state.y, "level": 1}
 	var snapshot: Dictionary = runtime.snapshot()
 	snapshot.session.phase = phase
 	var saved = Adapter.capture(envelope, snapshot, templates, int(Time.get_unix_time_from_system() * 1000))
@@ -531,7 +531,7 @@ static func _is_fixture_run(run: Dictionary) -> bool:
 	if run.runCoreCombatSkill != null or not run.runUpgradeLevels.is_empty() or not run.gemInventory.is_empty(): return false
 	if run.economyRunId != null or run.pendingEconomyDiamonds != 0 or not run.rewardOptions.is_empty(): return false
 	for turret in run.turrets:
-		if turret.type != "arrow" or turret.level != 1 or turret.slotLimit != 1: return false
+		if turret.type != "machinegun" or turret.level != 1 or turret.slotLimit != 1: return false
 		if not turret.equippedGems.is_empty() or turret.equippedGemSlots.any(func(value): return value != null): return false
 		if turret.primaryTrait != null or turret.secondaryTrait != null or turret.targetPriority != "first": return false
 	for enemy in run.enemies:

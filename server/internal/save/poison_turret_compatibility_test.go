@@ -58,7 +58,7 @@ func TestPoisonDamageTrainingRequiresCurrentClient(t *testing.T) {
 }
 
 func TestPoisonModuleClientGuard(t *testing.T) {
-	inventory := []byte(`{"items":[{"turretType":"arrow"},{"turretType":"poison","equipped":true}]}`)
+	inventory := []byte(`{"items":[{"turretType":"machinegun"},{"turretType":"poison","equipped":true}]}`)
 	for _, client := range []int{11, 12} {
 		if err := ValidateModuleContentClient(inventory, client); !errors.Is(err, ErrClientUpdateRequired) {
 			t.Fatalf("generation %d may rewrite poison modules: %v", client, err)

@@ -29,7 +29,7 @@ func TestSpendDiamondsRejectsInsufficientBalanceWithoutMutation(t *testing.T) {
 
 func TestDecodeLegacyEconomyConvertsPaidDiamondsAndRejectsInvalidModules(t *testing.T) {
 	progression := []byte(`{"freeDiamonds":10,"paidDiamonds":5,"researchSlotTwoUnlocked":true,"clearedStageNumbers":[11]}`)
-	modules := []byte(`{"tickets":2,"drawCount":1,"ticketPurchaseCount":0,"itemSequence":2,"items":[{"id":"valid","turretType":"arrow","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1,"equipped":false},{"id":"broken","turretType":"unknown","part":"core","family":"assault","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":2,"equipped":true}]}`)
+	modules := []byte(`{"tickets":2,"drawCount":1,"ticketPurchaseCount":0,"itemSequence":2,"items":[{"id":"valid","turretType":"machinegun","part":"core","family":"rapidCore","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":1,"equipped":false},{"id":"broken","turretType":"unknown","part":"core","family":"assault","grade":"normal","options":[{"type":"damageIncrease","value":5}],"acquiredOrder":2,"equipped":true}]}`)
 
 	legacy, accepted, rejected, cleared, err := decodeLegacyEconomy(progression, modules)
 	if err != nil {

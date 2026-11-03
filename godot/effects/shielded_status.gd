@@ -220,12 +220,12 @@ static func clear() -> void:
 	_skin = null
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
-	var particles := "magic" in tower_types or "poison" in tower_types
+	var particles := "flame" in tower_types or "poison" in tower_types
 	if not "shielded" in enemy_types or (not particles and not "frost" in tower_types):
 		clear()
 		return
 	for mode: String in _materials.keys():
-		var needed: bool = {"burn": "magic" in tower_types, "poison": "poison" in tower_types}.get(mode, "frost" in tower_types)
+		var needed: bool = {"burn": "flame" in tower_types, "poison": "poison" in tower_types}.get(mode, "frost" in tower_types)
 		if not needed: _materials.erase(mode)
 	# Burn and poison share the particle mesh.
 	for key: String in _meshes.keys():

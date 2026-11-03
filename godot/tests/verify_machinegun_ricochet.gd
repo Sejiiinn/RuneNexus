@@ -25,7 +25,7 @@ func _check(condition: bool, message: String) -> void:
 
 
 func _hit(id: int, age: float, x := 3.0, direction := [1.0, 0.0], target := 7) -> Dictionary:
-	return {"id": id, "kind": "impact", "style": "spark", "turretType": "arrow", "x": x, "y": 5.0,
+	return {"id": id, "kind": "impact", "style": "spark", "turretType": "machinegun", "x": x, "y": 5.0,
 		"direction": direction, "targetId": target, "age": age, "duration": 0.28}
 
 
@@ -137,7 +137,7 @@ func _verify_native_battle() -> void:
 	_check(not found.is_empty(), "고정 전투에서 기관총 명중이 발생하지 않음")
 	if not found.is_empty():
 		var direction: Array = found.get("direction", [])
-		_check(found.get("turretType") == "arrow" and direction.size() == 2 and Vector2(direction[0], direction[1]).is_normalized(), "기관총 명중에 탄 방향이 없음: %s" % found)
+		_check(found.get("turretType") == "machinegun" and direction.size() == 2 and Vector2(direction[0], direction[1]).is_normalized(), "기관총 명중에 탄 방향이 없음: %s" % found)
 		_check(scene.combat_runtime.enemies.has(str(found.get("targetId"))), "명중 대상 ID 불일치: %s" % found)
 		_check(not effects._canvas_effect(found), "본게임에서 기관총 2D 섬광이 계속 표시됨")
 		_check(scene._machinegun_ricochet.active.has(int(found.id)), "본게임 명중이 3D 도탄으로 표시되지 않음")

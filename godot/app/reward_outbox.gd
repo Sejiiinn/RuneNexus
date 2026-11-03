@@ -1,5 +1,6 @@
 extends "res://app/local_save_store.gd"
 const StageProgression = preload("res://content/stage_progression.gd")
+const TurretIdentity = preload("res://content/turret_identity.gd")
 ## Only recent hard drops are kept; the result screen shows the latest run.
 const HARD_REWARD_HISTORY := 8
 const HARD_FIRST_CLEAR_TICKETS: int = preload("res://content/stage_difficulty.gd").FIRST_CLEAR_MODULE_TICKETS
@@ -41,6 +42,8 @@ func load_state() -> Error:
 		if last_error != OK: return last_error
 		if valid_state(value):
 			if path == backup_path and _write_atomic(primary_path, JSON.stringify(value)) != OK: return last_error
+			# Drops recorded before compatibility 17 name turrets by their old ids.
+			if value.has("hardRewards"): value.hardRewards = TurretIdentity.migrate_save(value.hardRewards)
 			state = value
 			loaded = true
 			return OK

@@ -81,9 +81,9 @@ func _update_turret(state: Dictionary,turret: Dictionary) -> void:
 	if float(stats.splashRadius) > 0: specs.append(["효과 범위","effectAreaMultiplier"])
 	if turret.type != "frost" and float(stats.slowDuration) > 0:
 		specs.append(["감속","slowMultiplier"]); specs.append(["감속 지속","slowDuration"])
-	if turret.type in ["arrow","cannon"]: specs.append(["투사체","projectileCount"])
+	if turret.type in ["machinegun","cannon"]: specs.append(["투사체","projectileCount"])
 	if turret.type == "sniper": specs.append(["조준 시간","aimDuration"])
-	if turret.type == "magic":
+	if turret.type == "flame":
 		stats.burnDuration = 2.0*float(stats.damageOverTimeDurationMultiplier)
 		if not next.is_empty(): next.burnDuration = 2.0*float(next.damageOverTimeDurationMultiplier)
 		specs.append(["화상 지속","burnDuration"])

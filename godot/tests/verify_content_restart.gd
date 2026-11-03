@@ -49,8 +49,8 @@ func write_phase(app, phase: String) -> void:
 	app.run_domain.state.gemInventory = {"range":2}
 	app.run_domain.state.pendingEconomyDiamonds = 17
 	app.run_domain.state.progression.runes = 10000
-	var family: String = app.run_domain.growth.data.module.families.arrow.core
-	app.run_domain.state.progression.turretModules = {"items":[{"id":"restart-module","turretType":"arrow","part":"core","family":family,"grade":"normal","equipped":false,"options":[{"type":"damageIncrease","value":2}]}]}
+	var family: String = app.run_domain.growth.data.module.families.machinegun.core
+	app.run_domain.state.progression.turretModules = {"items":[{"id":"restart-module","turretType":"machinegun","part":"core","family":family,"grade":"normal","equipped":false,"options":[{"type":"damageIncrease","value":2}]}]}
 	check(app.apply_growth_command({"type":"equipTurretModule","id":"restart-module"}), phase+" module equip")
 	check(app.apply_growth_command({"kind":"permanentUpgrade","type":"fireTraining"}), phase+" growth purchase")
 	var source: Dictionary = app.stage_source(0)

@@ -29,7 +29,7 @@ func TestPoisonModuleCatalog(t *testing.T) {
 	if !slices.Equal(core, []string{"damageIncrease", "splashRadiusIncrease", "damageOverTimeIncrease", "poisonDurationIncrease"}) {
 		t.Fatalf("poison core pool: %v", core)
 	}
-	if !slices.Equal(optionPool("poison", "barrel"), optionPool("arrow", "barrel")) || !slices.Equal(optionPool("poison", "frame"), optionPool("arrow", "frame")) {
+	if !slices.Equal(optionPool("poison", "barrel"), optionPool("machinegun", "barrel")) || !slices.Equal(optionPool("poison", "frame"), optionPool("machinegun", "frame")) {
 		t.Fatal("poison barrel and frame must share the common pools")
 	}
 	if familyFor("poison", "core") != "venomCore" || familyFor("poison", "barrel") != "mortarBarrel" || familyFor("poison", "frame") != "sealedFrame" {

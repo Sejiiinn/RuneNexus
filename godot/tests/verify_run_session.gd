@@ -24,7 +24,7 @@ func run() -> void:
 	var index: int = source.map.tiles.find("build")
 	var tile := Vector2i(index % int(source.map.columns), floori(float(index)/int(source.map.columns)))
 	app.board_tap(tile)
-	var cost: int = app.run_domain.service.build_cost(app.run_domain.state,"arrow")
+	var cost: int = app.run_domain.service.build_cost(app.run_domain.state,"machinegun")
 	app.build_selected()
 	check(app.run_domain.state.gold == initial-cost and runtime.turrets.size()==1, "build spends actual gold and creates native turret")
 	app.build_selected()
@@ -83,8 +83,8 @@ func run() -> void:
 	var start_ranks: Dictionary = app.run_domain.state.runCorePassiveNodeRanks.duplicate(true)
 	var start_modules: Array = app.run_domain.state.runTurretModules.duplicate(true)
 	var loadout: Dictionary = app.run_domain.state.progression.duplicate(true)
-	var family: String = app.run_domain.growth.data.module.families.arrow.core
-	loadout.turretModules = {"items":[{"id":"fixed-run-module","turretType":"arrow","part":"core","family":family,"grade":"normal","equipped":true,"acquiredOrder":1,"options":[{"type":"damageIncrease","value":7}]}]}
+	var family: String = app.run_domain.growth.data.module.families.machinegun.core
+	loadout.turretModules = {"items":[{"id":"fixed-run-module","turretType":"machinegun","part":"core","family":family,"grade":"normal","equipped":true,"acquiredOrder":1,"options":[{"type":"damageIncrease","value":7}]}]}
 	loadout.corePassiveNodeRanks = {"controlSelfRepair":1}
 	loadout.coreCombatSkill = null
 	var damage_fixed: float = runtime.turrets[str(id)].stats.damage

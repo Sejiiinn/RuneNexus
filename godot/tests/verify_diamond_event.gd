@@ -60,7 +60,7 @@ func _verify_native_kill(effects) -> void:
 	enemy.maxHp=1.0; enemy.hp=1.0; enemy.speed=0.0
 	var setup: Dictionary = catalog.bootstrap(0)
 	setup.enemies=[enemy]
-	setup.turrets=[{"id":10,"position":[enemy.x+1.0,enemy.y],"statInput":catalog.turret("arrow"),"state":{"x":0,"y":0}}]
+	setup.turrets=[{"id":10,"position":[enemy.x+1.0,enemy.y],"statInput":catalog.turret("machinegun"),"state":{"x":0,"y":0}}]
 	var runtime := Runtime.new()
 	runtime.process_command({"epoch":7,"sequence":0,"bootstrap":setup,"session":{"clock":"godot","phase":"wave","paused":false,"speed":4.0}})
 	for i in range(120):

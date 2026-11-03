@@ -13,7 +13,7 @@ const RunicFire = preload("res://effects/runic_fire.gd")
 const VenomProjectile = preload("res://effects/venom_projectile.gd")
 const FrameRows = preload("res://presentation/frame_rows.gd")
 const PROJECTILE_COLORS := {
-	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("ff8528"),
+	"machinegun": Color("ffe3a3"), "cannon": Color("ffb261"), "flame": Color("ff8528"),
 	"frost": Color("94e6ff"), "sniper": Color("ffeec4"), "lightning": Color("c7d8ff"),
 	"poison": Color("a6ff3a"),
 }
@@ -27,7 +27,7 @@ var sniper_blast_pool: Array[Node3D] = []
 var venom_splash_pool: Array[Node3D] = []
 var impact_lights: Array[OmniLight3D] = []
 var _projectile_meshes := {}
-var _ballistic_pool := {"arrow": [], "cannon": []}
+var _ballistic_pool := {"machinegun": [], "cannon": []}
 var _fire_projectile_pool: Array[Node3D] = []
 var _generic_projectile_pool := {"sniper": [], "frost": [], "poison": []}
 var _time := 0.0
@@ -64,7 +64,7 @@ func configure_stage(tower_types: Array) -> bool:
 		if not kind in tower_types: _free_pool(_ballistic_pool[kind])
 	for kind: String in _generic_projectile_pool:
 		if not kind in tower_types: _free_pool(_generic_projectile_pool[kind])
-	if not "magic" in tower_types: _free_pool(_fire_projectile_pool)
+	if not "flame" in tower_types: _free_pool(_fire_projectile_pool)
 	for kind: String in _projectile_meshes.keys():
 		if not kind in tower_types: _projectile_meshes.erase(kind)
 	if not "sniper" in tower_types: _free_pool(sniper_blast_pool)
@@ -165,7 +165,7 @@ func _new_projectile(type: String) -> Node3D:
 		var reused: Node3D = _generic_projectile_pool[type].pop_back()
 		reused.visible = true
 		return reused
-	if type == "magic":
+	if type == "flame":
 		if not _fire_projectile_pool.is_empty():
 			return _fire_projectile_pool.pop_back()
 		return RunicFire.new(true)
@@ -178,7 +178,7 @@ func _new_projectile(type: String) -> Node3D:
 		return BallisticProjectile.new(type)
 	if not _projectile_meshes.has(type):
 		var heavy := type == "cannon"
-		var ballistic := type in ["cannon", "arrow", "sniper"]
+		var ballistic := type in ["cannon", "machinegun", "sniper"]
 		var radius := 0.028 if heavy else (0.011 if type == "sniper" else 0.009)
 		var length := 0.13 if heavy else 0.075
 		var material := StandardMaterial3D.new()
@@ -246,7 +246,7 @@ func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 				world.add_child(model)
 			projectiles[id] = {"root": model, "type": type}
 		var root: Node3D = projectiles[id]["root"]
-		if type == "magic":
+		if type == "flame":
 			_update_fire_projectile(projectiles[id], row, turrets)
 			continue
 		if root is VenomProjectile:
@@ -269,7 +269,7 @@ func _sync_projectiles(units: Array, turrets: Dictionary) -> void:
 		if not alive.has(id):
 			var projectile: Node3D = projectiles[id]["root"]
 			var type: String = projectiles[id]["type"]
-			if type == "magic" and _fire_projectile_pool.size() < 64:
+			if type == "flame" and _fire_projectile_pool.size() < 64:
 				projectile.reset()
 				_fire_projectile_pool.append(projectile)
 			elif projectile is BallisticProjectile and _ballistic_pool[type].size() < 64:

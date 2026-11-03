@@ -6,11 +6,11 @@ var requirements = map[string][]string{
 }
 
 var capabilities = map[string][]string{
-	"arrow": {"projectile"},
 	"cannon": {"projectile"},
+	"flame": {"projectile"},
 	"frost": {},
 	"lightning": {},
-	"magic": {"projectile"},
+	"machinegun": {"projectile"},
 	"poison": {"projectile"},
 	"sniper": {},
 }

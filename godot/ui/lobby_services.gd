@@ -316,7 +316,7 @@ func _command(body: VBoxContainer) -> void:
 		values.buyMissingTicketsWithDiamonds = diamonds > 0
 		values.approvedDrawQuote = quote
 		draw_confirmation_epoch += 1
-		DrawConfirmation.build(lobby, body, count, str(values.get("turretType", "arrow")), quote, _confirm_draw.bind(values, view_epoch, draw_confirmation_epoch), not pending and not _services().busy and lobby.diamonds() >= diamonds)
+		DrawConfirmation.build(lobby, body, count, str(values.get("turretType", "machinegun")), quote, _confirm_draw.bind(values, view_epoch, draw_confirmation_epoch), not pending and not _services().busy and lobby.diamonds() >= diamonds)
 
 func _confirm_draw(values: Dictionary, captured_view: int, captured_confirmation: int) -> void:
 	if not _active_view(captured_view) or captured_confirmation != draw_confirmation_epoch: return

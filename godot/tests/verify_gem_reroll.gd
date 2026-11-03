@@ -118,7 +118,7 @@ func acquire(app):
 func run():
 	fixture = Fixture.new()
 	fixture.directory = OS.get_cache_dir().path_join("server-gem-" + Settlement.uuid())
-	check(Settlement.COMPATIBILITY_VERSION == 16 and preload("res://services/economy_service.gd").COMPATIBILITY == 16 and preload("res://services/online_save.gd").COMPATIBILITY == 16,"all compatibility16")
+	check(Settlement.COMPATIBILITY_VERSION == 17 and preload("res://services/economy_service.gd").COMPATIBILITY == 17 and preload("res://services/online_save.gd").COMPATIBILITY == 17,"all compatibility16")
 	var app = await prepare("pending")
 	var service = app.services
 	var http = service.account.transport
@@ -273,13 +273,13 @@ func _swap_during_offer(app, service, http):
 func equip_checks():
 	var app = fixture.make_app("equip")
 	check(await app.start_stage(0),"equip starts")
-	var build: Dictionary = app.run_domain.service.apply(app.run_domain.state,{"kind":"build","type":"arrow","x":2,"y":2})
+	var build: Dictionary = app.run_domain.service.apply(app.run_domain.state,{"kind":"build","type":"machinegun","x":2,"y":2})
 	# Pick the first legal tile instead of depending on a particular stage layout.
 	if not build.ok:
 		var map: Dictionary = app.catalog.stage_map(0)
 		for cell in range(map.tiles.size()):
 			if map.tiles[cell] != "build": continue
-			build = app.run_domain.service.apply(app.run_domain.state,{"kind":"build","type":"arrow","x":cell%int(map.columns),"y":cell/int(map.columns)})
+			build = app.run_domain.service.apply(app.run_domain.state,{"kind":"build","type":"machinegun","x":cell%int(map.columns),"y":cell/int(map.columns)})
 			if build.ok: break
 	check(build.ok,"valid equip target")
 	app.run_domain.state=build.state
@@ -428,7 +428,7 @@ func _equip_recovery_case(target_sold: bool):
 	check(await app.start_stage(0),"obsolete equip: start")
 	var map: Dictionary = app.catalog.stage_map(0)
 	var tile: int = map.tiles.find("build")
-	var built: Dictionary = app.run_domain.service.apply(app.run_domain.state,{"kind":"build","type":"arrow","x":tile%int(map.columns),"y":tile/int(map.columns)})
+	var built: Dictionary = app.run_domain.service.apply(app.run_domain.state,{"kind":"build","type":"machinegun","x":tile%int(map.columns),"y":tile/int(map.columns)})
 	check(built.ok,"obsolete equip: approved target exists")
 	app.run_domain.state = built.state
 	app.command(built.commands)

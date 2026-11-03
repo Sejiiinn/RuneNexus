@@ -237,10 +237,10 @@ func _family_checks(input: Dictionary) -> void:
 		var gem_input := input.duplicate(true)
 		gem_input.gems = gems
 		_near(Stats.stats_at(gem_input, 1).damage, base_damage * (1.4 if gems[0] == "poisonDamage" else 1.0), "독 포탑 %s 젬 피해" % gems[0])
-	for type in ["arrow", "magic"]:
+	for type in ["machinegun", "flame"]:
 		var other: Dictionary = input.duplicate(true)
 		other.definition = other.definition.duplicate(true)
-		other.definition.damageFamily = "physical" if type == "arrow" else "elemental"
+		other.definition.damageFamily = "physical" if type == "machinegun" else "elemental"
 		var plain: float = Stats.stats_at(other, 1).damage
 		other.gems = ["poisonDamage"]
 		_near(Stats.stats_at(other, 1).damage, plain, "%s 계열에는 독 피해 젬 미적용" % other.definition.damageFamily)

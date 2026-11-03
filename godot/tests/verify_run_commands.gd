@@ -13,7 +13,7 @@ class CountingCommands extends Commands:
 		return super.derived(state)
 class CountingCatalog extends Catalog:
 	var turret_calls: Array = []
-	func turret(type: String = "arrow", inputs: Dictionary = {}) -> Dictionary:
+	func turret(type: String = "machinegun", inputs: Dictionary = {}) -> Dictionary:
 		turret_calls.append(type)
 		return super.turret(type, inputs)
 
@@ -64,9 +64,9 @@ func _initialize() -> void:
 	state.gold = 100000
 	var map: Dictionary = catalog.stage(0).map
 	var tile: int = map.tiles.find("build")
-	var build := {"kind":"build","type":"arrow","x":tile%int(map.columns),"y":int(tile/int(map.columns))}
+	var build := {"kind":"build","type":"machinegun","x":tile%int(map.columns),"y":int(tile/int(map.columns))}
 	var built: Dictionary = service.apply(state,build)
-	check(built.ok and built.state.gold == state.gold-service.build_cost(state,"arrow"),"build charges cost")
+	check(built.ok and built.state.gold == state.gold-service.build_cost(state,"machinegun"),"build charges cost")
 	check(is_equal_approx(built.state.turrets[0].aimAngle,3.0*PI/4.0),"new directional build starts southwest")
 	check(is_equal_approx(built.commands[0].turret.state.aimAngle,3.0*PI/4.0),"initial angle flows to native command state")
 	check(Commands.initial_aim_angle("frost") == 0.0,"non-directional frost keeps its original pose")
@@ -140,7 +140,7 @@ func _targeted_level_cases(catalog, growth, built: Dictionary) -> void:
 	state.tileSize = 48.0
 	state.progression.corePassiveNodeRanks = {"efficiencyDiversity":5,"efficiencyGemSpectrum":5,"efficiencyCombinedFront":1}
 	state.turrets = []
-	var types := ["arrow","cannon","magic","frost"]
+	var types := ["machinegun","cannon","flame","frost"]
 	var gems := ["range","multipleProjectiles","damageOverTime","attackSpeed"]
 	for i in types.size():
 		var turret: Dictionary = built.turrets[0].duplicate(true)
@@ -409,7 +409,7 @@ func _upgrade_quote_cache_checks(catalog, growth) -> void:
 	var map: Dictionary = catalog.stage_map(0)
 	var tile: int = map.tiles.find("build")
 	state.gold = 100000
-	state = service.apply(state,{"kind":"build","type":"arrow","x":tile%int(map.columns),"y":tile/int(map.columns)}).state
+	state = service.apply(state,{"kind":"build","type":"machinegun","x":tile%int(map.columns),"y":tile/int(map.columns)}).state
 	var id: int = state.turrets[0].id
 	var configuration: Dictionary = service.derived(state)
 	var calls := service.derive_calls
@@ -452,7 +452,7 @@ func _upgrade_quote_cache_checks(catalog, growth) -> void:
 		{"field":"runCorePassiveNodeRanks","value":{"efficiencyDiversity":5}},
 		{"field":"runCorePassiveNodeRanks","value":{"efficiencyDiversity":4}},
 		{"field":"runTurretModules","value":[]},
-		{"field":"runTurretModules","value":[{"id":"test","turretType":"arrow","part":"core","family":"balanced","grade":"normal","equipped":true,"options":[{"type":"levelUpCostDiscount","value":10}]}]},
+		{"field":"runTurretModules","value":[{"id":"test","turretType":"machinegun","part":"core","family":"balanced","grade":"normal","equipped":true,"options":[{"type":"levelUpCostDiscount","value":10}]}]},
 		{"field":"runCorePassiveNodeRanks","remove":true},
 		{"field":"runTurretModules","remove":true},
 		{"field":"runUpgradeLevels","value":{"towerDamage":3}},
@@ -512,7 +512,7 @@ func _initial_research_commands(catalog, growth, service) -> void:
 		var state: Dictionary = service.initial_state(p)
 		var map: Dictionary = catalog.stage_map(0)
 		var tile: int = map.tiles.find("build")
-		var built: Dictionary = service.apply(state, {"kind":"build", "type":"arrow", "x":tile % int(map.columns), "y":tile / int(map.columns)})
+		var built: Dictionary = service.apply(state, {"kind":"build", "type":"machinegun", "x":tile % int(map.columns), "y":tile / int(map.columns)})
 		check(built.ok, "initial research fixture builds a turret before first clear")
 		if not built.ok: continue
 		state = built.state

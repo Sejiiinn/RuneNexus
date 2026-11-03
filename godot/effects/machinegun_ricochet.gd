@@ -261,6 +261,6 @@ static func _build_flare_mesh() -> ArrayMesh:
 
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
-	if "arrow" in tower_types: return
+	if "machinegun" in tower_types: return
 	_spark_mesh = null
 	_flare_mesh = null
