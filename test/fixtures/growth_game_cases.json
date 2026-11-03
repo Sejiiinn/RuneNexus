@@ -728,12 +728,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -965,12 +965,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -1135,12 +1135,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -1372,12 +1372,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -1563,12 +1563,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -1877,12 +1877,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -2124,12 +2124,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -2438,12 +2438,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -2706,12 +2706,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -3097,12 +3097,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -3421,12 +3421,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -3812,12 +3812,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -4157,12 +4157,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -4623,12 +4623,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -5022,12 +5022,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -5488,12 +5488,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -5908,12 +5908,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -6451,12 +6451,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -6927,12 +6927,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -7470,12 +7470,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -7946,12 +7946,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -8489,12 +8489,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -8965,12 +8965,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -9510,12 +9510,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -9986,12 +9986,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -10531,12 +10531,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -11007,12 +11007,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -11552,12 +11552,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -12028,12 +12028,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -12573,12 +12573,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -13049,12 +13049,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -13594,12 +13594,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -14070,12 +14070,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -14615,12 +14615,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -15091,12 +15091,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -15636,12 +15636,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -16112,12 +16112,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -16657,12 +16657,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -17133,12 +17133,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -17678,12 +17678,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -18154,12 +18154,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -18699,12 +18699,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -19175,12 +19175,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -19720,12 +19720,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -20196,12 +20196,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -20741,12 +20741,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -21217,12 +21217,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -21762,12 +21762,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -22238,12 +22238,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -22783,12 +22783,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -23259,12 +23259,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -23804,12 +23804,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -24280,12 +24280,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -24825,12 +24825,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -25301,12 +25301,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -25846,12 +25846,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -26322,12 +26322,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -26867,12 +26867,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -27343,12 +27343,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -27888,12 +27888,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -28364,12 +28364,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -28909,12 +28909,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -29385,12 +29385,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -29930,12 +29930,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -30407,12 +30407,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -30953,12 +30953,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -31430,12 +31430,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -31976,12 +31976,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -32453,12 +32453,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -32999,12 +32999,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -33476,12 +33476,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -34022,12 +34022,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -34499,12 +34499,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -35045,12 +35045,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -35522,12 +35522,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -36068,12 +36068,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -36545,12 +36545,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -37091,12 +37091,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -37568,12 +37568,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -38114,12 +38114,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -38591,12 +38591,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -39137,12 +39137,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -39614,12 +39614,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -40160,12 +40160,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -40637,12 +40637,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -41183,12 +41183,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -41660,12 +41660,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -42206,12 +42206,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -42683,12 +42683,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -43229,12 +43229,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -43706,12 +43706,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -44252,12 +44252,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -44729,12 +44729,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -45275,12 +45275,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -45752,12 +45752,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -46298,12 +46298,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -46775,12 +46775,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -47321,12 +47321,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -47798,12 +47798,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -48344,12 +48344,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -48821,12 +48821,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -49367,12 +49367,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -49844,12 +49844,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -50390,12 +50390,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -50867,12 +50867,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -51413,12 +51413,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -51891,12 +51891,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -52438,12 +52438,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -52916,12 +52916,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -53463,12 +53463,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -53941,12 +53941,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -54488,12 +54488,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -54966,12 +54966,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -55513,12 +55513,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -55991,12 +55991,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -56538,12 +56538,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -57016,12 +57016,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -57563,12 +57563,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -58041,12 +58041,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -58588,12 +58588,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -59066,12 +59066,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -59613,12 +59613,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -60091,12 +60091,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -60638,12 +60638,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -61116,12 +61116,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -61663,12 +61663,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -62141,12 +62141,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -62688,12 +62688,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -63166,12 +63166,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -63713,12 +63713,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -64191,12 +64191,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -64738,12 +64738,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -65216,12 +65216,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -65763,12 +65763,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -66241,12 +66241,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -66788,12 +66788,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -67266,12 +67266,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -67813,12 +67813,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -68291,12 +68291,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -68838,12 +68838,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -69316,12 +69316,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -69863,12 +69863,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -70341,12 +70341,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -70888,12 +70888,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -71366,12 +71366,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -71913,12 +71913,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -72391,12 +72391,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -72938,12 +72938,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -73418,12 +73418,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -73965,12 +73965,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -74443,12 +74443,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -76778,12 +76778,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -77467,12 +77467,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -77637,12 +77637,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -78326,12 +78326,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -78517,12 +78517,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -79283,12 +79283,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -79530,12 +79530,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -80296,12 +80296,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -80564,12 +80564,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -81407,12 +81407,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -81731,12 +81731,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -82574,12 +82574,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -82919,12 +82919,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -83837,12 +83837,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -84236,12 +84236,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -85154,12 +85154,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -85574,12 +85574,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -86569,12 +86569,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -87045,12 +87045,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -88040,12 +88040,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -88516,12 +88516,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -89511,12 +89511,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -89987,12 +89987,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -90984,12 +90984,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -91460,12 +91460,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -92457,12 +92457,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -92933,12 +92933,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -93930,12 +93930,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -94406,12 +94406,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -95403,12 +95403,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -95879,12 +95879,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -96876,12 +96876,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -97352,12 +97352,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -98349,12 +98349,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -98825,12 +98825,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -99822,12 +99822,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -100298,12 +100298,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -101295,12 +101295,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -101771,12 +101771,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -102768,12 +102768,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -103244,12 +103244,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -104241,12 +104241,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -104717,12 +104717,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -105714,12 +105714,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -106190,12 +106190,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -107187,12 +107187,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -107663,12 +107663,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -108660,12 +108660,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -109136,12 +109136,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -110133,12 +110133,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -110609,12 +110609,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -111606,12 +111606,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -112082,12 +112082,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -113079,12 +113079,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -113555,12 +113555,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -114552,12 +114552,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -115028,12 +115028,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -116025,12 +116025,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -116501,12 +116501,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -117498,12 +117498,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -117974,12 +117974,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -118971,12 +118971,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -119447,12 +119447,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -120444,12 +120444,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -120920,12 +120920,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -121917,12 +121917,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -122393,12 +122393,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -123390,12 +123390,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -123866,12 +123866,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -124863,12 +124863,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -125339,12 +125339,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -126336,12 +126336,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -126812,12 +126812,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -127809,12 +127809,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -128285,12 +128285,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -129282,12 +129282,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -129758,12 +129758,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -130755,12 +130755,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -131231,12 +131231,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -132228,12 +132228,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -132704,12 +132704,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -133701,12 +133701,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -134177,12 +134177,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -135174,12 +135174,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -135651,12 +135651,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -136649,12 +136649,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -137126,12 +137126,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -138124,12 +138124,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -138601,12 +138601,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -139599,12 +139599,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -140076,12 +140076,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -141074,12 +141074,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -141551,12 +141551,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -142549,12 +142549,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -143026,12 +143026,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -144024,12 +144024,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -144501,12 +144501,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -145499,12 +145499,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -145976,12 +145976,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -146974,12 +146974,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -147451,12 +147451,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -148449,12 +148449,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -148926,12 +148926,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -149924,12 +149924,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -150401,12 +150401,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -151399,12 +151399,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -151876,12 +151876,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -152874,12 +152874,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -153351,12 +153351,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -154349,12 +154349,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -154826,12 +154826,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -155824,12 +155824,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -156301,12 +156301,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -157299,12 +157299,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -157776,12 +157776,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -158774,12 +158774,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -159251,12 +159251,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -160249,12 +160249,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -160726,12 +160726,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -161724,12 +161724,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -162201,12 +162201,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -163199,12 +163199,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -163676,12 +163676,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -164674,12 +164674,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -165151,12 +165151,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -166149,12 +166149,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -166626,12 +166626,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -167624,12 +167624,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -168101,12 +168101,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -169099,12 +169099,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -169576,12 +169576,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -170574,12 +170574,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -171051,12 +171051,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -172049,12 +172049,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -172526,12 +172526,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -173524,12 +173524,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -174001,12 +174001,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -174999,12 +174999,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -175476,12 +175476,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -176474,12 +176474,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -176951,12 +176951,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -177949,12 +177949,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -178426,12 +178426,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -179424,12 +179424,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -179901,12 +179901,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -180899,12 +180899,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -181377,12 +181377,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -182376,12 +182376,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -182854,12 +182854,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -183853,12 +183853,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -184331,12 +184331,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -185330,12 +185330,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -185808,12 +185808,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -186807,12 +186807,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -187285,12 +187285,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -188284,12 +188284,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -188762,12 +188762,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -189761,12 +189761,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -190239,12 +190239,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -191238,12 +191238,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -191716,12 +191716,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -192715,12 +192715,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -193193,12 +193193,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -194192,12 +194192,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -194670,12 +194670,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -195669,12 +195669,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -196147,12 +196147,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -197146,12 +197146,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -197624,12 +197624,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -198623,12 +198623,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -199101,12 +199101,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -200100,12 +200100,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -200578,12 +200578,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -201577,12 +201577,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -202055,12 +202055,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -203054,12 +203054,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -203532,12 +203532,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -204531,12 +204531,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -205009,12 +205009,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -206008,12 +206008,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -206486,12 +206486,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -207485,12 +207485,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -207963,12 +207963,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -208962,12 +208962,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -209440,12 +209440,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -210439,12 +210439,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -210917,12 +210917,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -211916,12 +211916,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -212394,12 +212394,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -213393,12 +213393,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -213871,12 +213871,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -214870,12 +214870,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -215348,12 +215348,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -216347,12 +216347,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -216825,12 +216825,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -217824,12 +217824,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -218302,12 +218302,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -219301,12 +219301,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -219779,12 +219779,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -220778,12 +220778,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -221256,12 +221256,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -222255,12 +222255,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -222733,12 +222733,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -223732,12 +223732,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -224210,12 +224210,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -225209,12 +225209,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -225687,12 +225687,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -226686,12 +226686,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -227166,12 +227166,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -228165,12 +228165,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
@@ -228643,12 +228643,12 @@
               "attackTags": [
                 "heavy"
               ],
-              "damage": 25.0,
+              "damage": 34.0,
               "range": 84.0,
               "attackRate": 0.4,
               "projectileSpeed": 340.0,
               "projectileCount": 1,
-              "splashRadius": 42.0,
+              "splashRadius": 52.0,
               "centeredAreaAttack": false,
               "instantHit": false,
               "aimDuration": 0.0,
