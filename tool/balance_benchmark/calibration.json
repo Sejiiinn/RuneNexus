@@ -1,0 +1,36 @@
+{
+  "_notes": {
+    "boardRuneWeights": "checkpoint 2-1..2-5, 5 trajectories, greed+bossWeight 1.0, 2026-11-03: fixed RUNE_WEIGHTS vs board weights 2-5 clear median runes 33.0k vs 30.3k, account hours 5.3 vs 4.9, runs per trajectory 11.0 vs 10.6. Before bossWeight (greed only): 35.8k, 5.4 h, 11.4 runs.",
+    "boss": "ab 2026-11-03, snapshot-8 -> 2-4 and snapshot-9 -> 2-5, 8 seeds: bossWeight 0/0.5/1/2 2-4 waves 23.5/26.0/26.0/26.4, 2-5 clear 0.50/0.75/0.875/0.875 (core HP 8.6/11.9/20.3/16.2). strongestHitShare 0.1 collapses (2-4 8 waves, 2-5 0.125), 0.3 2-5 0.75; default 1.0 never switches in chapter 2. gemLinkCost/gemReplace: 2-5 0.5/0.5 vs 0.5, no gain, left off.",
+    "composition": "--job=ab 2026-11-02 at the 2-4 clear account: forcing 3/4 distinct types or explore lowered waves (36.0/31.3/27.3 vs 36.8); banning machinegun 30.8; banning flame 39.2. Chapters 1-2 have no armored enemies, so armor-aware value changes nothing there.",
+    "frontTypes": "--job=ab 2026-11-03 at 2-5 entry with greed: sniper+cannon front / machinegun back 32.4-32.8 vs 35.1 default; the bot rarely builds cannon even when allowed, so this does not rule the composition out for players",
+    "greed": "--job=ab 2026-11-03, 8 seeds: greedMinRoi 4.0 beat no greed at 2-3 entry (32.4 -> 35.0 waves) and 2-5 entry (33.9 -> 35.1); 3.0 and below worse (29-30); holding gold for economy during waves was worse (28.7)",
+    "modulesCalendar": "checkpoint 2-1..2-10, 5 trajectories, current code 2026-11-03 (run-20261103-1006xx): continuous play / calendar 1 h per day / calendar + modules. 2-9 clear median runes 119k / 118k / 31k, 2-10 clears 0/5 / 1/5 / 5/5 (modules: 81k runes, 8.4 h play, 201 h calendar), runs per trajectory 46 / 43 / 16. Offline research and quest diamonds alone barely move the curve; modules (a separate multiplicative damage layer) decide it. Kept on as the reasonable-player default; run-end in-run drops measured 2-7 diamonds (baselineRunDiamonds 4).",
+    "shards": "ab 2026-11-03 at run-20261103-081543 snapshots, 8 seeds: shardPolicy fixed vs value vs value+free machinegun traits: 2-5 clear 0.50/0.375/0.375 (core HP 6.3/3.5/1.9), 2-10 waves 12.0/12.1/13.0; value spends 0.9 gem choices and leaves 5-6 shards instead of 12, traits unchanged (3.1). No gain, fixed kept. bossYield: 2-5 0.50, 2-10 9.0 waves (worse); bossLookahead 3: 2-5 0.625, 2-10 11.5 (noise). 2-4 at the 2-3 clear account fails at wave 8 in every variant, bossWeight 0 included (account too weak).",
+    "slowUptime": "--job=ab 2026-11-02 at 2-4: 0-0.6 equal (38.67), >=1.0 worse (38.17); 0.3 keeps frost a rare pick",
+    "traitChoices": "--job=ab 2026-11-02 at the 2-4 (id 9) clear account: machinegun lightweightBarrel+chainCleanup 38.67 waves vs 37.33 default; sniper/flame alternatives no gain",
+    "typeFactors": "--job=calibrate 2026-11-02 (armor-aware model), stages 1,3,5,17,20,7,8,9,10 explore, runes 3000, cleared 1-1..2-5; flame lowered 1.282 -> 0.9 by --job=ab outcome: 2-4 clear 17% -> 67% (36.8 -> 39.5 waves), 1-10 at 70% gold 67% -> 50% (one seed)"
+  },
+  "baselineRunDiamonds": 4,
+  "boardRuneWeights": true,
+  "bossWeight": 1.0,
+  "greed": true,
+  "greedMinRoi": 4.0,
+  "modules": true,
+  "playHoursPerDay": 1.0,
+  "slowUptime": 0.3,
+  "traitChoices": {
+    "machinegun": {
+      "primaryTrait": 1,
+      "secondaryTrait": 1
+    }
+  },
+  "typeFactors": {
+    "machinegun": 1.0,
+    "cannon": 0.81,
+    "frost": 1.562,
+    "lightning": 0.933,
+    "flame": 0.9,
+    "sniper": 0.824
+  }
+}
