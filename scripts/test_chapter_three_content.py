@@ -28,7 +28,7 @@ class ChapterThreeContentTests(unittest.TestCase):
         expected = GEOMETRY_DIGESTS
         for i, digest in expected.items():
             self.assertEqual(typed_digest(without_dispatch_metadata(self.stages[i]['map'])), digest)
-        expected_moves = {26:[60],27:[37],28:[16,20],29:[29],30:[17,19]}
+        expected_moves = {26:[60],27:[37],28:[16,20],29:[29],30:[24,22]}
         for i, moves in expected_moves.items():
             m = self.stages[i]['map']
             paths = [r['path'] for r in m.get('routes', [])] or [m['path']]
@@ -57,7 +57,7 @@ class ChapterThreeContentTests(unittest.TestCase):
         both = {22,25,28,30,33,35,38,40}
         for w in self.stages[30]['waves']:
             ids = {g['routeId'] for g in w['groups']}
-            self.assertEqual(ids, {'west','northeast'} if w['round'] in both else {'west' if w['round']%2 else 'northeast'})
+            self.assertEqual(ids, {'outer','inner'} if w['round'] in both else {'outer' if w['round']%2 else 'inner'})
             self.assertIn('A+B 동시' if w['round'] in both else '단독', w['previewText'])
         for w in self.stages[28]['waves']:
             for j,g in enumerate(w['groups']):
@@ -75,5 +75,5 @@ class ChapterThreeContentTests(unittest.TestCase):
         for g in [{}, {'routeId':None}, {'routeId':[]}, {'routeId':'missing'}]:
             with self.assertRaises(ValueError):validate_wave_routes(m,[g])
 
-GEOMETRY_DIGESTS = {26: '9df2ebef05f6cafe9d7e203932fa7cd58f5e57d3495b81351f30ab881ec94e10', 27: 'b30c538b2987a614e0719d9e8d5a1155101689a5cf104a97e5ddbf36fa7bef22', 28: 'e44943334662512c7e0a4ad0635a42e2eddea616c1c4a6e37539aa485b843f64', 29: 'b8ce95017433b0865b27b7ad49ccf228276014e0b3da2fb66b1786a1c85286af', 30: '7597abbc3924056fd4d975a07b0d05791aaf25a62a99799276b3e592fda48b4c'}
+GEOMETRY_DIGESTS = {26: '9df2ebef05f6cafe9d7e203932fa7cd58f5e57d3495b81351f30ab881ec94e10', 27: 'b30c538b2987a614e0719d9e8d5a1155101689a5cf104a97e5ddbf36fa7bef22', 28: 'e44943334662512c7e0a4ad0635a42e2eddea616c1c4a6e37539aa485b843f64', 29: 'b8ce95017433b0865b27b7ad49ccf228276014e0b3da2fb66b1786a1c85286af', 30: '76951593e4dd03ab556dfeb02e270fd5deea911d8cb64f01229ecbfdb18b1ccb'}
 if __name__ == '__main__': unittest.main()

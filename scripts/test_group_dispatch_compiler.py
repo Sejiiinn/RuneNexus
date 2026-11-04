@@ -15,7 +15,7 @@ class GroupDispatchCompilerTests(unittest.TestCase):
         # Approved snapshot includes the poison mortar; removing only that new
         # turret reproduces the 6053 snapshot. Historical stage digests stay exact.
         self.assertEqual(typed_digest(without_dispatch_metadata(self.game)),
-                         '0c71c12787cf2d051757024451a848225de27bd8beee6be43072390c902d17e0')
+                         '3ca0a7a9ed87e67f39a3c0f1f24ed9358ac5f48f0fc2dfd2dbe071e910fb0a3a')
         fixture=read_json(ROOT/'test/fixtures/content_source_baseline.json')
         old={str(s['id']):typed_digest(without_dispatch_metadata(s)) for s in self.game['stages'][:25]}
         self.assertEqual(old,fixture['stageDigests'])

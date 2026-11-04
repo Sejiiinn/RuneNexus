@@ -57,7 +57,7 @@ CASES: dict[str, tuple[str, dict]] = {
                                      {"renderer": True, "args": ["{build}/chapter_two_frames.json"]}),
     "verify_chapter_three_stage.gd": ("Chapter three verification: 0 failures",
                                       {"renderer": True, "args": ["{build}/chapter_three_frames.json"]}),
-    "verify_chapter_three_combat_render.gd": ("CH3_NORMAL_COMBAT_RENDER failures=[]", {"timeout": 240, "env": {"RUNE_CH3_CAPTURE_DIR": "{tmp}"}}),
+    "verify_chapter_three_combat_render.gd": ("CH3_NORMAL_COMBAT_RENDER failures=[]", {"timeout": 240, "env": {"RUNE_CH3_COMBAT_CAPTURE_DIR": "{tmp}"}}),
     "verify_chapter_three_routes_render.gd": ("CH3_ROUTES_RENDER failures=[]", {"env": {"RUNE_CH3_CAPTURE_DIR": "{tmp}"}}),
     "verify_combat_presentation_determinism.gd": ("PRESENTATION_DETERMINISM cases=", {"args": ["--session"]}),
     "verify_combat_space_mask.gd": ("COMBAT_SPACE_MASK checks=", {}),
