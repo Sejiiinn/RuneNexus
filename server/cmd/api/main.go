@@ -17,7 +17,6 @@ import (
 	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
 	"github.com/Sejiiinn/RuneNexus/server/internal/httpapi"
 	"github.com/Sejiiinn/RuneNexus/server/internal/leaderboard"
-	"github.com/Sejiiinn/RuneNexus/server/internal/legacytransfer"
 	"github.com/Sejiiinn/RuneNexus/server/internal/runlog"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/Sejiiinn/RuneNexus/server/internal/weeklyreward"
@@ -76,7 +75,6 @@ func run(logger *slog.Logger) error {
 	}
 
 	var authenticator httpapi.Authenticator
-	var legacyTransferService httpapi.LegacyTransferService
 	if cfg.GoogleAuthEnabled {
 		googleVerifier, err := googleauth.NewVerifier(
 			rootContext,
@@ -115,12 +113,6 @@ func run(logger *slog.Logger) error {
 			}()
 		}
 		authenticator = authenticationService
-		if cfg.LegacyLocalTransferEnabled {
-			legacyTransferService = legacytransfer.NewService(
-				pool,
-				cfg.LegacyTransferTTL,
-			)
-		}
 	}
 
 	runLogs := runlog.NewService(pool)
@@ -149,13 +141,11 @@ func run(logger *slog.Logger) error {
 			ReadinessTimeout: cfg.ReadinessTimeout,
 			Authenticator:    authenticator,
 			AuthenticationRateLimits: httpapi.AuthenticationRateLimits{
-				GoogleRequests:                cfg.GoogleAuthenticationRateLimit,
-				RefreshRequests:               cfg.RefreshAuthenticationRateLimit,
-				LegacyTransferCreateRequests:  cfg.LegacyTransferCreateRateLimit,
-				LegacyTransferConsumeRequests: cfg.LegacyTransferConsumeRateLimit,
-				Window:                        cfg.AuthenticationRateLimitWindow,
-				MaxClients:                    cfg.AuthenticationRateLimitMaxClients,
-				TrustProxyHeaders:             cfg.TrustProxyHeaders,
+				GoogleRequests:    cfg.GoogleAuthenticationRateLimit,
+				RefreshRequests:   cfg.RefreshAuthenticationRateLimit,
+				Window:            cfg.AuthenticationRateLimitWindow,
+				MaxClients:        cfg.AuthenticationRateLimitMaxClients,
+				TrustProxyHeaders: cfg.TrustProxyHeaders,
 			},
 			SaveService:                           gamesave.NewService(pool),
 			WeeklyRewardService:                   weeklyreward.NewService(pool),
@@ -163,7 +153,6 @@ func run(logger *slog.Logger) error {
 			MailboxService:                        economy.NewService(pool),
 			LeaderboardService:                    leaderboard.NewService(pool),
 			RunLogService:                         runLogs,
-			LegacyTransferService:                 legacyTransferService,
 			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,
 			MinimumSaveClientCompatibilityVersion: cfg.MinimumSaveClientCompatibilityVersion,
 			CORSAllowedOrigins:                    cfg.CORSAllowedOrigins,

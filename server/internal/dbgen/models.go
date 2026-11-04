@@ -145,38 +145,6 @@ type LeaderboardRecord struct {
 	SourceSaveRevision pgtype.Int8        `db:"source_save_revision"`
 }
 
-type LegacySaveTransfer struct {
-	ID                  pgtype.UUID        `db:"id"`
-	TokenHash           []byte             `db:"token_hash"`
-	PayloadHash         []byte             `db:"payload_hash"`
-	SchemaVersion       int32              `db:"schema_version"`
-	ClientSavedAtMillis int64              `db:"client_saved_at_millis"`
-	Preferences         []byte             `db:"preferences"`
-	Progression         []byte             `db:"progression"`
-	TurretModules       []byte             `db:"turret_modules"`
-	ActiveRun           []byte             `db:"active_run"`
-	CreatedAt           pgtype.Timestamptz `db:"created_at"`
-	ExpiresAt           pgtype.Timestamptz `db:"expires_at"`
-}
-
-type LegacySaveTransferReceipt struct {
-	TransferID                  pgtype.UUID        `db:"transfer_id"`
-	TokenHash                   []byte             `db:"token_hash"`
-	PayloadHash                 []byte             `db:"payload_hash"`
-	ConsumedAccountID           pgtype.UUID        `db:"consumed_account_id"`
-	ConsumedAt                  pgtype.Timestamptz `db:"consumed_at"`
-	ResultRevision              int64              `db:"result_revision"`
-	ResultSavedAt               pgtype.Timestamptz `db:"result_saved_at"`
-	ReplacedExistingSave        bool               `db:"replaced_existing_save"`
-	PreviousSchemaVersion       pgtype.Int4        `db:"previous_schema_version"`
-	PreviousRevision            pgtype.Int8        `db:"previous_revision"`
-	PreviousClientSavedAtMillis pgtype.Int8        `db:"previous_client_saved_at_millis"`
-	PreviousPreferences         []byte             `db:"previous_preferences"`
-	PreviousProgression         []byte             `db:"previous_progression"`
-	PreviousTurretModules       []byte             `db:"previous_turret_modules"`
-	PreviousActiveRun           []byte             `db:"previous_active_run"`
-}
-
 type Mail struct {
 	ID                pgtype.UUID        `db:"id"`
 	DispatchKey       pgtype.UUID        `db:"dispatch_key"`

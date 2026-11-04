@@ -61,7 +61,7 @@
 - 소비된 카카오 원문은 즉시 삭제하고 token/payload 해시와 결과 revision을 남긴다.
   기존 account를 교체한 영수증에는 복구용 이전 snapshot도 보존한다.
 - 로컬 저장의 위변조·복제를 완전히 증명할 수 없는 구조적 한계 때문에 정식 배포 전
-  제거 대상으로 확정했다. 제거 절차는 `docs/legacy_local_save_transfer.md`에 기록했다.
+  제거 대상으로 확정했다. 2026-11-05에 API·DB까지 제거했다([당시 기록](archive/legacy_local_save_transfer_20261105.md)).
 
 ### 주간 보상 수령 서버 판정
 

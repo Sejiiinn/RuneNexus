@@ -15,7 +15,7 @@ Godot 전환 항목 갱신: 2026-09-24. 그 외 백로그 정리: 2026-09-09. �
 - 계정 저장·자동 복구·영속 세션과 서버 권위 경제 MVP는 구현되어 있다. 계약과 범위는 [구현 현황](../implementation_status.md), [저장 동기화](../multi_device_save_sync_design.md), [경제 설계](../server_authoritative_economy_design.md)를 따른다. 이를 다시 구현할 백로그로 취급하지 않는다.
 - migration 010 및 API·웹·APK 배포, DB 백업 복원 검증은 [배포 인계](../deployment_status.md)에 기록돼 있다. 실제 계정·기기 E2E 완료와는 구분한다.
 - 로그인 필수화, PGS, identity 연결 등은 개별 기능의 현재 코드와 아래 미검증 항목을 확인한 뒤 범위를 정한다. 닉네임 필수 설정은 [별도 정책](../account_nickname_policy.md)이며 로그인 필수화와 혼동하지 않는다.
-- [카카오 진행 이전](../legacy_local_save_transfer.md)은 임시 이행 기능이다. 정식 출시 전 제거 체크리스트를 따른다.
+- [카카오 진행 이전](legacy_local_save_transfer_20261105.md)은 임시 이행 기능이다. 정식 출시 전 제거 체크리스트를 따른다.
 
 ## Godot 단일 앱 전환
 

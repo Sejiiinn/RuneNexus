@@ -182,13 +182,8 @@ PostgreSQL은 클라이언트에 직접 노출하지 않는다.
 
 ## 로컬 저장 계약과 마이그레이션
 
-카카오 인앱 브라우저의 기존 guest 저장은 브라우저 저장소 공유가 불가능하므로
-`docs/legacy_local_save_transfer.md`의 임시 일회용 서버 이행 경로를 사용한다. 이
-경로는 빈 account 최초 저장을 허용한다. 기존 테스터가 Google 연결을 먼저 완료한
-경우에만 현재 account snapshot을 영수증에 백업하고 writer generation을 교체한 뒤
-다음 revision으로 카카오 진행을 반영하는 임시 예외도 허용한다. 일반 account 저장
-병합 계약에는 포함하지 않으며 로컬 원본의 신뢰성을 소급 증명할 수 없으므로 정식
-배포 전 제거한다.
+카카오 인앱 브라우저 guest 저장의 임시 일회용 이전 경로는 2026-11-05에 API와 DB까지
+제거했다([당시 기록](archive/legacy_local_save_transfer_20261105.md)).
 
 ### 저장 형식
 
@@ -408,8 +403,7 @@ token으로 한 번만 재시도한다. logout 또는 dispose가 시작된 뒤 r
 자동 복원 bootstrap은 guest를 읽거나 복사하지 않으며, 원격 저장이 없는 대화형 최초
 연결에만 기존 guest 이전을 허용한다. 세션 없음이 확인되면 기존 guest 진입을 유지하지만,
 일시적인 세션/저장소 장애는 재시도 화면에서 막는다. 실패한 guest 로더도 재생성하여
-저장 읽기를 건너뛰지 않는다. 카카오 이전 링크는 복원된 account ID와 교체 경고를
-사용자가 확인한 뒤에만 소비한다.
+저장 읽기를 건너뛰지 않는다.
 
 확정 종료 코드(`REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `REFRESH_RECOVERY_EXPIRED`,
 `ACCOUNT_NOT_ACTIVE`, 클라이언트 `INVALID_AUTH_ACCOUNT`)는 재로그인 대상으로 처리한다.

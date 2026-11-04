@@ -88,11 +88,6 @@ chmod 600 .secrets/duckdns_token
 - `AUTH_RATE_LIMIT_WINDOW`: 인증 요청 token bucket이 완전히 충전되는 기간
 - `GOOGLE_AUTH_RATE_LIMIT`: 기간 내 허용할 Google 로그인 요청 수
 - `REFRESH_AUTH_RATE_LIMIT`: 기간 내 허용할 토큰 갱신 요청 수
-- `LEGACY_LOCAL_TRANSFER_ENABLED`: 기존 카카오 테스터의 일회용 이전 API 활성화.
-  정식 배포 전 `false` 전환 후 관련 코드와 DB를 제거
-- `LEGACY_TRANSFER_TTL`: 일회용 이전 링크 유효기간. 현재 `15m`
-- `LEGACY_TRANSFER_CREATE_RATE_LIMIT`, `LEGACY_TRANSFER_CONSUME_RATE_LIMIT`:
-  임시 이전 endpoint별 클라이언트 요청 상한
 - `AUTH_RATE_LIMIT_MAX_CLIENTS`: endpoint마다 메모리에 보관할 최대 클라이언트 수
 
 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`은 writer 획득·저장 PUT·경제 명령에 허용할 최소
@@ -296,7 +291,6 @@ API HTTPS 검증이 끝난 뒤 GitHub Actions Variables의 `RUNE_NEXUS_API_BASE_
 - [ ] 응답 유실·장기 종료·API 재시작 후 같은 요청 복구, 만료 access 재갱신 및 로그아웃·옛 응답 거부 확인
 - [ ] 일시적인 네트워크/저장소 실패에서 guest 진입 없이 재시도하고 원본 저장 보존
 - [ ] 로그아웃·계정 정지 후 자동 재연결 차단과 저장 슬롯 전환 확인
-- [ ] 카카오 이전 링크의 대상 account 확인 후에만 consume 발생
 - [ ] 실제 다중 기기 writer 교체·저장·경제 명령 E2E 확인
 
 2026-09-05 당시 로컬 자동 테스트와 Web/APK 빌드는 통과했지만 실제 Google 로그인·실기기

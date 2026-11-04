@@ -28,8 +28,6 @@ type Querier interface {
 	CreateEconomyRewardClaim(ctx context.Context, arg CreateEconomyRewardClaimParams) error
 	CreateEconomyRun(ctx context.Context, arg CreateEconomyRunParams) (EconomyRun, error)
 	CreateGemOffer(ctx context.Context, arg CreateGemOfferParams) error
-	CreateLegacySaveTransfer(ctx context.Context, arg CreateLegacySaveTransferParams) (LegacySaveTransfer, error)
-	CreateLegacySaveTransferReceipt(ctx context.Context, arg CreateLegacySaveTransferReceiptParams) (LegacySaveTransferReceipt, error)
 	CreatePlayerModule(ctx context.Context, arg CreatePlayerModuleParams) (PlayerModule, error)
 	CreateRefreshReceipt(ctx context.Context, arg CreateRefreshReceiptParams) error
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
@@ -37,8 +35,6 @@ type Querier interface {
 	CreateSaveRequest(ctx context.Context, arg CreateSaveRequestParams) (SaveRequest, error)
 	CreateSaveWriterClaim(ctx context.Context, arg CreateSaveWriterClaimParams) (SaveWriterClaim, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
-	DeleteExpiredLegacySaveTransfers(ctx context.Context, expiresAt pgtype.Timestamptz) (int64, error)
-	DeleteLegacySaveTransfer(ctx context.Context, id pgtype.UUID) error
 	DeleteRunLogsReceivedBefore(ctx context.Context, before pgtype.Timestamptz) (int64, error)
 	DeleteSaveActiveRun(ctx context.Context, accountID pgtype.UUID) error
 	DisassemblePlayerModule(ctx context.Context, arg DisassemblePlayerModuleParams) (PlayerModule, error)
@@ -67,8 +63,6 @@ type Querier interface {
 	GetGemReroll(ctx context.Context, arg GetGemRerollParams) (EconomyGemReroll, error)
 	GetLatestGemOffer(ctx context.Context, arg GetLatestGemOfferParams) (EconomyGemOffer, error)
 	GetLegacyRunSettlementReceipt(ctx context.Context, arg GetLegacyRunSettlementReceiptParams) ([]byte, error)
-	GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash []byte) (LegacySaveTransfer, error)
-	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
 	GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
 	GetPlayerEconomyForUpdate(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
 	GetProgressionLeaderboard(ctx context.Context, dollar_1 pgtype.UUID) (GetProgressionLeaderboardRow, error)

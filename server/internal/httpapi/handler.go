@@ -39,7 +39,6 @@ type Dependencies struct {
 	MailboxService                        MailboxService
 	LeaderboardService                    LeaderboardService
 	RunLogService                         RunLogService
-	LegacyTransferService                 LegacyTransferService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
 	CORSAllowedOrigins                    []string
@@ -169,23 +168,6 @@ func NewHandler(
 			mux.Handle("POST /v1/economy/runs/settle", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.settleRun)))
 			mux.Handle("POST /v1/economy/challenges/claim", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.claimStageChallenge)))
 			mux.Handle("POST /v1/economy/achievements/claim", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.claimCumulativeAchievement)))
-		}
-		if dependencies.LegacyTransferService != nil {
-			transfers := legacyTransferHandler{
-				logger:                            logger,
-				transfers:                         dependencies.LegacyTransferService,
-				maxSaveBodyBytes:                  dependencies.MaxSaveBodyBytes,
-				minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion,
-			}
-			mux.HandleFunc("POST /v1/legacy-save-transfers", transfers.create)
-			mux.Handle(
-				"POST /v1/legacy-save-transfers/consume",
-				withAccountAuthentication(
-					logger,
-					dependencies.Authenticator,
-					http.HandlerFunc(transfers.consume),
-				),
-			)
 		}
 	}
 	apiHandler := withAuthenticationRateLimits(

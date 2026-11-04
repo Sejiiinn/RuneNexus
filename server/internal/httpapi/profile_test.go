@@ -71,7 +71,7 @@ func TestAllAccountGameplayRoutesRequireNickname(t *testing.T) {
 		},
 	}
 	handler := NewHandler(slog.New(slog.NewTextHandler(io.Discard, nil)), Dependencies{
-		Authenticator: accounts, SaveService: saveServiceStub{}, WeeklyRewardService: weeklyRewardServiceStub{}, EconomyService: nicknameBlockedEconomyService{}, LegacyTransferService: legacyTransferServiceStub{},
+		Authenticator: accounts, SaveService: saveServiceStub{}, WeeklyRewardService: weeklyRewardServiceStub{}, EconomyService: nicknameBlockedEconomyService{},
 	})
 	for _, route := range []string{
 		"GET /v1/save", "PUT /v1/save", "POST /v1/save/writer", "POST /v1/economy/rewards/claim",
@@ -79,7 +79,6 @@ func TestAllAccountGameplayRoutesRequireNickname(t *testing.T) {
 		"POST /v1/economy/turret-modules/draw", "POST /v1/economy/turret-modules/disassemble",
 		"POST /v1/economy/researches/attack/complete", "POST /v1/economy/research-slots/2/unlock",
 		"POST /v1/economy/progression-effects/id/ack", "POST /v1/economy/runs/settle",
-		"POST /v1/legacy-save-transfers/consume",
 	} {
 		parts := strings.SplitN(route, " ", 2)
 		request := httptest.NewRequest(parts[0], parts[1], nil)
