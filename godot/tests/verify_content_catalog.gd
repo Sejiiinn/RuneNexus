@@ -122,13 +122,17 @@ func _adapt_legacy_turret_input(actual: Dictionary, label: String) -> void:
 	_compare(actual.get("attackModifiers"), [], label + "/new attackModifiers")
 	definition.erase("attackCapabilities")
 	actual.erase("attackModifiers")
-	# The approved cannon rebalance (damage 25 -> 34, splash radius 42 -> 52)
-	# postdates the Dart fixture: verify the new base values, then restore the
-	# recorded ones so the historical calculator comparison stays exact.
+	# Approved rebalances (cannon damage 25 -> 34 and splash radius 42 -> 52,
+	# flame damage 16 -> 22) postdate the Dart fixture: verify the new base
+	# values, then restore the recorded ones so the historical calculator
+	# comparison stays exact.
 	if definition.type == "cannon":
 		_compare([definition.damage, definition.splashRadius], [34.0, 52.0], label + "/rebalanced cannon")
 		definition.damage = 25.0
 		definition.splashRadius = 42.0
+	if definition.type == "flame":
+		_compare(definition.damage, 22.0, label + "/rebalanced flame")
+		definition.damage = 16.0
 
 func _compare_legacy_stats(actual: Dictionary, expected: Dictionary, input: Dictionary, label: String) -> void:
 	# Preserve the historical calculator fixture and its strict field comparison.

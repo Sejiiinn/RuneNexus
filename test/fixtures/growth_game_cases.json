@@ -1619,7 +1619,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -1933,7 +1933,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -2180,7 +2180,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -2494,7 +2494,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -2762,7 +2762,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -3153,7 +3153,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -3477,7 +3477,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -3868,7 +3868,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -4213,7 +4213,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -4679,7 +4679,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -5078,7 +5078,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -5544,7 +5544,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -5964,7 +5964,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -6507,7 +6507,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -6983,7 +6983,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -7526,7 +7526,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -8002,7 +8002,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -8545,7 +8545,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -9021,7 +9021,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -9566,7 +9566,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -10042,7 +10042,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -10587,7 +10587,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -11063,7 +11063,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -11608,7 +11608,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -12084,7 +12084,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -12629,7 +12629,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -13105,7 +13105,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -13650,7 +13650,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -14126,7 +14126,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -14671,7 +14671,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -15147,7 +15147,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -15692,7 +15692,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -16168,7 +16168,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -16713,7 +16713,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -17189,7 +17189,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -17734,7 +17734,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -18210,7 +18210,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -18755,7 +18755,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -19231,7 +19231,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -19776,7 +19776,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -20252,7 +20252,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -20797,7 +20797,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -21273,7 +21273,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -21818,7 +21818,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -22294,7 +22294,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -22839,7 +22839,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -23315,7 +23315,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -23860,7 +23860,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -24336,7 +24336,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -24881,7 +24881,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -25357,7 +25357,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -25902,7 +25902,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -26378,7 +26378,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -26923,7 +26923,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -27399,7 +27399,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -27944,7 +27944,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -28420,7 +28420,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -28965,7 +28965,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -29441,7 +29441,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -29986,7 +29986,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -30463,7 +30463,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -31009,7 +31009,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -31486,7 +31486,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -32032,7 +32032,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -32509,7 +32509,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -33055,7 +33055,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -33532,7 +33532,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -34078,7 +34078,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -34555,7 +34555,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -35101,7 +35101,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -35578,7 +35578,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -36124,7 +36124,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -36601,7 +36601,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -37147,7 +37147,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -37624,7 +37624,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -38170,7 +38170,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -38647,7 +38647,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -39193,7 +39193,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -39670,7 +39670,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -40216,7 +40216,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -40693,7 +40693,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -41239,7 +41239,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -41716,7 +41716,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -42262,7 +42262,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -42739,7 +42739,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -43285,7 +43285,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -43762,7 +43762,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -44308,7 +44308,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -44785,7 +44785,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -45331,7 +45331,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -45808,7 +45808,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -46354,7 +46354,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -46831,7 +46831,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -47377,7 +47377,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -47854,7 +47854,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -48400,7 +48400,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -48877,7 +48877,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -49423,7 +49423,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -49900,7 +49900,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -50446,7 +50446,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -50923,7 +50923,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -51469,7 +51469,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -51947,7 +51947,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -52494,7 +52494,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -52972,7 +52972,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -53519,7 +53519,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -53997,7 +53997,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -54544,7 +54544,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -55022,7 +55022,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -55569,7 +55569,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -56047,7 +56047,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -56594,7 +56594,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -57072,7 +57072,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -57619,7 +57619,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -58097,7 +58097,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -58644,7 +58644,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -59122,7 +59122,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -59669,7 +59669,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -60147,7 +60147,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -60694,7 +60694,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -61172,7 +61172,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -61719,7 +61719,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -62197,7 +62197,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -62744,7 +62744,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -63222,7 +63222,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -63769,7 +63769,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -64247,7 +64247,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -64794,7 +64794,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -65272,7 +65272,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -65819,7 +65819,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -66297,7 +66297,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -66844,7 +66844,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -67322,7 +67322,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -67869,7 +67869,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -68347,7 +68347,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -68894,7 +68894,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -69372,7 +69372,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -69919,7 +69919,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -70397,7 +70397,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -70944,7 +70944,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -71422,7 +71422,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -71969,7 +71969,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -72447,7 +72447,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -72994,7 +72994,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -73474,7 +73474,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -74021,7 +74021,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -74499,7 +74499,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -78573,7 +78573,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -79339,7 +79339,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -79586,7 +79586,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -80352,7 +80352,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -80620,7 +80620,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -81463,7 +81463,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -81787,7 +81787,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -82630,7 +82630,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -82975,7 +82975,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -83893,7 +83893,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -84292,7 +84292,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -85210,7 +85210,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -85630,7 +85630,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -86625,7 +86625,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -87101,7 +87101,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -88096,7 +88096,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -88572,7 +88572,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -89567,7 +89567,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -90043,7 +90043,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -91040,7 +91040,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -91516,7 +91516,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -92513,7 +92513,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -92989,7 +92989,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -93986,7 +93986,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -94462,7 +94462,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -95459,7 +95459,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -95935,7 +95935,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -96932,7 +96932,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -97408,7 +97408,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -98405,7 +98405,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -98881,7 +98881,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -99878,7 +99878,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -100354,7 +100354,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -101351,7 +101351,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -101827,7 +101827,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -102824,7 +102824,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -103300,7 +103300,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -104297,7 +104297,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -104773,7 +104773,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -105770,7 +105770,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -106246,7 +106246,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -107243,7 +107243,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -107719,7 +107719,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -108716,7 +108716,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -109192,7 +109192,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -110189,7 +110189,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -110665,7 +110665,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -111662,7 +111662,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -112138,7 +112138,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -113135,7 +113135,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -113611,7 +113611,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -114608,7 +114608,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -115084,7 +115084,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -116081,7 +116081,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -116557,7 +116557,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -117554,7 +117554,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -118030,7 +118030,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -119027,7 +119027,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -119503,7 +119503,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -120500,7 +120500,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -120976,7 +120976,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -121973,7 +121973,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -122449,7 +122449,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -123446,7 +123446,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -123922,7 +123922,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -124919,7 +124919,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -125395,7 +125395,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -126392,7 +126392,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -126868,7 +126868,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -127865,7 +127865,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -128341,7 +128341,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -129338,7 +129338,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -129814,7 +129814,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -130811,7 +130811,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -131287,7 +131287,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -132284,7 +132284,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -132760,7 +132760,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -133757,7 +133757,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -134233,7 +134233,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -135230,7 +135230,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -135707,7 +135707,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -136705,7 +136705,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -137182,7 +137182,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -138180,7 +138180,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -138657,7 +138657,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -139655,7 +139655,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -140132,7 +140132,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -141130,7 +141130,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -141607,7 +141607,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -142605,7 +142605,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -143082,7 +143082,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -144080,7 +144080,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -144557,7 +144557,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -145555,7 +145555,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -146032,7 +146032,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -147030,7 +147030,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -147507,7 +147507,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -148505,7 +148505,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -148982,7 +148982,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -149980,7 +149980,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -150457,7 +150457,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -151455,7 +151455,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -151932,7 +151932,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -152930,7 +152930,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -153407,7 +153407,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -154405,7 +154405,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -154882,7 +154882,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -155880,7 +155880,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -156357,7 +156357,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -157355,7 +157355,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -157832,7 +157832,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -158830,7 +158830,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -159307,7 +159307,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -160305,7 +160305,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -160782,7 +160782,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -161780,7 +161780,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -162257,7 +162257,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -163255,7 +163255,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -163732,7 +163732,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -164730,7 +164730,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -165207,7 +165207,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -166205,7 +166205,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -166682,7 +166682,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -167680,7 +167680,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -168157,7 +168157,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -169155,7 +169155,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -169632,7 +169632,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -170630,7 +170630,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -171107,7 +171107,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -172105,7 +172105,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -172582,7 +172582,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -173580,7 +173580,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -174057,7 +174057,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -175055,7 +175055,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -175532,7 +175532,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -176530,7 +176530,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -177007,7 +177007,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -178005,7 +178005,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -178482,7 +178482,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -179480,7 +179480,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -179957,7 +179957,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -180955,7 +180955,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -181433,7 +181433,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -182432,7 +182432,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -182910,7 +182910,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -183909,7 +183909,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -184387,7 +184387,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -185386,7 +185386,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -185864,7 +185864,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -186863,7 +186863,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -187341,7 +187341,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -188340,7 +188340,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -188818,7 +188818,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -189817,7 +189817,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -190295,7 +190295,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -191294,7 +191294,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -191772,7 +191772,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -192771,7 +192771,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -193249,7 +193249,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -194248,7 +194248,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -194726,7 +194726,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -195725,7 +195725,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -196203,7 +196203,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -197202,7 +197202,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -197680,7 +197680,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -198679,7 +198679,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -199157,7 +199157,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -200156,7 +200156,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -200634,7 +200634,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -201633,7 +201633,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -202111,7 +202111,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -203110,7 +203110,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -203588,7 +203588,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -204587,7 +204587,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -205065,7 +205065,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -206064,7 +206064,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -206542,7 +206542,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -207541,7 +207541,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -208019,7 +208019,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -209018,7 +209018,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -209496,7 +209496,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -210495,7 +210495,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -210973,7 +210973,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -211972,7 +211972,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -212450,7 +212450,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -213449,7 +213449,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -213927,7 +213927,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -214926,7 +214926,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -215404,7 +215404,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -216403,7 +216403,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -216881,7 +216881,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -217880,7 +217880,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -218358,7 +218358,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -219357,7 +219357,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -219835,7 +219835,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -220834,7 +220834,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -221312,7 +221312,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -222311,7 +222311,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -222789,7 +222789,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -223788,7 +223788,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -224266,7 +224266,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -225265,7 +225265,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -225743,7 +225743,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -226742,7 +226742,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -227222,7 +227222,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -228221,7 +228221,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
@@ -228699,7 +228699,7 @@
               "attackTags": [
                 "damageOverTime"
               ],
-              "damage": 16.0,
+              "damage": 22.0,
               "range": 108.0,
               "attackRate": 0.59,
               "projectileSpeed": 420.0,
