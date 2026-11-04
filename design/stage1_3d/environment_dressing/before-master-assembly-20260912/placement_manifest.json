@@ -1,0 +1,966 @@
+{
+  "source": "environment-dressing.blend",
+  "seed": 120926,
+  "revision": "lush-canopy-20260912",
+  "windMaximumDisplacement": 0.022,
+  "buildClearHalfWidth": 0.35,
+  "foliageClusters": 88,
+  "staticClusters": 15,
+  "removableClusters": 27,
+  "placements": [
+    {
+      "name": "fern_c3_r0_N_0",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "fern",
+      "edge": "N"
+    },
+    {
+      "name": "broadleaf_c3_r0_N_1",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "broadleaf",
+      "edge": "N"
+    },
+    {
+      "name": "grass_c3_r0_N_2",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "grass",
+      "edge": "N"
+    },
+    {
+      "name": "ground_c3_r0_N_3",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "ground",
+      "edge": "N"
+    },
+    {
+      "name": "understory_bank_c3_r0_N",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "broadleaf",
+      "edge": "N"
+    },
+    {
+      "name": "moss_stones_c3_r0_N",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "rocks",
+      "edge": "N"
+    },
+    {
+      "name": "roots_c3_r0_N",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "roots",
+      "edge": "N"
+    },
+    {
+      "name": "fern_c5_r1_E_7",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "fern",
+      "edge": "E"
+    },
+    {
+      "name": "broadleaf_c5_r1_E_8",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "grass_c5_r1_E_9",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "ground_c5_r1_E_10",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "ground",
+      "edge": "E"
+    },
+    {
+      "name": "understory_bank_c5_r1_E",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "moss_stones_c5_r1_E",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "rocks",
+      "edge": "E"
+    },
+    {
+      "name": "roots_c5_r1_E",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "roots",
+      "edge": "E"
+    },
+    {
+      "name": "broadleaf_c7_r4_E_14",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "broadleaf_c7_r4_E_15",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "grass_c7_r4_E_16",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "ground_c7_r4_E_17",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "ground",
+      "edge": "E"
+    },
+    {
+      "name": "understory_bank_c7_r4_E",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "moss_stones_c7_r4_E",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "rocks",
+      "edge": "E"
+    },
+    {
+      "name": "roots_c7_r4_E",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "roots",
+      "edge": "E"
+    },
+    {
+      "name": "grass_c7_r7_E_21",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "broadleaf_c7_r7_E_22",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "grass_c7_r7_E_23",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "ground_c7_r7_E_24",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "ground",
+      "edge": "E"
+    },
+    {
+      "name": "understory_bank_c7_r7_E",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "moss_stones_c7_r7_E",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "rocks",
+      "edge": "E"
+    },
+    {
+      "name": "roots_c7_r7_E",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "roots",
+      "edge": "E"
+    },
+    {
+      "name": "fern_c0_r7_W_28",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "fern",
+      "edge": "W"
+    },
+    {
+      "name": "broadleaf_c0_r7_W_29",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "W"
+    },
+    {
+      "name": "grass_c0_r7_W_30",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "grass",
+      "edge": "W"
+    },
+    {
+      "name": "ground_c0_r7_W_31",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "ground",
+      "edge": "W"
+    },
+    {
+      "name": "understory_bank_c0_r7_W",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "W"
+    },
+    {
+      "name": "moss_stones_c0_r7_W",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "rocks",
+      "edge": "W"
+    },
+    {
+      "name": "roots_c0_r7_W",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "roots",
+      "edge": "W"
+    },
+    {
+      "name": "broadleaf_c0_r9_W_35",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "broadleaf",
+      "edge": "W"
+    },
+    {
+      "name": "broadleaf_c0_r9_W_36",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "broadleaf",
+      "edge": "W"
+    },
+    {
+      "name": "grass_c0_r9_W_37",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "grass",
+      "edge": "W"
+    },
+    {
+      "name": "ground_c0_r9_W_38",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "ground",
+      "edge": "W"
+    },
+    {
+      "name": "understory_bank_c0_r9_W",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "broadleaf",
+      "edge": "W"
+    },
+    {
+      "name": "moss_stones_c0_r9_W",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "rocks",
+      "edge": "W"
+    },
+    {
+      "name": "roots_c0_r9_W",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "roots",
+      "edge": "W"
+    },
+    {
+      "name": "rim_broadleaf_c3_r0_E",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "rim_grass_c3_r0_N",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "grass",
+      "edge": "N"
+    },
+    {
+      "name": "rim_broadleaf_c5_r1_N",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "broadleaf",
+      "edge": "N"
+    },
+    {
+      "name": "rim_grass_c4_r1_N",
+      "tile": [
+        4,
+        1
+      ],
+      "kind": "grass",
+      "edge": "N"
+    },
+    {
+      "name": "rim_fern_c7_r4_N",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "fern",
+      "edge": "N"
+    },
+    {
+      "name": "rim_ground_c7_r5_E",
+      "tile": [
+        7,
+        5
+      ],
+      "kind": "ground",
+      "edge": "E"
+    },
+    {
+      "name": "rim_broadleaf_c7_r7_S",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "S"
+    },
+    {
+      "name": "rim_grass_c6_r7_S",
+      "tile": [
+        6,
+        7
+      ],
+      "kind": "grass",
+      "edge": "S"
+    },
+    {
+      "name": "rim_broadleaf_c0_r7_N",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "N"
+    },
+    {
+      "name": "rim_ground_c0_r8_W",
+      "tile": [
+        0,
+        8
+      ],
+      "kind": "ground",
+      "edge": "W"
+    },
+    {
+      "name": "rim_grass_c0_r9_S",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "grass",
+      "edge": "S"
+    },
+    {
+      "name": "rim_broadleaf_c0_r1_W",
+      "tile": [
+        0,
+        1
+      ],
+      "kind": "broadleaf",
+      "edge": "W"
+    },
+    {
+      "name": "rim_ground_c6_r2_E",
+      "tile": [
+        6,
+        2
+      ],
+      "kind": "ground",
+      "edge": "E"
+    },
+    {
+      "name": "rim_broadleaf_c1_r3_S",
+      "tile": [
+        1,
+        3
+      ],
+      "kind": "broadleaf",
+      "edge": "S"
+    },
+    {
+      "name": "rim_grass_c2_r4_W",
+      "tile": [
+        2,
+        4
+      ],
+      "kind": "grass",
+      "edge": "W"
+    },
+    {
+      "name": "rim_ground_c3_r5_W",
+      "tile": [
+        3,
+        5
+      ],
+      "kind": "ground",
+      "edge": "W"
+    },
+    {
+      "name": "rim_broadleaf_c3_r8_E",
+      "tile": [
+        3,
+        8
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "rim_grass_c7_r6_E",
+      "tile": [
+        7,
+        6
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "rim_grass_c5_r3_E",
+      "tile": [
+        5,
+        3
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "seam_broadleaf_c2_r0_E",
+      "tile": [
+        2,
+        0
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "seam_ground_c2_r0_S",
+      "tile": [
+        2,
+        0
+      ],
+      "kind": "ground",
+      "edge": "S"
+    },
+    {
+      "name": "seam_broadleaf_c2_r3_E",
+      "tile": [
+        2,
+        3
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "seam_grass_c2_r3_S",
+      "tile": [
+        2,
+        3
+      ],
+      "kind": "grass",
+      "edge": "S"
+    },
+    {
+      "name": "seam_broadleaf_c2_r7_E",
+      "tile": [
+        2,
+        7
+      ],
+      "kind": "broadleaf",
+      "edge": "E"
+    },
+    {
+      "name": "seam_ground_c2_r7_S",
+      "tile": [
+        2,
+        7
+      ],
+      "kind": "ground",
+      "edge": "S"
+    },
+    {
+      "name": "seam_grass_c3_r1_E",
+      "tile": [
+        3,
+        1
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "seam_ground_c5_r2_S",
+      "tile": [
+        5,
+        2
+      ],
+      "kind": "ground",
+      "edge": "S"
+    },
+    {
+      "name": "seam_broadleaf_c3_r4_S",
+      "tile": [
+        3,
+        4
+      ],
+      "kind": "broadleaf",
+      "edge": "S"
+    },
+    {
+      "name": "seam_grass_c3_r5_E",
+      "tile": [
+        3,
+        5
+      ],
+      "kind": "grass",
+      "edge": "E"
+    },
+    {
+      "name": "seam_ground_c5_r7_E",
+      "tile": [
+        5,
+        7
+      ],
+      "kind": "ground",
+      "edge": "E"
+    },
+    {
+      "name": "seam_ground_c7_r4_S",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "ground",
+      "edge": "S"
+    },
+    {
+      "name": "inner_moss_stones_c2_r0",
+      "tile": [
+        2,
+        0
+      ],
+      "kind": "inner_rocks",
+      "edge": "SE"
+    },
+    {
+      "name": "inner_moss_stones_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "kind": "inner_rocks",
+      "edge": "SE"
+    },
+    {
+      "name": "inner_moss_stones_c2_r7",
+      "tile": [
+        2,
+        7
+      ],
+      "kind": "inner_rocks",
+      "edge": "SE"
+    },
+    {
+      "name": "center_vegetation_c2_r0",
+      "tile": [
+        2,
+        0
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "center_vegetation",
+      "edge": "N",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r1",
+      "tile": [
+        0,
+        1
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r1",
+      "tile": [
+        2,
+        1
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c4_r1",
+      "tile": [
+        4,
+        1
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r2",
+      "tile": [
+        5,
+        2
+      ],
+      "kind": "center_vegetation",
+      "edge": "N",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c1_r3",
+      "tile": [
+        1,
+        3
+      ],
+      "kind": "center_vegetation",
+      "edge": "S",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "kind": "center_vegetation",
+      "edge": "S",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r3",
+      "tile": [
+        3,
+        3
+      ],
+      "kind": "center_vegetation",
+      "edge": "S",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r3",
+      "tile": [
+        5,
+        3
+      ],
+      "kind": "center_vegetation",
+      "edge": "N",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r4",
+      "tile": [
+        2,
+        4
+      ],
+      "kind": "center_vegetation",
+      "edge": "S",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r5",
+      "tile": [
+        3,
+        5
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c4_r5",
+      "tile": [
+        4,
+        5
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r5",
+      "tile": [
+        5,
+        5
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r5",
+      "tile": [
+        7,
+        5
+      ],
+      "kind": "center_vegetation",
+      "edge": "N",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r6",
+      "tile": [
+        7,
+        6
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r7",
+      "tile": [
+        2,
+        7
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r7",
+      "tile": [
+        3,
+        7
+      ],
+      "kind": "center_vegetation",
+      "edge": "S",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c4_r7",
+      "tile": [
+        4,
+        7
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c6_r7",
+      "tile": [
+        6,
+        7
+      ],
+      "kind": "center_vegetation",
+      "edge": "S",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "kind": "center_vegetation",
+      "edge": "E",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r8",
+      "tile": [
+        0,
+        8
+      ],
+      "kind": "center_vegetation",
+      "edge": "N",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r8",
+      "tile": [
+        2,
+        8
+      ],
+      "kind": "center_vegetation",
+      "edge": "N",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "center_vegetation",
+      "edge": "W",
+      "removableOnBuild": true
+    }
+  ]
+}

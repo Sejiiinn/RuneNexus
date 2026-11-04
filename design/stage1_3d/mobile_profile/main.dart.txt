@@ -1,0 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:rune_nexus/app/stage1_3d_preview_app.dart';
+
+// URL 분기 없이 메모리 저장소를 사용하는 네이티브 개발 진입점.
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const Stage1ThreeDPreviewApp());
+}

@@ -1,0 +1,38 @@
+{
+  "normal": {
+    "triangles": 792,
+    "bytes": 64896,
+    "width": 1,
+    "sourceWidth": 1.0
+  },
+  "armored": {
+    "triangles": 824,
+    "bytes": 67656,
+    "width": 1,
+    "sourceWidth": 0.9399999976158142
+  },
+  "shielded": {
+    "triangles": 792,
+    "bytes": 64868,
+    "width": 1,
+    "sourceWidth": 1.0
+  },
+  "fast": {
+    "triangles": 776,
+    "bytes": 64924,
+    "width": 1,
+    "sourceWidth": 0.7599999904632568
+  },
+  "tank": {
+    "triangles": 804,
+    "bytes": 67404,
+    "width": 1,
+    "sourceWidth": 1.0399999618530273
+  },
+  "boss": {
+    "triangles": 856,
+    "bytes": 70860,
+    "width": 1,
+    "sourceWidth": 1.1399999856948853
+  }
+}

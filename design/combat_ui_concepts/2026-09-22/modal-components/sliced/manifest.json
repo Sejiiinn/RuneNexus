@@ -1,0 +1,858 @@
+{
+  "source": "design/combat_ui_concepts/2026-09-22/modal-components/nine-slice-source-v3.png",
+  "method": "Exact non-resampled crops using GIMP; no regenerated pixels.",
+  "components": {
+    "modal": {
+      "source_rect": [
+        90,
+        86,
+        1595,
+        389
+      ],
+      "slice_margins": [
+        58,
+        58,
+        58,
+        58
+      ],
+      "parts": [
+        {
+          "name": "top_left",
+          "file": "ui/combat_components/sliced/modal/top_left.png",
+          "source_rect": [
+            90,
+            86,
+            58,
+            58
+          ],
+          "assembly_position": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "top",
+          "file": "ui/combat_components/sliced/modal/top.png",
+          "source_rect": [
+            148,
+            86,
+            1479,
+            58
+          ],
+          "assembly_position": [
+            58,
+            0
+          ]
+        },
+        {
+          "name": "top_right",
+          "file": "ui/combat_components/sliced/modal/top_right.png",
+          "source_rect": [
+            1627,
+            86,
+            58,
+            58
+          ],
+          "assembly_position": [
+            1537,
+            0
+          ]
+        },
+        {
+          "name": "left",
+          "file": "ui/combat_components/sliced/modal/left.png",
+          "source_rect": [
+            90,
+            144,
+            58,
+            273
+          ],
+          "assembly_position": [
+            0,
+            58
+          ]
+        },
+        {
+          "name": "center",
+          "file": "ui/combat_components/sliced/modal/center.png",
+          "source_rect": [
+            148,
+            144,
+            1479,
+            273
+          ],
+          "assembly_position": [
+            58,
+            58
+          ]
+        },
+        {
+          "name": "right",
+          "file": "ui/combat_components/sliced/modal/right.png",
+          "source_rect": [
+            1627,
+            144,
+            58,
+            273
+          ],
+          "assembly_position": [
+            1537,
+            58
+          ]
+        },
+        {
+          "name": "bottom_left",
+          "file": "ui/combat_components/sliced/modal/bottom_left.png",
+          "source_rect": [
+            90,
+            417,
+            58,
+            58
+          ],
+          "assembly_position": [
+            0,
+            331
+          ]
+        },
+        {
+          "name": "bottom",
+          "file": "ui/combat_components/sliced/modal/bottom.png",
+          "source_rect": [
+            148,
+            417,
+            1479,
+            58
+          ],
+          "assembly_position": [
+            58,
+            331
+          ]
+        },
+        {
+          "name": "bottom_right",
+          "file": "ui/combat_components/sliced/modal/bottom_right.png",
+          "source_rect": [
+            1627,
+            417,
+            58,
+            58
+          ],
+          "assembly_position": [
+            1537,
+            331
+          ]
+        }
+      ]
+    },
+    "primary": {
+      "source_rect": [
+        64,
+        496,
+        529,
+        145
+      ],
+      "slice_margins": [
+        44,
+        44,
+        44,
+        44
+      ],
+      "parts": [
+        {
+          "name": "top_left",
+          "file": "ui/combat_components/sliced/primary/top_left.png",
+          "source_rect": [
+            64,
+            496,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "top",
+          "file": "ui/combat_components/sliced/primary/top.png",
+          "source_rect": [
+            108,
+            496,
+            441,
+            44
+          ],
+          "assembly_position": [
+            44,
+            0
+          ]
+        },
+        {
+          "name": "top_right",
+          "file": "ui/combat_components/sliced/primary/top_right.png",
+          "source_rect": [
+            549,
+            496,
+            44,
+            44
+          ],
+          "assembly_position": [
+            485,
+            0
+          ]
+        },
+        {
+          "name": "left",
+          "file": "ui/combat_components/sliced/primary/left.png",
+          "source_rect": [
+            64,
+            540,
+            44,
+            57
+          ],
+          "assembly_position": [
+            0,
+            44
+          ]
+        },
+        {
+          "name": "center",
+          "file": "ui/combat_components/sliced/primary/center.png",
+          "source_rect": [
+            108,
+            540,
+            441,
+            57
+          ],
+          "assembly_position": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "right",
+          "file": "ui/combat_components/sliced/primary/right.png",
+          "source_rect": [
+            549,
+            540,
+            44,
+            57
+          ],
+          "assembly_position": [
+            485,
+            44
+          ]
+        },
+        {
+          "name": "bottom_left",
+          "file": "ui/combat_components/sliced/primary/bottom_left.png",
+          "source_rect": [
+            64,
+            597,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            101
+          ]
+        },
+        {
+          "name": "bottom",
+          "file": "ui/combat_components/sliced/primary/bottom.png",
+          "source_rect": [
+            108,
+            597,
+            441,
+            44
+          ],
+          "assembly_position": [
+            44,
+            101
+          ]
+        },
+        {
+          "name": "bottom_right",
+          "file": "ui/combat_components/sliced/primary/bottom_right.png",
+          "source_rect": [
+            549,
+            597,
+            44,
+            44
+          ],
+          "assembly_position": [
+            485,
+            101
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "source_rect": [
+        624,
+        497,
+        527,
+        144
+      ],
+      "slice_margins": [
+        44,
+        44,
+        44,
+        44
+      ],
+      "parts": [
+        {
+          "name": "top_left",
+          "file": "ui/combat_components/sliced/secondary/top_left.png",
+          "source_rect": [
+            624,
+            497,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "top",
+          "file": "ui/combat_components/sliced/secondary/top.png",
+          "source_rect": [
+            668,
+            497,
+            439,
+            44
+          ],
+          "assembly_position": [
+            44,
+            0
+          ]
+        },
+        {
+          "name": "top_right",
+          "file": "ui/combat_components/sliced/secondary/top_right.png",
+          "source_rect": [
+            1107,
+            497,
+            44,
+            44
+          ],
+          "assembly_position": [
+            483,
+            0
+          ]
+        },
+        {
+          "name": "left",
+          "file": "ui/combat_components/sliced/secondary/left.png",
+          "source_rect": [
+            624,
+            541,
+            44,
+            56
+          ],
+          "assembly_position": [
+            0,
+            44
+          ]
+        },
+        {
+          "name": "center",
+          "file": "ui/combat_components/sliced/secondary/center.png",
+          "source_rect": [
+            668,
+            541,
+            439,
+            56
+          ],
+          "assembly_position": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "right",
+          "file": "ui/combat_components/sliced/secondary/right.png",
+          "source_rect": [
+            1107,
+            541,
+            44,
+            56
+          ],
+          "assembly_position": [
+            483,
+            44
+          ]
+        },
+        {
+          "name": "bottom_left",
+          "file": "ui/combat_components/sliced/secondary/bottom_left.png",
+          "source_rect": [
+            624,
+            597,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            100
+          ]
+        },
+        {
+          "name": "bottom",
+          "file": "ui/combat_components/sliced/secondary/bottom.png",
+          "source_rect": [
+            668,
+            597,
+            439,
+            44
+          ],
+          "assembly_position": [
+            44,
+            100
+          ]
+        },
+        {
+          "name": "bottom_right",
+          "file": "ui/combat_components/sliced/secondary/bottom_right.png",
+          "source_rect": [
+            1107,
+            597,
+            44,
+            44
+          ],
+          "assembly_position": [
+            483,
+            100
+          ]
+        }
+      ]
+    },
+    "danger": {
+      "source_rect": [
+        1181,
+        495,
+        533,
+        148
+      ],
+      "slice_margins": [
+        44,
+        44,
+        44,
+        44
+      ],
+      "parts": [
+        {
+          "name": "top_left",
+          "file": "ui/combat_components/sliced/danger/top_left.png",
+          "source_rect": [
+            1181,
+            495,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "top",
+          "file": "ui/combat_components/sliced/danger/top.png",
+          "source_rect": [
+            1225,
+            495,
+            445,
+            44
+          ],
+          "assembly_position": [
+            44,
+            0
+          ]
+        },
+        {
+          "name": "top_right",
+          "file": "ui/combat_components/sliced/danger/top_right.png",
+          "source_rect": [
+            1670,
+            495,
+            44,
+            44
+          ],
+          "assembly_position": [
+            489,
+            0
+          ]
+        },
+        {
+          "name": "left",
+          "file": "ui/combat_components/sliced/danger/left.png",
+          "source_rect": [
+            1181,
+            539,
+            44,
+            60
+          ],
+          "assembly_position": [
+            0,
+            44
+          ]
+        },
+        {
+          "name": "center",
+          "file": "ui/combat_components/sliced/danger/center.png",
+          "source_rect": [
+            1225,
+            539,
+            445,
+            60
+          ],
+          "assembly_position": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "right",
+          "file": "ui/combat_components/sliced/danger/right.png",
+          "source_rect": [
+            1670,
+            539,
+            44,
+            60
+          ],
+          "assembly_position": [
+            489,
+            44
+          ]
+        },
+        {
+          "name": "bottom_left",
+          "file": "ui/combat_components/sliced/danger/bottom_left.png",
+          "source_rect": [
+            1181,
+            599,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            104
+          ]
+        },
+        {
+          "name": "bottom",
+          "file": "ui/combat_components/sliced/danger/bottom.png",
+          "source_rect": [
+            1225,
+            599,
+            445,
+            44
+          ],
+          "assembly_position": [
+            44,
+            104
+          ]
+        },
+        {
+          "name": "bottom_right",
+          "file": "ui/combat_components/sliced/danger/bottom_right.png",
+          "source_rect": [
+            1670,
+            599,
+            44,
+            44
+          ],
+          "assembly_position": [
+            489,
+            104
+          ]
+        }
+      ]
+    },
+    "selected": {
+      "source_rect": [
+        345,
+        665,
+        529,
+        141
+      ],
+      "slice_margins": [
+        44,
+        44,
+        44,
+        44
+      ],
+      "parts": [
+        {
+          "name": "top_left",
+          "file": "ui/combat_components/sliced/selected/top_left.png",
+          "source_rect": [
+            345,
+            665,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "top",
+          "file": "ui/combat_components/sliced/selected/top.png",
+          "source_rect": [
+            389,
+            665,
+            441,
+            44
+          ],
+          "assembly_position": [
+            44,
+            0
+          ]
+        },
+        {
+          "name": "top_right",
+          "file": "ui/combat_components/sliced/selected/top_right.png",
+          "source_rect": [
+            830,
+            665,
+            44,
+            44
+          ],
+          "assembly_position": [
+            485,
+            0
+          ]
+        },
+        {
+          "name": "left",
+          "file": "ui/combat_components/sliced/selected/left.png",
+          "source_rect": [
+            345,
+            709,
+            44,
+            53
+          ],
+          "assembly_position": [
+            0,
+            44
+          ]
+        },
+        {
+          "name": "center",
+          "file": "ui/combat_components/sliced/selected/center.png",
+          "source_rect": [
+            389,
+            709,
+            441,
+            53
+          ],
+          "assembly_position": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "right",
+          "file": "ui/combat_components/sliced/selected/right.png",
+          "source_rect": [
+            830,
+            709,
+            44,
+            53
+          ],
+          "assembly_position": [
+            485,
+            44
+          ]
+        },
+        {
+          "name": "bottom_left",
+          "file": "ui/combat_components/sliced/selected/bottom_left.png",
+          "source_rect": [
+            345,
+            762,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            97
+          ]
+        },
+        {
+          "name": "bottom",
+          "file": "ui/combat_components/sliced/selected/bottom.png",
+          "source_rect": [
+            389,
+            762,
+            441,
+            44
+          ],
+          "assembly_position": [
+            44,
+            97
+          ]
+        },
+        {
+          "name": "bottom_right",
+          "file": "ui/combat_components/sliced/selected/bottom_right.png",
+          "source_rect": [
+            830,
+            762,
+            44,
+            44
+          ],
+          "assembly_position": [
+            485,
+            97
+          ]
+        }
+      ]
+    },
+    "disabled": {
+      "source_rect": [
+        900,
+        665,
+        531,
+        141
+      ],
+      "slice_margins": [
+        44,
+        44,
+        44,
+        44
+      ],
+      "parts": [
+        {
+          "name": "top_left",
+          "file": "ui/combat_components/sliced/disabled/top_left.png",
+          "source_rect": [
+            900,
+            665,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "top",
+          "file": "ui/combat_components/sliced/disabled/top.png",
+          "source_rect": [
+            944,
+            665,
+            443,
+            44
+          ],
+          "assembly_position": [
+            44,
+            0
+          ]
+        },
+        {
+          "name": "top_right",
+          "file": "ui/combat_components/sliced/disabled/top_right.png",
+          "source_rect": [
+            1387,
+            665,
+            44,
+            44
+          ],
+          "assembly_position": [
+            487,
+            0
+          ]
+        },
+        {
+          "name": "left",
+          "file": "ui/combat_components/sliced/disabled/left.png",
+          "source_rect": [
+            900,
+            709,
+            44,
+            53
+          ],
+          "assembly_position": [
+            0,
+            44
+          ]
+        },
+        {
+          "name": "center",
+          "file": "ui/combat_components/sliced/disabled/center.png",
+          "source_rect": [
+            944,
+            709,
+            443,
+            53
+          ],
+          "assembly_position": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "right",
+          "file": "ui/combat_components/sliced/disabled/right.png",
+          "source_rect": [
+            1387,
+            709,
+            44,
+            53
+          ],
+          "assembly_position": [
+            487,
+            44
+          ]
+        },
+        {
+          "name": "bottom_left",
+          "file": "ui/combat_components/sliced/disabled/bottom_left.png",
+          "source_rect": [
+            900,
+            762,
+            44,
+            44
+          ],
+          "assembly_position": [
+            0,
+            97
+          ]
+        },
+        {
+          "name": "bottom",
+          "file": "ui/combat_components/sliced/disabled/bottom.png",
+          "source_rect": [
+            944,
+            762,
+            443,
+            44
+          ],
+          "assembly_position": [
+            44,
+            97
+          ]
+        },
+        {
+          "name": "bottom_right",
+          "file": "ui/combat_components/sliced/disabled/bottom_right.png",
+          "source_rect": [
+            1387,
+            762,
+            44,
+            44
+          ],
+          "assembly_position": [
+            487,
+            97
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "ferns": 4,
+  "sourceFrondsPerFern": 6,
+  "canopiesPerFern": 1,
+  "triangles": 1200,
+  "glbBytes": 182544,
+  "buildSlots": [
+    1,
+    6,
+    27,
+    21
+  ],
+  "sourceSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+  "outlineEdges": 25,
+  "coordinateMin": [
+    -0.537927508354187,
+    -0.5301037430763245
+  ],
+  "coordinateSize": [
+    1.0685758590698242,
+    1.0805007815361023
+  ],
+  "worldShadowLift": 0.0,
+  "coverage": "native alpha hash; full authored outline distance, center dense / edge soft"
+}

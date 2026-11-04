@@ -1,0 +1,136 @@
+// 게임의 실제 Stage1Scene 재질을 승인 시안의 카메라에서 검수하는 전용 진입점.
+import 'package:flutter/material.dart';
+import 'package:three_js/three_js.dart' as three;
+import 'package:rune_nexus/domain/map/map_definition.dart';
+import 'package:rune_nexus/domain/map/tile_type.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_frame.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/stage1_scene.dart';
+
+void main() => runApp(const MaterialApp(home: Review()));
+
+class Review extends StatefulWidget {
+  const Review({super.key});
+  @override
+  State<Review> createState() => _ReviewState();
+}
+
+class _ReviewState extends State<Review> {
+  late final three.ThreeJS view;
+  late final Stage1Scene stage;
+  final map = MapDefinition(
+    columns: 4,
+    rows: 4,
+    tiles: List.generate(4, (_) => List.filled(4, TileType.build)),
+    path: const [],
+  );
+  @override
+  void initState() {
+    super.initState();
+    view = three.ThreeJS(
+      setup: setup,
+      onSetupComplete: () {
+        if (mounted) setState(() {});
+      },
+      settings: three.Settings(
+        screenResolution: 1,
+        antialias: true,
+        clearColor: 0x080b0d,
+        clearAlpha: 1,
+        toneMapping: three.AgXToneMapping,
+        toneMappingExposure: 1,
+      ),
+    );
+    view.scene = three.Scene();
+    view.camera = three.OrthographicCamera(-2.45, 2.45, 2.45, -2.45, .01, 200);
+    stage = Stage1Scene(view);
+  }
+
+  Future<void> setup() async {
+    await stage.load();
+    final frameNumber =
+        double.tryParse(Uri.base.queryParameters['frame'] ?? '') ?? 8;
+    stage.update(
+      BattlefieldFrame(
+        map: map,
+        turrets: const [],
+        enemies: const [],
+        projectiles: const [],
+        time: 0,
+        pixelsPerTile: 60,
+        zoom: 1,
+        screenCenter: const Offset(320, 320),
+        nexusHpRatio: 1,
+        nexusHit: 0,
+        portalAlert: 0,
+        impacts: [
+          BattlefieldImpact(
+            id: 0,
+            position: const Offset(2, 2),
+            radius: 1 / .64,
+            progress: (frameNumber - 1) / 31,
+          ),
+        ],
+      ),
+      const Size(640, 640),
+    );
+    three.Object3D? impact;
+    view.scene.traverseVisible((o) {
+      if (o?.name == 'cannon_impact') impact = o;
+    });
+    for (final child in view.scene.children.toList()) {
+      view.scene.remove(child);
+    }
+    view.scene.add(impact!);
+    final camera = view.camera as three.OrthographicCamera;
+    camera.left = -2.45;
+    camera.right = 2.45;
+    camera.top = 2.45;
+    camera.bottom = -2.45;
+    camera.zoom = 1;
+    camera.position.setValues(2.8, 4.2, 7);
+    camera.lookAt(three.Vector3(0, .72, 0));
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+    impact!.updateWorldMatrix(true, true);
+    impact!.traverse((o) {
+      if (o.material is! three.ShaderMaterial) return;
+      final uniforms = o.material!.uniforms;
+      final direction = uniforms['uRayDirection']?['value'];
+      if (direction is three.Vector3) {
+        camera.getWorldDirection(direction);
+        direction.transformDirection(
+          three.Matrix4().setFrom(o.matrixWorld).invert(),
+        );
+      }
+    });
+    final floor = three.Mesh(
+      three.PlaneGeometry(200, 200),
+      three.MeshStandardMaterial.fromMap({
+        'color': three.Color(.028, .035, .04),
+        'roughness': .78,
+      }),
+    );
+    floor.rotation.x = -3.141592653589793 / 2;
+    floor.position.y = -.02;
+    view.scene.add(floor);
+    view.scene.add(three.HemisphereLight(0x8fabcc, 0x080909, .05));
+    final key = three.DirectionalLight(0x8faddf, .6);
+    key.position.setValues(-2, 6, 3);
+    view.scene.add(key);
+    final p = (frameNumber - 1) / 31;
+    final falloff = (1 - p / .68).clamp(0.0, 1.0);
+    final light = three.PointLight(
+      0xff4d0b,
+      750 / (4 * 3.141592653589793) * falloff * falloff,
+      15,
+      2,
+    );
+    light.position.setValues(0, .45, .12);
+    view.scene.add(light);
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(child: SizedBox(width: 640, height: 640, child: view.build())),
+  );
+}

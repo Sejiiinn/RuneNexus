@@ -1,0 +1,48 @@
+const { chromium } = require('playwright');
+const fs = require('fs');
+(async () => {
+ const browser = await chromium.launch({headless:true, channel:'chrome'});
+ const page = await browser.newPage({viewport:{width:440,height:900},deviceScaleFactor:1,hasTouch:true});
+ const errors=[];
+ page.on('response',r=>{if(r.status()>=400){errors.push(`${r.status()} ${r.url()}`);console.log('HTTP_ERROR',r.status(),r.url())}});
+ page.on('pageerror',e=>{errors.push(String(e));console.log('PAGE_ERROR',e.message)});
+ page.on('console',m=>{if(['error','warning'].includes(m.type()))console.log(m.type(),m.text())});
+ await page.goto('http://127.0.0.1:53000/?stage1_3d=1&cache_bust=mgvisibility');
+ await page.waitForTimeout(6000);
+ const click = async (x,y) => { await page.mouse.click(x,y); await page.waitForTimeout(650); };
+ await click(55,20);
+ await click(275,489);
+ await click(55,20);
+ await page.screenshot({path:'design/stage1_3d/machinegun_visibility/terrain-first-pass.png'});
+ await click(243,206);
+ await click(55,824);
+ await click(380,663);
+
+ await click(296,377);
+ await click(385,824);
+ await click(380,663);
+ await click(420,570);
+ const cdp=await page.context().newCDPSession(page);
+ const frames=[];const writes=[];let began;
+ fs.mkdirSync('design/stage1_3d/machinegun_visibility/frames',{recursive:true});
+ cdp.on('Page.screencastFrame', event => {
+  cdp.send('Page.screencastFrameAck',{sessionId:event.sessionId}).catch(()=>{});
+  began ??= event.metadata.timestamp;
+  const file=`frames/${String(frames.length).padStart(4,'0')}.jpg`;
+  frames.push({file,time:event.metadata.timestamp-began});
+  writes.push(fs.promises.writeFile(`design/stage1_3d/machinegun_visibility/${file}`,Buffer.from(event.data,'base64')));
+ });
+ await cdp.send('Page.startScreencast',{format:'jpeg',quality:88,maxWidth:440,maxHeight:900,everyNthFrame:2});
+ await click(402,839);
+ await page.waitForTimeout(6500);
+ await page.screenshot({path:'design/stage1_3d/machinegun_visibility/stage1-live-combat.png'});
+ await page.waitForTimeout(8000);
+ await cdp.send('Page.stopScreencast');
+ await Promise.all(writes);
+ fs.writeFileSync('design/stage1_3d/machinegun_visibility/frames.json',JSON.stringify(frames));
+ console.log('CAPTURE_FRAMES',frames.length,frames.at(-1)?.time);
+ await page.screenshot({path:'design/stage1_3d/machinegun_visibility/stage1-combat.png'});
+ fs.writeFileSync('design/stage1_3d/machinegun_visibility/browser-check.json',JSON.stringify({errors,html:await page.locator('body').innerText()},null,2));
+ console.log('CAPTURE_COMPLETE');
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

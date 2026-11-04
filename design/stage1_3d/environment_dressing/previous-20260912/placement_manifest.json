@@ -1,0 +1,1622 @@
+{
+  "source": "environment-dressing.blend",
+  "seed": 120926,
+  "windMaximumDisplacement": 0.022,
+  "buildClearHalfWidth": 0.35,
+  "foliageClusters": 164,
+  "staticClusters": 47,
+  "removableClusters": 24,
+  "placements": [
+    {
+      "name": "grass_c2_r0_N_0",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c2_r0_N_1",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_N_0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_N_1",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_N_2",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_N_3",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c3_r0_N",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c3_r0_N",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c3_r0_E_0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_E_1",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_E_2",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r0_E_3",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c3_r0_E",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "E",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c3_r0_E",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "E",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c0_r1_S_0",
+      "tile": [
+        0,
+        1
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r1_S_1",
+      "tile": [
+        0,
+        1
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r1_W_0",
+      "tile": [
+        0,
+        1
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r1_W_1",
+      "tile": [
+        0,
+        1
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c4_r1_N_0",
+      "tile": [
+        4,
+        1
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c4_r1_N_1",
+      "tile": [
+        4,
+        1
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_N_0",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_N_1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_N_2",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_N_3",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c5_r1_N",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "N",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c5_r1_N",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "N",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c5_r1_E_0",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_E_1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_E_2",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r1_E_3",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c5_r1_E",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c5_r1_E",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c6_r2_N_0",
+      "tile": [
+        6,
+        2
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r2_N_1",
+      "tile": [
+        6,
+        2
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r2_E_0",
+      "tile": [
+        6,
+        2
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r2_E_1",
+      "tile": [
+        6,
+        2
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r2_S_0",
+      "tile": [
+        6,
+        2
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r2_S_1",
+      "tile": [
+        6,
+        2
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c1_r3_S_0",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c1_r3_S_1",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c1_r3_W_0",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c1_r3_W_1",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r3_E_0",
+      "tile": [
+        5,
+        3
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r3_E_1",
+      "tile": [
+        5,
+        3
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c2_r4_S_0",
+      "tile": [
+        2,
+        4
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c2_r4_S_1",
+      "tile": [
+        2,
+        4
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c2_r4_W_0",
+      "tile": [
+        2,
+        4
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c2_r4_W_1",
+      "tile": [
+        2,
+        4
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_N_0",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_N_1",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_N_2",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_N_3",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c7_r4_N",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "N",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c7_r4_N",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "N",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c7_r4_E_0",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_E_1",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_E_2",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r4_E_3",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c7_r4_E",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c7_r4_E",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c3_r5_W_0",
+      "tile": [
+        3,
+        5
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r5_W_1",
+      "tile": [
+        3,
+        5
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r5_E_0",
+      "tile": [
+        7,
+        5
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r5_E_1",
+      "tile": [
+        7,
+        5
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r6_E_0",
+      "tile": [
+        7,
+        6
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r6_E_1",
+      "tile": [
+        7,
+        6
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_N_0",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_N_1",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_N_2",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_N_3",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "N",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c0_r7_N",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "N",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c0_r7_N",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "N",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c0_r7_W_0",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_W_1",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_W_2",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r7_W_3",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c0_r7_W",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c0_r7_W",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c4_r7_S_0",
+      "tile": [
+        4,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c4_r7_S_1",
+      "tile": [
+        4,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r7_S_0",
+      "tile": [
+        5,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c5_r7_S_1",
+      "tile": [
+        5,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r7_S_0",
+      "tile": [
+        6,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c6_r7_S_1",
+      "tile": [
+        6,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_E_0",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_E_1",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_E_2",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_E_3",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c7_r7_E",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c7_r7_E",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c7_r7_S_0",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_S_1",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_S_2",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c7_r7_S_3",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c7_r7_S",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "S",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c7_r7_S",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "S",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c0_r8_W_0",
+      "tile": [
+        0,
+        8
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r8_W_1",
+      "tile": [
+        0,
+        8
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r8_E_0",
+      "tile": [
+        3,
+        8
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c3_r8_E_1",
+      "tile": [
+        3,
+        8
+      ],
+      "edge": "E",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_S_0",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_S_1",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_S_2",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_S_3",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c0_r9_S",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c0_r9_S",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "kind": "rocks"
+    },
+    {
+      "name": "grass_c0_r9_W_0",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_W_1",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_W_2",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "grass_c0_r9_W_3",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "kind": "grass"
+    },
+    {
+      "name": "fern_c0_r9_W",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "kind": "fern"
+    },
+    {
+      "name": "moss_stones_c0_r9_W",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "kind": "rocks"
+    },
+    {
+      "name": "inner_grass_c2_r0_E_0",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r0_E_1",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r0_S_0",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r0_S_0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r0_S_1",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r1_E_0",
+      "tile": [
+        3,
+        1
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c4_r1_E_0",
+      "tile": [
+        4,
+        1
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c4_r1_E_1",
+      "tile": [
+        4,
+        1
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c5_r1_S_0",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c5_r1_S_1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c5_r2_E_0",
+      "tile": [
+        5,
+        2
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c1_r3_E_0",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c1_r3_E_1",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r3_E_0",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r3_S_0",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r3_S_1",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r3_S_0",
+      "tile": [
+        3,
+        3
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r3_S_1",
+      "tile": [
+        3,
+        3
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r4_S_0",
+      "tile": [
+        3,
+        4
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r4_S_1",
+      "tile": [
+        3,
+        4
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c7_r4_S_0",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c7_r4_S_1",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r5_E_0",
+      "tile": [
+        3,
+        5
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c4_r5_E_0",
+      "tile": [
+        4,
+        5
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c4_r5_E_1",
+      "tile": [
+        4,
+        5
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c7_r6_S_0",
+      "tile": [
+        7,
+        6
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c0_r7_S_0",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c0_r7_S_1",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r7_E_0",
+      "tile": [
+        2,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r7_E_1",
+      "tile": [
+        2,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r7_S_0",
+      "tile": [
+        2,
+        7
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r7_S_0",
+      "tile": [
+        3,
+        7
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c3_r7_S_1",
+      "tile": [
+        3,
+        7
+      ],
+      "edge": "S",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c4_r7_E_0",
+      "tile": [
+        4,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c5_r7_E_0",
+      "tile": [
+        5,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c5_r7_E_1",
+      "tile": [
+        5,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c6_r7_E_0",
+      "tile": [
+        6,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c6_r7_E_1",
+      "tile": [
+        6,
+        7
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r8_E_0",
+      "tile": [
+        2,
+        8
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_grass_c2_r8_E_1",
+      "tile": [
+        2,
+        8
+      ],
+      "edge": "E",
+      "kind": "inner_grass"
+    },
+    {
+      "name": "inner_moss_stones_c2_r0",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "SE",
+      "kind": "inner_rocks"
+    },
+    {
+      "name": "inner_moss_stones_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "SE",
+      "kind": "inner_rocks"
+    },
+    {
+      "name": "inner_moss_stones_c2_r7",
+      "tile": [
+        2,
+        7
+      ],
+      "edge": "SE",
+      "kind": "inner_rocks"
+    },
+    {
+      "name": "center_vegetation_c2_r0",
+      "tile": [
+        2,
+        0
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r1",
+      "tile": [
+        0,
+        1
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r1",
+      "tile": [
+        2,
+        1
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c4_r1",
+      "tile": [
+        4,
+        1
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r2",
+      "tile": [
+        5,
+        2
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c1_r3",
+      "tile": [
+        1,
+        3
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r3",
+      "tile": [
+        3,
+        3
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r3",
+      "tile": [
+        5,
+        3
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r4",
+      "tile": [
+        2,
+        4
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r5",
+      "tile": [
+        3,
+        5
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c4_r5",
+      "tile": [
+        4,
+        5
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c5_r5",
+      "tile": [
+        5,
+        5
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r5",
+      "tile": [
+        7,
+        5
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c7_r6",
+      "tile": [
+        7,
+        6
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r7",
+      "tile": [
+        2,
+        7
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c3_r7",
+      "tile": [
+        3,
+        7
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c4_r7",
+      "tile": [
+        4,
+        7
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c6_r7",
+      "tile": [
+        6,
+        7
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r8",
+      "tile": [
+        0,
+        8
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c2_r8",
+      "tile": [
+        2,
+        8
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    },
+    {
+      "name": "center_vegetation_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "kind": "center_vegetation",
+      "removableOnBuild": true
+    }
+  ]
+}

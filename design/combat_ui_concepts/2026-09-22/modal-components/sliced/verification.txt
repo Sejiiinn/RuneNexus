@@ -1,0 +1,6 @@
+modal: 9 parts, dimensions and alpha exact; opaque RGB exact; low-alpha RGB rounding max=5/255
+primary: 9 parts, dimensions and alpha exact; opaque RGB exact; low-alpha RGB rounding max=8/255
+secondary: 9 parts, dimensions and alpha exact; opaque RGB exact; low-alpha RGB rounding max=1/255
+danger: 9 parts, dimensions and alpha exact; opaque RGB exact; low-alpha RGB rounding max=7/255
+selected: 9 parts, dimensions and alpha exact; opaque RGB exact; low-alpha RGB rounding max=7/255
+disabled: 9 parts, dimensions and alpha exact; opaque RGB exact; low-alpha RGB rounding max=5/255

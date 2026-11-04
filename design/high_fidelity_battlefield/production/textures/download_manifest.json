@@ -1,0 +1,102 @@
+{
+  "license": "CC0",
+  "license_url": "https://polyhaven.com/license",
+  "files": [
+    {
+      "asset": "monastery_stone_floor",
+      "kind": "Diffuse",
+      "filename": "monastery_stone_floor_diff_2k.jpg",
+      "size": 3021140,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/monastery_stone_floor/monastery_stone_floor_diff_2k.jpg",
+      "md5": "35420aa52b8257920b1d7566fb80ab4d"
+    },
+    {
+      "asset": "monastery_stone_floor",
+      "kind": "nor_gl",
+      "filename": "monastery_stone_floor_nor_gl_2k.jpg",
+      "size": 4248820,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/monastery_stone_floor/monastery_stone_floor_nor_gl_2k.jpg",
+      "md5": "68fe9fe33ed384c0a0f45b57f642e0a9"
+    },
+    {
+      "asset": "monastery_stone_floor",
+      "kind": "Rough",
+      "filename": "monastery_stone_floor_rough_2k.jpg",
+      "size": 1744682,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/monastery_stone_floor/monastery_stone_floor_rough_2k.jpg",
+      "md5": "ef1df6aacd1ca6ca404ac0b927662a65"
+    },
+    {
+      "asset": "monastery_stone_floor",
+      "kind": "Displacement",
+      "filename": "monastery_stone_floor_disp_2k.jpg",
+      "size": 847251,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/monastery_stone_floor/monastery_stone_floor_disp_2k.jpg",
+      "md5": "bfbf803d6bb617e1c0aff95bdc48ff86"
+    },
+    {
+      "asset": "cobblestone_floor_08",
+      "kind": "Diffuse",
+      "filename": "cobblestone_floor_08_diff_2k.jpg",
+      "size": 2289909,
+      "md5": "56404e8a3cdf04c8697dbbc7f9ddd65c",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/cobblestone_floor_08/cobblestone_floor_08_diff_2k.jpg"
+    },
+    {
+      "asset": "cobblestone_floor_08",
+      "kind": "nor_gl",
+      "filename": "cobblestone_floor_08_nor_gl_2k.jpg",
+      "size": 3948187,
+      "md5": "3d1c34ed083de54949e8375d69033b0b",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/cobblestone_floor_08/cobblestone_floor_08_nor_gl_2k.jpg"
+    },
+    {
+      "asset": "cobblestone_floor_08",
+      "kind": "Rough",
+      "filename": "cobblestone_floor_08_rough_2k.jpg",
+      "size": 1657928,
+      "md5": "caae39f3ea47e2c09ca897d8dffa00ea",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/cobblestone_floor_08/cobblestone_floor_08_rough_2k.jpg"
+    },
+    {
+      "asset": "cobblestone_floor_08",
+      "kind": "Displacement",
+      "filename": "cobblestone_floor_08_disp_2k.jpg",
+      "size": 537774,
+      "md5": "956f21bf0f92dcab336b955b9334c7d6",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/cobblestone_floor_08/cobblestone_floor_08_disp_2k.jpg"
+    },
+    {
+      "asset": "castle_wall_slates",
+      "kind": "Diffuse",
+      "filename": "castle_wall_slates_diff_2k.jpg",
+      "size": 2381426,
+      "md5": "abec73c50e2f2052d9c92f7ac10b8dbd",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/castle_wall_slates/castle_wall_slates_diff_2k.jpg"
+    },
+    {
+      "asset": "castle_wall_slates",
+      "kind": "nor_gl",
+      "filename": "castle_wall_slates_nor_gl_2k.jpg",
+      "size": 4054865,
+      "md5": "2d0f79ec91411413d25b03cd81db8e6a",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/castle_wall_slates/castle_wall_slates_nor_gl_2k.jpg"
+    },
+    {
+      "asset": "castle_wall_slates",
+      "kind": "Rough",
+      "filename": "castle_wall_slates_rough_2k.jpg",
+      "size": 2005253,
+      "md5": "b92cfe31c812710075c8405b0c5dd34f",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/castle_wall_slates/castle_wall_slates_rough_2k.jpg"
+    },
+    {
+      "asset": "castle_wall_slates",
+      "kind": "Displacement",
+      "filename": "castle_wall_slates_disp_2k.jpg",
+      "size": 568574,
+      "md5": "adcaefa9d54b27ba5940351b3ec7602e",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/castle_wall_slates/castle_wall_slates_disp_2k.jpg"
+    }
+  ]
+}

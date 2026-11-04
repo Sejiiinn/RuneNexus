@@ -1,0 +1,196 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>젬 카드 설명 · 4개 시안</title><style>
+@font-face{font-family:ReviewKR;src:url('/assets/fonts/NotoSansKR-VF.ttf');font-weight:100 900}
+body{margin:0;background:#080f15;color:#e8f8ff;font-family:ReviewKR,sans-serif}
+header{padding:28px 24px 22px}h1{margin:0 0 8px;font-size:26px}header p{margin:0;color:#99b0bd;font-size:14px}
+.board{display:flex;justify-content:center;gap:12px;padding:0 22px 28px}
+.variant-slot{zoom:.75}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d){background:#101a23;border:1px solid #243a49;border-radius:12px;padding:20px;width:400px;min-height:550px}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) .subtitle{height:36px;margin:0 0 16px;line-height:1.5;font-size:12px;color:#93a8b6}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) h2{font-size:19px;line-height:1.4;margin:0 0 5px;color:#e8f8ff}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) .cards{gap:10px}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) .card{width:80px;height:210px;border:1px solid #e88727;border-radius:8px;background:linear-gradient(155deg,#49331d,#151c25 72%);box-shadow:none}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) .name{color:#e8f8ff;font-size:11px;white-space:nowrap;letter-spacing:-.4px}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) .owned{box-sizing:border-box;width:66px;height:22px;display:flex;justify-content:center;align-items:center;padding:0;border:1px solid #4b535b;background:#182129;color:#9ca3ab;border-radius:999px;font-size:9px;font-weight:800;line-height:1;margin:0}
+.board :is(#variant-a,#variant-b,#variant-c,#variant-d) .condition{color:#a9b9c4}
+footer{padding:0 24px 24px;color:#8197a5;font-size:13px}
+</style><header><h1>젬 카드 설명 · 4개 시안</h1><p>같은 폭의 카드 안에서 설명 배치만 비교 · 실제 카드 폭 80px 기준, 1.5배 확대</p></header><main class="board"><div class="variant-slot"><section id="variant-a">
+  <style>
+    @font-face{font-family:GemVariantKR;src:url('/assets/fonts/NotoSansKR-VF.ttf') format('truetype');font-weight:100 900;font-display:swap}
+    #variant-a{box-sizing:border-box;width:400px;min-height:520px;padding:20px;background:#101c20;color:#e1eded;font-family:GemVariantKR,sans-serif}
+    #variant-a *{box-sizing:border-box}
+    #variant-a h2{margin:0 0 5px;font-size:19px;font-weight:750;letter-spacing:-.5px}
+    #variant-a .subtitle{margin:0 0 19px;color:#91a4a8;font-size:12px;line-height:1.5;letter-spacing:-.4px}
+    #variant-a .cards{display:flex;justify-content:center;gap:10px;zoom:2}
+    #variant-a .card{width:80px;height:210px;position:relative;display:flex;flex-direction:column;align-items:center;padding:10px 5px 8px;border:1px solid #a85d30;border-radius:5px;background:linear-gradient(160deg,#2c2724,#172529 55%,#132126);box-shadow:inset 0 1px 0 #e4a06835,0 2px 4px #0003;text-align:center}
+    #variant-a .gem{width:34px;height:34px;object-fit:contain;margin-bottom:5px;filter:drop-shadow(0 1px 3px #e98d4933)}
+    #variant-a .name{margin:0;min-height:30px;font-size:11px;font-weight:800;line-height:1.35;color:#ffb971;letter-spacing:-.45px;word-break:keep-all;display:flex;align-items:center;justify-content:center}
+    #variant-a .effects{display:flex;flex-direction:column;gap:12px;padding-top:9px;width:100%}
+    #variant-a .effect{display:flex;flex-direction:column;gap:1px;line-height:1.45;white-space:nowrap}
+    #variant-a .label{font-size:8.5px;font-weight:450;color:#95a5a8;letter-spacing:-.25px}
+    #variant-a .value{font-size:9.5px;font-weight:650;color:#ebf0ed;letter-spacing:-.3px}
+    #variant-a .single{font-size:9px;font-weight:550;color:#d2dcd9;letter-spacing:-.3px;line-height:1.45;white-space:nowrap}
+    #variant-a .footer{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:7px}
+    #variant-a .condition{font-size:8px;line-height:1.35;color:#bfa58c;white-space:nowrap}
+    #variant-a .owned{font-size:8px;line-height:1.4;padding:2px 6px;color:#939b9d;background:#7780841c;border:1px solid #77808435;border-radius:3px;white-space:nowrap}
+  </style>
+  <h2>A · 중앙 묶음</h2>
+  <p class="subtitle">효과마다 두 줄로 묶어 위에서 아래로 차분하게 읽기</p>
+  <div class="cards">
+    <article class="card">
+      <img class="gem" src="/design/legacy/assets/images/gems/explosion.png" alt="폭발 젬">
+      <h3 class="name">폭발</h3>
+      <div class="effects">
+        <div class="single">범위 피해 부여</div>
+        <div class="effect"><span class="label">효과 범위</span><span class="value">25% 증가</span></div>
+      </div>
+      <div class="footer"><span class="owned">미보유</span></div>
+    </article>
+    <article class="card">
+      <img class="gem" src="/design/legacy/assets/images/gems/heavyWeapon.png" alt="중화기 증폭 젬">
+      <h3 class="name">중화기 증폭</h3>
+      <div class="effects">
+        <div class="effect"><span class="label">피해</span><span class="value">30% 증폭</span></div>
+        <div class="effect"><span class="label">효과 범위</span><span class="value">20% 증가</span></div>
+      </div>
+      <div class="footer"><span class="condition">중화기 전용</span><span class="owned">미보유</span></div>
+    </article>
+  </div>
+</section>
+</div><div class="variant-slot"><section id="variant-b" aria-labelledby="variant-b-title">
+  <style>
+    @font-face { font-family: GemVariantB; src: url('/assets/fonts/NotoSansKR-VF.ttf') format('truetype'); }
+    #variant-b { box-sizing: border-box; width: 400px; min-height: 520px; padding: 20px; background: #101b25; color: #e6e9ed; font-family: GemVariantB, sans-serif; }
+    #variant-b * { box-sizing: border-box; }
+    #variant-b h2 { margin: 0 0 5px; font-size: 19px; font-weight: 750; }
+    #variant-b .subtitle { margin: 0 0 19px; color: #9eafb9; font-size: 12px; }
+    #variant-b .cards { display: flex; gap: 12px; justify-content: center; zoom: 2; }
+    #variant-b .card { width: 80px; height: 210px; display: flex; flex-direction: column; align-items: center; padding: 9px 6px 8px; border: 1px solid #d8852f; border-radius: 6px; background: linear-gradient(180deg, #20303a, #17232d); }
+    #variant-b img { display: block; width: 34px; height: 34px; object-fit: contain; }
+    #variant-b .name { height: 29px; display: flex; align-items: center; justify-content: center; margin: 4px 0 8px; font-size: 11px; font-weight: 750; line-height: 1.25; white-space: nowrap; }
+    #variant-b .effects { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8px; line-height: 1.55; }
+    #variant-b .effects col:first-child { width: 29px; }
+    #variant-b .effects th, #variant-b .effects td { height: 37px; padding: 4px 0; vertical-align: middle; border-bottom: 1px solid #34434b; }
+    #variant-b .effects th { text-align: left; font-weight: 500; color: #a9bac6; }
+    #variant-b .effects td { text-align: right; font-weight: 650; color: #edf0f2; }
+    #variant-b .effects span { display: block; white-space: nowrap; }
+    #variant-b .condition { margin: auto 0 5px; color: #a9bac6; font-size: 8px; line-height: 1.5; white-space: nowrap; }
+    #variant-b .condition.empty { visibility: hidden; }
+    #variant-b .owned { margin: 0; font-size: 9px; font-weight: 500; color: #7e8b96; line-height: 1.4; }
+  </style>
+  <h2 id="variant-b-title">B · 요약표</h2>
+  <p class="subtitle">효과명과 결과를 고정된 두 열로 맞춘 구성</p>
+  <div class="cards">
+    <article class="card" aria-label="폭발 젬">
+      <img src="/design/legacy/assets/images/gems/explosion.png" alt="">
+      <h3 class="name">폭발</h3>
+      <table class="effects" aria-label="폭발 효과">
+        <colgroup><col><col></colgroup>
+        <tbody>
+          <tr><th scope="row"><span>범위</span><span>피해</span></th><td><span>부여</span></td></tr>
+          <tr><th scope="row"><span>효과</span><span>범위</span></th><td><span>25%</span><span>증가</span></td></tr>
+        </tbody>
+      </table>
+      <p class="condition empty" aria-hidden="true">전용 조건</p>
+      <p class="owned">미보유</p>
+    </article>
+    <article class="card" aria-label="중화기 증폭 젬">
+      <img src="/design/legacy/assets/images/gems/heavyWeapon.png" alt="">
+      <h3 class="name">중화기 증폭</h3>
+      <table class="effects" aria-label="중화기 증폭 효과">
+        <colgroup><col><col></colgroup>
+        <tbody>
+          <tr><th scope="row"><span>피해</span></th><td><span>30%</span><span>증폭</span></td></tr>
+          <tr><th scope="row"><span>효과</span><span>범위</span></th><td><span>20%</span><span>증가</span></td></tr>
+        </tbody>
+      </table>
+      <p class="condition">중화기 전용</p>
+      <p class="owned">미보유</p>
+    </article>
+  </div>
+</section>
+</div><div class="variant-slot"><section id="variant-c">
+  <style>
+    @font-face { font-family: 'GemVariantNoto'; src: url('/assets/fonts/NotoSansKR-VF.ttf'); font-weight: 100 900; }
+    #variant-c { box-sizing: border-box; width: 400px; min-height: 520px; padding: 22px; background: #111b20; color: #eef2f0; font-family: 'GemVariantNoto', sans-serif; }
+    #variant-c * { box-sizing: border-box; }
+    #variant-c h2 { margin: 0 0 6px; font-size: 19px; line-height: 1.4; }
+    #variant-c .subtitle { margin: 0 0 20px; color: #a8b4b9; font-size: 12px; line-height: 1.5; }
+    #variant-c .cards { display: flex; justify-content: center; gap: 10px; zoom: 2; }
+    #variant-c .card { width: 80px; height: 210px; padding: 9px 5px 7px; border: 1px solid #bd7538; border-radius: 7px; background: linear-gradient(160deg, #302b25, #20272a 64%); display: flex; flex-direction: column; align-items: center; text-align: center; }
+    #variant-c .gem { width: 34px; height: 34px; object-fit: contain; }
+    #variant-c .name { font-size: 11px; font-weight: 750; line-height: 14px; height: 28px; margin: 5px 0 6px; display: flex; align-items: center; justify-content: center; color: #f4ba76; word-break: keep-all; }
+    #variant-c .effects { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    #variant-c .effect { height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #variant-c .value { font-size: 18px; font-weight: 760; line-height: 22px; letter-spacing: -0.5px; white-space: nowrap; }
+    #variant-c .operation { margin-left: 2px; font-size: 8px; font-weight: 600; letter-spacing: 0; }
+    #variant-c .label { color: #b2bec2; font-size: 9px; line-height: 12px; white-space: nowrap; }
+    #variant-c .grant { color: #eef2f0; font-size: 11px; font-weight: 650; line-height: 15px; }
+    #variant-c .condition { height: 13px; margin-top: auto; color: #b2bec2; font-size: 8px; line-height: 13px; white-space: nowrap; }
+    #variant-c .owned { margin-top: 4px; color: #848c92; font-size: 9px; line-height: 13px; }
+  </style>
+  <h2>C · 수치 우선</h2>
+  <p class="subtitle">수치를 크게, 바로 아래에 효과 대상을 연결</p>
+  <div class="cards">
+    <article class="card" aria-label="폭발: 범위 피해 부여, 효과 범위 25% 증가, 미보유">
+      <img class="gem" src="/design/legacy/assets/images/gems/explosion.png" alt="">
+      <div class="name">폭발</div>
+      <div class="effects">
+        <div class="effect"><span class="grant">범위 피해</span><span class="label">부여</span></div>
+        <div class="effect"><span class="value">25%<span class="operation">증가</span></span><span class="label">효과 범위</span></div>
+      </div>
+      <div class="condition"></div>
+      <div class="owned">미보유</div>
+    </article>
+    <article class="card" aria-label="중화기 증폭: 피해 30% 증폭, 효과 범위 20% 증가, 중화기 전용, 미보유">
+      <img class="gem" src="/design/legacy/assets/images/gems/heavyWeapon.png" alt="">
+      <div class="name">중화기 증폭</div>
+      <div class="effects">
+        <div class="effect"><span class="value">30%<span class="operation">증폭</span></span><span class="label">피해</span></div>
+        <div class="effect"><span class="value">20%<span class="operation">증가</span></span><span class="label">효과 범위</span></div>
+      </div>
+      <div class="condition">중화기 전용</div>
+      <div class="owned">미보유</div>
+    </article>
+  </div>
+</section>
+</div><div class="variant-slot"><section id="variant-d">
+  <style>
+    @font-face{font-family:GemVariantKR;src:url('/assets/fonts/NotoSansKR-VF.ttf') format('truetype');font-weight:100 900;font-display:swap}
+    #variant-d{box-sizing:border-box;width:400px;min-height:520px;padding:20px;background:#101c20;color:#e1eded;font-family:GemVariantKR,sans-serif}
+    #variant-d *{box-sizing:border-box}
+    #variant-d h2{margin:0 0 5px;font-size:19px;font-weight:750;letter-spacing:-.5px}
+    #variant-d .subtitle{margin:0 0 19px;color:#91a4a8;font-size:12px;line-height:1.5;letter-spacing:-.4px}
+    #variant-d .cards{display:flex;justify-content:center;gap:10px;zoom:2}
+    #variant-d .card{width:80px;height:210px;display:flex;flex-direction:column;align-items:center;padding:10px 5px 8px;border:1px solid #a85d30;border-radius:5px;background:linear-gradient(160deg,#2c2724,#172529 55%,#132126);text-align:center}
+    #variant-d .gem{width:34px;height:34px;object-fit:contain;margin-bottom:5px}
+    #variant-d .name{margin:0;min-height:30px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;line-height:1.35;letter-spacing:-.45px;word-break:keep-all;color:#ffb971}
+    #variant-d .primary{width:100%;min-height:46px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;color:#f0e4cc;border-bottom:1px solid #6d77743b}
+    #variant-d .primary .label{font-size:8.5px;color:#b6c3c4;line-height:1.4}
+    #variant-d .primary .value{font-size:11px;font-weight:800;line-height:1.5;white-space:nowrap}
+    #variant-d .secondary{width:100%;padding-top:8px;display:flex;flex-direction:column;gap:2px}
+    #variant-d .secondary .label{font-size:8px;color:#92a5aa;line-height:1.4}
+    #variant-d .secondary .value{font-size:8.5px;color:#ccd6d8;line-height:1.5;font-weight:600;white-space:nowrap}
+    #variant-d .footer{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:7px}
+    #variant-d .condition{font-size:8px;line-height:1.35;color:#bfa58c;white-space:nowrap}
+    #variant-d .owned{font-size:8px;line-height:1.4;padding:2px 6px;color:#939b9d;background:#7780841c;border:1px solid #77808435;border-radius:3px;white-space:nowrap}
+  </style>
+  <h2>D · 핵심 효과 강조</h2>
+  <p class="subtitle">주효과를 먼저 읽고 추가 효과를 아래에서 확인</p>
+  <div class="cards">
+    <article class="card">
+      <img class="gem" src="/design/legacy/assets/images/gems/explosion.png" alt="폭발 젬">
+      <h3 class="name">폭발</h3>
+      <div class="primary"><span class="label">범위 피해</span><strong class="value">부여</strong></div>
+      <div class="secondary"><span class="label">효과 범위</span><span class="value">25% 증가</span></div>
+      <div class="footer"><span class="owned">미보유</span></div>
+    </article>
+    <article class="card">
+      <img class="gem" src="/design/legacy/assets/images/gems/heavyWeapon.png" alt="중화기 증폭 젬">
+      <h3 class="name">중화기 증폭</h3>
+      <div class="primary"><span class="label">피해</span><strong class="value">30% 증폭</strong></div>
+      <div class="secondary"><span class="label">효과 범위</span><span class="value">20% 증가</span></div>
+      <div class="footer"><span class="condition">중화기 전용</span><span class="owned">미보유</span></div>
+    </article>
+  </div>
+</section>
+</div></main><footer>공통 유지: 효과·수치·전용 조건 모두 표시 / 회색 미보유 / 카드 아래 상세 규칙 유지 · 게임 미적용 시안</footer></html>

@@ -1,0 +1,252 @@
+import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
+import 'package:three_js/three_js.dart' as three;
+import 'package:rune_nexus/data/save/online_save_repository.dart';
+import 'package:rune_nexus/data/save/save_repository.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_frame.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/stage1_scene.dart';
+import 'package:rune_nexus/game/rune_nexus_game.dart';
+
+void main() => runApp(
+  MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData.dark(useMaterial3: true),
+    home: const CannonBarrageReview(),
+  ),
+);
+
+class CannonBarrageReview extends StatefulWidget {
+  const CannonBarrageReview({super.key});
+
+  @override
+  State<CannonBarrageReview> createState() => _CannonBarrageReviewState();
+}
+
+class _CannonBarrageReviewState extends State<CannonBarrageReview> {
+  static const viewport = Size(880, 760);
+  late final RuneNexusGame game;
+  late final three.ThreeJS view;
+  late final Stage1Scene stage;
+  bool rendererReady = false;
+  bool started = false;
+  bool playing = true;
+  double speed = 1;
+  double zoom = 1.2;
+  double labelElapsed = 0;
+  Stage1CameraView camera = Stage1CameraView.angled;
+
+  @override
+  void initState() {
+    super.initState();
+    game = RuneNexusGame(
+      transparentBackground: true,
+      saveRepository: MemorySaveRepository(),
+      onlineSaveRepository: const NoopOnlineSaveRepository(),
+    );
+    game.readyNotifier.addListener(startScenario);
+    view = three.ThreeJS(
+      size: viewport,
+      setup: () async {
+        await stage.load();
+        stage.prepareEnvironment(view.renderer!);
+      },
+      onSetupComplete: () {
+        rendererReady = true;
+        startScenario();
+        view.addAnimationEvent((dt) {
+          syncScene();
+          labelElapsed += dt;
+          if (labelElapsed >= .25 && mounted) {
+            labelElapsed = 0;
+            setState(() {});
+          }
+        });
+      },
+      settings: three.Settings(
+        screenResolution: 1.25,
+        antialias: true,
+        clearColor: 0x101b20,
+        clearAlpha: 1,
+        toneMapping: three.AgXToneMapping,
+        toneMappingExposure: 1.11,
+        enableShadowMap: true,
+        shadowMapType: three.PCFSoftShadowMap,
+      ),
+    );
+    view.scene = three.Scene();
+    view.camera = three.OrthographicCamera(-5, 5, 5, -5, .1, 100);
+    stage = Stage1Scene(view);
+  }
+
+  void startScenario() {
+    if (started || !rendererReady || !game.readyNotifier.value) return;
+    game.debugShowCannonBarrage();
+    started = true;
+    syncScene();
+  }
+
+  void syncScene() {
+    if (!started) return;
+    final frame = game.battlefieldFrame;
+    if (frame == null) return;
+    // 실제 전투 입력 유지, 검수 화면의 카메라 맞춤만 독립 적용.
+    stage.update(
+      BattlefieldFrame(
+        map: frame.map,
+        turrets: frame.turrets,
+        enemies: frame.enemies,
+        projectiles: frame.projectiles,
+        impacts: frame.impacts,
+        time: frame.time,
+        pixelsPerTile: 66,
+        zoom: zoom,
+        screenCenter: const Offset(440, 380),
+        nexusHpRatio: frame.nexusHpRatio,
+        nexusHit: frame.nexusHit,
+        portalAlert: frame.portalAlert,
+      ),
+      viewport,
+      cameraView: camera,
+    );
+  }
+
+  @override
+  void dispose() {
+    game.readyNotifier.removeListener(startScenario);
+    game.pauseEngine();
+    game.disposeAppResources();
+    view.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFF101B20),
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          child: SizedBox(
+            width: 920,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    '대포 6문 · 실제 3D 연속 사격',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Text(
+                  started
+                      ? '고체력 정지 표적 ${game.enemies.length}기 · 각 최대 체력 10억'
+                      : '3D 전장과 전투 준비 중…',
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (final entry in {
+                        Stage1CameraView.angled: '고정 시점',
+                        Stage1CameraView.drone: '드론 시점',
+                      }.entries)
+                        ChoiceChip(
+                          label: Text(entry.value),
+                          selected: camera == entry.key,
+                          onSelected: (_) {
+                            setState(() => camera = entry.key);
+                            syncScene();
+                          },
+                        ),
+                      for (final value in [1.0, 2.0, 4.0])
+                        ChoiceChip(
+                          label: Text('${value.toInt()}배속'),
+                          selected: speed == value,
+                          onSelected: (_) {
+                            setState(() => speed = value);
+                            game.setSpeedMultiplier(value);
+                          },
+                        ),
+                      FilledButton.tonal(
+                        onPressed: () {
+                          setState(() => playing = !playing);
+                          playing ? game.resumeEngine() : game.pauseEngine();
+                        },
+                        child: Text(playing ? '일시 정지' : '재생'),
+                      ),
+                      OutlinedButton(
+                        onPressed: !started
+                            ? null
+                            : game.debugShowCannonBarrage,
+                        child: const Text('다시 배치'),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: (MediaQuery.sizeOf(context).height - 235).clamp(
+                    300.0,
+                    viewport.height,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: SizedBox(
+                      width: viewport.width,
+                      height: viewport.height,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // 전투 갱신은 Flame, 화면은 실제 3D 렌더만 표시.
+                          IgnorePointer(
+                            child: Opacity(
+                              opacity: 0,
+                              child: GameWidget(game: game),
+                            ),
+                          ),
+                          view.build(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (started)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      [
+                        for (var i = 0; i < game.enemies.length; i++)
+                          '표적 ${i + 1} 체력 ${game.enemies[i].hp.toStringAsFixed(0)}',
+                      ].join('   ·   '),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Row(
+                    children: [
+                      const Text('확대'),
+                      Expanded(
+                        child: Slider(
+                          min: .8,
+                          max: 2.2,
+                          value: zoom,
+                          onChanged: (value) {
+                            setState(() => zoom = value);
+                            syncScene();
+                          },
+                        ),
+                      ),
+                      Text('${zoom.toStringAsFixed(1)}×'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}

@@ -1,0 +1,256 @@
+// 실제 전장과 동일한 착탄 렌더를 두 카메라에서 재생·정지하는 개발용 검수 화면.
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:three_js/three_js.dart' as three;
+import 'package:rune_nexus/data/definitions/game_stage_maps.dart';
+import 'package:rune_nexus/domain/turret/turret_type.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_frame.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/stage1_scene.dart';
+
+void main() => runApp(
+  MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData.dark(useMaterial3: true),
+    home: const ShellReview(),
+  ),
+);
+
+class ShellReview extends StatefulWidget {
+  const ShellReview({super.key});
+  @override
+  State<ShellReview> createState() => _ShellReviewState();
+}
+
+class _ShellReviewState extends State<ShellReview> {
+  late final three.ThreeJS view;
+  late final Stage1Scene stage;
+  late Stage1CameraView cameraView;
+  late double age;
+  late bool playing;
+  bool ready = false;
+  double labelAge = 0;
+  double zoom = 1.6;
+  static const viewport = Size(720, 620);
+  @override
+  void initState() {
+    super.initState();
+    final query = Uri.base.queryParameters;
+    age = double.tryParse(query['time'] ?? '') ?? 0;
+    playing = query['paused'] != '1';
+    cameraView = query['view'] == 'drone'
+        ? Stage1CameraView.drone
+        : Stage1CameraView.angled;
+    view = three.ThreeJS(
+      size: viewport,
+      setup: setup,
+      onSetupComplete: () {
+        ready = true;
+        sync();
+        view.addAnimationEvent((dt) {
+          if (!playing) return;
+          age = (age + dt) % 2.0;
+          sync();
+          if ((age - labelAge).abs() > .05) {
+            labelAge = age;
+            if (mounted) setState(() {});
+          }
+        });
+        if (mounted) setState(() {});
+      },
+      settings: three.Settings(
+        screenResolution: 1.25,
+        antialias: true,
+        clearColor: 0x101b20,
+        clearAlpha: 1,
+        toneMapping: three.AgXToneMapping,
+        toneMappingExposure: 1.11,
+        enableShadowMap: true,
+        shadowMapType: three.PCFSoftShadowMap,
+      ),
+    );
+    view.scene = three.Scene();
+    view.camera = three.OrthographicCamera(-5, 5, 5, -5, .1, 100);
+    stage = Stage1Scene(view);
+  }
+
+  Future<void> setup() async {
+    await stage.load();
+    stage.prepareEnvironment(view.renderer!);
+  }
+
+  void sync() {
+    if (!ready) return;
+    stage.update(
+      BattlefieldFrame(
+        map: gameMap,
+        turrets: const [
+          BattlefieldTurret(
+            id: 1,
+            type: TurretType.cannon,
+            position: Offset(3.5, 4.5),
+            aimAngle: 0,
+            fireFeedback: 0,
+            shotSequence: 0,
+            level: 1,
+          ),
+        ],
+        enemies: const [],
+        projectiles: const [],
+        impacts: age < BattlefieldImpact.duration
+            ? [
+                BattlefieldImpact(
+                  id: 42,
+                  position: const Offset(4.5, 4.5),
+                  radius: .9,
+                  progress: age / BattlefieldImpact.duration,
+                ),
+              ]
+            : const [],
+        time: age,
+        pixelsPerTile: 66,
+        zoom: zoom,
+        screenCenter: const Offset(335, 345),
+        nexusHpRatio: 1,
+        nexusHit: 0,
+        portalAlert: 0,
+      ),
+      viewport,
+      cameraView: cameraView,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFF101b20),
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          child: SizedBox(
+            width: 760,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    '포탄 폭발 · 실제 3D 렌더',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    '동일한 폭발을 고정 시점과 드론 시점에서 비교합니다.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('2.5D 고정 시점'),
+                        selected: cameraView == Stage1CameraView.angled,
+                        onSelected: (_) {
+                          setState(() => cameraView = Stage1CameraView.angled);
+                          sync();
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('드론 시점'),
+                        selected: cameraView == Stage1CameraView.drone,
+                        onSelected: (_) {
+                          setState(() => cameraView = Stage1CameraView.drone);
+                          sync();
+                        },
+                      ),
+                      FilledButton.tonal(
+                        onPressed: () {
+                          setState(() => playing = !playing);
+                        },
+                        child: Text(playing ? '일시 정지' : '재생'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () {
+                          setState(() {
+                            age = 0;
+                            playing = true;
+                          });
+                          sync();
+                        },
+                        child: const Text('다시 폭발'),
+                      ),
+                    ],
+                  ),
+                ),
+                // 플랫폼 렌더 타깃 크기를 고정하고 전체를 동일 비율로 축소.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: viewport.width,
+                    height: viewport.height,
+                    child: view.build(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      const Text('시간'),
+                      Expanded(
+                        child: Slider(
+                          value: math.min(age, 1.1),
+                          min: 0,
+                          max: 1.1,
+                          onChanged: (value) {
+                            setState(() {
+                              age = value;
+                              playing = false;
+                            });
+                            sync();
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 64,
+                        child: Text(
+                          '${math.min(age, 1.1).toStringAsFixed(2)}초',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Row(
+                    children: [
+                      const Text('확대'),
+                      Expanded(
+                        child: Slider(
+                          value: zoom,
+                          min: .8,
+                          max: 2.4,
+                          onChanged: (value) {
+                            setState(() => zoom = value);
+                            sync();
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 64,
+                        child: Text('${zoom.toStringAsFixed(1)}×'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
