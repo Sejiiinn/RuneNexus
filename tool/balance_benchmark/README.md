@@ -43,6 +43,23 @@ python3 scripts/run_balance_benchmark.py --job=ab --stage=9 --seeds=6 --progress
 
 [calibration.json](calibration.json)은 봇 판단의 보정값이며 `_notes`에 근거 측정을 적는다. 결과는 `build/balance-benchmark/run-*/summary.json`에 남는다. `checkpoint`·`campaign` 행과 `ab` 변형마다 `board`(판당 종류별 포탑 수, 종류별 피해 비중, 종류별 직격·범위·연쇄·화상 비율)를 요약하고, `checkpoint`·`campaign` 행은 그 판의 장착 모듈(`modules`)도 남긴다. 포탑별 원자료(`turrets`의 `damageParts`, 경로 위치 `pathProgress` 0=입구·1=코어)는 각 작업 보고서에 있다.
 
+### 이어 하기 (`--resume`·`--fork`)
+
+`campaign`·`checkpoint`는 경로마다 스테이지를 클리어할 때 `run-*/checkpoints/t<경로>/after-<ID>/`에 상태를 남긴다. 클리어 정산 뒤·다음 스테이지 소비 전의 계정 전체(봇 전용 키 포함), 봇 기억(직전 판·피해·수입·클리어 기록), 모듈 난수 상태를 Godot 바이너리(`state.bin`)로 저장하고, 마지막에 `manifest.json`(해시)을 쓴다. 매니페스트가 없는 폴더는 미완성이다. 실행 폴더의 `manifest.json`에는 입력 지문(게임 코드·콘텐츠, 봇, `_notes`를 뺀 보정값, `--params`, 작업 종류, `--farm-clears`, 엔진 버전)과 봇 인자가 남는다.
+
+```sh
+python3 scripts/run_balance_benchmark.py --job=checkpoint --resume=build/balance-benchmark/run-<id> --stages=26-30
+python3 scripts/run_balance_benchmark.py --job=checkpoint --fork=build/balance-benchmark/run-<id> --stages=26-30 --params='{...}'
+```
+
+| 옵션 | 동작 |
+| --- | --- |
+| `--resume` | 원래 실행의 경로 수·봇 인자·`--params`를 이어받아 `--stages` 직전 클리어 상태에서 경로마다 출발한다. 지문이 하나라도 다르면 거부한다. 같은 입력이면 연속 실행과 결과가 같다 |
+| `--fork` | 같은 출발 상태에 바뀐 입력(콘텐츠·`--params` 등)을 적용하는 실험이다. 다른 항목을 `parent.differs`에 남긴다 |
+| `--margins=0` | `campaign`·`checkpoint` 뒤의 여유도 측정을 건너뛴다 |
+
+`--stages`는 저장된 클리어 바로 다음 스테이지에서 시작해야 하고, 경로 하나라도 상태가 없으면 실행하지 않는다. 앞 구간을 고정하고 한 스테이지의 수치만 비교할 때는 `--fork`, 변경의 누적 영향을 볼 때는 처음부터 다시 돌린다. 오래 도는 실행이 있는 동안 다른 측정을 하려면 `BALANCE_BENCHMARK_CACHE=<다른 폴더>`로 격리 프로젝트를 나눈다(실행기는 시작할 때 격리 프로젝트를 다시 쓴다). `--progression-file`·`snapshot-*.json`은 계정만 넣는 실험 입력으로 따로 남아 있다.
+
 ### 실험용 매개변수
 
 `--params`(또는 `ab`의 `--variants`)로 넘긴다. 기본값은 모두 꺼져 있어 일반 측정에는 영향이 없다.
@@ -56,6 +73,7 @@ python3 scripts/run_balance_benchmark.py --job=ab --stage=9 --seeds=6 --progress
 | `frontTypes`·`frontProgress` | 적힌 종류는 `frontProgress` 앞쪽, 나머지는 뒤쪽 칸에만 짓는다 |
 | `turretOverrides` | `{종류: {정의 필드: 값}}`. 이 프로세스 안에서만 기본 스탯(피해·공격 속도·폭발 반경 등)을 바꾼다. 건설·강화 비용은 바꾸지 못한다 |
 | `moduleType` | 모든 모듈을 이 종류로 뽑는다(기본은 마지막 판 피해 1위 종류) |
+| `moduleFloor` | 런마다 모든 종류의 코어·포신·프레임을 이 등급 이상으로 채운다. 빈 칸이나 낮은 칸에는 뽑기 규칙으로 굴린 그 등급 모듈을 끼우고, 그보다 낮게 뽑힌 모듈은 분해한다. 바닥 모듈은 분해 보상이 없다. 기본 설정(`calibration.json`)은 `rare`로, 주력 종류에 모듈이 몰려 종류 판단이 기우는 것을 막는다 |
 | `runeWeights` | `{강화 ID: 가중치}`. `RUNE_WEIGHTS`를 바꾼다. 판 기록이 없는 출발 계정의 계열 강화를 원소 쪽으로 돌릴 때 쓴다 |
 
 조합을 고정해 비교할 때는 주력 종류로 `moduleType`을 맞추고, 원소 조합이면 `runeWeights`로 원소 강화를 앞세운다. 그렇지 않으면 출발 계정의 모듈·강화가 물리 종류에 쏠려 결과가 왜곡된다.
@@ -73,12 +91,13 @@ python3 scripts/run_balance_benchmark.py --job=ab --stage=9 --seeds=6 --progress
 - 코어 트리: 런 사이에 남은 포인트를 `CORE_WEIGHTS`(효과 1단위의 피해 환산 가치 가정) ÷ 포인트 순으로 1랭크씩 배분한다. 키스톤은 고르지 않는다.
 - 연구: 슬롯이 비면 `RESEARCH_WEIGHTS` ÷ 룬 비용으로 영구 강화와 함께 비교해 시작한다. 계정 시계는 판마다 게임 시간 ÷ `playSpeed`(기본 2배속) + `secondsBetweenRuns`(기본 60초)만큼 흐르고, 다음 시도 전에 끝난 연구를 받는다.
 - 달력(`playHoursPerDay`): 0보다 크면 실제 시간이 플레이 시간의 24/playHoursPerDay배로 흐른다. 연구는 오프라인에도 진행되고, 하루마다 일일·주간 퀘스트와 출석 보상(다이아·모듈권, 모두 완료 가정)이 들어온다. 보고서의 `clockHours`는 달력 시간, `playHours`는 플레이 시간이다.
-- 모듈(`modules`): 다이아를 모듈권(40다이아)으로 바꾸고, 모든 권으로 마지막 판에서 피해가 가장 큰 포탑 종류의 모듈을 서버 규칙(부위 균등, 뽑기 수에 따른 등급, 등급별 옵션 수, 옵션 범위)대로 뽑는다. 부위마다 마지막 판 기준 DPS가 가장 높은 모듈만 남기고, 나머지는 분해 환급(다이아)한다. 판 안 다이아 드롭, 첫 클리어 모듈권, 새로 달성한 도전 보상을 서버처럼 더한다. 전투 없이 정산하는 클리어는 그 스테이지의 마지막 실제 클리어 기록(없으면 `baselineRunGameSeconds`·`baselineRunDiamonds`)을 쓴다.
-- 다루지 않는 것: 누적 업적·컬렉션 메달 다이아, 우편, 연구 2번 슬롯·다이아 가속, 여러 종류에 나눠 뽑는 모듈 전략.
+- 모듈(`modules`): 다이아를 모듈권(40다이아)으로 바꾸고, 모든 권으로 마지막 판에서 피해가 가장 큰 포탑 종류의 모듈을 서버 규칙(부위 균등, 뽑기 수에 따른 등급, 등급별 옵션 수, 옵션 범위)대로 뽑는다. 부위마다 마지막 판 기준 DPS가 가장 높은 모듈만 남기고, 나머지는 분해 환급(다이아)한다. 기본 설정은 `moduleFloor: rare`라 뽑기와 별개로 모든 종류가 희귀 이상 3부위를 갖는다. 판 안 다이아 드롭, 첫 클리어 모듈권, 새로 달성한 도전 보상을 서버처럼 더한다. 전투 없이 정산하는 클리어는 그 스테이지의 마지막 실제 클리어 기록(없으면 `baselineRunGameSeconds`·`baselineRunDiamonds`)을 쓴다.
+- 다루지 않는 것: 누적 업적·컬렉션 메달 다이아, 우편, 연구 2번 슬롯·다이아 가속, 여러 종류에 나눠 뽑는 모듈 전략(희귀 바닥이 대신한다).
 
 ## 해석할 때 주의할 한계
 
-- 종류 선택은 계정 상태에 따라 기운다. 계열 강화(물리·원소·독)와 모듈이 이미 쌓인 종류가 계속 유리해지므로, 물리로 키운 계정에서 원소 종류를 거의 고르지 않는다. 자유 선택 결과만으로 종류의 강약을 판단하지 않고, 조합을 제한한 비교(`typeShares`·`moduleType`·`runeWeights`)로 확인한다.
+- 종류 선택은 계정 상태에 따라 기운다. 계열 강화(물리·원소·독)와 모듈이 이미 쌓인 종류가 계속 유리해지므로(모듈은 희귀 바닥으로 줄였지만 주력 종류만 고유 등급까지 오른다), 물리로 키운 계정에서 원소 종류를 거의 고르지 않는다. 자유 선택 결과만으로 종류의 강약을 판단하지 않고, 조합을 제한한 비교(`typeShares`·`moduleType`·`runeWeights`)로 확인한다.
+- 갈래 경로 맵(3-8·3-10 등 `routes`)은 경로마다 경로 정보를 따로 만들고, 사거리 안 경로 길이를 경로별 적 체력 비중으로 가중한다. 보스 몫은 다음 보스가 오는 경로만 센다. 웨이브마다 경로가 바뀌어도 배치는 스테이지 전체 비중으로 판단한다.
 - 칸이 가득 차도 싼 포탑을 팔고 비싼 포탑으로 바꾸지 않는다. 타일당 화력이 높은 종류는 칸이 부족한 맵에서 실제보다 불리하게 나온다.
 - 범위·연쇄·지속피해·감속 가치는 고정 배율과 `typeFactors`로 근사한다. 실제 피해는 보고서의 `damageParts`(직격·범위·연쇄·화상)로 확인한다.
 - `checkpoint`의 반복 클리어는 전투 없이 보상만 더한다. 그 조합으로 직전 스테이지를 실제로 반복 클리어할 수 있는지는 확인하지 않는다.

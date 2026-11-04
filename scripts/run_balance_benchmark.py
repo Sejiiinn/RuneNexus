@@ -20,11 +20,20 @@ Parallel jobs (--job):
                --job=calibrate --stages=3,5,20,10,25,11,13 --seeds=2 --runes=3000 --cleared=1-20
     ab         same seeds for each --variants='[{...},{...}]' params set at a
                fixed account/stage/spend rate:  --job=ab --stage=5 --spend-rate=0.6
+
+campaign/checkpoint store each trajectory's state after every clear in
+run-*/checkpoints/t<n>/after-<id>/. --resume=<run folder> continues every
+trajectory from the clear right before --stages under the same inputs (refused
+when the fingerprint differs); --fork=<run folder> does the same on purpose with
+changed inputs (new content, --params...) and records what differs.
+    --job=checkpoint --resume=build/balance-benchmark/run-... --stages=26-30
+--margins=0 skips the margin jobs that otherwise follow campaign/checkpoint.
 """
 from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -37,7 +46,8 @@ import run_godot_native_regressions as regressions
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tool/balance_benchmark"
 CALIBRATION = TOOL / "calibration.json"
-CACHE = ROOT / "build/godot-balance-benchmark"
+# A second cache keeps a test run from rewriting the project a long run still loads.
+CACHE = Path(os.environ.get("BALANCE_BENCHMARK_CACHE", ROOT / "build/godot-balance-benchmark")).resolve()
 REPORTS = ROOT / "build/balance-benchmark"
 # Turret-waves that hurt the core a type needs before calibrate fits from them alone.
 MIN_PRESSURE_WAVES = 30
@@ -84,6 +94,74 @@ class Runner:
         with ThreadPoolExecutor(max_workers=self.jobs) as pool:
             return list(pool.map(lambda job: self.bot(*job), jobs))
 
+    def engine(self) -> str:
+        process = subprocess.run([self.executable, "--version"], text=True, capture_output=True, timeout=60)
+        return process.stdout.strip()
+
+
+def digest(chunks) -> str:
+    hasher = hashlib.sha256()
+    for chunk in chunks: hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def option_value(args: list[str], name: str, default: str = "") -> str:
+    return next((arg.partition("=")[2] for arg in args if arg.partition("=")[0] == name), default)
+
+
+def fingerprint(runner: Runner, mode: str, params: str, extra: list[str]) -> dict:
+    """Inputs that decide what a stored trajectory state means: the project the bot
+    runs (game code and content), the bot, the effective calibration, params and
+    the account flow. Output paths, timeouts and job counts are left out."""
+    files = manifest()
+    bot = files.pop("godot/tools/balance_bot.gd")
+    calibration = files.pop("godot/tools/calibration.json", None)
+    def data(source): return source if isinstance(source, bytes) else Path(source).read_bytes()
+    settings = json.loads(data(calibration)) if calibration is not None else {}
+    settings.pop("_notes", None)
+    return {"game": digest(name.encode() + b"\0" + data(files[name]) for name in sorted(files)),
+            "bot": digest([data(bot)]),
+            "calibration": json.dumps(settings, sort_keys=True),
+            "params": json.dumps(json.loads(params), sort_keys=True) if params else "",
+            "mode": mode,
+            "farmClears": option_value(extra, "--farm-clears", "3") if mode == "checkpoint" else "",
+            "engine": runner.engine()}
+
+
+def resume_source(options, extra: list[str]) -> tuple[Path | None, dict]:
+    """--resume/--fork run folder and its manifest; its params and bot options fill
+    in whatever this call leaves out."""
+    if not (options.resume or options.fork): return None, {}
+    if options.resume and options.fork: raise SystemExit("use --resume or --fork, not both")
+    source = Path(options.resume or options.fork).resolve()
+    manifest_path = source / "manifest.json"
+    if not manifest_path.is_file(): raise SystemExit(f"no run manifest in {source} (made before checkpoints?)")
+    stored = json.loads(manifest_path.read_text())
+    given = {arg.partition("=")[0] for arg in extra}
+    extra[:0] = [arg for arg in stored["botArgs"] if arg.partition("=")[0] not in given]
+    if options.resume and not options.params: options.params = stored["params"]
+    return source, stored
+
+
+def resume_states(source: Path, stored: dict, first: int, trajectories: int) -> list[Path]:
+    """Each trajectory's state at the clear right before the first stage. A missing
+    trajectory fails the call: dropping it would change the measured group."""
+    order = json.loads((ROOT / "godot/content/source/progression.json").read_text())["order"]
+    position = order.index(first)
+    if position == 0: raise SystemExit("nothing to resume before the first stage")
+    previous = order[position - 1]
+    states, missing = [], []
+    for index in range(trajectories):
+        folder = source / "checkpoints" / f"t{index + 1}" / f"after-{previous}"
+        state = folder / "state.bin"
+        info = folder / "manifest.json"
+        if not info.is_file() or not state.is_file() or \
+                json.loads(info.read_text())["stateSha256"] != hashlib.sha256(state.read_bytes()).hexdigest():
+            missing.append(f"t{index + 1}")
+        states.append(state)
+    if missing: raise SystemExit(f"no complete state after stage {previous} for {missing} in {source}")
+    return states
+
 
 def margin_row(levels: list[dict]) -> dict:
     """Lowest spend rate every seed still cleared, and the rate where none did."""
@@ -116,10 +194,28 @@ def board_summary(boards: list[list[dict]]) -> dict:
 
 
 def campaign(runner: Runner, options, extra: list[str], mode: str = "campaign") -> dict:
+    extra = list(extra)
+    source, stored = resume_source(options, extra)
+    count = stored.get("trajectories", options.trajectories)
+    if source is not None and stored.get("mode") != mode:
+        raise SystemExit(f"{source} is a {stored.get('mode')} run, not {mode}")
+    current = fingerprint(runner, mode, options.params, extra)
+    differs = sorted(key for key in current if source is not None and current[key] != stored["fingerprint"].get(key))
+    if options.resume and differs:
+        raise SystemExit(f"--resume refused, inputs differ from {source}: {differs} (use --fork for an experiment)")
+    states = resume_states(source, stored, stage_ids(options.stages)[0], count) if source is not None else []
+    (runner.folder / "manifest.json").write_text(json.dumps(
+        {"mode": mode, "stages": options.stages, "trajectories": count, "params": options.params,
+         "botArgs": extra, "fingerprint": current,
+         "parent": None if source is None else {"run": options.resume or options.fork,
+                                                "kind": "resume" if options.resume else "fork", "differs": differs}},
+        ensure_ascii=False, indent=2) + "\n")
     if options.params: extra = [*extra, f"--params={options.params}"]
     jobs = [(f"{mode}-{index + 1}", [f"--mode={mode}", f"--stages={options.stages}", "--trajectories=1",
-                                     f"--seed={1 + index * 100000}", *extra])
-            for index in range(options.trajectories)]
+                                     f"--seed={1 + index * 100000}",
+                                     f"--checkpoint-dir={runner.folder / 'checkpoints' / f't{index + 1}'}",
+                                     *([f"--resume-state={states[index]}"] if states else []), *extra])
+            for index in range(count)]
     reports = runner.parallel(jobs)
     trajectories = []
     for report in reports:
@@ -141,7 +237,7 @@ def campaign(runner: Runner, options, extra: list[str], mode: str = "campaign") 
         trajectories.append(rows)
     errors = [(row["stage"], row["errors"]) for rows in trajectories for row in rows if row["errors"]]
     if errors: print(f"WARNING bot run errors: {errors}", file=sys.stderr)
-    snapshots = reports[0]["clearSnapshots"]
+    snapshots = reports[0]["clearSnapshots"] if options.margins else {}
     margin_jobs = []
     for stage_id, snapshot in snapshots.items():
         path = runner.folder / f"snapshot-{stage_id}.json"
@@ -151,6 +247,7 @@ def campaign(runner: Runner, options, extra: list[str], mode: str = "campaign") 
     margins = {job[0].removeprefix("margin-"): margin_row(report["levels"])
                for job, report in zip(margin_jobs, runner.parallel(margin_jobs))}
     result = {"job": mode, "stages": options.stages, "trajectories": trajectories, "margins": margins}
+    if source is not None: result["parent"] = json.loads((runner.folder / "manifest.json").read_text())["parent"]
     if "baseline" in reports[0]: result["baseline"] = reports[0]["baseline"]
     return result
 
@@ -251,6 +348,9 @@ def main() -> int:
     parser.add_argument("--stage", type=int, default=1)
     parser.add_argument("--spend-rate", type=float, default=1.0)
     parser.add_argument("--progression-file", default="")
+    parser.add_argument("--resume", default="", help="campaign/checkpoint: continue this run folder's trajectories")
+    parser.add_argument("--fork", default="", help="like --resume, but inputs may differ (recorded)")
+    parser.add_argument("--margins", type=int, default=1, help="campaign/checkpoint: 0 skips the margin jobs")
     options, extra = parser.parse_known_args()
     started = time.monotonic()
     runner = Runner(options.timeout, options.jobs)

@@ -19,6 +19,10 @@ extends SceneTree
 ##                         are settled before the retry
 ##   --runes=<n>           single/margin: runes spent on permanent upgrades first
 ##   --progression-file=<path>  single/margin: start from this account (a report snapshot)
+##   --checkpoint-dir=<dir>     checkpoint/campaign: after each clear, store the trajectory's
+##                         state (account, bot memory, module RNG) in <dir>/after-<id>/
+##   --resume-state=<path>      checkpoint/campaign, one trajectory: start from a stored
+##                         state.bin instead of a new account; --stages must begin right after it
 ##   --cleared=<first>-<last>   single/margin fresh account: stages marked cleared (unlocks)
 ##   --params='{...}'      decision parameters over calibration.json (see DEFAULT_PARAMS)
 ##   --seeds=<n>           single/margin: runs per budget (default 10)
@@ -67,6 +71,9 @@ const ECONOMY_HORIZON_WAVES := 8
 #   runeWeights   {upgrade id: weight} replaces RUNE_WEIGHTS entries (e.g. an elemental board's
 #                 starting account trains elemental instead of physical damage)
 #   moduleType    draw every module for this turret type instead of the last run's top damage type
+#   moduleFloor   grade every turret type's core/barrel/frame is lifted to before each run
+#                 ("rare"): a missing or lower slot gets a rare module rolled by the draw rules,
+#                 so modules do not decide which type looks strong; "" leaves draws alone
 #   turretOverrides  {type: {definition field: value}} balance experiments: replaces
 #                 base stats (damage, attackRate, splashRadius...) in this process only
 #   baselineRunGameSeconds  game time of one assumed clear (research clock)
@@ -114,7 +121,7 @@ const DEFAULT_PARAMS := {
 	"saveForBest": 0.7, "gemMinGain": 0.02, "typeFactors": {}, "slowUptime": 0.5,
 	"dotFactor": 1.3, "armorPierceFactor": 1.1, "traitChoices": {}, "gemPurchase": true, "explore": false,
 	"playSpeed": 2.0, "secondsBetweenRuns": 60.0, "waveLookahead": 3, "newTypeBonus": 0.0,
-	"minDistinctTypes": 0, "bannedTypes": [], "typeShares": {}, "typeAfter": {}, "typeProgress": {}, "turretOverrides": {}, "moduleType": "", "runeWeights": {}, "baselineRunGameSeconds": 800.0,
+	"minDistinctTypes": 0, "bannedTypes": [], "typeShares": {}, "typeAfter": {}, "typeProgress": {}, "turretOverrides": {}, "moduleType": "", "moduleFloor": "", "runeWeights": {}, "baselineRunGameSeconds": 800.0,
 	"greed": false, "greedMinRoi": 2.0, "greedPressure": 0.6, "frontTypes": [], "frontProgress": 0.5,
 	"bossWeight": 0.0, "bossLookahead": 10, "bossYield": false, "bossMargin": 1.5, "strongestHitShare": 1.0, "bossFirstHit": 0.4, "bossExtraProjectileHit": 0.3,
 	"grantResearch": {}, "gemLinkCost": false, "gemReplace": false,
@@ -140,6 +147,7 @@ var args := {}
 var domain
 var runtime
 var epoch := 1000
+const CHECKPOINT_SCHEMA := 1
 var stage := 0
 var next_round := 0
 var next_enemy_id := 100000
@@ -149,6 +157,13 @@ var path_samples: PackedVector2Array = PackedVector2Array()
 # Original-path progress (0..1) of each sample; teleport jumps count as distance
 # like the enemy state does, but have no samples.
 var sample_progress := PackedFloat32Array()
+# Branching maps (routes): each route is sampled in turn. A sample's weight is its
+# route's share of the stage's enemy durability (1 on a single path); boss terms
+# use the next boss's route instead.
+var sample_weight := PackedFloat32Array()
+var sample_route := PackedInt32Array()
+var route_ids: Array = []
+var boss_route := -1
 const SAMPLE_STEP := 0.05
 # Per turret type: predicted value at wave start and actual damage that wave.
 var type_stats := {}
@@ -167,6 +182,8 @@ var coverage_cache := {}
 # Path progress (0..1) where recent enemies died or arrived. Turret value only
 # counts path that enemies actually reach, like a player watching the board.
 var outcomes: Array = []
+# The same outcomes per route id, for each route's reach.
+var route_outcomes := {}
 const OUTCOME_MEMORY := 150
 # Shifts the observed reach outward because later waves push deeper.
 const REACH_MARGIN := 0.1
@@ -471,7 +488,6 @@ func draw_modules(p: Dictionary, growth) -> Dictionary:
 ## Server draw rules (server/internal/economy/catalog.go): uniform part, grade by
 ## draw count, option count by grade, distinct pool options, uniform values.
 func generate_module(type: String, draws: int, growth) -> Dictionary:
-	var module_data: Dictionary = growth.data.module
 	var part: String = ["core", "barrel", "frame"][module_rng.randi_range(0, 2)]
 	var rates := [64, 26, 7, 3]
 	if draws >= 800: rates = [45, 35, 15, 5]
@@ -479,7 +495,11 @@ func generate_module(type: String, draws: int, growth) -> Dictionary:
 	elif draws >= 250: rates = [56, 30, 10, 4]
 	elif draws >= 100: rates = [60, 28, 9, 3]
 	var grades := ["normal", "magic", "rare", "unique"]
-	var grade: String = grades[pick_weighted(rates)]
+	return roll_module(type, part, grades[pick_weighted(rates)], growth)
+
+## One module of a fixed grade: option count by grade, distinct pool options, uniform values.
+func roll_module(type: String, part: String, grade: String, growth) -> Dictionary:
+	var module_data: Dictionary = growth.data.module
 	var count: int = pick_weighted({"normal": [85, 15, 0], "magic": [40, 60, 0], "rare": [10, 55, 35], "unique": [0, 40, 60]}[grade]) + 1
 	var pool: Array = module_data.pools[type][part].duplicate()
 	var options: Array = []
@@ -500,6 +520,10 @@ func pick_weighted(weights: Array) -> int:
 ## Keeps the module if it beats the equipped one of its part (only the best per
 ## part is kept; others count as disassembled).
 func keep_module(p: Dictionary, growth, module: Dictionary) -> bool:
+	var grades := ["normal", "magic", "rare", "unique"]
+	if grades.find(str(module.grade)) < grades.find(str(P.moduleFloor)):
+		refund_module(p, module)
+		return false
 	var items: Array = p.get("turretModules", {}).get("items", []).duplicate(true)
 	var current := -1
 	for index in range(items.size()):
@@ -516,8 +540,30 @@ func keep_module(p: Dictionary, growth, module: Dictionary) -> bool:
 	p.turretModules = modules
 	return true
 
+## moduleFloor: every type's empty or weaker part gets a module of that grade.
+## Floor modules are bench stand-ins and refund nothing when replaced.
+func lift_modules(p: Dictionary, growth) -> void:
+	var grades := ["normal", "magic", "rare", "unique"]
+	var floor_rank := grades.find(str(P.moduleFloor))
+	if not bool(P.modules) or floor_rank < 0: return
+	var modules: Dictionary = p.get("turretModules", {}).duplicate(true)
+	var items: Array = modules.get("items", [])
+	for type in growth.data.module.pools:
+		for part in ["core", "barrel", "frame"]:
+			var current := -1
+			for index in range(items.size()):
+				if items[index].turretType == type and items[index].part == part and items[index].get("equipped", false): current = index
+			if current >= 0 and grades.find(str(items[current].grade)) >= floor_rank: continue
+			var module := roll_module(type, part, str(P.moduleFloor), growth)
+			module.benchFloor = true
+			if current >= 0: items[current] = module
+			else: items.append(module)
+	modules.items = items
+	p.turretModules = modules
+
 ## Disassembly refund in free diamonds (server catalog.go gradeRefund).
 func refund_module(p: Dictionary, module: Dictionary) -> void:
+	if module.get("benchFloor", false): return
 	p.freeDiamonds = int(p.get("freeDiamonds", 0)) + int({"normal": 2, "magic": 5, "rare": 20, "unique": 50}.get(str(module.grade), 0))
 
 ## Last board's damage with these modules, plus half of each cost discount; a
@@ -606,6 +652,7 @@ func spend_core_points(progression: Dictionary, growth) -> Dictionary:
 func spend_account(progression: Dictionary, growth) -> Dictionary:
 	var p := progression.duplicate(true)
 	var drawn := draw_modules(p, growth)
+	lift_modules(p, growth)
 	var spent := spend_runes(p, growth)
 	if not drawn.is_empty(): spent.bought["modules"] = drawn
 	spent.progression = spend_core_points(spent.progression, growth)
@@ -706,20 +753,24 @@ func checkpoint_mode() -> Dictionary:
 	var base_seed := int(args.get("seed", "1"))
 	var probe = RunSession.new()
 	probe.growth.load_catalog()
-	# The baseline draws modules too; seed first so every process starts alike.
-	module_rng.seed = base_seed
-	var start := baseline_account(int(order[0]), probe.growth)
 	var ids: Array = StageProgression.ordered_ids()
 	var first_previous := int(ids[StageProgression.ordinal_for(int(order[0])) - 2]) if StageProgression.ordinal_for(int(order[0])) > 1 else 0
+	var resume := load_resume(int(order[0]), base_seed, trajectories)
+	if fatal: return {}
+	var start: Dictionary
+	if resume.is_empty():
+		# The baseline draws modules too; seed first so every process starts alike.
+		module_rng.seed = base_seed
+		start = baseline_account(int(order[0]), probe.growth)
+	else:
+		start = resume.progression
 	var results: Array = []
 	var snapshots := {}
 	for trajectory in range(trajectories):
-		last_board = []
-		last_income = {}
-		last_type_damage = {}
-		last_run_diamonds = -1
-		clear_stats = {}
-		module_rng.seed = base_seed + trajectory * 7717
+		if resume.is_empty():
+			reset_memory(base_seed + trajectory * 7717)
+		else:
+			restore_memory(resume)
 		var p := start.duplicate(true)
 		var previous := first_previous
 		var stages: Array = []
@@ -729,13 +780,88 @@ func checkpoint_mode() -> Dictionary:
 			stages.append({"stage": id, "cleared": result.cleared, "attempts": result.attempts})
 			if trajectory == 0 and result.cleared: snapshots[str(id)] = result.clearSnapshot
 			if not result.cleared: break
+			save_checkpoint(p, int(id), base_seed, trajectory)
 			previous = int(id)
 		results.append({"trajectory": trajectory + 1, "stages": stages})
 	return {"mode": "checkpoint", "stage": "%d-%d" % [int(order[0]), int(order[-1])], "farmClears": farm_clears,
 		"baseline": {"runesInvested": runes_invested(start, probe.growth), "runes": int(start.get("runes", 0)),
 			"upgrades": upgrade_levels(start, probe.growth), "research": start.get("researchLevels", {}),
-			"corePoints": int(start.get("totalCorePoints", 0)), "clockHours": snappedf(int(start.get(CLOCK_KEY, 0)) / 3600000.0, 0.01)},
+			"corePoints": int(start.get("totalCorePoints", 0)), "clockHours": snappedf(int(start.get(CLOCK_KEY, 0)) / 3600000.0, 0.01),
+			"resumedFrom": str(args.get("resume-state", ""))},
 		"trajectories": results, "margins": {}, "clearSnapshots": snapshots}
+
+## Bot memory that outlives a run: module draws, rune weights and settled clears read it.
+func reset_memory(module_seed: int) -> void:
+	last_board = []
+	last_income = {}
+	last_type_damage = {}
+	last_run_diamonds = -1
+	clear_stats = {}
+	module_rng.seed = module_seed
+
+## State after a clear's settlement, before the next stage spends: everything the
+## following stages read. Godot's binary Variant format keeps int keys
+## (clear_stats), int64 RNG state and Dictionary order that JSON would lose.
+func trajectory_state(p: Dictionary, stage_id: int, base_seed: int, trajectory: int) -> Dictionary:
+	return {"schema": CHECKPOINT_SCHEMA, "stage": stage_id, "baseSeed": base_seed, "trajectory": trajectory,
+		"progression": p, "lastBoard": last_board, "lastIncome": last_income, "lastTypeDamage": last_type_damage,
+		"lastRunDiamonds": last_run_diamonds, "clearStats": clear_stats,
+		"moduleSeed": module_rng.seed, "moduleState": module_rng.state, "epoch": epoch}
+
+## --checkpoint-dir: state.bin, then manifest.json (written last, so a folder
+## without it is incomplete). Both go through a temp name and a rename.
+func save_checkpoint(p: Dictionary, stage_id: int, base_seed: int, trajectory: int) -> void:
+	var root := str(args.get("checkpoint-dir", ""))
+	if root.is_empty(): return
+	var folder := root.path_join("after-%d" % stage_id)
+	DirAccess.make_dir_recursive_absolute(folder)
+	var state_path := folder.path_join("state.bin")
+	var file := FileAccess.open(state_path + ".tmp", FileAccess.WRITE)
+	file.store_var(trajectory_state(p, stage_id, base_seed, trajectory), false)
+	file.close()
+	DirAccess.rename_absolute(state_path + ".tmp", state_path)
+	var manifest := {"schema": CHECKPOINT_SCHEMA, "stage": stage_id, "baseSeed": base_seed, "trajectory": trajectory,
+		"stateSha256": FileAccess.get_sha256(state_path), "engine": Engine.get_version_info().string}
+	var info := FileAccess.open(folder.path_join("manifest.json.tmp"), FileAccess.WRITE)
+	info.store_string(JSON.stringify(manifest, "  "))
+	info.close()
+	DirAccess.rename_absolute(folder.path_join("manifest.json.tmp"), folder.path_join("manifest.json"))
+
+## --resume-state: the stored trajectory state, checked against this process's
+## stages and seed. {} without the option; fatal on any mismatch.
+func load_resume(first_id: int, base_seed: int, trajectories: int) -> Dictionary:
+	var path := str(args.get("resume-state", ""))
+	if path.is_empty(): return {}
+	var problem := ""
+	var state: Variant = null
+	if trajectories != 1: problem = "resume runs one trajectory per process"
+	elif not FileAccess.file_exists(path): problem = "missing " + path
+	else:
+		var file := FileAccess.open(path, FileAccess.READ)
+		state = file.get_var(false)
+		if not state is Dictionary or int(state.get("schema", -1)) != CHECKPOINT_SCHEMA: problem = "unreadable state " + path
+		elif int(state.baseSeed) != base_seed: problem = "seed %d does not match the stored trajectory's %d" % [base_seed, int(state.baseSeed)]
+		else:
+			var ids: Array = StageProgression.ordered_ids()
+			var next := ids.find(int(state.stage)) + 1
+			if next <= 0 or next >= ids.size() or int(ids[next]) != first_id:
+				problem = "--stages must start right after stage %d" % int(state.stage)
+	if not problem.is_empty():
+		push_error("Cannot resume: " + problem)
+		fatal = true
+		return {}
+	return state
+
+func restore_memory(state: Dictionary) -> void:
+	last_board = state.lastBoard.duplicate(true)
+	last_income = state.lastIncome.duplicate(true)
+	last_type_damage = state.lastTypeDamage.duplicate(true)
+	last_run_diamonds = int(state.lastRunDiamonds)
+	clear_stats = state.clearStats.duplicate(true)
+	# Seed first: assigning the seed resets the state.
+	module_rng.seed = int(state.moduleSeed)
+	module_rng.state = int(state.moduleState)
+	epoch = int(state.epoch)
 
 ## Fresh account through the stages in progression order (--stages=1-5): each
 ## stage is replayed until it clears, keeping runes, core points and unlocks.
@@ -748,16 +874,16 @@ func campaign_mode() -> Dictionary:
 	var trajectories := int(args.get("trajectories", "3"))
 	var max_attempts := int(args.get("max-attempts", "30"))
 	var base_seed := int(args.get("seed", "1"))
+	var resume := load_resume(first, base_seed, trajectories)
+	if fatal: return {}
 	var results: Array = []
 	var margin_inputs := {}
 	for trajectory in range(trajectories):
-		last_board = []
-		last_income = {}
-		last_type_damage = {}
-		last_run_diamonds = -1
-		clear_stats = {}
-		module_rng.seed = base_seed + trajectory * 7717
-		var p := fresh_progression()
+		if resume.is_empty():
+			reset_memory(base_seed + trajectory * 7717)
+		else:
+			restore_memory(resume)
+		var p: Dictionary = fresh_progression() if resume.is_empty() else resume.progression.duplicate(true)
 		var stages: Array = []
 		for id in order:
 			var result := grind_stage(p, catalog.stage_index(id), base_seed + trajectory * 100000 + id * 1000, max_attempts)
@@ -765,6 +891,7 @@ func campaign_mode() -> Dictionary:
 			stages.append({"stage": id, "cleared": result.cleared, "attempts": result.attempts})
 			if trajectory == 0 and result.cleared: margin_inputs[id] = result.clearSnapshot
 			if not result.cleared: break
+			save_checkpoint(p, int(id), base_seed, trajectory)
 		results.append({"trajectory": trajectory + 1, "stages": stages})
 	var margins := {}
 	if args.get("margin", "0") == "1":
@@ -879,6 +1006,7 @@ func play_run(progression: Dictionary, seed: int) -> Dictionary:
 	failure = ""
 	log_actions = []
 	outcomes = []
+	route_outcomes = {}
 	boss_results = []
 	boss_weight = 0.0
 	boss_total = 0.0
@@ -893,7 +1021,8 @@ func play_run(progression: Dictionary, seed: int) -> Dictionary:
 	spawn_rng.seed = seed
 	domain = RunSession.new()
 	domain.now_millis = func(): return NOW_MILLIS
-	if not domain.initialize(catalog, progression, stage, epoch, null):
+	# A seeded run id keeps accounts (claimedEventIds) identical across repeated runs.
+	if not domain.initialize(catalog, progression, stage, epoch, "bench-%d-%d" % [seed, epoch]):
 		return run_result(progression, 0.0, "initialize: " + str(domain.error))
 	domain.state.tileSize = 1.0
 	var effects: Dictionary = domain.growth.derive(domain.growth.run_effect_progression(domain.state))
@@ -906,7 +1035,7 @@ func play_run(progression: Dictionary, seed: int) -> Dictionary:
 	var rejected: String = runtime.start(epoch, initial, {"clock": "godot", "phase": "preparation", "paused": false, "speed": 4.0})
 	if not rejected.is_empty(): return run_result(progression, 0.0, "start: " + rejected)
 	runtime.step_completed.connect(_on_step)
-	prepare_board(initial.path, initial.get("teleportPairs", []))
+	prepare_board(initial)
 	wave_profile = []
 	hit_cache = {}
 	type_stats = {}
@@ -987,6 +1116,11 @@ func _on_step() -> void:
 				if not enemy.is_empty(): kill_gold_total += float(catalog.enemy_definition(str(enemy.get("type", ""))).get("rewardGold", 0))
 			if outcome < 0.0: continue
 			outcomes.append(outcome)
+			if not enemy.is_empty():
+				var route := route_key(str(enemy.get("routeId", "")))
+				var list: Array = route_outcomes.get(route, [])
+				list.append(outcome)
+				route_outcomes[route] = list.slice(list.size() - OUTCOME_MEMORY) if list.size() > OUTCOME_MEMORY else list
 			if boss: boss_results.append([next_round, snappedf(outcome, 0.01)])
 		if outcomes.size() > OUTCOME_MEMORY: outcomes = outcomes.slice(outcomes.size() - OUTCOME_MEMORY)
 	if runtime.event_id > domain.event_ack or runtime.session.get("phase") != domain.state.phase:
@@ -1206,12 +1340,27 @@ func buy_gem_choice() -> void:
 
 # ---------------------------------------------------------------- placement and value
 
-func prepare_board(world_path: Array, teleports: Array) -> void:
+func prepare_board(initial: Dictionary) -> void:
 	coverage_cache = {}
 	reach = PackedFloat32Array()
 	damage_density = PackedFloat32Array()
 	path_samples = PackedVector2Array()
 	sample_progress = PackedFloat32Array()
+	sample_weight = PackedFloat32Array()
+	sample_route = PackedInt32Array()
+	boss_route = -1
+	var routes: Array = initial.get("routes", [])
+	if routes.is_empty(): routes = [{"id": "", "path": initial.path, "teleportPairs": initial.get("teleportPairs", [])}]
+	route_ids = routes.map(func(route): return str(route.id))
+	var shares := route_shares()
+	for index in range(routes.size()):
+		sample_route_path(routes[index].path, routes[index].get("teleportPairs", []), index, shares[index])
+	build_tiles = []
+	var map: Dictionary = catalog.stage_map(stage)
+	for index in range(map.tiles.size()):
+		if map.tiles[index] == "build": build_tiles.append(Vector2i(index % int(map.columns), int(index / int(map.columns))))
+
+func sample_route_path(world_path: Array, teleports: Array, route: int, weight: float) -> void:
 	var jumps := {}
 	for pair in teleports: jumps[int(pair.entranceIndex)] = int(pair.exitIndex)
 	var total := 0.0
@@ -1227,23 +1376,53 @@ func prepare_board(world_path: Array, teleports: Array) -> void:
 			for s in range(steps):
 				path_samples.append(a.lerp(b, float(s) / steps))
 				sample_progress.append((travelled + length * s / steps) / maxf(0.001, total))
+				sample_weight.append(weight)
+				sample_route.append(route)
 		travelled += length
-	build_tiles = []
-	var map: Dictionary = catalog.stage_map(stage)
-	for index in range(map.tiles.size()):
-		if map.tiles[index] == "build": build_tiles.append(Vector2i(index % int(map.columns), int(index / int(map.columns))))
+
+## Each route's share of the stage's enemy durability (groups without a route
+## walk the primary one, route 0).
+func route_shares() -> Array:
+	if route_ids.size() == 1: return [1.0]
+	var totals: Array = []
+	totals.resize(route_ids.size())
+	totals.fill(0.0)
+	for wave in catalog._data.stages[stage].waves:
+		var durability: Dictionary = wave.get("enemyDurability", {})
+		for group in wave.groups:
+			var layers: Array = durability.get(group.enemyType, [1.0, 0.0, 0.0])
+			totals[route_index(str(group.get("routeId", "")))] += (float(layers[0]) + float(layers[1]) + float(layers[2])) * int(group.count)
+	var sum: float = totals.reduce(func(a, b): return a + b, 0.0)
+	return totals.map(func(value): return value / sum if sum > 0.0 else 1.0 / route_ids.size())
+
+func route_index(route_id: String) -> int:
+	return maxi(0, route_ids.find(route_id))
+
+func route_key(route_id: String) -> String:
+	return str(route_ids[route_index(route_id)])
+
+## Weight of a sample for boss terms: the next boss's route, else the crowd share.
+func boss_path_length() -> float:
+	var total := 0.0
+	for i in range(path_samples.size()): total += boss_sample_weight(i)
+	return total * SAMPLE_STEP
+
+func boss_sample_weight(i: int) -> float:
+	if boss_route < 0: return sample_weight[i]
+	return 1.0 if sample_route[i] == boss_route else 0.0
 
 ## Reached path length (tiles) inside the turret's range: how long enemies that
 ## actually get there stay targetable. Before any outcome every sample counts.
 ## With full, the whole path (a boss the board cannot kill walks all of it).
 func coverage(tile: Vector2i, radius: float, full := false) -> float:
-	var key := "%d,%d,%.2f,%s" % [tile.x, tile.y, radius, full]
+	var key := "%d,%d,%.2f,%s,%d" % [tile.x, tile.y, radius, full, boss_route if full else -2]
 	if coverage_cache.has(key): return coverage_cache[key]
 	var curve := PackedFloat32Array() if full else reach
 	var center := Vector2(tile.x + 0.5, tile.y + 0.5)
 	var inside := 0.0
 	for i in range(path_samples.size()):
-		if path_samples[i].distance_to(center) <= radius: inside += curve[i] if not curve.is_empty() else 1.0
+		if path_samples[i].distance_to(center) <= radius:
+			inside += (curve[i] if not curve.is_empty() else 1.0) * (boss_sample_weight(i) if full else sample_weight[i])
 	var value := inside * SAMPLE_STEP
 	coverage_cache[key] = value
 	return value
@@ -1252,6 +1431,13 @@ func coverage(tile: Vector2i, radius: float, full := false) -> float:
 func update_reach() -> void:
 	coverage_cache = {}
 	reach = survival(outcomes)
+	if route_ids.size() > 1 and not reach.is_empty():
+		# Each route's own outcomes where it has any.
+		for route in range(route_ids.size()):
+			var curve := survival(route_outcomes.get(route_ids[route], []))
+			if curve.is_empty(): continue
+			for i in range(path_samples.size()):
+				if sample_route[i] == route: reach[i] = curve[i]
 
 ## Share of the outcomes still alive at each sample, shifted outward by the margin.
 func survival(list: Array) -> PackedFloat32Array:
@@ -1262,8 +1448,9 @@ func survival(list: Array) -> PackedFloat32Array:
 	var count := path_samples.size()
 	curve.resize(count)
 	var cursor := 0
-	# Samples are in path order, so their progress only increases.
+	# Samples are in path order, so their progress only increases within a route.
 	for i in range(count):
+		if i > 0 and sample_route[i] != sample_route[i - 1]: cursor = 0
 		var progress := maxf(0.0, sample_progress[i] - REACH_MARGIN)
 		while cursor < sorted.size() and sorted[cursor] < progress: cursor += 1
 		curve[i] = maxf(0.02, float(sorted.size() - cursor) / sorted.size())
@@ -1299,7 +1486,7 @@ func turret_parts(type: String, level: int, turret: Dictionary, d: Dictionary, t
 		# on everyone's hits while the boss is in its range.
 		if turret.get("secondaryTrait") == "finishingShot": boss *= 1.0 + 0.45 * 0.35
 		if turret.get("secondaryTrait") == "exposedMark":
-			var path_share := minf(1.0, boss_coverage / maxf(0.001, path_samples.size() * SAMPLE_STEP))
+			var path_share := minf(1.0, boss_coverage / maxf(0.001, boss_path_length()))
 			boss += 0.15 * minf(1.0, 2.0 / sheet.cycle) * aim * boss_total * path_share
 	for kind in ["primaryTrait", "secondaryTrait"]:
 		var effect: Array = COMBAT_TRAITS.get(str(turret.get(kind, "")), [1.0, 1.0])
@@ -1310,7 +1497,7 @@ func turret_parts(type: String, level: int, turret: Dictionary, d: Dictionary, t
 		var center := Vector2(tile.x + 0.5, tile.y + 0.5)
 		var boosted := 0.0
 		for i in range(path_samples.size()):
-			if path_samples[i].distance_to(center) <= sheet.range: boosted += damage_density[i]
+			if path_samples[i].distance_to(center) <= sheet.range: boosted += damage_density[i] * sample_weight[i]
 		value += boosted * SAMPLE_STEP * (1.0 / maxf(0.1, sheet.slow) - 1.0) * float(P.slowUptime)
 	return Vector2(value, boss)
 
@@ -1341,6 +1528,7 @@ func update_roles(d: Dictionary) -> void:
 	if float(P.bossWeight) <= 0.0: return
 	var waves: Array = catalog._data.stages[stage].waves
 	boss_need = 0.0
+	boss_route = -1
 	var crowd := 0.0
 	var crowd_count := 0
 	# start_wave advances next_round, so during a wave the current one counts.
@@ -1353,6 +1541,7 @@ func update_roles(d: Dictionary) -> void:
 			var definition: Dictionary = catalog.enemy_definition(str(group.enemyType))
 			if bool(definition.get("isBoss", false)):
 				boss_need += hp * int(group.count)
+				boss_route = route_index(str(group.get("routeId", "")))
 				boss_speed = maxf(0.01, float(definition.get("speed", 1.0)) / catalog.tile_size())
 			elif index < first + int(P.waveLookahead):
 				crowd += hp * int(group.count)
@@ -1470,8 +1659,8 @@ func covered_progress(tile: Vector2i, radius: float) -> float:
 	var progress := 0.0
 	for i in range(path_samples.size()):
 		if path_samples[i].distance_to(center) <= radius:
-			weight += 1.0
-			progress += sample_progress[i]
+			weight += sample_weight[i]
+			progress += sample_progress[i] * sample_weight[i]
 	return progress / weight if weight > 0.0 else -1.0
 
 func free_tiles() -> Array:
