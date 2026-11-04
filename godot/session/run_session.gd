@@ -7,6 +7,8 @@ const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const StageChallenges = preload("res://content/stage_challenges.gd")
 const CombatKinds = preload("res://combat/combat_kinds.gd")
 const RunKinds = preload("res://app/run_command_kinds.gd")
+const RunLog = preload("res://app/run_log.gd")
+const MAX_RUN_LOGS := 3
 var growth = Growth.new()
 var quests = QuestProgress.new()
 var service
@@ -20,6 +22,10 @@ var error := ""
 var event_ack := 0
 var epoch := -1
 var collected_wall_time := 0.0
+# Analysis-only run logs: session memory, never saved (docs/run_log_design.md).
+var run_log_arrivals: Dictionary = {}
+var run_log_resumed := false
+var finished_run_logs: Array = []
 var now_millis: Callable = func(): return int(Time.get_unix_time_from_system() * 1000)
 
 static func new_run_id() -> String:
@@ -41,12 +47,16 @@ func initialize(catalog, progression: Dictionary, stage_index: int, scene_epoch:
 	epoch = scene_epoch
 	event_ack = 0
 	collected_wall_time = 0.0
+	run_log_arrivals = {}
+	run_log_resumed = false
 	quests = QuestProgress.new()
 	error = ""
 	return not state.is_empty()
 
 func restore(restored: Dictionary) -> void:
 	state = restored.duplicate(true)
+	run_log_arrivals = {}
+	run_log_resumed = true
 	growth.fix_run_loadout(state)
 	# Older v2 terminal saves already include progression results. Do not grant again.
 	if state.phase in ["success", "failure", "coreDestruction"] and not is_finished():
@@ -62,7 +72,7 @@ func _mark_finished() -> void:
 	if not state.progression.has("claimedEventIds"): state.progression.claimedEventIds = []
 	if not finish_key() in state.progression.claimedEventIds: state.progression.claimedEventIds.append(finish_key())
 
-func finish(success: bool) -> void:
+func finish(success: bool, runtime = null) -> void:
 	if is_finished(): return
 	state_revision += 1
 	var stage: Dictionary = service.catalog.stage_summary(int(state.stage))
@@ -81,6 +91,18 @@ func finish(success: bool) -> void:
 		"grantEconomyRewardsLocally":false,
 		"runeResonanceBonusRate":float(growth.derive(state.progression).get("runeResonanceBonusRate",0.0))})
 	_mark_finished()
+	var entry := RunLog.build(state, stage, runtime, run_log_arrivals, run_log_resumed)
+	if not entry.is_empty():
+		# A rolled-back finish (failed abandon save) runs again; keep the latest.
+		finished_run_logs = finished_run_logs.filter(func(old): return old.runId != entry.runId)
+		finished_run_logs.append(entry)
+		if finished_run_logs.size() > MAX_RUN_LOGS: finished_run_logs.pop_front()
+
+## Removes and returns the logs of runs the server has settled.
+func take_run_logs(settled_run_ids: Array) -> Array:
+	var taken := finished_run_logs.filter(func(entry): return entry.runId in settled_run_ids)
+	finished_run_logs = finished_run_logs.filter(func(entry): return not entry.runId in settled_run_ids)
+	return taken
 
 func selected_id(tile: Vector2i) -> int:
 	for turret in state.get("turrets", []):
@@ -142,7 +164,12 @@ func collect(runtime) -> Dictionary:
 					quest_types.append("clearWaves")
 			CombatKinds.ARRIVAL:
 				# Any contact breaks a no-core-damage challenge, even when prevented.
-				if not bool(runtime.enemies.get(str(event.enemyId), {}).get("isDebug", false)): state[StageChallenges.CORE_FIELD] = true
+				var arrived: Dictionary = runtime.enemies.get(str(event.enemyId), {})
+				if not bool(arrived.get("isDebug", false)):
+					state[StageChallenges.CORE_FIELD] = true
+					var rarity := str(arrived.get("rarity", ""))
+					var key := "%s:%s" % [arrived.get("type", ""), rarity if not rarity.is_empty() else "normal"]
+					run_log_arrivals[key] = int(run_log_arrivals.get(key, 0)) + 1
 			CombatKinds.CORE_DEFEATED:
 				state.phase = "coreDestruction"
 		if not result.get("ok", false):
@@ -154,7 +181,7 @@ func collect(runtime) -> Dictionary:
 			progression_owned = true
 		for type in quest_types: state.progression = quests.record_owned(state.progression,type,1,int(now_millis.call()))
 		if state.phase in ["success", "coreDestruction", "failure"]:
-			finish(state.phase == "success")
+			finish(state.phase == "success", runtime)
 			# Finishing can change growth inputs before a later event in this batch.
 			kill_derived = {}
 		commands.append_array(result.get("commands", []))
@@ -162,7 +189,7 @@ func collect(runtime) -> Dictionary:
 		event_ack = int(event.id)
 	if runtime.session.get("phase") == "failure":
 		state.phase = "failure"
-		finish(false)
-	if state.phase in ["success", "failure", "coreDestruction"]: finish(state.phase == "success")
+		finish(false, runtime)
+	if state.phase in ["success", "failure", "coreDestruction"]: finish(state.phase == "success", runtime)
 	error = ""
 	return {"ok": true, "commands": commands}

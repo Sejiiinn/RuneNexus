@@ -39,6 +39,7 @@ type Querier interface {
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	DeleteExpiredLegacySaveTransfers(ctx context.Context, expiresAt pgtype.Timestamptz) (int64, error)
 	DeleteLegacySaveTransfer(ctx context.Context, id pgtype.UUID) error
+	DeleteRunLogsReceivedBefore(ctx context.Context, before pgtype.Timestamptz) (int64, error)
 	DeleteSaveActiveRun(ctx context.Context, accountID pgtype.UUID) error
 	DisassemblePlayerModule(ctx context.Context, arg DisassemblePlayerModuleParams) (PlayerModule, error)
 	EnableGemOffers(ctx context.Context, accountID pgtype.UUID) error
@@ -80,6 +81,7 @@ type Querier interface {
 	GetSaveSnapshot(ctx context.Context, accountID pgtype.UUID) (GetSaveSnapshotRow, error)
 	GetSaveWriterClaim(ctx context.Context, arg GetSaveWriterClaimParams) (SaveWriterClaim, error)
 	GetSaveWriterStateForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveWriterState, error)
+	InsertRunLog(ctx context.Context, arg InsertRunLogParams) (int64, error)
 	IsActiveSessionForAccount(ctx context.Context, arg IsActiveSessionForAccountParams) (bool, error)
 	ListAccountNicknameTags(ctx context.Context, nickname pgtype.Text) ([]string, error)
 	ListActivePlayerModules(ctx context.Context, accountID pgtype.UUID) ([]PlayerModule, error)

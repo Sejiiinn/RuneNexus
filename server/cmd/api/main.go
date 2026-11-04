@@ -18,6 +18,7 @@ import (
 	"github.com/Sejiiinn/RuneNexus/server/internal/httpapi"
 	"github.com/Sejiiinn/RuneNexus/server/internal/leaderboard"
 	"github.com/Sejiiinn/RuneNexus/server/internal/legacytransfer"
+	"github.com/Sejiiinn/RuneNexus/server/internal/runlog"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/Sejiiinn/RuneNexus/server/internal/weeklyreward"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -122,6 +123,25 @@ func run(logger *slog.Logger) error {
 		}
 	}
 
+	runLogs := runlog.NewService(pool)
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
+		for {
+			cleanupContext, cancel := context.WithTimeout(rootContext, time.Minute)
+			_, err := runLogs.DeleteExpired(cleanupContext, time.Now())
+			cancel()
+			if err != nil && rootContext.Err() == nil {
+				logger.Error("run_log_cleanup_failed", slog.Any("error", err))
+			}
+			select {
+			case <-rootContext.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
+
 	server := &http.Server{
 		Addr: cfg.HTTPAddress,
 		Handler: httpapi.NewHandler(logger, httpapi.Dependencies{
@@ -142,6 +162,7 @@ func run(logger *slog.Logger) error {
 			EconomyService:                        economy.NewService(pool),
 			MailboxService:                        economy.NewService(pool),
 			LeaderboardService:                    leaderboard.NewService(pool),
+			RunLogService:                         runLogs,
 			LegacyTransferService:                 legacyTransferService,
 			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,
 			MinimumSaveClientCompatibilityVersion: cfg.MinimumSaveClientCompatibilityVersion,

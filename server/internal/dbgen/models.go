@@ -290,6 +290,15 @@ type RewardClaim struct {
 	ClaimedAt          pgtype.Timestamptz `db:"claimed_at"`
 }
 
+type RunLog struct {
+	AccountID   pgtype.UUID        `db:"account_id"`
+	RunID       pgtype.UUID        `db:"run_id"`
+	ReceivedAt  pgtype.Timestamptz `db:"received_at"`
+	ClientBuild int32              `db:"client_build"`
+	StageID     int32              `db:"stage_id"`
+	Payload     []byte             `db:"payload"`
+}
+
 type SaveActiveRun struct {
 	AccountID pgtype.UUID `db:"account_id"`
 	Payload   []byte      `db:"payload"`

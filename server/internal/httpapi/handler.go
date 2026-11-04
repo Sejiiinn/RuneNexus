@@ -38,6 +38,7 @@ type Dependencies struct {
 	EconomyService                        EconomyService
 	MailboxService                        MailboxService
 	LeaderboardService                    LeaderboardService
+	RunLogService                         RunLogService
 	LegacyTransferService                 LegacyTransferService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
@@ -58,6 +59,7 @@ func NewHandler(
 		readinessTimeout: dependencies.ReadinessTimeout,
 	}
 	gemBuckets := newClientTokenBuckets(60, time.Minute, 20000)
+	runLogBuckets := newClientTokenBuckets(20, time.Minute, 20000)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health/live", health.live)
 	mux.HandleFunc("GET /health/ready", health.ready)
@@ -128,6 +130,10 @@ func NewHandler(
 		if dependencies.LeaderboardService != nil {
 			leaderboards := leaderboardHandler{logger: logger, leaderboards: dependencies.LeaderboardService}
 			mux.Handle("GET /v1/leaderboards/progression", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(leaderboards.progression)))
+		}
+		if dependencies.RunLogService != nil {
+			runLogs := runLogHandler{logger: logger, runLogs: dependencies.RunLogService}
+			mux.Handle("POST /v1/telemetry/run-logs", withAccountAuthentication(logger, dependencies.Authenticator, withGemAccountRateLimit(runLogBuckets, time.Now, http.HandlerFunc(runLogs.record))))
 		}
 		if dependencies.MailboxService != nil {
 			mailbox := mailboxHandler{economyHandler: economyHandler{logger: logger, minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion}, mailbox: dependencies.MailboxService}

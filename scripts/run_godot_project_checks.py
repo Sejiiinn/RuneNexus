@@ -89,6 +89,7 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_projectiles.gd": ("Projectile verification: 0 failures", {}),
     "verify_range_projection_cache.gd": ("RANGE_CACHE_TEST PASS", {}),
     "verify_reward_quest_session.gd": ("failures=[]", {"steps": [["write", "{tmp}/save"], ["read", "{tmp}/save"]]}),
+    "verify_run_log.gd": ("RUN_LOG failures=[]", {}),
     "verify_run_session.gd": ("RUN_SESSION failures=[]", {}),
     "verify_runic_fire.gd": ("RunicFire MultiMesh instance buffer: PASS", {"renderer": True}),
     "verify_runic_fire_integration.gd": ("Runic fire runtime integration failures: 0", {}),

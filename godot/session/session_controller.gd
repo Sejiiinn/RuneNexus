@@ -67,7 +67,7 @@ func prepare_run_transition() -> bool:
 	var previous: Dictionary = run_domain.state.duplicate(true)
 	var abandoning: bool = not run_domain.is_finished()
 	if abandoning:
-		run_domain.finish(false)
+		run_domain.finish(false, scene.combat_runtime)
 		run_domain.state.phase = "failure"
 	var terminal: Dictionary = run_domain.state.duplicate(true)
 	run_domain.state = previous

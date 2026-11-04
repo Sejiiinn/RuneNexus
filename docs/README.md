@@ -21,6 +21,7 @@
 | 코어·성장 | [코어 트리 현행 기준](core_passive_tree_implementation_plan.md) | [장기 코어 방향](nexus_core_design.md), [모듈](turret_module_design.md), [성장 후보](long_term_progression_direction.md) |
 | 계정·인증·온라인 저장 | [백엔드 구조](backend_architecture.md) | [저장 동기화](multi_device_save_sync_design.md), [닉네임](account_nickname_policy.md) |
 | 서버 경제 | [서버 권위 경제 계약](server_authoritative_economy_design.md) | [저장 동기화](multi_device_save_sync_design.md) |
+| 플레이 기록·분석 | [런 기록 수집 설계](run_log_design.md) | [밸런스 벤치 봇](../tool/balance_benchmark/README.md), [백엔드 구조](backend_architecture.md) |
 | 배포·마이그레이션 | [배포 인계](deployment_status.md), [파이프라인 지도·개선안](deployment_pipeline.md) | [API 운영 절차](self_hosted_api_deployment.md), [APK 배포](android_apk_distribution.md), 해당 workflow |
 | 로컬 실행·검증 | [AGENTS.md 변경 대상별 검증](../AGENTS.md#변경-대상별-검증), [인앱 진입점](../.agents/in_app_test_guide.md) | [DB 실행](local_postgresql_setup.md) |
 | 커밋·실행 권한 | [권한 기준](../.agents/sandbox_command_guide.md), [커밋 절차](git_commit_workflow.md) | 현재 세션의 실행 정책 |

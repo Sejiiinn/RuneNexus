@@ -4,6 +4,8 @@ const Json = preload("res://app/save_json.gd")
 const Checkpoint = preload("res://session/session_checkpoint.gd")
 const Economy = preload("res://services/economy_service.gd")
 const Quests = preload("res://app/quest_progress.gd")
+const Http = preload("res://services/http_transport.gd")
+const RUN_LOG_PATH := "/v1/telemetry/run-logs"
 signal changed
 var app
 var platform: Object
@@ -28,6 +30,7 @@ var _startup_pending := true
 var _initializing := false
 var _update_was_blocked := false
 var _session_end_pending := false
+var _run_log_transport
 var _login_resume_pending := false
 var _login_in_progress := false
 var boot_host
@@ -534,10 +537,30 @@ func _settle_finished_runs(binding: int) -> void:
 	# idempotency and snapshot persistence remain in their existing order.
 	var result: Dictionary = await economy.refresh()
 	if binding != epoch: return
+	_send_settled_run_logs(box)
 	_settlement_retry_at = Time.get_ticks_msec() + 30000
 	issue = "" if result.get("ok",false) else str(result.get("code","REQUEST_FAILED"))
 	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
 	changed.emit()
+
+## Analysis-only run logs (docs/run_log_design.md): one fire-and-forget POST per
+## settled run. Not awaited and not routed through AccountSession.request(), whose
+## failure handling can end the session; any failure just drops the log.
+func _send_settled_run_logs(box) -> void:
+	if app == null or app.get("run_domain") == null or not app.run_domain.has_method("take_run_logs"): return
+	var context: Dictionary = account.context() if account != null else {}
+	var url := str(context.get("apiBaseUrl", ""))
+	if str(context.get("accountId", "")).to_lower() != box.owner or str(context.get("accessToken", "")).is_empty() or not Http.supports_base_url(url): return
+	var logs: Array = app.run_domain.take_run_logs(box.state.get("completedRunIds", []))
+	if logs.is_empty(): return
+	if _run_log_transport == null:
+		_run_log_transport = Http.new()
+		_run_log_transport.timeout_seconds = 5.0
+		add_child(_run_log_transport)
+	var build := int(updates.installed.get("versionCode", 0)) if updates != null else 0
+	for entry in logs:
+		entry.clientBuild = build
+		_run_log_transport.request(HTTPClient.METHOD_POST, url + RUN_LOG_PATH, JSON.stringify(entry), {"Authorization": "Bearer " + str(context.accessToken)})
 
 func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
