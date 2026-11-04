@@ -29,17 +29,38 @@ python3 scripts/run_balance_benchmark.py --mode=campaign --stages=1-5 --trajecto
 | --- | --- |
 | `campaign` | 경로를 병렬로 진행한 뒤, 첫 경로의 클리어 시점 계정으로 스테이지별 여유도를 병렬 측정. `--stages=1-10`은 진행 순서 1-1~2-5 |
 | `checkpoint` | 권장 흐름 계정(앞 스테이지를 한 번씩 클리어했다고 보고 전투 없이 보상·연구 시간만 적용)에서 `--stages` 구간만 진행한다. 실패할 때마다 직전 클리어 스테이지를 `--farm-clears`번 반복 클리어했다고 보고 룬을 더한 뒤 재도전한다 |
-| `calibrate` | 모든 해금 종류를 짓는 탐색 판에서 종류별 예측/실제 피해를 모아 `typeFactors`를 맞춘다. `--write`면 `calibration.json`에 기록 |
+| `calibrate` | `--types`의 종류마다 그 종류만 짓는 판을 돌려, 실제 피해 ÷ 예측 피해 비율을 기관총(항상 측정) 대비로 맞춘 `typeFactors`를 낸다. 모든 종류가 코어가 피해를 입은 포탑×웨이브 30 이상이면 그 표본만, 아니면 전체 표본을 쓴다(보고서 `source`). 빠진 종류(기본 냉각)와 해금되지 않아 표본이 없는 종류(`unmeasured`)는 기존 값을 유지한다. `--write`면 `calibration.json`에 기록. 보정값이 봇의 종류 선택에도 쓰이므로, 값이 바뀌면 같은 명령을 다시 돌려 그대로인지 확인한다 |
 | `ab` | 같은 계정·시드로 `--variants`의 매개변수 묶음을 비교. 계정은 `--progression-file`(campaign 보고서 폴더의 `snapshot-<id>.json`) |
 
 ```sh
 python3 scripts/run_balance_benchmark.py --job=campaign --stages=1-10 --trajectories=3 --seeds=3 --max-attempts=60
 python3 scripts/run_balance_benchmark.py --job=checkpoint --stages=6-10 --trajectories=5 --seeds=3 --farm-clears=3 --max-attempts=15
-python3 scripts/run_balance_benchmark.py --job=calibrate --stages=1,3,5,17,20,7,10 --seeds=4 --runes=1500 --cleared=1-10 --write
+python3 scripts/run_balance_benchmark.py --job=calibrate --stages=3,5,20,10,25,11,13 --seeds=2 --runes=3000 --cleared=1-25 --write
 python3 scripts/run_balance_benchmark.py --job=ab --stage=9 --seeds=6 --progression-file=<snapshot> --variants='[{}, {"slowUptime":1.0}]'
 ```
 
-[calibration.json](calibration.json)은 봇 판단의 보정값이며 `_notes`에 근거 측정을 적는다. 결과는 `build/balance-benchmark/run-*/summary.json`에 남는다.
+`--cleared=<첫 ID>-<끝 ID>`와 `--stages=<첫 ID>-<끝 ID>`는 두 고정 스테이지 ID 사이를 진행 순서로 고른다. `1-25`가 1-1~2-10이고, `1-20`은 1-1~1-10이다(라이트닝·독 해금 전).
+
+[calibration.json](calibration.json)은 봇 판단의 보정값이며 `_notes`에 근거 측정을 적는다. 결과는 `build/balance-benchmark/run-*/summary.json`에 남는다. `checkpoint`·`campaign` 행과 `ab` 변형마다 `board`(판당 종류별 포탑 수, 종류별 피해 비중, 종류별 직격·범위·연쇄·화상 비율)를 요약하고, `checkpoint`·`campaign` 행은 그 판의 장착 모듈(`modules`)도 남긴다. 포탑별 원자료(`turrets`의 `damageParts`, 경로 위치 `pathProgress` 0=입구·1=코어)는 각 작업 보고서에 있다.
+
+### 실험용 매개변수
+
+`--params`(또는 `ab`의 `--variants`)로 넘긴다. 기본값은 모두 꺼져 있어 일반 측정에는 영향이 없다.
+
+| 매개변수 | 용도 |
+| --- | --- |
+| `bannedTypes` | 짓지 않을 종류 목록 |
+| `typeShares` | `{종류: 비중}`. 적힌 종류만 짓고, 각 종류는 `현재 개수 < 비중 × (판 포탑 수 + 1)`일 때만 새로 짓는다. 근사 상한이라 판이 작을 때는 비중을 넘을 수 있다(50:50에서 2:1). 강제 건설은 아니다 |
+| `typeAfter` | `{종류: 개수}`. 판에 포탑이 그 개수 이상일 때부터 그 종류를 짓는다 |
+| `typeProgress` | `{종류: [시작, 끝]}`. 사거리 안 경로의 평균 진행도(0 입구, 1 코어)가 구간 안인 칸에만 짓는다 |
+| `frontTypes`·`frontProgress` | 적힌 종류는 `frontProgress` 앞쪽, 나머지는 뒤쪽 칸에만 짓는다 |
+| `turretOverrides` | `{종류: {정의 필드: 값}}`. 이 프로세스 안에서만 기본 스탯(피해·공격 속도·폭발 반경 등)을 바꾼다. 건설·강화 비용은 바꾸지 못한다 |
+| `moduleType` | 모든 모듈을 이 종류로 뽑는다(기본은 마지막 판 피해 1위 종류) |
+| `runeWeights` | `{강화 ID: 가중치}`. `RUNE_WEIGHTS`를 바꾼다. 판 기록이 없는 출발 계정의 계열 강화를 원소 쪽으로 돌릴 때 쓴다 |
+
+조합을 고정해 비교할 때는 주력 종류로 `moduleType`을 맞추고, 원소 조합이면 `runeWeights`로 원소 강화를 앞세운다. 그렇지 않으면 출발 계정의 모듈·강화가 물리 종류에 쏠려 결과가 왜곡된다.
+
+포탑 조합·배치·수치안 비교 기록은 [포탑 밸런스 측정](../../docs/analysis/turret_balance_20261104/README.md)에 있다.
 
 ## 봇의 판단 규칙
 
@@ -54,5 +75,13 @@ python3 scripts/run_balance_benchmark.py --job=ab --stage=9 --seeds=6 --progress
 - 달력(`playHoursPerDay`): 0보다 크면 실제 시간이 플레이 시간의 24/playHoursPerDay배로 흐른다. 연구는 오프라인에도 진행되고, 하루마다 일일·주간 퀘스트와 출석 보상(다이아·모듈권, 모두 완료 가정)이 들어온다. 보고서의 `clockHours`는 달력 시간, `playHours`는 플레이 시간이다.
 - 모듈(`modules`): 다이아를 모듈권(40다이아)으로 바꾸고, 모든 권으로 마지막 판에서 피해가 가장 큰 포탑 종류의 모듈을 서버 규칙(부위 균등, 뽑기 수에 따른 등급, 등급별 옵션 수, 옵션 범위)대로 뽑는다. 부위마다 마지막 판 기준 DPS가 가장 높은 모듈만 남기고, 나머지는 분해 환급(다이아)한다. 판 안 다이아 드롭, 첫 클리어 모듈권, 새로 달성한 도전 보상을 서버처럼 더한다. 전투 없이 정산하는 클리어는 그 스테이지의 마지막 실제 클리어 기록(없으면 `baselineRunGameSeconds`·`baselineRunDiamonds`)을 쓴다.
 - 다루지 않는 것: 누적 업적·컬렉션 메달 다이아, 우편, 연구 2번 슬롯·다이아 가속, 여러 종류에 나눠 뽑는 모듈 전략.
+
+## 해석할 때 주의할 한계
+
+- 종류 선택은 계정 상태에 따라 기운다. 계열 강화(물리·원소·독)와 모듈이 이미 쌓인 종류가 계속 유리해지므로, 물리로 키운 계정에서 원소 종류를 거의 고르지 않는다. 자유 선택 결과만으로 종류의 강약을 판단하지 않고, 조합을 제한한 비교(`typeShares`·`moduleType`·`runeWeights`)로 확인한다.
+- 칸이 가득 차도 싼 포탑을 팔고 비싼 포탑으로 바꾸지 않는다. 타일당 화력이 높은 종류는 칸이 부족한 맵에서 실제보다 불리하게 나온다.
+- 범위·연쇄·지속피해·감속 가치는 고정 배율과 `typeFactors`로 근사한다. 실제 피해는 보고서의 `damageParts`(직격·범위·연쇄·화상)로 확인한다.
+- `checkpoint`의 반복 클리어는 전투 없이 보상만 더한다. 그 조합으로 직전 스테이지를 실제로 반복 클리어할 수 있는지는 확인하지 않는다.
+- 경로 3개 정도의 측정은 경로 간 범위가 넓다. 20% 안쪽 차이는 같은 수준으로 본다.
 
 가중치와 배율은 보고서의 `heuristics`에 함께 기록한다. 결과는 "무난한 플레이어" 기준이며 최적 플레이의 하한이 아니다.

@@ -14,9 +14,10 @@ Parallel jobs (--job):
     checkpoint as campaign from a recommended-flow account (earlier stages cleared
                once); failed attempts add --farm-clears repeat clears:
                --job=checkpoint --stages=6-10 --trajectories=5 --farm-clears=3
-    calibrate  explore runs that build every type; fits typeFactors from actual
-               damage and with --write stores them in calibration.json:
-               --job=calibrate --stages=1,3,17,20 --seeds=4
+    calibrate  one board per --types entry at a --runes account; fits typeFactors
+               from actual damage in waves that hurt the core (saturated boards)
+               and with --write stores them in calibration.json:
+               --job=calibrate --stages=3,5,20,10,25,11,13 --seeds=2 --runes=3000 --cleared=1-20
     ab         same seeds for each --variants='[{...},{...}]' params set at a
                fixed account/stage/spend rate:  --job=ab --stage=5 --spend-rate=0.6
 """
@@ -38,6 +39,8 @@ TOOL = ROOT / "tool/balance_benchmark"
 CALIBRATION = TOOL / "calibration.json"
 CACHE = ROOT / "build/godot-balance-benchmark"
 REPORTS = ROOT / "build/balance-benchmark"
+# Turret-waves that hurt the core a type needs before calibrate fits from them alone.
+MIN_PRESSURE_WAVES = 30
 
 
 def manifest() -> dict[str, Path | bytes]:
@@ -90,6 +93,28 @@ def margin_row(levels: list[dict]) -> dict:
             "levels": [[level["spendRate"], round(level["clearRate"], 2), level["coreHp"]] for level in levels]}
 
 
+DAMAGE_PARTS = ("direct", "splash", "chain", "burn")
+
+
+def board_summary(boards: list[list[dict]]) -> dict:
+    """Composition per board and each type's share of damage and damage kinds."""
+    counts: dict[str, int] = {}
+    damage: dict[str, float] = {}
+    parts: dict[str, list[float]] = {}
+    for turrets in boards:
+        for turret in turrets:
+            name = turret["type"]
+            counts[name] = counts.get(name, 0) + 1
+            damage[name] = damage.get(name, 0.0) + float(turret.get("damage", 0))
+            split = turret.get("damageParts", [0, 0, 0, 0])
+            parts[name] = [a + float(b) for a, b in zip(parts.get(name, [0.0] * 4), split)]
+    total = sum(damage.values()) or 1.0
+    return {"turretsPerBoard": {name: round(count / max(1, len(boards)), 1) for name, count in counts.items()},
+            "damageShare": {name: round(value / total, 3) for name, value in sorted(damage.items(), key=lambda i: -i[1])},
+            "damageKinds": {name: dict(zip(DAMAGE_PARTS, (round(v / (sum(split) or 1.0), 2) for v in split)))
+                            for name, split in parts.items()}}
+
+
 def campaign(runner: Runner, options, extra: list[str], mode: str = "campaign") -> dict:
     if options.params: extra = [*extra, f"--params={options.params}"]
     jobs = [(f"{mode}-{index + 1}", [f"--mode={mode}", f"--stages={options.stages}", "--trajectories=1",
@@ -110,7 +135,9 @@ def campaign(runner: Runner, options, extra: list[str], mode: str = "campaign") 
                          # A bot error ends the stage early; never read it as a plain failure.
                          "errors": [run["error"] for run in entry["attempts"] if run.get("error")],
                          "coreHp": round(last["coreHp"], 1), "coreMaxHp": round(last["coreMaxHp"], 1),
-                         "turrets": sorted(((t["type"], t["level"]) for t in last["turrets"]), key=lambda t: -t[1])[:6]})
+                         "turrets": sorted(((t["type"], t["level"]) for t in last["turrets"]), key=lambda t: -t[1])[:6],
+                         "board": board_summary([last["turrets"]]),
+                         "modules": [module[:3] for module in last.get("modulesBefore", [])]})
         trajectories.append(rows)
     errors = [(row["stage"], row["errors"]) for rows in trajectories for row in rows if row["errors"]]
     if errors: print(f"WARNING bot run errors: {errors}", file=sys.stderr)
@@ -137,30 +164,47 @@ def stage_ids(text: str) -> list[int]:
 
 
 def calibrate(runner: Runner, options, extra: list[str]) -> dict:
-    """Explore runs at a strong account so every unlocked type sees combat."""
+    """Single-type boards at a weak account: each type alone, so none takes kills
+    from another and the value model never has to pick an unfavoured type."""
     params = json.loads(options.params) if options.params else {}
-    params["explore"] = True
-    jobs = [(f"calibrate-{stage_id}", ["--mode=single", f"--stage={stage_id}", f"--seeds={options.seeds}",
-                                       f"--runes={options.runes}", f"--cleared={options.cleared}",
-                                       f"--params={json.dumps(params)}", *extra])
-            for stage_id in stage_ids(options.stages)]
+    # Factors are relative to the machinegun, so it is always measured.
+    types = list(dict.fromkeys(["machinegun", *options.types.split(",")]))
+    jobs = [(f"calibrate-{stage_id}-{type_name}",
+             ["--mode=single", f"--stage={stage_id}", f"--seeds={options.seeds}", f"--runes={options.runes}",
+              f"--cleared={options.cleared}", f"--params={json.dumps({**params, 'typeShares': {type_name: 1.0}})}", *extra])
+            for stage_id in stage_ids(options.stages) for type_name in types]
     totals: dict[str, dict[str, float]] = {}
-    for report in runner.parallel(jobs):
+    keys = ("predicted", "actual", "turretWaves", "pressurePredicted", "pressureActual", "pressureWaves")
+    for (label, _), report in zip(jobs, runner.parallel(jobs)):
+        type_name = label.rsplit("-", 1)[1]
         for run in report["runs"]:
-            for type_name, stats in run["typeStats"].items():
-                row = totals.setdefault(type_name, {"predicted": 0.0, "actual": 0.0, "turretWaves": 0})
-                for key in row:
-                    row[key] += stats[key]
+            stats = run["typeStats"].get(type_name, {})
+            row = totals.setdefault(type_name, dict.fromkeys(keys, 0.0))
+            for key in keys:
+                row[key] += stats.get(key, 0.0)
     current = json.loads(CALIBRATION.read_text()) if CALIBRATION.is_file() else {}
-    factors = dict(current.get("typeFactors", {}))
-    ratios = {name: row["actual"] / row["predicted"] for name, row in totals.items() if row["predicted"] > 0}
-    reference = ratios.get("machinegun") or (sum(ratios.values()) / len(ratios))
-    fitted = {name: round(ratio / reference, 3) for name, ratio in ratios.items()}
-    result = {"job": "calibrate", "totals": totals, "rawRatioToArrow": fitted}
-    # Damage only: slows are tuned by ab, so frost keeps its value from dealt damage.
-    result["typeFactors"] = fitted
+    # A type never built (locked by --cleared) has no samples and keeps its factor.
+    unmeasured = sorted(name for name, row in totals.items() if row["predicted"] <= 0)
+    measured = {name: row for name, row in totals.items() if row["predicted"] > 0}
+    if "machinegun" not in measured:
+        raise RuntimeError(f"calibrate: no machinegun samples to normalize against (unmeasured: {unmeasured})")
+    # When a board clears a wave easily its turrets idle, so the stronger the type
+    # the lower its actual/predicted ratio. Waves that hurt the core keep every
+    # turret busy. Every type uses the same source so the ratios stay comparable:
+    # those turret-waves when each type has enough, else all of them.
+    pressure = all(row["pressureWaves"] >= MIN_PRESSURE_WAVES and row["pressurePredicted"] > 0
+                   for row in measured.values())
+    ratios = {name: (row["pressureActual"] / row["pressurePredicted"] if pressure else row["actual"] / row["predicted"])
+              for name, row in measured.items()}
+    fitted = {name: round(ratio / ratios["machinegun"], 3) for name, ratio in ratios.items()}
+    # Types left out (frost: its value is the slow, tuned by ab through slowUptime)
+    # or unmeasured keep their current factor.
+    factors = {**current.get("typeFactors", {}), **fitted}
+    result = {"job": "calibrate", "types": types, "totals": totals, "source": "pressure" if pressure else "all",
+              "fitted": fitted, "unmeasured": unmeasured, "typeFactors": factors}
+    if unmeasured: print(f"WARNING calibrate: no samples for {unmeasured}; their factors are unchanged", file=sys.stderr)
     if options.write:
-        current["typeFactors"] = fitted
+        current["typeFactors"] = factors
         CALIBRATION.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n")
         result["written"] = str(CALIBRATION.relative_to(ROOT))
     return result
@@ -182,6 +226,7 @@ def ab(runner: Runner, options, extra: list[str]) -> dict:
         errors = [run["error"] for run in runs if run.get("error")]
         rows.append({"params": variant, "errors": errors, "clearRate": sum(run["success"] for run in runs) / len(runs),
                      "meanWaves": round(sum(run["completedRounds"] for run in runs) / len(runs), 2),
+                     "board": board_summary([run["turrets"] for run in runs]),
                      "meanCoreHp": round(sum(run["coreHp"] for run in runs) / len(runs), 2)})
     return {"job": "ab", "stage": options.stage, "spendRate": options.spend_rate, "variants": rows}
 
@@ -198,6 +243,8 @@ def main() -> int:
     parser.add_argument("--seeds", type=int, default=3)
     parser.add_argument("--runes", type=int, default=0)
     parser.add_argument("--cleared", default="1-10", help="calibrate: stages marked cleared for unlocks")
+    parser.add_argument("--types", default="machinegun,cannon,flame,sniper,lightning,poison",
+                        help="calibrate: turret types fitted, each on its own board")
     parser.add_argument("--params", default="")
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--variants", default="[{}]")

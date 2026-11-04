@@ -59,6 +59,16 @@ const ECONOMY_HORIZON_WAVES := 8
 #   newTypeBonus  extra value share for building a type not yet on the board
 #   minDistinctTypes  until the board has this many types, only new types are built
 #   bannedTypes   turret types the bot never builds (composition experiments)
+#   typeShares    {type: share} forced composition: only listed types are built, each
+#                 only while its count stays below its share of the board
+#   typeAfter     {type: count} a type is built only once the board has that many turrets
+#   typeProgress  {type: [from, to]} a type only on tiles whose covered path's mean
+#                 progress (0 spawn, 1 core) lies in that window
+#   runeWeights   {upgrade id: weight} replaces RUNE_WEIGHTS entries (e.g. an elemental board's
+#                 starting account trains elemental instead of physical damage)
+#   moduleType    draw every module for this turret type instead of the last run's top damage type
+#   turretOverrides  {type: {definition field: value}} balance experiments: replaces
+#                 base stats (damage, attackRate, splashRadius...) in this process only
 #   baselineRunGameSeconds  game time of one assumed clear (research clock)
 #   greed         between waves without pressure, buy affordable economy levels
 #                 (waveGold/killGold) returning at least greedMinRoi times their cost over
@@ -104,7 +114,7 @@ const DEFAULT_PARAMS := {
 	"saveForBest": 0.7, "gemMinGain": 0.02, "typeFactors": {}, "slowUptime": 0.5,
 	"dotFactor": 1.3, "armorPierceFactor": 1.1, "traitChoices": {}, "gemPurchase": true, "explore": false,
 	"playSpeed": 2.0, "secondsBetweenRuns": 60.0, "waveLookahead": 3, "newTypeBonus": 0.0,
-	"minDistinctTypes": 0, "bannedTypes": [], "baselineRunGameSeconds": 800.0,
+	"minDistinctTypes": 0, "bannedTypes": [], "typeShares": {}, "typeAfter": {}, "typeProgress": {}, "turretOverrides": {}, "moduleType": "", "runeWeights": {}, "baselineRunGameSeconds": 800.0,
 	"greed": false, "greedMinRoi": 2.0, "greedPressure": 0.6, "frontTypes": [], "frontProgress": 0.5,
 	"bossWeight": 0.0, "bossLookahead": 10, "bossYield": false, "bossMargin": 1.5, "strongestHitShare": 1.0, "bossFirstHit": 0.4, "bossExtraProjectileHit": 0.3,
 	"grantResearch": {}, "gemLinkCost": false, "gemReplace": false,
@@ -151,6 +161,8 @@ var wave_profile: Array = []
 var hit_cache := {}
 var kill_gold_total := 0.0
 var wave_start_hp := 0.0
+# The core lost HP at some point this wave (end-of-wave recovery can hide it).
+var wave_hurt := false
 var coverage_cache := {}
 # Path progress (0..1) where recent enemies died or arrived. Turret value only
 # counts path that enemies actually reach, like a player watching the board.
@@ -207,6 +219,14 @@ func _initialize() -> void:
 		print(JSON.stringify({"error": catalog.error}))
 		quit(1)
 		return
+	for type in P.turretOverrides:
+		var definition: Dictionary = catalog._data.turrets[type].configuration.statInput.definition
+		for key in P.turretOverrides[type]:
+			if not definition.has(key):
+				print(JSON.stringify({"error": "unknown turret field %s.%s" % [type, key]}))
+				quit(1)
+				return
+			definition[key] = P.turretOverrides[type][key]
 	var stage_id := int(args.get("stage", "1"))
 	stage = catalog.stage_index(stage_id)
 	if stage < 0:
@@ -352,7 +372,7 @@ const BOARD_DAMAGE_UPGRADES := ["fireTraining", "physicalDamageTraining", "eleme
 ## Percent of output one more level adds: RUNE_WEIGHTS, or with boardRuneWeights
 ## and a finished run, measured on the last board (damage) or income (gold).
 func upgrade_weight(id: String, p: Dictionary, growth, base_dps: float) -> float:
-	var weight: float = RUNE_WEIGHTS[id]
+	var weight := float(P.runeWeights.get(id, RUNE_WEIGHTS[id]))
 	if base_dps <= 0.0 or last_income.is_empty() or float(last_income.gold) <= 0.0: return weight
 	var c: Dictionary = growth.data.constants
 	var gold := float(last_income.gold)
@@ -441,6 +461,7 @@ func draw_modules(p: Dictionary, growth) -> Dictionary:
 		if float(last_type_damage[key]) > top and growth.data.module.pools.has(key):
 			top = float(last_type_damage[key])
 			type = key
+	if not str(P.moduleType).is_empty(): type = str(P.moduleType)
 	var kept := 0
 	for _draw in range(tickets):
 		if keep_module(p, growth, generate_module(type, int(p.get(DRAW_COUNT_KEY, 0)), growth)): kept += 1
@@ -868,6 +889,7 @@ func play_run(progression: Dictionary, seed: int) -> Dictionary:
 	spent_total = 0
 	kill_gold_total = 0.0
 	wave_start_hp = 0.0
+	wave_hurt = false
 	spawn_rng.seed = seed
 	domain = RunSession.new()
 	domain.now_millis = func(): return NOW_MILLIS
@@ -903,6 +925,7 @@ func play_run(progression: Dictionary, seed: int) -> Dictionary:
 				var before: float = runtime.clock
 				runtime.advance_session(0.25)
 				var step: float = maxf(0.0, runtime.clock - before)
+				if runtime.defense.hp < wave_start_hp - 0.001: wave_hurt = true
 				if step <= 0.0 and str(domain.state.phase) == "wave":
 					failure = "combat stalled at wave %d" % next_round
 					break
@@ -925,9 +948,12 @@ func play_run(progression: Dictionary, seed: int) -> Dictionary:
 func run_result(progression: Dictionary, game_time: float, error: String) -> Dictionary:
 	var state: Dictionary = domain.state if domain != null else {}
 	var turrets: Array = []
+	var derived: Dictionary = domain.service.derived(state) if domain != null and not state.is_empty() else {}
 	for t in state.get("turrets", []):
+		var sheet := turret_dps(t.type, int(t.level), t, derived) if not derived.is_empty() else {}
 		turrets.append({"type": t.type, "x": t.x, "y": t.y, "level": t.level, "gems": t.equippedGemSlots.filter(func(g): return g != null),
-			"primaryTrait": t.primaryTrait, "targetPriority": t.get("targetPriority", "first"), "damage": roundi(float(t.get("damageDealt", 0.0)))})
+			"primaryTrait": t.primaryTrait, "targetPriority": t.get("targetPriority", "first"), "damage": roundi(float(t.get("damageDealt", 0.0))),
+			"pathProgress": snappedf(covered_progress(Vector2i(t.x, t.y), float(sheet.range)), 0.01) if not sheet.is_empty() else -1.0})
 	for live in (runtime.turrets.values() if runtime != null else []):
 		for row in turrets:
 			if row.x == int(live.state.x) and row.y == int(live.state.y):
@@ -951,7 +977,10 @@ func _on_step() -> void:
 			var enemy: Dictionary = runtime.enemies.get(str(event.get("enemyId", "")), {})
 			var boss := not enemy.is_empty() and bool(catalog.enemy_definition(str(enemy.get("type", ""))).get("isBoss", false))
 			var outcome := -1.0
-			if event.kind == CombatKinds.ARRIVAL: outcome = 1.0
+			if event.kind == CombatKinds.ARRIVAL:
+				# The wave-end heal can undo the last arrival within the same advance.
+				wave_hurt = true
+				outcome = 1.0
 			else:
 				if not enemy.is_empty() and float(enemy.get("_total", 0.0)) > 0.0:
 					outcome = clampf(float(enemy.distanceTravelled) / float(enemy._total), 0.0, 1.0)
@@ -998,6 +1027,7 @@ func start_wave() -> bool:
 		update_roles(domain.service.derived(domain.state))
 		log_actions.append({"kind": "bossCheck", "round": next_round + 1, "capacity": snappedf(boss_capacity, 0.01)})
 	wave_start_hp = runtime.defense.hp
+	wave_hurt = false
 	var inputs := {"initialDelay": catalog.initial_delay(),
 		"spawnValues": catalog.random_spawn_values(stage, next_round, spawn_rng, StageDifficulty.promotion_seed(domain.state))}
 	var wave: Dictionary = catalog.wave(stage, next_round, next_enemy_id, inputs)
@@ -1030,16 +1060,25 @@ func open_wave_stats() -> void:
 		wave_predicted[int(t.id)] = {"type": t.type, "predicted": sheet.dps * coverage(Vector2i(t.x, t.y), sheet.range)}
 	wave_damage_start = live_damage()
 
+## Waves that hurt the core also count separately: the board was saturated, so
+## a strong type's damage is not capped by enemies it had nothing left to hit.
 func close_wave_stats() -> void:
 	if wave_predicted.is_empty(): return
 	var now := live_damage()
+	var pressured: bool = wave_hurt or (runtime != null and runtime.defense.hp < wave_start_hp - 0.001)
 	for id in wave_predicted:
 		if not now.has(id): continue
 		var row: Dictionary = wave_predicted[id]
-		var stats: Dictionary = type_stats.get(row.type, {"predicted": 0.0, "actual": 0.0, "turretWaves": 0})
+		var stats: Dictionary = type_stats.get(row.type, {"predicted": 0.0, "actual": 0.0, "turretWaves": 0,
+			"pressurePredicted": 0.0, "pressureActual": 0.0, "pressureWaves": 0})
+		var dealt: float = now[id] - float(wave_damage_start.get(id, 0.0))
 		stats.predicted += row.predicted
-		stats.actual += now[id] - float(wave_damage_start.get(id, 0.0))
+		stats.actual += dealt
 		stats.turretWaves += 1
+		if pressured:
+			stats.pressurePredicted += row.predicted
+			stats.pressureActual += dealt
+			stats.pressureWaves += 1
 		type_stats[row.type] = stats
 	wave_predicted = {}
 
@@ -1413,19 +1452,27 @@ func hit_effectiveness(hit: float, pierces: bool, floor_rate: float) -> float:
 ## frontTypes composition: those types only on tiles whose covered path lies
 ## mostly before frontProgress, every other type only behind it.
 func role_allows(type: String, tile: Vector2i, d: Dictionary) -> bool:
-	if P.frontTypes.is_empty(): return true
+	if P.frontTypes.is_empty() and not P.typeProgress.has(type): return true
 	var sheet := turret_dps(type, 1, {"equippedGemSlots": [null]}, d)
 	if sheet.is_empty(): return false
+	var progress := covered_progress(tile, sheet.range)
+	if progress < 0.0: return false
+	if P.typeProgress.has(type):
+		var window: Array = P.typeProgress[type]
+		if progress < float(window[0]) or progress > float(window[1]): return false
+	if P.frontTypes.is_empty(): return true
+	return (progress < float(P.frontProgress)) == (type in P.frontTypes)
+
+## Mean path progress of the samples inside the range, or -1 when none are.
+func covered_progress(tile: Vector2i, radius: float) -> float:
 	var center := Vector2(tile.x + 0.5, tile.y + 0.5)
 	var weight := 0.0
 	var progress := 0.0
 	for i in range(path_samples.size()):
-		if path_samples[i].distance_to(center) <= sheet.range:
+		if path_samples[i].distance_to(center) <= radius:
 			weight += 1.0
 			progress += sample_progress[i]
-	if weight <= 0.0: return false
-	var front := progress / weight < float(P.frontProgress)
-	return front == (type in P.frontTypes)
+	return progress / weight if weight > 0.0 else -1.0
 
 func free_tiles() -> Array:
 	var used := {}
@@ -1477,6 +1524,16 @@ func spend() -> void:
 		for t in domain.state.turrets: built[t.type] = true
 		if built.size() < int(P.minDistinctTypes) and types.any(func(type): return not built.has(type)):
 			types = types.filter(func(type): return not built.has(type))
+		if not P.typeShares.is_empty():
+			var shares: Dictionary = P.typeShares
+			var counts := {}
+			for t in domain.state.turrets: counts[t.type] = int(counts.get(t.type, 0)) + 1
+			var next: int = domain.state.turrets.size() + 1
+			types = types.filter(func(type): return shares.has(type) and int(counts.get(type, 0)) < float(shares[type]) * next)
+		if not P.typeAfter.is_empty():
+			var after: Dictionary = P.typeAfter
+			var board: int = domain.state.turrets.size()
+			types = types.filter(func(type): return board >= int(after.get(type, 0)))
 		if bool(P.explore):
 			# Calibration: always offer the least-built type so every type gets data.
 			var counts := {}
