@@ -48,7 +48,7 @@ func run() -> void:
 	core._resize()
 	check(core.POLAR.size()==21,"all 21 nodes")
 	check(core.GLYPHS.size()==19,"19 material glyphs plus 2 asset icons")
-	check(is_equal_approx(core.zoom,400.0/720*0.92),"Flutter fit scale")
+	check(is_equal_approx(core.zoom,400.0/720*0.92),"core fit scale")
 	check(core.point("attackOutput")==Vector2(470,360),"unscaled original coordinates")
 	core.select_at(core.offset+Vector2(455.242207,236.478848)*core.zoom)
 	check(core.selected=="attackPrecompute","visible medium node edge selects correct node")

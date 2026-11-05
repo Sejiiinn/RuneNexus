@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the former Dart native regression matrix with an isolated Godot project."""
+"""Run the native regression matrix with an isolated Godot project."""
 from __future__ import annotations
 
 import argparse

@@ -118,7 +118,7 @@ func _check_projection(scene: Node3D, frame: Dictionary) -> void:
 			minimum = minimum.min(point)
 			maximum = maximum.max(point)
 	var target := _vector(frame["screenCenter"]) / _vector(frame["viewport"])
-	_check(((minimum + maximum) / 2.0).distance_to(target) < 0.00001, "전장 경계 중심과 Flutter HUD 가용 영역 중심 불일치: actual=%s target=%s viewport=%s offset=(%s, %s) size=%s" % [(minimum + maximum) / 2.0, target, viewport, scene.camera.h_offset, scene.camera.v_offset, scene.camera.size])
+	_check(((minimum + maximum) / 2.0).distance_to(target) < 0.00001, "전장 경계 중심과 HUD 가용 영역 중심 불일치: actual=%s target=%s viewport=%s offset=(%s, %s) size=%s" % [(minimum + maximum) / 2.0, target, viewport, scene.camera.h_offset, scene.camera.v_offset, scene.camera.size])
 	_check(int(presentation["sequence"]) == int(frame["seq"]), "렌더 투영의 전투 프레임 번호 불일치")
 	var determinant := x_axis.x * y_axis.y - x_axis.y * y_axis.x
 	var selected := Vector2(5.5, 3.5)

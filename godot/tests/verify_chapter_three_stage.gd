@@ -130,7 +130,7 @@ func _projected_active_bounds(scene: Node3D, map: Dictionary) -> Rect2:
 			high = high.max(projected)
 	return Rect2(low, high - low)
 
-func _check_flutter_camera(scene: Node3D, frame: Dictionary, stage: int) -> void:
+func _check_camera_centering(scene: Node3D, frame: Dictionary, stage: int) -> void:
 	var map: Dictionary = frame["map"]
 	var columns := int(map["columns"])
 	var rows := int(map["rows"])
@@ -150,10 +150,10 @@ func _check_flutter_camera(scene: Node3D, frame: Dictionary, stage: int) -> void
 	var sequence := int(frame["seq"]) + 1
 	for zoom: float in [1.0, 1.25]:
 		input["zoom"] = zoom
-		var flutter_center := viewport / 2.0 - grid_offset * 44.0 * zoom
+		var screen_center := viewport / 2.0 - grid_offset * 44.0 * zoom
 		var neutral := Vector2.ZERO
 		for pan: Vector2 in [Vector2.ZERO, Vector2(17, -11)]:
-			input["screenCenter"] = [flutter_center.x + pan.x, flutter_center.y + pan.y]
+			input["screenCenter"] = [screen_center.x + pan.x, screen_center.y + pan.y]
 			input["seq"] = sequence
 			sequence += 1
 			scene.apply_frame(input)
@@ -163,8 +163,8 @@ func _check_flutter_camera(scene: Node3D, frame: Dictionary, stage: int) -> void
 			if pan == Vector2.ZERO:
 				neutral = actual
 			else:
-				_check((actual - neutral).distance_to(pan) < .05, "Stage%d Flutter 팬 이동량 변경" % stage)
-	print("Stage%d Flutter camera: centered x=196.5; zoom 1/1.25 and pan (17,-11) checked" % stage)
+				_check((actual - neutral).distance_to(pan) < .05, "Stage%d 팬 이동량 변경" % stage)
+	print("Stage%d camera: centered x=196.5; zoom 1/1.25 and pan (17,-11) checked" % stage)
 
 func _teleport_jump(map: Dictionary, from: Vector2, to: Vector2) -> bool:
 	for pair: Dictionary in map.get("teleportPairs", []):
@@ -288,7 +288,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, stage: int) -> void:
 		if step > 0:
 			var previous := Vector2(float(path[step - 1][0]), float(path[step - 1][1]))
 			_check(is_equal_approx(point.distance_to(previous), 1.0) or _teleport_jump(frame["map"], previous, point), "원래 이동 경로 단절")
-	_check_flutter_camera(scene, frame, stage)
+	_check_camera_centering(scene, frame, stage)
 	print("Chapter three stage%d: %dx%d, %d tiles, %d grates, %d vents, %d props, %d failures" % [stage, columns, rows, tile_count, grate_count, vent_count, scene.terrain.get_node("chapter_three_props").get_child_count(), failures])
 
 func _verify() -> void:

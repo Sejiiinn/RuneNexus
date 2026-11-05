@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the checked-in Godot content and regression fixtures without Dart."""
+"""Validate the checked-in Godot content and regression fixtures."""
 from __future__ import annotations
 
 import json

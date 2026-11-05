@@ -85,7 +85,7 @@ func run() -> void:
 	for i in range(180):
 		runtime.advance_session(1.0/60.0)
 		scene.apply_frame(scene.combat_base_frame)
-	check(runtime.clock > 2.9 and not runtime.enemies.is_empty(),"combat without Flutter dt")
+	check(runtime.clock > 2.9 and not runtime.enemies.is_empty(),"combat advances on its own clock")
 	check(runtime.turrets.values()[0].shotSequence>0,"standalone placed turret attacks")
 	var before: float = runtime.clock
 	app.toggle_pause()
@@ -121,7 +121,7 @@ func run() -> void:
 	check(runtime.session.paused and runtime.clock == 0 and runtime.epoch == app.epoch and runtime.events.all(func(event): return event.kind == "waveStarted"), "restore waits for explicit resume with fresh event epoch")
 	app.toggle_pause()
 	runtime.advance_session(0.1)
-	check(runtime.clock > 0, "restored session continues without Flutter")
+	check(runtime.clock > 0, "restored session continues")
 	var before_rejected_epoch: int = app.epoch
 	checkpoint.activeRun.turrets[0].type = "cannon"
 	app.checkpoint.store.save_save(checkpoint)

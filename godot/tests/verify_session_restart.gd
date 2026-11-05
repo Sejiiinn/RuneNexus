@@ -44,7 +44,7 @@ func run() -> void:
 			check(is_equal_approx(runtime.turrets.values()[0].cooldown, saved.activeRun.turrets[0].cooldown), "turret cooldown")
 			app.toggle_pause()
 			runtime.advance_session(0.1)
-			check(runtime.clock > 0, "restored process advances without Flutter")
+			check(runtime.clock > 0, "restored process advances")
 			scene.apply_frame(scene.combat_base_frame)
 			app._process(0)
 			if DisplayServer.get_name() != "headless":

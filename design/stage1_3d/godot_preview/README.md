@@ -40,11 +40,7 @@ GLB의 정점 색상 사용 플래그를 임포트 후 보정한다. Godot 방�
 
 Godot 공식 4.7.2 일반판 실행 파일이 필요하다. 기본 탐색 경로는 `build/godot-preview/tools/Godot.app/Contents/MacOS/Godot`이며 다른 위치는 `GODOT_EXECUTABLE`로 지정한다. AAR와 PCK의 엔진 버전 일치를 검사한다.
 
-```sh
-bash design/stage1_3d/godot_preview/build_macos.sh
-```
-
-스크립트는 공용 `scripts/build_godot_pack.py`로 에셋 준비·Godot 임포트·라이선스 고지 생성·PCK 내보내기를 수행하고, 검수 UI의 Flutter release APK를 빌드해 이름을 구분한 전달본을 복사한다. `RUNE_NEXUS_DEBUG_PANEL=true`는 이 로컬 검수 대상에만 적용한다. Godot MIT 라이선스와 엔진에 포함된 외부 라이브러리 고지는 PCK의 `engine_licenses.txt`에 포함된다.
+당시 `build_macos.sh`(Flutter 빌드라 삭제)는 공용 `scripts/build_godot_pack.py`로 에셋 준비·Godot 임포트·라이선스 고지 생성·PCK 내보내기를 수행하고, 검수 UI의 Flutter release APK를 빌드해 이름을 구분한 전달본을 복사한다. `RUNE_NEXUS_DEBUG_PANEL=true`는 이 로컬 검수 대상에만 적용한다. Godot MIT 라이선스와 엔진에 포함된 외부 라이브러리 고지는 PCK의 `engine_licenses.txt`에 포함된다.
 
 `runeNexusGodotPreview` Gradle 속성은 검수 앱의 패키지·표시 이름·Activity를 선택한다. 일반 앱과 검수 앱은 공식 Godot AAR·PCK·호스트·브리지를 공유한다. 이 전달 스크립트만 ARM64를 선택하며 일반 빌드의 ABI 선택은 유지한다. Godot이 제공하는 C++ 런타임 하나를 사용해 기존 ANGLE 런타임과의 중복을 제거한다.
 

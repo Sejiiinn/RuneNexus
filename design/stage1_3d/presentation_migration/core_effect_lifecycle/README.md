@@ -25,6 +25,6 @@ Android 17 ARM64 에뮬레이터(1080×2424), 일반 `main.dart` release build 2
 
 - [코어 빔 실제 화면](beam-final.png), [정지 유지](beam-paused-settled.png), [이후 정지 화면](beam-paused-settled-later.png).
 - [균열 파동 실제 화면](rift-final.png), [종료 후](rift-ended.png).
-- [작업량 원자료](work-results.json), [측정 코드](measure_work.dart), [최종 APK 정보](final-build.json).
+- [작업량 원자료](work-results.json), 측정 코드 `measure_work.dart`(Flutter 제거로 삭제), [최종 APK 정보](final-build.json).
 
 APK 391,252,346B로 직전 로컬 build 2005보다 560B 증가했다. 새 에셋·의존성 추가 없음. 검수 후 원본 primary/backup 저장 파일을 바이트 단위로 복원하고 로비에 두었다. 원자료·스크립트·로그·캡처·영상은 로컬 검수 자료이며 자동 커밋하지 않는다. 커밋·푸시·공개 배포는 하지 않았다.

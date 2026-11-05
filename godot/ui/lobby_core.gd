@@ -298,7 +298,7 @@ func select_at(location: Vector2) -> void:
 		return
 	var pos := (location-offset)/zoom
 	if pos.distance_to(CENTER) < 64: skills(); return
-	# Match Flutter's per-node SizedBox hit region; no oversized overlapping circles.
+	# Per-node square hit region; no oversized overlapping circles.
 	for id in node_ids():
 		var maximum := int(data().nodes[id].maxRank)
 		var diameter := 48.0 if maximum == 5 else (68.0 if maximum == 3 else 96.0)
@@ -605,8 +605,8 @@ func draw_tree(canvas: Control) -> void:
 	_image(canvas,asset,Rect2(CENTER-Vector2.ONE*27,Vector2.ONE*54))
 	var title: String = lobby.display_title(skill) if skill in ["guardianBeam","riftMark"] else "스킬 선택"
 	var width := maxf(96,canvas.get_theme_default_font().get_string_size(title,HORIZONTAL_ALIGNMENT_LEFT,-1,15).x+32)
-	# Flutter ExactAssetImage(scale:2): source pixels and destination border
-	# extents are distinct. Native 32px end caps must occupy 16 world units.
+	# The nameplate art is 2x: source pixels and destination border extents
+	# are distinct. Native 32px end caps must occupy 16 world units.
 	_nameplate(canvas,Rect2(CENTER+Vector2(-width/2,34),Vector2(width,30)))
 	_text(canvas,title,CENTER+Vector2(0,49),15,Color("f4e6c8"))
 	for id in node_ids():

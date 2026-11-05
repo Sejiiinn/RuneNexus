@@ -20,7 +20,7 @@ func _verify() -> void:
 	scene.set_process(false)
 	_check(root.msaa_3d == Viewport.MSAA_2X and scene.sun.shadow_enabled, "기본 MSAA·그림자 유지 실패")
 	for size in [512, 1024, 2048, 0, 512]:
-		# Flutter 브리지와 같은 JSON 숫자 타입으로 전환을 검증한다.
+		# JSON을 거친 숫자 타입으로도 전환되는지 검증한다.
 		scene.options.merge(JSON.parse_string(JSON.stringify({"msaa_samples": 0, "shadow_map_size": size})), true)
 		scene.apply_options()
 		await process_frame

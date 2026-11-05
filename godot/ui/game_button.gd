@@ -1,5 +1,5 @@
 extends Button
-## Role-aware Flutter GameButton counterpart. Layout remains the owner's choice.
+## Role-aware game button. Layout remains the owner's choice.
 var variant := "secondary"
 var compact := false
 var _press_tween: Tween

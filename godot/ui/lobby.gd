@@ -1,6 +1,6 @@
 extends Control
 const Progression = preload("res://content/stage_progression.gd")
-## Independent Godot lobby shell; original Flutter game pages share saved progression.
+## Godot lobby shell; its pages share saved progression.
 const AppTheme = preload("res://ui/app_theme.gd")
 const MenuTheme = preload("res://ui/battle_theme.gd")
 const ModalFrame = preload("res://ui/game_modal_frame.gd")

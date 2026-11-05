@@ -8,7 +8,7 @@
 
 검수는 이전 `random-vents/`와 같은 Android17 arm64 에뮬레이터·1080×2424·Godot4.7.2·기본 MSAA2x/높음 그림자·기존 RuneNexusApp/HUD 조건에서 진행한다. 별도 `com.example.rune_nexus.godotpreview` 패키지와 `../android_preview.dart`의 메모리 저장 격리를 사용해 일반 설치본의 진행을 보존한다.
 
-재현: `bash design/chapter3_3d/stage11/environment-props/build_preview.sh`. 공개 배포 없음. `apk-before.json`/`apk-after.json`은 직전 로컬 검수 APK와의 비교이며 공개 배포본 대비 수치가 아니다.
+재현 스크립트 `build_preview.sh`는 Flutter 빌드를 써서 삭제했다. 공개 배포 없음. `apk-before.json`/`apk-after.json`은 직전 로컬 검수 APK와의 비교이며 공개 배포본 대비 수치가 아니다.
 
 실렌더러 검사 PASS: 엘보 2·연결관 2·배기구 1, 총 5개를 안전거리와 외곽 여유에 맞춰 선택했다. 기존 53타일·5격자·5매립 환기구와 두 설치 타일을 보존했다. 동일 맵 재구성, 원본 메시/PBR 공유, 플레이 영역·환기구 회피, 11→1→6→11 전환 검사 0 failures. 검사 로그 (`../../environment_props/verification/runtime.log`, 로컬 기록).
 

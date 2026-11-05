@@ -15,7 +15,7 @@ scripts/in_app_server_macos.sh flutter devices
 ORG_GRADLE_PROJECT_runeNexus3dPreview=true WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter run --profile -d <device-id> --target=design/stage1_3d/mobile_profile/main.dart --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
 ```
 
-release 동작 확인에는 같은 명령의 `--profile`을 `--release`로 바꾼다. `RUNE_NEXUS_DEBUG_PANEL`은 아래 재현을 위한 기존 테스트 패널만 활성화한다. 이 대상과 플래그는 개발 측정용이며 배포 설정에는 추가하지 않는다. Windows는 [SDK 실행 규칙](../../../.agents/windows_flutter_guide.md)을 따른다.
+release 동작 확인에는 같은 명령의 `--profile`을 `--release`로 바꾼다. `RUNE_NEXUS_DEBUG_PANEL`은 아래 재현을 위한 기존 테스트 패널만 활성화한다. 이 대상과 플래그는 개발 측정용이며 배포 설정에는 추가하지 않는다.
 
 첫 실행에서 3D 지형과 포탑이 실제로 표시되는지 확인한다. 렌더러 초기화에 실패하면 2D 전장으로 돌아가므로 그 실행은 3D 성능 결과에 포함하지 않는다. 실기기 연결·서명·네이티브 빌드 환경은 각 플랫폼 설정이 필요하다.
 

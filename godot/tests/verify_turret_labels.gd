@@ -23,7 +23,7 @@ func _verify() -> void:
 	scene.options["turret_levels"] = true
 	scene._report_presentation()
 	_check(labels.badges.size() == scene.turrets.size(), "확정 포탑의 레벨 표시 누락")
-	_check(scene.presentation()["nativeTurretLevels"], "Flutter 중복 방지 capability 누락")
+	_check(scene.presentation()["nativeTurretLevels"], "네이티브 포탑 레벨 capability 누락")
 	var id: int = scene.turrets.keys()[0]
 	var badge: Sprite2D = labels.badges[id]
 	var initial: Vector2 = badge.position
@@ -41,7 +41,7 @@ func _verify() -> void:
 	var previous: Vector2 = badge.position
 	for index in range(4):
 		transition.custom_step(scene.CAMERA_TRANSITION_SECONDS / 4.0)
-		# 실제 렌더 직전 콜백: 새 Flutter 프레임 없이 현재 카메라를 따른다.
+		# 실제 렌더 직전 콜백: 새 프레임 입력 없이 현재 카메라를 따른다.
 		scene._report_presentation()
 		_check(badge.position.distance_to(previous) > 0.01, "카메라 전환 중 배지 좌표가 이전 프레임에 남음")
 		previous = badge.position
@@ -65,7 +65,7 @@ func _verify() -> void:
 	_check(not labels.visible and not scene.presentation()["nativeTurretLevels"], "레거시 표시로 전환 실패")
 	scene.apply_frame({"reset": true})
 	_check(labels.badges.is_empty(), "전장 종료 뒤 배지 노드가 남음")
-	print("Turret labels verification: %d failures; camera without Flutter frames, aim, zoom, level, removal, capability, reset" % failures)
+	print("Turret labels verification: %d failures; camera without frame input, aim, zoom, level, removal, capability, reset" % failures)
 	scene.queue_free()
 	await process_frame
 	quit(0 if failures == 0 else 1)

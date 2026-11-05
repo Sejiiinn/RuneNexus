@@ -805,7 +805,7 @@ func _record_text(state: Dictionary,progression: Dictionary,best: int) -> String
 	return "최고 %dR" % best
 
 func _effect(type: String) -> String:
-	# battle_labels is exported from the Flutter gem catalog; only layout changes here.
+	# battle_labels keeps the gem catalog wording; only layout changes here.
 	var description: String = hud.gem_description(type)
 	if type == "heavyWeapon": description = description.replace("\n중화기 전용","")
 	var parts := PackedStringArray()

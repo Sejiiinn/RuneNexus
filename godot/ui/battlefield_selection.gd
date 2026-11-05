@@ -1,5 +1,5 @@
 extends Node2D
-## Native camera projection of Dart-resolved selection state. No combat queries.
+## Native camera projection of resolved selection state. No combat queries.
 var _frame: Dictionary = {}
 var selection_revision := -1
 var _animation_clock := 0.0

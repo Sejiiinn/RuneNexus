@@ -1,6 +1,6 @@
 # 실제 콘텐츠 설정
 
-역할: Godot 전투 콘텐츠와 제작 원본 계약. 스테이지·적·포탑·기본 설정의 수정 원본은 [source/](source/)이며, `game_content.json`은 [컴파일러](../../scripts/content_compiler.py)가 만드는 추적 중인 실행 입력이다. `growth_content.json`은 일반 성장 수치의 수정 원본이며, 그 안의 `core`·`legacyCore`는 아래 버전별 원본에서 생성한다. 빌드·검사 준비는 실행 입력의 최신성을 먼저 확인하고 원본 폴더를 제외해 복사한다. 이전 Dart 생성기는 사용하지 않는다.
+역할: Godot 전투 콘텐츠와 제작 원본 계약. 스테이지·적·포탑·기본 설정의 수정 원본은 [source/](source/)이며, `game_content.json`은 [컴파일러](../../scripts/content_compiler.py)가 만드는 추적 중인 실행 입력이다. `growth_content.json`은 일반 성장 수치의 수정 원본이며, 그 안의 `core`·`legacyCore`는 아래 버전별 원본에서 생성한다. 빌드·검사 준비는 실행 입력의 최신성을 먼저 확인하고 원본 폴더를 제외해 복사한다.
 
 `content_catalog.gd`는 `save_json.gd`의 타입 보존 JSON 파서를 사용한다. 스테이지·웨이브·적·포탑 정의와 생성 스폰 순서를 보존하고, 기존 `native_combat_runtime.gd` 및 `turret_stat_calculation.gd`에 입력을 조립한다. 정의 수치나 피해 공식을 별도로 작성하지 않는다. `stage()`의 `map.theme`은 renderer가 요구하는 `tileTheme` 별칭이다.
 

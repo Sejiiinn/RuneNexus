@@ -1,5 +1,5 @@
 extends StyleBox
-## Flutter GameModalFrame cut corners, tone, ambient light and inset rails.
+## Game modal frame: cut corners, tone, ambient light and inset rails.
 ## Shared by battle and lobby; content margins are independent of frame geometry.
 var accent := Color("8ee6ff")
 var tone := "standard"
@@ -48,7 +48,7 @@ func _build_fill(rect: Rect2) -> void:
 	var boundary := outline(rect.grow(-1),14)
 	var top: Color = {"standard":Color("102638"),"reward":Color("272416"),"danger":Color("2a1719")}.get(tone,Color("102638"))
 	var bottom: Color = {"standard":Color("050c15"),"reward":Color("080d10"),"danger":Color("0b090d")}.get(tone,Color("050c15"))
-	# One cached triangle batch approximates Flutter's two gradients without textures.
+	# One cached triangle batch draws the two gradients without textures.
 	for y in range(16):
 		for x in range(12):
 			var cell := Rect2(rect.position+rect.size*Vector2(x/12.0,y/16.0),rect.size/Vector2(12,16))

@@ -309,7 +309,7 @@ func _update_fire_projectile(entry: Dictionary, row: FrameRows.Projectile, turre
 				var pose = owner.get("shot_pose")
 				if int(owner.get("last_shot", -1)) == row.shot and pose is Transform3D:
 					launch = pose.origin
-				# magic의 origin에는 이미 Dart 화구 오프셋이 포함된다.
+				# flame의 origin에는 이미 화구 오프셋이 포함된다.
 		entry["launch_position"] = launch
 	if finished and row.has_end:
 		point.x = row.end_x + map_offset.x

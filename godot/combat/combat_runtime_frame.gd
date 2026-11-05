@@ -36,7 +36,7 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false, canonical_effe
 						aims.append([t.id,point.x,point.y,t.aimProgress])
 				frame.presentation.selection.aim = aims
 			if frame.presentation.get("effects") is Dictionary:
-				# Dart's last sampled shake must never become a permanent offset.
+				# The last sampled shake must never become a permanent offset.
 				var shake := sin(destruction_elapsed*78)*(1.0-destruction_elapsed/3.2)*3.4*board_scale if destruction_elapsed>0 else 0.0
 				# World shake is consumed as canonical screen pixels.
 				frame.presentation.effects.shake = [shake*canvas_ratio,-shake*0.45*canvas_ratio] if canvas_scaled else [shake,-shake*0.45]

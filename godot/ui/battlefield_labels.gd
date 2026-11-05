@@ -1,6 +1,6 @@
 extends Node2D
 
-## 내구도·상태 보조 표시는 Flutter EnemyRenderer의 크기와 순서를 유지한다.
+## 내구도·상태 보조 표시는 정해진 크기와 순서를 유지한다.
 ## 화상과 냉각은 적 본체에 붙는 공통 3D 효과가 담당한다.
 var labels := {}
 var core: CoreLabel

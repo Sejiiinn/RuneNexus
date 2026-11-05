@@ -1,5 +1,5 @@
 extends Control
-## Flutter research slot fill / 2.4-second catalog border animation.
+## Research slot fill / 2.4-second catalog border animation.
 var catalog := false
 var slot_bar := false
 var progress := 0.0:

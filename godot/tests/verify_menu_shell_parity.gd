@@ -33,7 +33,7 @@ func run() -> void:
 	lobby.open_page("스테이지")
 	lobby.size = Vector2(1100,700)
 	for i in range(5): await process_frame
-	assert(lobby.body.size.x <= 400.1, "Stage maximum width matches Flutter")
+	assert(lobby.body.size.x <= 400.1, "Stage maximum width stays 400")
 	lobby.open_service("우편함")
 	assert(lobby.modal_body.get_child(1).text == "계정 연결")
 	lobby.modal_body.get_child(1).pressed.emit()

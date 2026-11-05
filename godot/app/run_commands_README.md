@@ -18,7 +18,7 @@
 
 `session/run_session.gd`는 scene epoch와 이벤트 ID로 중복 반영을 막는다. 독립 세션에 처치·보스·웨이브·런 강화 퀘스트, KST 일·주 초기화, 플레이 시간과 런 종료 룬·코어·최고 라운드·클리어·해금을 연결했다. 이벤트는 진행에 반영한 뒤 ACK하며, stable run UUID와 기존 `claimedEventIds`의 종료 마커로 중복 정산을 방지한다. `session_checkpoint.gd`와 `content_run_save.gd`가 실제 콘텐츠의 v2 Save/Load를 제공한다. 런 종료 v2 체크포인트와 영속 보상 Outbox를 먼저 기록한 뒤 Stage/재시도로 이동한다. 쓰기 실패 시 전환을 차단한다. 정식 앱에는 게스트 플레이가 없으며 과거 게스트 큐는 보존 슬롯에 격리하고 계정으로 자동 재바인딩하지 않는다. 서버 다이아·모듈권을 로컬에서 확정하지 않는다. 정산·퀘스트의 유지 검사는 `verify_reward_settlement.gd`와 `verify_quest_progress.gd`다.
 
-성장 수치의 수정 원본은 `content/growth_content.json`이며 실제 API 계약과 함께 [콘텐츠 원본 안내](../../tool/content/README.md)를 따른다. 이전 Dart/Flutter 생성기는 사용하지 않는다.
+성장 수치의 수정 원본은 `content/growth_content.json`이며 실제 API 계약과 함께 [콘텐츠 원본 안내](../../tool/content/README.md)를 따른다.
 
 검증: `verify_run_commands.gd`, `verify_growth_rules.gd`는 저장소 `godot/` 경로에서 실행한다. 실제 장면 통합은 자산이 준비된 `build/godot/project`에서 `verify_run_session.gd`를 실행한다. 자세한 결과·제한은 [검증 기록](../../docs/analysis/godot_run_growth_20260921/README.md)을 따른다.
 

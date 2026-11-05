@@ -49,7 +49,7 @@ def app_config() -> dict[str, str]:
 
 
 def _prepare_battlefield_verification() -> None:
-    """생성된 콘텐츠의 맵으로 검증 입력을 준비한다. Dart SDK/소스는 읽지 않는다."""
+    """생성된 콘텐츠의 맵으로 검증 입력을 준비한다."""
     content = load_compiled_content(SOURCE / "content/game_content.json")
     frames = []
     chapter_frames = {"chapterOne": [], "chapterTwoRift": [], "chapterThreeForge": []}

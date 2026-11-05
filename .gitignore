@@ -1,12 +1,5 @@
-# Flutter/Dart
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
+# Build outputs
 build/
-
-# Local in-app server artifacts
-flutter_web_server.*
 
 # Local agent/tool artifacts (Claude 지침·스킬만 추적, launch.json·개인 설정은 로컬)
 /.claude/*
@@ -68,15 +61,6 @@ waveletNoiseTile.bin
 /design/stage1_3d/presentation_migration/chain_lifecycle/*
 !/design/stage1_3d/presentation_migration/chain_lifecycle/README.md
 /docs/analysis/godot_save_foundation_20260921/save-restart.png
-
-# Preserved local artifacts from the retired Flutter host
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/ephemeral/
-/ios/Flutter/flutter_export_environment.sh
-/ios/Runner/GeneratedPluginRegistrant.*
-/linux/flutter/ephemeral/
-/macos/Flutter/ephemeral/
-/windows/flutter/ephemeral/
 
 # Historical one-off verification artifacts: retained locally, not source inputs.
 /design/chapter2_3d/optimization/build.log

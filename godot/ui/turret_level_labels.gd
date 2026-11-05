@@ -1,7 +1,7 @@
 extends CanvasLayer
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 
-## 포탑과 같은 Godot 프레임의 화면 정면 배지. 그림은 기존 Flutter 배지를 재사용한다.
+## 포탑과 같은 Godot 프레임의 화면 정면 배지. 그림은 기존 배지 이미지를 재사용한다.
 const ATLAS = "res://assets/ui/turret_levels.png"
 const StageResources = preload("res://presentation/stage_resources.gd")
 const ATLAS_PIXELS_PER_TILE := 256.0
