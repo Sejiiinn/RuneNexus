@@ -8,41 +8,32 @@
 
 ## 현재 미배포 변경
 
-- 포탑 내부 ID를 표시명에 맞춰 `arrow`→`machinegun`(기관총), `magic`→`flame`(화염)으로 바꿨다. 클라이언트·서버 호환 세대 17, DB 마이그레이션 `023_turret_identity_rename.sql`(저장 JSON·모듈 행·bootstrap 백업의 포탑 ID 재작성, 모든 계정 writer 하한 17)이 함께 나간다.
-  - 새 앱은 예전 ID 저장을 읽을 때 새 ID로 바꾸고, 서버는 모듈 뽑기 요청의 예전 ID를 받아 준다. 이전 앱(16 이하)은 새 ID를 버리므로 저장 쓰기가 막힌다.
-  - 순서: 서버·DB23을 먼저 반영하고 바로 새 APK를 **필수 업데이트**로 공개한다. 운영 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`도 17로 올려 신규 계정의 이전 앱 쓰기를 막는다.
-- 대포 기본 피해 25→34, 폭발 반경 42→52, 화염 기본 피해 16→22 상향. 앱 콘텐츠만 바뀌며 서버·DB 변경은 없다.
-- 포탑 정보 창 초당 피해·전투력에 저격 조준 시간을 반영했다(표시만 변경).
-- 3-10 맵을 「나란한 두 차선」으로 개조했다(두 입구가 한 칸 간격 차선으로 내려와 코어 앞에서 합류, 경로 ID `outer`/`inner`). 앱 콘텐츠만 바뀐다. 옛 3-10 맵으로 진행 중이던 저장은 맵 서명이 달라 불러오지 못하지만, 그런 진행은 없다(사용자 확인).
-- 런 기록 수집([설계](run_log_design.md)): 서버 `POST /v1/telemetry/run-logs`와 DB 마이그레이션 `024_run_logs.sql`(기록 테이블, 탈퇴 요청 시 삭제 트리거), 앱의 정산 후 1회 전송. 호환 세대·저장 형식 변경은 없다.
-  - 앱 공개 전에 개인정보처리방침(수집 항목·목적·180일 보관)을 게시한다. 서버·DB24를 앱보다 먼저 반영한다(이전 서버는 404로 버림).
-- 카카오 인앱 브라우저 진행 임시 이전 제거: 서버 `/v1/legacy-save-transfers` API·요청 제한·`LEGACY_*` 설정을 지우고, DB 마이그레이션 `025_drop_legacy_save_transfers.sql`로 `legacy_save_transfers`·`legacy_save_transfer_receipts`를 삭제한다(남은 이전 대상 없음, 사용자 확인). 앱 변경은 없다.
-  - 영수증의 교체 전 계정 스냅숏도 함께 지워지며 down으로 되살릴 수 없다. 배포 동결 백업에는 남는다. 운영 `.env`의 `LEGACY_*` 값은 무시되므로 지워도 되고 남겨도 된다.
-  - 두 테이블이 사라져 `server_release.py`의 행 대조가 멈추므로 `prepare`·`rehearse-deploy`·`deploy`에 `--allow-changed-table legacy_save_transfers --allow-changed-table legacy_save_transfer_receipts`를 붙인다.
-- 쓰지 않는 레거시 인증·저장 경로 제거: 서버의 웹·구형 인증 경로(`/v1/auth/web/*`, `/v1/auth/{google,refresh,logout}`)와 CORS 처리·`CORS_ALLOWED_ORIGINS` 설정을 지웠다. 서버 인증은 앱이 쓰는 `/v1/auth/native/*`만 남는다. 앱에서는 게스트 진행을 계정으로 옮기는 bootstrap 분기와 Android v1 임시 저장(`legacy_save_path()`) 가져오기를 지웠다. DB·호환 세대 변경은 없다.
-  - 운영 `.env.production`의 `CORS_ALLOWED_ORIGINS`는 더 이상 읽지 않으므로 지워도 되고 남겨도 된다. 로그인에는 `AUTH_SESSION_RECEIPT_KEY`가 필수다(이전에도 앱 경로는 같았다).
+- **운영 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION` 17 상향이 남았다.** 지금은 4다. 기존 계정은 DB23이 writer 하한을 17로 올렸지만 신규 계정은 이전 앱으로도 쓸 수 있다. `deploy`는 환경값 보존을 검사하므로 앱 공개 뒤 실행 중인 compose의 값을 바꿔 API를 다시 만든다.
+- **개인정보처리방침 게시가 남았다.** 사용자 결정으로 앱을 먼저 공개했으므로 6062부터 게시 전에도 런 기록이 고지 없이 수집된다. 수집 항목·목적·180일 보관을 적어 게시하며 작성·게시는 사용자 담당이다.
 
-마지막 공개 앱은 6061 / 0.2.32(`a36ad158`, 필수 업데이트·최소 지원 코드 6061), 운영 서버는 `424dd591`·DB22다.
+마지막 공개 앱은 6062 / 0.2.33(`faf2aa99`, 필수 업데이트·최소 지원 코드 6062), 운영 서버는 `f5b9cfc4`·DB25다.
 
 실제 Google 계정·운영 서버에 연결한 앱 젬 덱 플레이와 Android 본게임·실기기 지속 성능의 미검증 범위는 [체크리스트](implementation_checklist.md)에 유지한다.
 
-## 2026-11-03 Android 0.2.32 / code 6061 — 공개 완료
+## 2026-11-05 Android 0.2.33 / code 6062 — 공개 완료
 
-- APK 대상 `a36ad15857ce20b2315b4dab940aebe4fe8fc2b8`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/41544138017), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/41546635296), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6061), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6061/rune-nexus.apk). 2026-11-02 23:36:12 UTC(2026-11-03 08:36:12 KST)에 공개·최신 지정했다. 클라이언트 호환 세대 16을 쓰므로 서버를 먼저 반영했고, 사용자 결정으로 **필수 업데이트**(최소 지원 코드 6061)다.
-- 포함: 하드 난이도(입장·적 승급·룬 ×1.5·하드 기록)와 하드 보상(첫 클리어 코어 1P·모듈권 2장, 서버 추첨 반복 모듈권·전리품 모듈), 매직·희귀 적 다이아 운반 ×2/×4, 전체 포탑 모듈 일괄 분해, 스테이지 도전과제(판정·업적 팝업 받기·카드 조건 줄·코어 ⓘ), 스크롤 없는 결과창, 컬렉션 훈장과 업적 능력치, 누적 업적 5단계와 누적 훈장, 업적 팝업 받기 강조, 전투 도전 조건 시작 안내·실패 알림. 세부는 [난이도·도전과제 설계](stage_difficulty_design.md#구현-계약).
-- 빌드 재시도: 첫 build-only는 전투 안내가 배치 전에 지워질 때 지연 호출이 해제된 인스턴스를 타입 지정 인자로 받아 회귀 3건이 오류로 실패했다(`546583b6`에서 수정). 두 번째는 계정 서비스 격리 검사가 하드 규칙 파일 `content/stage_difficulty.gd`를 복사하지 않아 실패했다(`c71fcfd0`). 세 번째는 결과창 배치 검사가 CI 병렬 부하에서 20초 제한을 넘었다(`a36ad158`에서 60초 직렬 차선으로 이동). 네 번째가 통과했다.
-- 검사: build-only CI가 배포 검사 공용 액션(계약·네이티브 회귀·계정·앱 서비스·세션·수명주기)·서명 빌드·팩 감사·패치 디코더·차등 업데이트 준비를 통과했다. 로컬에서는 변경 책임별 회귀(도전과제·결과창·보상 입장·코어 화면 등)와 실제 앱 화면 캡처를 확인했다. 공개 실행은 검수한 build-only 후보를 다시 빌드하지 않고 승격했다(`same_as_build_only_candidate=true`).
-- APK **361,567,717 bytes**, SHA-256 `feeb69e7…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6061/update.json)). 6060 대비 **+889,024 bytes(+0.25%)**이며 PCK가 208,750,388 bytes·1473항목(+889,024 bytes, +36항목)으로 늘었다. 훈장 그림 11종·업적 화면 에셋과 새 스크립트가 늘어난 몫이다. 기존 22개 중복군 2,707,494 bytes는 같고 신규 중복은 없다. **6060/6059/6058→6061 패치는 6,278,632 / 8,784,091 / 10,924,627 bytes**다.
+- APK 대상 `faf2aa99c6669e5a4d3d33fbcc5bca595cc9f979`, [build-only CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/41974248046), [공개 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/41976123006), [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6062), [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6062/rune-nexus.apk). 2026-11-05 05:47:09 UTC(14:47:09 KST)에 공개·최신 지정했다. 포탑 ID 변경으로 이전 앱은 저장이 막히므로 **필수 업데이트**(최소 지원 코드 6062)다.
+- 포함: 포탑 내부 ID 변경(`arrow`→`machinegun`, `magic`→`flame`, 호환 세대 17), 대포 기본 피해 34·폭발 반경 52, 화염 기본 피해 22, 저격 초당 피해·전투력의 조준 시간 반영, 3-10 「나란한 두 차선」 맵, 정산 후 [런 기록](run_log_design.md) 1회 전송, 게스트 bootstrap 분기와 Android v1 임시 저장 가져오기 제거.
+- 순서: 이전 앱이 서버 반영 순간부터 저장이 막히고 재빌드 위험이 있어 build-only 검수와 AVD 확인을 마친 뒤 서버를 반영하고 바로 공개했다. 서버 반영 완료부터 공개까지 약 1분이다.
+- 빌드 재시도: 첫 build-only는 런 기록이 읽는 `max_hp`가 `verify_event_batch.gd`의 가짜 방어 상태에 없어 실패했다. 실제 방어 상태에는 있어 앱 결함이 아니며, 테스트만 고쳤다(`faf2aa99`). 이 회귀는 `ec37ff2b`부터 `main` 검사 CI에서 실패하고 있었다. 재시도 전 CI가 건너뛴 계정·앱 서비스 검사와 세션·수명주기 7건을 로컬에서 통과시켰고, 두 번째 build-only가 통과했다.
+- 검사: build-only CI가 배포 검사 공용 액션·서명 빌드·팩 감사·패치 디코더·차등 업데이트 준비를 통과했다. 공개 실행은 검수한 후보를 다시 빌드하지 않고 승격했다(`same_as_build_only_candidate=true`). 같은 커밋의 [`main` 검사 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/41974244085)는 `verify_battle_result_entrance.gd`의 스프링 움직임 판정 1건으로 실패했다. build-only에서는 같은 사례가 통과했으므로 CI 부하 민감으로 보이지만 원인을 확정하지는 않았다.
+- APK **361,572,981 bytes**, SHA-256 `3ae8e5f8…`(전체 값은 [update.json](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6062/update.json)). 6061 대비 **+5,264 bytes(+0.001%)**이며 PCK가 208,755,652 bytes·1477항목(+5,264 bytes, +4항목)이다. 기존 중복 2,707,494 bytes는 같다. **6061/6060/6059→6062 패치는 8,593,341 / 10,238,271 / 12,742,676 bytes**로, 포탑 ID 변경이 여러 스크립트와 콘텐츠를 건드려 직전 패치보다 크다.
 - 공개 tag 대상 커밋·성공 CI, latest/버전별 `update.json` 일치, 익명 공개 주소에서 받은 자산의 크기·SHA-256과 GitHub digest 일치를 확인했다(`public-verification.json`).
-- 전투 도전 조건 안내는 Codex 독립 검증을 받아 결함 1건(보상·결과 화면에서 안내가 남음)을 고쳤고, 나머지 기능은 독립 검증을 하지 않았다. Android 전용 변경(저장 마이그레이션·업데이트 경로·네이티브 연동)이 없어 AVD·기기 확인은 하지 않았다. **필수 업데이트 안내의 실기기 동작, 앱 내 패치 업데이트, 실제 Google 로그인·운영 서버 연결에서의 하드 보상·도전과제·업적 받기, Android 실기기 표시는 미검증**이다.
+- API37 arm64 읽기 전용 AVD에서 공개 6061 설치·실행 → build-only 6062 업데이트 설치 후 최초 설치 시각과 앱 데이터 44개 파일 해시가 같았고, 6062 실행 후 치명 오류·스크립트 오류 없이 로그인 안내를 표시했다. 로그인 전이라 포탑 ID가 든 저장은 없었으며, ID 변환은 Godot 회귀에서만 확인했다.
+- 독립 검증은 수행하지 않았다. **실제 Google 로그인·운영 계정의 포탑 ID 변환 후 플레이와 런 기록 전송, 필수 업데이트 안내의 실기기 동작, 앱 내 패치 업데이트, Android 실기기 표시는 미검증**이다.
 
-## 2026-11-03 서버 — `424dd591` 반영 완료
+## 2026-11-05 서버 — `f5b9cfc4` 반영 완료
 
-- 하드 정산·하드 보상 추첨, 도전과제 받기 `POST /v1/economy/challenges/claim`, 누적 업적 받기 `POST /v1/economy/achievements/claim`, 클라이언트 호환 세대 16을 반영했다. 정확한 `424dd591f479b0feb8dc5625d83b349f97800436` 소스로 `rune-nexus-api:424dd591`(image `sha256:4d8e7618e69fb8e8f21882eccf82589af618a33ecf6092144f147119c7a48a7a`)을 빌드했다. DB 마이그레이션은 없다(보상 명령 종류는 기존 `reward_claim`).
-- 검사: `prepare`의 Go test·vet·격리 DB 통합 검사·운영 DB 사본 마이그레이션 사전 검사(스키마 22→22, 33개 테이블)·격리 API 9조건, `rehearse-deploy`의 정지·동결 백업 복원·HTTP 9조건을 통과했다.
-- 2026-11-03 07:48:03~07:48:15 KST(약 12초)에 API를 정지하고 동결 백업을 격리 복원해 확인한 뒤 반영했다. 스키마는 22 그대로다. 새 API는 loopback·공개 HTTPS 18조건을 통과했다. 환경·mount·port·network와 Caddy/DuckDNS 컨테이너를 보존했다. 운영 계정 로그인·명령은 하지 않았다.
-- 동결 백업(`production-frozen-schema22.dump`, SHA-256 `e95b168efc9f148c055c2a6ffc4740a5cbb65ee7881156767d53932814914d7d`)과 반영 기록은 Git 밖 `~/Library/Application Support/RuneNexus/operations/server-424dd591-20261102T224457Z/`에 있다. 이전 작업 폴더 `server-f85a9037-…`는 외장 보관소로 옮겼다.
-- 서버 변경은 독립 검증하지 않았다. **실제 Google 계정으로 하드 보상·도전과제·누적 업적을 받는 운영 E2E는 미검증**이다.
+- 포탑 ID 재작성(DB23), 런 기록 `POST /v1/telemetry/run-logs`(DB24), 카카오 임시 이전 제거(DB25), 웹·구형 인증 경로와 CORS 제거를 반영했다. 정확한 `f5b9cfc4924e3601547685afc7f6538301d4494c` 소스로 `rune-nexus-api:f5b9cfc4`를 빌드했다. 앱 대상 `faf2aa99`는 테스트만 다르므로 서버를 다시 준비하지 않았다.
+- 검사: `prepare`의 Go test·vet·격리 DB 통합 검사·운영 DB 사본 마이그레이션 사전 검사(스키마 22→25, 33개 테이블)·격리 API 9조건, `rehearse-deploy`의 정지·동결 백업 복원·HTTP 9조건을 통과했다. 행 대조 허용 테이블은 `save_progression`·`save_turret_modules`·`save_active_runs`·`economy_bootstrap_backups`·`legacy_save_transfers`·`legacy_save_transfer_receipts`·`player_modules`·`save_writer_states` 8개다. 첫 리허설은 `rehearse-deploy`가 `prepare`의 허용 목록을 물려받지 않아 인자 누락으로 멈췄고, 인자를 넣어 재실행했다.
+- 2026-11-05 14:46:04~14:46:17 KST(약 13초)에 API를 정지하고 동결 백업을 격리 복원해 확인한 뒤 반영했다. 스키마는 22→25다. 새 API는 loopback·공개 HTTPS 18조건을 통과했다. 환경·mount·port·network와 Caddy/DuckDNS 컨테이너를 보존했다. 운영 계정 로그인·명령은 하지 않았다.
+- 동결 백업(`production-frozen-schema22.dump`, SHA-256 `157422b8f6b39b345e34dbb2b31e2e9b0d2bace7cc8e9351ffdda829ce01903b`)과 반영 기록은 Git 밖 `~/Library/Application Support/RuneNexus/operations/server-f5b9cfc4-20261105T050955Z/`에 있다. DB25가 지운 임시 이전 영수증은 이 백업에만 남는다.
+- 서버 변경은 독립 검증하지 않았다. **실제 Google 계정으로 런 기록이 쌓이는지와 이전된 포탑 ID 계정의 운영 E2E는 미검증**이다. 호환 하한 17 상향은 [미배포 변경](#현재-미배포-변경)에 남았다.
 
 ## 과거 배포 기록
 
