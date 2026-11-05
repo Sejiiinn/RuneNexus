@@ -18,6 +18,7 @@
   - 앱 공개 전에 개인정보처리방침(수집 항목·목적·180일 보관)을 게시한다. 서버·DB24를 앱보다 먼저 반영한다(이전 서버는 404로 버림).
 - 카카오 인앱 브라우저 진행 임시 이전 제거: 서버 `/v1/legacy-save-transfers` API·요청 제한·`LEGACY_*` 설정을 지우고, DB 마이그레이션 `025_drop_legacy_save_transfers.sql`로 `legacy_save_transfers`·`legacy_save_transfer_receipts`를 삭제한다(남은 이전 대상 없음, 사용자 확인). 앱 변경은 없다.
   - 영수증의 교체 전 계정 스냅숏도 함께 지워지며 down으로 되살릴 수 없다. 배포 동결 백업에는 남는다. 운영 `.env`의 `LEGACY_*` 값은 무시되므로 지워도 되고 남겨도 된다.
+  - 두 테이블이 사라져 `server_release.py`의 행 대조가 멈추므로 `prepare`·`rehearse-deploy`·`deploy`에 `--allow-changed-table legacy_save_transfers --allow-changed-table legacy_save_transfer_receipts`를 붙인다.
 
 마지막 공개 앱은 6061 / 0.2.32(`a36ad158`, 필수 업데이트·최소 지원 코드 6061), 운영 서버는 `424dd591`·DB22다.
 
