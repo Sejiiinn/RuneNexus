@@ -8,7 +8,6 @@
 
 ## 현재 미배포 변경
 
-- **운영 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION` 17 상향이 남았다.** 지금은 4다. 기존 계정은 DB23이 writer 하한을 17로 올렸지만 신규 계정은 이전 앱으로도 쓸 수 있다. `deploy`는 환경값 보존을 검사하므로 앱 공개 뒤 실행 중인 compose의 값을 바꿔 API를 다시 만든다.
 - **개인정보처리방침 게시가 남았다.** 사용자 결정으로 앱을 먼저 공개했으므로 6062부터 게시 전에도 런 기록이 고지 없이 수집된다. 수집 항목·목적·180일 보관을 적어 게시하며 작성·게시는 사용자 담당이다.
 
 마지막 공개 앱은 6062 / 0.2.33(`faf2aa99`, 필수 업데이트·최소 지원 코드 6062), 운영 서버는 `f5b9cfc4`·DB25다.
@@ -33,7 +32,8 @@
 - 검사: `prepare`의 Go test·vet·격리 DB 통합 검사·운영 DB 사본 마이그레이션 사전 검사(스키마 22→25, 33개 테이블)·격리 API 9조건, `rehearse-deploy`의 정지·동결 백업 복원·HTTP 9조건을 통과했다. 행 대조 허용 테이블은 `save_progression`·`save_turret_modules`·`save_active_runs`·`economy_bootstrap_backups`·`legacy_save_transfers`·`legacy_save_transfer_receipts`·`player_modules`·`save_writer_states` 8개다. 첫 리허설은 `rehearse-deploy`가 `prepare`의 허용 목록을 물려받지 않아 인자 누락으로 멈췄고, 인자를 넣어 재실행했다.
 - 2026-11-05 14:46:04~14:46:17 KST(약 13초)에 API를 정지하고 동결 백업을 격리 복원해 확인한 뒤 반영했다. 스키마는 22→25다. 새 API는 loopback·공개 HTTPS 18조건을 통과했다. 환경·mount·port·network와 Caddy/DuckDNS 컨테이너를 보존했다. 운영 계정 로그인·명령은 하지 않았다.
 - 동결 백업(`production-frozen-schema22.dump`, SHA-256 `157422b8f6b39b345e34dbb2b31e2e9b0d2bace7cc8e9351ffdda829ce01903b`)과 반영 기록은 Git 밖 `~/Library/Application Support/RuneNexus/operations/server-f5b9cfc4-20261105T050955Z/`에 있다. DB25가 지운 임시 이전 영수증은 이 백업에만 남는다.
-- 서버 변경은 독립 검증하지 않았다. **실제 Google 계정으로 런 기록이 쌓이는지와 이전된 포탑 ID 계정의 운영 E2E는 미검증**이다. 호환 하한 17 상향은 [미배포 변경](#현재-미배포-변경)에 남았다.
+- 앱 공개 뒤 2026-11-05 15:23:31~15:23:38 KST(약 7초)에 실행 중인 compose의 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`을 4→17로 올리고 API를 다시 만들었다. `deploy`가 환경값 보존을 검사하므로 별도 단계로 수행했다. 바뀐 환경값은 이 하나이며 이미지·mount·port·network는 같고, 공개 HTTPS live/ready 200을 확인했다. 변경 전 compose는 작업 폴더의 `api-release-min4.compose.private.json`이다. 저장소 밖 `.env.production`의 값은 실행에 쓰이지 않아 그대로 두었다.
+- 서버 변경은 독립 검증하지 않았다. **실제 Google 계정으로 런 기록이 쌓이는지와 이전된 포탑 ID 계정의 운영 E2E는 미검증**이다.
 
 ## 과거 배포 기록
 
