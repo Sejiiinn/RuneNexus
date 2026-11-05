@@ -1,24 +1,11 @@
 extends CanvasLayer
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 
-## 포탑과 같은 Godot 프레임의 화면 정면 배지. 그림은 기존 배지 이미지를 재사용한다.
+## 포탑과 같은 Godot 프레임의 화면 정면 배지. 레벨마다 아틀라스의 한 칸을 쓴다.
 const ATLAS = "res://assets/ui/turret_levels.png"
 const StageResources = preload("res://presentation/stage_resources.gd")
 const ATLAS_PIXELS_PER_TILE := 256.0
-class ExtendedBadge extends Sprite2D:
-	var level := 1:
-		set(value):
-			if level == value: return
-			level = value
-			queue_redraw()
-	func _draw() -> void:
-		if level<=10: return
-		# Reuse the shipped final-tier plaque; only its live numeral changes.
-		draw_rect(Rect2(-52,-16,104,32),Color("061016"))
-		var font := preload("res://ui/app_theme.gd").font(900)
-		var text := "Lv.%d" % level
-		var width := font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,27).x
-		draw_string(font,Vector2(-width/2,10),text,HORIZONTAL_ALIGNMENT_LEFT,-1,27,Color("fff0bc"))
+const LEVEL_FRAMES := 15
 
 var badges := {}
 var _poses := {}
@@ -64,20 +51,19 @@ func update(camera: Camera3D, turrets: Dictionary, enabled: bool) -> void:
 		var entry: Dictionary = turrets[id]
 		var root: Node3D = entry["root"]
 		if not badges.has(id):
-			var badge := ExtendedBadge.new()
+			var badge := Sprite2D.new()
 			RuntimeProfile.tag_canvas(badge, "badges")
 			badge.texture = StageResources.load_resource(ATLAS)
-			badge.hframes = 10
-			badge.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			badge.hframes = LEVEL_FRAMES
+			badge.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 			add_child(badge)
 			badges[id] = badge
-		var badge: ExtendedBadge = badges[id]
+		var badge: Sprite2D = badges[id]
 		badge.visible = root.is_visible_in_tree() and not camera.is_position_behind(root.global_position)
 		if not badge.visible:
 			_poses.erase(id)
 			continue
-		badge.level = int(entry.get("level",1))
-		badge.frame = clampi(int(entry.get("level", 1)), 1, 10) - 1
+		badge.frame = clampi(int(entry.get("level", 1)), 1, LEVEL_FRAMES) - 1
 		var bounds: AABB = entry["level_bounds"]
 		var pose_key := [root.global_transform, bounds]
 		if not camera_changed and _poses.get(id, []) == pose_key: continue

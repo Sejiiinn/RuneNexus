@@ -212,7 +212,7 @@ def _prepare_hud_texture_limit(texture: Path, size_limit: int = 256) -> None:
 
 
 def _prepare_mipmapped_ui_texture(texture: Path) -> None:
-    """Stage-map art is drawn well below its source size; mipmaps keep the downscale clean.
+    """Stage-map art and level badges are drawn well below their source size; mipmaps keep the downscale clean.
     The painted JPEG maps stay lossy (WebP) so the APK does not grow by full-size PNGs."""
     mode = "compress/mode=1\ncompress/lossy_quality=0.85" if texture.suffix == ".jpg" else "compress/mode=0"
     texture.with_suffix(texture.suffix + ".import").write_text(
@@ -462,6 +462,7 @@ def prepare() -> Path:
             target = ui_target / source.relative_to(SOURCE_ASSETS / "ui")
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
+    _prepare_mipmapped_ui_texture(ui_target / "turret_levels.png")
     shutil.copy2(ROOT / "assets/images/diamond_currency.png", ui_target / "diamond_currency.png")
     _prepare_hud_texture_limit(ui_target / "diamond_currency.png")
     shutil.copy2(ROOT / "assets/fonts/NotoSansKR-VF.ttf", ui_target / "NotoSansKR-VF.ttf")

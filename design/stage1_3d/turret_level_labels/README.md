@@ -1,41 +1,42 @@
 # 포탑 레벨 배지 atlas 원본과 재생성
 
-기존 `lib/game/rendering/turret_level_renderer.dart`의 `TurretLevelRenderer.drawBadge`를 Flutter engine Canvas에서 그대로 호출한 Lv.1~Lv.10 투명 PNG다. 프레임·날개·문장·별·텍스트 그림자·glow를 같은 코드로 그린다. 도형을 별도로 재해석하지 않는다. 생성기는 `tool/export_turret_level_badges.dart`다.
+Lv.1~Lv.15 투명 PNG atlas다. 도형은 폐기한 Flutter `TurretLevelRenderer.drawBadge`를 옮겼고, 색과 11레벨 이후 장식은 2026-11-05 사용자가 고른 시안 A를 따른다.
+
+- 테두리 색: 1~3 회색, 4~7 노랑, 8~10 주황, 11~15 다홍에서 빨강. 번호판은 모든 레벨에서 같은 어두운색이다.
+- 장식: 1 없음, 2~4 마름모, 5~7 양옆 뾰족 장식, 8~9 큰 뾰족 장식, 10부터 별과 작게 튀어나온 깃털 날개 2장. 11~12는 Lv.10과 같은 구성에 색만 바뀌고, 13~14는 별 3개와 깃털 3장의 더 긴 날개, 15는 별 5개다.
+- 방패·왕관·빛줄기처럼 장식을 쌓는 안은 사용자가 기각했다. 등급은 색으로 먼저 구분한다.
+- 포탑 레벨 상한은 현재 기본 10, K5 「정예 육성」으로 11이다. 12~15 프레임은 상한 확장 검토용으로 미리 넣었고 지금은 표시되지 않는다.
 
 ## 좌표 계약
 
-- 최종 게임 파일: `assets/images/stage1_3d/ui/turret_levels.png`, 2,560×144 RGBA PNG, 74,311 bytes.
-- 가로 10프레임, 각 256×144. `frame = level - 1`, 원본 영역 `(frame*256, 0, 256, 144)`.
+- 최종 게임 파일: `assets/images/stage1_3d/ui/turret_levels.png`, 3,840×144 RGBA PNG, 121,758 bytes.
+- 가로 15프레임, 각 256×144. `frame = level - 1`, 원본 영역 `(frame*256, 0, 256, 144)`.
 - 모든 프레임의 **배지 중심은 `(128,72)`**. `drawBadge`가 입력 tile 중심에서 아래로 이동하는 `+0.3 tile`을 호출 시 상쇄했다. Sprite에 이 오프셋을 다시 더하지 않는다. 기단 위치 결정은 런타임 담당이다.
 - 1 tile = 256 texture pixels. 프레임 전체 크기는 `1.0×0.5625 tile`; 화면 스케일은 투영된 tile pixels / 256이다. 개별 레벨의 배지 폭·날개 폭 차이는 원래 renderer 값으로 보존한다.
 - `RuneNexusGame._designTileSize = 48`을 논리 크기로 사용하고 `Canvas.scale(256/48)`로 고해상도화했다. tileSize256를 renderer에 직접 주지 않으므로 고정 pixel 선 두께와 text shadow의 상대 비율이 유지된다. 실제 게임 `_tileSize`는 화면에 따라 가변이므로 이 atlas는 논리 기준48의 표본이다.
-- 생성 시 각 프레임의 알파 경계가 최소 8px 안쪽에 있는지 검사한다. 최종 전체 경계는 좌우 최소28px, 상단20px, 하단32px 여백을 남겨 날개·glow·문장이 잘리지 않는다. 각 프레임 밖은 투명하며 인접 프레임 그림이 닿지 않는다.
+- 게임에서 약 1/5로 줄여 그리므로 mipmap을 만들어 `TEXTURE_FILTER_LINEAR_WITH_MIPMAPS`로 그린다. import 설정은 `scripts/prepare_godot_project.py`가 쓴다.
+- 생성 시 각 프레임의 알파 경계가 최소 8px 안쪽에 있는지 검사한다. 최종 전체 경계는 좌우 최소13px, 상단19px, 하단32px 여백을 남겨 날개·glow·문장이 잘리지 않는다. 각 프레임 밖은 투명하며 인접 프레임 그림이 닿지 않는다.
 
 실제 알파 bounds는 오른쪽/아래 exclusive 기준이다.
 
 | 레벨 | 프레임 안 알파 bounds |
 | --- | --- |
-| 1 | 61,41 → 195,108 |
-| 2~4 | 55,32 → 201,109 |
+| 1 | 61,42 → 195,108 |
+| 2~4 | 55,32 → 201,110 |
 | 5~7 | 38,32 → 218,110 |
 | 8~9 | 33,30 → 223,111 |
-| 10 | 28,20 → 228,112 |
+| 10~12 | 22,19 → 234,112 |
+| 13~15 | 13,19 → 243,112 |
 
 ## 재생성
 
-`flutter test`의 기본 Ahem 사각 글꼴로 제작하면 안 된다. Android 기본 계열 Roboto를 임시 파일로 받고, 생성기에서 명시 family `BadgeRoboto`로 로드한다. `TurretLevelRenderer(fontFamily: 'BadgeRoboto')`의 선택적 인자만 사용하며 실제 앱 호출은 기본 null을 유지한다. w900은 원래 renderer의 TextStyle 값이다. 텍스트 shadow도 `debugDisableShadows=false`로 활성화한다.
-
-사용한 폰트는 Google Fonts Roboto variable의 고정 커밋이다. 원본: [Google Fonts Roboto](https://github.com/google/fonts/tree/6183fc0d26361f6ddfd6f6b7a736e1467c6d8a43/ofl/roboto). 폰트 파일 자체는 게임에 추가하지 않는다.
+[생성기](generator/export_turret_level_badges.py)가 프레임을 SVG로 그리고 Godot `--headless`로 래스터화한다. 글자는 `assets/images/stage1_3d/ui/Roboto-VF.ttf`(weight 900) 윤곽을 경로로 넣는다. 게임에는 폰트를 추가하지 않는다.
 
 ```sh
-curl -L 'https://raw.githubusercontent.com/google/fonts/6183fc0d26361f6ddfd6f6b7a736e1467c6d8a43/ofl/roboto/Roboto%5Bwdth,wght%5D.ttf' -o /tmp/RuneNexus-Roboto.ttf
-shasum -a 256 /tmp/RuneNexus-Roboto.ttf
-scripts/in_app_server_macos.sh flutter test tool/export_turret_level_badges.dart --dart-define=BADGE_FONT_PATH=/tmp/RuneNexus-Roboto.ttf --reporter expanded --no-pub
+python3 design/stage1_3d/turret_level_labels/generator/export_turret_level_badges.py
 ```
 
-폰트 SHA256: `d7598e12c5dbef095ff8272cfc55da0250bd07fbdecbac8a530b9b277872a134`.
-
-생성기는 마지막에 좌표·프레임·알파 bounds·파일 크기 metadata를 출력한다. 최종 PNG를 직접 열어 Lv.1~Lv.10의 글자, 날개, 상단 문장/별, 투명 여백을 확인했다. 이 atlas 확인은 Godot 게임 적용 화면이나 시점 전환 검증을 대신하지 않는다.
+생성기는 프레임별 알파 bounds를 출력하고, 프레임 가장자리 8px 안쪽을 벗어나면 실패한다. Godot 실행 파일은 `GODOT_BIN` 또는 `scripts/run_godot_project_checks.py`의 기본 경로를 쓴다.
 
 ## 본게임 적용
 

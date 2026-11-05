@@ -28,7 +28,7 @@ func run() -> void:
 	var overlay = scene._stockpile_indicator
 	check(overlay.indicators.has(id),"production turret receives stockpile state")
 	check(overlay.indicators[id].charges==2 and overlay.indicators[id].visible,"two charges show two dots")
-	check(scene._turret_level_labels.badges[id].level==11,"real Lv11 label state")
+	check(scene._turret_level_labels.badges[id].frame==10,"real Lv11 label state")
 	var roundtrip := FrameRows.Turret.from_array(first).to_array()
 	check(roundtrip[8]==first[8],"frame extension roundtrip retains stockpile state")
 	var position: Vector2 = overlay.indicators[id].position
