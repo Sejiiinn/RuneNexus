@@ -10,6 +10,7 @@ from unittest.mock import patch
 import apk_release
 import deployment_record
 import promote_apk_candidate
+import release_checks_gate as gate
 
 
 class DeploymentRecordTest(unittest.TestCase):
@@ -67,6 +68,61 @@ class ApkReleaseTest(unittest.TestCase):
 
 def release(code, draft=False):
     return {"tag_name": f"apk-{code}", "draft": draft, "published_at": None if draft else "2026-10-27T00:00:00Z"}
+
+
+class ChecksGateTest(unittest.TestCase):
+    ignored = gate.ignored_paths((gate.ROOT / gate.WORKFLOW).read_text())
+    passed = {"headSha": "base", "status": "completed", "conclusion": "success"}
+
+    def refuse(self, runs, changed=()):
+        return gate.refusal("base", runs, list(changed), self.ignored)
+
+    def test_ignored_paths_follow_the_workflow_globs(self):
+        reason = self.refuse([self.passed], ["docs/a/b.md", "AGENTS.md", ".claude/skills/x.md",
+                                             "design/a.blend", "design/x/y/z.png"])
+        self.assertIsNone(reason)
+
+    def test_files_ci_reads_are_never_ignored(self):
+        for path in ("design/rounds.json", "scripts/x.py", "AGENTS.md.bak", "server/docs/x.md", "docs.md"):
+            self.assertIn(path, self.refuse([self.passed], [path]))
+
+    def test_nearest_run_decides_even_after_an_older_success(self):
+        old = dict(self.passed, headSha="old")
+        failed = {"headSha": "base", "status": "completed", "conclusion": "failure"}
+        base, runs = gate.nearest_checked(["tip", "base", "old"], [failed, old])
+        self.assertEqual(base, "base")
+        self.assertIn("did not pass", self.refuse(runs))
+
+    def test_running_cancelled_and_missing_runs_are_refused(self):
+        running = {"headSha": "base", "status": "in_progress", "conclusion": ""}
+        cancelled = {"headSha": "base", "status": "completed", "conclusion": "cancelled"}
+        self.assertIn("still running", self.refuse([running]))
+        self.assertIn("did not pass", self.refuse([cancelled]))
+        self.assertIn("no Checks run", gate.refusal(None, [], [], self.ignored))
+
+    def test_rerun_success_beside_a_failed_run_passes(self):
+        self.assertIsNone(self.refuse([{"headSha": "base", "status": "completed", "conclusion": "failure"},
+                                       self.passed]))
+
+    def test_require_checks_exits_on_refusal_and_reads_the_target_commit(self):
+        calls = []
+        def run(*args):
+            calls.append(args)
+            if args[:3] == ("gh", "run", "list"):
+                return '[{"headSha": "base", "status": "completed", "conclusion": "failure"}]'
+            if args[:2] == ("git", "show"):
+                return (gate.ROOT / gate.WORKFLOW).read_text()
+            return "tip\nbase" if args[1] == "rev-list" else ""
+        with patch.object(gate, "sh", side_effect=run), self.assertRaisesRegex(SystemExit, "did not pass"):
+            gate.require_checks("tip")
+        self.assertIn(("git", "show", f"tip:{gate.WORKFLOW}"), calls)
+
+    def test_build_and_publish_share_the_gate(self):
+        with patch.object(apk_release, "sh", return_value="sha"), \
+                patch.object(apk_release, "require_checks", side_effect=SystemExit("refused")) as require:
+            with self.assertRaises(SystemExit):
+                apk_release.head()
+        require.assert_called_once_with("sha")
 
 
 class PromoteCandidateTest(unittest.TestCase):

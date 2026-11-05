@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """서버 API·DB 운영 반영 절차. 배포마다 일회성 스크립트를 새로 만들지 않도록 고정한다.
 
-prepare <commit>       정확한 소스로 이미지 빌드·Go 검사, 운영 DB 사본에 마이그레이션
-                       리허설, 새 이미지 격리 기동 확인. 운영 컨테이너는 바꾸지 않는다.
+prepare <commit>       검사 CI 통과를 확인하고 정확한 소스로 이미지 빌드·Go 검사, 운영 DB 사본에
+                       마이그레이션 리허설, 새 이미지 격리 기동 확인. 운영 컨테이너는 바꾸지 않는다.
 rehearse-deploy <dir>  운영 DB 사본·현 API 설정으로 꾸린 격리 스택에 deploy 전 과정을 실행.
 deploy <dir> --confirm API 정지 → 동결 백업·복원 확인 → 운영 마이그레이션 → 새 API 기동·HTTP 확인.
 
@@ -26,6 +26,7 @@ import urllib.request
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import server_ops  # noqa: E402
+from release_checks_gate import require_checks  # noqa: E402
 from server_ops import inspect, environment, run, write_private_json  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -117,6 +118,7 @@ def public_url():
 def prepare(commit, allowed):
     sha = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "--verify", commit + "^{commit}"],
                                   text=True).strip()
+    require_checks(sha)
     short = sha[:8]
     work = server_ops.OPERATIONS / f"server-{short}-{stamp()}"
     work.mkdir(parents=True, mode=0o700)

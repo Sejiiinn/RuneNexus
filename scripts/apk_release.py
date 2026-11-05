@@ -6,7 +6,8 @@ publish  build와 같은 입력으로 publish=true·promote_run_id=<build 실행
          다시 빌드하지 않고 공개 → 공개 주소에서 익명으로 받은 자산을 후보 파일·GitHub 자산 digest·
          latest update.json과 대조
 
-입력·결과는 build/apk-release-<code>/에 남는다. 대상은 origin/main에 푸시된 현재 HEAD다.
+입력·결과는 build/apk-release-<code>/에 남는다. 대상은 origin/main에 푸시된 현재 HEAD이며,
+검사 CI를 통과하지 않은 커밋은 build·publish 모두 거부한다.
 build 뒤 다른 APK가 공개되면 패치 기준이 달라져 승격이 거부되므로 build부터 다시 한다.
 """
 from __future__ import annotations
@@ -19,6 +20,8 @@ from pathlib import Path
 import subprocess
 import time
 import urllib.request
+
+from release_checks_gate import require_checks
 
 ROOT = Path(__file__).resolve().parent.parent
 REPO = "Sejiiinn/RuneNexus"
@@ -36,6 +39,7 @@ def head():
     sh("git", "fetch", "-q", "origin", "main")
     if sh("git", "rev-parse", "origin/main") != sha:
         raise SystemExit("HEAD is not origin/main; push first")
+    require_checks(sha)
     return sha
 
 
