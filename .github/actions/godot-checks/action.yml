@@ -28,19 +28,8 @@ runs:
             environment.write(f"GODOT_EXECUTABLE={executable}\n")
         PYGODOT
 
-    - name: Verify contracts and prepare Godot pack
+    # Runs every independent check even after a failure, lists all failures at
+    # the end and exits non-zero when any check failed or could not run.
+    - name: Verify contracts, regressions and prepared project
       shell: bash
-      run: |
-        python3 -m unittest discover -s scripts -p 'test_*.py'
-        python3 scripts/verify_godot_content.py
-        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/run_godot_native_regressions.py
-        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_account_services.py
-        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_app_services.py
-        python3 scripts/build_godot_pack.py
-
-    - name: Verify prepared Godot session and lifecycle
-      shell: bash
-      run: |
-        GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/run_godot_project_checks.py \
-          --preset session --preset lifecycle --headless-only --require-complete \
-          --output build/godot-project-checks.json
+      run: python3 scripts/run_godot_ci_checks.py

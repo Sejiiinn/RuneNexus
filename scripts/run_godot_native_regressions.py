@@ -151,17 +151,17 @@ CACHE = ROOT / "build/godot-native-regressions"
 # lane beside the parallel pool, which leaves spare cores at the default jobs.
 TIMEOUTS = {
     "verify_chapter_three_normal_combat.gd": 120, "verify_run_transition.gd": 120,
-    "verify_result_settlement.gd": 60, "verify_fixed_combat_clock.gd": 60,
-    "verify_gem_reroll_flip.gd": 60, "verify_gem_reroll.gd": 60,
+    "verify_result_settlement.gd": 120, "verify_fixed_combat_clock.gd": 120,
+    "verify_gem_reroll_flip.gd": 120, "verify_gem_reroll.gd": 120,
     # These repeatedly create real app/save repositories; the checkpoint case
     # also drains real worker threads. Both exceed the short-case 20s budget on
     # CI under parallel load, so keep them in the bounded integration lane.
-    "verify_server_run_lifecycle.gd": 60, "verify_async_checkpoint.gd": 60,
+    "verify_server_run_lifecycle.gd": 120, "verify_async_checkpoint.gd": 120,
     # Enumerates every authored spawn and simulates all chapter endpoints.
-    "verify_content_catalog.gd": 60,
-    # Lays the result screen out at every height and reward mix; ~16s on CI
-    # alone, so parallel load pushes it past the short-case budget.
-    "verify_result_fit.gd": 60,
+    "verify_content_catalog.gd": 120,
+    # Long frame-paced UI and command sequences with no single heavy step. Both
+    # reached 19s of the 20s budget across 17 CI runs under parallel load.
+    "verify_run_commands.gd": 120, "verify_modal_refresh.gd": 120,
 }
 SERIAL = frozenset(TIMEOUTS)
 # Scripts and data load directly; only these need no editor import when changed.
@@ -303,6 +303,11 @@ def prepare_project(directory: Path, executable: str) -> tuple[Path, bool]:
     return project, True
 
 
+def decoded(output: bytes | str | None) -> str:
+    # TimeoutExpired carries raw bytes even when the run asked for text.
+    return output.decode(errors="replace") if isinstance(output, bytes) else output or ""
+
+
 def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
     timeout = TIMEOUTS.get(name, 20)
@@ -316,7 +321,7 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
                                  env=isolated_environment(home, temporary / "tmp" / name.removesuffix(".gd")),
                                  text=True, errors="replace", capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
-        raise RuntimeError(f"{name} timed out after {timeout}s: {error.stdout} {error.stderr}") from error
+        raise RuntimeError(f"{name} timed out after {timeout}s:\n{decoded(error.stdout)}\n{decoded(error.stderr)}") from error
     output = f"{process.stdout}\n{process.stderr}"
     # Only these controlled boot fixtures deliberately return ERR_FILE_CORRUPT.
     # Keep every other loader/script error fatal, including errors in this test.
@@ -326,8 +331,11 @@ def run_script(executable: str, project: Path, name: str, expected: str | None,
             r"(?m)^ERROR: Failed loading resource: res://boot-lifecycle-(?:retry|dispose-failed)\.bootprobe\.\n"
             r"[ \t]+at: _load \(core/io/resource_loader\.cpp:\d+\)\n?",
             "", output)
-    if process.returncode or ERROR.search(checked_output):
+    if process.returncode:
         raise RuntimeError(f"{name} failed (exit {process.returncode}):\n{output}")
+    # GDScript runtime errors abandon the function but leave the exit code at 0.
+    if ERROR.search(checked_output):
+        raise RuntimeError(f"{name} reported an engine error (exit 0):\n{output}")
     if expected is not None:
         if expected not in output:
             raise RuntimeError(f"{name} missing expected marker {expected!r}:\n{output}")

@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import run_godot_ci_checks as ci_checks
 import run_godot_project_checks as runner
 
 
@@ -162,10 +163,14 @@ class ProjectChecksTest(unittest.TestCase):
         workflows = runner.ROOT / ".github/workflows"
         workflow = (workflows / "deploy-apk.yml").read_text()
         shared = (runner.ROOT / ".github/actions/godot-checks/action.yml").read_text()
-        prepare = shared.index("python3 scripts/build_godot_pack.py")
-        checks = shared.index("python3 scripts/run_godot_project_checks.py")
-        self.assertLess(prepare, checks)
-        self.assertIn("--preset session --preset lifecycle --headless-only --require-complete", shared[checks:])
+        self.assertIn("python3 scripts/run_godot_ci_checks.py", shared)
+        stages = {stage.name: stage for stage in ci_checks.STAGES}
+        names = [stage.name for stage in ci_checks.STAGES]
+        self.assertLess(names.index("godot-pack"), names.index("prepared-project"))
+        self.assertEqual(stages["prepared-project"].needs, ("godot-pack",))
+        command = " ".join(stages["prepared-project"].command)
+        self.assertIn("--preset session --preset lifecycle --headless-only --require-complete", command)
+        self.assertIn("--output build/godot-project-checks.json", command)
         uses = workflow.index("uses: ./.github/actions/godot-checks")
         apk = workflow.index(":app:assembleProductionRelease")
         self.assertLess(uses, apk)

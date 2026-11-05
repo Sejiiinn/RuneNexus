@@ -1,8 +1,12 @@
 extends SceneTree
 ## Native reward presentation lifetime, input and domain-isolation regression.
+## Timeline poses read a manual clock, so frame pacing and machine load cannot
+## move a sample; only the pause section runs on the production real clock.
 const Fixture = preload("res://tests/verify_battle_hud.gd")
 var failures: Array[String] = []
 var checks := 0
+var clock_usec := 1000000
+func manual_clock() -> int: return clock_usec
 func _initialize() -> void: call_deferred("run")
 func check(value: bool, label: String) -> void:
 	checks += 1
@@ -11,6 +15,9 @@ func frames(count := 4) -> void:
 	for index in count: await process_frame
 func real_delay(seconds: float) -> void:
 	await create_timer(seconds,true,false,true).timeout
+func advance(seconds: float) -> void:
+	clock_usec += int(seconds*1000000.0)
+	await frames(2)
 func run() -> void:
 	root.size = Vector2i(440,900)
 	root.content_scale_size = root.size
@@ -29,8 +36,11 @@ func run() -> void:
 	state.isPurchasedGemReward = false
 	state.rewardOptions = ["lightWeapon","criticalChance","damageOverTime"]
 	state.gemInventory = {"attackSpeed":2,"chain":1}
-	hud.refresh()
 	var entrance = hud.rewards.gem_entrance
+	var real_clock: Callable = entrance.clock
+	entrance.clock = manual_clock
+	hud.rewards.result_entrance.clock = manual_clock
+	hud.refresh()
 	var cards: HBoxContainer = hud.overlay_body.find_child("GemRewardCards",true,false)
 	var shard: Button = hud.overlay_body.find_child("GemRewardShards",true,false)
 	check(entrance.active and cards.get_child_count() == 3,"ordinary fifth-wave reward starts with three existing cards")
@@ -63,14 +73,20 @@ func run() -> void:
 	check(is_zero_approx(shard.modulate.a) and is_zero_approx(hud.overlay_body.find_child("GemRewardInventory",true,false).modulate.a),"later content stays concealed during spread")
 	entrance._apply(0.40)
 	check(hud.overlay.scale == Vector2.ONE and hud.overlay.position == frame_position and entrance.active and left.disabled,"frame settles at forty hundredths while card timeline and lock continue")
-	entrance._apply(entrance.elapsed())
-	await real_delay(0.18)
+	await advance(0.18)
+	var spread_scale: Vector2 = left.scale
+	var spread_rotation: float = left.rotation
+	check(spread_scale != Vector2.ONE and not is_zero_approx(spread_rotation),"timeline samples a mid-spread card")
+	# Fire the HUD's own poll this frame; this frame's final pose is checked here.
+	hud.elapsed = 0.25
+	await process_frame
+	check(left.scale == spread_scale and left.rotation == spread_rotation,"polled refresh keeps the spread pose in its frame")
 	state.gold += 1
 	hud.refresh()
 	cards = hud.overlay_body.find_child("GemRewardCards",true,false)
 	check(cards.get_child(0).disabled,"rebuild immediately locks replacement controls")
 	await frames()
-	check(entrance.started_usec == start and entrance.elapsed() > 0.18,"body rebuild retains elapsed real time")
+	check(entrance.started_usec == start and entrance.elapsed() >= 0.18,"body rebuild retains elapsed time")
 	entrance._apply(0.20)
 	var rebuilt_position: Vector2 = entrance._frame_track.position
 	entrance._apply(0.20)
@@ -84,7 +100,12 @@ func run() -> void:
 	entrance._apply(0.20)
 	# Animated offsets can round native Control size; compare centers as above.
 	check(entrance._frame_track.position.is_equal_approx(resized_position) and hud.overlay.pivot_offset.is_equal_approx(hud.overlay.size*0.5),"resize adopts current native placement and current frame center")
+	# Only waiting real time can pass this; any load delay just finishes it sooner.
+	entrance.clock = real_clock
+	entrance.started_usec = real_clock.call()-200000
+	start = entrance.started_usec
 	entrance._apply(entrance.elapsed())
+	check(entrance.active,"real-clock section starts mid-timeline")
 	Engine.time_scale = 0.05
 	paused = true
 	await real_delay(0.9)
@@ -123,17 +144,18 @@ func run() -> void:
 	hud.overlay.rotation = custom_rotation
 	custom_rotation = hud.overlay.rotation
 	hud.overlay.pivot_offset = custom_pivot
+	entrance.clock = manual_clock
 	state.completedRounds = 20
 	hud.refresh()
 	await frames()
 	check(entrance.active,"next fifth-wave reward starts its own entrance")
-	await real_delay(0.1)
+	await advance(0.1)
 	hud.rewards._fit_key.clear()
 	hud.rewards._fit_modal()
 	var cancelled_position: Vector2 = hud.overlay.position
 	var cancelled_size: Vector2 = hud.overlay.size
 	hud.hide()
-	await real_delay(0.04)
+	await frames(2)
 	check(not entrance.active and hud.overlay.modulate.a == 1 and entrance._ring == null,"hidden HUD cancels and restores presentation")
 	check(hud.overlay.position == cancelled_position and hud.overlay.size == cancelled_size and hud.overlay.scale == custom_scale and hud.overlay.rotation == custom_rotation and hud.overlay.pivot_offset == custom_pivot,"cancel adopts last native fit and exactly restores caller-owned frame transform")
 	hud.overlay.scale = Vector2.ONE

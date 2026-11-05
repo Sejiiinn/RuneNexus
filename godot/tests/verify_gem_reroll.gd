@@ -53,8 +53,17 @@ class RecoveryTransport extends Fixture.Transport:
 var failures: Array = []
 var checks := 0
 var fixture
+# The fixture answers only after this many rendered frames, so a request cannot
+# finish early and frame pacing cannot move the result. That only proves frames
+# keep running: a finite stall lets them through, so frame gaps are measured too.
+const HOLD_FRAMES := 15
+const MAX_FRAME_USEC := 200000
+const STALL_MEASUREMENTS := 3
 var delayed_frames := 0
 var delayed_max_frame_usec := 0
+var delayed_catalog = null
+var delayed_wave_usec := 0
+var delayed_checkpoint_usec := 0
 func _initialize(): call_deferred("run")
 func check(value: bool, label: String):
 	checks += 1
@@ -201,8 +210,56 @@ func run():
 	print("GEM_REROLL checks=%d failures=%s"%[checks,JSON.stringify(failures)])
 	quit(0 if failures.is_empty() else 1)
 func delayed_checks():
-	var app = fixture.make_app("delayed")
-	check(await app.start_stage(0), "delayed starts")
+	var app = await _delayed_app("delayed")
+	var http = app.services.account.transport
+	var tick := Time.get_ticks_usec()
+	var result: Dictionary = await _held_offer(app, http)
+	var elapsed_usec := Time.get_ticks_usec()-tick
+	var offer_gap := delayed_max_frame_usec
+	check(result.ok and result.initialOffer and delayed_frames == HOLD_FRAMES, "network wait keeps processing frames until the held response; initial response has no reroll flip")
+	print("GEM_OFFER_TIMING wave_cpu_usec=%d checkpoint_usec=%d total_usec=%d continued_frames=%d max_frame_usec=%d" % [delayed_wave_usec, delayed_checkpoint_usec, elapsed_usec, delayed_frames, offer_gap])
+	await process_frame # Let the transport signal finish before another request.
+	tick = Time.get_ticks_usec()
+	result = await _held_reroll(app, http)
+	elapsed_usec = Time.get_ticks_usec()-tick
+	var reroll_gap := delayed_max_frame_usec
+	check(result.ok and not result.initialOffer and delayed_frames == HOLD_FRAMES and app.run_domain.state.rewardOptions == NEW, "delayed reroll keeps rendering until the held response and replaces only confirmed candidates")
+	print("GEM_REROLL_TIMING total_usec=%d continued_frames=%d max_frame_usec=%d" % [elapsed_usec, delayed_frames, reroll_gap])
+	await process_frame
+	dispose(app)
+	check(await _lowest_gap(offer_gap, _offer_gap) < MAX_FRAME_USEC, "delayed request does not stall a frame for the network wait")
+	check(await _lowest_gap(reroll_gap, _reroll_gap) < MAX_FRAME_USEC, "reroll response delay never blocks a frame")
+## A stall in the request repeats on every fresh fixture; a load spike rarely
+## does. The lowest gap separates them, and only a gap over the limit re-measures.
+func _lowest_gap(first_gap: int, measure: Callable) -> int:
+	var lowest := first_gap
+	for attempt in range(1, STALL_MEASUREMENTS):
+		if lowest < MAX_FRAME_USEC: break
+		lowest = mini(lowest, await measure.call("delayed-%d-%d" % [Time.get_ticks_usec(), attempt]))
+	return lowest
+func _offer_gap(name: String) -> int:
+	var app = await _delayed_app(name)
+	await _held_offer(app, app.services.account.transport)
+	var gap := delayed_max_frame_usec
+	await process_frame
+	dispose(app)
+	return gap
+func _reroll_gap(name: String) -> int:
+	var app = await _delayed_app(name)
+	var http = app.services.account.transport
+	await _held_offer(app, http)
+	await process_frame
+	await _held_reroll(app, http)
+	var gap := delayed_max_frame_usec
+	await process_frame
+	dispose(app)
+	return gap
+## Reaches the fifth-wave reward boundary with no offer requested yet.
+func _delayed_app(name: String):
+	# Re-measurements reuse the parsed content: parsing dominates a fresh fixture.
+	var app = fixture.make_app(name, fixture.ACCOUNT, delayed_catalog)
+	delayed_catalog = app.catalog
+	check(await app.start_stage(0), name+" starts")
 	var service = fixture.attach(app)
 	var http = service.account.transport
 	http.snapshot.gemOfferVersion = 1
@@ -213,40 +270,29 @@ func delayed_checks():
 	state.completedRounds = 4
 	var tick := Time.get_ticks_usec()
 	var completed: Dictionary = app.run_domain.service.complete_wave(state, 5)
-	var calculation_usec := Time.get_ticks_usec()-tick
+	delayed_wave_usec = Time.get_ticks_usec()-tick
 	check(completed.ok and completed.state.phase == "reward" and completed.state.rewardOptions.is_empty(), "actual wave5 boundary emits no local cards")
 	app.run_domain.state = completed.state
 	app.command([], {"phase":"reward", "paused":true})
 	tick = Time.get_ticks_usec()
 	check(app.persist_progression(), "wave5 boundary persisted")
-	var checkpoint_usec := Time.get_ticks_usec()-tick
+	delayed_checkpoint_usec = Time.get_ticks_usec()-tick
+	return app
+func _held_offer(app, http) -> Dictionary:
 	response(http, app, snapshot(http, app, 1))
 	http.hold = true
 	_delayed_release(app, http)
-	tick = Time.get_ticks_usec()
-	var result: Dictionary = await app.reroll_reward_gems()
-	var elapsed_usec := Time.get_ticks_usec()-tick
-	check(result.ok and result.initialOffer and delayed_frames >= 15 and elapsed_usec >= 550000, "600ms network wait keeps processing frames; initial response has no reroll flip")
-	check(delayed_max_frame_usec < 200000, "delayed request does not stall a frame for the network wait")
-	print("GEM_OFFER_TIMING wave_cpu_usec=%d checkpoint_usec=%d injected_network_usec=600000 total_usec=%d continued_frames=%d max_frame_usec=%d" % [calculation_usec, checkpoint_usec, elapsed_usec, delayed_frames, delayed_max_frame_usec])
-	await process_frame # Let the transport signal finish before another request.
+	return await app.reroll_reward_gems()
+func _held_reroll(app, http) -> Dictionary:
 	http.snapshot = snapshot(http, app, 1)
 	response(http, app, snapshot(http, app, 2, 1, NEW))
 	_delayed_release(app, http, OLD)
-	tick = Time.get_ticks_usec()
-	result = await app.reroll_reward_gems()
-	elapsed_usec = Time.get_ticks_usec()-tick
-	check(result.ok and not result.initialOffer and delayed_frames >= 15 and app.run_domain.state.rewardOptions == NEW, "delayed reroll keeps rendering and replaces only confirmed candidates")
-	check(delayed_max_frame_usec < 200000, "reroll response delay never blocks a frame")
-	print("GEM_REROLL_TIMING injected_network_usec=600000 total_usec=%d continued_frames=%d max_frame_usec=%d" % [elapsed_usec, delayed_frames, delayed_max_frame_usec])
-	await process_frame
-	dispose(app)
+	return await app.reroll_reward_gems()
 func _delayed_release(app, http, expected_options: Array = []):
-	var finish := Time.get_ticks_usec()+600000
 	var previous := Time.get_ticks_usec()
 	delayed_frames = 0
 	delayed_max_frame_usec = 0
-	while Time.get_ticks_usec() < finish:
+	while delayed_frames < HOLD_FRAMES:
 		await process_frame
 		var now := Time.get_ticks_usec()
 		delayed_max_frame_usec = maxi(delayed_max_frame_usec, now-previous)

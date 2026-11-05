@@ -1,6 +1,7 @@
 extends Node
 ## Terminal-result presentation only. A real-time timeline survives body rebuilds.
 ## Keyframes match the approved crystal-assembly preview; no battle clock is used.
+## Regression tests replace `clock` to sample the timeline without wall time.
 class FrameDrawing extends Control:
 	var frame: StyleBox
 	func _draw() -> void:
@@ -12,9 +13,11 @@ var active := false
 var identity := ""
 var success := true
 var started_usec := 0
+var clock: Callable = Time.get_ticks_usec
 var duration := 1.14
 var _seen: Dictionary = {}
 var _tracks: Array = []
+var _sorted_parents: Array = []
 var _native_frame: StyleBox
 var _frame_host: Control
 var _halves: Array[Control] = []
@@ -78,7 +81,7 @@ func bind_body() -> void:
 	if not active: return
 	_reset_tracks()
 	_restore_pending_buttons()
-	if started_usec == 0: started_usec = Time.get_ticks_usec()
+	if started_usec == 0: started_usec = clock.call()
 	hud.overlay_body.modulate.a = 1
 	var crystal: Control = hud.overlay_body.find_child("ResultCrystal",true,false)
 	if success:
@@ -120,7 +123,7 @@ func bind_body() -> void:
 	_apply(elapsed())
 
 func elapsed() -> float:
-	return 0.0 if started_usec == 0 else (Time.get_ticks_usec()-started_usec)/1000000.0
+	return 0.0 if started_usec == 0 else (int(clock.call())-started_usec)/1000000.0
 
 func _process(_delta: float) -> void:
 	if not active: return
@@ -128,6 +131,12 @@ func _process(_delta: float) -> void:
 		cancel()
 		return
 	_apply(elapsed())
+
+# A container sort clears each child's scale and rotation after _process ran,
+# and the polled result refit requests one. Reapply in that same flush, or the
+# rendered frame shows every animated node snapped to its resting transform.
+func _on_parent_sorted() -> void:
+	if active and started_usec != 0: _apply(elapsed())
 
 func _apply(time: float) -> void:
 	if time >= duration:
@@ -175,6 +184,10 @@ func _rise(node_name: String, length: float, delay: float) -> void:
 
 func _track(node: Control, length: float, delay: float, frames: Array, ease := false) -> void:
 	if node == null: return
+	var parent := node.get_parent() as Container
+	if parent != null and not parent.sort_children.is_connected(_on_parent_sorted):
+		parent.sort_children.connect(_on_parent_sorted)
+		_sorted_parents.append(parent)
 	var buttons: Array = []
 	if node is Button: buttons.append({"node":node,"disabled":node.disabled})
 	for button in node.find_children("*","Button",true,false):
@@ -210,6 +223,10 @@ static func _rise_ease(progress: float) -> float:
 	return 1-pow(1-t,3)
 
 func _reset_tracks() -> void:
+	for parent in _sorted_parents:
+		if is_instance_valid(parent) and parent.sort_children.is_connected(_on_parent_sorted):
+			parent.sort_children.disconnect(_on_parent_sorted)
+	_sorted_parents.clear()
 	for track in _tracks:
 		var node: Control = track.node
 		if not is_instance_valid(node): continue

@@ -20,6 +20,7 @@ var shade: ColorRect
 var active := false
 var identity := ""
 var started_usec := 0
+var clock: Callable = Time.get_ticks_usec
 var _seen: Dictionary = {}
 var _tracks: Array = []
 var _frame_track: Dictionary = {}
@@ -69,7 +70,7 @@ func consider(reward_identity: String, eligible: bool) -> void:
 	set_process(true)
 
 func elapsed() -> float:
-	return 0.0 if started_usec == 0 else (Time.get_ticks_usec()-started_usec)/1000000.0
+	return 0.0 if started_usec == 0 else (int(clock.call())-started_usec)/1000000.0
 
 func detach_body() -> void:
 	if not active: return
@@ -94,7 +95,7 @@ func conceal_body() -> void:
 func bind_body() -> void:
 	if not active: return
 	_reset_tracks()
-	if started_usec == 0: started_usec = Time.get_ticks_usec()
+	if started_usec == 0: started_usec = clock.call()
 	_body_ready = true
 	hud.overlay_body.modulate = _body_modulate
 	var row: Control = hud.overlay_body.find_child("GemRewardCards",true,false)

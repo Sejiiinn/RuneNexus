@@ -60,12 +60,13 @@ func _initialize(): call_deferred("run")
 func check(value: bool, label: String):
 	checks += 1
 	if not value: failures.append(label)
-func make_app(name: String, owner := ACCOUNT):
+func make_app(name: String, owner := ACCOUNT, catalog = null):
 	var app = App.new()
+	if catalog != null: app.catalog = catalog
 	app.scene = Fixture.Host.new()
 	app.checkpoint = Checkpoint.new(directory.path_join(name), owner)
 	app.checkpoint.allow_progression_only = true
-	check(app.catalog.load_catalog() and app.run_domain.growth.load_catalog() and app.retry_load(), name + " startup")
+	check((catalog != null or app.catalog.load_catalog()) and app.run_domain.growth.load_catalog() and app.retry_load(), name + " startup")
 	return app
 func attach(app):
 	var service = Services.new()

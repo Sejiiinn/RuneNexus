@@ -14,6 +14,9 @@ class Services extends Fixture.FixtureServices:
 		return {"status":status,"code":"","hardRewards":loot}
 var checks := 0
 var failures: Array[String] = []
+# Parsing and validating the content takes most of this script's run time, and
+# every measured layout reads the same immutable catalog.
+var catalog := Fixture.QueryCatalog.new()
 
 func check(value: bool, label: String) -> void:
 	checks += 1
@@ -31,7 +34,7 @@ func measure(size: Vector2i, extra: Dictionary, loot: Dictionary, stage := 0, st
 	services.loot = loot
 	services.status = status
 	app.services = services
-	app.catalog.load_catalog()
+	app.catalog = catalog
 	app.run_domain.initialize(app.catalog,{},stage,100)
 	root.add_child(app)
 	var hud = load("res://ui/battle_hud.gd").new()
@@ -58,6 +61,7 @@ func measure(size: Vector2i, extra: Dictionary, loot: Dictionary, stage := 0, st
 	return result
 
 func run() -> void:
+	check(catalog.load_catalog(),"content catalog")
 	var module := {"turretType":"machinegun","grade":"rare","id":"fit","effects":[]}
 	var cases := {
 		"plain": [{}, {}, 0],

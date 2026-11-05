@@ -66,10 +66,14 @@ jobs:
       - name: Go vet and test
         working-directory: server
         run: |
-          go vet ./...
-          go test ./...
+          status=0
+          go vet ./... || status=1
+          go test ./... || status=1
+          exit "$status"
 
+      # A Go failure still fails the job, so report the Godot checks beside it.
       - name: Verify contracts, regressions and prepared project
+        if: ${{ !cancelled() }}
         uses: ./.github/actions/godot-checks
 
       - name: Save Godot project check results

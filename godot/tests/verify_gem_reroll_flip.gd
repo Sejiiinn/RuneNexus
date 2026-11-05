@@ -22,6 +22,7 @@ var app
 var hud
 const OLD := ["attackSpeed","range","heavyWeapon"]
 const NEW := ["criticalChance","elementalDamage","chain"]
+const CLOCK_SAMPLE_USEC := 200000
 func _initialize() -> void: call_deferred("run")
 func check(value: bool, label: String) -> void:
 	checks += 1
@@ -44,6 +45,16 @@ func commit(options: Array) -> void:
 	app.run_domain.state.rewardOptions = options.duplicate()
 	app.run_domain.state.gemRerollsUsed += 1
 	hud.refresh()
+## Wall clock and flip timeline in microseconds, read in one uninterrupted moment.
+func clock_pair(flip) -> PackedInt64Array:
+	var pair := PackedInt64Array()
+	for attempt in 100:
+		var before := Time.get_ticks_usec()
+		var timeline: float = flip.elapsed()
+		var after := Time.get_ticks_usec()
+		pair = PackedInt64Array([(before+after)/2,int(timeline*1000000.0)])
+		if after-before < 2000: break
+	return pair
 func complete(ok := true) -> void:
 	app.response = {"ok":ok}
 	app.response_ready.emit()
@@ -281,12 +292,27 @@ func run() -> void:
 	await destroy()
 	# Real wall-clock playback, including a paused SceneTree, finishes unaided.
 	await reset(440)
-	hit().pressed.emit(); await frames(); commit(NEW); available(); complete(); await frames()
-	var began := Time.get_ticks_usec()
+	hit().pressed.emit(); await frames(); commit(NEW); available(); complete()
+	var paused_flip = hud.rewards.gem_flip
+	# Held so a stalled frame cannot end playback before the clocks are sampled.
+	paused_flip.set_process(false)
+	await frames()
 	paused = true
-	while hud.rewards.gem_flip.active and Time.get_ticks_usec()-began < 900000: await process_frame
+	var began := clock_pair(paused_flip)
+	while Time.get_ticks_usec()-began[0] < CLOCK_SAMPLE_USEC: await process_frame
+	var sampled := clock_pair(paused_flip)
+	# Both clocks read together, so their ratio holds however long the frames took.
+	var clock_rate := float(sampled[1]-began[1])/float(sampled[0]-began[0])
+	paused_flip.set_process(true)
+	var frames_past_duration := 0
+	# The cap only ends a broken wait. Lateness counts frames past the flip's own
+	# timeline, because a slow machine's frame gaps must not read as late playback.
+	while paused_flip.active and Time.get_ticks_usec()-began[0] < 10000000:
+		if paused_flip.elapsed() >= paused_flip.DURATION: frames_past_duration += 1
+		await process_frame
 	paused = false
-	check(not hud.rewards.gem_flip.active and faces() == NEW and Time.get_ticks_usec()-began < 550000,"real-time 0.36s flip completes while paused")
+	check(absf(clock_rate-1.0) < 0.05,"paused flip timeline runs at real time (rate %.3f)" % clock_rate)
+	check(not paused_flip.active and faces() == NEW and frames_past_duration <= 1,"real-time 0.36s flip ends on its first frame past its duration while paused")
 	await destroy()
 	if not capture_dir.is_empty():
 		# Deterministic 60fps samples from the actual GL viewport, for GIF evidence.
