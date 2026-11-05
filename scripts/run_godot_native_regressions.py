@@ -146,9 +146,9 @@ def godot_executable() -> str:
 
 
 CACHE = ROOT / "build/godot-native-regressions"
-# Timing-sensitive cases (process restarts, fixed-clock replay, delayed HTTP and
-# repeated UI layout) never overlap each other: they run one by one in a single
-# lane beside the parallel pool, which leaves spare cores at the default jobs.
+# Cases past the short budget. Unless pooled below, they never overlap each other:
+# they run one by one in a single lane beside the parallel pool, which leaves
+# spare cores at the default jobs for process restarts and fixed-clock replay.
 TIMEOUTS = {
     "verify_chapter_three_normal_combat.gd": 120, "verify_run_transition.gd": 120,
     "verify_result_settlement.gd": 120, "verify_fixed_combat_clock.gd": 120,
@@ -163,7 +163,12 @@ TIMEOUTS = {
     # reached 19s of the 20s budget across 17 CI runs under parallel load.
     "verify_run_commands.gd": 120, "verify_modal_refresh.gd": 120,
 }
-SERIAL = frozenset(TIMEOUTS)
+# Long but load-tolerant, so they share the pool. The lane sets the run's length.
+POOLED = frozenset({
+    "verify_gem_reroll.gd", "verify_gem_reroll_flip.gd", "verify_content_catalog.gd",
+    "verify_run_commands.gd", "verify_modal_refresh.gd",
+})
+SERIAL = frozenset(TIMEOUTS) - POOLED
 # Scripts and data load directly; only these need no editor import when changed.
 UNIMPORTED = {".gd", ".json", ".gdshader"}
 CLASS_NAME = re.compile(r"^class_name\s+(\w+)", re.M)

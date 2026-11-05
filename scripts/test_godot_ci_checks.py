@@ -133,6 +133,10 @@ class NativeVerdictTest(unittest.TestCase):
                 self.verdict("import time; print('started', flush=True); time.sleep(30)\n")
         self.assertIn("timed out after 1s:\nstarted", str(caught.exception))
 
+    def test_pooled_cases_are_named_long_cases(self):
+        self.assertLessEqual(regressions.POOLED, set(regressions.TIMEOUTS))
+        self.assertFalse(regressions.POOLED & regressions.SERIAL)
+
 
 if __name__ == "__main__":
     unittest.main()
