@@ -139,7 +139,7 @@ def resume_source(options, extra: list[str]) -> tuple[Path | None, dict]:
     stored = json.loads(manifest_path.read_text())
     given = {arg.partition("=")[0] for arg in extra}
     extra[:0] = [arg for arg in stored["botArgs"] if arg.partition("=")[0] not in given]
-    if options.resume and not options.params: options.params = stored["params"]
+    if not options.params: options.params = stored["params"]
     return source, stored
 
 

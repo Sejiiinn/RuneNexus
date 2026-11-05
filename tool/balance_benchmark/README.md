@@ -55,7 +55,7 @@ python3 scripts/run_balance_benchmark.py --job=checkpoint --fork=build/balance-b
 | 옵션 | 동작 |
 | --- | --- |
 | `--resume` | 원래 실행의 경로 수·봇 인자·`--params`를 이어받아 `--stages` 직전 클리어 상태에서 경로마다 출발한다. 지문이 하나라도 다르면 거부한다. 같은 입력이면 연속 실행과 결과가 같다 |
-| `--fork` | 같은 출발 상태에 바뀐 입력(콘텐츠·`--params` 등)을 적용하는 실험이다. 다른 항목을 `parent.differs`에 남긴다 |
+| `--fork` | 같은 출발 상태에 바뀐 입력(콘텐츠·`--params` 등)을 적용하는 실험이다. 주지 않은 봇 인자·`--params`는 원래 실행 값을 이어받고(`--params`는 통째로 바뀌며, 비우려면 `--params='{}'`), 다른 항목을 `parent.differs`에 남긴다 |
 | `--margins=0` | `campaign`·`checkpoint` 뒤의 여유도 측정을 건너뛴다 |
 
 `--stages`는 저장된 클리어 바로 다음 스테이지에서 시작해야 하고, 경로 하나라도 상태가 없으면 실행하지 않는다. 앞 구간을 고정하고 한 스테이지의 수치만 비교할 때는 `--fork`, 변경의 누적 영향을 볼 때는 처음부터 다시 돌린다. 오래 도는 실행이 있는 동안 다른 측정을 하려면 `BALANCE_BENCHMARK_CACHE=<다른 폴더>`로 격리 프로젝트를 나눈다(실행기는 시작할 때 격리 프로젝트를 다시 쓴다). `--progression-file`·`snapshot-*.json`은 계정만 넣는 실험 입력으로 따로 남아 있다.
