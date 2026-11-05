@@ -287,10 +287,12 @@ func _hash_tests():
 	var fixture_path := OS.get_environment("RUNE_ACCOUNT_HASH_FIXTURE")
 	if fixture_path.is_empty(): return
 	var fixtures: Variant = SaveJson.parse(FileAccess.get_file_as_string(fixture_path))
+	var payloads: Variant = SaveJson.parse(FileAccess.get_file_as_string(OS.get_environment("RUNE_ACCOUNT_CODEC_FIXTURE")))
 	for fixture in fixtures:
-		# Hash the archived normalized payload the Dart oracle saw: exact old
-		# receipts stay stable even when newer codecs or content IDs change.
-		check(Hash.hash_payload(fixture.payload) == fixture.hash, "Existing Dart payload hash: " + str(fixture.index))
+		# Hash archived normalized payloads directly: exact old receipts remain
+		# stable even when newer codecs reject synthetic unsupported revisions.
+		var normalized: Variant = payloads[fixture.index].decoded
+		check(Hash.hash_payload(normalized) == fixture.hash, "Existing Dart payload hash: " + str(fixture.index))
 
 	var run: Dictionary = Codec.decode({"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":{"phase":"wave","enemies":[{"type":"normal","burnInstances":[{"remaining":3.0,"damagePerSecond":5.0}]}]}})
 	var baseline: String = Hash.hash_payload(run)
