@@ -40,7 +40,7 @@ func runtime_for(session, count: int) -> Dictionary:
 	for i in range(count):
 		events.append({"id":i+1,"kind":"kill","enemyId":i+1})
 		enemies[str(i+1)] = {"type":boss if i%10==0 else ordinary,"diamondReward":1}
-	return {"epoch":7,"wall_elapsed":0.0006,"events":events,"enemies":enemies,"defense":{"hp":100},"session":{"phase":"wave"}}
+	return {"epoch":7,"wall_elapsed":0.0006,"events":events,"enemies":enemies,"defense":{"hp":100,"max_hp":100},"session":{"phase":"wave"}}
 func exercise(script = Session) -> Dictionary:
 	var session = make_session(script)
 	var runtime := runtime_for(session, 120)
