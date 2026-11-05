@@ -2,7 +2,8 @@
 """Isolated native auth/save regression + real loopback HTTPRequest smoke check.
 
 No installed-app data, production API, credentials, or shared Godot project is used.
-The hash oracle was produced by Dart jsonEncode(GameSaveData v2 fixture results).
+The hash oracle was produced by Dart jsonEncode(GameSaveData v2 fixture results);
+each entry keeps the normalized payload Dart hashed (pre machinegun/flame IDs).
 """
 from __future__ import annotations
 import http.server
@@ -57,7 +58,7 @@ def main():
             raise SystemExit(imported.stdout + imported.stderr)
         with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
             threading.Thread(target=server.serve_forever, daemon=True).start()
-            env = dict(environment, RUNE_ACCOUNT_TEST_ROOT=str(project / "state"), RUNE_ACCOUNT_HASH_FIXTURE=str(ROOT / "test/fixtures/godot_account_payload_hashes.json"), RUNE_ACCOUNT_CODEC_FIXTURE=str(ROOT / "test/fixtures/godot_save_codec_expected.json"), RUNE_ACCOUNT_HTTP_FIXTURE=f"http://127.0.0.1:{server.server_port}")
+            env = dict(environment, RUNE_ACCOUNT_TEST_ROOT=str(project / "state"), RUNE_ACCOUNT_HASH_FIXTURE=str(ROOT / "test/fixtures/godot_account_payload_hashes.json"), RUNE_ACCOUNT_HTTP_FIXTURE=f"http://127.0.0.1:{server.server_port}")
             try:
                 for script in ("tests/verify_durable_record.gd", "verify.gd"):
                     result = subprocess.run([str(GODOT), "--headless", "--path", str(project), "--script", script], env=env, capture_output=True, text=True, timeout=60)
