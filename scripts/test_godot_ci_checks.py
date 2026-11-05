@@ -2,6 +2,7 @@
 import contextlib
 import io
 from pathlib import Path
+import re
 import stat
 import sys
 import tempfile
@@ -14,7 +15,7 @@ import run_godot_native_regressions as regressions
 
 
 def python_stage(name, code, needs=()):
-    return ci.Stage(name, (sys.executable, "-c", code), needs)
+    return ci.Stage(name, "test", (sys.executable, "-c", code), needs)
 
 
 class StageRunnerTest(unittest.TestCase):
@@ -75,7 +76,7 @@ class StageRunnerTest(unittest.TestCase):
     def test_signal_death_and_missing_command_fail_closed(self):
         code, results, _ = self.run_all(
             python_stage("killed", "import os, signal; os.kill(os.getpid(), signal.SIGKILL)"),
-            ci.Stage("missing", (str(self.work / "not-a-command"),)))
+            ci.Stage("missing", "test", (str(self.work / "not-a-command"),)))
         self.assertEqual(code, 1)
         self.assertEqual(results["killed"]["status"], "FAIL")
         self.assertLess(results["killed"]["code"], 0)
@@ -87,13 +88,39 @@ class StageRunnerTest(unittest.TestCase):
 
     def test_shared_action_runs_the_stage_runner_without_masking_failures(self):
         action = (ci.ROOT / ".github/actions/godot-checks/action.yml").read_text()
-        self.assertIn("run: python3 scripts/run_godot_ci_checks.py", action)
+        self.assertIn('run: python3 scripts/run_godot_ci_checks.py --group "$GROUP"', action)
         for masking in ("continue-on-error", "|| true", "set +e"):
             self.assertNotIn(masking, action)
 
     def test_independent_checks_stay_independent(self):
         self.assertEqual({stage.name: stage.needs for stage in ci.STAGES if stage.needs},
                          {"prepared-project": ("godot-pack",)})
+
+    def test_groups_partition_the_stages_and_keep_dependencies_together(self):
+        self.assertEqual(ci.select("all"), ci.STAGES)
+        self.assertCountEqual([stage for group in ci.GROUPS for stage in ci.select(group)], ci.STAGES)
+        groups = {stage.name: stage.group for stage in ci.STAGES}
+        for stage in ci.STAGES:
+            for need in stage.needs:
+                self.assertEqual(groups[need], stage.group)
+
+    def test_push_matrix_runs_every_group_and_never_stops_the_others(self):
+        workflow = (ci.ROOT / ".github/workflows/checks.yml").read_text()
+        matrix = re.search(r"group: \[(.+)\]", workflow).group(1).split(", ")
+        self.assertCountEqual(matrix, ["go", *ci.GROUPS])
+        self.assertIn("fail-fast: false", workflow)
+        self.assertIn("group: ${{ matrix.group }}", workflow)
+
+    def test_release_runs_every_stage_on_its_one_runner(self):
+        action = (ci.ROOT / ".github/actions/godot-checks/action.yml").read_text()
+        self.assertRegex(action, r"group:\n(?:\s+description:.*\n)\s+default: all\n")
+        release = (ci.ROOT / ".github/workflows/deploy-apk.yml").read_text()
+        self.assertIn("uses: ./.github/actions/godot-checks\n\n", release)
+
+    def test_unknown_group_is_rejected(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
+            ci.main(["--group", "nothing"])
+        self.assertEqual(caught.exception.code, 2)
 
 
 class NativeVerdictTest(unittest.TestCase):

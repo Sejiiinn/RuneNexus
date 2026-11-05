@@ -4,9 +4,12 @@
 A failed stage never stops an independent one: a stage waits only for the stages
 whose output it needs, and one blocked that way counts as failed. The run passes
 only when every stage passed, so the APK release cannot continue past a failure.
+
+Push CI runs each group on its own runner; the APK release runs them all in order.
 """
 from __future__ import annotations
 
+import argparse
 from collections import deque
 from dataclasses import dataclass
 import os
@@ -22,6 +25,7 @@ TAIL_LINES = 40
 @dataclass(frozen=True)
 class Stage:
     name: str
+    group: str
     command: tuple[str, ...]
     needs: tuple[str, ...] = ()
 
@@ -31,19 +35,21 @@ def script(name: str, *arguments: str) -> tuple[str, ...]:
 
 
 STAGES = (
-    Stage("python-unit", (sys.executable, "-m", "unittest", "discover", "-s", "scripts", "-p", "test_*.py")),
-    Stage("godot-content", script("verify_godot_content.py")),
-    Stage("native-regressions", script("run_godot_native_regressions.py")),
-    Stage("account-services", script("verify_godot_account_services.py")),
-    Stage("app-services", script("verify_godot_app_services.py")),
-    Stage("godot-pack", script("build_godot_pack.py")),
-    # Runs inside the project the pack step prepares.
-    Stage("prepared-project", script("run_godot_project_checks.py",
+    Stage("python-unit", "services",
+          (sys.executable, "-m", "unittest", "discover", "-s", "scripts", "-p", "test_*.py")),
+    Stage("godot-content", "services", script("verify_godot_content.py")),
+    Stage("native-regressions", "regressions", script("run_godot_native_regressions.py")),
+    Stage("account-services", "services", script("verify_godot_account_services.py")),
+    Stage("app-services", "services", script("verify_godot_app_services.py")),
+    Stage("godot-pack", "packaging", script("build_godot_pack.py")),
+    # Runs inside the project the pack step prepares, so the two share a runner.
+    Stage("prepared-project", "packaging", script("run_godot_project_checks.py",
                                      "--preset", "session", "--preset", "lifecycle",
                                      "--headless-only", "--require-complete",
                                      "--output", "build/godot-project-checks.json"),
           needs=("godot-pack",)),
 )
+GROUPS = tuple(dict.fromkeys(stage.group for stage in STAGES))
 
 
 def environment() -> dict[str, str]:
@@ -115,8 +121,14 @@ def report(results: list[dict]) -> int:
     return 1 if failed or not results else 0
 
 
-def main() -> int:
-    return report(run_stages(STAGES))
+def select(group: str) -> tuple[Stage, ...]:
+    return STAGES if group == "all" else tuple(stage for stage in STAGES if stage.group == group)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--group", choices=("all", *GROUPS), default="all", help="Run only this group of stages")
+    return report(run_stages(select(parser.parse_args(argv).group)))
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@
 
 ## 현행 배포 경로
 
-배포 워크플로는 [deploy-apk.yml](../.github/workflows/deploy-apk.yml) 하나다. 계약·회귀·준비 프로젝트 검사는 [공용 액션](../.github/actions/godot-checks/action.yml)으로 묶여 있으며, `main` 푸시 때 도는 [검사 CI](../.github/workflows/checks.yml)도 같은 액션과 Go vet·test를 실행한다. 공용 액션의 [단계 실행기](../scripts/run_godot_ci_checks.py)는 실패가 나도 독립 검사를 끝까지 실행하고, 실패·미실행 단계를 마지막에 모아 보고하며, 하나라도 통과하지 않으면 실패로 끝나 APK 빌드로 넘어가지 않는다. 준비 프로젝트 검사만 Godot 팩 빌드가 통과해야 실행한다. 웹 배포 경로는 폐기했다. 수동 실행의 기본값 `publish=false`는 서명 APK·패치·`update.json`을 검증해 Actions 아티팩트로 보관하며 공개하지 않는다.
+배포 워크플로는 [deploy-apk.yml](../.github/workflows/deploy-apk.yml) 하나다. 계약·회귀·준비 프로젝트 검사는 [공용 액션](../.github/actions/godot-checks/action.yml)으로 묶여 있으며, `main` 푸시 때 도는 [검사 CI](../.github/workflows/checks.yml)도 같은 액션과 Go vet·test를 실행한다. 검사 CI는 Go·회귀·패키징(팩과 준비 프로젝트)·서비스(Python·콘텐츠·계정·앱 서비스) 네 묶음을 별도 러너에서 동시에 돌리고 한 묶음의 실패가 다른 묶음을 멈추지 않는다. APK 배포는 한 러너에서 전 단계를 순서대로 실행한다. 공용 액션의 [단계 실행기](../scripts/run_godot_ci_checks.py)는 실패가 나도 독립 검사를 끝까지 실행하고, 실패·미실행 단계를 마지막에 모아 보고하며, 하나라도 통과하지 않으면 실패로 끝나 APK 빌드로 넘어가지 않는다. 준비 프로젝트 검사만 Godot 팩 빌드가 통과해야 실행한다. [`apk_release.py`](../scripts/apk_release.py)의 build·publish와 [`server_release.py`](../scripts/server_release.py)의 prepare는 대상 커밋의 검사 CI가 통과하지 않으면 [거부](../scripts/release_checks_gate.py)한다. 문서만 바뀌어 CI를 건너뛴 커밋은 직전 CI 실행 커밋으로 판정한다. 웹 배포 경로는 폐기했다. 수동 실행의 기본값 `publish=false`는 서명 APK·패치·`update.json`을 검증해 Actions 아티팩트로 보관하며 공개하지 않는다.
 
 | 입력·검사 | 빌드와 결과 |
 | --- | --- |

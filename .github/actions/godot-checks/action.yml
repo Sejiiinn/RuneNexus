@@ -1,5 +1,9 @@
 name: Godot checks
 description: Download the pinned Godot and run the contract, regression and prepared-project checks shared by push CI and the APK release.
+inputs:
+  group:
+    description: Stage group of scripts/run_godot_ci_checks.py, or all.
+    default: all
 runs:
   using: composite
   steps:
@@ -42,4 +46,6 @@ runs:
     # the end and exits non-zero when any check failed or could not run.
     - name: Verify contracts, regressions and prepared project
       shell: bash
-      run: python3 scripts/run_godot_ci_checks.py
+      env:
+        GROUP: ${{ inputs.group }}
+      run: python3 scripts/run_godot_ci_checks.py --group "$GROUP"

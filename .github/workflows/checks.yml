@@ -36,7 +36,15 @@ concurrency:
 
 jobs:
   checks:
+    # One runner per group: a slow host delays only its own group, the run takes
+    # as long as the slowest one, and every group reports whatever the others do.
+    name: ${{ matrix.group }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # go plus the groups of scripts/run_godot_ci_checks.py.
+        group: [go, regressions, packaging, services]
     steps:
       # Same checkout as deploy-apk.yml: no design/ binaries.
       - uses: actions/checkout@v4
@@ -58,12 +66,14 @@ jobs:
             !/design/**/*.ora
             !/design/**/*.bin
 
-      - uses: actions/setup-go@v5
+      - if: ${{ matrix.group == 'go' }}
+        uses: actions/setup-go@v5
         with:
           go-version-file: server/go.mod
           cache-dependency-path: server/go.sum
 
       - name: Go vet and test
+        if: ${{ matrix.group == 'go' }}
         working-directory: server
         run: |
           status=0
@@ -71,10 +81,11 @@ jobs:
           go test ./... || status=1
           exit "$status"
 
-      # A Go failure still fails the job, so report the Godot checks beside it.
       - name: Verify contracts, regressions and prepared project
-        if: ${{ !cancelled() }}
+        if: ${{ matrix.group != 'go' }}
         uses: ./.github/actions/godot-checks
+        with:
+          group: ${{ matrix.group }}
 
       - name: Save Godot project check results
         if: ${{ always() && hashFiles('build/godot-project-checks.json') != '' }}
