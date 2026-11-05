@@ -7,7 +7,7 @@ extends RefCounted
 
 ## Lifetime counters by achievement id, recorded from the moment of release.
 const COUNTERS_FIELD := "achievementCounters"
-## The last attendance day counted, so each day counts once.
+## The last attendance day counted at its daily reward claim, so each day counts once.
 const ATTENDANCE_DAY_FIELD := "achievementAttendanceDayKey"
 const MEDAL_FIELD := "claimedAchievementMedals"
 ## Weekly quest types that also count toward a lifetime counter.
@@ -87,10 +87,11 @@ static func record_owned(p: Dictionary, type: String, amount: int) -> void:
 	_add(p, type, amount)
 
 ## Counts the day once. A clock moved backwards never counts a day again.
-static func record_attendance_owned(p: Dictionary, day: int) -> void:
-	if day <= int(p.get(ATTENDANCE_DAY_FIELD, -1)): return
+static func record_attendance_owned(p: Dictionary, day: int) -> bool:
+	if day <= int(p.get(ATTENDANCE_DAY_FIELD, -1)): return false
 	p[ATTENDANCE_DAY_FIELD] = day
 	_add(p, "attendance", 1)
+	return true
 
 static func _add(p: Dictionary, id: String, amount: int) -> void:
 	var counters: Dictionary = p.get(COUNTERS_FIELD, {}).duplicate()

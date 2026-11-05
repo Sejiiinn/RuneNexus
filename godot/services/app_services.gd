@@ -713,7 +713,8 @@ func _apply_receipt(receipt: Dictionary) -> bool:
 	var key: String = "weeklyQuestWeekKey" if weekly else "dailyQuestDayKey"
 	var receipt_key: String = "weekKey" if weekly else "dayKey"
 	# Old receipts are durable server outcomes; do not reapply to a new period.
-	if int(p.get(key,-1)) != int(receipt.get(receipt_key,-2)): return true
+	if int(p.get(key,-1)) != int(receipt.get(receipt_key,-2)):
+		return not Quests.count_retired_attendance_owned(p,receipt) or _store_progression(p)
 	var claimed: Array = p.get("claimedWeeklyQuestRewards" if weekly else "claimedDailyQuestRewards",[])
 	if receipt.rewardType == "quest" and receipt.get("questType") in claimed: return true
 	if receipt.rewardType == "all_complete" and p.get(period+"QuestAllCompleteClaimed",false): return true

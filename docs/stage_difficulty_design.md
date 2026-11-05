@@ -110,7 +110,7 @@
 | 적 처치 | 3,000 | 20,000 | 60,000 | 120,000 | 200,000 | 치명타 확률 +2% |
 | 모듈 뽑기 | 20회 | 60회 | 150회 | 250회 | 400회 | 코어 내구도 +3% |
 
-- 출석은 연속이 아닌 누적 일수로 센다.
+- 출석은 연속이 아닌 누적 일수로 세며, 일일 출석 보상을 수령한 날만 하루로 센다.
 - 하드 스테이지 클리어는 하드 첫 클리어 보상·도전과제·컬렉션과 같은 행동에 보상이 겹쳐 넣지 않는다.
 - 업적 기간 전체 처치·라운드 수는 지금 저장하지 않으므로 구현 시점부터 센다. 모듈 뽑기는 저장된 뽑기 횟수로 소급한다.
 - 라운드·보스·적 처치 수치는 출현 데이터로 어림한 값이라 구현 전에 플레이 기록으로 확인한다.
@@ -199,7 +199,7 @@
 - 로비: 단축 줄 5번째 칸 「업적」이 팝업을 열고, 받을 보상이 있으면 그 버튼에만 빨간 느낌표를 단다. 스테이지 카드 위 조건 줄과 업적 팝업 탭은 [로비 결정](design_decisions/lobby.md)의 「스테이지 난이도」·「업적」 행을 따른다.
 - 훈장: 챕터 × 난이도의 도전과제 10개를 모두 달성하면 업적 팝업 훈장 탭의 금색 칸을 눌러 받는다. 성장 명령 `claimCollectionMedal`(`medalId` = 챕터 × 10 + 노말 1·하드 2)이 진행 선택 필드 `claimedCollectionMedals`에 남긴다. 능력치는 다른 진행처럼 클라이언트를 믿고 서버 명령·DB 변경은 없으며, 세대 16에 포함한다. 받을 훈장이 있으면 로비 「업적」 빨간 느낌표를 켠다.
 - 업적 능력치: 받은 컬렉션·누적 훈장만 [업적 계층](damage_calculation_rules.md#업적-계층)으로 적용한다(포탑 입력의 `achievementTurretDamageMultiplier`·`achievementRangeMultiplier`·`achievementCriticalDamageBonusRate`·`achievementAttackSpeedMultiplier`·`achievementCriticalChanceBonusRate`, 전투 설정의 `achievementBossDamageRate`, 넥서스 최대 체력).
-- 누적 업적([규칙](../godot/content/cumulative_achievements.gd)): 출석·라운드 클리어·보스 처치·적 처치는 진행 선택 필드 `achievementCounters`에 평생 횟수로 쌓는다. 라운드·처치는 일간·주간 퀘스트 기록과 같은 사건에서 상한 없이 더하고, 출석은 퀘스트 새로 고침에서 마지막으로 센 날(`achievementAttendanceDayKey`)보다 뒤인 날만 하루 1회 센다(시계를 되돌려도 다시 세지 않는다). 모듈 뽑기는 경제의 뽑기 횟수를 그대로 써서 소급된다. 1~4단계 다이아는 업적 팝업 누적 탭에서 `POST /v1/economy/achievements/claim`(저장 동기화 뒤 공통 경제 필드와 `achievementId`·`tier`)으로 받는다. 서버는 저장된 진행의 횟수(뽑기는 경제의 뽑기 횟수)가 단계 기준 이상인지 확인하고 보상 키 `achievement:<id>:<tier>`로 한 번만 지급한다([서버 표](../server/internal/economy/achievement_rewards.go), 원장 사유 `cumulative_achievement`). 5단계 훈장은 성장 명령 `claimCumulativeMedal`(`achievementId`)이 진행 선택 필드 `claimedAchievementMedals`에 남긴다. 횟수는 다른 진행처럼 클라이언트를 믿고, 세대 16에 포함하며 DB 마이그레이션은 없다.
+- 누적 업적([규칙](../godot/content/cumulative_achievements.gd)): 출석·라운드 클리어·보스 처치·적 처치는 진행 선택 필드 `achievementCounters`에 평생 횟수로 쌓는다. 라운드·처치는 일간·주간 퀘스트 기록과 같은 사건에서 상한 없이 더하고, 출석은 일일 출석 보상을 수령했을 때 마지막으로 센 날(`achievementAttendanceDayKey`)보다 뒤인 날만 하루 1회 센다(접속만 하고 수령하지 않은 날은 세지 않고, 수령 응답이 날짜가 바뀐 뒤 처리돼도 지급된 그날을 세며, 시계를 되돌려도 다시 세지 않는다). 모듈 뽑기는 경제의 뽑기 횟수를 그대로 써서 소급된다. 1~4단계 다이아는 업적 팝업 누적 탭에서 `POST /v1/economy/achievements/claim`(저장 동기화 뒤 공통 경제 필드와 `achievementId`·`tier`)으로 받는다. 서버는 저장된 진행의 횟수(뽑기는 경제의 뽑기 횟수)가 단계 기준 이상인지 확인하고 보상 키 `achievement:<id>:<tier>`로 한 번만 지급한다([서버 표](../server/internal/economy/achievement_rewards.go), 원장 사유 `cumulative_achievement`). 5단계 훈장은 성장 명령 `claimCumulativeMedal`(`achievementId`)이 진행 선택 필드 `claimedAchievementMedals`에 남긴다. 횟수는 다른 진행처럼 클라이언트를 믿고, 세대 16에 포함하며 DB 마이그레이션은 없다.
 - 계정 화면: 닉네임 아래에 「업적 N / M · 훈장 K」를 보인다. 업적은 달성한 도전과제(노말·하드), 완성한 컬렉션, 도달한 누적 업적 단계 수(전체 91)이고 훈장은 받은 컬렉션·누적 훈장 수다.
 
 ## 구현 때 확인할 계약

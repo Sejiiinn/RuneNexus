@@ -24,7 +24,7 @@
 
 ## 퀘스트·정산 도메인
 
-`quest_progress.gd`는 `refresh(progression, nowMillis)`, `record(progression, type, amount, nowMillis)`, `record_play_time(progression, seconds)`, `finish(progression, event)`로 복사한 progression을 반환한다. 포탑 건설 자체는 퀘스트에 포함하지 않는다. `apply_receipt`는 서버 receipt의 수령 플래그만 반영하며 지갑을 지급하지 않는다.
+`quest_progress.gd`는 `refresh(progression, nowMillis)`, `record(progression, type, amount, nowMillis)`, `record_play_time(progression, seconds)`, `finish(progression, event)`로 복사한 progression을 반환한다. 포탑 건설 자체는 퀘스트에 포함하지 않는다. `apply_receipt`는 서버 receipt의 수령 플래그를 반영하고 일일 출석 수령이면 누적 출석을 하루 센다. 지갑은 지급하지 않는다.
 
 `reward_snapshot.gd.apply_authoritative(progression, snapshot)`는 HTTP snapshot의 지갑·모듈·연구 슬롯을 반영한다. progression의 `turretModules`는 저장 시 루트 inventory로 분리한다. 기존 장착 ID/legacy ID를 보존하고 옵션 범위·중복 슬롯·정렬은 기존(Dart 시절) 저장 계약을 유지한다. 지원하지 않는 입력은 `{}`와 `error`로 거절한다.
 

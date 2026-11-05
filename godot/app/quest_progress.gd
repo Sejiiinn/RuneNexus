@@ -40,7 +40,6 @@ func needs_refresh(p: Dictionary, now_millis: int) -> bool:
 	if last == 0 or now_millis - last >= 60000: return true
 	if last > 0 and now_millis + 300000 < last and not p.get("dailyQuestClockRollbackDetected", false): return true
 	if int(p.get("weeklyQuestWeekKey", -1)) != int(float(day + 3) / 7.0): return true
-	if int(p.get(Cumulative.ATTENDANCE_DAY_FIELD, -1)) < day: return true
 	return not p.has("weeklyAttendanceDayKeys") or not day in p.weeklyAttendanceDayKeys
 
 ## Internal transaction path: caller exclusively owns p and all nested values.
@@ -69,7 +68,6 @@ func refresh_owned(p: Dictionary, now_millis: int) -> Dictionary:
 		p.weeklyAttendanceRewardClaimed = false
 	if not p.has("weeklyAttendanceDayKeys"): p.weeklyAttendanceDayKeys = []
 	if not day in p.weeklyAttendanceDayKeys: p.weeklyAttendanceDayKeys.append(day)
-	Cumulative.record_attendance_owned(p, day)
 	return p
 
 func record(progression: Dictionary, type: String, amount: int, now_millis: int) -> Dictionary:
@@ -152,6 +150,12 @@ func finish(progression: Dictionary, event: Dictionary) -> Dictionary:
 		p.turretModules.tickets = int(p.turretModules.get("tickets", 0)) + int(p.lastRunTurretModuleTicketReward)
 	return p
 
+## A daily attendance receipt that outlived its day sets no flag in the new
+## period, but the server granted it, so that day still counts. True when p changed.
+static func count_retired_attendance_owned(p: Dictionary, receipt: Dictionary) -> bool:
+	if receipt.get("period") != "daily" or receipt.get("rewardType") != "attendance": return false
+	return Cumulative.record_attendance_owned(p, int(receipt.get("dayKey", -1)))
+
 ## Apply claim flags after an authoritative receipt, never wallet balances.
 ## receipt={period:daily|weekly,rewardType:quest|all_complete|attendance,
 ##          questType?,dayKey|weekKey,rewardDiamonds?,rewardModuleTickets?}
@@ -185,5 +189,6 @@ func apply_receipt(progression: Dictionary, receipt: Dictionary) -> Dictionary:
 			var field := period + "AttendanceRewardClaimed"
 			if p.get(field, false) or attendance_progress(p, period) < (5 if weekly else 1): return {"ok": false, "progression": p}
 			p[field] = true
+			if not weekly: Cumulative.record_attendance_owned(p, int(receipt.dayKey))
 		_: return {"ok": false, "progression": p}
 	return {"ok": true, "progression": p}

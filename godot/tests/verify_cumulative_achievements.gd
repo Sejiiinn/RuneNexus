@@ -32,18 +32,27 @@ func _counter_cases() -> void:
 	var quests = Quests.new()
 	var now := 20000 * DAY
 	var p: Dictionary = quests.refresh({}, now)
-	check(Cumulative.count(p, "attendance") == 1, "the first refresh counts today")
+	check(Cumulative.count(p, "attendance") == 0, "opening the app alone counts no attendance")
+	p = _claim_attendance(quests, p, now)
+	check(Cumulative.count(p, "attendance") == 1, "the daily reward claim counts today")
 	p = quests.refresh(p, now + 3600000)
 	check(Cumulative.count(p, "attendance") == 1, "a day counts once")
+	check(not quests.apply_receipt(p, _attendance_receipt("daily", p)).ok and Cumulative.count(p, "attendance") == 1, "a repeated claim counts no day again")
 	p = quests.refresh(p, now + DAY)
-	p = quests.refresh(p, now + 9 * DAY)
+	check(Cumulative.count(p, "attendance") == 1, "a day without a claim is not counted")
+	p = _claim_attendance(quests, p, now + DAY)
+	p = _claim_attendance(quests, p, now + 9 * DAY)
 	check(Cumulative.count(p, "attendance") == 3, "days add up without needing a streak")
-	p = quests.refresh(p, now + 2 * DAY)
+	p = _claim_attendance(quests, p, now + 2 * DAY)
 	check(Cumulative.count(p, "attendance") == 3, "a clock moved back counts no day again")
-	# A day already in the weekly list (save from before release) still counts.
-	var legacy := {"dailyQuestDayKey":int(float(now + 14400000) / DAY), "lastDailyQuestSeenMillis":now, "weeklyQuestWeekKey":int(float(int(float(now + 14400000) / DAY) + 3) / 7.0), "weeklyAttendanceDayKeys":[int(float(now + 14400000) / DAY)]}
-	check(quests.needs_refresh(legacy, now + 1000), "an uncounted attendance day needs a refresh")
-	check(Cumulative.count(quests.refresh(legacy, now + 1000), "attendance") == 1, "the release day is counted")
+	var weekly: Dictionary = quests.refresh({}, now)
+	weekly.weeklyAttendanceDayKeys = range(5).map(func(i): return int(weekly.weeklyQuestWeekKey) * 7 - 3 + i)
+	var weekly_claim: Dictionary = quests.apply_receipt(weekly, _attendance_receipt("weekly", weekly))
+	check(weekly_claim.ok and Cumulative.count(weekly_claim.progression, "attendance") == 0, "the weekly attendance reward adds no day")
+	# Days counted at refresh before this rule stay, and a counted day is not added again.
+	var legacy: Dictionary = quests.refresh({"achievementCounters":{"attendance":4}, "achievementAttendanceDayKey":int(float(now + 14400000) / DAY)}, now)
+	check(not quests.needs_refresh(legacy, now + 1000), "an unclaimed attendance day needs no refresh")
+	check(Cumulative.count(_claim_attendance(quests, legacy, now + 1000), "attendance") == 4, "a day counted before the claim rule stays once")
 	# Lifetime counters keep growing past the daily and weekly caps.
 	for i in range(200): p = quests.record_owned(p, "killEnemies", 3, now + 9 * DAY)
 	p = quests.record_owned(p, "killBosses", 2, now + 9 * DAY)
@@ -51,6 +60,16 @@ func _counter_cases() -> void:
 	check(Cumulative.count(p, "killEnemies") == 600 and p.weeklyQuestProgress.killEnemies == 500, "enemy kills exceed the weekly cap")
 	check(Cumulative.count(p, "killBosses") == 2 and not p.achievementCounters.has("buyRunUpgrades"), "only achievement counters are kept")
 	check(Cumulative.count({"turretModules":{"drawCount":61}}, "moduleDraws") == 61, "draws read the module draw count")
+
+func _attendance_receipt(period: String, p: Dictionary) -> Dictionary:
+	if period == "weekly": return {"period":"weekly", "rewardType":"attendance", "weekKey":p.weeklyQuestWeekKey, "rewardDiamonds":40}
+	return {"period":"daily", "rewardType":"attendance", "dayKey":p.dailyQuestDayKey}
+
+func _claim_attendance(quests, p: Dictionary, now: int) -> Dictionary:
+	var fresh: Dictionary = quests.refresh(p, now)
+	var result: Dictionary = quests.apply_receipt(fresh, _attendance_receipt("daily", fresh))
+	check(result.ok, "attendance claim at %d" % now)
+	return result.progression
 
 func _tier_cases() -> void:
 	var p := {"achievementCounters":{"attendance":30, "killBosses":1200}, "turretModules":{"drawCount":19}}

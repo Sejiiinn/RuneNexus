@@ -4,6 +4,7 @@ const App = preload("res://app/app_lifecycle.gd")
 const Checkpoint = preload("res://session/session_checkpoint.gd")
 const Services = preload("res://services/app_services.gd")
 const Economy = preload("res://services/economy_service.gd")
+const Cumulative = preload("res://content/cumulative_achievements.gd")
 const ACCOUNT := "00000000-0000-4000-8000-000000000099"
 const NOW := 1700000000000
 class Host extends "res://tests/verify_support_fake_battlefield.gd":
@@ -181,6 +182,7 @@ func terminal_receipt():
 	var before: Dictionary = app.run_domain.state.progression.duplicate(true)
 	check(before.lastRunRuneReward > 0 and before.lastRunCorePointReward > 0 and app.run_domain.is_finished(), "real run grants local rewards and completion marker")
 	before.dailyAttendanceRewardClaimed = true
+	Cumulative.record_attendance_owned(before, int(before.dailyQuestDayKey))
 	var run_id: String = app.run_domain.state.economyRunId
 	service.account.release.emit()
 	var saved: Dictionary = app.checkpoint.store.load_save()
@@ -196,6 +198,11 @@ func latest_period_and_effect():
 	app.run_domain.now_millis = func(): return NOW + 86400000
 	check(service._apply_receipt(receipt(old_day)), "old period receipt is retired")
 	check(app.run_domain.state.progression.dailyQuestDayKey == old_day + 1 and not app.run_domain.state.progression.dailyAttendanceRewardClaimed, "period refresh happens before receipt guard")
+	check(Cumulative.count(app.run_domain.state.progression, "attendance") == 1, "a retired attendance receipt still counts its granted day")
+	check(service._apply_receipt(receipt(old_day)) and Cumulative.count(app.run_domain.state.progression, "attendance") == 1, "a repeated retired receipt counts no day again")
+	check(service._apply_receipt(receipt(old_day, "quest")) and Cumulative.count(app.run_domain.state.progression, "attendance") == 1, "a retired quest receipt counts no attendance")
+	check(Cumulative.count(app.checkpoint.store.load_save().progression, "attendance") == 1, "the retired attendance day is saved")
+	check(service._apply_receipt(receipt(old_day + 1)) and Cumulative.count(app.run_domain.state.progression, "attendance") == 2, "the next day claim adds its own day")
 	app.run_domain.state.progression.dailyQuestProgress.killEnemies = 100
 	check(service._apply_receipt(receipt(old_day + 1, "quest")), "quest eligibility uses current progression")
 	check("killEnemies" in app.run_domain.state.progression.claimedDailyQuestRewards, "latest quest receipt recorded")
