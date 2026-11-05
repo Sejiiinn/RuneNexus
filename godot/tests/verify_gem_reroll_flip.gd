@@ -208,8 +208,10 @@ func run() -> void:
 	# Recovery completing during the initial entrance must wait, not compete.
 	await reset(440)
 	app.run_domain.state.economyRunId = "entrance-recovery"
+	# Frozen clock, because a layout rebuild also advances the entrance in real time.
+	var entrance_start := Time.get_ticks_usec()
+	hud.rewards.gem_entrance.clock = func() -> int: return entrance_start
 	hud.refresh(); await frames()
-	hud.rewards.gem_entrance.set_process(false)
 	check(hud.rewards.gem_entrance.active,"new reward entrance active")
 	app.reroll_view.merge({"status":"recovering","available":true,"locked":true},true); hud.refresh()
 	commit(NEW); available(); hud.refresh(); await frames()
@@ -240,9 +242,9 @@ func run() -> void:
 	complete(false); await frames()
 	check(faces() == OLD and not hud.rewards.gem_flip.active and cards().get_child(0).disabled and not hit().disabled,"failed post-save/outbox holds old face and permits retry")
 	hud.refresh(); await frames(); check(faces() == OLD,"duplicate failed refresh cannot flash new face")
-	hit().pressed.emit(); await frames(); available(); complete(); await frames()
+	hit().pressed.emit(); await frames(); available(); complete()
+	hud.rewards.gem_flip.set_process(false); await frames()
 	check(hud.rewards.gem_flip.active,"retry confirmed prior commit flips once")
-	hud.rewards.gem_flip.set_process(false)
 	# Resize before midpoint, then drop directly past the end.
 	root.size = Vector2i(600,900); root.content_scale_size = root.size; hud.refresh(); await frames()
 	hud.rewards.gem_flip._apply(0.09); await frames()
@@ -262,7 +264,9 @@ func run() -> void:
 	await reset(440)
 	app.reroll_view.merge({"status":"recovering","available":true,"locked":true},true); hud.refresh()
 	commit(NEW); await frames(); check(faces() == OLD and not hud.rewards.gem_flip.active,"background unconfirmed commit stays old")
-	available(); hud.refresh(); await frames(); check(hud.rewards.gem_flip.active,"background confirmed recovery flips")
+	available(); hud.refresh()
+	hud.rewards.gem_flip.set_process(false); await frames()
+	check(hud.rewards.gem_flip.active,"background confirmed recovery flips")
 	hud.hide(); hud.rewards.gem_flip._process(0.0); await frames(); hud.show(); hud.refresh(); await frames()
 	check(not hud.rewards.gem_flip.active and faces() == NEW and not cards().get_child(0).disabled,"hide/reopen consumes flip and unlocks")
 	check(hud.rewards.gem_flip.get_child_count() == 0,"hidden/reopened flip leaves no temporary faces")
@@ -276,7 +280,8 @@ func run() -> void:
 	hit().pressed.emit(); await frames(); hud.queue_free(); await frames(2); complete(); await frames(2)
 	app.queue_free(); await frames(2)
 	await reset(440)
-	hit().pressed.emit(); await frames(); commit(NEW); available(); complete(); await frames()
+	hit().pressed.emit(); await frames(); commit(NEW); available(); complete()
+	hud.rewards.gem_flip.set_process(false); await frames()
 	check(hud.rewards.gem_flip.active,"exit fixture begins flip")
 	await destroy()
 	# Reusing a detached HUD must not retain locks or replay a consumed flip.
@@ -284,7 +289,8 @@ func run() -> void:
 	hit().pressed.emit(); await frames(); commit(NEW); available()
 	root.remove_child(hud); complete(); await frames(2); root.add_child(hud); hud.refresh(); await frames()
 	check(not hud.rewards._reroll_pending and not hud.rewards.gem_flip.active and faces() == NEW and not cards().get_child(0).disabled,"detach/readd after awaited success clears lock without replay")
-	hit().pressed.emit(); await frames(); commit(OLD); available(); complete(); await frames()
+	hit().pressed.emit(); await frames(); commit(OLD); available(); complete()
+	hud.rewards.gem_flip.set_process(false); await frames()
 	check(hud.rewards.gem_flip.active,"detach flip fixture starts")
 	root.remove_child(hud); root.add_child(hud); hud.refresh(); await frames()
 	check(not hud.rewards.gem_flip.active and faces() == OLD and not cards().get_child(0).disabled,"detach/readd consumes active flip")

@@ -146,6 +146,9 @@ def godot_executable() -> str:
 
 
 CACHE = ROOT / "build/godot-native-regressions"
+# Hosted runners differ by 1.5x and the slowest short cases reach 18s on them, so
+# a short case's own wall-clock waits must never decide this limit.
+SHORT_TIMEOUT = 40
 # Cases past the short budget. Unless pooled below, they never overlap each other:
 # they run one by one in a single lane beside the parallel pool, which leaves
 # spare cores at the default jobs for process restarts and fixed-clock replay.
@@ -154,13 +157,13 @@ TIMEOUTS = {
     "verify_result_settlement.gd": 120, "verify_fixed_combat_clock.gd": 120,
     "verify_gem_reroll_flip.gd": 120, "verify_gem_reroll.gd": 120,
     # These repeatedly create real app/save repositories; the checkpoint case
-    # also drains real worker threads. Both exceed the short-case 20s budget on
-    # CI under parallel load, so keep them in the bounded integration lane.
+    # also drains real worker threads. Both exceed the short-case budget on CI
+    # under parallel load, so keep them in the bounded integration lane.
     "verify_server_run_lifecycle.gd": 120, "verify_async_checkpoint.gd": 120,
     # Enumerates every authored spawn and simulates all chapter endpoints.
     "verify_content_catalog.gd": 120,
-    # Long frame-paced UI and command sequences with no single heavy step. Both
-    # reached 19s of the 20s budget across 17 CI runs under parallel load.
+    # Long frame-paced UI and command sequences with no single heavy step, which
+    # reached 19s across 17 CI runs under parallel load.
     "verify_run_commands.gd": 120, "verify_modal_refresh.gd": 120,
 }
 # Long but load-tolerant, so they share the pool. The lane sets the run's length.
@@ -315,7 +318,7 @@ def decoded(output: bytes | str | None) -> str:
 
 def run_script(executable: str, project: Path, name: str, expected: str | None,
                temporary: Path) -> None:
-    timeout = TIMEOUTS.get(name, 20)
+    timeout = TIMEOUTS.get(name, SHORT_TIMEOUT)
     # user:// resolves under HOME; a per-case HOME and TMPDIR keep saves,
     # settings and temporary files apart, including while cases run in parallel.
     home = temporary / "home" / name.removesuffix(".gd")
