@@ -15,6 +15,7 @@ description: RuneNexus 서버·DB 반영과 Android APK 공개 배포를 끝까�
 2. 서버 반영 필요 여부: 운영 revision 이후 `server/`·`godot/content/source`·`test/fixtures` 변경이 있으면 필요하다. 앱이 새 클라이언트 세대를 쓰면 서버를 먼저 반영한다.
 3. 정해지지 않았으면 제안해 한 번에 확인받는다: 버전 코드(최신+1), 표시 버전(patch+1), 릴리스 노트(사용자 문장, 한 줄에 하나), 필수 업데이트 여부(기본 선택; 구버전과 저장·API가 호환되지 않을 때만 필수).
 4. 로컬 커밋이 있으면 푸시한다(APK는 origin/main HEAD로 빌드된다).
+5. 대상 커밋의 `main` 검사 CI 통과를 확인한다(`gh run list --workflow=checks.yml --commit <SHA>`). 문서만 바뀌어 CI를 건너뛴 커밋은 직전 코드 커밋을 본다. 진행 중이면 완료 알림을 기다리고, 실패 상태로는 공개하지 않고 보고한다.
 
 ## 2. 서버 (필요할 때만)
 
