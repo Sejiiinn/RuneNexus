@@ -46,13 +46,13 @@ func _process(_delta: float) -> void:
 func context() -> Dictionary:
 	return {"accountId": account_id, "sourceSaveRevision": int(state.get("baseRevision", 0)), "writerGeneration": state.get("writerGeneration"), "requiresGameReload": requires_reload, "sourcePayloadHash": state.get("basePayloadHash")}
 
-func bootstrap(guest_payload: Dictionary = {}, interactive: bool = true) -> Dictionary:
+func bootstrap() -> Dictionary:
 	await _lock()
-	var result := await _bootstrap_locked(guest_payload, interactive)
+	var result := await _bootstrap_locked()
 	_unlock()
 	return result
 
-func _bootstrap_locked(guest_payload: Dictionary, interactive: bool) -> Dictionary:
+func _bootstrap_locked() -> Dictionary:
 	if _record == null or not _bound(): return Http.failure("ACCOUNT_SESSION_MISMATCH")
 	var loaded: Dictionary = _record.load_record()
 	if not loaded.ok: return _block(str(loaded.get("code", "OUTBOX_CORRUPT")))
@@ -71,9 +71,6 @@ func _bootstrap_locked(guest_payload: Dictionary, interactive: bool) -> Dictiona
 		if _local_error(): return Http.failure("LOCAL_SAVE_READ_FAILED")
 		state = _initial()
 		if store.preserve_current_as_backup() != OK: return _block("LOCAL_BACKUP_FAILED")
-		if interactive and not guest_payload.is_empty():
-			var guest = Store.new(root_path, Slot.guest())
-			if guest.preserve_current_as_backup() != OK: return _block("LOCAL_BACKUP_FAILED")
 		if remote.get("snapshot") != null:
 			var snapshot: Dictionary = remote.snapshot
 			if _save_local(snapshot.data) != OK: return _block("LOCAL_REBASE_APPLY_FAILED")
@@ -81,9 +78,6 @@ func _bootstrap_locked(guest_payload: Dictionary, interactive: bool) -> Dictiona
 			state.basePayloadHash = _hash(snapshot.data)
 			state.lastSyncedAt = snapshot.serverSavedAt
 			source = "remoteAccount"
-		elif interactive and not guest_payload.is_empty():
-			if _save_local(guest_payload) != OK: return _block("LOCAL_SAVE_FAILED")
-			source = "guestProgress"
 		else: source = "localAccountRecovery" if local != null else "newAccount"
 	if state.get("clientInstanceId") == null: state.clientInstanceId = Http.uuid()
 	if state.syncState == "sending" or state.syncState == "conflict": state.syncState = "idle"

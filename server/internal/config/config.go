@@ -46,7 +46,6 @@ type Config struct {
 	RefreshAuthenticationRateLimit        int
 	AuthenticationRateLimitMaxClients     int
 	TrustProxyHeaders                     bool
-	CORSAllowedOrigins                    []string
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
 }
@@ -153,10 +152,6 @@ func Load() (Config, error) {
 			"GOOGLE_WEB_CLIENT_ID is required when GOOGLE_AUTH_ENABLED is true",
 		)
 	}
-	corsAllowedOrigins, err := originsFromEnvironment("CORS_ALLOWED_ORIGINS")
-	if err != nil {
-		return Config{}, err
-	}
 	maxSaveBodyBytes, err := positiveInt64FromEnvironment(
 		"MAX_SAVE_BODY_BYTES",
 		defaultMaxSaveBodyBytes,
@@ -189,7 +184,6 @@ func Load() (Config, error) {
 		RefreshAuthenticationRateLimit:        refreshAuthenticationRateLimit,
 		AuthenticationRateLimitMaxClients:     authenticationRateLimitMaxClients,
 		TrustProxyHeaders:                     trustProxyHeaders,
-		CORSAllowedOrigins:                    corsAllowedOrigins,
 		MaxSaveBodyBytes:                      maxSaveBodyBytes,
 		MinimumSaveClientCompatibilityVersion: minimumSaveClientCompatibilityVersion,
 	}, nil
@@ -333,32 +327,4 @@ func positiveIntFromEnvironment(name string, fallback int) (int, error) {
 		return 0, fmt.Errorf("%s must be greater than zero", name)
 	}
 	return value, nil
-}
-
-func originsFromEnvironment(name string) ([]string, error) {
-	raw := strings.TrimSpace(os.Getenv(name))
-	if raw == "" {
-		return []string{}, nil
-	}
-
-	origins := make([]string, 0)
-	seen := make(map[string]struct{})
-	for value := range strings.SplitSeq(raw, ",") {
-		origin := strings.TrimSuffix(strings.TrimSpace(value), "/")
-		if origin == "" {
-			continue
-		}
-		parsed, err := url.Parse(origin)
-		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") ||
-			parsed.Host == "" || parsed.User != nil || parsed.Path != "" ||
-			parsed.RawQuery != "" || parsed.Fragment != "" {
-			return nil, fmt.Errorf("parse %s: %q is not an HTTP origin", name, origin)
-		}
-		if _, exists := seen[origin]; exists {
-			continue
-		}
-		seen[origin] = struct{}{}
-		origins = append(origins, origin)
-	}
-	return origins, nil
 }

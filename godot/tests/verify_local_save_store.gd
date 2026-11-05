@@ -82,18 +82,12 @@ func verify_read_errors(a: Dictionary, b: Dictionary) -> void:
 	verify_read_failure(store, a, b, ERR_FILE_CANT_READ, "short read with EOF")
 	store.read_file.error = OK
 	verify_read_failure(store, a, b, ERR_FILE_CANT_READ, "short read without engine error")
-	# The same reader also protects fallback, imports, conflict files, and pending writes.
+	# The same reader also protects fallback, conflict files, and pending writes.
 	store.read_file.error = ERR_FILE_CANT_READ
 	store.fault_path = store.backup_path
 	write(store.primary_path, "{broken")
 	check(store.load_save() == null and store.last_error == ERR_FILE_CANT_READ and store.writes == 0, "backup read failure cannot repair primary")
 	check(FileAccess.get_file_as_string(store.primary_path) == "{broken" and FileAccess.get_file_as_string(store.backup_path) == raw, "backup read failure retains both files")
-	store.legacy_path = test_directory.path_join("read-errors-legacy.json")
-	write(store.legacy_path, JSON.stringify({"version":1,"stageNumber":3}))
-	store.clear()
-	write(store.legacy_path, JSON.stringify({"version":1,"stageNumber":3}))
-	store.fault_path = store.legacy_path
-	check(store.load_save() == null and store.last_error == ERR_FILE_CANT_READ and not FileAccess.file_exists(store.primary_path), "legacy read failure cannot import")
 	var conflict := {"version":1,"rebaseId":"r1","data":a}
 	write(store.conflict_path, JSON.stringify(conflict))
 	store.fault_path = store.conflict_path
@@ -127,14 +121,11 @@ func verify_open_errors(a: Dictionary, b: Dictionary) -> void:
 		verify_read_failure(store, a, b, open_error, "open failure")
 	check(FileAccess.set_unix_permissions(store.primary_path, FileAccess.UNIX_READ_OWNER | FileAccess.UNIX_WRITE_OWNER) == OK, "restore primary permission")
 	check(FileAccess.get_file_as_string(store.primary_path) == raw, "open failure preserves primary bytes")
-	for path in [store.backup_path, store.conflict_path, test_directory.path_join("open-errors-legacy.json"), store.primary_path + ".tmp"]:
+	for path in [store.backup_path, store.conflict_path, store.primary_path + ".tmp"]:
 		store.clear()
-		store.legacy_path = ""
 		write(path, raw)
 		if path == store.backup_path:
 			write(store.primary_path, "{broken")
-		elif path != store.conflict_path and path != store.primary_path + ".tmp":
-			store.legacy_path = path
 		check(FileAccess.set_unix_permissions(path, 0) == OK, "remove read permission: " + path.get_file())
 		var result: Variant = store.preserve_conflict_backup({"version":1,"rebaseId":"open","data":b}) if path == store.conflict_path else store.load_save()
 		check((result != OK if path == store.conflict_path else result == null) and store.last_error != OK and not store.last_error_message.is_empty(), "open failure propagates: " + path.get_file())
@@ -146,7 +137,6 @@ func verify_open_errors(a: Dictionary, b: Dictionary) -> void:
 		elif path == store.primary_path + ".tmp":
 			check(not FileAccess.file_exists(store.primary_path), "temporary open failure does not promote")
 	store.clear()
-	store.legacy_path = ""
 	write(store.primary_path, raw)
 	write(store.backup_path, raw)
 	var directory := store.primary_path.get_base_dir()
@@ -322,22 +312,13 @@ func _initialize() -> void:
 	write(store.primary_path + ".tmp", JSON.stringify(c))
 	write(store.backup_path, JSON.stringify(b))
 	check(store.load_save() == b, "invalid displaced primary falls back to backup")
-	var legacy_path := test_directory.path_join("legacy/rune_nexus_save_v1.json")
-	var legacy := Store.new(test_directory.path_join("import"), null, legacy_path)
-	write(legacy_path, JSON.stringify({"version":1,"stageNumber":3}))
-	var imported: Variant = legacy.load_save()
-	check(imported != null and imported.version == 2 and imported.preferences.selectedStageNumber == 3, "legacy v1 imported")
-	check(FileAccess.file_exists(legacy.primary_path) and FileAccess.file_exists(legacy_path), "legacy source retained after import")
-	var no_v2_legacy := Store.new(test_directory.path_join("no-v2-legacy"), null, test_directory.path_join("v2-legacy.json"))
-	write(no_v2_legacy.legacy_path, JSON.stringify(a))
-	check(no_v2_legacy.load_save() == null, "legacy location rejects v2 envelope")
 	var upper := "ABCDEF01-2345-6789-ABCD-0123456789AB"
 	var account_slot = Slot.account(upper)
 	check(account_slot.get_namespace() == "account:" + upper.to_lower(), "UUID normalization and namespace")
 	check(Slot.account("../../guest") == null, "unsafe account path rejected")
-	var account_store := Store.new(test_directory, account_slot, legacy_path)
+	var account_store := Store.new(test_directory, account_slot)
 	check(account_store.primary_path == test_directory.path_join("saves/accounts/" + upper.to_lower() + "/save_v2.json"), "account exact path")
-	check(account_store.load_save() == null, "account cannot import guest legacy")
+	check(account_store.load_save() == null, "empty account slot has no save")
 	account_store.save_save(c)
 	store.clear()
 	check(account_store.load_save() == c, "guest clear isolates account")
@@ -351,11 +332,12 @@ func _initialize() -> void:
 	conflict.rebaseId = "r2"
 	account_store.preserve_conflict_backup(conflict)
 	check(JSON.parse_string(FileAccess.get_file_as_string(account_store.conflict_path)).data.savedAtMillis == 2, "new rebase id replaces conflict")
-	for path in [legacy.primary_path, legacy.backup_path, legacy.conflict_path, legacy_path]:
+	var cleared := Store.new(test_directory.path_join("clear"))
+	for path in [cleared.primary_path, cleared.backup_path, cleared.conflict_path]:
 		for suffix in [".tmp", ".replace"]:
 			write(path + suffix, "artifact")
-	check(legacy.clear() == OK, "clear with artifacts")
-	for path in [legacy.primary_path, legacy.backup_path, legacy.conflict_path, legacy_path]:
+	check(cleared.clear() == OK, "clear with artifacts")
+	for path in [cleared.primary_path, cleared.backup_path, cleared.conflict_path]:
 		for suffix in ["", ".tmp", ".replace"]:
 			check(not FileAccess.file_exists(path + suffix), "clear removes " + path.get_file() + suffix)
 	check(store.save_save({"version":3}) == ERR_INVALID_DATA, "reject unsupported writes")

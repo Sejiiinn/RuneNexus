@@ -3,7 +3,6 @@ services:
     environment:
       GOOGLE_AUTH_ENABLED: "true"
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:?GOOGLE_WEB_CLIENT_ID is required}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
       TRUST_PROXY_HEADERS: "true"
 
   duckdns:

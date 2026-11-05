@@ -62,9 +62,6 @@ class RuneNexusPlatform(engine: Godot, private val host: MainActivity) : GodotPl
     }
 
     @UsedByGodot
-    fun legacy_save_path(): String = File(host.cacheDir, "rune_nexus_save_v1.json").absolutePath
-
-    @UsedByGodot
     fun device_preferences(): String = try {
         val file = File(host.filesDir, "graphics_settings_v1.json")
         json(true, "value" to if (file.isFile) file.readText() else null)

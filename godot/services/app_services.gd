@@ -69,9 +69,6 @@ func setup(application, native_platform: Object = null, settings: Dictionary = {
 		if app.checkpoint != null: app.checkpoint.shutdown()
 		app.checkpoint = Checkpoint.new(root_path)
 		app.checkpoint.allow_progression_only = true
-		# JNI plugin methods are callable even when Object.has_method() is false.
-		var native_plugin := Engine.has_singleton("RuneNexusPlatform") and platform == Engine.get_singleton("RuneNexusPlatform")
-		if native_plugin or platform.has_method("legacy_save_path"): app.checkpoint.store.legacy_path = platform.legacy_save_path()
 	boot_host=get_tree().get_first_node_in_group("rune_app_boot")
 	if boot_host!=null:
 		updates=boot_host.updates
@@ -330,7 +327,7 @@ func _bind(interactive: bool) -> Dictionary:
 	add_child(online)
 	online.configure(account, root_path, str(config.get("clientBuild","godot-local")), {"quiesce":_quiesce,"resume":_resume})
 	online.changed.connect(_online_changed)
-	var result: Dictionary = await online.bootstrap({},false)
+	var result: Dictionary = await online.bootstrap()
 	if binding != epoch: return {"ok":false,"code":"STALE_BINDING"}
 	if not result.get("ok",false): return result
 	if not _load_slot(str(account.credentials.accountId)): return {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}

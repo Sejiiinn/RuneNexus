@@ -2,7 +2,6 @@ class_name LocalSaveStore
 extends RefCounted
 ## Native, synchronous repository. Callers must check errors before acknowledging saves.
 ## Pass the existing Flutter application-support directory to hand off an installation.
-## A v1 system-temp path is opt-in; never infer or scan another application's files.
 const Codec = preload("res://app/save_codec.gd")
 const SaveJson = preload("res://app/save_json.gd")
 const Slot = preload("res://app/local_save_slot.gd")
@@ -12,7 +11,6 @@ var last_error_message: String = ""
 var primary_path: String
 var backup_path: String
 var conflict_path: String
-var legacy_path: String
 var _valid_slot: bool = true
 var transition_recovery_enabled := true
 var transition_directory: String
@@ -24,7 +22,7 @@ var recovered_from_backup := false
 # reference keeps bytes alive only while a repository for this slot is alive.
 var _validation_memo
 
-func _init(base_directory: String = "user://", slot = null, legacy_file: String = "") -> void:
+func _init(base_directory: String = "user://", slot = null) -> void:
 	if slot == null:
 		slot = Slot.guest()
 	_valid_slot = slot.is_valid()
@@ -37,7 +35,6 @@ func _init(base_directory: String = "user://", slot = null, legacy_file: String 
 	primary_path = directory.path_join("save_v2.json")
 	backup_path = directory.path_join("save_v2.backup.json")
 	conflict_path = directory.path_join("save_v2.conflict.json")
-	legacy_path = legacy_file if slot.is_guest() else ""
 
 func slot_order():
 	return SaveOrder.for_slot(transition_directory, transition_owner)
@@ -83,12 +80,7 @@ func load_save() -> Variant:
 		if save_save(backup.data) != OK:
 			return null
 		return backup.data
-	if last_error != OK or legacy_path.is_empty():
-		return null
-	var legacy := _read_valid(legacy_path, true)
-	if legacy.is_empty() or save_save(legacy.data) != OK:
-		return null
-	return legacy.data
+	return null
 
 func has_recovery_marker() -> bool:
 	var _transaction_scope = transaction_scope()
@@ -115,7 +107,7 @@ func save_save(data: Dictionary) -> Error:
 		if _recover(path) != OK:
 			return last_error
 	var raw := JSON.stringify(data, "", false, true)
-	var current := _read_valid(primary_path, false, false)
+	var current := _read_valid(primary_path, false)
 	if last_error != OK:
 		return last_error
 	# Read/recover/validate before skipping IO, including after external replacement.
@@ -135,7 +127,7 @@ func preserve_current_as_backup() -> Error:
 	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return last_error
-	var current := _read_valid(primary_path, false, false)
+	var current := _read_valid(primary_path, false)
 	if last_error != OK or current.is_empty():
 		return last_error
 	return _write_atomic(backup_path, current.raw)
@@ -159,9 +151,7 @@ func clear() -> Error:
 	var _transaction_scope = transaction_scope()
 	if not _begin():
 		return last_error
-	for path in [primary_path, backup_path, conflict_path, legacy_path, primary_path + ".recovery"]:
-		if path.is_empty():
-			continue
+	for path in [primary_path, backup_path, conflict_path, primary_path + ".recovery"]:
 		for suffix in ["", ".tmp", ".replace"]:
 			if _remove(path + suffix) != OK:
 				return last_error
@@ -202,28 +192,25 @@ func _read_text(path: String) -> Variant:
 		return null
 	return bytes.get_string_from_utf8()
 
-func _read_valid(path: String, legacy_only: bool = false, decode_data: bool = true) -> Dictionary:
+func _read_valid(path: String, decode_data: bool = true) -> Dictionary:
 	var _transaction_scope = transaction_scope()
 	if _recover(path) != OK:
 		return {}
 	var raw: Variant = _read_text(path)
 	if raw == null:
 		return {}
-	if not legacy_only and not decode_data and _validation_memo.matches(raw):
+	if not decode_data and _validation_memo.matches(raw):
 		return {"raw":raw}
 	var parsed := SaveJson.parse_record(raw)
 	if not parsed.ok:
 		return {}
 	var value: Variant = parsed.value
-	if legacy_only:
-		if not value is Dictionary or value.get("version") != 1:
-			return {}
-	elif not Codec.is_canonical_v2(value):
+	if not Codec.is_canonical_v2(value):
 		return {}
-	if not legacy_only: _validation_memo.remember(raw)
+	_validation_memo.remember(raw)
 	# The v2 reader accepts every canonical envelope and normalizes its fields.
 	# Backup rotation only needs validated bytes, not a discarded normalized tree.
-	if not decode_data and not legacy_only:
+	if not decode_data:
 		return {"raw": raw}
 	var decoded: Variant = Codec.decode(value)
 	return {} if decoded == null else {"data": decoded, "raw": raw}

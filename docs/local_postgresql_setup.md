@@ -22,9 +22,7 @@ docker compose up -d --build api
 
 Google 인증은 실제 OAuth Client ID 없이도 로컬 서버가 실행되도록 기본적으로
 비활성화되어 있습니다. 로그인을 시험할 때만 Google Cloud에서 발급한 Web OAuth
-Client ID(Android 앱의 server client ID)를 주입합니다. `CORS_ALLOWED_ORIGINS`는
-웹 클라이언트 폐기 후에도 서버 설정 항목으로 남아 있으며, Godot Android 앱의 요청에는
-필요하지 않습니다.
+Client ID(Android 앱의 server client ID)를 주입합니다.
 
 ```bash
 GOOGLE_AUTH_ENABLED=true \

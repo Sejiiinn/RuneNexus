@@ -19,6 +19,8 @@
 - 카카오 인앱 브라우저 진행 임시 이전 제거: 서버 `/v1/legacy-save-transfers` API·요청 제한·`LEGACY_*` 설정을 지우고, DB 마이그레이션 `025_drop_legacy_save_transfers.sql`로 `legacy_save_transfers`·`legacy_save_transfer_receipts`를 삭제한다(남은 이전 대상 없음, 사용자 확인). 앱 변경은 없다.
   - 영수증의 교체 전 계정 스냅숏도 함께 지워지며 down으로 되살릴 수 없다. 배포 동결 백업에는 남는다. 운영 `.env`의 `LEGACY_*` 값은 무시되므로 지워도 되고 남겨도 된다.
   - 두 테이블이 사라져 `server_release.py`의 행 대조가 멈추므로 `prepare`·`rehearse-deploy`·`deploy`에 `--allow-changed-table legacy_save_transfers --allow-changed-table legacy_save_transfer_receipts`를 붙인다.
+- 쓰지 않는 레거시 인증·저장 경로 제거: 서버의 웹·구형 인증 경로(`/v1/auth/web/*`, `/v1/auth/{google,refresh,logout}`)와 CORS 처리·`CORS_ALLOWED_ORIGINS` 설정을 지웠다. 서버 인증은 앱이 쓰는 `/v1/auth/native/*`만 남는다. 앱에서는 게스트 진행을 계정으로 옮기는 bootstrap 분기와 Android v1 임시 저장(`legacy_save_path()`) 가져오기를 지웠다. DB·호환 세대 변경은 없다.
+  - 운영 `.env.production`의 `CORS_ALLOWED_ORIGINS`는 더 이상 읽지 않으므로 지워도 되고 남겨도 된다. 로그인에는 `AUTH_SESSION_RECEIPT_KEY`가 필수다(이전에도 앱 경로는 같았다).
 
 마지막 공개 앱은 6061 / 0.2.32(`a36ad158`, 필수 업데이트·최소 지원 코드 6061), 운영 서버는 `424dd591`·DB22다.
 

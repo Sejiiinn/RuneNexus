@@ -142,9 +142,9 @@ func withAuthenticationRateLimitsAt(
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		var buckets *clientTokenBuckets
 		switch {
-		case request.Method == http.MethodPost && (request.URL.Path == "/v1/auth/google" || request.URL.Path == "/v1/auth/web/google" || request.URL.Path == "/v1/auth/native/google"):
+		case request.Method == http.MethodPost && request.URL.Path == "/v1/auth/native/google":
 			buckets = google
-		case request.Method == http.MethodPost && (request.URL.Path == "/v1/auth/refresh" || request.URL.Path == "/v1/auth/web/refresh" || request.URL.Path == "/v1/auth/native/refresh"):
+		case request.Method == http.MethodPost && request.URL.Path == "/v1/auth/native/refresh":
 			buckets = refresh
 		default:
 			next.ServeHTTP(response, request)

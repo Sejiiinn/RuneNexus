@@ -20,8 +20,8 @@ type ReadinessChecker interface {
 }
 
 type Authenticator interface {
-	AuthenticateGoogle(context.Context, string) (auth.LoginResult, error)
-	Refresh(context.Context, string) (auth.LoginResult, error)
+	AuthenticateGooglePersistent(context.Context, string) (auth.LoginResult, error)
+	RefreshPersistent(context.Context, string, string) (auth.LoginResult, error)
 	Logout(context.Context, string, string) error
 	AuthenticateAccessToken(context.Context, string) (auth.Principal, error)
 	GetAccountProfile(context.Context, string) (auth.AccountProfile, error)
@@ -41,7 +41,6 @@ type Dependencies struct {
 	RunLogService                         RunLogService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
-	CORSAllowedOrigins                    []string
 }
 
 type healthHandler struct {
@@ -63,19 +62,10 @@ func NewHandler(
 	mux.HandleFunc("GET /health/live", health.live)
 	mux.HandleFunc("GET /health/ready", health.ready)
 	if dependencies.Authenticator != nil {
-		authentication := authenticationHandler{
-			logger:         logger,
-			authenticator:  dependencies.Authenticator,
-			allowedOrigins: dependencies.CORSAllowedOrigins,
-		}
-		mux.HandleFunc("POST /v1/auth/google", authentication.google)
-		mux.HandleFunc("POST /v1/auth/refresh", authentication.refresh)
-		mux.HandleFunc("POST /v1/auth/logout", authentication.logout)
-		for _, platform := range []string{"web", "native"} {
-			for _, operation := range []string{"google", "refresh", "logout"} {
-				mux.HandleFunc("POST /v1/auth/"+platform+"/"+operation, authentication.persistent)
-			}
-		}
+		authentication := authenticationHandler{logger: logger, authenticator: dependencies.Authenticator}
+		mux.HandleFunc("POST /v1/auth/native/google", authentication.google)
+		mux.HandleFunc("POST /v1/auth/native/refresh", authentication.refresh)
+		mux.HandleFunc("POST /v1/auth/native/logout", authentication.logout)
 		profiles := profileHandler{logger: logger, accounts: dependencies.Authenticator}
 		mux.Handle("GET /v1/account/profile", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(profiles.get)))
 		mux.Handle("PUT /v1/account/nickname", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(profiles.setNickname)))
@@ -174,10 +164,7 @@ func NewHandler(
 		dependencies.AuthenticationRateLimits,
 		mux,
 	)
-	return withRequestMetadata(
-		logger,
-		withCORS(dependencies.CORSAllowedOrigins, apiHandler),
-	)
+	return withRequestMetadata(logger, apiHandler)
 }
 
 func (health healthHandler) live(response http.ResponseWriter, _ *http.Request) {

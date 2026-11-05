@@ -30,22 +30,22 @@ func TestAuthenticationRateLimitsAreEndpointSpecific(t *testing.T) {
 	)
 
 	for requestIndex := 0; requestIndex < 2; requestIndex++ {
-		response := serveRateLimitedRequest(handler, "/v1/auth/google", "192.0.2.1:1000")
+		response := serveRateLimitedRequest(handler, "/v1/auth/native/google", "192.0.2.1:1000")
 		if response.Code != http.StatusNoContent {
 			t.Fatalf("Google request %d status = %d", requestIndex+1, response.Code)
 		}
 	}
-	googleLimited := serveRateLimitedRequest(handler, "/v1/auth/google", "192.0.2.1:1000")
+	googleLimited := serveRateLimitedRequest(handler, "/v1/auth/native/google", "192.0.2.1:1000")
 	requireRateLimitResponse(t, googleLimited, "30")
 
-	refreshAllowed := serveRateLimitedRequest(handler, "/v1/auth/refresh", "192.0.2.1:1000")
+	refreshAllowed := serveRateLimitedRequest(handler, "/v1/auth/native/refresh", "192.0.2.1:1000")
 	if refreshAllowed.Code != http.StatusNoContent {
 		t.Fatalf("refresh status = %d", refreshAllowed.Code)
 	}
-	refreshLimited := serveRateLimitedRequest(handler, "/v1/auth/refresh", "192.0.2.1:1000")
+	refreshLimited := serveRateLimitedRequest(handler, "/v1/auth/native/refresh", "192.0.2.1:1000")
 	requireRateLimitResponse(t, refreshLimited, "60")
 
-	logout := serveRateLimitedRequest(handler, "/v1/auth/logout", "192.0.2.1:1000")
+	logout := serveRateLimitedRequest(handler, "/v1/auth/native/logout", "192.0.2.1:1000")
 	if logout.Code != http.StatusNoContent || nextCalls != 4 {
 		t.Fatalf("logout status = %d, nextCalls = %d", logout.Code, nextCalls)
 	}
@@ -66,14 +66,14 @@ func TestAuthenticationRateLimitRefillsTokens(t *testing.T) {
 		}),
 	)
 
-	first := serveRateLimitedRequest(handler, "/v1/auth/google", "192.0.2.1:1000")
-	second := serveRateLimitedRequest(handler, "/v1/auth/google", "192.0.2.1:1000")
+	first := serveRateLimitedRequest(handler, "/v1/auth/native/google", "192.0.2.1:1000")
+	second := serveRateLimitedRequest(handler, "/v1/auth/native/google", "192.0.2.1:1000")
 	if first.Code != http.StatusNoContent || second.Code != http.StatusTooManyRequests {
 		t.Fatalf("initial statuses = %d, %d", first.Code, second.Code)
 	}
 
 	now = now.Add(time.Minute)
-	afterRefill := serveRateLimitedRequest(handler, "/v1/auth/google", "192.0.2.1:1000")
+	afterRefill := serveRateLimitedRequest(handler, "/v1/auth/native/google", "192.0.2.1:1000")
 	if afterRefill.Code != http.StatusNoContent {
 		t.Fatalf("status after refill = %d", afterRefill.Code)
 	}
@@ -111,12 +111,12 @@ func TestAuthenticationRateLimitTrustsForwardedAddressOnlyWhenConfigured(t *test
 				}),
 			)
 
-			first := newRateLimitedRequest("/v1/auth/google", "172.20.0.2:1000")
+			first := newRateLimitedRequest("/v1/auth/native/google", "172.20.0.2:1000")
 			first.Header.Set("X-Forwarded-For", "192.0.2.1")
 			firstResponse := httptest.NewRecorder()
 			handler.ServeHTTP(firstResponse, first)
 
-			second := newRateLimitedRequest("/v1/auth/google", "172.20.0.2:1000")
+			second := newRateLimitedRequest("/v1/auth/native/google", "172.20.0.2:1000")
 			second.Header.Set("X-Forwarded-For", "192.0.2.2")
 			secondResponse := httptest.NewRecorder()
 			handler.ServeHTTP(secondResponse, second)
@@ -148,12 +148,12 @@ func TestAuthenticationRateLimitRejectsInvalidForwardedAddress(t *testing.T) {
 		}),
 	)
 
-	first := newRateLimitedRequest("/v1/auth/google", "172.20.0.2:1000")
+	first := newRateLimitedRequest("/v1/auth/native/google", "172.20.0.2:1000")
 	first.Header.Set("X-Forwarded-For", "not-an-address")
 	firstResponse := httptest.NewRecorder()
 	handler.ServeHTTP(firstResponse, first)
 
-	second := newRateLimitedRequest("/v1/auth/google", "172.20.0.2:1000")
+	second := newRateLimitedRequest("/v1/auth/native/google", "172.20.0.2:1000")
 	second.Header.Set("X-Forwarded-For", "also-invalid")
 	secondResponse := httptest.NewRecorder()
 	handler.ServeHTTP(secondResponse, second)
@@ -219,13 +219,7 @@ func authenticationRateLimitTestHandler(
 	next http.Handler,
 ) http.Handler {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	return withRequestMetadata(
-		logger,
-		withCORS(
-			[]string{"https://sejiiinn.github.io"},
-			withAuthenticationRateLimitsAt(limits, now, next),
-		),
-	)
+	return withRequestMetadata(logger, withAuthenticationRateLimitsAt(limits, now, next))
 }
 
 func serveRateLimitedRequest(
@@ -242,7 +236,6 @@ func serveRateLimitedRequest(
 func newRateLimitedRequest(path string, remoteAddress string) *http.Request {
 	request := httptest.NewRequest(http.MethodPost, path, nil)
 	request.RemoteAddr = remoteAddress
-	request.Header.Set("Origin", "https://sejiiinn.github.io")
 	return request
 }
 
@@ -260,20 +253,6 @@ func requireRateLimitResponse(
 	}
 	if response.Header().Get(requestIDHeader) == "" {
 		t.Fatal("response is missing a request ID")
-	}
-	if response.Header().Get("Access-Control-Allow-Origin") !=
-		"https://sejiiinn.github.io" {
-		t.Fatalf(
-			"Access-Control-Allow-Origin = %q",
-			response.Header().Get("Access-Control-Allow-Origin"),
-		)
-	}
-	if response.Header().Get("Access-Control-Expose-Headers") !=
-		requestIDHeader+", Retry-After, ETag" {
-		t.Fatalf(
-			"Access-Control-Expose-Headers = %q",
-			response.Header().Get("Access-Control-Expose-Headers"),
-		)
 	}
 	var body errorResponse
 	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {

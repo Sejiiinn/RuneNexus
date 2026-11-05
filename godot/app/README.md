@@ -31,13 +31,13 @@
 
 실행 중 앱을 잠시 내렸다 돌아오는 경우에는 통과한 업데이트 검사를 다시 시작하지 않고 현재 전투·로비 하위 화면을 유지한다. 같은 계정의 유효한 인증·저장·경제 바인딩이 있으면 재연결 화면이나 계정 창 없이 writer·저장·경제를 조용히 재확인한다. 인증 저장소를 매번 다시 복원하지 않으며 필요한 토큰 갱신·401 재시도는 기존 계정 요청 경로가 처리한다. 다른 작업이나 인증 갱신이 진행 중이면 그 요청을 중복 실행하지 않는다. 권위 확인 실패·계정 변경·저장 충돌은 기존 재연결·차단·원격 재적용 경로를 유지한다. 백그라운드 전환의 일시정지·저장은 유지하며 자동으로 전투를 재개하지 않는다. 이미 열린 업데이트 게이트의 설치·설정 복귀는 재확인하고, 필수 버전과 서버의 업데이트 요구도 계속 차단한다. 업데이트 화면은 기존 화면 위에 표시하며 선택 업데이트를 건너뛰거나 확인을 마쳐도 로비로 강제 이동하지 않는다. Google 인증 화면에서 돌아오는 콜백 순서 보호도 유지한다.
 
-Android에서 `RuneNexusPlatform.application_support_path()`가 이전 앱의 `filesDir`를 반환하므로 같은 패키지·서명으로 업데이트할 때 기존 `saves/guest`와 `saves/accounts/<uuid>` 경로를 사용한다. `legacy_save_path()`는 guest v1 임시 파일에만 적용한다. 정식 앱은 저장 원본을 다른 위치로 일괄 복사하거나 기존 파일을 초기화하지 않는다. 다른 플랫폼의 개발 `user://standalone-session` 저장은 Android 설치 데이터와 분리된다.
+Android에서 `RuneNexusPlatform.application_support_path()`가 이전 앱의 `filesDir`를 반환하므로 같은 패키지·서명으로 업데이트할 때 기존 `saves/guest`와 `saves/accounts/<uuid>` 경로를 사용한다. 정식 앱은 저장 원본을 다른 위치로 일괄 복사하거나 기존 파일을 초기화하지 않는다. 다른 플랫폼의 개발 `user://standalone-session` 저장은 Android 설치 데이터와 분리된다.
 
 ```gdscript
 const Store = preload("res://app/local_save_store.gd")
 const Slot = preload("res://app/local_save_slot.gd")
 var platform = Engine.get_singleton("RuneNexusPlatform")
-var store = Store.new(platform.application_support_path(), Slot.guest(), platform.legacy_save_path())
+var store = Store.new(platform.application_support_path(), Slot.guest())
 var saved = store.load_save()
 if store.last_error != OK:
     push_error(store.last_error_message)

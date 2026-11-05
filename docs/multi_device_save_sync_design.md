@@ -285,7 +285,7 @@ writer의 session ID나 기기 정보는 노출하지 않는다.
 
 ### 7.5 CORS
 
-GitHub Pages Web 클라이언트를 위해 다음 header를 CORS allow/expose 목록에 포함한다.
+전환 전 기록: 서버 CORS 처리는 2026-11-05에 제거했다. 당시 GitHub Pages Web 클라이언트를 위해 다음 header를 CORS allow/expose 목록에 포함했다.
 
 - request: `Authorization`, `Content-Type`, `Idempotency-Key`,
   `If-None-Match`, `Rune-Nexus-Save-Writer`

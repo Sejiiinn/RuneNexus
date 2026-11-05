@@ -111,15 +111,11 @@ func TestLoadRequiresGoogleClientIDWhenAuthIsEnabled(t *testing.T) {
 	}
 }
 
-func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
+func TestLoadParsesGoogleAuthConfiguration(t *testing.T) {
 	clearDatabaseEnvironment(t)
 	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
 	t.Setenv("GOOGLE_AUTH_ENABLED", "true")
 	t.Setenv("GOOGLE_WEB_CLIENT_ID", "web-client-id")
-	t.Setenv(
-		"CORS_ALLOWED_ORIGINS",
-		"https://sejiiinn.github.io/, http://127.0.0.1:53000, https://sejiiinn.github.io",
-	)
 	t.Setenv("MAX_SAVE_BODY_BYTES", "2097152")
 	t.Setenv("MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION", "2")
 
@@ -129,9 +125,6 @@ func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
 	}
 	if !cfg.GoogleAuthEnabled || cfg.GoogleWebClientID != "web-client-id" {
 		t.Fatalf("Google auth configuration = %#v", cfg)
-	}
-	if len(cfg.CORSAllowedOrigins) != 2 {
-		t.Fatalf("CORSAllowedOrigins = %#v", cfg.CORSAllowedOrigins)
 	}
 	if cfg.MaxSaveBodyBytes != 2097152 {
 		t.Fatalf("MaxSaveBodyBytes = %d", cfg.MaxSaveBodyBytes)
@@ -245,7 +238,6 @@ func clearDatabaseEnvironment(t *testing.T) {
 		"REFRESH_AUTH_RATE_LIMIT",
 		"AUTH_RATE_LIMIT_MAX_CLIENTS",
 		"TRUST_PROXY_HEADERS",
-		"CORS_ALLOWED_ORIGINS",
 		"MAX_SAVE_BODY_BYTES",
 		"MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION",
 	} {

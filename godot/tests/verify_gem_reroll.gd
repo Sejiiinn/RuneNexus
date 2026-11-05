@@ -453,7 +453,7 @@ func _equip_recovery_case(target_sold: bool):
 	service.root_path = app.checkpoint.base_directory
 	online.configure(service.account,app.checkpoint.base_directory,"obsolete-equip-fixture",{"quiesce":service._quiesce,"resume":service._resume})
 	online.set_process(false)
-	check((await online.bootstrap({},false)).ok,"obsolete equip: real canonical save coordinator bootstrapped")
+	check((await online.bootstrap()).ok,"obsolete equip: real canonical save coordinator bootstrapped")
 	var chosen := snapshot(http,app,2,0,OLD,"attackSpeed")
 	response(http,app,chosen)
 	var target: Dictionary = app.run_domain.state.turrets[0].duplicate(true)

@@ -155,7 +155,6 @@ func run(logger *slog.Logger) error {
 			RunLogService:                         runLogs,
 			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,
 			MinimumSaveClientCompatibilityVersion: cfg.MinimumSaveClientCompatibilityVersion,
-			CORSAllowedOrigins:                    cfg.CORSAllowedOrigins,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,

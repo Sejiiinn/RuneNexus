@@ -15,63 +15,27 @@ import (
 	"github.com/Sejiiinn/RuneNexus/server/internal/auth"
 )
 
-type googleAuthenticatorFunc func(context.Context, string) (auth.LoginResult, error)
-
-func (authenticate googleAuthenticatorFunc) AuthenticateGoogle(
-	ctx context.Context,
-	idToken string,
-) (auth.LoginResult, error) {
-	return authenticate(ctx, idToken)
-}
-
-func (googleAuthenticatorFunc) Refresh(
-	context.Context,
-	string,
-) (auth.LoginResult, error) {
-	return auth.LoginResult{}, errors.New("unexpected session refresh")
-}
-
-func (googleAuthenticatorFunc) Logout(context.Context, string, string) error {
-	return errors.New("unexpected logout")
-}
-
-func (googleAuthenticatorFunc) AuthenticateAccessToken(
-	context.Context,
-	string,
-) (auth.Principal, error) {
-	return auth.Principal{}, errors.New("unexpected access authentication")
-}
-
-func (googleAuthenticatorFunc) GetAccountProfile(context.Context, string) (auth.AccountProfile, error) {
-	return auth.AccountProfile{}, errors.New("unexpected profile lookup")
-}
-func (googleAuthenticatorFunc) SetNickname(context.Context, string, string) (auth.AccountProfile, error) {
-	return auth.AccountProfile{}, errors.New("unexpected nickname set")
-}
-
 type sessionAuthenticatorStub struct {
 	profile  func(context.Context, string) (auth.AccountProfile, error)
 	nickname func(context.Context, string, string) (auth.AccountProfile, error)
-	refresh  func(context.Context, string) (auth.LoginResult, error)
+	google   func(context.Context, string) (auth.LoginResult, error)
+	refresh  func(context.Context, string, string) (auth.LoginResult, error)
 	logout   func(context.Context, string, string) error
 	access   func(context.Context, string) (auth.Principal, error)
 }
 
-func (sessionAuthenticatorStub) AuthenticateGoogle(
-	context.Context,
-	string,
-) (auth.LoginResult, error) {
-	return auth.LoginResult{}, errors.New("unexpected Google authentication")
+func (stub sessionAuthenticatorStub) AuthenticateGooglePersistent(ctx context.Context, idToken string) (auth.LoginResult, error) {
+	if stub.google == nil {
+		return auth.LoginResult{}, errors.New("unexpected Google authentication")
+	}
+	return stub.google(ctx, idToken)
 }
 
-func (stub sessionAuthenticatorStub) Refresh(
-	ctx context.Context,
-	refreshToken string,
-) (auth.LoginResult, error) {
+func (stub sessionAuthenticatorStub) RefreshPersistent(ctx context.Context, refreshToken, requestKey string) (auth.LoginResult, error) {
 	if stub.refresh == nil {
 		return auth.LoginResult{}, errors.New("unexpected session refresh")
 	}
-	return stub.refresh(ctx, refreshToken)
+	return stub.refresh(ctx, refreshToken, requestKey)
 }
 
 func (stub sessionAuthenticatorStub) Logout(
@@ -97,28 +61,24 @@ func (stub sessionAuthenticatorStub) AuthenticateAccessToken(
 
 func TestGoogleAuthenticationReturnsSession(t *testing.T) {
 	expiresAt := time.Date(2026, 8, 18, 1, 2, 3, 0, time.UTC)
-	handler := newAuthenticationTestHandler(
-		googleAuthenticatorFunc(func(
-			_ context.Context,
-			idToken string,
-		) (auth.LoginResult, error) {
-			if idToken != "google-id-token" {
-				t.Fatalf("idToken = %q", idToken)
-			}
-			return auth.LoginResult{
-				AccountID:        "0198b955-3656-7c40-b3cb-87f427b90be2",
-				AccessToken:      "access-token",
-				AccessExpiresAt:  expiresAt,
-				RefreshToken:     "refresh-token",
-				RefreshExpiresAt: expiresAt.Add(30 * 24 * time.Hour),
-			}, nil
-		}),
-		nil,
-	)
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{google: func(
+		_ context.Context,
+		idToken string,
+	) (auth.LoginResult, error) {
+		if idToken != "google-id-token" {
+			t.Fatalf("idToken = %q", idToken)
+		}
+		return auth.LoginResult{
+			AccountID:       "0198b955-3656-7c40-b3cb-87f427b90be2",
+			AccessToken:     "access-token",
+			AccessExpiresAt: expiresAt,
+			RefreshToken:    "refresh-token",
+		}, nil
+	}})
 
 	request := jsonRequest(
 		http.MethodPost,
-		"/v1/auth/google",
+		"/v1/auth/native/google",
 		`{"idToken":"google-id-token"}`,
 	)
 	response := httptest.NewRecorder()
@@ -127,33 +87,37 @@ func TestGoogleAuthenticationReturnsSession(t *testing.T) {
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
 	}
-	var body authenticationResponse
-	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+	var body map[string]any
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if body.Account.ID != "0198b955-3656-7c40-b3cb-87f427b90be2" ||
-		body.AccessToken != "access-token" || body.RefreshToken != "refresh-token" {
+	account, _ := body["account"].(map[string]any)
+	if account["id"] != "0198b955-3656-7c40-b3cb-87f427b90be2" ||
+		body["accessToken"] != "access-token" || body["refreshToken"] != "refresh-token" {
 		t.Fatalf("body = %#v", body)
+	}
+	if expiry, exists := body["refreshExpiresAt"]; !exists || expiry != nil {
+		t.Fatalf("persistent refreshExpiresAt = %#v", expiry)
 	}
 	if response.Header().Get("Cache-Control") != "no-store" {
 		t.Fatalf("Cache-Control = %q", response.Header().Get("Cache-Control"))
 	}
+	if len(response.Result().Cookies()) != 0 {
+		t.Fatal("native login set a cookie")
+	}
 }
 
 func TestGoogleAuthenticationMapsRejectedIdentity(t *testing.T) {
-	handler := newAuthenticationTestHandler(
-		googleAuthenticatorFunc(func(
-			context.Context,
-			string,
-		) (auth.LoginResult, error) {
-			return auth.LoginResult{}, auth.ErrIdentityRejected
-		}),
-		nil,
-	)
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{google: func(
+		context.Context,
+		string,
+	) (auth.LoginResult, error) {
+		return auth.LoginResult{}, auth.ErrIdentityRejected
+	}})
 
 	request := jsonRequest(
 		http.MethodPost,
-		"/v1/auth/google",
+		"/v1/auth/native/google",
 		`{"idToken":"rejected-token"}`,
 	)
 	response := httptest.NewRecorder()
@@ -174,82 +138,56 @@ func TestGoogleAuthenticationMapsRejectedIdentity(t *testing.T) {
 	}
 }
 
-func TestGoogleAuthenticationRejectsUnknownJSONField(t *testing.T) {
-	authenticatorCalled := false
-	handler := newAuthenticationTestHandler(
-		googleAuthenticatorFunc(func(
-			context.Context,
-			string,
-		) (auth.LoginResult, error) {
-			authenticatorCalled = true
-			return auth.LoginResult{}, errors.New("unexpected call")
-		}),
-		nil,
-	)
+func TestGoogleAuthenticationRejectsInvalidBodies(t *testing.T) {
+	for name, body := range map[string]string{
+		"unknown field": `{"idToken":"token","accountId":"untrusted"}`,
+		"oversized":     `{"idToken":"` + strings.Repeat("x", maxAuthenticationBodyBytes) + `"}`,
+		"empty token":   `{"idToken":" "}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			authenticatorCalled := false
+			handler := newAuthenticationTestHandler(sessionAuthenticatorStub{google: func(
+				context.Context,
+				string,
+			) (auth.LoginResult, error) {
+				authenticatorCalled = true
+				return auth.LoginResult{}, errors.New("unexpected call")
+			}})
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, jsonRequest(http.MethodPost, "/v1/auth/native/google", body))
 
-	request := jsonRequest(
-		http.MethodPost,
-		"/v1/auth/google",
-		`{"idToken":"token","accountId":"untrusted"}`,
-	)
-	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, request)
-
-	if response.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d", response.Code)
-	}
-	if authenticatorCalled {
-		t.Fatal("authenticator was called for invalid JSON")
-	}
-}
-
-func TestGoogleAuthenticationRejectsOversizedBody(t *testing.T) {
-	handler := newAuthenticationTestHandler(
-		googleAuthenticatorFunc(func(
-			context.Context,
-			string,
-		) (auth.LoginResult, error) {
-			return auth.LoginResult{}, errors.New("unexpected call")
-		}),
-		nil,
-	)
-
-	body := `{"idToken":"` + strings.Repeat("x", maxAuthenticationBodyBytes) + `"}`
-	request := jsonRequest(http.MethodPost, "/v1/auth/google", body)
-	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, request)
-
-	if response.Code != http.StatusRequestEntityTooLarge {
-		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+			if response.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+			}
+			if authenticatorCalled {
+				t.Fatal("authenticator was called for an invalid body")
+			}
+		})
 	}
 }
 
 func TestRefreshAuthenticationRotatesSession(t *testing.T) {
-	expiresAt := time.Date(2026, 8, 18, 1, 2, 3, 0, time.UTC)
-	handler := newAuthenticationTestHandler(
-		sessionAuthenticatorStub{refresh: func(
-			_ context.Context,
-			refreshToken string,
-		) (auth.LoginResult, error) {
-			if refreshToken != "old-refresh-token" {
-				t.Fatalf("refreshToken = %q", refreshToken)
-			}
-			return auth.LoginResult{
-				AccountID:        "0198b955-3656-7c40-b3cb-87f427b90be2",
-				AccessToken:      "new-access-token",
-				AccessExpiresAt:  expiresAt,
-				RefreshToken:     "new-refresh-token",
-				RefreshExpiresAt: expiresAt.Add(30 * 24 * time.Hour),
-			}, nil
-		}},
-		nil,
-	)
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{refresh: func(
+		_ context.Context,
+		refreshToken string,
+		requestKey string,
+	) (auth.LoginResult, error) {
+		if refreshToken != "old-refresh-token" || requestKey != "request-key" {
+			t.Fatalf("refreshToken = %q, requestKey = %q", refreshToken, requestKey)
+		}
+		return auth.LoginResult{
+			AccountID:    "0198b955-3656-7c40-b3cb-87f427b90be2",
+			AccessToken:  "new-access-token",
+			RefreshToken: "new-refresh-token",
+		}, nil
+	}})
 
 	request := jsonRequest(
 		http.MethodPost,
-		"/v1/auth/refresh",
+		"/v1/auth/native/refresh",
 		`{"refreshToken":"old-refresh-token"}`,
 	)
+	request.Header.Set("Idempotency-Key", "request-key")
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 
@@ -266,6 +204,21 @@ func TestRefreshAuthenticationRotatesSession(t *testing.T) {
 	}
 }
 
+func TestRefreshAuthenticationRequiresOneIdempotencyKey(t *testing.T) {
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{})
+	for _, keys := range [][]string{nil, {"first", "second"}} {
+		request := jsonRequest(http.MethodPost, "/v1/auth/native/refresh", `{"refreshToken":"refresh-token"}`)
+		for _, key := range keys {
+			request.Header.Add("Idempotency-Key", key)
+		}
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		if response.Code != http.StatusBadRequest || !strings.Contains(response.Body.String(), "INVALID_IDEMPOTENCY_KEY") {
+			t.Fatalf("keys %v: status = %d, body = %s", keys, response.Code, response.Body.String())
+		}
+	}
+}
+
 func TestRefreshAuthenticationMapsTokenErrors(t *testing.T) {
 	for _, testCase := range []struct {
 		name string
@@ -274,22 +227,22 @@ func TestRefreshAuthenticationMapsTokenErrors(t *testing.T) {
 	}{
 		{name: "invalid", err: auth.ErrRefreshTokenInvalid, code: "REFRESH_TOKEN_INVALID"},
 		{name: "reused", err: auth.ErrRefreshTokenReused, code: "REFRESH_TOKEN_REUSED"},
+		{name: "recovery expired", err: auth.ErrRefreshRecoveryExpired, code: "REFRESH_RECOVERY_EXPIRED"},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
-			handler := newAuthenticationTestHandler(
-				sessionAuthenticatorStub{refresh: func(
-					context.Context,
-					string,
-				) (auth.LoginResult, error) {
-					return auth.LoginResult{}, testCase.err
-				}},
-				nil,
-			)
+			handler := newAuthenticationTestHandler(sessionAuthenticatorStub{refresh: func(
+				context.Context,
+				string,
+				string,
+			) (auth.LoginResult, error) {
+				return auth.LoginResult{}, testCase.err
+			}})
 			request := jsonRequest(
 				http.MethodPost,
-				"/v1/auth/refresh",
+				"/v1/auth/native/refresh",
 				`{"refreshToken":"refresh-token"}`,
 			)
+			request.Header.Set("Idempotency-Key", "request-key")
 			response := httptest.NewRecorder()
 			handler.ServeHTTP(response, request)
 
@@ -309,26 +262,23 @@ func TestRefreshAuthenticationMapsTokenErrors(t *testing.T) {
 
 func TestLogoutRevokesSessionAndReturnsNoContent(t *testing.T) {
 	logoutCalled := false
-	handler := newAuthenticationTestHandler(
-		sessionAuthenticatorStub{logout: func(
-			_ context.Context,
-			refreshToken string,
-			accessToken string,
-		) error {
-			logoutCalled = true
-			if refreshToken != "refresh-token" {
-				t.Fatalf("refreshToken = %q", refreshToken)
-			}
-			if accessToken != "access-token" {
-				t.Fatalf("accessToken = %q", accessToken)
-			}
-			return nil
-		}},
-		nil,
-	)
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{logout: func(
+		_ context.Context,
+		refreshToken string,
+		accessToken string,
+	) error {
+		logoutCalled = true
+		if refreshToken != "refresh-token" {
+			t.Fatalf("refreshToken = %q", refreshToken)
+		}
+		if accessToken != "access-token" {
+			t.Fatalf("accessToken = %q", accessToken)
+		}
+		return nil
+	}})
 	request := jsonRequest(
 		http.MethodPost,
-		"/v1/auth/logout",
+		"/v1/auth/native/logout",
 		`{"refreshToken":"refresh-token"}`,
 	)
 	request.Header.Set("Authorization", "Bearer access-token")
@@ -347,19 +297,16 @@ func TestLogoutRevokesSessionAndReturnsNoContent(t *testing.T) {
 }
 
 func TestLogoutRejectsTokensFromDifferentSessions(t *testing.T) {
-	handler := newAuthenticationTestHandler(
-		sessionAuthenticatorStub{logout: func(
-			context.Context,
-			string,
-			string,
-		) error {
-			return auth.ErrLogoutSessionMismatch
-		}},
-		nil,
-	)
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{logout: func(
+		context.Context,
+		string,
+		string,
+	) error {
+		return auth.ErrLogoutSessionMismatch
+	}})
 	request := jsonRequest(
 		http.MethodPost,
-		"/v1/auth/logout",
+		"/v1/auth/native/logout",
 		`{"refreshToken":"refresh-token"}`,
 	)
 	request.Header.Set("Authorization", "Bearer other-session-access-token")
@@ -379,56 +326,25 @@ func TestLogoutRejectsTokensFromDifferentSessions(t *testing.T) {
 	}
 }
 
-func TestCORSPreflightAllowsConfiguredOrigin(t *testing.T) {
-	handler := newAuthenticationTestHandler(nil, []string{"https://sejiiinn.github.io"})
-	request := httptest.NewRequest(http.MethodOptions, "/v1/auth/google", nil)
-	request.Header.Set("Origin", "https://sejiiinn.github.io")
-	request.Header.Set("Access-Control-Request-Method", http.MethodPost)
-	response := httptest.NewRecorder()
-
-	handler.ServeHTTP(response, request)
-
-	if response.Code != http.StatusNoContent {
-		t.Fatalf("status = %d", response.Code)
-	}
-	if response.Header().Get("Access-Control-Allow-Origin") !=
-		"https://sejiiinn.github.io" {
-		t.Fatalf(
-			"Access-Control-Allow-Origin = %q",
-			response.Header().Get("Access-Control-Allow-Origin"),
-		)
+func TestRemovedAuthenticationRoutesAreNotServed(t *testing.T) {
+	handler := newAuthenticationTestHandler(sessionAuthenticatorStub{})
+	for _, path := range []string{"/v1/auth/google", "/v1/auth/refresh", "/v1/auth/logout", "/v1/auth/web/google", "/v1/auth/web/refresh", "/v1/auth/web/logout"} {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, jsonRequest(http.MethodPost, path, `{}`))
+		if response.Code != http.StatusNotFound {
+			t.Fatalf("%s status = %d", path, response.Code)
+		}
 	}
 }
 
-func TestCORSRejectsUnconfiguredOrigin(t *testing.T) {
-	handler := newAuthenticationTestHandler(nil, []string{"https://sejiiinn.github.io"})
-	request := httptest.NewRequest(http.MethodOptions, "/v1/auth/google", nil)
-	request.Header.Set("Origin", "https://attacker.example")
-	request.Header.Set("Access-Control-Request-Method", http.MethodPost)
-	response := httptest.NewRecorder()
-
-	handler.ServeHTTP(response, request)
-
-	if response.Code != http.StatusForbidden {
-		t.Fatalf("status = %d", response.Code)
-	}
-	if response.Header().Get("Access-Control-Allow-Origin") != "" {
-		t.Fatal("disallowed origin received an allow-origin header")
-	}
-}
-
-func newAuthenticationTestHandler(
-	authenticator Authenticator,
-	allowedOrigins []string,
-) http.Handler {
+func newAuthenticationTestHandler(authenticator Authenticator) http.Handler {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	return NewHandler(logger, Dependencies{
 		Database: readinessCheckerFunc(func(context.Context) error {
 			return nil
 		}),
-		ReadinessTimeout:   50 * time.Millisecond,
-		Authenticator:      authenticator,
-		CORSAllowedOrigins: allowedOrigins,
+		ReadinessTimeout: 50 * time.Millisecond,
+		Authenticator:    authenticator,
 	})
 }
 

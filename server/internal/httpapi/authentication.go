@@ -17,9 +17,8 @@ import (
 const maxAuthenticationBodyBytes = 16 * 1024
 
 type authenticationHandler struct {
-	logger         *slog.Logger
-	authenticator  Authenticator
-	allowedOrigins []string
+	logger        *slog.Logger
+	authenticator Authenticator
 }
 
 type googleAuthenticationRequest struct {
@@ -38,8 +37,8 @@ type authenticationResponse struct {
 	Account          accountResponse `json:"account"`
 	AccessToken      string          `json:"accessToken"`
 	AccessExpiresAt  time.Time       `json:"accessExpiresAt"`
-	RefreshToken     string          `json:"refreshToken"`
-	RefreshExpiresAt time.Time       `json:"refreshExpiresAt"`
+	RefreshToken     string          `json:"refreshToken,omitempty"`
+	RefreshExpiresAt *time.Time      `json:"refreshExpiresAt"`
 }
 
 type errorResponse struct {
@@ -48,107 +47,61 @@ type errorResponse struct {
 	RequestID string `json:"requestId"`
 }
 
-func (handler authenticationHandler) google(
-	response http.ResponseWriter,
-	request *http.Request,
-) {
-	var input googleAuthenticationRequest
-	if err := decodeAuthenticationRequest(response, request, &input); err != nil {
-		status := http.StatusBadRequest
-		code := "INVALID_REQUEST"
-		message := "요청 형식이 올바르지 않습니다."
-		var maxBytesError *http.MaxBytesError
-		if errors.As(err, &maxBytesError) {
-			status = http.StatusRequestEntityTooLarge
-			code = "REQUEST_TOO_LARGE"
-			message = "요청 크기가 허용 범위를 초과했습니다."
-		}
-		writeAPIError(response, request, status, code, message)
-		return
-	}
-	if strings.TrimSpace(input.IDToken) == "" {
-		writeAPIError(
-			response,
-			request,
-			http.StatusBadRequest,
-			"INVALID_REQUEST",
-			"Google ID 토큰이 필요합니다.",
-		)
-		return
-	}
-
-	result, err := handler.authenticator.AuthenticateGoogle(
-		request.Context(),
-		input.IDToken,
-	)
-	if err != nil {
-		handler.writeAuthenticationError(response, request, err)
-		return
-	}
-
-	writeAuthenticationResponse(response, result)
-}
-
-func (handler authenticationHandler) refresh(
-	response http.ResponseWriter,
-	request *http.Request,
-) {
-	input, ok := decodeRefreshTokenRequest(response, request)
-	if !ok {
-		return
-	}
-
-	result, err := handler.authenticator.Refresh(
-		request.Context(),
-		input.RefreshToken,
-	)
-	if err != nil {
-		handler.writeAuthenticationError(response, request, err)
-		return
-	}
-	writeAuthenticationResponse(response, result)
-}
-
-func (handler authenticationHandler) logout(
-	response http.ResponseWriter,
-	request *http.Request,
-) {
-	input, ok := decodeRefreshTokenRequest(response, request)
-	if !ok {
-		return
-	}
-	if err := handler.authenticator.Logout(
-		request.Context(),
-		input.RefreshToken,
-		optionalBearerToken(request.Header.Values("Authorization")),
-	); err != nil {
-		if errors.Is(err, auth.ErrLogoutSessionMismatch) {
-			writeAPIError(
-				response,
-				request,
-				http.StatusUnauthorized,
-				"ACCESS_TOKEN_SESSION_MISMATCH",
-				"로그아웃 토큰이 같은 인증 세션에 속하지 않습니다.",
-			)
-			return
-		}
-		handler.logger.ErrorContext(
-			request.Context(),
-			"logout_failed",
-			slog.String("request_id", requestIDFromContext(request.Context())),
-			slog.Any("error", err),
-		)
-		writeAPIError(
-			response,
-			request,
-			http.StatusInternalServerError,
-			"INTERNAL_ERROR",
-			"로그아웃 처리 중 오류가 발생했습니다.",
-		)
-		return
-	}
+func (handler authenticationHandler) google(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Cache-Control", "no-store")
+	var input googleAuthenticationRequest
+	if err := decodeAuthenticationRequest(response, request, &input); err != nil || strings.TrimSpace(input.IDToken) == "" {
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_REQUEST", "Google ID 토큰이 필요합니다.")
+		return
+	}
+	result, err := handler.authenticator.AuthenticateGooglePersistent(request.Context(), input.IDToken)
+	handler.writeLoginResult(response, request, result, err)
+}
+
+func (handler authenticationHandler) refresh(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Cache-Control", "no-store")
+	input, ok := decodeRefreshTokenRequest(response, request)
+	if !ok {
+		return
+	}
+	keys := request.Header.Values("Idempotency-Key")
+	if len(keys) != 1 {
+		handler.writeAuthenticationError(response, request, auth.ErrRefreshRequestInvalid)
+		return
+	}
+	result, err := handler.authenticator.RefreshPersistent(request.Context(), input.RefreshToken, keys[0])
+	handler.writeLoginResult(response, request, result, err)
+}
+
+func (handler authenticationHandler) logout(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Cache-Control", "no-store")
+	input, ok := decodeRefreshTokenRequest(response, request)
+	if !ok {
+		return
+	}
+	if err := handler.authenticator.Logout(request.Context(), input.RefreshToken, optionalBearerToken(request.Header.Values("Authorization"))); err != nil {
+		handler.writeAuthenticationError(response, request, err)
+		return
+	}
 	response.WriteHeader(http.StatusNoContent)
+}
+
+func (handler authenticationHandler) writeLoginResult(response http.ResponseWriter, request *http.Request, result auth.LoginResult, err error) {
+	if err != nil {
+		handler.writeAuthenticationError(response, request, err)
+		return
+	}
+	var refreshExpiry *time.Time
+	if !result.RefreshExpiresAt.IsZero() {
+		refreshExpiry = &result.RefreshExpiresAt
+	}
+	writeJSON(response, http.StatusOK, authenticationResponse{
+		Account:          accountResponse{ID: result.AccountID},
+		AccessToken:      result.AccessToken,
+		AccessExpiresAt:  result.AccessExpiresAt,
+		RefreshToken:     result.RefreshToken,
+		RefreshExpiresAt: refreshExpiry,
+	})
 }
 
 func decodeRefreshTokenRequest(
@@ -182,25 +135,22 @@ func decodeRefreshTokenRequest(
 	return input, true
 }
 
-func writeAuthenticationResponse(response http.ResponseWriter, result auth.LoginResult) {
-	writeJSON(response, http.StatusOK, authenticationResponse{
-		Account:          accountResponse{ID: result.AccountID},
-		AccessToken:      result.AccessToken,
-		AccessExpiresAt:  result.AccessExpiresAt,
-		RefreshToken:     result.RefreshToken,
-		RefreshExpiresAt: result.RefreshExpiresAt,
-	})
-}
-
 func (handler authenticationHandler) writeAuthenticationError(
 	response http.ResponseWriter,
 	request *http.Request,
 	err error,
 ) {
-	if writePersistentAuthenticationError(response, request, err) {
-		return
-	}
 	switch {
+	case errors.Is(err, auth.ErrSessionPersistenceUnavailable):
+		writeAPIError(response, request, http.StatusServiceUnavailable, "SESSION_PERSISTENCE_UNAVAILABLE", "자동 로그인 준비가 완료되지 않았습니다.")
+	case errors.Is(err, auth.ErrRefreshRecoveryExpired):
+		writeAPIError(response, request, http.StatusUnauthorized, "REFRESH_RECOVERY_EXPIRED", "인증 세션을 복구하려면 다시 로그인해 주세요.")
+	case errors.Is(err, auth.ErrRefreshRequestInvalid):
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY", "세션 갱신 요청 식별자가 올바르지 않습니다.")
+	case errors.Is(err, auth.ErrRefreshRequestConflict):
+		writeAPIError(response, request, http.StatusConflict, "REFRESH_REQUEST_CONFLICT", "세션 갱신 요청이 현재 세션과 일치하지 않습니다.")
+	case errors.Is(err, auth.ErrLogoutSessionMismatch):
+		writeAPIError(response, request, http.StatusUnauthorized, "ACCESS_TOKEN_SESSION_MISMATCH", "로그아웃 토큰이 같은 인증 세션에 속하지 않습니다.")
 	case errors.Is(err, auth.ErrRefreshTokenInvalid):
 		writeAPIError(
 			response,

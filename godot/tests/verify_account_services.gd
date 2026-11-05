@@ -179,8 +179,8 @@ func _save_tests():
 	remote.tree = self
 	remote.responses = [response(200, {"revision": 4, "serverSavedAt": "2026-01-01T00:00:00Z", "data": payload(100)}), response(200, {"writerGeneration": 7, "claimedAt": "2026-01-01T00:00:00Z"}), response(304)]
 	var online = make_online("remote-first", remote)
-	var boot: Dictionary = await online.bootstrap(payload(5), true)
-	check(boot.ok and boot.source == "remoteAccount" and online.store.load_save().savedAtMillis == 100, "Remote save takes precedence over guest")
+	var boot: Dictionary = await online.bootstrap()
+	check(boot.ok and boot.source == "remoteAccount" and online.store.load_save().savedAtMillis == 100, "First bootstrap loads the remote account save")
 	check(remote.calls.size() == 3 and remote.calls[2].headers.has("If-None-Match"), "Bootstrap reconciles with conditional revision")
 	var local_generation: int = online.state.localGeneration
 	var record_writes: int = online._record.writes
@@ -221,7 +221,7 @@ func _save_tests():
 	record.nextRetryAt = "2020-01-01T00:00:00Z"
 	resumed._record.save_record(record)
 	var offset := remote.calls.size()
-	var recovered: Dictionary = await resumed.bootstrap({}, false)
+	var recovered: Dictionary = await resumed.bootstrap()
 	check(recovered.ok and remote.calls[offset].method == "PUT" and remote.calls[offset].body == exact and remote.calls[offset].headers["Idempotency-Key"] == key, "Restart replays exact mutation before claim/load")
 	check(resumed.state.inFlight == null and resumed.state.baseRevision == 5, "Recovered ack advances exactly one revision")
 	remote.responses = [response(200, {"writerGeneration": 9, "claimedAt": "2026-01-01T00:00:02Z"}), response(200, {"revision": 6, "serverSavedAt": "2026-01-01T00:00:02Z", "data": payload(200)}), response(200, {"revision": 6, "serverSavedAt": "2026-01-01T00:00:02Z", "data": payload(200)}), response(200, {"revision": 6, "serverSavedAt": "2026-01-01T00:00:02Z", "data": payload(200)})]
@@ -242,8 +242,8 @@ func _save_tests():
 	missing.tree = self
 	missing.responses = [response(404, {}, "SAVE_NOT_FOUND"), response(200, {"writerGeneration": 1, "claimedAt": "2026-01-01T00:00:00Z"}), response(404, {}, "SAVE_NOT_FOUND")]
 	var fresh = make_online("restore-no-guest", missing)
-	var restored: Dictionary = await fresh.bootstrap(payload(33), false)
-	check(restored.ok and restored.source == "newAccount" and fresh.store.load_save() == null, "Automatic restore never adopts guest progress")
+	var restored: Dictionary = await fresh.bootstrap()
+	check(restored.ok and restored.source == "newAccount" and fresh.store.load_save() == null, "Account without a server save starts empty")
 	fresh.dispose()
 	fresh.queue_free()
 
@@ -252,7 +252,7 @@ func _checkpoint_sync_tests():
 	remote.tree = self
 	remote.responses = [response(200, {"revision":4,"serverSavedAt":"2026-01-01T00:00:00Z","data":payload(100)}), response(200, {"writerGeneration":7,"claimedAt":"2026-01-01T00:00:00Z"}), response(304)]
 	var online = make_online("checkpoint-sync", remote)
-	check((await online.bootstrap({}, false)).ok, "Checkpoint fixture bootstraps")
+	check((await online.bootstrap()).ok, "Checkpoint fixture bootstraps")
 	var counted := CountingStore.new(online.root_path, Slot.account(ACCOUNT))
 	online.store = counted
 	var before_calls := remote.calls.size()
@@ -312,7 +312,7 @@ func _legacy_writer_claim_tests():
 	remote.tree = self
 	remote.responses = [response(200, {"revision":4,"serverSavedAt":"2026-01-01T00:00:00Z","data":payload(100)}), response(200, {"writerGeneration":7,"claimedAt":"2026-01-01T00:00:00Z"}), response(304)]
 	var online = make_online("old-writer-claim", remote)
-	check((await online.bootstrap({}, false)).ok,"Old writer fixture bootstraps")
+	check((await online.bootstrap()).ok,"Old writer fixture bootstraps")
 	var old_raw := JSON.stringify({"clientInstanceId":online.state.clientInstanceId,"saveSchemaVersion":2,"clientCompatibilityVersion":8,"clientBuild":"old-build"})
 	online.state.writerClaim = {"idempotencyKey":"52345678-1234-4234-8234-123456789abc","encodedRequestBody":old_raw}
 	online.state.writerGeneration = null
@@ -352,7 +352,7 @@ func _boss_damage_training_tests():
 	remote.tree = self
 	remote.responses = [response(200, {"revision":4,"serverSavedAt":"2026-01-01T00:00:00Z","data":legacy}), response(200, {"writerGeneration":7,"claimedAt":"2026-01-01T00:00:00Z"}), response(304)]
 	var online = make_online("boss-damage-training", remote)
-	check((await online.bootstrap({}, false)).ok, "Training fixture bootstraps an old account")
+	check((await online.bootstrap()).ok, "Training fixture bootstraps an old account")
 	# Resume a journal written by a reader which did not know the new key.
 	var target := payload(301)
 	online.state.rebase = {"targetRevision":5,"targetPayloadHash":Hash.hash_payload(target),"targetServerSavedAt":"2026-01-01T00:00:01Z","sourcePayloadHash":legacy_hash,"stage":"prepared"}

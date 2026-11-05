@@ -79,7 +79,7 @@ func prepare(label: String) -> Dictionary:
 	remote.tree = self
 	remote.save = payload()
 	var online = make_online(label, remote)
-	var boot: Dictionary = await online.bootstrap({}, false)
+	var boot: Dictionary = await online.bootstrap()
 	check(boot.get("ok",false) and online.state.baseRevision == 4, label + ": initial authenticated save ready")
 	remote.save = payload(true)
 	remote.revision = 5
@@ -149,7 +149,7 @@ func _restart_case(label: String, retire: bool, uploaded: bool) -> void:
 	await dispose_online(online)
 	var offset := remote.calls.size()
 	var resumed = make_online(label, remote)
-	var boot: Dictionary = await resumed.bootstrap({}, false)
+	var boot: Dictionary = await resumed.bootstrap()
 	check(boot.get("ok",false) and resumed.requires_reload, label + ": restart requires canonical run reload")
 	check(resumed.store.load_save() == remote.save and remote.save.activeRun.gemShards == 17, label + ": immutable grant restored exactly once")
 	check(remote.revision == expected_revision and puts(remote.calls.slice(offset)) == 0, label + ": stale backup never uploads over canonical run")
@@ -180,7 +180,7 @@ func _failed_recovery_case() -> void:
 	fixture.remote.offline = true
 	var resumed = make_online("offline-crash-recovery", fixture.remote)
 	var offset: int = fixture.remote.calls.size()
-	var boot: Dictionary = await resumed.bootstrap({}, false)
+	var boot: Dictionary = await resumed.bootstrap()
 	check(not boot.get("ok",false) and resumed.state.get("gemAckPending",false), "offline recovery: failed network retains gem ACK journal")
 	check(puts(fixture.remote.calls.slice(offset)) == 0 and fixture.remote.save.activeRun.gemShards == 17, "offline recovery: failure never uploads restored null run")
 	var retained = Outbox.new(resumed.root_path, ACCOUNT)
@@ -222,7 +222,7 @@ func _healthy_unsynced_progress_case() -> void:
 	check(online.store.save_save(later) == OK, "healthy progress: later wave checkpoint survives before periodic upload")
 	await dispose_online(online)
 	var resumed = make_online("healthy-unsynced-progress", fixture.remote)
-	var boot: Dictionary = await resumed.bootstrap({}, false)
+	var boot: Dictionary = await resumed.bootstrap()
 	check(boot.get("ok",false), "healthy progress: account can restart")
 	check(resumed.store.load_save() == later and fixture.remote.save == later, "healthy progress: gem ACK guard must not roll later local waves back to chosen wave")
 	check(not resumed.state.get("gemAckPending",false), "healthy progress: confirmed upload finishes gem ACK journal")
@@ -253,7 +253,7 @@ func _equipment_backup_case() -> void:
 	source = Codec.decode(source)
 	remote.save = source
 	var online = make_online("equipment-backup", remote)
-	check((await online.bootstrap({}, false)).get("ok",false), "equipment backup: canonical equipped source bootstraps")
+	check((await online.bootstrap()).get("ok",false), "equipment backup: canonical equipped source bootstraps")
 	var old := source.duplicate(true)
 	old.activeRun.turrets[0].equippedGemSlots = [null]
 	old.activeRun.turrets[0].equippedGems = []
@@ -290,7 +290,7 @@ func _synced_source_case() -> void:
 	remote.tree = self
 	remote.save = payload()
 	var online = make_online("synced-live-source", remote)
-	check((await online.bootstrap({}, false)).get("ok",false),"synced source: bootstrap")
+	check((await online.bootstrap()).get("ok",false),"synced source: bootstrap")
 	var source: Dictionary = online.store.load_save()
 	var pending := command()
 	var body: Dictionary = Json.parse(pending.encodedBody)
@@ -327,7 +327,7 @@ func _same_marker_backup_case() -> void:
 	current = Codec.decode(current)
 	remote.save = current
 	var online = make_online("same-marker-backup", remote)
-	check((await online.bootstrap({}, false)).get("ok",false),"same marker backup: current equipped layout bootstraps")
+	check((await online.bootstrap()).get("ok",false),"same marker backup: current equipped layout bootstraps")
 	var old := current.duplicate(true)
 	old.activeRun.gold = 100
 	old.activeRun.turrets[0].equippedGemSlots = [null]
@@ -340,7 +340,7 @@ func _same_marker_backup_case() -> void:
 	check(online.store.load_save() == old and online.store.has_recovery_marker(),"same marker backup: fallback provenance persisted before primary repair")
 	await dispose_online(online)
 	var resumed = make_online("same-marker-backup", remote)
-	var result: Dictionary = await resumed.bootstrap({}, false)
+	var result: Dictionary = await resumed.bootstrap()
 	check(result.get("ok",false) and resumed.requires_reload and resumed.store.load_save() == current,"same marker backup: next process restores canonical layout and gold")
 	check(not resumed.store.has_recovery_marker(),"same marker backup: successful durable rebase clears provenance")
 	var backup: Variant = Json.parse(FileAccess.get_file_as_string(resumed.store.conflict_path))
@@ -352,7 +352,7 @@ func _ack_before_projection_restart_case() -> void:
 	remote.tree = self
 	remote.save = payload()
 	var online = make_online("ack-before-projection-restart", remote)
-	check((await online.bootstrap({}, false)).get("ok",false),"preprojection restart: source ready")
+	check((await online.bootstrap()).get("ok",false),"preprojection restart: source ready")
 	var pending := command()
 	var request: Dictionary = Json.parse(pending.encodedBody)
 	request.sourceSaveRevision = remote.revision
@@ -366,7 +366,7 @@ func _ack_before_projection_restart_case() -> void:
 	await dispose_online(online)
 	var offset := remote.calls.size()
 	var resumed = make_online("ack-before-projection-restart", remote)
-	check((await resumed.bootstrap({}, false)).get("ok",false) and resumed.requires_reload,"preprojection restart: current canonical grant recovered from ACK journal")
+	check((await resumed.bootstrap()).get("ok",false) and resumed.requires_reload,"preprojection restart: current canonical grant recovered from ACK journal")
 	check(resumed.store.load_save() == remote.save and resumed.store.load_save().activeRun.gemShards == 17 and puts(remote.calls.slice(offset)) == 0,"preprojection restart: unapplied checkpoint never uploads over confirmed grant")
 	await dispose_online(resumed)
 
@@ -381,7 +381,7 @@ func _legacy_usage_bootstrap_case() -> void:
 	legacy.activeRun.rewardOptions = []
 	remote.save = legacy
 	var online = make_online("legacy-usage-cold-bootstrap", remote)
-	check((await online.bootstrap({}, false)).get("ok",false),"legacy cold bootstrap: pre-upgrade account ready at used2")
+	check((await online.bootstrap()).get("ok",false),"legacy cold bootstrap: pre-upgrade account ready at used2")
 	var dirty := legacy.duplicate(true)
 	dirty.activeRun.gold = 123
 	dirty.activeRun.rewardOptions = ["attackSpeed","range","chain"]
@@ -395,7 +395,7 @@ func _legacy_usage_bootstrap_case() -> void:
 	await dispose_online(online)
 	var offset := remote.calls.size()
 	var resumed = make_online("legacy-usage-cold-bootstrap", remote)
-	var result: Dictionary = await resumed.bootstrap({}, false)
+	var result: Dictionary = await resumed.bootstrap()
 	check(result.get("ok",false) and resumed.requires_reload,"legacy cold bootstrap: newer migration header forces canonical rebase before economy configuration")
 	check(puts(remote.calls.slice(offset)) == 0 and resumed.store.load_save().activeRun.gemRerollsUsed == 3,"legacy cold bootstrap: stale used2 cannot PUT before current usage3 is read")
 	var backup: Variant = Json.parse(FileAccess.get_file_as_string(resumed.store.conflict_path))

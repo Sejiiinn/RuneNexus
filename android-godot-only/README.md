@@ -12,7 +12,6 @@ Godot 4.7.2의 Android `JNISingleton`은 `@UsedByGodot` 메서드를 직접 호�
 | --- | --- |
 | `application_support_path()` | 기존 Flutter path_provider Android의 `filesDir` 절대 경로 |
 | `sp_to_logical(logical_size)` | Android 비선형 SP 변환을 적용한 Godot 논리 DP 크기 |
-| `legacy_save_path()` | 기존 v1 임시 저장 파일 경로 |
 | `device_preferences()` | 기존 `graphics_settings_v1.json` 원문을 `value`로 가진 결과 JSON |
 | `session_read()` | 암호화 세션 문자열 또는 null을 `value`로 가진 결과 JSON |
 | `session_write(value)`, `session_delete()` | 결과 JSON |

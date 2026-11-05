@@ -11,7 +11,7 @@ Rune Nexus 운영 API는 기존 개발용 Compose에 `compose.production.yaml`�
 분리와 백업·복원 자동화가 완료되기 전에는 정식 출시 구성으로 보지 않습니다.
 
 2026-09-05 인증 세션 복원 구현 기준입니다. 아래 영속 인증 준비 항목은 아직 운영에
-적용하지 않았으며, 기존 HTTPS/CORS 확인만으로 자동 로그인 검증이 끝난 것은 아닙니다.
+적용하지 않았으며, 기존 HTTPS 확인만으로 자동 로그인 검증이 끝난 것은 아닙니다.
 
 ```text
 Godot Android 앱
@@ -65,8 +65,6 @@ chmod 600 .env.production
 - `GOOGLE_WEB_CLIENT_ID`: Google Web OAuth Client ID. Android 앱의 server client ID로 사용
 - `AUTH_SESSION_RECEIPT_KEY`: base64 인코딩한 32-byte 영수증 암호화 키. 서버 재시작과
   모든 API 인스턴스에서 동일하게 유지하며 `.env.production` 같은 비공개 설정에만 보관
-- `CORS_ALLOWED_ORIGINS`: 운영 override가 요구하는 허용 origin 목록. 폐기한 웹 클라이언트의
-  `/v1/auth/web/*` 경로에만 쓰이며 Android 앱의 `/v1/auth/native/*` 요청은 사용하지 않음
 
 DuckDNS 계정 token은 환경 변수가 아니라 Docker secret 파일로 전달합니다. 계정
 페이지에서 token을 확인한 뒤 다음 파일에 token 한 줄만 기록합니다.
@@ -97,7 +95,7 @@ chmod 600 .secrets/duckdns_token
 
 PostgreSQL 비밀번호는 개발 환경과 동일하게 `.secrets/postgres_password` 파일을
 사용하며 환경 파일에 복사하지 않습니다. 운영 override는 Google 인증을 항상
-활성화하므로 Client ID나 CORS origin이 빠지면 Compose 설정 단계에서 실패합니다.
+활성화하므로 Client ID가 빠지면 Compose 설정 단계에서 실패합니다.
 운영 override는 Caddy가 정리한 `X-Forwarded-For`를 요청 제한 키로 사용하도록
 `TRUST_PROXY_HEADERS=true`도 고정합니다. API 8080을 외부에 직접 공개한 상태에서 이
 값을 활성화하면 클라이언트가 전달 헤더를 위조할 수 있으므로 현재 포트 경계를
@@ -118,11 +116,10 @@ PostgreSQL 비밀번호는 개발 환경과 동일하게 `.secrets/postgres_pass
    암호화 갱신 응답용 `refresh_receipts`를 추가한다. 기존 유한 세션의 만료 시각은 바꾸지 않는다.
 2. 암호화 키는 신뢰할 수 있는 난수 생성기로 32-byte를 생성하여 base64로 저장한다.
    키 원문·token·인증 응답을 로그나 공유 터미널 출력에 남기지 않는다. 키 미설정 시
-   영속 로그인/갱신은 `SESSION_PERSISTENCE_UNAVAILABLE` 503이며 기존 API는 유지된다.
+   로그인/갱신은 `SESSION_PERSISTENCE_UNAVAILABLE` 503이다.
    임의 재생성·인스턴스별 다른 키는 미완료 갱신 응답 복구를 깨뜨린다.
-3. 웹 클라이언트와 GitHub Pages 배포는 폐기했다. same-site HTTPS 배치, Authorized JavaScript
-   origins, `SameSite=Lax` 쿠키 조건은 남아 있는 `/v1/auth/web/*` 경로에만 해당하며 Android 앱
-   배포 조건이 아니다.
+3. 웹 클라이언트와 GitHub Pages 배포는 폐기했고, 웹용 인증 경로·쿠키·CORS도 서버에서
+   제거했다. 운영 `.env.production`에 남은 `CORS_ALLOWED_ORIGINS` 값은 읽지 않는다.
 4. 서버 설정·마이그레이션·HTTPS 구성을 먼저 반영한 뒤 해당 주소로 클라이언트를 빌드한다.
    - 챕터3 후반(ID26–30) 클라이언트는 먼저013 마이그레이션과 경로 저장 호환 세대5를 처리하는 서버가 필요하다. 기존012는 그대로 두며 [확장 스테이지 적용 기준](../server/db/migrations/README.md#확장-스테이지)을 따른다.
    영속 인증 배포가 준비되지 않은 서버에 새 클라이언트만 배포하지 않는다.
