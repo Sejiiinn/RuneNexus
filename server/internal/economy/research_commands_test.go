@@ -61,6 +61,7 @@ func TestResearchCompletionVersionedBounds(t *testing.T) {
 	}{
 		{"criticalChance", 1, 10, false}, {"criticalChance", 1, 11, true}, {"criticalChance", 0, 1, true},
 		{"emergencySale", 1, 5, false}, {"emergencySale", 1, 6, true},
+		{"turretStartLevel", 1, 1, false}, {"turretStartLevel", 1, 2, true},
 		{"bossBounty", 0, 20, false}, {"bossBounty", 1, 1, true}, {"unknown", 1, 1, true},
 	} {
 		raw, _ := json.Marshal(researchProgression{GrowthVersion: tc.growth, ActiveResearches: []activeResearch{{Type: tc.kind, TargetLevel: tc.level, StartedAtMillis: 1000, DurationMillis: 60000}}})
@@ -68,6 +69,16 @@ func TestResearchCompletionVersionedBounds(t *testing.T) {
 		if errors.Is(err, ErrInvalidCommand) != tc.reject {
 			t.Fatalf("%+v err=%v", tc, err)
 		}
+	}
+}
+
+func TestTurretStartLevelResearchHasNoGrandfatheredRight(t *testing.T) {
+	forged := researchProgression{ProgressionVersion: 1, ClearedStageNumbers: []int{26}, GrandfatherUnlocks: []string{"research:turretStartLevel"}}
+	if researchUnlocked(forged, "turretStartLevel") {
+		t.Fatal("a right the legacy table never granted must not open the research")
+	}
+	if !researchUnlocked(researchProgression{ProgressionVersion: 1, ClearedStageNumbers: []int{27}}, "turretStartLevel") {
+		t.Fatal("clearing 3-7 opens the research")
 	}
 }
 

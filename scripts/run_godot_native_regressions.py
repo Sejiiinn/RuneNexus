@@ -35,6 +35,7 @@ SCRIPTS = {
     "verify_gem_reroll_flip.gd": "GEM_REROLL_FLIP checks=",
     "verify_gem_deck.gd": "GEM_DECK checks=",
     "verify_fifth_link.gd": None,
+    "verify_turret_start_level.gd": "TURRET_START_LEVEL checks=",
     "verify_chapter_three_panels.gd": None,
     "verify_dispatch_portals.gd": None,
     "verify_chapter_three_normal_combat.gd": None,

@@ -53,6 +53,10 @@ func max_turret_level(state: Dictionary, type: String) -> int:
 func max_turret_level_from_derived(type: String, configuration: Dictionary) -> int:
 	return int(_rule(type).get("maxLevel", 10)) + int(configuration.get("coreEffects", {}).get("maxTurretLevelBonus", 0))
 
+## Levels above 1 are free: they add nothing to investedGold, so a sale refunds gold actually paid.
+func start_turret_level_from_derived(type: String, configuration: Dictionary) -> int:
+	return clampi(1 + int(configuration.get("turretStartLevelBonus", 0)), 1, max_turret_level_from_derived(type, configuration))
+
 func _level_base_cost(rule: Dictionary, level: int) -> int:
 	var costs: Array = rule.get("levelUpCosts", [])
 	if level >= 1 and level <= costs.size(): return int(costs[level - 1])
@@ -164,7 +168,7 @@ func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 		if SupportCore.occupied(state, x, y): return _reject(state,"occupied")
 		if int(state.gold) < cost: return _reject(state,"gold")
 		next.gold -= cost
-		t = {"id":int(next.nextTurretId),"type":type,"x":x,"y":y,"level":1,"slotLimit":1,"equippedGemSlots":[null],"equippedGems":[],"primaryTrait":null,"secondaryTrait":null,"targetPriority":"first","investedGold":cost,"cooldown":0.0,"damageDealt":0.0,"directDamageDealt":0.0,"splashDamageDealt":0.0,"chainDamageDealt":0.0,"burnDamageDealt":0.0}
+		t = {"id":int(next.nextTurretId),"type":type,"x":x,"y":y,"level":start_turret_level_from_derived(type,d),"slotLimit":1,"equippedGemSlots":[null],"equippedGems":[],"primaryTrait":null,"secondaryTrait":null,"targetPriority":"first","investedGold":cost,"cooldown":0.0,"damageDealt":0.0,"directDamageDealt":0.0,"splashDamageDealt":0.0,"chainDamageDealt":0.0,"burnDamageDealt":0.0}
 		t.aimAngle = initial_aim_angle(type)
 		next.nextTurretId += 1
 		next.turrets.append(t)

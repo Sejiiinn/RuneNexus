@@ -48,6 +48,7 @@ var requirements = map[string]map[string]int{
 		"waveGoldLimitExpansion":     11,
 		"killGoldLimitExpansion":     13,
 		"towerDamageLimitExpansion":  15,
+		"turretStartLevel":           27,
 		"linkExpansionTwo":           30,
 	},
 	"turret": {

@@ -54,6 +54,7 @@
     "startingGoldUpgradeCostPerLevel": 3,
     "startingGoldUpgradeCostMultiplier": 1.08,
     "startingGoldPerUpgradeLevel": 10,
+    "turretStartLevelPerResearchLevel": 1,
     "nexusHpUpgradeBaseCost": 14,
     "nexusHpUpgradeCostPerLevel": 5,
     "nexusHpUpgradeCostMultiplier": 1.1,
@@ -6209,6 +6210,18 @@
         13326698,
         14392833,
         15544260
+      ]
+    },
+    "turretStartLevel": {
+      "maxLevel": 1,
+      "requiredClearedStage": 27,
+      "costs": [
+        35000,
+        35000
+      ],
+      "durations": [
+        25200000,
+        25200000
       ]
     },
     "linkExpansionTwo": {

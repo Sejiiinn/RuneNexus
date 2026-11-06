@@ -25,7 +25,9 @@ const (
 	StageChallengeClientCompatibilityVersion = 16
 	// 17: turret ids renamed to match display names (arrow → machinegun, magic → flame).
 	TurretIdentityClientCompatibilityVersion = 17
-	CurrentClientCompatibilityVersion        = TurretIdentityClientCompatibilityVersion
+	// 18: turretStartLevel research.
+	TurretStartLevelClientCompatibilityVersion = 18
+	CurrentClientCompatibilityVersion          = TurretStartLevelClientCompatibilityVersion
 )
 
 var (

@@ -395,7 +395,8 @@ func researchUnlocked(progression researchProgression, researchType string) bool
 	if stageprogression.HasResearchPrerequisites(researchType) {
 		return intContains(progression.ClearedStageNumbers, required)
 	}
-	if contains(progression.GrandfatherUnlocks, "research:"+researchType) {
+	// Research added after the legacy table has no legitimate grandfathered right.
+	if stageprogression.HasRequirement("research", researchType, true) && contains(progression.GrandfatherUnlocks, "research:"+researchType) {
 		return true
 	}
 	if progression.ProgressionVersion < stageprogression.Version && legacyResearchUnlocked(progression, researchType) {
@@ -486,7 +487,7 @@ func researchMaxLevel(kind string, growthVersion int) int {
 		return 10
 	case "gemAttunement", "crystalRecovery":
 		return 5
-	case "turretTargetPriority", "linkExpansionOne", "linkExpansionTwo":
+	case "turretTargetPriority", "linkExpansionOne", "linkExpansionTwo", "turretStartLevel":
 		return 1
 	case "criticalChance":
 		if growthVersion >= 1 {

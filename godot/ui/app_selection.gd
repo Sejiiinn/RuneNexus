@@ -88,7 +88,7 @@ func _build_state(app) -> void:
 	elif kind == "build" and state.get("phase") in ["preparation","wave"]:
 		var type := str(app.turret_type)
 		if type not in derived.get("availableTurretTypes",[]): return
-		var preview := {"type":type,"level":1,"primaryTrait":null,"secondaryTrait":null,"equippedGemSlots":[]}
+		var preview := {"type":type,"level":app.run_domain.service.start_turret_level_from_derived(type,derived),"primaryTrait":null,"secondaryTrait":null,"equippedGemSlots":[]}
 		tile.range = _range(app,type,_stats(app,derived,preview,state))
 		tile.color = COLORS.get(type,0xff8ee6ff)
 		selection.tiles.append(tile)

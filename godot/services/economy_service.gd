@@ -6,7 +6,7 @@ const GemResult = preload("res://app/gem_command_result.gd")
 const GemDeck = preload("res://app/gem_deck.gd")
 const StageChallenges = preload("res://content/stage_challenges.gd")
 const Cumulative = preload("res://content/cumulative_achievements.gd")
-const COMPATIBILITY := 17
+const COMPATIBILITY := 18
 const MODULE_TICKET_DIAMONDS := 40
 signal changed
 signal mail_claimed

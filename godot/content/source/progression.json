@@ -220,6 +220,7 @@
       "waveGoldLimitExpansion": 11,
       "killGoldLimitExpansion": 13,
       "towerDamageLimitExpansion": 15,
+      "turretStartLevel": 27,
       "linkExpansionTwo": 30
     },
     "turret": {
@@ -386,6 +387,13 @@
       "key": "linkExpansionOne",
       "title": "링크 확장 I",
       "icon": "research/link_expansion_one.png",
+      "category": "연구"
+    },
+    {
+      "kind": "research",
+      "key": "turretStartLevel",
+      "title": "숙련 배치",
+      "icon": "research/turret_start_level.png",
       "category": "연구"
     },
     {

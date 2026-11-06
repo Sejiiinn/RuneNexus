@@ -165,7 +165,7 @@ func _challenge_claim_tests():
 	var result: Dictionary = await service.execute("claim_challenge",{"stageNumber":3,"difficulty":"normal"})
 	var posts: Array = session.sent.filter(func(item): return item.method == "POST")
 	var body: Dictionary = JSON.parse_string(posts.back().body) if not posts.is_empty() else {}
-	check(result.ok and posts.size() == 1 and posts[0].path == "v1/economy/challenges/claim" and body.get("stageNumber") == 3 and body.get("difficulty") == "normal" and body.get("sourceSaveRevision") == 8 and body.get("writerGeneration") == 2 and body.get("clientCompatibilityVersion") == 17,"challenge claim wire contract")
+	check(result.ok and posts.size() == 1 and posts[0].path == "v1/economy/challenges/claim" and body.get("stageNumber") == 3 and body.get("difficulty") == "normal" and body.get("sourceSaveRevision") == 8 and body.get("writerGeneration") == 2 and body.get("clientCompatibilityVersion") == 18,"challenge claim wire contract")
 	check(box.state.inFlight == null and "stage:3:challenge:normal" in service.snapshot.get("claimedRewardKeys",[]),"claim keys arrive with the economy snapshot")
 	check(body.has("expectedEconomyRevision") and body.has("expectedCatalogVersion"),"challenge claim carries the expected economy")
 	# A retry of an already claimed reward (e.g. after a lost response) succeeds without another claim.

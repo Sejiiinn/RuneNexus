@@ -22,7 +22,8 @@ const ENUMS = {
 		"towerDamageLimitExpansion",
 		"killGoldLimitExpansion",
 		"waveGoldLimitExpansion",
-		"linkExpansionTwo"
+		"linkExpansionTwo",
+		"turretStartLevel"
 	],
 	"TurretType": ContentRegistry.TURRET_TYPES,
 	"TurretTraitType": [
