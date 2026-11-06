@@ -42,6 +42,8 @@ const CombatKinds = preload("res://combat/combat_kinds.gd")
 const RunKinds = preload("res://app/run_command_kinds.gd")
 const QuestProgress = preload("res://app/quest_progress.gd")
 const StageChallenges = preload("res://content/stage_challenges.gd")
+const SupportCore = preload("res://app/support_core_rules.gd")
+const FREE_CORE_GEM := "attackSpeed"
 
 const NOW_MILLIS := 1791560000000
 const MAX_GAME_SECONDS := 4 * 3600.0
@@ -54,7 +56,9 @@ const ECONOMY_HORIZON_WAVES := 8
 #   gemMinGain    a reward gem worth less than this share of its turret is skipped
 #   typeFactors   per turret type value multiplier, fitted from actual damage
 #   slowUptime    share of a slowed stretch where the slow is actually applied
-#   dotFactor/armorPierceFactor  effects the stat sheet omits
+#   dotFactor/armorPierceFactor  effects the stat sheet omits (flame burn; poison
+#                 uses poison_parts instead)
+#   poisonCrowdStacks  share of a boss's steady poison stacks a crowd enemy reaches
 #   traitChoices  {type: {primaryTrait: index, secondaryTrait: index}}
 #   gemPurchase   buy shard gem choices when shards exceed the next trait cost
 #   explore       build the least-built unlocked type (calibration data only)
@@ -76,12 +80,31 @@ const ECONOMY_HORIZON_WAVES := 8
 #                 so modules do not decide which type looks strong; "" leaves draws alone
 #   turretOverrides  {type: {definition field: value}} balance experiments: replaces
 #                 base stats (damage, attackRate, splashRadius...) in this process only
+#   extraBuildTiles  {stage id: [[x, y], ...]} map experiments: these cells become
+#                 build tiles in this process only
+#   bossRoutes    {stage id: {round: route id}} moves that round's bosses to the route
+#                 in this process only
+#   bossDurability  {stage id: scale} multiplies that stage's boss durability in this
+#                 process only
+#   firstClearTickets  {stage id: tickets} replaces that stage's first-clear module
+#                 tickets in this process only
+#   startLevelBonus  free levels on every new turret in this process only; their gold
+#                 is not refunded on sale
+#   supportCores  true lets the bot build support cores, valued as the damage they
+#                 add to touching turrets
+#   supportCoreFreeGem  true drops their gem cost in this process only
 #   baselineRunGameSeconds  game time of one assumed clear (research clock)
 #   greed         between waves without pressure, buy affordable economy levels
 #                 (waveGold/killGold) returning at least greedMinRoi times their cost over
 #                 the remaining waves before any defense; pressure = core damage in the
 #                 last wave or the 90th percentile of recent deaths at or past
 #                 greedPressure of the path
+#   sufficientDepth  above 0, while the board holds the upcoming waves it stops adding
+#                 turrets and buys economy levels returning sufficientMinRoi times first.
+#                 Holding means recent deaths, scaled by the next wave's durability against
+#                 the last one, stay before this share of the path, and the next boss is
+#                 within sufficientBossMargin of bossCapacity
+#   greedFromWave  no economy levels before this wave index
 #   frontTypes/frontProgress  role composition: frontTypes before that path share,
 #                 the other types behind it
 #   bossWeight    boss role: a turret's value adds bossWeight * shortfall * its
@@ -119,10 +142,11 @@ const ECONOMY_HORIZON_WAVES := 8
 #   gemReplace    a reward gem may replace an equipped one worth less
 const DEFAULT_PARAMS := {
 	"saveForBest": 0.7, "gemMinGain": 0.02, "typeFactors": {}, "slowUptime": 0.5,
-	"dotFactor": 1.3, "armorPierceFactor": 1.1, "traitChoices": {}, "gemPurchase": true, "explore": false,
+	"dotFactor": 1.3, "poisonCrowdStacks": 0.5, "armorPierceFactor": 1.1, "traitChoices": {}, "gemPurchase": true, "explore": false,
 	"playSpeed": 2.0, "secondsBetweenRuns": 60.0, "waveLookahead": 3, "newTypeBonus": 0.0,
-	"minDistinctTypes": 0, "bannedTypes": [], "typeShares": {}, "typeAfter": {}, "typeProgress": {}, "turretOverrides": {}, "moduleType": "", "moduleFloor": "", "runeWeights": {}, "baselineRunGameSeconds": 800.0,
-	"greed": false, "greedMinRoi": 2.0, "greedPressure": 0.6, "frontTypes": [], "frontProgress": 0.5,
+	"minDistinctTypes": 0, "bannedTypes": [], "typeShares": {}, "typeAfter": {}, "typeProgress": {}, "turretOverrides": {}, "extraBuildTiles": {}, "bossRoutes": {}, "bossDurability": {}, "firstClearTickets": {}, "startLevelBonus": 0, "supportCores": false, "supportCoreFreeGem": false, "moduleType": "", "moduleFloor": "", "runeWeights": {}, "baselineRunGameSeconds": 800.0,
+	"sufficientDepth": 0.0, "sufficientMinRoi": 1.5, "sufficientBossMargin": 1.0,
+	"greedFromWave": 0, "greed": false, "greedMinRoi": 2.0, "greedPressure": 0.6, "frontTypes": [], "frontProgress": 0.5,
 	"bossWeight": 0.0, "bossLookahead": 10, "bossYield": false, "bossMargin": 1.5, "strongestHitShare": 1.0, "bossFirstHit": 0.4, "bossExtraProjectileHit": 0.3,
 	"grantResearch": {}, "gemLinkCost": false, "gemReplace": false,
 	"shardPolicy": "fixed", "shardSpendAllWaves": 3,
@@ -134,7 +158,7 @@ var P: Dictionary = {}
 # Heuristic weights; the report prints them so results can be judged against them.
 const RUNE_WEIGHTS := {
 	"fireTraining": 1.5, "physicalDamageTraining": 1.4, "elementalDamageTraining": 0.6,
-	"poisonDamageTraining": 0.0, "criticalChance": 0.5, "criticalDamage": 0.05,
+	"poisonDamageTraining": 0.6, "criticalChance": 0.5, "criticalDamage": 0.05,
 	"directDamageTraining": 0.4, "splashDamageTraining": 0.15, "damageOverTimeTraining": 0.1,
 	"startingGold": 0.6, "supply": 0.6, "killGold": 0.6, "nexusHp": 0.8,
 	"turretLevelUpOptimization": 0.7, "linkCostOptimization": 0.1,
@@ -170,6 +194,7 @@ var type_stats := {}
 var wave_predicted := {}
 var wave_damage_start := {}
 var damage_density := PackedFloat32Array()
+var physical_density := PackedFloat32Array()
 # Upcoming waves' layers: [{count, hp, shield, armor}] per enemy type, and the
 # cached share of a hit's damage that survives armor for a given hit size.
 var wave_profile: Array = []
@@ -244,6 +269,24 @@ func _initialize() -> void:
 				quit(1)
 				return
 			definition[key] = P.turretOverrides[type][key]
+	for id in P.extraBuildTiles:
+		var map: Dictionary = catalog._data.stages[catalog.stage_index(int(id))].map
+		for cell in P.extraBuildTiles[id]: map.tiles[int(cell[1]) * int(map.columns) + int(cell[0])] = "build"
+	for id in P.bossRoutes:
+		for round_number in P.bossRoutes[id]:
+			var wave: Dictionary = catalog._data.stages[catalog.stage_index(int(id))].waves[int(round_number) - 1]
+			var route: String = P.bossRoutes[id][round_number]
+			for row in catalog._data.spawnSchedules[wave.spawnSchedule]:
+				if str(row[0]) in BOSS_ENEMIES: row[2] = route
+			for group in wave.groups + wave.groupDispatch:
+				if str(group.enemyType) in BOSS_ENEMIES: group.routeId = route
+	for id in P.bossDurability:
+		for wave in catalog._data.stages[catalog.stage_index(int(id))].waves:
+			for type in BOSS_ENEMIES:
+				var layers: Array = wave.get("enemyDurability", {}).get(type, [])
+				for i in range(layers.size()): layers[i] = float(layers[i]) * float(P.bossDurability[id])
+	for id in P.firstClearTickets:
+		catalog._data.stages[catalog.stage_index(int(id))].firstClearTurretModuleTicketReward = int(P.firstClearTickets[id])
 	var stage_id := int(args.get("stage", "1"))
 	stage = catalog.stage_index(stage_id)
 	if stage < 0:
@@ -325,7 +368,7 @@ const RESEARCH_WEIGHTS := {
 	"criticalChance": 1.0, "runeResonance": 1.0, "researchEfficiency": 0.2, "researchCostEfficiency": 0.3,
 	"runUpgradeCostOptimization": 0.3, "towerDamageLimitExpansion": 1.5, "waveGoldLimitExpansion": 0.3,
 	"killGoldLimitExpansion": 0.3, "gemAttunement": 1.0, "linkExpansionOne": 1.5, "crystalRecovery": 0.2,
-	"linkMaintenance": 0.1, "turretTargetPriority": 3.0,
+	"linkMaintenance": 0.1, "turretTargetPriority": 3.0, "turretStartLevel": 1.5,
 }
 # Account wall clock for research, kept in the bot's progression copies only.
 const CLOCK_KEY := "_botClockMillis"
@@ -390,6 +433,7 @@ const BOARD_DAMAGE_UPGRADES := ["fireTraining", "physicalDamageTraining", "eleme
 ## and a finished run, measured on the last board (damage) or income (gold).
 func upgrade_weight(id: String, p: Dictionary, growth, base_dps: float) -> float:
 	var weight := float(P.runeWeights.get(id, RUNE_WEIGHTS[id]))
+	if id == "poisonDamageTraining" and (P.bannedTypes.has("poison") or not (P.typeShares.is_empty() or P.typeShares.has("poison"))): return 0.0
 	if base_dps <= 0.0 or last_income.is_empty() or float(last_income.gold) <= 0.0: return weight
 	var c: Dictionary = growth.data.constants
 	var gold := float(last_income.gold)
@@ -401,7 +445,9 @@ func upgrade_weight(id: String, p: Dictionary, growth, base_dps: float) -> float
 	var next := p.duplicate(true)
 	var field: String = growth.data.permanentUpgrades[id].field
 	next[field] = int(next.get(field, 0)) + 1
-	return 100.0 * (board_damage(next, growth) / base_dps - 1.0)
+	var gain := 100.0 * (board_damage(next, growth) / base_dps - 1.0)
+	# No poison on the last board reads as zero, and an untrained type would never start.
+	return weight if id == "poisonDamageTraining" and gain <= 0.0 else gain
 
 ## Damage per second of the last run's board under account p (0 without one).
 func board_damage(p: Dictionary, growth) -> float:
@@ -1141,6 +1187,8 @@ func send(commands: Array = [], patch: Dictionary = {}) -> bool:
 func apply(request: Dictionary) -> bool:
 	if not send(): return false
 	var previous: Dictionary = domain.state.duplicate(true)
+	if request.kind == RunKinds.BUILD_SUPPORT_CORE and bool(P.supportCoreFreeGem):
+		domain.state.gemInventory[request.gem] = int(domain.state.gemInventory.get(request.gem, 0)) + 1
 	var result: Dictionary = domain.apply(request)
 	if not result.get("ok", false): return false
 	if not send(result.get("commands", []), {"phase": domain.state.phase}):
@@ -1148,7 +1196,44 @@ func apply(request: Dictionary) -> bool:
 		return false
 	spent_total += maxi(0, int(previous.gold) - int(domain.state.gold))
 	log_actions.append(request)
+	if request.kind == RunKinds.BUILD: return grant_start_levels(int(domain.state.turrets[-1].id))
 	return true
+
+## Goes through the real level command so the battle hears it, then takes the
+## gold back out of the sale refund.
+func grant_start_levels(id: int) -> bool:
+	for i in range(int(P.startLevelBonus)):
+		var cost := int(domain.service.quotes(domain.state, id).get("level", 0))
+		if cost <= 0: return true
+		domain.state.gold += cost
+		var result: Dictionary = domain.apply({"kind": RunKinds.LEVEL, "id": id})
+		if not result.get("ok", false) or not send(result.get("commands", []), {"phase": domain.state.phase}): return false
+		domain.service.turret(domain.state, id).investedGold -= cost
+	return true
+
+## The best tile only, spending the bag's most stacked gem. A core adds to the
+## module damage layer, so the same 15% is worth less on a heavily modded turret.
+func support_core_options(tiles: Array, d: Dictionary) -> Array:
+	if not d.get("supportCoreUnlocked", false) or int(domain.state.gold) < SupportCore.BUILD_GOLD: return []
+	var gem := FREE_CORE_GEM if bool(P.supportCoreFreeGem) else ""
+	var bag: Dictionary = domain.state.get("gemInventory", {})
+	if gem.is_empty():
+		for type in bag:
+			if int(bag[type]) > 0 and (gem.is_empty() or int(bag[type]) > int(bag[gem])): gem = str(type)
+	if gem.is_empty(): return []
+	var best_tile := Vector2i(-1, -1)
+	var best := 0.0
+	for tile in tiles:
+		var gain := 0.0
+		for t in domain.state.turrets:
+			if not SupportCore.adjacent(tile.x, tile.y, int(t.x), int(t.y)) or not SupportCore.bonuses_at(domain.state, int(t.x), int(t.y)).is_empty(): continue
+			var module: Dictionary = d.turretStatInputs.get(t.type, {}).get("moduleEffect", {})
+			gain += turret_value(t.type, int(t.level), t, d, Vector2i(t.x, t.y)) * SupportCore.FAMILY_BONUS.damage / (1.0 + float(module.get("damageIncreaseRate", 0.0)))
+		if gain > best:
+			best = gain
+			best_tile = tile
+	if best_tile.x < 0: return []
+	return [{"ratio": best / SupportCore.BUILD_GOLD, "cost": SupportCore.BUILD_GOLD, "request": {"kind": RunKinds.BUILD_SUPPORT_CORE, "x": best_tile.x, "y": best_tile.y, "gem": gem}}]
 
 func start_wave() -> bool:
 	if not send(): return false
@@ -1488,6 +1573,10 @@ func turret_parts(type: String, level: int, turret: Dictionary, d: Dictionary, t
 		if turret.get("secondaryTrait") == "exposedMark":
 			var path_share := minf(1.0, boss_coverage / maxf(0.001, boss_path_length()))
 			boss += 0.15 * minf(1.0, 2.0 / sheet.cycle) * aim * boss_total * path_share
+		# Corrosive toxin: the same physical bonus while this turret's stacks last.
+		if turret.get("secondaryTrait") == "corrosiveToxin":
+			var path_share := minf(1.0, boss_coverage / maxf(0.001, boss_path_length()))
+			boss += float(Runtime.CORROSION.bonus) * minf(1.0, 2.0 / sheet.cycle) * aim * boss_total * path_share * physical_share()
 	for kind in ["primaryTrait", "secondaryTrait"]:
 		var effect: Array = COMBAT_TRAITS.get(str(turret.get(kind, "")), [1.0, 1.0])
 		value *= effect[0]
@@ -1499,7 +1588,23 @@ func turret_parts(type: String, level: int, turret: Dictionary, d: Dictionary, t
 		for i in range(path_samples.size()):
 			if path_samples[i].distance_to(center) <= sheet.range: boosted += damage_density[i] * sample_weight[i]
 		value += boosted * SAMPLE_STEP * (1.0 / maxf(0.1, sheet.slow) - 1.0) * float(P.slowUptime)
+	if turret.get("secondaryTrait") == "corrosiveToxin" and not physical_density.is_empty():
+		# Physical turrets over the same stretch hit corroded enemies harder.
+		var center := Vector2(tile.x + 0.5, tile.y + 0.5)
+		var boosted := 0.0
+		for i in range(path_samples.size()):
+			if path_samples[i].distance_to(center) <= sheet.range: boosted += physical_density[i] * sample_weight[i]
+		value += boosted * SAMPLE_STEP * float(Runtime.CORROSION.bonus) * float(P.slowUptime)
 	return Vector2(value, boss)
+
+## Physical turrets' share of the board's damage along the path.
+func physical_share() -> float:
+	var total := 0.0
+	var physical := 0.0
+	for i in range(damage_density.size()):
+		total += damage_density[i]
+		physical += physical_density[i]
+	return physical / total if total > 0.0 else 0.0
 
 # Combat-only traits the stat sheet omits, as [crowd, boss] damage multipliers
 # (combat_runtime_damage._traits). Sniper's exposed mark and finishing shot are
@@ -1509,6 +1614,7 @@ func turret_parts(type: String, level: int, turret: Dictionary, d: Dictionary, t
 #   chainCleanup      x1.4 attack rate for 3 s after a recently hit enemy dies
 #   suppressiveFire   +20% physical taken for 2 s every 5 hits on one target
 #   compressedCharge/focusedLightning  flat hit multipliers
+const BOSS_ENEMIES := CombatKinds.BOSS_TYPES
 const COMBAT_TRAITS := {
 	"overheatMagazine": [1.08, 1.27], "chainCleanup": [1.2, 1.0], "suppressiveFire": [1.03, 1.12],
 	"compressedCharge": [1.35, 1.35], "focusedLightning": [1.3, 1.3],
@@ -1569,13 +1675,18 @@ func assign_priorities(d: Dictionary) -> void:
 func update_density(d: Dictionary) -> void:
 	damage_density = PackedFloat32Array()
 	damage_density.resize(path_samples.size())
+	physical_density = PackedFloat32Array()
+	physical_density.resize(path_samples.size())
 	for t in domain.state.turrets:
 		var sheet := turret_dps(t.type, int(t.level), t, d)
 		if sheet.is_empty() or sheet.slow < 1.0: continue
 		var center := Vector2(t.x + 0.5, t.y + 0.5)
 		var dps: float = sheet.dps * float(P.typeFactors.get(t.type, 1.0))
 		for i in range(path_samples.size()):
-			if path_samples[i].distance_to(center) <= sheet.range: damage_density[i] += dps * (reach[i] if not reach.is_empty() else 1.0)
+			if path_samples[i].distance_to(center) > sheet.range: continue
+			var delivered: float = dps * (reach[i] if not reach.is_empty() else 1.0)
+			damage_density[i] += delivered
+			if sheet.family == "physical": physical_density[i] += delivered
 
 ## Single-turret damage per second with rough multipliers for area, chains and
 ## damage over time that the single-target sheet omits; range and slow multiplier.
@@ -1590,12 +1701,16 @@ func turret_dps(type: String, level: int, turret: Dictionary, d: Dictionary) -> 
 	# One target: extra projectiles partly, no splash spread or chain jumps.
 	var single := float(s.damage) / cycle * (1.0 + (maxi(1, int(s.projectileCount)) - 1) * float(P.bossExtraProjectileHit)) * (1.0 + crit)
 	var definition: Dictionary = input.definition
-	if bool(definition.get("centeredAreaAttack", false)): dps *= 2.0
+	if type == "poison":
+		var poison := poison_parts(s, crit, turret)
+		dps = poison.x
+		single = poison.y
+	elif bool(definition.get("centeredAreaAttack", false)): dps *= 2.0
 	elif float(s.splashRadius) > 0.0: dps *= 1.0 + minf(2.0, float(s.splashRadius) * 1.5) * float(s.splashSecondaryDamageMultiplier)
 	if int(s.chainCount) > 0:
 		var chain_multiplier := float(s.lightningChainDamageMultiplier) if type == "lightning" else 0.5
 		dps *= 1.0 + int(s.chainCount) * chain_multiplier * 0.6
-	if "damageOverTime" in definition.get("attackTags", []):
+	if "damageOverTime" in definition.get("attackTags", []) and type != "poison":
 		dps *= float(P.dotFactor)
 		single *= float(P.dotFactor)
 	if bool(s.ignoresArmorReduction):
@@ -1604,7 +1719,28 @@ func turret_dps(type: String, level: int, turret: Dictionary, d: Dictionary) -> 
 	var pierces: bool = bool(s.ignoresArmorReduction) or definition.get("damageFamily") == "poison"
 	var floor_rate := 0.5 if "damageOverTime" in definition.get("attackTags", []) else 0.0
 	var effectiveness := hit_effectiveness(float(s.damage) * (1.0 + crit), pierces, floor_rate)
-	return {"dps": dps * effectiveness, "single": single * effectiveness, "hit": float(s.damage) * (1.0 + crit), "cycle": cycle, "range": float(s.range), "slow": float(s.slowMultiplier)}
+	return {"dps": dps * effectiveness, "single": single * effectiveness, "hit": float(s.damage) * (1.0 + crit), "cycle": cycle, "range": float(s.range), "slow": float(s.slowMultiplier), "family": definition.get("damageFamily")}
+
+## Poison turret damage per second as (crowd, single target). A landing hits every
+## enemy in its radius for full damage and adds one stack; a puddle adds a weaker
+## stack per tick while it lasts. Stacks from one turret multiply its poison, so a
+## boss in steady fire takes the full bonus and a passing crowd enemy reaches
+## poisonCrowdStacks of those stacks. Against the 2026-10-23 measurement this gives
+## poison shares 49% (43%) and with venom pool 58% (62%) and boss damage -22% (-21%).
+func poison_parts(s: Dictionary, crit: float, turret: Dictionary) -> Vector2:
+	var rules: Dictionary = Runtime.POISON_PUDDLE
+	var rate := float(s.attackRate)
+	var puddle_seconds := float(Runtime.VENOM_POOL_PUDDLE.duration if turret.get("primaryTrait") == "venomPool" else rules.duration)
+	var ticks := minf(1.0, rate * puddle_seconds) / float(rules.tick)
+	var impact := float(s.damage) * rate * (1.0 + crit)
+	# A stack keeps its damage per second, so a longer one is worth that much more.
+	var duration := float(s.damageOverTimeDurationMultiplier)
+	var stack := float(s.damage) * (1.0 + crit * 0.5) * float(rules.hitShare) * float(s.damageOverTimeDamageMultiplier) * duration
+	var poison := stack * (rate + ticks * float(rules.puddleBase))
+	var stacks := minf(Runtime.Enemy.POISON_STACK_CAP, (rate + ticks) * float(rules.stackSeconds) * duration)
+	var bonus := stacks * (0.1 if turret.get("secondaryTrait") == "concentratedToxin" else Runtime.Enemy.POISON_STACK_BONUS)
+	var area := 1.0 + minf(2.0, float(s.splashRadius) * 1.5)
+	return Vector2((impact + poison * (1.0 + bonus * float(P.poisonCrowdStacks))) * area, impact + poison * (1.0 + bonus))
 
 ## Upcoming waves (next waveLookahead) as durability layers per enemy.
 func update_wave_profile() -> void:
@@ -1688,6 +1824,31 @@ func under_pressure() -> bool:
 	recent.sort()
 	return float(recent[int(recent.size() * 0.9)]) >= float(P.greedPressure)
 
+## Durability of one wave's non-boss enemies, whichever way they enter.
+func crowd_durability_of(index: int) -> float:
+	var waves: Array = catalog._data.stages[stage].waves
+	if index < 0 or index >= waves.size(): return 0.0
+	var durability: Dictionary = waves[index].get("enemyDurability", {})
+	var total := 0.0
+	for group in waves[index].groups:
+		if bool(catalog.enemy_definition(str(group.enemyType)).get("isBoss", false)): continue
+		var layers: Array = durability.get(group.enemyType, [0.0, 0.0, 0.0])
+		total += (float(layers[0]) + float(layers[1]) + float(layers[2])) * int(group.count)
+	return total
+
+## sufficientDepth: the board already beats the coming waves, read from where
+## enemies really died and how much tougher the next wave is.
+func holds_upcoming_waves() -> bool:
+	if float(P.sufficientDepth) <= 0.0 or domain.state.turrets.is_empty() or outcomes.size() < 5 or under_pressure(): return false
+	var recent: Array = outcomes.slice(maxi(0, outcomes.size() - 40))
+	recent.sort()
+	var depth := maxf(0.1, float(recent[int(recent.size() * 0.9)]))
+	var first := next_round - 1 if str(domain.state.phase) == "wave" else next_round
+	var previous := crowd_durability_of(first - 1)
+	if previous <= 0.0: return false
+	if depth * crowd_durability_of(first) / previous > float(P.sufficientDepth): return false
+	return boss_need <= 0.0 or boss_capacity >= float(P.sufficientBossMargin)
+
 func spendable_gold() -> int:
 	var gold := int(domain.state.gold)
 	if spend_rate < 1.0: gold = mini(gold, int(spend_rate * (gold + spent_total)) - spent_total)
@@ -1736,13 +1897,14 @@ func spend() -> void:
 			var best := 0.0
 			for tile in tiles:
 				if not role_allows(type, tile, d): continue
-				var value := turret_value(type, 1, {"equippedGemSlots": [null]}, d, tile)
+				var value := turret_value(type, domain.service.start_turret_level_from_derived(type, d) + int(P.startLevelBonus), {"equippedGemSlots": [null]}, d, tile)
 				if value > best:
 					best = value
 					best_tile = tile
 			if best_tile.x >= 0:
 				if not domain.state.turrets.any(func(t): return t.type == type): best *= 1.0 + float(P.newTypeBonus)
 				options.append({"ratio": best / cost, "cost": cost, "request": {"kind": RunKinds.BUILD, "type": type, "x": best_tile.x, "y": best_tile.y}})
+		if bool(P.supportCores): options.append_array(support_core_options(tiles, d))
 		for t in domain.state.turrets:
 			var q: Dictionary = domain.service.quotes_from_derived(domain.state, int(t.id), d)
 			var cost := int(q.get("level", 0))
@@ -1775,11 +1937,20 @@ func spend() -> void:
 			# Gold an economy level returns over the remaining waves.
 			var per_wave := effect if type == "waveGold" else effect * kill_gold_per_wave()
 			economy.append({"roi": per_wave * remaining / cost, "cost": cost, "request": request})
-			if type == "waveGold" and safe:
+			if type == "waveGold" and safe and next_round >= int(P.greedFromWave):
 				# Default: only the return within the horizon, converted at the board's
 				# best rate and discounted for the delay, while the core is safe.
 				options.append({"ratio": best_ratio * (effect * mini(remaining, ECONOMY_HORIZON_WAVES)) / cost / 2.0, "cost": cost, "request": request})
-		if bool(P.greed) and str(domain.state.phase) == "preparation" and not domain.state.turrets.is_empty() and not under_pressure():
+		if holds_upcoming_waves():
+			if str(domain.state.phase) == "preparation":
+				var richest := {}
+				for option in economy:
+					if option.roi >= float(P.sufficientMinRoi) and option.cost <= gold and (richest.is_empty() or option.roi > richest.roi): richest = option
+				if not richest.is_empty():
+					if not apply(richest.request): return
+					continue
+			options = options.filter(func(option): return option.request.kind != RunKinds.BUILD)
+		if bool(P.greed) and next_round >= int(P.greedFromWave) and str(domain.state.phase) == "preparation" and not domain.state.turrets.is_empty() and not under_pressure():
 			# Greed: between waves without pressure, affordable economy levels that
 			# pay back greedMinRoi times over the remaining waves come first. The
 			# rest, and all gold earned during a wave, keeps the defense up.

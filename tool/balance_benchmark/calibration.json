@@ -10,7 +10,7 @@
     "shards": "ab 2026-11-03 at run-20261103-081543 snapshots, 8 seeds: shardPolicy fixed vs value vs value+free machinegun traits: 2-5 clear 0.50/0.375/0.375 (core HP 6.3/3.5/1.9), 2-10 waves 12.0/12.1/13.0; value spends 0.9 gem choices and leaves 5-6 shards instead of 12, traits unchanged (3.1). No gain, fixed kept. bossYield: 2-5 0.50, 2-10 9.0 waves (worse); bossLookahead 3: 2-5 0.625, 2-10 11.5 (noise). 2-4 at the 2-3 clear account fails at wave 8 in every variant, bossWeight 0 included (account too weak).",
     "slowUptime": "--job=ab 2026-11-02 at 2-4: 0-0.6 equal (38.67), >=1.0 worse (38.17); 0.3 keeps frost a rare pick",
     "traitChoices": "--job=ab 2026-11-02 at the 2-4 (id 9) clear account: machinegun lightweightBarrel+chainCleanup 38.67 waves vs 37.33 default; sniper/flame alternatives no gain",
-    "typeFactors": "--job=calibrate 2026-11-04 after the cannon 34/52 and flame 22 rebalance: one board per type (machinegun, cannon, flame, sniper, lightning, poison) at 3000 runes, --cleared=1-25, stages 3,5,20,10,25,11,13, 2 seeds, fitted on turret-waves where the core lost HP (86-214 per type; stages 3 and 5 never pressed). Second pass with the first pass (flame 1.186, sniper 0.871) as input; a third pass reproduces these values. Factors correct the value model: below 1 it overestimates the type (splash and chain approximations), above 1 it underestimates (burn). poison landing on 1.0 is a coincidence of the stage mix (per stage 2.43-6.82 vs machinegun 2.43-6.20). The earlier explore fit on mixed boards fell as a type got stronger (kills taken from others) and never built lightning/poison. frost keeps 1.562: its value is the slow (slowUptime)."
+    "typeFactors": "--job=calibrate 2026-11-04 after the cannon 34/52 and flame 22 rebalance: one board per type (machinegun, cannon, flame, sniper, lightning, poison) at 3000 runes, --cleared=1-25, stages 3,5,20,10,25,11,13, 2 seeds, fitted on turret-waves where the core lost HP (86-214 per type; stages 3 and 5 never pressed). Second pass with the first pass (flame 1.186, sniper 0.871) as input; a third pass reproduces these values. Factors correct the value model: below 1 it overestimates the type (splash and chain approximations), above 1 it underestimates (burn). poison 0.516 from the same job 2026-11-05 after its value model moved to the real stack, puddle and full-splash rules (a third pass reproduces it; the other factors did not move). Actual damage per predicted is about half the other types' (2.62 vs machinegun 5.08); the cause is not separated.The earlier explore fit on mixed boards fell as a type got stronger (kills taken from others) and never built lightning/poison. frost keeps 1.562: its value is the slow (slowUptime)."
   },
   "baselineRunDiamonds": 4,
   "boardRuneWeights": true,
@@ -33,7 +33,7 @@
     "frost": 1.562,
     "lightning": 0.648,
     "machinegun": 1.0,
-    "poison": 1.0,
+    "poison": 0.516,
     "sniper": 0.868
   }
 }
