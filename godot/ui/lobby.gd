@@ -36,6 +36,7 @@ var modal_visual: Control
 var modal_frame: PanelContainer
 var modal_body: VBoxContainer
 var modal_scroll: ScrollContainer
+var modal_footer: Control
 var modal_asset: TextureRect
 var modal_fill: ColorRect
 var _rendered_page := ""
@@ -458,6 +459,18 @@ func set_modal_header(header: Control) -> void:
 	column.move_child(header,0)
 	_layout_modal.call_deferred()
 
+## Pins an action bar under the scrolled body; null removes the current one.
+func set_modal_footer(footer: Control) -> void:
+	if is_instance_valid(modal_footer):
+		modal_footer.get_parent().remove_child(modal_footer)
+		modal_footer.queue_free()
+	modal_footer = footer
+	if footer != null:
+		modal_frame.get_child(0).add_child(footer)
+		# Wrapped labels report their real height only once the footer has a width.
+		footer.minimum_size_changed.connect(func(): _layout_modal.call_deferred())
+	_layout_modal.call_deferred()
+
 func refresh_modal_body(expected_modal: Control) -> VBoxContainer:
 	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(expected_modal) \
 		or expected_modal != modal or not modal.is_inside_tree() or modal.is_queued_for_deletion() \
@@ -488,6 +501,7 @@ func _layout_modal() -> void:
 	var content_height_source: Control = modal.get_meta("content_height_source") if modal.has_meta("content_height_source") else null
 	if is_instance_valid(content_height_source):
 		body_height += content_height_source.get_combined_minimum_size().y
+	if is_instance_valid(modal_footer): body_height += modal_footer.get_combined_minimum_size().y + 4
 	var height := minf(maxf(100, body_height + 32 + header_height), available.y - 32)
 	if modal.has_meta("height_fraction"):
 		height = minf(available.y * float(modal.get_meta("height_fraction")), available.y - 32)

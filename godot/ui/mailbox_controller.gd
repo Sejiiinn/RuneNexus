@@ -77,12 +77,13 @@ func render(opening := false) -> void:
 			if refresh != null: refresh.disabled = pending or _services().busy
 		_mailbox(body)
 	else:
+		lobby.set_modal_footer(null)
 		body.add_child(T.label("계정을 연결하면 이 기능을 사용할 수 있습니다.",12))
 		var connect_button := T.button("계정 연결", open_account)
 		connect_button.disabled = pending or (_services() != null and _services().busy)
 		body.add_child(connect_button)
 	if pending: body.add_child(T.label("처리 중…",12))
-	if not notice.is_empty(): body.add_child(T.label(notice,12))
+	if not notice.is_empty() and lobby.modal_footer == null: body.add_child(T.label(notice,12))
 	if not is_instance_valid(lobby.modal_scroll): return
 	var scroll_ref: WeakRef = weakref(lobby.modal_scroll)
 	var captured := view_epoch
@@ -130,7 +131,7 @@ func _mailbox(body: VBoxContainer) -> void:
 		func(ids: Array):
 			if _active_view(captured): _claim("mail_claim_all", {"ids":ids}),
 		mail_page_failed_cursor, func(cursor: String):
-			if _active_view(captured): _mail_retry_page(cursor))
+			if _active_view(captured): _mail_retry_page(cursor), notice)
 
 func _toggle_mail(id: String) -> void:
 	if not _active_view(view_epoch): return
@@ -169,8 +170,11 @@ func _mail_maybe_auto_page(scroll_ref: WeakRef, captured: int) -> void:
 	var mails: Array = data.get("mails", [])
 	if mails.is_empty(): return
 	var last_card := lobby.modal.find_child("MailCard%d" % (mails.size() - 1), true, false) as Control
-	if last_card == null or last_card.get_global_rect().end.y > scroll.get_global_rect().end.y + 24: return
+	if last_card == null: return
+	# Scroll signals arrive before the cards move, so their rect alone can lag a fast scroll.
 	var bar := scroll.get_v_scroll_bar()
+	var at_end: bool = bar.value + bar.page >= bar.max_value - 24
+	if not at_end and last_card.get_global_rect().end.y > scroll.get_global_rect().end.y + 24: return
 	if bar.max_value - bar.page <= 1:
 		if mail_short_prefetched and not mail_short_gesture: return
 		mail_short_prefetched = true

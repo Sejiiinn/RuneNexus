@@ -23,7 +23,8 @@ class Service extends RefCounted:
 	var repeat_cursor := false
 	var one_by_one := false
 	var page_size := 2
-	func connected() -> bool: return true
+	var offline := false
+	func connected() -> bool: return not offline
 	func needs_profile() -> bool: return false
 	func request(method: String, path: String, _body: Dictionary = {}) -> Dictionary:
 		requests.append(method + " " + path)
@@ -93,6 +94,7 @@ func verify_claim_feedback() -> void:
 	await settle()
 	var overlay: Control = lobby.modal.get_node_or_null("ClaimOverlay")
 	check(overlay != null and overlay._active and lobby.modal.get_child(-1) == overlay, "Pending mail claim blocks the dialog with the server spinner")
+	check(find_node("ClaimAllMail").disabled, "Pending mail claim locks bulk claim")
 	var fetches := service.requests.count("GET v1/mailbox")
 	service.hold_claim = false
 	await settle()
@@ -149,6 +151,100 @@ func verify_claim_feedback() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations", true)
 	entering.close()
 	await process_frame
+
+func verify_list_states() -> void:
+	var saved_mails: Array = service.mails
+	var saved_page: int = service.page_size
+	var now := int(Time.get_unix_time_from_system())
+	var soon := mail("a", "임박", "본문 하나", 100000000, 99999)
+	soon.expiresAt = Time.get_datetime_string_from_unix_time(now + 20 * 3600) + "Z"
+	var relaxed := mail("b", "여유", "본문 둘", 1200, 0)
+	relaxed.expiresAt = Time.get_datetime_string_from_unix_time(now + 12 * 86400 - 3600) + "Z"
+	relaxed.readAt = "2026-09-27T12:00:00Z"
+	var ending := mail("c", "마감", "본문 셋", 0, 0, 1)
+	ending.expiresAt = Time.get_datetime_string_from_unix_time(now + 600) + "Z"
+	var claimed := mail("d", "완료", "본문 넷", 5, 0)
+	claimed.claimedAt = "2026-09-27T12:00:00Z"
+	dimensions(Vector2i(440, 900))
+	service.page_size = 30
+	service.mails = [soon]
+	lobby.open_service("우편함")
+	await settle()
+	var short_height: float = lobby.modal_frame.size.y
+	lobby._services.mailbox.render()
+	await settle()
+	check(is_equal_approx(lobby.modal_frame.size.y, short_height), "A short list opens at its final height")
+	service.mails = [soon, relaxed, ending, claimed]
+	lobby.open_service("우편함")
+	await settle()
+	check(find_node("MailUnread0") != null and find_node("MailUnread1") == null, "Only unread mails carry the unread mark")
+	check(labels(find_node("MailCard0")).contains("20시간 남음") and labels(find_node("MailCard1")).contains("12일 남음") and labels(find_node("MailCard2")).contains("곧 만료"), "Rows word the time left")
+	check(labels(find_node("MailCard0")).contains("100M") and labels(find_node("MailCard0")).contains("100K"), "Boxes shorten large amounts")
+	check(text_color(find_node("MailCard0"), "20시간 남음") == Color("ffb45c") and text_color(find_node("MailCard1"), "12일 남음") != Color("ffb45c"), "Only near expiry is emphasized")
+	check(MailboxView._unix("2026-10-05T09:00:00+09:00") == MailboxView._unix("2026-10-05T00:00:00Z"), "Time left reads the server offset")
+	var box: Control = find_node("MailCard0").find_child("RewardBox", true, false)
+	var amount: Control = box.find_child("RewardAmount", true, false)
+	check(box.size == Vector2.ONE * MailboxView.BOX and amount.position.y > box.size.y / 2, "Boxes keep their size with the amount in the corner")
+	check(find_node("MailCard3").find_child("RewardBox", true, false).get_parent().modulate.a < 1.0 and is_equal_approx(box.get_parent().modulate.a, 1.0), "Only claimed rewards are dimmed")
+	check(find_node("ClaimAllMail").size == Vector2(150, 48), "Bulk claim stays a short thick button")
+	check(not labels(find_node("MailCard0")).contains("무료 다이아"), "Collapsed rows leave reward names to the expanded mail")
+	check(find_node("ClaimMail3") == null and labels(find_node("MailCard3")).contains("수령 완료"), "Claimed row replaces its button")
+	check(labels(find_node("MailboxFooter")).contains("받을 우편 3건") and find_node("ClaimAllMail").text == "모두 받기" and not find_node("ClaimAllMail").disabled, "Footer counts the claimable mails")
+	check(not labels(find_node("MailboxFooter")).contains("한 번에"), "The bulk limit stays hidden within the limit")
+	find_node("MailTitle0").pressed.emit()
+	await settle()
+	var opened := labels(find_node("MailCard0"))
+	check(opened.contains("무료 다이아 100,000,000") and opened.contains("모듈권 99,999") and opened.contains("까지"), "Expanded mail shows reward names, exact amounts and the date")
+	for item in service.mails: item.claimedAt = "2026-09-27T12:00:00Z"
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	check(labels(find_node("MailboxFooter")).contains("받을 우편 없음") and find_node("ClaimAllMail").disabled, "Footer stays with nothing to claim")
+	# Server pages hold 20 mails, so one long scroll must still reach the next page.
+	service.page_size = 20
+	service.mails = []
+	for i in range(25): service.mails.append(mail("many-%d" % i, "우편 %d" % i, "본문", 1, 0))
+	lobby.open_service("우편함")
+	await settle()
+	check(labels(find_node("MailboxFooter")).contains("받을 우편 20건 이상") and labels(find_node("MailboxFooter")).contains("한 번에 20건씩"), "Footer does not count unloaded pages as all mails")
+	service.hold_page = true
+	lobby.modal_scroll.scroll_vertical = 10000
+	await settle()
+	check(service.requests.count("GET v1/mailbox?cursor=page2") > 0 and find_node("ClaimAllMail").disabled, "One long scroll loads the next page and locks bulk claim")
+	service.hold_page = false
+	await settle()
+	check(find_node("MailCard24") != null and labels(find_node("MailboxFooter")).contains("받을 우편 25건") and not labels(find_node("MailboxFooter")).contains("이상"), "Footer counts every loaded mail")
+	check(labels(find_node("MailboxFooter")).contains("한 번에 20건씩"), "Footer explains the bulk limit past it")
+	service.fail_claim = true
+	lobby.modal_scroll.scroll_vertical = 0
+	find_node("ClaimAllMail").pressed.emit()
+	await settle()
+	var notice: Control = find_node("MailboxNotice")
+	check(notice != null and lobby.modal_frame.get_global_rect().encloses(notice.get_global_rect()), "A failed claim is told in the pinned footer")
+	check(find_node("ClaimAllMail").size == Vector2(150, 48), "A footer notice leaves the button size")
+	service.fail_claim = false
+	find_node("ClaimAllMail").pressed.emit()
+	await settle()
+	check(service.claims.back().values.ids.size() == 20, "Bulk claim stops at the limit")
+	for i in range(20): service.mails[i].claimedAt = "2026-09-27T12:00:00Z"
+	lobby.open_service("우편함")
+	await settle()
+	check(labels(find_node("MailboxFooter")).contains("불러온 우편은 모두 받았습니다") and not labels(find_node("MailboxFooter")).contains("받을 우편 없음"), "Claimed first page does not claim the mailbox is empty")
+	service.offline = true
+	lobby._services.mailbox.render()
+	await settle()
+	check(find_node("MailboxFooter") == null, "A disconnected view drops the footer")
+	service.offline = false
+	service.mails = []
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	check(find_node("MailboxFooter") == null and labels(lobby.modal).contains("도착한 우편이 없습니다."), "An empty mailbox has no footer")
+	service.mails = saved_mails
+	service.page_size = saved_page
+
+func text_color(node: Node, text: String) -> Color:
+	for label in node.find_children("*", "Label", true, false):
+		if label.text == text: return label.get_theme_color("font_color")
+	return Color.TRANSPARENT
 
 func find_node(name: String) -> Node:
 	return lobby.modal.find_child(name, true, false) if is_instance_valid(lobby.modal) else null
@@ -235,9 +331,10 @@ func run() -> void:
 	check(find_node("MailCard2") != null and find_node("MoreMail") == null, "Continued page appears without a more button")
 	check(find_node("MailBody0") == null and find_node("MailBody1") == null, "Bodies start collapsed")
 	check(find_node("ClaimMail0") != null and find_node("ClaimAllMail") != null, "Individual and bulk claim remain available")
-	check(labels(lobby.modal).contains("무료 다이아 100") and labels(lobby.modal).contains("모듈권 3"), "Reward amounts remain visible when collapsed")
+	var first_mail: Node = find_node("MailCard0")
+	check(first_mail.find_children("RewardAmount", "", true, false).size() == 2 and labels(first_mail).contains("100") and labels(first_mail).contains("3"), "Reward amounts remain visible when collapsed")
 	var gem_mail: Node = find_node("MailCard1")
-	check(labels(gem_mail).contains("젬 리셋권 7") and not labels(gem_mail).contains("보상 없음"), "Ticket-only mail displays gem reset quantity instead of no reward")
+	check(gem_mail.find_child("RewardAmount", true, false).text == "7" and not labels(gem_mail).contains("보상 없음"), "Ticket-only mail displays gem reset quantity instead of no reward")
 	var gem_ticket_icons := 0
 	for icon in gem_mail.find_children("*", "TextureRect", true, false):
 		if icon.texture != null and icon.texture.resource_path.ends_with("ui/hud/icons/gem_reset_ticket.png"): gem_ticket_icons += 1
@@ -312,10 +409,8 @@ func run() -> void:
 	lobby.modal_scroll.scroll_vertical = 0
 	await settle()
 	gem_mail = find_node("MailCard1")
-	check(labels(gem_mail).contains("젬 리셋권 7") and not labels(gem_mail).contains("보상 없음"), "Ticket-only reward survives narrow layout and refresh")
-	for label in gem_mail.find_children("*", "Label", true, false):
-		if label.text == "젬 리셋권 7":
-			check(label.get_global_rect().end.x <= gem_mail.get_global_rect().end.x, "Gem ticket quantity fits the narrow reward row")
+	check(gem_mail.find_child("RewardAmount", true, false).text == "7" and not labels(gem_mail).contains("보상 없음"), "Ticket-only reward survives narrow layout and refresh")
+	check(gem_mail.find_child("RewardBox", true, false).get_global_rect().end.x <= gem_mail.get_global_rect().end.x, "Gem ticket box fits the narrow reward row")
 	await capture("mailbox-auto-440-before-scroll")
 	service.hold_page = true
 	for i in range(25): await wheel_down()
@@ -331,7 +426,8 @@ func run() -> void:
 	lobby.modal_scroll.scroll_vertical = 10000
 	await settle()
 	await capture("mailbox-auto-440-after-scroll")
-	check(find_node("MailboxFooter") != null and lobby.modal_scroll.get_global_rect().intersects(find_node("MailboxFooter").get_global_rect()), "Bulk claim remains reachable after append")
+	var pinned: Control = find_node("MailboxFooter")
+	check(pinned != null and not lobby.modal_scroll.is_ancestor_of(pinned) and lobby.modal_frame.get_global_rect().encloses(pinned.get_global_rect()), "Bulk claim stays pinned outside the scrolled list")
 	find_node("MailTitle7").pressed.emit()
 	await settle()
 	check(find_node("MailBody7") != null, "Last-page mail can expand")
@@ -362,6 +458,7 @@ func run() -> void:
 	check(lobby.modal.get_instance_id() == replacement_id and service.requests.count("GET v1/mailbox") == fetches_before_claim, "Late claim cannot replace another modal or start a mailbox refetch")
 	check(lobby.modal.get_node_or_null("RewardPopup") == null, "Late claim leaves no result over another modal")
 	await verify_claim_feedback()
+	await verify_list_states()
 
 	service.page_size = 2
 	service.mails = service.mails.slice(0, 3)

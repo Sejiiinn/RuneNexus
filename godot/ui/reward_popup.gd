@@ -3,12 +3,12 @@ extends Control
 ## dimmed screen, closed with a tap or the back key. Single-kind claims keep the
 ## lighter rising amount of claim_feedback.gd.
 const T = preload("res://ui/app_theme.gd")
-const Frame = preload("res://ui/lobby_frame.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
+const RewardBox = preload("res://ui/reward_box.gd")
 const KINDS := [
-	["grantedDiamonds", "res://assets/ui/diamond_currency.png", "무료 다이아", Color("8ee6ff")],
-	["grantedModuleTickets", "stage_rewards/reward_module_ticket.png", "모듈권", Color("f5cb61")],
-	["grantedGemResetTickets", "ui/hud/icons/gem_reset_ticket.png", "젬 리셋권", Color("c9a6ff")],
+	["grantedDiamonds", RewardBox.DIAMONDS],
+	["grantedModuleTickets", RewardBox.MODULE_TICKETS],
+	["grantedGemResetTickets", RewardBox.GEM_RESET_TICKETS],
 ]
 const BOX := 112.0
 ## Boxes land from in front of the screen: large and clear, settling into place.
@@ -28,7 +28,7 @@ static func from_receipt(receipt: Dictionary) -> Array:
 	var items: Array = []
 	for kind in KINDS:
 		var amount := int(receipt.get(kind[0], 0))
-		if amount > 0: items.append({"icon":kind[1], "name":kind[2], "amount":amount, "tint":kind[3]})
+		if amount > 0: items.append({"kind":kind[1], "amount":amount})
 	return items
 
 static func present(parent, items: Array) -> Control:
@@ -102,8 +102,7 @@ func close() -> void:
 	tween.tween_property(self, "modulate:a", 0.0, 0.12)
 	tween.tween_callback(queue_free)
 
-## One box: a plate tinted by its reward with the icon filling it, the amount in
-## the corner and the name below.
+## One box hung on a plain slot, with the reward name below.
 func _item(row: Container, item: Dictionary) -> Control:
 	var column := VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -116,56 +115,11 @@ func _item(row: Container, item: Dictionary) -> Control:
 	slot.custom_minimum_size = Vector2.ONE * BOX
 	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.add_child(slot)
-	var box := PanelContainer.new()
-	box.name = "RewardBox"
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.clip_contents = true
-	var plate := Frame.new("ui/components/segment_selected_neutral.png", 4)
-	plate.source_center = Rect2(6, 6, 52, 20)
-	plate.modulate_color = Color(0.5, 0.62, 0.72, 0.9)
-	box.add_theme_stylebox_override("panel", plate)
+	var box := RewardBox.create(item.kind, HudNumber.exact_integer(item.amount), BOX, 13, 4)
 	box.size = Vector2.ONE * BOX
 	slot.add_child(box)
-	var layer := Control.new()
-	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(layer)
-	var inner := BOX - 8.0
-	var glow := TextureRect.new()
-	glow.texture = _glow(item.tint)
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	glow.size = Vector2.ONE * inner
-	layer.add_child(glow)
-	var icon := TextureRect.new()
-	icon.name = "RewardIcon"
-	icon.texture = T.texture(item.icon)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.size = Vector2.ONE * inner * 0.86
-	icon.position = (Vector2.ONE * inner - icon.size) / 2
-	layer.add_child(icon)
-	var amount := _text(HudNumber.exact_integer(item.amount), 13, Color.WHITE, 800, 4)
-	amount.name = "RewardAmount"
-	amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	amount.position = Vector2(0, inner - 22)
-	amount.size = Vector2(inner - 4, 20)
-	layer.add_child(amount)
-	column.add_child(_text(item.name, 12, Color("b9d6e4"), 700))
+	column.add_child(_text(item.kind.name, 12, Color("b9d6e4"), 700))
 	return column
-
-func _glow(color: Color) -> GradientTexture2D:
-	var texture := GradientTexture2D.new()
-	texture.width = 128
-	texture.height = 128
-	texture.fill = GradientTexture2D.FILL_RADIAL
-	texture.fill_from = Vector2(0.5, 0.5)
-	texture.fill_to = Vector2(1, 0.5)
-	var gradient := Gradient.new()
-	gradient.offsets = PackedFloat32Array([0.0, 1.0])
-	gradient.colors = PackedColorArray([Color(color, 0.5), Color(color, 0.0)])
-	texture.gradient = gradient
-	return texture
 
 func _text(value: String, size: int, color: Color, weight: int, outline := 0) -> Label:
 	var label := T.label(value, size)
