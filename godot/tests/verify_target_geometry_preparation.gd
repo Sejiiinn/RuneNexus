@@ -212,7 +212,7 @@ func catalog_manifests() -> void:
 		var manifest := Manifest.for_stage(catalog, index,
 			{"availableTurretTypes": ["machinegun"]}, {"turrets": [{"type": "sniper"}, {"type": "lightning"}]})
 		check(manifest.enemy_types == kinds, "stage %d manifest includes the complete spawn roster" % catalog.stage_id(index))
-		check(manifest.tower_types == ["machinegun", "lightning", "sniper"], "stage %d restored contact weapons remain eligible" % catalog.stage_id(index))
+		check(manifest.tower_types == ["lightning", "machinegun", "sniper"], "stage %d restored contact weapons remain eligible" % catalog.stage_id(index))
 	print("TARGET_GEOMETRY_MANIFEST stages=", catalog.stage_count(), " waves=", waves, " enemy_kinds=", catalog_kinds.size())
 
 func status_transition() -> void:
@@ -259,10 +259,10 @@ func cancellation_and_error() -> void:
 	check(Surface.cache_snapshot().count == 0, "cancelled old generation cannot re-add geometry to an ineligible stage")
 	check(await prepare(), "preparation can retry successfully after cancellation")
 	check(Surface.cache_snapshot().count == 0, "ineligible retry stays geometrically cold")
-	# Existing explicit error exit: cannon requires the stage-owned field.
+	# Explicit error exit: a turret the renderer cannot build fails the rehearsal.
 	scene._stage_preparation_generation += 1
-	scene._stage_manifest = {"enemy_types": ["armored"], "tower_types": ["cannon", "sniper"]}
-	check(not await prepare(), "missing cannon field fails preparation cleanly")
+	scene._stage_manifest = {"enemy_types": ["armored"], "tower_types": ["unsupported"]}
+	check(not await prepare(), "unsupported turret fails preparation cleanly")
 	check(Surface.cache_snapshot().count == 0, "error exit adds no target geometry")
 	check(preparation_refs.all(func(reference): return reference.get_ref() == null), "success, cancellation and error release all preparation owners")
 
