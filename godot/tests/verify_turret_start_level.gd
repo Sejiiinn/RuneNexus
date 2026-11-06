@@ -28,10 +28,10 @@ func _initialize() -> void:
 	check(not growth.execute(p, {"kind":"startResearch","id":"turretStartLevel","nowMillis":1000}).ok, "3-6 clear stays locked")
 	p.clearedStageNumbers.append(27)
 	var quote: Dictionary = growth.research_quote(p, "turretStartLevel")
-	check(quote.cost == 35000 and quote.durationMillis == 25200000, "35000 runes seven hours")
+	check(quote.cost == 35000 and quote.durationMillis == 43200000, "35000 runes twelve hours")
 	var discounted := p.duplicate(true); discounted.researchLevels = {"researchEfficiency":20,"researchCostEfficiency":20}
 	var discounted_quote: Dictionary = growth.research_quote(discounted, "turretStartLevel")
-	check(discounted_quote.cost == 17500 and discounted_quote.durationMillis == 12600000, "same research efficiencies")
+	check(discounted_quote.cost == 17500 and discounted_quote.durationMillis == 21600000, "same research efficiencies")
 	var forged := p.duplicate(true); forged.clearedStageNumbers = [26]; forged.grandfatherUnlocks = ["research:turretStartLevel"]
 	check(not Progression.has_unlock(forged, "research", "turretStartLevel"), "no nonexistent grandfather right")
 	var poor := p.duplicate(true); poor.runes = 34999
@@ -39,12 +39,12 @@ func _initialize() -> void:
 	var started: Dictionary = growth.execute(p, {"kind":"startResearch","id":"turretStartLevel","nowMillis":1000})
 	check(started.ok and started.state.runes == 5000, "start spends runes")
 	check(int(growth.derive(started.state).get("turretStartLevelBonus", -1)) == 0, "no bonus while researching")
-	var early: Dictionary = growth.execute(started.state, {"kind":"completeFinishedResearches","nowMillis":25200999})
+	var early: Dictionary = growth.execute(started.state, {"kind":"completeFinishedResearches","nowMillis":43200999})
 	check(int(early.get("state", started.state).get("researchLevels", {}).get("turretStartLevel", 0)) == 0, "one moment early stays active")
-	var finished: Dictionary = growth.execute(started.state, {"kind":"completeFinishedResearches","nowMillis":25201000})
-	check(finished.ok and int(finished.state.researchLevels.turretStartLevel) == 1, "seven hours completes")
+	var finished: Dictionary = growth.execute(started.state, {"kind":"completeFinishedResearches","nowMillis":43201000})
+	check(finished.ok and int(finished.state.researchLevels.turretStartLevel) == 1, "twelve hours completes")
 	var researched: Dictionary = finished.state
-	check(not growth.execute(researched, {"kind":"startResearch","id":"turretStartLevel","nowMillis":25202000}).ok, "second level rejected")
+	check(not growth.execute(researched, {"kind":"startResearch","id":"turretStartLevel","nowMillis":43202000}).ok, "second level rejected")
 	var commands := Commands.new(catalog, growth)
 	for type in growth.data.turretRules:
 		var plain: Dictionary = _built(growth, commands, catalog, p, type)

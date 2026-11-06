@@ -35,7 +35,7 @@ func _initialize() -> void:
 	check(growth.max_link_slots(p)==3,"II alone no rights")
 	p.researchLevels={"linkExpansionOne":1}
 	var quote: Dictionary = growth.research_quote(p,"linkExpansionTwo")
-	check(quote.cost==45000 and quote.durationMillis==28800000,"45000 runes eight hours")
+	check(quote.cost==45000 and quote.durationMillis==57600000,"45000 runes sixteen hours")
 	var poor := p.duplicate(true); poor.runes=44999
 	check(not growth.execute(poor,{"kind":"startResearch","id":"linkExpansionTwo","nowMillis":1000}).ok,"44999 runes insufficient")
 	var started: Dictionary = growth.execute(p,{"kind":"startResearch","id":"linkExpansionTwo","nowMillis":1000})
@@ -43,12 +43,12 @@ func _initialize() -> void:
 	var cancelled: Dictionary = growth.execute(started.state,{"kind":"cancelResearch","id":"linkExpansionTwo","nowMillis":61000})
 	check(cancelled.ok and cancelled.state.runes==100000 and cancelled.state.researchElapsedMillis.linkExpansionTwo==60000,"cancel retains time refunds")
 	var resumed: Dictionary = growth.execute(cancelled.state,{"kind":"startResearch","id":"linkExpansionTwo","nowMillis":100000})
-	check(resumed.ok and resumed.state.activeResearches[0].durationMillis==28740000,"research resumes")
-	var completed: Dictionary = growth.execute(resumed.state,{"kind":"completeFinishedResearches","nowMillis":28840000})
+	check(resumed.ok and resumed.state.activeResearches[0].durationMillis==57540000,"research resumes")
+	var completed: Dictionary = growth.execute(resumed.state,{"kind":"completeFinishedResearches","nowMillis":57640000})
 	check(completed.ok and growth.max_link_slots(completed.state)==5,"elapsed completion opens permission")
 	var discounted := p.duplicate(true); discounted.researchLevels.researchEfficiency=1; discounted.researchLevels.researchCostEfficiency=1
 	var discounted_quote: Dictionary=growth.research_quote(discounted,"linkExpansionTwo")
-	check(discounted_quote.cost==42857 and discounted_quote.durationMillis==27428571,"same research efficiencies")
+	check(discounted_quote.cost==42857 and discounted_quote.durationMillis==54857143,"same research efficiencies")
 	completed.state.clearedStageNumbers.append_array([3,7,23])
 	var effects := EffectServices.new(); effects.app={"run_domain":{"growth":growth}}
 	var effect := {"effectType":"complete_research","payload":{"researchType":"linkExpansionTwo","targetLevel":1}}
