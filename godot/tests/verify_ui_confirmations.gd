@@ -199,8 +199,11 @@ func _module_entry_checks(lobby: Control, app: FakeApp) -> void:
 	confirm.pressed.emit()
 	confirm.pressed.emit()
 	assert(app.services.calls == [{"action":"disassemble_modules", "values":{"ids":["entry-normal"]}}], "Single disassembly reaches the server once with the selected ID")
+	var overlay: Control = lobby.modal.get_node_or_null("ClaimOverlay")
+	assert(overlay != null and overlay._active and lobby.modal.get_child(-1) == overlay and _text(overlay).contains("처리하는 중"), "A pending server action blocks the dialog with the spinner")
 	app.services.release_request.emit()
 	await _settle(lobby)
+	assert(not overlay._active, "The finished server action releases the spinner")
 	lobby.close_modal()
 	app.services.calls.clear()
 	var bulk := lobby.body.find_child("ModuleBulkDisassembleAction", true, false) as Button

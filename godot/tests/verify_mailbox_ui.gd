@@ -1,5 +1,6 @@
 extends SceneTree
 ## Isolated mailbox fixture: no account, save, or server request is touched.
+const RewardPopup = preload("res://ui/reward_popup.gd")
 const Fixture = preload("res://tests/verify_lobby.gd")
 const Lobby = preload("res://ui/lobby.gd")
 const MailboxView = preload("res://ui/mailbox_view.gd")
@@ -15,6 +16,8 @@ class Service extends RefCounted:
 	var hold_read := false
 	var hold_fetch := false
 	var hold_claim := false
+	var fail_claim := false
+	var receipt := {}
 	var hold_page := false
 	var fail_page := false
 	var repeat_cursor := false
@@ -49,7 +52,8 @@ class Service extends RefCounted:
 				mail.claimedAt = "2026-09-27T12:00:00Z"
 		await tree.process_frame
 		while hold_claim: await tree.process_frame
-		return {"ok": true, "body": {}}
+		if fail_claim: return {"ok": false, "code": "NETWORK_ERROR"}
+		return {"ok": true, "body": receipt.duplicate()}
 
 var failures: Array[String] = []
 var checks := 0
@@ -67,6 +71,84 @@ func check(ok: bool, message: String) -> void:
 
 func settle() -> void:
 	for i in range(12): await process_frame
+
+func popup_text(node: Node) -> String:
+	var result := str(node.text) + "\n" if node is Label else ""
+	for child in node.get_children(): result += popup_text(child)
+	return result
+
+func tap() -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.pressed = true
+	event.button_index = MOUSE_BUTTON_LEFT
+	return event
+
+func verify_claim_feedback() -> void:
+	service.mails[0].claimedAt = null
+	service.receipt = {"grantedDiamonds":1200, "grantedModuleTickets":5, "grantedGemResetTickets":3}
+	lobby.open_service("우편함")
+	await settle()
+	service.hold_claim = true
+	find_node("ClaimMail0").pressed.emit()
+	await settle()
+	var overlay: Control = lobby.modal.get_node_or_null("ClaimOverlay")
+	check(overlay != null and overlay._active and lobby.modal.get_child(-1) == overlay, "Pending mail claim blocks the dialog with the server spinner")
+	var fetches := service.requests.count("GET v1/mailbox")
+	service.hold_claim = false
+	await settle()
+	check(not overlay._active, "Mail claim and its refetch release the spinner")
+	check(service.requests.count("GET v1/mailbox") == fetches + 1, "Mail claim still refetches behind the result")
+	var popup: Control = lobby.modal.get_node_or_null("RewardPopup")
+	check(popup != null and lobby.modal.get_child(-1) == popup, "Claimed mail opens the result over the dialog")
+	check(popup != null and popup.find_child("RewardItems", true, false).get_child_count() == 3, "Each granted kind has one item box")
+	check(popup != null and "1,200" in popup_text(popup) and "모듈권" in popup_text(popup) and "젬 리셋권" in popup_text(popup), "Item boxes show the granted kinds and amounts")
+	popup._gui_input(tap())
+	await settle()
+	check(is_instance_valid(popup) and not popup._closing, "The claiming tap cannot dismiss its own result")
+	await create_timer(0.35).timeout
+	popup._gui_input(tap())
+	await create_timer(0.2).timeout
+	check(not is_instance_valid(popup) and is_instance_valid(lobby.modal), "A tap closes only the result")
+	# One kind keeps the same screen with a single box; back closes it first.
+	service.mails[0].claimedAt = null
+	service.receipt = {"grantedDiamonds":50}
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	find_node("ClaimMail0").pressed.emit()
+	await settle()
+	popup = lobby.modal.get_node_or_null("RewardPopup")
+	check(popup != null and popup.find_child("RewardItems", true, false).get_child_count() == 1, "A single kind shows one item box")
+	lobby.go_back()
+	await create_timer(0.2).timeout
+	check(not is_instance_valid(popup) and is_instance_valid(lobby.modal), "Back closes the result before the mailbox")
+	# A failed claim or an empty receipt shows no result.
+	service.mails[0].claimedAt = null
+	service.fail_claim = true
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	find_node("ClaimMail0").pressed.emit()
+	await settle()
+	check(lobby.modal.get_node_or_null("RewardPopup") == null, "A failed claim shows no result")
+	service.fail_claim = false
+	service.mails[0].claimedAt = null
+	service.receipt = {}
+	find_node("RefreshMailbox").pressed.emit()
+	await settle()
+	find_node("ClaimMail0").pressed.emit()
+	await settle()
+	check(lobby.modal.get_node_or_null("RewardPopup") == null, "A recovered claim without a receipt shows no result")
+	# Every box lands from the front, not only the first: layout must not reset it.
+	ProjectSettings.set_setting("accessibility/disable_animations", false)
+	var entering: Control = RewardPopup.present(lobby.modal, RewardPopup.from_receipt({"grantedDiamonds":1, "grantedModuleTickets":1, "grantedGemResetTickets":1}))
+	await process_frame
+	await process_frame
+	var boxes: Array = entering.find_children("RewardBox", "", true, false)
+	check(boxes.size() == 3 and boxes.all(func(box: Control) -> bool: return is_equal_approx(box.scale.x, RewardPopup.POP_FROM)), "Every box still waits in front after layout")
+	await create_timer(1.0).timeout
+	check(boxes.all(func(box: Control) -> bool: return is_equal_approx(box.scale.x, 1.0) and is_equal_approx(box.get_parent().get_parent().modulate.a, 1.0)), "Every box settles fully shown at its size")
+	ProjectSettings.set_setting("accessibility/disable_animations", true)
+	entering.close()
+	await process_frame
 
 func find_node(name: String) -> Node:
 	return lobby.modal.find_child(name, true, false) if is_instance_valid(lobby.modal) else null
@@ -278,6 +360,8 @@ func run() -> void:
 	service.hold_claim = false
 	await settle()
 	check(lobby.modal.get_instance_id() == replacement_id and service.requests.count("GET v1/mailbox") == fetches_before_claim, "Late claim cannot replace another modal or start a mailbox refetch")
+	check(lobby.modal.get_node_or_null("RewardPopup") == null, "Late claim leaves no result over another modal")
+	await verify_claim_feedback()
 
 	service.page_size = 2
 	service.mails = service.mails.slice(0, 3)

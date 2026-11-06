@@ -2,6 +2,8 @@ extends RefCounted
 ## Owns mailbox requests and view state; AppServices retains authoritative claims/outbox.
 const T = preload("res://ui/app_theme.gd")
 const MailboxView = preload("res://ui/mailbox_view.gd")
+const ClaimFeedback = preload("res://ui/claim_feedback.gd")
+const RewardPopup = preload("res://ui/reward_popup.gd")
 var lobby
 var error_text: Callable
 var open_account: Callable
@@ -10,6 +12,8 @@ var service_binding
 var account_epoch: Variant
 var data := {}
 var pending := false
+var _claiming := false
+var _claim_overlay: Control
 var notice := ""
 var expanded_mail_id := ""
 var read_pending_id := ""
@@ -28,6 +32,7 @@ func reset(epoch: int) -> void:
 	account_epoch = service_binding.get("epoch") if service_binding != null else null
 	data = {}
 	pending = false
+	_claiming = false
 	notice = ""
 	expanded_mail_id = ""
 	read_pending_id = ""
@@ -254,14 +259,21 @@ func _claim(action: String, values: Dictionary) -> void:
 	if pending or not _active_view(view_epoch) or not _connected() or _services().busy: return
 	if is_instance_valid(lobby.modal_scroll): mail_scroll_y = lobby.modal_scroll.scroll_vertical
 	pending = true
+	_claiming = true
 	var captured := view_epoch
 	render()
+	_claim_overlay = ClaimFeedback.show_overlay(lobby.modal, _claim_overlay, func() -> bool: return _claiming)
 	var result: Dictionary = await _services().perform(action, values.duplicate(true))
+	# The refetch below stays behind the result, so only the claim holds the spinner.
+	if captured == view_epoch:
+		_claiming = false
+		if is_instance_valid(_claim_overlay): _claim_overlay.sync()
 	if not _active_view(captured): return
 	pending = false
 	_show_result(result)
 	if result.get("ok", false):
 		data = result.get("body", {})
+		RewardPopup.present(lobby.modal, RewardPopup.from_receipt(data))
 		fetch()
 		return
 	render()

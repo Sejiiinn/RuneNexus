@@ -5,6 +5,7 @@ const Frame = preload("res://ui/lobby_frame.gd")
 const GrowthUI = preload("res://ui/lobby_growth.gd")
 const CollectionUI = preload("res://ui/lobby_collection.gd")
 const ModuleDrawResults = preload("res://ui/module_draw_results.gd")
+const ClaimFeedback = preload("res://ui/claim_feedback.gd")
 const DrawConfirmation = preload("res://ui/module_draw_confirmation.gd")
 const LeaderboardView = preload("res://ui/leaderboard_view.gd")
 const MailboxController = preload("res://ui/mailbox_controller.gd")
@@ -17,6 +18,8 @@ var context := {}
 var notice := ""
 var data := {}
 var pending := false
+var _performing := false
+var _perform_overlay: Control
 var view_epoch := 0
 var nickname_draft := ""
 var module_confirmation: Array = []
@@ -40,6 +43,7 @@ func open(title: String, values: Dictionary = {}) -> void:
 	bulk_grades = {"normal":true,"magic":false,"rare":false}
 	view_epoch += 1
 	pending = false
+	_performing = false
 	if title == "우편함":
 		mailbox.lobby = lobby
 		mailbox.error_text = _error
@@ -654,9 +658,14 @@ func _perform(action: String, values: Dictionary) -> void:
 			return
 		request = {}
 	pending = true
+	_performing = true
 	var captured := view_epoch
 	_render()
+	_perform_overlay = ClaimFeedback.show_overlay(lobby.modal, _perform_overlay, func() -> bool: return _performing, "처리하는 중")
 	var result: Dictionary = await _services().perform(action,request)
+	if captured == view_epoch:
+		_performing = false
+		if is_instance_valid(_perform_overlay): _perform_overlay.sync()
 	if not _active_view(captured): return
 	pending = false
 	_show_result(result)

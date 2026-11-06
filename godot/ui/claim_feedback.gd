@@ -1,7 +1,7 @@
 extends RefCounted
-## Feedback of server reward claims, shared by the quest and achievement dialogs:
-## the blocking spinner while the server answers, then the gained amount rising
-## from the claimed control.
+## Feedback of server commands in the lobby dialogs: the blocking spinner while
+## the server answers and, for single-kind claims, the gained amount rising from
+## the claimed control.
 const A = preload("res://ui/app_theme.gd")
 const ReconnectOverlay = preload("res://ui/reconnect_overlay.gd")
 
@@ -9,13 +9,13 @@ static func wallet(lobby) -> Dictionary:
 	return {"diamonds":lobby.diamonds(), "tickets":int(lobby.progression().get("turretModules",{}).get("tickets",0))}
 
 ## Blocks the modal behind the spinner, reusing its overlay, and returns that overlay.
-static func show_overlay(modal: Control, overlay, active_check: Callable) -> Control:
+static func show_overlay(modal: Control, overlay, active_check: Callable, caption := "보상을 수령하는 중") -> Control:
 	if is_instance_valid(overlay) and overlay.get_parent() == modal:
 		modal.move_child(overlay, -1)
 		overlay.sync()
 		return overlay
 	var created := ReconnectOverlay.new()
-	created.caption_text = "보상을 수령하는 중"
+	created.caption_text = caption
 	created.show_delay = 0.15
 	created.active_check = active_check
 	modal.add_child(created)
