@@ -8,7 +8,7 @@
 - GLB는 `12,405,040 bytes`다. 게임 준비 경로는 `assets/images/stage1_3d/`만 포함하고 `design/`의 제작 원본·중복 export는 게임 패키징 대상이 아니다. staged GLB는 기존 texture dedup으로 이미지 URI만 변경하며 BIN/나머지 JSON/4개 texture payload는 shipping과 byte 동일하다.
 - 편집 가능한 게임 변환 원본: [tank-walk-runtime.blend](tank-walk-runtime.blend), `Tank_Walk_Runtime` 씬 / `Tank_Runtime_Rig` / `Walk` 액션. 승인 authoring 원본의 38개 메시와 재질은 보존하고 게임에서는 36개 돌 조각을 한 skinned surface로 묶어 실제 코어 구 2개와 총 3개 surface로 표시한다. 형상은 21,664삼각형 / 14개 rigid bone 그대로다.
 - 2048² PBR atlas: [color](tank-color.png), [roughness](tank-roughness.png), [metallic](tank-metallic.png), [normal](tank-normal.png), [emission](tank-emission.png). 원본 Object 좌표를 `RestObject`로 보존해 프로시저럴 풍화돌을 UV bake했다. 균열과 음각 룬은 실제 메시다.
-- 코어는 원본 크기의 실제 유리구/내부구다. glTF가 전달하지 못하는 내부구의 Layer Weight 색·발광 ramp는 [tank_amber_nucleus.gdshader](../../../../../../godot/effects/tank_amber_nucleus.gdshader)에서 실제 sphere normal/view로 재현한다. 탱커 구에만 specular/roughness 보정을 적용한다.
+- 코어는 원본 크기의 실제 유리구/내부구다. 당시에는 glTF가 전달하지 못하는 내부구의 Layer Weight 색·발광 ramp를 전용 셰이더 `tank_amber_nucleus.gdshader`(현재 삭제)가 실제 sphere normal/view로 재현했고, 탱커 구에만 specular/roughness 보정을 적용했다. 현재 남은 탱커 전용 셰이더는 사망 퇴장용 [tank_death_body.gdshader](../../../../../../godot/effects/tank_death_body.gdshader)뿐이다.
 - 화상·냉각은 탱커 고유 bind의 `tank_status_burn.res`, `tank_status_frost_shards.res`, `tank_status_frost_grains.res`를 공유한다. [제작 데이터](tank-status-attachments.json). 작은 청록 눈과 비발광 룬, 코어 구는 성에로 덮지 않는다.
 - 호환용 사망 atlas: [tank-death-slot.png](tank-death-slot.png), 편집 가능한 [death-atlas.xcf](death-atlas.xcf). 1536×192 atlas의 탱커 슬롯 4만 교체했고 다른 7개 슬롯 RGBA는 동일하다.
 

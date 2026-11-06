@@ -443,24 +443,6 @@ func _confirm_trait(turret: Dictionary,kind: String) -> void:
 	hud.run_command({"kind":kind,"id":int(turret.id),"type":selected})
 	hud.close_modal()
 
-func _option_button(parent: Node,title: String,description: String,callback: Callable,selected = false) -> Button:
-	var button = UiWidgets.button(parent,title+"\n"+description,callback)
-	hud.Components.apply(button,"selected" if selected else "secondary")
-	for role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_disabled_color"]:
-		button.add_theme_color_override(role,Color.TRANSPARENT)
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var content = VBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_theme_constant_override("separation",5); button.add_child(content)
-	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	content.offset_left = 16; content.offset_right = -16; content.offset_top = 12; content.offset_bottom = -12
-	var heading = UiWidgets.label(content,title,14); heading.add_theme_font_override("font",hud.AppTheme.font(800))
-	heading.modulate = Color("ffe19a") if selected else Color.WHITE
-	var detail = UiWidgets.label(content,description.replace(", ","\n"),12); detail.add_theme_font_override("font",hud.AppTheme.font(500)); detail.modulate = Color("b2c5d0")
-	var fit = func(): button.custom_minimum_size.y = maxf(72,content.get_combined_minimum_size().y+24)
-	content.minimum_size_changed.connect(fit); button.resized.connect(fit); fit.call_deferred()
-	button.draw.connect(func(): content.modulate.a = 0.48 if button.disabled else 1.0)
-	return button
-
 func _priority() -> void:
 	var turret := _current_turret()
 	var panel = hud.body.get_node_or_null("TurretActionPanel")

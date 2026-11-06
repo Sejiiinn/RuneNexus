@@ -49,7 +49,7 @@
   로그인·실기기 확인은 남았다. 로그인 필수화는 적용하지 않았다.
 
 아래의 메모리 전용 세션 설명은 이전 구현 이력이다. 현행 계약은
-[백엔드 아키텍처](backend_architecture.md)와 [구현 현황](implementation_status.md)을 따른다.
+[백엔드 아키텍처](../backend_architecture.md)와 [구현 현황](../implementation_status.md)을 따른다.
 
 ### 기존 카카오 인앱 브라우저 진행의 일회용 이전
 
@@ -61,7 +61,7 @@
 - 소비된 카카오 원문은 즉시 삭제하고 token/payload 해시와 결과 revision을 남긴다.
   기존 account를 교체한 영수증에는 복구용 이전 snapshot도 보존한다.
 - 로컬 저장의 위변조·복제를 완전히 증명할 수 없는 구조적 한계 때문에 정식 배포 전
-  제거 대상으로 확정했다. 2026-11-05에 API·DB까지 제거했다([당시 기록](archive/legacy_local_save_transfer_20261105.md)).
+  제거 대상으로 확정했다. 2026-11-05에 API·DB까지 제거했다([당시 기록](legacy_local_save_transfer_20261105.md)).
 
 ### 주간 보상 수령 서버 판정
 

@@ -568,7 +568,6 @@ func request_stage_start(index: int, difficulty: String = "normal") -> void:
 		if not await app.start_stage(index, difficulty): show_failure()
 
 func _node_details(id: String) -> void: core.node_details(id)
-func _skills() -> void: core.skills()
 func go_back() -> void:
 	if close_modal(): return
 	if is_instance_valid(home) and home.close_modal(): return

@@ -444,19 +444,6 @@ func researchPrerequisitesMet(progression researchProgression, researchType stri
 	return true
 }
 
-func stageCleared(progressionJSON []byte, stage int) bool {
-	var progression progressionUnlocks
-	if json.Unmarshal(progressionJSON, &progression) != nil {
-		return false
-	}
-	for _, value := range progression.ClearedStageNumbers {
-		if value == stage {
-			return true
-		}
-	}
-	return false
-}
-
 func researchSlotEligible(progressionJSON []byte) bool {
 	var progression progressionUnlocks
 	if json.Unmarshal(progressionJSON, &progression) != nil {

@@ -73,10 +73,6 @@ func (handler economyHandler) rerollGems(response http.ResponseWriter, request *
 	if !ok {
 		return
 	}
-	if *input.ClientCompatibilityVersion < gamesave.GemRerollClientCompatibilityVersion {
-		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 젬 재선택을 사용할 수 있습니다.")
-		return
-	}
 	if input.ExpectedEconomyRevision == nil || input.ExpectedCatalogVersion == nil || input.SourceSaveRevision == nil || input.WriterGeneration == nil || input.CompletedRounds == nil || input.ExpectedRerollCount == nil || input.RunID == "" {
 		writeAPIError(response, request, http.StatusBadRequest, "INVALID_ECONOMY_REQUEST", "젬 재선택 요청 정보가 부족합니다.")
 		return

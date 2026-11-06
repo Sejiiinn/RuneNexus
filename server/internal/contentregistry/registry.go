@@ -34,12 +34,8 @@ func CanonicalTurret(turret string) string {
 
 func ModuleParts() []string { return slices.Clone(moduleParts[:]) }
 
-func ValidModulePart(part string) bool { return slices.Contains(moduleParts[:], part) }
-
 // ModuleGrades returns grades from lowest to highest.
 func ModuleGrades() []string { return slices.Clone(moduleGrades[:]) }
-
-func ValidModuleGrade(grade string) bool { return slices.Contains(moduleGrades[:], grade) }
 
 // ModuleFamily returns "" for an unknown turret or part.
 func ModuleFamily(turret, part string) string { return moduleFamilies[turret][part] }

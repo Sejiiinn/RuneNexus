@@ -177,15 +177,15 @@ func _new_projectile(type: String) -> Node3D:
 			return pool.pop_back()
 		return BallisticProjectile.new(type)
 	if not _projectile_meshes.has(type):
-		var heavy := type == "cannon"
-		var ballistic := type in ["cannon", "machinegun", "sniper"]
-		var radius := 0.028 if heavy else (0.011 if type == "sniper" else 0.009)
-		var length := 0.13 if heavy else 0.075
+		# Types with their own projectile scene returned above.
+		var ballistic := type == "sniper"
+		var radius := 0.011 if ballistic else 0.009
+		var length := 0.075
 		var material := StandardMaterial3D.new()
 		if ballistic:
-			material.albedo_color = Color("45494d") if heavy else Color("c8a269")
-			material.metallic = 0.5 if heavy else 0.72
-			material.roughness = 0.65 if heavy else 0.42
+			material.albedo_color = Color("c8a269")
+			material.metallic = 0.72
+			material.roughness = 0.42
 		else:
 			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			material.albedo_color = PROJECTILE_COLORS[type]
@@ -201,17 +201,17 @@ func _new_projectile(type: String) -> Node3D:
 		nose.height = length * 0.32
 		nose.radial_segments = 8
 		nose.material = material
-		var tracer_length := 0.10 if heavy else 0.13
+		var tracer_length := 0.13
 		var tracer := CylinderMesh.new()
-		tracer.top_radius = 0.007 if heavy else 0.0035
-		tracer.bottom_radius = 0.002 if heavy else 0.0015
+		tracer.top_radius = 0.0035
+		tracer.bottom_radius = 0.0015
 		tracer.height = tracer_length
 		tracer.radial_segments = 5
 		var tracer_material := StandardMaterial3D.new()
 		tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		tracer_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		var color: Color = PROJECTILE_COLORS[type]
-		color.a = 0.32 if heavy else 0.55
+		color.a = 0.55
 		tracer_material.albedo_color = color
 		tracer.material = tracer_material
 		_projectile_meshes[type] = {"meshes": [body, nose, tracer], "z": [0.0, length * 0.66, -(length + tracer_length) / 2.0]}

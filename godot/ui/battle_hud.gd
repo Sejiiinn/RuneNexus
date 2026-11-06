@@ -59,7 +59,6 @@ var body_key: Variant = ""
 var body_value_key: Array = []
 var _body_phase := ""
 var body_purchase_buttons: Array[Dictionary] = []
-var overlay_key := ""
 var main_buttons := {}
 var speed_buttons := {}
 var _cached_stage_index := -1
@@ -681,11 +680,6 @@ func _refresh_intel(state: Dictionary,wave_count: int) -> void:
 			var elite_count := int(wave.eliteCounts[type].get(tier_name,0))
 			if elite_count > 0: composition.append("%s %s ×%d" % [HudMenuPanel.RARITY_NAMES[tier_name],app.catalog.enemy_template(str(type)).get("name",type),elite_count])
 	summary.tooltip_text = " · ".join(composition)
-
-func _rune_icon(parent: Node,extent: float) -> void:
-	var socket := PanelContainer.new(); socket.custom_minimum_size = Vector2.ONE*extent; socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var style := BattleTheme.box(Color("221d1233"),Color("e7c66a88"),extent/2); style.set_content_margin_all(extent*0.19); socket.add_theme_stylebox_override("panel",style); parent.add_child(socket)
-	UiWidgets.icon(socket,"ui/hud/icons/rune.png",extent*0.62)
 
 ## Gem text is also consumed by the reward presenter.
 func gem_name(type: String) -> String:

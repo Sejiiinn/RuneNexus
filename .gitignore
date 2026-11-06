@@ -20,11 +20,6 @@ design/mockups/turret_level_frame_growth_refined.svg.png
 design/mockups/turret_level_option_[a-d].svg
 design/mockups/turret_level_option_[a-d].svg.png
 
-# Android/iOS generated files
-android/.gradle/
-ios/Pods/
-ios/.symlinks/
-
 # IDE
 .idea/
 *.iml
@@ -35,7 +30,6 @@ ios/.symlinks/
 # Android signing secrets
 *.jks
 *.keystore
-android/key.properties
 
 # Rebuildable editor/Python caches and automatic Blender backups
 .godot/
@@ -773,13 +767,6 @@ waveletNoiseTile.bin
 
 # GIMP session recovery: local inspection log; editable XCF files remain visible.
 /design/gimp_session_recovery/2026-10-05/manifest.json
-
-# Retired Flutter Android host: regenerated/local files are not app sources.
-/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-/android/gradle/wrapper/gradle-wrapper.jar
-/android/gradlew
-/android/gradlew.bat
-/android/local.properties
 
 # Reproducible burn preview frames; preserve editable source and final atlas.
 /design/fire_tower_concepts/enemy_burn/frames/
