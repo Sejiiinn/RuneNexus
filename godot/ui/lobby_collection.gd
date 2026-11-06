@@ -12,7 +12,7 @@ const GRADES := {"normal":"일반", "magic":"마법", "rare":"희귀", "unique":
 const PartGlyph = preload("res://ui/module_part_glyph.gd")
 const ModuleIcon = preload("res://ui/module_icon.gd")
 const ButtonSkin = preload("res://ui/button_skin.gd")
-const ReconnectOverlay = preload("res://ui/reconnect_overlay.gd")
+const ClaimFeedback = preload("res://ui/claim_feedback.gd")
 const COLORS = PartGlyph.COLORS
 const QUEST_NAMES := {"clearWaves":"웨이브 %d회 클리어", "killBosses":"보스 %d회 처치", "killEnemies":"몹 %d회 처치", "buyRunUpgrades":"런 강화 %d회"}
 const QUEST_ICONS := {"clearWaves":"clear_waves", "killBosses":"kill_bosses", "killEnemies":"kill_enemies", "buyRunUpgrades":"buy_run_upgrades"}
@@ -539,7 +539,7 @@ func _claim(parent: VBoxContainer, target: Dictionary = {}) -> void:
 	quest_notice = ""
 	quests(parent)
 	_show_claim_overlay()
-	var before := _claim_wallet()
+	var before := ClaimFeedback.wallet(lobby)
 	var request := target.duplicate(true)
 	request.period = period
 	var requested_period := period
@@ -570,70 +570,15 @@ func _claim(parent: VBoxContainer, target: Dictionary = {}) -> void:
 	quests(current)
 	if ok: _show_claim_gain(current, key, before)
 
-func _claim_wallet() -> Dictionary:
-	return {"diamonds":lobby.diamonds(), "tickets":int(lobby.progression().get("turretModules",{}).get("tickets",0))}
-
-## The claimed amount rises from the row's button, so success needs no notice line.
 func _show_claim_gain(parent: VBoxContainer, key: String, before: Dictionary) -> void:
-	var now := _claim_wallet()
-	var diamonds := int(now.diamonds) - int(before.diamonds)
-	var tickets := int(now.tickets) - int(before.tickets)
 	var row: Dictionary = parent.get_meta("quest_view",{}).get("rows",{}).get(key,{})
-	var modal = lobby.get("modal")
-	if (diamonds <= 0 and tickets <= 0) or row.is_empty() or not is_instance_valid(modal): return
-	var gain := HBoxContainer.new()
-	gain.name = "ClaimGain"
-	gain.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gain.add_theme_constant_override("separation", 4)
-	if diamonds > 0:
-		gain.add_child(_gain_label("+%d" % diamonds, Color("8ee6ff")))
-		gain.add_child(_image("res://assets/ui/diamond_currency.png", Vector2(17, 17)))
-	if tickets > 0:
-		gain.add_child(_image("stage_rewards/reward_module_ticket.png", Vector2(16, 19)))
-		gain.add_child(_gain_label("+%d" % tickets, Color("f5cb61")))
-	modal.add_child(gain)
-	gain.reset_size()
-	var button: Control = row.button
-	var anchor := button.get_global_rect()
-	# Wider ticket gains stay inside the dialog by not passing the button's right edge.
-	gain.global_position = Vector2(minf(anchor.get_center().x - gain.size.x / 2, anchor.end.x - gain.size.x), anchor.get_center().y - gain.size.y / 2)
-	gain.pivot_offset = gain.size / 2
-	if ProjectSettings.get_setting("accessibility/disable_animations", false):
-		gain.create_tween().tween_callback(gain.queue_free).set_delay(0.9)
-		return
-	gain.modulate.a = 0.0
-	gain.scale = Vector2.ONE * 0.7
-	# A short rise keeps the pop inside the claimed row.
-	var rest := gain.position.y - 14
-	var tween := gain.create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(gain, "modulate:a", 1.0, 0.12)
-	tween.tween_property(gain, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK)
-	tween.tween_property(gain, "position:y", rest, 0.9)
-	tween.chain().tween_property(gain, "modulate:a", 0.0, 0.3).set_delay(0.25)
-	tween.chain().tween_callback(gain.queue_free)
-
-func _gain_label(value: String, color: Color) -> Label:
-	var label := _inline(value, 16)
-	label.add_theme_font_override("font", A.font(800))
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_constant_override("outline_size", 5)
-	label.add_theme_color_override("font_outline_color", Color("02070d"))
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return label
+	if row.is_empty(): return
+	ClaimFeedback.show_gain(lobby.get("modal"), row.button, before, ClaimFeedback.wallet(lobby))
 
 func _show_claim_overlay() -> void:
 	var modal = lobby.get("modal")
 	if not is_instance_valid(modal): return
-	if not is_instance_valid(_claim_overlay) or _claim_overlay.get_parent() != modal:
-		_claim_overlay = ReconnectOverlay.new()
-		_claim_overlay.caption_text = "보상을 수령하는 중"
-		_claim_overlay.show_delay = 0.15
-		_claim_overlay.active_check = func() -> bool: return _claim_pending
-		modal.add_child(_claim_overlay)
-		_claim_overlay.name = "ClaimOverlay"
-	else:
-		modal.move_child(_claim_overlay, -1)
-		_claim_overlay.sync()
+	_claim_overlay = ClaimFeedback.show_overlay(modal, _claim_overlay, func() -> bool: return _claim_pending)
 
 func _pending_claim_current() -> bool:
 	if lobby.get("app") == null or lobby.app.get("services") == null or _claim_service == null: return false

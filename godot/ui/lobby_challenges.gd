@@ -14,6 +14,7 @@ const Cumulative = preload("res://content/cumulative_achievements.gd")
 const HudNumber = preload("res://ui/hud_number.gd")
 const StageProgression = preload("res://content/stage_progression.gd")
 const Stages = preload("res://ui/lobby_stages.gd")
+const ClaimFeedback = preload("res://ui/claim_feedback.gd")
 const TEAL := Color("5cf9e9")
 const GOLD := Color("e7c66a")
 const MUTED := Color("7f97a5")
@@ -30,6 +31,10 @@ var chapter := 0
 var tab := "stage"
 var notice := ""
 var pending := ""
+var _claim_service: WeakRef
+var _claim_binding: Variant
+var _claim_token := 0
+var _claim_overlay: Control
 
 func setup(owner) -> void:
 	lobby = owner
@@ -51,6 +56,9 @@ func refresh() -> void:
 func render(body: VBoxContainer) -> void:
 	body.add_theme_constant_override("separation", 8)
 	var p: Dictionary = lobby.progression()
+	# Reopening the dialog mid-claim restores the server spinner over it.
+	if _claim_active(): _show_claim_overlay()
+	elif is_instance_valid(_claim_overlay): _claim_overlay.sync()
 	_tabs(body)
 	if tab == "medal": _medals(body, p)
 	elif tab == "cumulative": _cumulative(body, p)
@@ -175,7 +183,7 @@ func _medal(grid: GridContainer, cell_name: String, texture: String, title_text:
 	else:
 		style = Frame.new("ui/components/row_frame.png", 6)
 	for look in ["normal", "hover", "pressed", "disabled", "focus"]: cell.add_theme_stylebox_override(look, style)
-	cell.disabled = not ready or not pending.is_empty()
+	cell.disabled = not ready or _claim_active()
 	cell.pressed.connect(claim)
 	grid.add_child(cell)
 	var column := VBoxContainer.new()
@@ -303,7 +311,7 @@ func _reward_plate(row: HBoxContainer, plate_name: String, width: int, state: St
 		style.modulate_color = Color(0.3, 0.36, 0.4, 0.35) if state == "done" else Color(0.55, 0.66, 0.74, 0.75)
 	style.source_center = Rect2(6, 6, 52, 20)
 	for look in ["normal", "hover", "pressed", "disabled", "focus"]: plate.add_theme_stylebox_override(look, style)
-	plate.disabled = state != "claim" or not pending.is_empty()
+	plate.disabled = state != "claim" or _claim_active()
 	row.add_child(plate)
 	var column := VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -393,7 +401,7 @@ func _highlight(row: HBoxContainer) -> void:
 	if frame is StyleBoxTexture: frame.modulate_color = CLAIM_TINT
 
 func _claim_tier(id: String, tier: int) -> void:
-	if not pending.is_empty(): return
+	if _claim_active(): return
 	notice = ""
 	if tier == Cumulative.MEDAL_TIER:
 		if not lobby.app.apply_growth_command({"kind":"claimCumulativeMedal", "achievementId":id}):
@@ -404,13 +412,50 @@ func _claim_tier(id: String, tier: int) -> void:
 	if service == null or not service.connected():
 		lobby.open_service("계정 및 저장")
 		return
-	pending = Cumulative.reward_key(id, tier)
+	_claim_from_server(service, Cumulative.reward_key(id, tier), "CumulativeClaim_" + id, "claim_achievement", {"achievementId":id, "tier":tier})
+
+## One server claim behind the spinner; the gained amount rises from its plate.
+func _claim_from_server(service, key: String, plate_name: String, action: String, values: Dictionary) -> void:
+	pending = key
+	_claim_service = weakref(service)
+	_claim_binding = service.get("epoch")
+	_claim_token += 1
+	var token := _claim_token
+	var binding: Variant = _claim_binding
+	var before := ClaimFeedback.wallet(lobby)
 	refresh()
-	var result: Dictionary = await service.perform("claim_achievement", {"achievementId":id, "tier":tier})
+	_show_claim_overlay()
+	var result: Dictionary = await service.perform(action, values)
+	if token != _claim_token: return
 	pending = ""
-	if lobby.app.get("services") != service: return
-	if not result.get("ok", false): notice = "보상을 받지 못했습니다. 계정 및 저장에서 동기화 상태를 확인해 주세요."
+	if is_instance_valid(_claim_overlay): _claim_overlay.sync()
+	# A new account must never receive the old UI result.
+	if lobby.app.get("services") != service or service.get("epoch") != binding: return
+	var ok: bool = result.get("ok", false)
+	if not ok: notice = "보상을 받지 못했습니다. 계정 및 저장에서 동기화 상태를 확인해 주세요."
 	refresh()
+	if ok: _show_claim_gain(plate_name, before)
+
+## A pending claim of an earlier account or service no longer blocks the dialog.
+func _claim_active() -> bool:
+	if pending.is_empty() or _claim_service == null: return false
+	var service = _claim_service.get_ref()
+	return service != null and service == lobby.app.get("services") and service.get("epoch") == _claim_binding
+
+func _show_claim_overlay() -> void:
+	if not is_instance_valid(lobby.modal) or not lobby.modal.get_meta("challenge_dialog", false): return
+	_claim_overlay = ClaimFeedback.show_overlay(lobby.modal, _claim_overlay, _claim_active)
+
+func _show_claim_gain(plate_name: String, before: Dictionary) -> void:
+	# The rebuilt plate settles once layout and the kept scroll position apply.
+	var tree: SceneTree = lobby.get_tree()
+	for i in 2: await tree.process_frame
+	var modal = lobby.modal
+	if not is_instance_valid(modal) or not modal.get_meta("challenge_dialog", false): return
+	var plate: Control = lobby.modal_body.find_child(plate_name, true, false)
+	# A dialog reopened while waiting may have scrolled the plate out of view.
+	if plate == null or not lobby.modal_scroll.get_global_rect().has_point(plate.get_global_rect().get_center()): return
+	ClaimFeedback.show_gain(modal, plate, before, ClaimFeedback.wallet(lobby))
 
 ## "killBosses" → "kill_bosses" (medal art file names).
 static func _snake(id: String) -> String:
@@ -506,7 +551,7 @@ func _chip(row: HBoxContainer, id: int, difficulty: String, state: String) -> vo
 	plate.pressed.connect(_claim.bind(id, difficulty))
 
 func _claim(id: int, difficulty: String) -> void:
-	if not pending.is_empty(): return
+	if _claim_active(): return
 	notice = ""
 	if StageChallenges.reward(id, difficulty).get("kind") == "corePoints":
 		if not lobby.app.apply_growth_command({"kind":"claimChallengeCorePoint", "stageNumber":id}):
@@ -517,13 +562,7 @@ func _claim(id: int, difficulty: String) -> void:
 	if service == null or not service.connected():
 		lobby.open_service("계정 및 저장")
 		return
-	pending = StageChallenges.reward_key(id, difficulty)
-	refresh()
-	var result: Dictionary = await service.perform("claim_challenge", {"stageNumber":id, "difficulty":difficulty})
-	pending = ""
-	if lobby.app.get("services") != service: return
-	if not result.get("ok", false): notice = "보상을 받지 못했습니다. 계정 및 저장에서 동기화 상태를 확인해 주세요."
-	refresh()
+	_claim_from_server(service, StageChallenges.reward_key(id, difficulty), "Challenge_%d_%s" % [id, difficulty], "claim_challenge", {"stageNumber":id, "difficulty":difficulty})
 
 func _framed_row(parent: Node, inset := 8) -> HBoxContainer:
 	var frame := PanelContainer.new()
