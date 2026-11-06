@@ -21,8 +21,10 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Throwaway credentials; the deployed secret is never read.
-od -An -N24 -tx1 /dev/urandom | tr -d ' \n' > "$secret_dir/password"
-chmod 0644 "$secret_dir/password"
+for name in password api_password; do
+  od -An -N24 -tx1 /dev/urandom | tr -d ' \n' > "$secret_dir/$name"
+  chmod 0644 "$secret_dir/$name"
+done
 
 docker build --quiet -f "$server_dir/Dockerfile.migrate" \
   --build-arg GO_VERSION="$GO_VERSION" --build-arg TERN_VERSION="$TERN_VERSION" \
@@ -50,15 +52,20 @@ done
 docker run --rm --network "$network" \
   -e PGHOST="$database" -e PGPORT=5432 -e PGDATABASE=rune_nexus -e PGUSER=rune_nexus_app \
   -e PGPASSWORD_FILE=/run/secrets/postgres_password -e PGSSLMODE=disable \
-  -e TERN_MIGRATIONS=/migrations \
+  -e TERN_MIGRATIONS=/migrations -e API_PASSWORD_FILE=/run/secrets/postgres_api_password \
   -v "$server_dir/db/migrations:/migrations:ro" \
   -v "$secret_dir/password:/run/secrets/postgres_password:ro" \
+  -v "$secret_dir/api_password:/run/secrets/postgres_api_password:ro" \
   "$migrate_image" migrate >/dev/null
 
+# Connects like the deployed API, so a missing grant fails here.
 docker run --rm --network "$network" \
   -v "$server_dir:/workspace" \
   -v "$secret_dir/password:/run/secrets/postgres_password:ro" \
+  -v "$secret_dir/api_password:/run/secrets/postgres_api_password:ro" \
   -w /workspace \
-  -e RUNE_NEXUS_TEST_DATABASE_URL="postgres://rune_nexus_app@$database:5432/rune_nexus?sslmode=disable" \
-  -e RUNE_NEXUS_TEST_DATABASE_PASSWORD_FILE=/run/secrets/postgres_password \
+  -e RUNE_NEXUS_TEST_OWNER_DATABASE_URL="postgres://rune_nexus_app@$database:5432/rune_nexus?sslmode=disable" \
+  -e RUNE_NEXUS_TEST_OWNER_PASSWORD_FILE=/run/secrets/postgres_password \
+  -e RUNE_NEXUS_TEST_DATABASE_URL="postgres://rune_nexus_api@$database:5432/rune_nexus?sslmode=disable" \
+  -e RUNE_NEXUS_TEST_DATABASE_PASSWORD_FILE=/run/secrets/postgres_api_password \
   "golang:${GO_VERSION}-alpine" go test -tags=integration "$@" ./internal/dbtest

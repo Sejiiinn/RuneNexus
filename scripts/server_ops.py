@@ -17,6 +17,8 @@ import uuid
 OPERATIONS = Path.home() / "Library/Application Support/RuneNexus/operations"
 DB_CONTAINER = "rune-nexus-postgres"
 API_CONTAINER = "rune-nexus-api-1"
+API_ROLE = "rune_nexus_api"
+API_SECRET_TARGET = "/run/secrets/postgres_api_password"
 POSTGRES_IMAGE = "postgres:18"
 # pg_restore가 비우는 search_path를 과거 CHECK 보조 함수가 쓰는 public으로 복원
 SEARCH_PATH_RESET = b"SELECT pg_catalog.set_config('search_path', '', false);"
@@ -154,9 +156,12 @@ def isolated_database(user, name, workdir: Path, label):
 
 
 def restore(backup, db, user, name):
-    """backup은 경로 또는 이미 연 바이너리 스트림(외장 볼륨을 Docker로 읽는 경우)."""
+    """backup은 경로 또는 이미 연 바이너리 스트림(외장 볼륨을 Docker로 읽는 경우).
+
+    권한은 복원하지 않는다. API 역할과 권한은 다음 migrate가 다시 만든다.
+    """
     with (backup.open("rb") if isinstance(backup, Path) else contextlib.nullcontext(backup)) as stream:
-        sql = subprocess.run(["docker", "exec", "-i", db, "pg_restore", "--no-owner", "--file=-"],
+        sql = subprocess.run(["docker", "exec", "-i", db, "pg_restore", "--no-owner", "--no-privileges", "--file=-"],
                              stdin=stream, capture_output=True, check=True).stdout
     if sql.count(SEARCH_PATH_RESET) != 1:
         raise RuntimeError("Unexpected pg_restore search_path header")
@@ -164,12 +169,15 @@ def restore(backup, db, user, name):
         input=sql.replace(SEARCH_PATH_RESET, SEARCH_PATH_PUBLIC))
 
 
-def migrate(image, migrations: Path, network, host, user, name, secret: Path, log: Path | None = None):
+def migrate(image, migrations: Path, network, host, user, name, secret: Path, api_secret: Path,
+            log: Path | None = None, command="migrate"):
+    """command가 api-role이면 마이그레이션 없이 API 역할과 권한만 맞춘다."""
     run(["docker", "run", "--rm", "--network", network, "-e", "PGHOST=" + host, "-e", "PGPORT=5432",
          "-e", "PGDATABASE=" + name, "-e", "PGUSER=" + user,
          "-e", "PGPASSWORD_FILE=/run/secrets/postgres_password", "-e", "PGSSLMODE=disable",
-         "-e", "TERN_MIGRATIONS=/migrations", "-v", f"{migrations}:/migrations:ro",
-         "-v", f"{secret}:/run/secrets/postgres_password:ro", image, "migrate"], log)
+         "-e", "TERN_MIGRATIONS=/migrations", "-e", "API_PASSWORD_FILE=" + API_SECRET_TARGET,
+         "-v", f"{migrations}:/migrations:ro", "-v", f"{secret}:/run/secrets/postgres_password:ro",
+         "-v", f"{api_secret}:{API_SECRET_TARGET}:ro", image, command], log)
 
 
 def latest_migration(migrations: Path):

@@ -14,6 +14,20 @@ if [ -n "${PGPASSWORD_FILE:-}" ]; then
   export PGPASSWORD
 fi
 
+apply_api_role() {
+  API_PASSWORD="$(cat "${API_PASSWORD_FILE}")"
+  if [ -z "${API_PASSWORD}" ]; then
+    echo "API_PASSWORD_FILE is empty" >&2
+    exit 1
+  fi
+  export API_PASSWORD
+  exec psql --no-psqlrc --quiet --single-transaction --file=/usr/local/share/rune-nexus/api-role.sql
+}
+
+if [ "${1:-}" = "api-role" ]; then
+  apply_api_role
+fi
+
 if [ "${1:-}" = "migrate" ]; then
   migrations_found=false
   for migration in "${TERN_MIGRATIONS:-.}"/[0-9]*.sql; do
@@ -28,4 +42,9 @@ if [ "${1:-}" = "migrate" ]; then
   fi
 fi
 
-exec /usr/local/bin/tern "$@"
+if [ "${1:-}" != "migrate" ] || [ -z "${API_PASSWORD_FILE:-}" ]; then
+  exec /usr/local/bin/tern "$@"
+fi
+
+/usr/local/bin/tern "$@"
+apply_api_role

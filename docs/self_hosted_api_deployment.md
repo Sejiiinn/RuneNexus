@@ -93,8 +93,13 @@ chmod 600 .secrets/duckdns_token
 배포할 때 서버 보호 규칙을 먼저 배포한 뒤 올립니다. 서버 코드의 현재 호환 버전보다
 크게 설정하면 API가 시작을 거부합니다.
 
-PostgreSQL 비밀번호는 개발 환경과 동일하게 `.secrets/postgres_password` 파일을
-사용하며 환경 파일에 복사하지 않습니다. 운영 override는 Google 인증을 항상
+PostgreSQL 비밀번호는 개발 환경과 동일하게 `.secrets/postgres_password`와
+`.secrets/postgres_api_password` 파일을 사용하며 환경 파일에 복사하지 않습니다.
+API는 소유자 `rune_nexus_app`이 아니라 테이블 데이터 권한만 있는 `rune_nexus_api`로
+접속하고, 소유자 비밀번호는 API 컨테이너에 넣지 않습니다. 역할·권한·비밀번호는
+migrate가 끝날 때마다 [api-role.sql](../server/docker/api-role.sql)로 맞추므로 새 테이블이나
+복원한 DB에 별도 작업이 필요 없습니다. `server_release.py prepare`는 API 비밀번호
+파일이 없으면 만듭니다. 잃어버렸다면 새 파일을 만들고 migrate를 다시 실행합니다. 운영 override는 Google 인증을 항상
 활성화하므로 Client ID가 빠지면 Compose 설정 단계에서 실패합니다.
 운영 override는 Caddy가 정리한 `X-Forwarded-For`를 요청 제한 키로 사용하도록
 `TRUST_PROXY_HEADERS=true`도 고정합니다. API 8080을 외부에 직접 공개한 상태에서 이
@@ -268,6 +273,7 @@ API 이미지·DB 마이그레이션 반영은 [반영 스크립트](../scripts/
 
 - 등록·갱신: `python3 scripts/server_backup.py install-launchd`. launchd는 `~/Documents`의 스크립트와 외장 볼륨을 직접 읽지 못하므로(macOS 개인정보 보호) 스크립트 사본을 `~/Library/Application Support/RuneNexus/bin/`에 두고, 외장 볼륨 파일은 Docker 보조 컨테이너로만 다룬다. 스크립트를 바꾸면 다시 등록한다.
 - 복원 확인: `python3 scripts/server_backup.py verify [백업 이름]`이 백업을 일회용 격리 DB에 복원해 스키마·테이블·행 수를 보고한다. 운영 DB에는 접속하지 않는다.
+- 백업 복원은 권한을 가져오지 않습니다(`pg_restore --no-privileges`). 복원 뒤 migrate를 실행해야 API가 접속합니다.
 - 실제 복구는 API를 멈춘 뒤 운영 DB에 복원하는 파괴적 작업이므로 스크립트로 자동화하지 않고 사용자 승인 후 수행한다.
 
 ## 클라이언트 전환

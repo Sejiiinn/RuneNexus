@@ -177,12 +177,12 @@ func TestLeaderboardRunSettlementAtomicityAndReceiptBoundary(t *testing.T) {
 	request := economy.RunSettlementRequest{IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bf3", RunID: "0198b955-3656-7c40-b3cb-87f427b90bf2", RawBody: []byte(`{"run":1,"clientCompatibilityVersion":9}`), WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 1, StageNumber: 4, CompletedRounds: 20, PendingDiamonds: 5}
 	// 계정 한정 CHECK 실패로 정산의 마지막 쓰기 실패와 전체 롤백 검증.
 	constraint := "leaderboard_fail_" + strings.ReplaceAll(accountID, "-", "")
-	_, err = fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid)`)
+	err = ownerExec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid)`)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		_, _ = fixture.pool.Exec(context.Background(), `ALTER TABLE leaderboard_records DROP CONSTRAINT IF EXISTS `+constraint)
+		_ = ownerExec(context.Background(), `ALTER TABLE leaderboard_records DROP CONSTRAINT IF EXISTS `+constraint)
 	})
 	if _, err := service.SettleRun(ctx, accountID, fixture.sessionID, request); err == nil {
 		t.Fatal("failed leaderboard write committed settlement")
@@ -194,7 +194,7 @@ func TestLeaderboardRunSettlementAtomicityAndReceiptBoundary(t *testing.T) {
 	if revision != 1 || diamonds != 0 || claims != 0 {
 		t.Fatalf("partial commit %d %d %d", revision, diamonds, claims)
 	}
-	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records DROP CONSTRAINT `+constraint); err != nil {
+	if err := ownerExec(ctx, `ALTER TABLE leaderboard_records DROP CONSTRAINT `+constraint); err != nil {
 		t.Fatal(err)
 	}
 	result, err := service.SettleRun(ctx, accountID, fixture.sessionID, request)
@@ -337,11 +337,11 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 	}
 	// 리더보드 쓰기 실패 시 저장 본문·revision·영수증도 롤백.
 	constraint := "leaderboard_save_fail_" + strings.ReplaceAll(accountID, "-", "")
-	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid OR completed_rounds < 3)`); err != nil {
+	if err := ownerExec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid OR completed_rounds < 3)`); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		_, _ = fixture.pool.Exec(context.Background(), `ALTER TABLE leaderboard_records DROP CONSTRAINT IF EXISTS `+constraint)
+		_ = ownerExec(context.Background(), `ALTER TABLE leaderboard_records DROP CONSTRAINT IF EXISTS `+constraint)
 	})
 	higher := update(40, `{"stageNumber":4,"completedRounds":3}`)
 	if _, err := fixture.Update(ctx, accountID, higher); err == nil {
@@ -355,7 +355,7 @@ func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
 	if storedRevision != revision || receipts != 0 {
 		t.Fatalf("partial save commit %d %d", storedRevision, receipts)
 	}
-	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records DROP CONSTRAINT `+constraint); err != nil {
+	if err := ownerExec(ctx, `ALTER TABLE leaderboard_records DROP CONSTRAINT `+constraint); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := fixture.Update(ctx, accountID, higher); err != nil {

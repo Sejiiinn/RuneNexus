@@ -12,11 +12,14 @@ Docker Desktop을 설치하고 실행한 뒤 저장소 루트에서 비밀번호
 ```bash
 mkdir -p .secrets
 openssl rand -base64 48 > .secrets/postgres_password
-chmod 600 .secrets/postgres_password
+openssl rand -hex 32 > .secrets/postgres_api_password
+chmod 600 .secrets/postgres_password .secrets/postgres_api_password
 docker compose up -d --build api
 ```
 
 `.secrets/`는 Git에서 제외됩니다. 생성한 비밀번호 파일은 별도로 안전하게 보관하고 저장소에 커밋하지 않습니다.
+
+`postgres_password`는 스키마를 소유한 `rune_nexus_app`(마이그레이션·백업·운영 조회용), `postgres_api_password`는 API가 접속하는 `rune_nexus_api`의 비밀번호입니다. 기존 개발 DB는 두 번째 파일만 만들면 다음 마이그레이션 때 역할이 생깁니다.
 
 위 명령은 PostgreSQL을 시작하고, `tern` 마이그레이션을 적용한 뒤 Go API 서버를 시작합니다. 데이터베이스만 먼저 실행하려면 `docker compose up -d db`를 사용합니다.
 
@@ -67,8 +70,8 @@ curl --fail http://127.0.0.1:8080/health/ready
 host=127.0.0.1
 port=5432
 database=rune_nexus
-user=rune_nexus_app
-password=<.secrets/postgres_password 파일 내용>
+user=rune_nexus_api
+password=<.secrets/postgres_api_password 파일 내용>
 ```
 
 API 서버는 같은 Compose 네트워크에서 호스트 `db`, 포트 `5432`로 접속합니다. 호스트에서 Go 서버를 직접 실행할 때만 위의 `127.0.0.1` 접속 정보를 사용합니다.

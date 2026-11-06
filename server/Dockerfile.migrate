@@ -10,12 +10,13 @@ RUN GOBIN=/output go install github.com/jackc/tern/v2@v${TERN_VERSION}
 FROM alpine:3.22
 
 ARG TERN_VERSION
-RUN apk add --no-cache ca-certificates \
+RUN apk add --no-cache ca-certificates postgresql17-client \
     && addgroup -S -g 10001 runenexus \
     && adduser -S -D -H -u 10001 -G runenexus runenexus
 
 COPY --from=build /output/tern /usr/local/bin/tern
 COPY docker/migrate-entrypoint.sh /usr/local/bin/migrate-entrypoint
+COPY docker/api-role.sql /usr/local/share/rune-nexus/api-role.sql
 RUN chmod 0555 /usr/local/bin/migrate-entrypoint
 
 LABEL org.opencontainers.image.version="${TERN_VERSION}"

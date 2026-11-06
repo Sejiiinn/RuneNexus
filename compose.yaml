@@ -46,10 +46,12 @@ services:
       PGPASSWORD_FILE: /run/secrets/postgres_password
       PGSSLMODE: disable
       TERN_MIGRATIONS: /migrations
+      API_PASSWORD_FILE: /run/secrets/postgres_api_password
     volumes:
       - ./server/db/migrations:/migrations:ro
     secrets:
       - postgres_password
+      - postgres_api_password
     depends_on:
       db:
         condition: service_healthy
@@ -68,8 +70,8 @@ services:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
       DATABASE_NAME: rune_nexus
-      DATABASE_USER: rune_nexus_app
-      DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+      DATABASE_USER: rune_nexus_api
+      DATABASE_PASSWORD_FILE: /run/secrets/postgres_api_password
       DATABASE_SSLMODE: disable
       DATABASE_CONNECT_TIMEOUT: 5s
       READINESS_TIMEOUT: 2s
@@ -91,7 +93,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     secrets:
-      - postgres_password
+      - postgres_api_password
     depends_on:
       db:
         condition: service_healthy
@@ -120,6 +122,8 @@ services:
 secrets:
   postgres_password:
     file: ./.secrets/postgres_password
+  postgres_api_password:
+    file: ./.secrets/postgres_api_password
 
 volumes:
   rune_nexus_postgres_data:

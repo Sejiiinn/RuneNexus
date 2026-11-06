@@ -8,6 +8,7 @@ deploy <dir> --confirm API 정지 → 동결 백업·복원 확인 → 운영 �
 
 산출물은 저장소 밖 운영 작업 폴더에 둔다(비밀이 든 파일은 *.private.*, 0600).
 마이그레이션 적용 뒤에는 구 API/DB로 자동 복귀하지 않는다(새 쓰기를 버릴 수 없다).
+API는 소유자 계정이 아니라 데이터 권한만 가진 전용 역할로 접속한다(use_api_role).
 """
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import secrets
 import subprocess
 import sys
 import tempfile
@@ -74,6 +76,35 @@ def wait_healthy(container, seconds=90):
 
 def host_url(container):
     return "http://127.0.0.1:" + inspect(container)["NetworkSettings"]["Ports"]["8080/tcp"][0]["HostPort"]
+
+
+def ensure_api_secret(path: Path):
+    if not path.exists():
+        with server_ops.private_file(path) as stream:
+            stream.write(secrets.token_hex(32).encode())
+
+
+def password_mount(api):
+    return next(volume for volume in api["volumes"] if volume["target"] == api["environment"]["DATABASE_PASSWORD_FILE"])
+
+
+def use_api_role(api):
+    """API compose를 전용 역할 접속으로 바꾸고 그 비밀 파일 경로를 돌려준다. 이미 바뀌었으면 그대로 둔다."""
+    volume = password_mount(api)
+    if api["environment"]["DATABASE_USER"] != server_ops.API_ROLE:
+        volume["source"] = str(Path(volume["source"]).with_name(Path(server_ops.API_SECRET_TARGET).name))
+        volume["target"] = server_ops.API_SECRET_TARGET
+        api["environment"].update(DATABASE_USER=server_ops.API_ROLE, DATABASE_PASSWORD_FILE=server_ops.API_SECRET_TARGET)
+    return Path(volume["source"])
+
+
+def without_login(env):
+    return {key: value for key, value in env.items() if key not in ("DATABASE_USER", "DATABASE_PASSWORD_FILE")}
+
+
+def without_password_mount(container):
+    target = environment(container)["DATABASE_PASSWORD_FILE"]
+    return [mount for mount in container["Mounts"] if mount["Destination"] != target]
 
 
 def runtime_signature(container):
@@ -153,6 +184,7 @@ def prepare(commit, allowed):
     rollback = json.loads(current.read_text())
     release = copy.deepcopy(rollback)
     release["services"]["api"]["image"] = api_image
+    ensure_api_secret(use_api_role(release["services"]["api"]))
     write_private_json(work / "api-rollback.compose.private.json", rollback)
     write_private_json(work / "api-release.compose.private.json", release)
 
@@ -169,7 +201,7 @@ def prepare(commit, allowed):
         columns = server_ops.columns(db, user, name)
         before = server_ops.fingerprint(db, user, name)
         server_ops.migrate(migrate_image, source / "server/db/migrations", isolated["network"], db, user, name,
-                           isolated["secret"], log)
+                           isolated["secret"], isolated["secret"], log)
         if server_ops.schema_version(db, user, name) != expected_schema:
             raise RuntimeError("Rehearsed migration did not reach the expected schema")
         compare_tables(before, server_ops.fingerprint(db, user, name, columns), allowed)
@@ -239,7 +271,10 @@ def deploy(work: Path, target: Target, meta, allowed, label="production"):
         raise SystemExit(f"Schema moved since prepare: {schema}")
     run(["docker", "compose", "-f", str(target.release), "config", "--quiet"], log)
     env = environment(before)
-    secret = next(m["Source"] for m in before["Mounts"] if m["Destination"] == env["DATABASE_PASSWORD_FILE"])
+    database = inspect(target.db)
+    owner_secret = next(m["Source"] for m in database["Mounts"]
+                        if m["Destination"] == environment(database)["POSTGRES_PASSWORD_FILE"])
+    api_secret = password_mount(json.loads(target.release.read_text())["services"]["api"])["source"]
     network = next(iter(before["NetworkSettings"]["Networks"]))
 
     started = stamp()
@@ -249,7 +284,7 @@ def deploy(work: Path, target: Target, meta, allowed, label="production"):
         if inspect(target.api)["State"]["Status"] != "exited":
             raise RuntimeError("API did not stop")
         clients = server_ops.query(target.db, user, name,
-            "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND usename=current_user "
+            "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() "
             "AND pid<>pg_backend_pid() AND backend_type='client backend'")
         if clients != "0":
             raise RuntimeError(f"{clients} database clients still connected")
@@ -263,10 +298,11 @@ def deploy(work: Path, target: Target, meta, allowed, label="production"):
             if server_ops.fingerprint(isolated["db"], user, name) != fingerprint:
                 raise RuntimeError("Frozen backup does not restore to the stopped database")
         print("FROZEN_BACKUP_RESTORE_PASS", flush=True)
-        if meta["expected_schema"] > schema:
-            migrated = True
-            server_ops.migrate(meta["migrate_image"], work / "source/server/db/migrations", network,
-                               env["DATABASE_HOST"], user, name, Path(secret), log)
+        migrated = meta["expected_schema"] > schema
+        # 새 마이그레이션이 없어도 API 역할과 권한을 맞춘다
+        server_ops.migrate(meta["migrate_image"], work / "source/server/db/migrations", network,
+                           env["DATABASE_HOST"], user, name, Path(owner_secret), Path(api_secret), log)
+        if migrated:
             if server_ops.schema_version(target.db, user, name) != meta["expected_schema"]:
                 raise RuntimeError("Migration did not reach the expected schema")
             compare_tables(fingerprint, server_ops.fingerprint(target.db, user, name, columns), allowed)
@@ -299,14 +335,15 @@ def verify_deployed(work, target, meta, before, schema, frozen, started, user, n
         "target_sha": meta["target_sha"], "image": meta["api_image"], "image_id": after["Image"],
         "schema": {"before": schema, "after": server_ops.schema_version(target.db, user, name)},
         "frozen_backup": frozen.name, "frozen_backup_sha256": server_ops.sha256(frozen),
-        "environment_unchanged": environment(before) == environment(after),
-        "mounts_unchanged": before["Mounts"] == after["Mounts"],
+        "database_role": environment(after)["DATABASE_USER"] == server_ops.API_ROLE,
+        "environment_unchanged": without_login(environment(before)) == without_login(environment(after)),
+        "mounts_unchanged": without_password_mount(before) == without_password_mount(after),
         "ports_unchanged": before["HostConfig"]["PortBindings"] == after["HostConfig"]["PortBindings"],
         "networks_unchanged": set(before["NetworkSettings"]["Networks"]) == set(after["NetworkSettings"]["Networks"]),
         "runtime_contracts": runtime, "other_containers_preserved": preserved,
         "write_stop_started_at": started, "completed_at": stamp(), "checks": checks}
     write_private_json(work / f"{label}-verification.json", result)
-    failed = [key for key in ("environment_unchanged", "mounts_unchanged", "ports_unchanged", "networks_unchanged")
+    failed = [key for key in ("database_role", "environment_unchanged", "mounts_unchanged", "ports_unchanged", "networks_unchanged")
               if not result[key]] + [k for k, ok in {**runtime, **preserved}.items() if not ok]
     if after["Image"] != meta["api_image_id"] or failed:
         raise RuntimeError(f"Post-deploy contract mismatch: {failed}")
@@ -323,6 +360,9 @@ def rehearse(work: Path, allowed):
     server_ops.dump(server_ops.DB_CONTAINER, user, name, backup)
     with server_ops.isolated_database(user, name, stage, "release-rehearsal") as isolated:
         server_ops.restore(backup, isolated["db"], user, name)
+        # 복원은 역할을 만들지 않는데 현 API 설정은 이미 전용 역할로 접속할 수 있다
+        server_ops.migrate(meta["migrate_image"], work / "source/server/db/migrations", isolated["network"],
+                           isolated["db"], user, name, isolated["secret"], isolated["secret"], command="api-role")
         project = isolated["db"].removesuffix("-db")
         container = project + "-api"
 
