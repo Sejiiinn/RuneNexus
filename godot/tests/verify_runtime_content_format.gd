@@ -9,6 +9,48 @@ func _check(value: bool, message: String) -> void:
 	checks += 1
 	if not value: failures.append(message)
 
+# The rejections must come from the agreement check, not a later unrelated rule.
+func _rejects_boss(item: Dictionary, reason: String, label: String) -> void:
+	var message := Format.validate(item)
+	_check(message.contains(reason), label + ": " + message)
+
+func _boss_type_agreement(raw: Dictionary, catalog) -> void:
+	var item := raw.duplicate(true)
+	item.enemyDefinitions.boss.erase("isBoss")
+	_rejects_boss(item, "isBoss differs", "boss without isBoss rejected")
+	item = raw.duplicate(true)
+	item.enemyDefinitions.normal.isBoss = true
+	_rejects_boss(item, "isBoss differs", "isBoss outside bossTypes rejected")
+	item = raw.duplicate(true)
+	item.enemyDefinitions.boss.isBoss = 1
+	_rejects_boss(item, "Invalid enemy isBoss", "non-boolean isBoss rejected")
+	item = raw.duplicate(true)
+	item.randomization.bossTypes.erase("forgeBoss")
+	_rejects_boss(item, "isBoss differs", "bossTypes missing a flagged boss rejected")
+	# A boss added to content only: every content owner agrees, combat does not.
+	item = raw.duplicate(true)
+	item.enemies["newBoss"] = item.enemies.boss.duplicate(true)
+	item.enemies["newBoss"].type = "newBoss"
+	item.enemyDefinitions["newBoss"] = item.enemyDefinitions.boss.duplicate(true)
+	item.randomization.laneOffsetAmplitudes["newBoss"] = item.randomization.laneOffsetAmplitudes.boss
+	item.randomization.bossTypes.append("newBoss")
+	_rejects_boss(item, "Combat BOSS_TYPES differs", "content-only boss rejected")
+	# A compiled catalog cannot drop a combat boss, even with all its data removed.
+	item = raw.duplicate(true)
+	for owner in [item.enemies, item.enemyDefinitions, item.randomization.laneOffsetAmplitudes]: owner.erase("forgeBoss")
+	for owner in [item.randomization.bossTypes, item.enemyRarity.excludedTypes]: owner.erase("forgeBoss")
+	_rejects_boss(item, "misses combat boss", "compiled bossTypes must cover the combat constant")
+	# Empty targets: a bossless partial document is valid; a compiled one is not.
+	var bossless := {"enemies":{"normal":{}}, "enemyDefinitions":{"normal":{}}, "randomization":{"bossTypes":[]}}
+	_check(Format._validate_boss_types(bossless, false).is_empty(), "bossless partial fixture accepted")
+	_check(not Format._validate_boss_types(bossless, true).is_empty(), "compiled catalog cannot have empty bossTypes")
+	# wave_has_boss reads bossTypes rather than matching the type name.
+	_check(catalog.wave_has_boss(0, 9), "fixture wave has a boss")
+	var boss_types: Array = catalog._data.randomization.bossTypes
+	catalog._data.randomization.bossTypes = []
+	_check(not catalog.wave_has_boss(0, 9), "wave_has_boss follows bossTypes")
+	catalog._data.randomization.bossTypes = boss_types
+
 func _initialize() -> void:
 	var raw: Dictionary = TypedJson.parse(FileAccess.get_file_as_string("res://content/game_content.json"))
 	_check(Format.validate(raw).is_empty(), "compiled runtime format accepted")
@@ -106,6 +148,7 @@ func _initialize() -> void:
 	item.unexpected = true
 	invalids.append(item)
 	for invalid in invalids: _check(not Format.validate(invalid).is_empty(), "malformed compact rows/reference/header rejected")
+	_boss_type_agreement(raw, catalog)
 	var bad_fixture := catalog.domain_snapshot()
 	bad_fixture.stages[0].waves[0].spawnQueue[0].delay = -1.0
 	old_revision = catalog.content_revision()

@@ -260,7 +260,7 @@ func (service *Service) runLifecycle(ctx context.Context, accountText, sessionTe
 	if err = chargeDeckRerolls(ctx, q, account, closingDeck, source.ActiveRun, wallet.GemResetTickets, command.ID, &order); err != nil {
 		return CommandResult{}, err
 	}
-	wallet, err = q.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{AccountID: account, Revision: wallet.Revision + 1, FreeDiamonds: wallet.FreeDiamonds, PaidDiamonds: wallet.PaidDiamonds, ModuleTickets: wallet.ModuleTickets, ModuleDrawCount: wallet.ModuleDrawCount, ModuleTicketPurchaseCount: wallet.ModuleTicketPurchaseCount, ModuleItemSequence: wallet.ModuleItemSequence, ResearchSlotTwoUnlocked: wallet.ResearchSlotTwoUnlocked, Revision_2: wallet.Revision})
+	wallet, err = q.UpdatePlayerEconomy(ctx, NextWalletUpdate(wallet))
 	if err != nil {
 		return CommandResult{}, err
 	}

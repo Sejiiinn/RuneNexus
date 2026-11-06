@@ -549,7 +549,7 @@ func (service *Service) gemCommand(ctx context.Context, accountID, sessionID str
 	if err = q.SetGemResetTickets(ctx, dbgen.SetGemResetTicketsParams{AccountID: account, GemResetTickets: wallet.GemResetTickets - cost}); err != nil {
 		return CommandResult{}, err
 	}
-	wallet, err = q.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{AccountID: account, Revision: resultingRevision, FreeDiamonds: wallet.FreeDiamonds, PaidDiamonds: wallet.PaidDiamonds, ModuleTickets: wallet.ModuleTickets, ModuleDrawCount: wallet.ModuleDrawCount, ModuleTicketPurchaseCount: wallet.ModuleTicketPurchaseCount, ModuleItemSequence: wallet.ModuleItemSequence, ResearchSlotTwoUnlocked: wallet.ResearchSlotTwoUnlocked, Revision_2: wallet.Revision})
+	wallet, err = q.UpdatePlayerEconomy(ctx, NextWalletUpdate(wallet))
 	if err != nil {
 		return CommandResult{}, err
 	}

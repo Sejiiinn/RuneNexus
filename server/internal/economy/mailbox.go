@@ -240,7 +240,10 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 			return CommandResult{}, err
 		}
 	}
-	updated, err := q.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{AccountID: account, Revision: wallet.Revision + 1, FreeDiamonds: wallet.FreeDiamonds + diamonds, PaidDiamonds: wallet.PaidDiamonds, ModuleTickets: wallet.ModuleTickets + tickets, ModuleDrawCount: wallet.ModuleDrawCount, ModuleTicketPurchaseCount: wallet.ModuleTicketPurchaseCount, ModuleItemSequence: wallet.ModuleItemSequence, ResearchSlotTwoUnlocked: wallet.ResearchSlotTwoUnlocked, Revision_2: wallet.Revision})
+	walletUpdate := NextWalletUpdate(wallet)
+	walletUpdate.FreeDiamonds = wallet.FreeDiamonds + diamonds
+	walletUpdate.ModuleTickets = wallet.ModuleTickets + tickets
+	updated, err := q.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, err
 	}

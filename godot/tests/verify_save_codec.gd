@@ -10,7 +10,7 @@ func _initialize() -> void:
 		push_error("Missing save codec fixtures")
 		quit(1)
 		return
-	var failures := _integer_boundaries() + _boss_damage_training() + _damage_training() + _dot_metadata() + _poison_turret()
+	var failures := _integer_boundaries() + _boss_damage_training() + _damage_training() + _dot_metadata() + _poison_turret() + _hash_field_coverage(inputs)
 	for i in inputs.size():
 		# Historical synthetic scalar fixtures used 7.8, negative and nonnumeric
 		# revisions. Since v5, revision is a discriminant, not a lossy scalar:
@@ -195,6 +195,126 @@ func _poison_turret() -> int:
 		if Codec.decode(invalid) != null: failures += 1
 	print("SAVE_CODEC_POISON failures=", failures)
 	return failures
+
+# encode hashes only the keys ORDERS lists, so a save field missing there changes
+# the save without changing its hash: dirty stays false and nothing uploads, with
+# no error. No decoded field is excluded from the hash today; an intentional
+# exclusion needs an explicit, justified allowlist here. The fixture is written
+# by hand: generating it from ORDERS could never show a field missing from ORDERS.
+func _hash_field_coverage(inputs: Array) -> int:
+	var decoded: Variant = Codec.decode(_full_save_payload())
+	if not decoded is Dictionary:
+		print("SAVE_CODEC_HASH_FIXTURE_REJECTED")
+		return 1
+	var failures := 0
+	var hashed := {}
+	var unhashed := {}
+	_walk_hash_fields(decoded, "GameSaveData", Hash.ORDERS, hashed, unhashed)
+	for input in inputs: _walk_hash_fields(Codec.decode(input), "GameSaveData", Hash.ORDERS, {}, unhashed)
+	# A field written only on a branch the fixtures miss would escape the walk.
+	for name in Codec.SCALARS:
+		for key in Codec.SCALARS[name]:
+			if not key in Hash.ORDERS[name]: unhashed[name + "." + key] = true
+	var known := {}
+	for name in Hash.ORDERS:
+		for key in Hash.ORDERS[name]: known[key] = true
+	var written := _codec_written_keys()
+	for key in written:
+		if not known.has(key): unhashed["codec." + key] = true
+	if not unhashed.is_empty():
+		failures += 1
+		print("SAVE_CODEC_HASH_FIELD_MISSING ", unhashed.keys())
+	# Vacuity: the fixture reaches every ORDERS field, so the walk really ran over them.
+	var missed := []
+	for name in Hash.ORDERS:
+		for key in Hash.ORDERS[name]:
+			if not hashed.has(name + "." + key): missed.append(name + "." + key)
+	if not missed.is_empty():
+		failures += 1
+		print("SAVE_CODEC_HASH_FIXTURE_MISSES ", missed)
+	if written.size() < 40:
+		failures += 1
+		print("SAVE_CODEC_HASH_SOURCE_SCAN_EMPTY ", written.size())
+	# The walk itself must report a field removed from the order.
+	var trimmed: Dictionary = Hash.ORDERS.duplicate(true)
+	trimmed.SavedPoisonInstance.erase("corrosive")
+	var reported := {}
+	_walk_hash_fields(decoded, "GameSaveData", trimmed, {}, reported)
+	if reported.keys() != ["SavedPoisonInstance.corrosive"]:
+		failures += 1
+		print("SAVE_CODEC_HASH_WALK_BLIND ", reported.keys())
+	print("SAVE_CODEC_HASH_FIELDS hashed=", hashed.size(), " written=", written.size(), " failures=", failures)
+	return failures
+
+# Follows encode: ORDERS picks the record, CHILDREN the kind of each nested value.
+# Values without a kind are maps, which encode hashes key by key.
+func _walk_hash_fields(value: Variant, kind: String, orders: Dictionary, hashed: Dictionary, unhashed: Dictionary) -> void:
+	if value is Array:
+		for item in value: _walk_hash_fields(item, kind, orders, hashed, unhashed)
+	if not value is Dictionary: return
+	for key in value:
+		if orders.has(kind):
+			var field: String = kind + "." + key
+			if key in orders[kind]: hashed[field] = true
+			else: unhashed[field] = true
+		_walk_hash_fields(value[key], Hash.CHILDREN.get(key, ""), orders, hashed, unhashed)
+
+# Reads the fields the decoder assigns through `out.x =`, _optional_* and short
+# key-list loops. Other forms are only checked once the fixture below carries them.
+func _codec_written_keys() -> Array:
+	var source := FileAccess.get_file_as_string("res://app/save_codec.gd")
+	var keys := {}
+	for pattern in ["\\bout\\.(\\w+)\\s*=[^=]", "_optional_\\w+\\(out, v, \"(\\w+)\""]:
+		for found in RegEx.create_from_string(pattern).search_all(source): keys[found.get_string(1)] = true
+	var names := RegEx.create_from_string("\"(\\w+)\"")
+	for loop in RegEx.create_from_string("for key in \\[([^\\]]*)\\]:[^\\n]*(?:\\n[^\\n]*)?\\bout\\[key\\]").search_all(source):
+		for found in names.search_all(loop.get_string(1)): keys[found.get_string(1)] = true
+	return keys.keys()
+
+# Every persisted field, including those the decoder keeps only when present.
+# growthVersion 0 keeps the two levels that later growth versions retire.
+func _full_save_payload() -> Dictionary:
+	var module := {"id":"m1","turretType":"poison","part":"core","family":"venomCore","grade":"rare","acquiredOrder":1,"equipped":true,"options":[{"type":"poisonDurationIncrease","value":20}]}
+	return {"version":2, "savedAtMillis":1,
+		"preferences":{"selectedStageNumber":1,"autoStartMode":"fullAuto"},
+		"progression":{"runes":1,"growthVersion":0,"bossBountyUpgradeLevel":1,"totalPlayTimeMillis":1,"freeDiamonds":1,"paidDiamonds":1,
+			"dailyQuestDayKey":1,"lastDailyQuestSeenMillis":1,"dailyQuestClockRollbackDetected":false,"dailyQuestProgress":{"clearWaves":1},"claimedDailyQuestRewards":["clearWaves"],"dailyAttendanceRewardClaimed":true,"dailyQuestAllCompleteClaimed":true,
+			"weeklyQuestWeekKey":1,"weeklyQuestProgress":{"clearWaves":1},"claimedWeeklyQuestRewards":["clearWaves"],"weeklyQuestAllCompleteClaimed":true,"weeklyAttendanceDayKeys":[1],"weeklyAttendanceRewardClaimed":true,
+			"lastRunRuneReward":1,"startingGoldUpgradeLevel":1,"nexusHpUpgradeLevel":1,"supplyUpgradeLevel":1,"fireTrainingUpgradeLevel":1,
+			"bossDamageTrainingUpgradeLevel":1,"directDamageTrainingUpgradeLevel":1,"splashDamageTrainingUpgradeLevel":1,"damageOverTimeTrainingUpgradeLevel":1,"poisonDamageTrainingUpgradeLevel":1,
+			"physicalDamageTrainingUpgradeLevel":1,"elementalDamageTrainingUpgradeLevel":1,"criticalChanceUpgradeLevel":1,"criticalDamageUpgradeLevel":1,"killGoldUpgradeLevel":1,"emergencySaleUpgradeLevel":1,"linkCostOptimizationUpgradeLevel":1,"turretLevelUpOptimizationUpgradeLevel":1,
+			"unlockedStageCount":1,"bestRoundsByStage":{"1":1},"clearedStageNumbers":[1],
+			"researchLevels":{"researchEfficiency":1},"researchElapsedMillis":{"researchEfficiency":1},"researchSlotTwoUnlocked":true,
+			"activeResearches":[{"type":"researchEfficiency","targetLevel":1,"startedAtMillis":1,"durationMillis":1,"initialElapsedMillis":1}],
+			"coreCombatSkill":"riftMark","totalCorePoints":1,"lastRunCorePointReward":1,"lastRunTurretModuleTicketReward":1,
+			"corePassiveTreeRevision":4,"corePassiveNodeRanks":{},"claimedCorePointStageRewards":[1],"claimedEventIds":["e1"],
+			"progressionVersion":1,"unlockedStageIds":[1],"grandfatherUnlocks":["g1"],"gemResetTickets":1,
+			"corePassiveLegacyAllocation":{"revision":4,"ranks":{},"refundedPoints":1},
+			"hardBestRoundsByStage":{"1":1},"hardClearedStageNumbers":[1],"challengeStageNumbers":[1],"hardChallengeStageNumbers":[1],"claimedChallengeCorePointStages":[1],"claimedCollectionMedals":[1],
+			"achievementCounters":{"attendance":1},"achievementAttendanceDayKey":1,"claimedAchievementMedals":["a1"]},
+		"turretModules":{"tickets":1,"drawCount":1,"ticketPurchaseCount":1,"itemSequence":1,"items":[module]},
+		"activeRun":{"gold":1,"gemShards":1,"nexusHp":1.0,"stageNumber":1,"mapSignature":"m","roundIndex":1,"completedRounds":1,"phase":"reward",
+			"runUpgradeLevels":{"towerDamage":1},"killGoldFractionWallet":0.5,"gemInventory":{"poisonDamage":1},"rewardOptions":["poisonDamage"],"isPurchasedGemReward":true,
+			"economyRunId":"r1","pendingEconomyDiamonds":1,"rewardReturnPhase":"wave","runCoreCombatSkill":"riftMark",
+			"runCoreCombatSkillStats":{"directDamageDealt":1.0,"bonusDamageDealt":1.0,"activationCount":1},
+			"roundNexusHpLost":1.0,"emergencyChargeUsedThisRound":true,"finalDefenseUsedThisRound":true,
+			"turrets":[{"x":1,"y":1,"type":"poison","level":1,"slotLimit":1,"cooldown":1.0,"equippedGems":["poisonDamage"],"equippedGemSlots":["poisonDamage"],"investedGold":1,
+				"damageDealt":1.0,"directDamageDealt":1.0,"splashDamageDealt":1.0,"chainDamageDealt":1.0,"burnDamageDealt":1.0,"targetPriority":"last","primaryTrait":"venomPool","secondaryTrait":"corrosiveToxin","stockpileCharges":1}],
+			"enemies":[{"routeId":"r","type":"normal","maxHp":1.0,"hp":1.0,"shield":1.0,"shieldBroken":true,"armor":1.0,"distanceTravelled":1.0,
+				"burnRemaining":1.0,"burnDamagePerSecond":1.0,"burnDamageMultiplier":1.5,
+				"burnInstances":[{"damageOverTimeIncreaseMultiplier":1.5,"remaining":1.0,"damagePerSecond":1.0,"damageMultiplier":1.5,"sourceX":1,"sourceY":1,"ignoreArmorReduction":true}],
+				"poisonRemaining":1.0,"poisonDamagePerSecond":1.0,"poisonDamageMultiplier":1.5,"poisonDamageOverTimeIncreaseMultiplier":1.5,"poisonStacks":1,
+				"poisonInstances":[{"damageOverTimeIncreaseMultiplier":1.5,"remaining":1.0,"damagePerSecond":1.0,"damageMultiplier":1.5,"sourceX":1,"sourceY":1,"stackBonus":0.1,"corrosive":true}],
+				"slowInstances":[{"multiplier":0.5,"remaining":1.0}],
+				"physicalVulnerabilityRemaining":1.0,"physicalVulnerabilityBonus":1.0,"elementalVulnerabilityRemaining":1.0,"elementalVulnerabilityBonus":1.0,
+				"laneOffsetRatio":0.5,"diamondReward":1,"riftMarkRemaining":1.0,"riftMarkDamageAmplification":1.0,"firstControlApplied":true,"stunRemaining":1.0,"freezeRemaining":1.0,"rarity":"magic","affixes":["swift"]}],
+			"spawnQueue":[{"routeId":"r","enemyType":"normal","delay":1.0}],
+			"gemRerollsUsed":1,"runCorePassiveNodeRanks":{},"runTurretModules":[module],
+			"gemOfferId":"o1","gemOfferRevision":1,"gemOfferStatus":"open","gemOfferEquipRevision":1,"gemEconomyRevision":1,
+			"gemDeckLog":[{"kind":"wave","wave":1,"rerolls":1,"choice":"shards"},{"kind":"purchase","sequence":1,"choice":"shards"}],
+			"runCorePassiveTreeRevision":4,"nexusAdditionalHp":1.0,"nexusAdditionalHpGranted":true,"indomitableUsedThisStage":true,"nexusInvulnerableRemaining":1.0,
+			"supportCores":[{"x":1,"y":1,"family":"damage","consumedGem":"poisonDamage","investedGold":1}],
+			"difficulty":"hard","challengePeakTurrets":1,"challengeTurretTypes":["poison"],"challengeCoreReached":true}}
 
 # Godot JSON parses every number as float; compare values recursively without
 # equating booleans/strings to numbers or losing array order and null slots.

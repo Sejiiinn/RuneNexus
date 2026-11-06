@@ -361,6 +361,15 @@ func _load_slot(owner: String) -> bool:
 	app.scene.apply_frame({"reset":true,"sceneEpoch":app.epoch})
 	return app.retry_load()
 
+# A reloaded slot owns a new outbox. Settlement compares identity and stops
+# silently on a stale one, so rebinding it is part of acknowledging the reload.
+# A failure leaves the reload pending; each caller reports it in its own way.
+func _reload_account_slot() -> bool:
+	if not _load_slot(str(account.credentials.accountId)): return false
+	economy.outbox = app.checkpoint.rewards()
+	online.acknowledge_reload()
+	return true
+
 func logout() -> Dictionary:
 	if updates != null and updates.blocked: return {"ok":false,"code":"CLIENT_UPDATE_REQUIRED"}
 	if busy or (economy != null and economy.busy): return {"ok":false,"code":"BUSY"}
@@ -392,9 +401,7 @@ func sync() -> Dictionary:
 	if not app.checkpoint.store.has_recovery_marker() and not app.persist_progression(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	var result: Dictionary = await online.sync_checkpoint()
 	if online.requires_reload and online.state.get("rebase") == null:
-		if not _load_slot(str(account.credentials.accountId)): return {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
-		economy.outbox = app.checkpoint.rewards()
-		online.acknowledge_reload()
+		if not _reload_account_slot(): return {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
 	return result
 
 func retry() -> Dictionary:
@@ -422,10 +429,7 @@ func retry() -> Dictionary:
 func _refresh_online_session() -> Dictionary:
 	var result: Dictionary = await online.foreground()
 	if result.get("ok",false) and online.requires_reload:
-		if not _load_slot(str(account.credentials.accountId)): result = {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
-		else:
-			economy.outbox = app.checkpoint.rewards()
-			online.acknowledge_reload()
+		if not _reload_account_slot(): result = {"ok":false,"code":"ACCOUNT_SAVE_LOAD_FAILED"}
 	if result.get("ok",false): result = await economy.refresh()
 	refresh_mailbox_summary()
 	return result
@@ -676,9 +680,7 @@ func _ack_gem_save(result: Dictionary) -> bool:
 	var accepted: bool = await online.accept_gem_save(result)
 	if not accepted: return false
 	if online.requires_reload:
-		if not _load_slot(str(account.credentials.accountId)): return false
-		economy.outbox = app.checkpoint.rewards()
-		online.acknowledge_reload()
+		if not _reload_account_slot(): return false
 		if was_battle and not app._stage_entry_pending and not previous_run.is_empty() and app.run_domain.state.get("economyRunId") == previous_run:
 			if not await app._realize_battle_presentation(): return false
 			app.in_lobby = false
@@ -747,12 +749,10 @@ func _process(delta: float) -> void:
 	if updates != null and updates.blocked: return
 	if _session_end_pending and not busy: _handle_session_end()
 	if not busy and connected() and online_ready and online != null and online.requires_reload and online.state.get("rebase") == null:
-		if not _load_slot(str(account.credentials.accountId)):
+		if not _reload_account_slot():
 			issue = "ACCOUNT_SAVE_LOAD_FAILED"
 			online_ready = false
 			return
-		economy.outbox = app.checkpoint.rewards()
-		online.acknowledge_reload()
 	request_run_settlement()
 	if not busy and Time.get_ticks_msec() >= _mailbox_refresh_at: refresh_mailbox_summary()
 	if busy or not online_ready or not connected() or economy.busy or _settlement_scheduled or app.startup_blocked: return

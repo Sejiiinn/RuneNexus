@@ -227,17 +227,11 @@ func (service *Service) SettleRun(
 		}
 		loot = append(loot, module)
 	}
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds:              economy.FreeDiamonds + request.PendingDiamonds,
-		PaidDiamonds:              economy.PaidDiamonds,
-		ModuleTickets:             economy.ModuleTickets + stageTickets + drops.ModuleTickets,
-		ModuleDrawCount:           economy.ModuleDrawCount,
-		ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:        sequence,
-		ResearchSlotTwoUnlocked:   economy.ResearchSlotTwoUnlocked,
-		Revision_2:                economy.Revision,
-	})
+	walletUpdate := NextWalletUpdate(economy)
+	walletUpdate.FreeDiamonds = economy.FreeDiamonds + request.PendingDiamonds
+	walletUpdate.ModuleTickets = economy.ModuleTickets + stageTickets + drops.ModuleTickets
+	walletUpdate.ModuleItemSequence = sequence
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after run: %w", err)
 	}

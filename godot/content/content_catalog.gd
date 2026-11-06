@@ -140,8 +140,9 @@ func wave_count(index: int) -> int:
 
 func wave_has_boss(stage_index: int, round_index: int) -> bool:
 	if not _valid_wave(stage_index, round_index): return false
+	var boss_types: Array = _data.randomization.bossTypes
 	for group in _data.stages[stage_index].waves[round_index].groups:
-		if str(group.enemyType).to_lower().contains("boss"): return true
+		if group.enemyType in boss_types: return true
 	return false
 
 func stage_summary(index: int) -> Dictionary:

@@ -121,13 +121,10 @@ func (service *Service) CompleteResearch(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("create research progression effect: %w", err)
 	}
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds: freeAfter, PaidDiamonds: paidAfter, ModuleTickets: economy.ModuleTickets,
-		ModuleDrawCount: economy.ModuleDrawCount, ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:      economy.ModuleItemSequence,
-		ResearchSlotTwoUnlocked: economy.ResearchSlotTwoUnlocked, Revision_2: economy.Revision,
-	})
+	walletUpdate := NextWalletUpdate(economy)
+	walletUpdate.FreeDiamonds = freeAfter
+	walletUpdate.PaidDiamonds = paidAfter
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after research completion: %w", err)
 	}
@@ -226,13 +223,11 @@ func (service *Service) UnlockResearchSlotTwo(
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("create research slot command: %w", err)
 	}
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds: freeAfter, PaidDiamonds: paidAfter, ModuleTickets: economy.ModuleTickets,
-		ModuleDrawCount: economy.ModuleDrawCount, ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence: economy.ModuleItemSequence, ResearchSlotTwoUnlocked: true,
-		Revision_2: economy.Revision,
-	})
+	walletUpdate := NextWalletUpdate(economy)
+	walletUpdate.FreeDiamonds = freeAfter
+	walletUpdate.PaidDiamonds = paidAfter
+	walletUpdate.ResearchSlotTwoUnlocked = true
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after research slot unlock: %w", err)
 	}
@@ -336,14 +331,7 @@ func (service *Service) AcknowledgeProgressionEffect(
 	}); err != nil {
 		return CommandResult{}, fmt.Errorf("apply progression effect ack: %w", err)
 	}
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds: economy.FreeDiamonds, PaidDiamonds: economy.PaidDiamonds,
-		ModuleTickets: economy.ModuleTickets, ModuleDrawCount: economy.ModuleDrawCount,
-		ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:        economy.ModuleItemSequence,
-		ResearchSlotTwoUnlocked:   economy.ResearchSlotTwoUnlocked, Revision_2: economy.Revision,
-	})
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, NextWalletUpdate(economy))
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("advance economy after effect ack: %w", err)
 	}

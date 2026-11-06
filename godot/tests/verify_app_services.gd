@@ -147,6 +147,25 @@ class FixtureServer extends RefCounted:
 			return reply(200,{"weekKey":99,"rewardType":body.rewardType,"diamonds":5,"moduleTickets":0})
 		return reply(500,{},"UNEXPECTED_FIXTURE_ENDPOINT")
 
+# Reports one reload through whichever entry point the check drives.
+class ReloadOnline extends RefCounted:
+	var requires_reload := false
+	var reload_next := true
+	var state := {}
+	var acknowledged := 0
+	func _reply() -> Dictionary:
+		requires_reload = reload_next
+		reload_next = false
+		return {"ok":true}
+	func sync_checkpoint() -> Dictionary: return _reply()
+	func foreground() -> Dictionary: return _reply()
+	func accept_gem_save(_receipt: Dictionary) -> bool:
+		_reply()
+		return true
+	func acknowledge_reload() -> void:
+		requires_reload = false
+		acknowledged += 1
+
 class SceneStub extends RefCounted:
 	var combat_runtime := {"active":false}
 	func apply_frame(_frame): pass
@@ -169,6 +188,7 @@ class AppStub extends RefCounted:
 	var persist_count := 0
 	var pause_count := 0
 	var retry_count := 0
+	var fail_load := false
 	func refresh_ui():
 		if is_instance_valid(lobby): lobby.refresh()
 	func retry_load() -> bool:
@@ -179,7 +199,7 @@ class AppStub extends RefCounted:
 		progression_inputs.turretModules=data.turretModules.duplicate(true)
 		checkpoint.preferences=data.preferences.duplicate(true)
 		startup_blocked=false
-		return checkpoint.rewards().loaded
+		return checkpoint.rewards().loaded and not fail_load
 	func persist_progression() -> bool:
 		persist_count+=1
 		return not startup_blocked and checkpoint.save_progression(self,progression_inputs)==OK
@@ -263,6 +283,8 @@ func _run():
 	check(result.ok and service.online.requires_reload and app.startup_blocked,"Automatic sync quiesces before applying newer remote")
 	service._process(0)
 	check(not service.online.requires_reload and not app.startup_blocked and app.progression_inputs.runes==333,"Automatic rebase reloads checkpoint and acknowledges")
+	check(service.economy.outbox==app.checkpoint.rewards(),"Automatic rebase rebinds the reloaded slot's outbox")
+	await _reload_paths_rebind_outbox()
 	# A live same-account fallback must be preserved before in-memory migration
 	# or projection can overwrite it through the real AppServices quiesce hook.
 	var fallback: Dictionary = app.checkpoint.store.load_save().duplicate(true)
@@ -321,6 +343,31 @@ func _run():
 	await process_frame
 	print("APP_SERVICES failures=",failures.size()," ",failures)
 	quit(0 if failures.is_empty() else 1)
+
+# A reload replaces the checkpoint and its outbox. Settlement stops silently on
+# the old outbox, so every reload path must leave the new one bound.
+func _reload_paths_rebind_outbox() -> void:
+	var live_online = service.online
+	for path in ["sync", "foreground", "gem_save"]:
+		var fake := ReloadOnline.new()
+		service.online = fake
+		var stale = service.economy.outbox
+		var ok := false
+		match path:
+			"sync": ok = (await service.sync()).get("ok", false)
+			"foreground": ok = (await service._refresh_online_session()).get("ok", false)
+			"gem_save": ok = await service._ack_gem_save({})
+		check(ok and fake.acknowledged == 1 and not fake.requires_reload, path + " reload acknowledges once")
+		check(service.economy.outbox == app.checkpoint.rewards() and service.economy.outbox != stale, path + " reload rebinds the new slot's outbox")
+	# A failed load keeps the reload pending and the failure visible to the caller.
+	var failing := ReloadOnline.new()
+	failing.requires_reload = true
+	service.online = failing
+	app.fail_load = true
+	check(not service._reload_account_slot() and failing.requires_reload and failing.acknowledged == 0, "Failed slot load does not acknowledge the reload")
+	app.fail_load = false
+	check(service._reload_account_slot() and failing.acknowledged == 1 and service.economy.outbox == app.checkpoint.rewards(), "Reload retry after failure rebinds the outbox")
+	service.online = live_online
 
 func _labels(node: Node) -> Array[String]:
 	var result: Array[String]=[]

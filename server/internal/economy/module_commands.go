@@ -134,15 +134,14 @@ func (service *Service) DrawModules(
 		drawn = append(drawn, module)
 	}
 	ticketsAfter := economy.ModuleTickets + missingTickets - count
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds: freeAfter, PaidDiamonds: paidAfter, ModuleTickets: ticketsAfter,
-		ModuleDrawCount:           economy.ModuleDrawCount + count,
-		ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount + missingTickets,
-		ModuleItemSequence:        sequence,
-		ResearchSlotTwoUnlocked:   economy.ResearchSlotTwoUnlocked,
-		Revision_2:                economy.Revision,
-	})
+	walletUpdate := NextWalletUpdate(economy)
+	walletUpdate.FreeDiamonds = freeAfter
+	walletUpdate.PaidDiamonds = paidAfter
+	walletUpdate.ModuleTickets = ticketsAfter
+	walletUpdate.ModuleDrawCount = economy.ModuleDrawCount + count
+	walletUpdate.ModuleTicketPurchaseCount = economy.ModuleTicketPurchaseCount + missingTickets
+	walletUpdate.ModuleItemSequence = sequence
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after draw: %w", err)
 	}
@@ -263,15 +262,9 @@ func (service *Service) DisassembleModules(
 			return CommandResult{}, fmt.Errorf("disassemble player module: %w", err)
 		}
 	}
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds: economy.FreeDiamonds + refund, PaidDiamonds: economy.PaidDiamonds,
-		ModuleTickets: economy.ModuleTickets, ModuleDrawCount: economy.ModuleDrawCount,
-		ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:        economy.ModuleItemSequence,
-		ResearchSlotTwoUnlocked:   economy.ResearchSlotTwoUnlocked,
-		Revision_2:                economy.Revision,
-	})
+	walletUpdate := NextWalletUpdate(economy)
+	walletUpdate.FreeDiamonds = economy.FreeDiamonds + refund
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after disassembly: %w", err)
 	}

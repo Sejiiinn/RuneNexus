@@ -295,17 +295,10 @@ func (service *Service) Claim(
 	if err != nil {
 		return ClaimResult{}, fmt.Errorf("create weekly reward economy command: %w", err)
 	}
-	updatedEconomy, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: databaseAccountID, Revision: resultingRevision,
-		FreeDiamonds:              playerEconomy.FreeDiamonds + int64(definition.diamonds),
-		PaidDiamonds:              playerEconomy.PaidDiamonds,
-		ModuleTickets:             playerEconomy.ModuleTickets + int64(definition.moduleTickets),
-		ModuleDrawCount:           playerEconomy.ModuleDrawCount,
-		ModuleTicketPurchaseCount: playerEconomy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:        playerEconomy.ModuleItemSequence,
-		ResearchSlotTwoUnlocked:   playerEconomy.ResearchSlotTwoUnlocked,
-		Revision_2:                playerEconomy.Revision,
-	})
+	walletUpdate := economy.NextWalletUpdate(playerEconomy)
+	walletUpdate.FreeDiamonds = playerEconomy.FreeDiamonds + int64(definition.diamonds)
+	walletUpdate.ModuleTickets = playerEconomy.ModuleTickets + int64(definition.moduleTickets)
+	updatedEconomy, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return ClaimResult{}, fmt.Errorf("update weekly reward economy: %w", err)
 	}

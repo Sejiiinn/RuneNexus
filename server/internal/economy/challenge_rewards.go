@@ -196,17 +196,10 @@ func (service *Service) claimProgressionReward(ctx context.Context, accountID st
 		return CommandResult{}, fmt.Errorf("create %s reward claim: %w", claim.Reason, err)
 	}
 	reward := claim.Reward
-	updated, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
-		AccountID: accountUUID, Revision: resultingRevision,
-		FreeDiamonds:              economy.FreeDiamonds + reward.Diamonds,
-		PaidDiamonds:              economy.PaidDiamonds,
-		ModuleTickets:             economy.ModuleTickets + reward.ModuleTickets,
-		ModuleDrawCount:           economy.ModuleDrawCount,
-		ModuleTicketPurchaseCount: economy.ModuleTicketPurchaseCount,
-		ModuleItemSequence:        economy.ModuleItemSequence,
-		ResearchSlotTwoUnlocked:   economy.ResearchSlotTwoUnlocked,
-		Revision_2:                economy.Revision,
-	})
+	walletUpdate := NextWalletUpdate(economy)
+	walletUpdate.FreeDiamonds = economy.FreeDiamonds + reward.Diamonds
+	walletUpdate.ModuleTickets = economy.ModuleTickets + reward.ModuleTickets
+	updated, err := txQueries.UpdatePlayerEconomy(ctx, walletUpdate)
 	if err != nil {
 		return CommandResult{}, fmt.Errorf("update economy after %s claim: %w", claim.Reason, err)
 	}

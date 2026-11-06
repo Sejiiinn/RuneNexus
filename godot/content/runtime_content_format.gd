@@ -3,6 +3,7 @@ extends RefCounted
 const TypedJson = preload("res://app/save_json.gd")
 const Teleports = preload("res://combat/teleport_pairs.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
+const Enemy = preload("res://combat/native_enemy_state.gd")
 const SPAWN_COLUMNS = ["enemyType", "delay"]
 const ROUTE_SPAWN_COLUMNS = ["enemyType", "delay", "routeId"]
 const DURABILITY_COLUMNS = ["maxHp", "maxShield", "maxArmor"]
@@ -55,6 +56,8 @@ static func validate(candidate: Variant) -> String:
 		if not _float(rules.laneOffsetAmplitudes.get(type)): return "Invalid randomization amplitude"
 	for type in rules.bossTypes:
 		if not type is String or not candidate.enemies.has(type): return "Invalid randomization boss type"
+	var boss_error := _validate_boss_types(candidate, annotated)
+	if not boss_error.is_empty(): return boss_error
 	for field in ["carrierChance", "oneDiamondChanceGivenCarrier", "twoDiamondChanceGivenCarrier", "threeDiamondChanceGivenCarrier"]:
 		if not _float(rules.get(field)): return "Invalid randomization probability"
 	var schedule_id := RegEx.create_from_string("^schedule_[0-9a-f]{64}$")
@@ -125,6 +128,25 @@ static func validate(candidate: Variant) -> String:
 				for value in values:
 					if not _float(value) or value < 0.0: return "Invalid durability numeric type: " + str(type)
 	if used.size() != candidate.spawnSchedules.size(): return "Unreferenced spawn schedule"
+	return ""
+
+## Three owners decide who is a boss: definition isBoss (rewards, quests),
+## randomization.bossTypes (spawn rolls, wave_has_boss) and the combat BOSS_TYPES
+## constant, which enemy templates cannot override. Every enemy in the document
+## must agree across all three, so an empty bossTypes passes only where no enemy
+## is a boss by any owner. Compiled catalogs must also cover the whole constant;
+## without this, a catalog that lost its bosses would have nothing to compare.
+static func _validate_boss_types(candidate: Dictionary, compiled: bool) -> String:
+	var declared: Array = candidate.randomization.bossTypes
+	for type in candidate.enemies:
+		var flag: Variant = candidate.enemyDefinitions[type].get("isBoss", false)
+		if not flag is bool: return "Invalid enemy isBoss: " + str(type)
+		var listed: bool = type in declared
+		if flag != listed: return "Enemy isBoss differs from bossTypes: " + str(type)
+		if (type in Enemy.BOSS_TYPES) != listed: return "Combat BOSS_TYPES differs from bossTypes: " + str(type)
+	if compiled:
+		for type in Enemy.BOSS_TYPES:
+			if not type in declared: return "Compiled bossTypes misses combat boss: " + type
 	return ""
 
 static func _validate_elite_spawns(elites: Variant, queue: Array, rules: Dictionary) -> String:
