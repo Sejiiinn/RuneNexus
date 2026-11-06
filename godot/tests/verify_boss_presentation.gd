@@ -3,6 +3,7 @@ extends SceneTree
 const Units = preload("res://presentation/battlefield_units.gd")
 const Motion = preload("res://presentation/guardian_preview.gd")
 const Status = preload("res://effects/guardian_status.gd")
+const AttachmentKind = preload("res://effects/enemy_attachment_kind.gd")
 var failures: Array[String] = []
 
 class Runtime:
@@ -25,6 +26,11 @@ func bones(entry: Dictionary) -> Array[Transform3D]:
 	return result
 
 func run() -> void:
+	# Bosses reusing the boss body also need its status effect attachments.
+	for kind: String in Motion.BOSS_KINDS:
+		check(Units.ENEMY_MODELS.has(kind), "boss has no battlefield model: " + kind)
+		if Units.ENEMY_MODELS.get(kind) == Units.ENEMY_MODELS.boss:
+			check(AttachmentKind.resolve(kind) == "boss", "boss model without boss attachments: " + kind)
 	var world := Node3D.new()
 	root.add_child(world)
 	var camera := Camera3D.new()

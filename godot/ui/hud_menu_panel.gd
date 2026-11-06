@@ -4,6 +4,7 @@ const HudNumber = preload("res://ui/hud_number.gd")
 const Progression = preload("res://content/stage_progression.gd")
 const UiWidgets = preload("res://ui/ui_widgets.gd")
 const BattlefieldPath = preload("res://presentation/battlefield_path.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
 const RARITY_NAMES := {"magic": "마법", "rare": "희귀"}
 ## Same tier hues as the battlefield bar frame and model rim.
 const RARITY_COLORS := {"magic": Color("6f95ff"), "rare": Color("ffcc47")}
@@ -112,7 +113,7 @@ func _board_detail(tile: String,state: Dictionary) -> void:
 	var total := 0
 	var boss := false
 	for type in counts:
-		total += int(counts[type]); boss = boss or str(type).to_lower().contains("boss")
+		total += int(counts[type]); boss = boss or str(type) in CombatKinds.BOSS_TYPES
 	# Read-only info like the core tile; only the composition link is a control.
 	var title := UiWidgets.label(hud.body,_portal_title(),16); title.name = "PortalTitle"
 	var row := HBoxContainer.new(); row.name = "PortalWaveRow"; row.add_theme_constant_override("separation",0); hud.body.add_child(row)
@@ -229,8 +230,8 @@ func _portal_details(wave: Dictionary,index: int) -> void:
 		_wave_enemy_rows(box,section.counts,index,str(section.id),section.variants)
 
 func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: String,variants: Dictionary = {}) -> void:
-	var types: Array = counts.keys().filter(func(type): return str(type).to_lower().contains("boss"))
-	types.append_array(counts.keys().filter(func(type): return not str(type).to_lower().contains("boss")))
+	var types: Array = counts.keys().filter(func(type): return str(type) in CombatKinds.BOSS_TYPES)
+	types.append_array(counts.keys().filter(func(type): return not str(type) in CombatKinds.BOSS_TYPES))
 	var names = {"physical":"물리","elemental":"원소","poison":"독","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
 	for position in types.size():
 		var type: String = types[position]
@@ -248,7 +249,7 @@ func _wave_enemy_rows(box: VBoxContainer,counts: Dictionary,index: int,portal: S
 		name_label.name = "WaveEnemyName"; name_label.autowrap_mode = TextServer.AUTOWRAP_OFF; name_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		name_label.add_theme_font_override("font",hud.AppTheme.font(800))
-		if type.to_lower().contains("boss"): name_label.add_theme_color_override("font_color",Color("ff6b6b"))
+		if type in CombatKinds.BOSS_TYPES: name_label.add_theme_color_override("font_color",Color("ff6b6b"))
 		var stats: PackedStringArray = ["체력 "+HudNumber.compact_integer(roundi(float(durability.get("maxHp",enemy.get("maxHp",0)))))]
 		for spec in [["방어구","maxArmor"],["보호막","maxShield"]]:
 			if float(durability.get(spec[1],0))>0: stats.append(spec[0]+" "+HudNumber.compact_integer(roundi(float(durability[spec[1]]))))

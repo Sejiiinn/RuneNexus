@@ -2,6 +2,10 @@ extends RefCounted
 ## Wire values shared by combat producers and session/presentation consumers.
 ## Fixtures, journals and protocol checks use these exact strings; never rename.
 
+# Enemy types with boss rules. Content must agree: runtime_content_format checks
+# isBoss, randomization.bossTypes and enemyRarity.excludedTypes against this list.
+const BOSS_TYPES := ["boss", "shieldBoss", "forgeBoss"]
+
 # Journal events the runtime emits for the run domain and presentation.
 const KILL := "kill"
 const ARRIVAL := "arrival"

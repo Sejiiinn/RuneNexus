@@ -4,6 +4,7 @@ extends RefCounted
 const CoreTree = preload("res://content/generated_core_tree.gd")
 const ContentRegistry = preload("res://content/generated_content_registry.gd")
 const Rarity = preload("res://combat/enemy_rarity.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
 const TurretIdentity = preload("res://content/turret_identity.gd")
 const ENUMS = {
 	"ResearchType": [
@@ -957,9 +958,9 @@ static func _object(name: String, v: Variant) -> Variant:
 			# Optional so saves without poison keep their payload hash.
 			var poisons := _objects(v.get("poisonInstances"), "SavedPoisonInstance")
 			if not poisons.is_empty(): out.poisonInstances = poisons
-			out.diamondReward = 0 if out.type in ["boss", "shieldBoss", "forgeBoss"] else clampi(_int(v.get("diamondReward")), 0, 3)
+			out.diamondReward = 0 if out.type in CombatKinds.BOSS_TYPES else clampi(_int(v.get("diamondReward")), 0, 3)
 			# Optional magic/rare identity; invalid or boss values restore an ordinary enemy.
-			if v.has("rarity") and not out.type in ["boss", "shieldBoss", "forgeBoss"] and Rarity.valid_values(v.rarity, v.get("affixes", [])):
+			if v.has("rarity") and not out.type in CombatKinds.BOSS_TYPES and Rarity.valid_values(v.rarity, v.get("affixes", [])):
 				out.rarity = v.rarity
 				out.affixes = v.get("affixes", []).duplicate()
 	return out

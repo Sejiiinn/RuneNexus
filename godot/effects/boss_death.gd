@@ -1,5 +1,6 @@
 extends RefCounted
 const StageResources = preload("res://presentation/stage_resources.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
 ## Shared authored stone/core, one collapse pulse and combat-clock-only residue.
 ## Root-owned attachments disappear with their walker/corpse; no process/tweens.
 const LIFETIME := 2.75
@@ -176,7 +177,7 @@ static func _sample_debris(entry: Dictionary, age: float) -> void:
 
 
 static func retain_stage(enemy_types: Array, tower_types: Array) -> void:
-	if "boss" in enemy_types or "shieldBoss" in enemy_types or "forgeBoss" in enemy_types: return
+	if enemy_types.any(func(kind): return kind in CombatKinds.BOSS_TYPES): return
 	_materials.clear()
 	_chip_meshes.clear()
 	_chip_material = null

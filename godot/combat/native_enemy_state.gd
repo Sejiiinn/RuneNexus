@@ -12,7 +12,6 @@ const POISON_STACK_CAP := 20
 const POISON_STACK_BONUS := 0.05
 ## Bosses resist this share of every slow.
 const BOSS_SLOW_RESISTANCE := 0.5
-const BOSS_TYPES := ["boss","shieldBoss","forgeBoss"]
 
 static func create(raw: Dictionary) -> Dictionary:
 	var e: Dictionary = raw.duplicate(true)
@@ -316,7 +315,7 @@ static func _restore_legacy_poison(e: Dictionary) -> void:
 	e.erase("poisonDamageOverTimeIncreaseMultiplier")
 
 static func is_boss(e: Dictionary) -> bool:
-	return bool(e.get("isBoss",false)) or e.get("type","") in BOSS_TYPES
+	return bool(e.get("isBoss",false)) or e.get("type","") in Kinds.BOSS_TYPES
 
 static func add_vulnerability(e: Dictionary,kind: String,bonus: float,duration: float) -> void:
 	if kind not in ["physical","elemental"] or bonus<=0 or duration<=0: return

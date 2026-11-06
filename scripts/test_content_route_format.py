@@ -203,7 +203,7 @@ class RouteFormatTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='route-format-') as directory:
             temporary = Path(directory)
             for name in ('content/runtime_content_format.gd', 'combat/teleport_pairs.gd',
-                         'combat/enemy_rarity.gd', 'combat/native_enemy_state.gd',
+                         'combat/enemy_rarity.gd',
                          'combat/combat_kinds.gd', 'app/save_json.gd'):
                 target = temporary / name
                 target.parent.mkdir(parents=True, exist_ok=True)

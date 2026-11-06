@@ -1,6 +1,7 @@
 extends Node2D
 const RuntimeProfile = preload("res://app/runtime_profile.gd")
 const EffectFormat = preload("res://combat/effect_presentation.gd")
+const CombatKinds = preload("res://combat/combat_kinds.gd")
 var spatial_lightning := false
 var spatial_ricochet := false
 
@@ -791,7 +792,7 @@ func _death(e: Dictionary, p: float, c: Color) -> void:
 	var alpha := pow(1 - p, 0.72)
 	var type := str(e.get("enemyType", "normal"))
 	var type_index := int(e.get("enemyTypeIndex", 0))
-	var boss := type in ["boss", "shieldBoss", "forgeBoss"]
+	var boss := type in CombatKinds.BOSS_TYPES
 	if _silhouettes != null:
 		var extent := r * (1 - p * 0.14) * 1.5
 		_surface.draw_texture_rect_region(_silhouettes, Rect2(Vector2(-extent / 2, -extent / 2 - r * p * 0.18), Vector2.ONE * extent), Rect2(type_index * 192, 0, 192, 192), Color(1, 1, 1, alpha * 0.5))

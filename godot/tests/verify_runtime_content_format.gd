@@ -2,6 +2,7 @@ extends SceneTree
 const Catalog = preload("res://content/content_catalog.gd")
 const Format = preload("res://content/runtime_content_format.gd")
 const TypedJson = preload("res://app/save_json.gd")
+const SaveCodec = preload("res://app/save_codec.gd")
 var checks := 0
 var failures := []
 
@@ -35,6 +36,9 @@ func _boss_type_agreement(raw: Dictionary, catalog) -> void:
 	item.randomization.laneOffsetAmplitudes["newBoss"] = item.randomization.laneOffsetAmplitudes.boss
 	item.randomization.bossTypes.append("newBoss")
 	_rejects_boss(item, "Combat BOSS_TYPES differs", "content-only boss rejected")
+	item = raw.duplicate(true)
+	item.enemyRarity.excludedTypes.erase("forgeBoss")
+	_rejects_boss(item, "Boss can roll enemy rarity", "boss missing from rarity exclusions rejected")
 	# A compiled catalog cannot drop a combat boss, even with all its data removed.
 	item = raw.duplicate(true)
 	for owner in [item.enemies, item.enemyDefinitions, item.randomization.laneOffsetAmplitudes]: owner.erase("forgeBoss")
@@ -149,6 +153,7 @@ func _initialize() -> void:
 	invalids.append(item)
 	for invalid in invalids: _check(not Format.validate(invalid).is_empty(), "malformed compact rows/reference/header rejected")
 	_boss_type_agreement(raw, catalog)
+	for type: String in raw.enemies: _check(type in SaveCodec.ENUMS.EnemyType, "save enum misses enemy: " + type)
 	var bad_fixture := catalog.domain_snapshot()
 	bad_fixture.stages[0].waves[0].spawnQueue[0].delay = -1.0
 	old_revision = catalog.content_revision()

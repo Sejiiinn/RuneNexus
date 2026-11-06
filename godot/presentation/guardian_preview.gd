@@ -5,7 +5,7 @@ signal failure(message: String)
 const StageResources = preload("res://presentation/stage_resources.gd")
 const WALK_PATH := "res://assets/enemies/normal.glb"
 const BOSS_PATH := "res://assets/enemies/boss.glb"
-const BOSS_KINDS := ["boss", "shieldBoss", "forgeBoss"]
+const BOSS_KINDS := CombatKinds.BOSS_TYPES
 const BossDeath = preload("res://effects/boss_death.gd")
 # Exported boss is normalized to 1.5 times the displayed tank at content scale .79.
 const BOSS_VISUAL_SCALE := 1.0
