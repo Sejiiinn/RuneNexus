@@ -78,7 +78,6 @@ var _turret_level_labels := TurretLevelLabels.new()
 var _stockpile_indicator := StockpileIndicator.new()
 var _presentation_layer := CanvasLayer.new()
 var _presentation_nodes := {"labels": BattlefieldLabels.new(), "selection": BattlefieldSelection.new(), "effects": BattlefieldEffects.new()}
-var _applied_groups: Array = []
 var enemies: Dictionary:
 	get: return _units.enemies
 var projectiles: Dictionary:
@@ -139,7 +138,6 @@ var _build_tile_slots: PackedInt32Array:
 var _current_map: Dictionary:
 	get: return _environment._current_map
 var _map_revision := -1
-var _map_request := {}
 var _using_authored: bool:
 	get: return _environment._using_authored
 var _portals: Array[Node3D]:

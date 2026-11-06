@@ -16,7 +16,7 @@ func _initialize() -> void:
 	_runtime_routes()
 	_request_routes()
 	_route_teleports()
-	_layout_route_teleports()
+	_restored_route_teleports()
 	_target_routes()
 	_content_routes()
 	print(JSON.stringify({"checks":checks,"failures":failures}))
@@ -37,9 +37,6 @@ func _runtime_routes() -> void:
 	child.id = 3
 	runtime.process_command({"epoch":1,"sequence":2,"commands":[{"kind":"spawn","enemy":child}],"dt":0.25})
 	check(runtime.enemies["3"].routeId == "b" and runtime.enemies["3"].path == runtime.enemies["2"].path and runtime.enemies["3"].x == 0,"child/copied spawn inherits route and progress")
-	var distance: float = runtime.enemies["2"].distanceTravelled
-	runtime.process_command({"epoch":1,"sequence":3,"commands":[{"kind":"layout","tileSize":2.0,"boardDistanceScale":2.0,"path":[[0,0],[20,0],[20,20]]}]})
-	check(is_equal_approx(runtime.enemies["2"].distanceTravelled,distance*2) and runtime.enemies["2"].x == 0,"layout scales selected route without replacing it")
 	var snap: Dictionary = runtime.snapshot()
 	var resumed = Runtime.new()
 	var restored := {"path":runtime.path,"routes":[{"id":"a","path":runtime.routes.a.path},{"id":"b","path":runtime.routes.b.path}],"enemies":snap.enemies}
@@ -48,8 +45,8 @@ func _runtime_routes() -> void:
 	var bad := config.duplicate(true)
 	bad.enemies[0].routeId = "missing"
 	check(not runtime.process_command({"epoch":2,"sequence":0,"bootstrap":bad}).accepted and runtime.epoch == 1,"unknown route rejected before reset")
-	runtime.process_command({"epoch":1,"sequence":4,"commands":[{"kind":"coreDamage","enemyId":2,"damage":1000.0}]})
-	runtime.process_command({"epoch":1,"sequence":5,"ackEvent":runtime.event_id})
+	runtime.process_command({"epoch":1,"sequence":3,"commands":[{"kind":"coreDamage","enemyId":2,"damage":1000.0}]})
+	runtime.process_command({"epoch":1,"sequence":4,"ackEvent":runtime.event_id})
 	var deaths: Array = runtime.take_death_presentations()
 	check(deaths.size() == 1 and deaths[0].enemyPresentation.routeId == "b","ACK death presentation retains killed route")
 func _request_routes() -> void:
@@ -133,23 +130,24 @@ func _route_teleports() -> void:
 	for index in range(30): many.advance_session(Runtime.FIXED_STEP)
 	check(one.snapshot().enemies == many.snapshot().enemies,"routed fixed steps are independent of render batching")
 
-func _layout_route_teleports() -> void:
+func _restored_route_teleports() -> void:
 	var path := [[0,0],[1,0],[4,0],[5,0]]
 	var pairs := [{"color":"blue","entranceIndex":1,"exitIndex":2}]
 	var enemy := {"id":1,"routeId":"a","path":path,"teleportPairs":pairs,"maxHp":10.0,"speed":1.0}
 	var queued := enemy.duplicate(true)
 	queued.id = 2
+	var wave := {"id":1,"active":true,"spawnQueue":[{"enemyType":"normal","delay":3.0,"routeId":"a","enemy":queued}]}
+	var short := [[0,0],[1,0]]
 	var runtime = Runtime.new()
-	check(runtime.process_command({"epoch":1,"sequence":0,"bootstrap":{"path":path,"routes":[{"id":"a","path":path,"teleportPairs":pairs}],"enemies":[enemy],"wave":{"id":1,"active":true,"spawnQueue":[{"enemyType":"normal","delay":3.0,"routeId":"a","enemy":queued}]}}}).accepted,"layout teleport fixture accepted")
-	check(runtime.process_command({"epoch":1,"sequence":1,"commands":[{"kind":"layout","routes":[{"id":"a","path":[[0,0],[1,0]]}]}]}).accepted,"replace named route topology without old teleports")
-	check(not runtime.enemies["1"].has("teleportPairs") and runtime.enemies["1"].path.size() == 2,"live path replacement clears stale teleport indices")
-	check(not runtime.wave.queue[0].enemy.has("teleportPairs") and runtime.wave.queue[0].enemy.path.size() == 2,"pending path replacement clears stale teleport indices")
+	check(runtime.process_command({"epoch":1,"sequence":0,"bootstrap":{"path":short,"routes":[{"id":"a","path":short}],"enemies":[enemy],"wave":wave}}).accepted,"bootstrap replaces named route topology without old teleports")
+	check(not runtime.enemies["1"].has("teleportPairs") and runtime.enemies["1"].path.size() == 2,"restored enemy path clears stale teleport indices")
 	for tick in range(4): runtime._step(1.0)
-	check(runtime.enemies["1"].arrived and runtime.enemies["2"].arrived,"updated live and pending routes arrive without invalid teleport index")
-	var added := {"kind":"layout","routes":[{"id":"a","path":path,"teleportPairs":pairs}]}
-	check(runtime.process_command({"epoch":1,"sequence":2,"commands":[added]}).accepted,"replacement may restore matching teleport metadata")
-	added.routes[0].teleportPairs[0].exitIndex = 99
-	check(runtime.routes.a.teleportPairs[0].exitIndex == 2 and runtime.enemies["1"].teleportPairs[0].exitIndex == 2,"layout teleport metadata owned independently of input")
+	check(not runtime.enemies["2"].has("teleportPairs") and runtime.enemies["2"].path.size() == 2,"pending spawn path clears stale teleport indices")
+	check(runtime.enemies["1"].arrived and runtime.enemies["2"].arrived,"restored and pending routes arrive without invalid teleport index")
+	var restored := {"path":path,"routes":[{"id":"a","path":path,"teleportPairs":pairs}],"enemies":[enemy]}
+	check(runtime.process_command({"epoch":2,"sequence":0,"bootstrap":restored}).accepted,"new epoch may restore matching teleport metadata")
+	restored.routes[0].teleportPairs[0].exitIndex = 99
+	check(runtime.routes.a.teleportPairs[0].exitIndex == 2 and runtime.enemies["1"].teleportPairs[0].exitIndex == 2,"route teleport metadata owned independently of input")
 
 func _content_routes() -> void:
 	var catalog = Catalog.new()

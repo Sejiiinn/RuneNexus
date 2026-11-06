@@ -147,6 +147,7 @@ func _add_puddle(t: Dictionary, a: Dictionary, at: Vector2) -> void:
 		var oldest: Dictionary = owned.pop_front()
 		puddles.erase(oldest)
 		visual_effects = visual_effects.filter(func(v): return int(v.id) != int(oldest.visualId))
+		_prepared_effects.erase(int(oldest.visualId))
 	_visual("blast", at, t, {"style": "venom", "variant": "venom", "duration": maxf(VENOM_SPLASH_DURATION, duration), "radius": radius})
 	puddles.append({"owner": str(t.id), "position": at, "radius": radius, "remaining": duration, "attack": _poison_stack_attack(a), "visualId": visual_id})
 	if not t.has("puddleTick"): t.puddleTick = 0.0

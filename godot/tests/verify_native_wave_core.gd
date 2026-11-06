@@ -201,10 +201,6 @@ func _runtime() -> void:
 	_check(_count(multi,"arrival")==2,"multiple arrivals emitted once in same native frame")
 	_compare(multi.defense.hp,80.0,"multiple arrivals deduct both damages")
 	_compare(multi.core.cooldown,2.5,"multiarrival applies one emergency then one core dt")
-	var resized = _setup([],[{"enemyType":"normal","delay":0.5,"enemy":spawn}])
-	resized.process_command({"epoch":1,"sequence":1,"dt":0.5,"commands":[{"kind":"layout","origin":[10,20],"tileSize":2.0,"boardDistanceScale":2.0,"path":[{"x":10,"y":20},{"x":210,"y":20}]}]})
-	_compare(resized.enemies["31"].x,10.0,"queued enemy spawn applies resized origin")
-	_compare(resized.enemies["31"].path[1].x,210.0,"queued enemy spawn applies resized path")
 
 	var visual_frame: Dictionary = beam.decorate_frame({"presentation":{"effects":{}}})
 	var beams: Array = visual_frame.presentation.effects.items.filter(func(v): return v.kind == "coreBeam")
@@ -238,9 +234,9 @@ func _sync_command_checks(input: Dictionary) -> void:
 	_compare(r.turrets["2"].stats.attackRate,base.attackRate*1.2,"active config updates all turret rates")
 	r._command({"kind":"coreConfig","config":config,"state":{"attackSyncRemaining":2.0}})
 	_compare(r.turrets["2"].stats.damage,base.damage*1.5,"same actual multiplier preserves active stats")
-	r._command({"kind":"resetCoreCycle"})
-	_compare(r.turrets["2"].stats.damage,base.damage,"reset cycle clears sync immediately")
-	r._command({"kind":"waveStart","wave":{"id":2,"active":true,"spawnQueue":[],"core":{"attackSyncRemaining":1.0}}})
+	r._command({"kind":"waveStart","wave":{"id":2,"active":true,"spawnQueue":[]}})
+	_compare(r.turrets["2"].stats.damage,base.damage,"wave start reset cycle clears sync immediately")
+	r._command({"kind":"waveStart","wave":{"id":3,"active":true,"spawnQueue":[],"core":{"attackSyncRemaining":1.0}}})
 	_compare(r.turrets["2"].stats.attackRate,base.attackRate*1.2,"wave core restoration refreshes sync immediately")
 	# Guardian reads unboosted DPS when old sync expires, then activates new sync.
 	config.normalMaxHp = 0.0

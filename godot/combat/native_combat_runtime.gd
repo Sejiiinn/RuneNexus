@@ -119,10 +119,6 @@ func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dicti
 	for command in packet.get("commands",[]):
 		var route_error := _validate_command_routes(command)
 		if not route_error.is_empty(): return {"accepted":false,"reason":"invalidRoutes","detail":route_error}
-		if command.get("kind") == Kinds.COMMAND_LAYOUT:
-			var teleport_error := Teleports.validate_compiled(teleport_pairs,command.get("path",path))
-			if not teleport_error.is_empty():
-				return {"accepted":false,"reason":"invalidTeleportPairs","detail":teleport_error}
 	var clock_change: bool = same_native_epoch and packet.get("session") is Dictionary and _changes_clock_controls(packet.session)
 	if clock_change: clock_control_changing.emit()
 	var ack_event := int(packet.get("ackEvent", 0))
@@ -203,7 +199,6 @@ func _reset(packet: Dictionary) -> void:
 	routes.clear()
 	for route in b.get("routes", []):
 		routes[route.id] = {"path":_path(route.path),"teleportPairs":route.get("teleportPairs",[]).duplicate(true),"spawnPortalId":route.get("spawnPortalId","")}
-	_path_revision += 1
 	origin = _vec(b.get("origin", [0, 0]))
 	tile_size = maxf(0.001, b.get("tileSize", 1.0))
 	board_scale = b.get("boardDistanceScale", 1.0)

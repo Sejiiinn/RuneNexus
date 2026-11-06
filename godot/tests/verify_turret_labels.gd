@@ -23,7 +23,6 @@ func _verify() -> void:
 	scene.options["turret_levels"] = true
 	scene._report_presentation()
 	_check(labels.badges.size() == scene.turrets.size(), "확정 포탑의 레벨 표시 누락")
-	_check(scene.presentation()["nativeTurretLevels"], "네이티브 포탑 레벨 capability 누락")
 	var id: int = scene.turrets.keys()[0]
 	var badge: Sprite2D = labels.badges[id]
 	var initial: Vector2 = badge.position
@@ -62,10 +61,10 @@ func _verify() -> void:
 	_check(not labels.badges.has(id), "철거한 포탑의 배지가 남음")
 	scene.options["turret_levels"] = false
 	scene._report_presentation()
-	_check(not labels.visible and not scene.presentation()["nativeTurretLevels"], "레거시 표시로 전환 실패")
+	_check(not labels.visible, "레거시 표시로 전환 실패")
 	scene.apply_frame({"reset": true})
 	_check(labels.badges.is_empty(), "전장 종료 뒤 배지 노드가 남음")
-	print("Turret labels verification: %d failures; camera without frame input, aim, zoom, level, removal, capability, reset" % failures)
+	print("Turret labels verification: %d failures; camera without frame input, aim, zoom, level, removal, reset" % failures)
 	scene.queue_free()
 	await process_frame
 	quit(0 if failures == 0 else 1)

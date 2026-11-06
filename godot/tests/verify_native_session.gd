@@ -116,7 +116,7 @@ func _command_replay(chunk_ticks: int):
 		match runtime.simulation_tick:
 			3: commands = [{"kind":"spawn","enemy":{"id":7,"hp":100,"maxHp":100,"speed":6,"path":[[0,0],[100,0]]}}]
 			8: commands = [{"kind":"coreDamage","enemyId":7,"damage":7.0}]
-			13: commands = [{"kind":"riftMark","enemyId":7,"damageAmplification":0.25,"duration":0.2}]
+			13: commands = [{"kind":"coreConfig","config":{"runSkill":"riftMark"},"state":{"cooldown":0.0}}]
 		if commands.is_empty(): return
 		var packet := {"epoch":1,"sequence":runtime.sequence+1,"ackEvent":runtime.event_id,"commands":commands}
 		runtime.process_command(packet, false)
@@ -133,6 +133,7 @@ func _verify_boundary_commands() -> void:
 	check(fine.simulation_tick == 24 and coarse.simulation_tick == 24, "timestamped commands execute on identical ticks")
 	check(fine.enemies == coarse.enemies and fine.events == coarse.events, "same boundary commands are independent of render grouping")
 	check(fine.enemies["7"].hp == 93.0 and fine.sequence == 3 and fine.event_id == coarse.event_id, "duplicate command ACK does not repeat boundary damage")
+	check(fine.core.activation_count == 1 and coarse.core.activation_count == 1, "boundary core config activates rift mark once")
 
 func _verify_boundary_transitions() -> void:
 	var runtime = _new_runtime()

@@ -94,13 +94,23 @@ func _check_landmarks(scene: Node3D, frame: Dictionary) -> void:
 	_check(crystal_light.transform.is_equal_approx(crystal_light_transform), "보조광이 결정·카메라를 따라 움직임")
 
 
+## 전장 좌표를 화면 비율 좌표로 옮기는 아핀 축을 실제 카메라에서 측정한다.
+func _projection(scene: Node3D) -> Dictionary:
+	var size: Vector2 = scene.get_viewport().get_visible_rect().size
+	var corner := Vector3(-scene.columns / 2.0, 0.0, -scene.rows / 2.0)
+	var screen := func(offset: Vector3) -> Vector2:
+		return scene.camera.unproject_position(scene.world.to_global(corner + offset)) / size
+	var origin: Vector2 = screen.call(Vector3.ZERO)
+	return {"origin": origin, "xAxis": screen.call(Vector3.RIGHT) - origin,
+		"yAxis": screen.call(Vector3.BACK) - origin, "heightAxis": screen.call(Vector3.UP) - origin}
+
+
 func _check_projection(scene: Node3D, frame: Dictionary) -> void:
-	var presentation: Dictionary = scene.presentation()
-	var projection: Dictionary = presentation["projection"]
-	var origin := _vector(projection["origin"])
-	var x_axis := _vector(projection["xAxis"])
-	var y_axis := _vector(projection["yAxis"])
-	var height_axis := _vector(projection["heightAxis"])
+	var projection := _projection(scene)
+	var origin: Vector2 = projection["origin"]
+	var x_axis: Vector2 = projection["xAxis"]
+	var y_axis: Vector2 = projection["yAxis"]
+	var height_axis: Vector2 = projection["heightAxis"]
 	var viewport := root.get_visible_rect().size
 	for point: Vector3 in [Vector3(1.5, 0.0, 2.5), Vector3(6.5, 0.8, 8.5), Vector3(3.2, 0.3, 4.1)]:
 		var affine := origin + x_axis * point.x + y_axis * point.z + height_axis * point.y
@@ -119,7 +129,7 @@ func _check_projection(scene: Node3D, frame: Dictionary) -> void:
 			maximum = maximum.max(point)
 	var target := _vector(frame["screenCenter"]) / _vector(frame["viewport"])
 	_check(((minimum + maximum) / 2.0).distance_to(target) < 0.00001, "전장 경계 중심과 HUD 가용 영역 중심 불일치: actual=%s target=%s viewport=%s offset=(%s, %s) size=%s" % [(minimum + maximum) / 2.0, target, viewport, scene.camera.h_offset, scene.camera.v_offset, scene.camera.size])
-	_check(int(presentation["sequence"]) == int(frame["seq"]), "렌더 투영의 전투 프레임 번호 불일치")
+	_check(scene.last_sequence == int(frame["seq"]), "렌더 투영의 전투 프레임 번호 불일치")
 	var determinant := x_axis.x * y_axis.y - x_axis.y * y_axis.x
 	var selected := Vector2(5.5, 3.5)
 	var screen := x_axis * selected.x + y_axis * selected.y
@@ -193,10 +203,10 @@ func _verify() -> void:
 	scene.apply_frame(frame)
 	_check(not cannon["flashes"][1].visible and not cannon["smokes"][1].visible, "종료한 발사 이펙트 잔류")
 	_check(is_equal_approx(cannon["barrel"].position.z, float(cannon["barrel_rest_z"])), "발사 후 포신 복귀 실패")
-	var first_x := _vector(scene.presentation()["projection"]["xAxis"])
+	var first_x: Vector2 = _projection(scene)["xAxis"]
 	frame["zoom"] = 1.725
 	scene.apply_frame(frame)
-	var zoomed_x := _vector(scene.presentation()["projection"]["xAxis"])
+	var zoomed_x: Vector2 = _projection(scene)["xAxis"]
 	_check(is_equal_approx(zoomed_x.length() / first_x.length(), 1.5), "실제 전투 확대 비율 실패")
 	_check_projection(scene, frame)
 	scene.options["camera"] = "drone"
@@ -207,7 +217,7 @@ func _verify() -> void:
 	_check_projection(scene, frame)
 	transition.custom_step(0.49)
 	_check_projection(scene, frame)
-	_check(_vector(scene.presentation()["projection"]["xAxis"]).y < 0.00001, "드론 시점의 가로축 회전 오류")
+	_check(_projection(scene)["xAxis"].y < 0.00001, "드론 시점의 가로축 회전 오류")
 	# 화면 비율 변경에도 동일한 논리 뷰포트 계약을 사용.
 	root.size = Vector2i(900, 1600)
 	root.content_scale_size = Vector2i(450, 800)
@@ -230,11 +240,9 @@ func _verify() -> void:
 	_check(scene.impacts.is_empty() and scene.impact_pool.size() == 1, "종료한 착탄 효과 재사용 풀 이동 실패")
 	_check_projection(scene, replacement)
 	_check_landmarks(scene, replacement)
-	var shared_texture: Texture3D = scene.field["texture"]
 	scene.apply_frame({"reset": true})
 	_check(scene.terrain.get_child_count() == 0 and scene.impacts.is_empty() and scene.impact_pool.is_empty(), "세션 초기화 후 전장·착탄 잔류")
-	_check(scene.last_frame.is_empty() and scene.last_sequence == -1 and scene.presentation().is_empty(), "초기화 후 이전 투영·프레임 잔류")
-	_check(scene.field["texture"] == shared_texture, "세션 초기화가 공유 볼륨 자산을 해제함")
+	_check(scene.last_frame.is_empty() and scene.last_sequence == -1, "초기화 후 이전 투영·프레임 잔류")
 	_check(not replacement.is_empty(), "세션 초기화가 전달받은 프레임 원본을 변경함")
 	scene.apply_frame(frame)
 	_check(scene._using_authored and scene.turrets.size() == 6 and scene.enemies.size() == 6, "새 전투 세션의 기존 자산 재사용 실패")

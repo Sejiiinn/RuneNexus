@@ -129,6 +129,8 @@ func _overlap_and_cap_checks(input: Dictionary) -> void:
 	r._add_puddle(t, attack, at + Vector2(200, 0))
 	_check(r.puddles.size() == 2 and int(r.puddles[0].visualId) != first_visual, "상한 2를 넘으면 가장 오래된 웅덩이 제거")
 	_check(not r.visual_effects.any(func(v): return int(v.id) == first_visual), "제거된 웅덩이의 연출도 함께 제거")
+	_check(not r._prepared_effects.has(first_visual), "제거된 웅덩이의 준비된 연출 항목도 함께 제거")
+	_check(r._prepared_effects.size() == r.visual_effects.size(), "준비된 연출 항목이 연출 목록과 일치")
 
 # 대상이 먼저 사라져도 마지막 위치에 떨어져 같은 100% 범위 피해·중첩과 웅덩이를 남긴다.
 func _dead_target_checks(input: Dictionary) -> void:

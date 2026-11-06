@@ -113,12 +113,11 @@ func _runtime() -> void:
 	runtime.turrets.clear()
 	runtime.projectiles.clear()
 	check(runtime._target(Vector2(144,0),1000.0,"first").id == 42,"target selection retains enemy identity at exit")
-	var scaled := []
-	for point in _path(): scaled.append({"x":point.x*2.0+10.0,"y":point.y*2.0+20.0})
-	runtime.process_command({"epoch":1,"sequence":2,"commands":[{"kind":"layout","path":scaled,"tileSize":96.0,"boardDistanceScale":2.0,"origin":[10.0,20.0]}]})
-	check(runtime.enemies["42"].x == 298.0 and runtime.enemies["42"].y == 20.0 and runtime.enemies["42"].targetIndex == 4,"layout scaling preserves exit and next waypoint")
-	answer = runtime.process_command({"epoch":1,"sequence":3,"commands":[{"kind":"layout","path":[[0,0],[1,0]]}]})
-	check(not answer.accepted and runtime.sequence == 2,"incompatible path rejected before layout mutation")
+	var checkpoint := bootstrap.duplicate(true)
+	checkpoint.enemies = runtime.snapshot().enemies
+	var resumed = Runtime.new()
+	check(resumed.process_command({"epoch":1,"sequence":0,"bootstrap":checkpoint}).accepted,"checkpoint bootstrap accepted after teleport")
+	check(resumed.enemies["42"].x == 144.0 and resumed.enemies["42"].y == 0.0 and resumed.enemies["42"].targetIndex == runtime.enemies["42"].targetIndex,"checkpoint restore preserves exit and next waypoint")
 	var bad := bootstrap.duplicate(true)
 	bad.teleportPairs[0].exitIndex = 100
 	answer = runtime.process_command({"epoch":2,"sequence":0,"bootstrap":bad})

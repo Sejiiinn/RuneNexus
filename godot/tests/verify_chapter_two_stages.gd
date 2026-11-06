@@ -218,8 +218,7 @@ func _check_stage(scene: Node3D, frame: Dictionary, label: String) -> void:
 		for i in range(8):
 			var depth: float = -(camera.global_transform.affine_inverse() * scene._camera_envelope.get_endpoint(i)).z
 			_check(depth >= camera.near - 0.001 and depth <= camera.far + 0.001, label + " " + mode + " 깊이 잘림")
-	var presentation: Dictionary = scene.presentation()
-	_check(int(presentation.get("sequence", -1)) == 1 and int(presentation.get("sceneEpoch", -1)) == int(frame["sceneEpoch"]), label + " 최신 전장 적용 응답 누락")
+	_check(scene.last_sequence == 1 and scene._scene_epoch == int(frame["sceneEpoch"]), label + " 최신 전장 적용 누락")
 
 func _verify() -> void:
 	var args := OS.get_cmdline_user_args()

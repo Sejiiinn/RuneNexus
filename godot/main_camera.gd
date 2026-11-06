@@ -96,7 +96,6 @@ func _prepare_overlay_context() -> void:
 	_presentation_nodes["selection"].prepare_context(camera, map_size, world)
 
 func _present_overlays() -> void:
-	_applied_groups.clear()
 	var payload: Dictionary = last_frame.get("presentation", {})
 	var requested: Array = options.get("presentation_groups", [])
 	for group: String in _presentation_nodes:
@@ -118,45 +117,6 @@ func _present_overlays() -> void:
 				node.present(camera, Vector2(columns, rows), world, _units.enemy_label_tops())
 			else:
 				node.present(camera, Vector2(columns, rows), world)
-			_applied_groups.append(group)
-
-func presentation() -> Dictionary:
-	if not _map_request.is_empty():
-		return _map_request.duplicate()
-	if last_frame.is_empty():
-		return {}
-	var size := get_viewport().get_visible_rect().size
-	if size.x <= 0.0 or size.y <= 0.0:
-		return {}
-	var origin := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 0.0, -rows / 2.0)))
-	var x_axis := camera.unproject_position(world.to_global(Vector3(1.0 - columns / 2.0, 0.0, -rows / 2.0))) - origin
-	var y_axis := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 0.0, 1.0 - rows / 2.0))) - origin
-	var height_axis := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 1.0, -rows / 2.0))) - origin
-	return {
-		"presentationVersion": 2,
-		"mapRevision": _map_revision,
-		"sceneEpoch": _scene_epoch,
-		"viewportRevision": int(last_frame.get("viewportRevision", 0)),
-		"viewport": last_frame.get("viewport", []),
-		"appliedGroups": _applied_groups.duplicate(),
-		"projection": {
-			"origin": [origin.x / size.x, origin.y / size.y],
-			"xAxis": [x_axis.x / size.x, x_axis.y / size.y],
-			"yAxis": [y_axis.x / size.x, y_axis.y / size.y],
-			"heightAxis": [height_axis.x / size.x, height_axis.y / size.y],
-		},
-		"sequence": last_sequence, "camera": camera_mode,
-		"nativeTurretLevels": bool(options["turret_levels"]),
-		"nativeEffectEvents": _applied_groups.has("effects"),
-		"nativeImpactEffectEvents": _applied_groups.has("effects"),
-		"nativeBlastEffectEvents": _applied_groups.has("effects"),
-		"nativeLinkedEffectEvents": _applied_groups.has("effects"),
-		"nativeChainEffectEvents": _applied_groups.has("effects"),
-		"nativeChargeEffectEvents": _applied_groups.has("effects"),
-		"nativeSelectionAnimation": _applied_groups.has("selection"),
-		"selectionRevision": _presentation_nodes["selection"].selection_revision,
-		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
-	}
 
 func _ensure_battle_base() -> void:
 	if not _lighting_attached:

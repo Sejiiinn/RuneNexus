@@ -24,16 +24,14 @@ func _verify() -> void:
 		"viewport": [390, 844], "presentationVersion": 2}, true)
 	scene.apply_frame(frame)
 	scene._report_presentation()
-	var applied: Dictionary = scene.presentation()
-	_check(applied["sceneEpoch"] == 100 and applied["sequence"] == 20, "적용 확인의 세대·순서 불일치")
-	_check(applied["viewportRevision"] == 2 and applied["viewport"] == [390, 844], "화면 크기 세대 누락")
-	_check(applied["presentationVersion"] == 2, "표시 계약 버전 누락")
+	_check(scene._scene_epoch == 100 and scene.last_sequence == 20, "적용 프레임의 세대·순서 불일치")
+	_check(scene.last_frame["viewportRevision"] == 2 and scene.last_frame["viewport"] == [390, 844], "화면 크기 세대 누락")
 	scene.options["presentation_groups"] = ["labels", "selection", "effects"]
 	frame["presentation"] = {"labels": {"enemies": []}, "selection": {"turrets": [], "tiles": []}, "effects": {"items": [], "shake": [3.4, -1.53]}}
 	scene.apply_frame(frame)
 	scene._report_presentation()
-	applied = scene.presentation()
-	_check(applied["appliedGroups"].size() == 3, "모듈 통합 적용 확인 누락")
+	for group: String in ["labels", "selection", "effects"]:
+		_check(scene._presentation_nodes[group].visible, "표시 모듈 적용 누락: " + group)
 	var before: Vector2 = scene.camera.unproject_position(Vector3.ZERO)
 	var after: Vector2 = scene.camera.unproject_position(scene.world.to_global(Vector3.ZERO))
 	var viewport_size := scene.get_viewport().get_visible_rect().size
@@ -63,12 +61,12 @@ func _verify() -> void:
 	dynamic["seq"] = 2
 	dynamic["time"] = 3.0
 	scene.apply_frame(dynamic)
-	_check(scene.last_sequence == 2 and scene.presentation()["mapRevision"] == 1, "동적 프레임 적용/맵 ACK 실패")
+	_check(scene.last_sequence == 2 and scene._map_revision == 1, "동적 프레임 적용/맵 revision 유지 실패")
 	_check(scene.terrain.get_child(0).get_instance_id() == terrain_id and scene._current_map == map_snapshot, "정적 맵을 다시 만들거나 변경함")
 	dynamic["seq"] = 3
 	dynamic["mapRevision"] = 2
 	scene.apply_frame(dynamic)
-	_check(scene.last_sequence == 2 and scene.presentation().get("mapRequired", false), "맵 불일치 프레임을 적용하거나 복구 요청 누락")
+	_check(scene.last_sequence == 2 and scene._map_revision == 1, "맵 불일치 프레임을 적용함")
 	frame["seq"] = 4
 	frame["mapRevision"] = 2
 	frame["map"] = map_snapshot.duplicate(true)
@@ -82,22 +80,22 @@ func _verify() -> void:
 	if changed_index >= 0:
 		frame["map"]["tiles"][changed_index] = "path"
 	scene.apply_frame(frame)
-	_check(scene.last_sequence == 4 and scene.presentation()["mapRevision"] == 2 and not scene.presentation().has("mapRequired"), "맵 재전송 복구 실패")
+	_check(scene.last_sequence == 4 and scene._map_revision == 2, "맵 재전송 복구 실패")
 	_check(scene._current_map == frame["map"] and scene._current_map != map_snapshot, "같은 크기/테마의 타일 변경 누락")
 	# A fresh epoch must never reuse the old static map.
 	dynamic["sceneEpoch"] = 102
 	dynamic["seq"] = 0
 	scene.apply_frame(dynamic)
-	_check(scene.last_sequence == -1 and scene.presentation().get("mapRequired", false), "새 epoch에서 이전 맵 재사용")
-	_check(not scene.presentation().has("projection"), "복구 메타데이터가 준비된 프레임을 가장함")
+	_check(scene.last_sequence == -1 and scene._current_map.is_empty(), "새 epoch에서 이전 맵 재사용")
+	_check(scene.last_frame.is_empty(), "맵 없는 프레임을 준비된 프레임으로 적용함")
 	frame["sceneEpoch"] = 102
 	frame["seq"] = 1
 	frame.erase("mapRevision")
 	scene.apply_frame(frame)
-	_check(scene.last_sequence == 1 and not scene.presentation().has("mapRequired"), "레거시 전체 프레임 복구 실패")
+	_check(scene.last_sequence == 1 and not scene.last_frame.is_empty(), "레거시 전체 프레임 복구 실패")
 	scene.apply_frame({"reset": true, "sceneEpoch": 102})
 	_check(scene.world.position == Vector3.ZERO, "장면 리셋 뒤 흔들림 잔류")
-	_check(scene.presentation().is_empty(), "초기화 후 과거 적용 상태를 보고함")
+	_check(scene.last_frame.is_empty(), "초기화 후 과거 적용 상태가 남음")
 	print("Presentation protocol: %d failures" % failures)
 	scene.queue_free()
 	await process_frame

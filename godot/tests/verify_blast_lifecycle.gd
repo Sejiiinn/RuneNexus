@@ -33,7 +33,7 @@ func _verify() -> void:
 	frame["presentation"] = {"effects": {"generation": 0, "clock": 5.0, "events": [blast, spark]}}
 	scene.apply_frame(frame)
 	scene._report_presentation()
-	_check(scene.presentation().get("nativeBlastEffectEvents", false), "actual runtime must advertise separate blast event support")
+	_check(effects.visible, "actual runtime must apply the effects group for blast events")
 	_check(scene.impacts.has(100) and effects._effect_nodes.has(101), "mixed events must route to their existing independent renderers")
 	_check(not effects._effect_nodes.has(100) and effects.items.size() == 1, "blast must never create a Canvas surface")
 	var impact: Node3D = scene.impacts[100]

@@ -105,7 +105,6 @@ var path: Array = []
 var teleport_pairs: Array = []
 var routes: Dictionary = {}
 var spawn_portal_id := ""
-var _path_revision := 0
 var origin := Vector2.ZERO
 var tile_size: float = 1.0
 var board_scale: float = 1.0

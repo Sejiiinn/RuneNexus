@@ -21,7 +21,6 @@ func enemy(extra: Dictionary={}) -> Dictionary:
 func _initialize() -> void:
 	_training_dot_checks()
 	_target_multiplier_checks()
-	_path_revision_checks()
 	_vulnerability_timer_checks()
 	_dot_armor_checks()
 	_dot_expiry_checks()
@@ -101,8 +100,6 @@ func _initialize() -> void:
 	check(Enemy.step(e,2).is_empty(),"arrival exactly once")
 	e=enemy({"distanceTravelled":5.0})
 	close(e.x,5,"restore distance")
-	Enemy.update_path(e,[{"x":0,"y":0},{"x":20,"y":0},{"x":20,"y":20}])
-	close(e.x,10,"path resize preserves progress")
 	var restored := Enemy.create(Enemy.snapshot(e))
 	close(restored.x,e.x,"snapshot position roundtrip")
 	check(restored.targetIndex==e.targetIndex,"snapshot waypoint roundtrip")
@@ -231,40 +228,6 @@ func _dot_armor_checks() -> void:
 	Enemy.step(recipient,1.0)
 	close(recipient.armor,0,"transferred burn keeps fixed armor factor")
 	close(recipient.hp,1000,"transferred burn still consumes armor")
-
-
-func _path_revision_checks() -> void:
-	var legacy := enemy({"distanceTravelled":3.0,"x":2.5,"y":0.0})
-	var versioned := legacy.duplicate(true)
-	var route: Array = legacy.path.duplicate(true)
-	for dt in [0.0,0.1,0.4,0.0]:
-		check(Enemy.step(legacy,dt,route) == Enemy.step(versioned,dt,route,1), "versioned unchanged path events")
-		check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "versioned unchanged path preserves movement and supplied position")
-	# 같은 길이/시작점/끝점이라도 중간 경유지가 바뀌면 새 경로를 적용한다.
-	route = [{"x":0.0,"y":0.0},{"x":0.0,"y":10.0},{"x":10.0,"y":10.0}]
-	Enemy.step(legacy,0.0,route)
-	Enemy.step(versioned,0.0,route,2)
-	check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "revision change preserves reroute progress")
-	check(not Enemy.snapshot(versioned).has("_path_revision"), "revision cache excluded from snapshot")
-	var restored := Enemy.create(Enemy.snapshot(versioned))
-	var raw_restored := Enemy.create(versioned)
-	check(not restored.has("_path_revision") and not raw_restored.has("_path_revision"), "create never trusts saved revision cache")
-	for e in [legacy,versioned,restored]:
-		Enemy.update_path(e,[[0,0],[100,0]])
-	Enemy.step(legacy,0.1,route)
-	Enemy.step(versioned,0.1,route,2)
-	Enemy.step(restored,0.1,route,2)
-	check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "explicit path update invalidates cached revision")
-	check(Enemy.snapshot(legacy) == Enemy.snapshot(restored), "restored path resynchronizes on first step")
-	# 기존 3인자 API는 같은 배열의 내용 변경도 계속 감지한다.
-	route[1].x = 5.0
-	Enemy.step(legacy,0.0,route)
-	Enemy.step(versioned,0.0,route,3)
-	check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "legacy content comparison remains compatible")
-	for invalid_path in [[], [[0,0]]]:
-		Enemy.step(legacy,0.1,invalid_path)
-		Enemy.step(versioned,0.1,invalid_path,4)
-		check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "empty and short path behavior preserved")
 
 
 func _advance_dot(e: Dictionary,total: float,dt: float) -> Array:
@@ -522,16 +485,16 @@ func _training_dot_checks() -> void:
 	var e := enemy({"speed":0.0})
 	Enemy.add_burn(e,{"damagePerSecond":100.0,"duration":0.2,"sourceX":0,"sourceY":0,"damageOverTimeIncreaseMultiplier":2.0})
 	Enemy.add_burn(e,{"damagePerSecond":95.0,"duration":0.5,"sourceX":1,"sourceY":0})
-	Enemy.step(e,0.1,[],-1,1.0,0.0)
+	Enemy.step(e,0.1,1.0,0.0)
 	close(e.hp,980.5,"training0 burns each source at raw DPS")
 	# 100*(1+.3/2) + 95*1.3: each source divides training by its own layer.
-	Enemy.step(e,0.1,[],-1,1.0,0.3)
+	Enemy.step(e,0.1,1.0,0.3)
 	close(e.hp,956.65,"training purchase applies per source original layer")
 	var transfer := Enemy.burn_transfer(e,{"x":1,"y":0},0.3)
 	close(transfer.damagePerSecond,95.0,"transfer keeps untrained raw DPS")
 	check(not transfer.has("damageOverTimeIncreaseMultiplier"),"neutral burn metadata remains absent")
 	var restored := Enemy.create(Enemy.snapshot(e))
-	Enemy.step(restored,0.1,[],-1,1.2,0.3)
+	Enemy.step(restored,0.1,1.2,0.3)
 	close(restored.hp,941.83,"restored raw burn uses current training and target layer once")
 	# Same-source different additive layers can reverse strength after purchase.
 	e = enemy({"speed":0.0})
@@ -546,14 +509,14 @@ func _training_dot_checks() -> void:
 	close(Enemy.burn_transfer(e,{"x":0,"y":0},0.3).damagePerSecond,95.0,"same-source transfer selects current trained strongest")
 	Enemy.add_burn(e,{"damagePerSecond":90.0,"duration":0.5,"sourceX":0,"sourceY":0})
 	check(e.burnInstances.size()==2,"same original layer still merges one candidate")
-	Enemy.step(e,0.1,[],-1,1.0,0.3)
+	Enemy.step(e,0.1,1.0,0.3)
 	close(e.hp,987.65,"same-source candidates never stack damage")
 	Enemy.add_burn(e,{"damagePerSecond":97.0,"duration":0.5,"sourceX":0,"sourceY":0})
 	check(e.burnInstances.size()==2,"same-layer stronger reapplication does not add a candidate")
 	close(Enemy.burn_transfer(e,{"x":0,"y":0},0.3).damagePerSecond,97.0,"same-layer stronger reapplication replaces its raw DPS")
 	var candidate_restore := Enemy.create(Enemy.snapshot(e))
 	check(candidate_restore.burnInstances.size()==2,"snapshot restores both same-source original-layer candidates")
-	Enemy.step(candidate_restore,0.1,[],-1,1.0,0.3)
+	Enemy.step(candidate_restore,0.1,1.0,0.3)
 	close(candidate_restore.hp,975.04,"restored same-source candidates choose current training strongest")
 	Enemy.clear_burn_source(e,{"x":0,"y":0})
 	for burn in e.burnInstances: check(burn.sourceX==null and burn.sourceY==null,"removing source clears all candidate attribution")
@@ -570,7 +533,7 @@ func _training_dot_checks() -> void:
 		e = enemy({"speed":0.0})
 		poison(e,20.0,0.2,{"speedMultiplier":1.5,"damageOverTimeIncreaseMultiplier":increase})
 		check(e.poisonInstances[0].has("damageOverTimeIncreaseMultiplier") == (increase!=1.0),"poison original layer is optional")
-		Enemy.step(e,0.2,[],-1,1.2,0.3)
+		Enemy.step(e,0.2,1.2,0.3)
 		close(e.hp,1000.0-4.0*(1.0+0.3/increase)*1.05*1.2,"poison training same-layer add before stack bonus, amplification and clipped expiry")
 		check(e.poisonInstances.is_empty(),"expired poison clears original layer metadata")
 

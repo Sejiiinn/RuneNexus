@@ -93,18 +93,11 @@ func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 	if map.is_empty():
 		# Legacy frames always require a full map. Revision-only frames reuse
 		# exactly the map already applied in this epoch, never a previous scene.
-		if revision < 0:
-			return
-		if _current_map.is_empty() or revision != _map_revision:
-			_map_request = {"presentationVersion": 2, "sceneEpoch": _scene_epoch,
-				"viewportRevision": int(frame.get("viewportRevision", 0)),
-				"viewport": frame.get("viewport", []), "sequence": int(frame.get("seq", -1)),
-				"mapRevision": revision, "mapRequired": true}
+		if revision < 0 or _current_map.is_empty() or revision != _map_revision:
 			return
 	elif map != _current_map and not _build_terrain(map):
 		return
 	_map_revision = revision
-	_map_request.clear()
 	last_frame = frame.duplicate()
 	last_sequence = int(frame.get("seq", -1))
 	received_frames += 1
@@ -177,14 +170,12 @@ func _clear_scene() -> void:
 	for node: Node2D in _presentation_nodes.values():
 		node.clear()
 		node.hide()
-	_applied_groups.clear()
 	_units.clear()
 	_support_cores.clear()
 	_projectile_renderer.clear(effects_prepared)
 	_path_guide.clear()
 	_environment.clear()
 	_map_revision = -1
-	_map_request.clear()
 	last_frame = {}
 	last_sequence = -1
 	received_frames = 0

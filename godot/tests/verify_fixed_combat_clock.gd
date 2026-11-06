@@ -137,7 +137,8 @@ func timed_command(r, second: int) -> void:
 			var updated: Dictionary = r.turrets["1"].duplicate(true)
 			updated.statInput.level = mini(10, int(updated.statInput.level) + 1)
 			commands.append({"kind":"turret","turret":updated})
-		5: commands.append({"kind":"riftMark","enemyId":3,"damageAmplification":0.25,"duration":1.25})
+		# 코어 스킬이 쓰는 낙인 적용을 같은 시각에 직접 호출해 기준 수치를 유지한다.
+		5: if r.enemies.has("3"): Enemy.add_rift_mark(r.enemies["3"], 0.25, 1.25)
 		7: commands.append({"kind":"spawn","enemy":moving_enemy(20, 80.0)})
 		9: commands.append({"kind":"coreDamage","enemyId":3,"damage":35.0})
 	if not commands.is_empty():
@@ -261,10 +262,8 @@ func lifecycle_checks() -> void:
 
 func ordering_checks() -> void:
 	var r = empty_runtime()
-	var e: Dictionary = r.enemies["1"]
-	e.hp = 1.0
-	e.speed = 60.0
-	Enemy.update_path(e, [[0,0],[1,0]])
+	var e: Dictionary = Enemy.create({"id":1,"type":"normal","hp":1.0,"maxHp":100.0,"speed":60.0,"path":[[0,0],[1,0]]})
+	r.enemies["1"] = e
 	Enemy.add_burn(e, {"damagePerSecond":60.0,"duration":1.0})
 	r.advance_session(STEP)
 	check(r.events.filter(func(v): return v.kind == "kill").size() == 1, "same-tick death before arrival emits one kill")

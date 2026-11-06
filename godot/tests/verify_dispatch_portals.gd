@@ -40,8 +40,6 @@ func _portal_ingress() -> void:
 				if queued: bad.wave = {"active":true,"spawnQueue":[{"enemyType":"normal","delay":0.0,"enemy":enemy}]}
 				else: bad.enemies = [enemy]
 				check(not runtime.process_command({"epoch":2,"sequence":0,"bootstrap":bad}).accepted and runtime.epoch == 1,"malformed portal rejected before bootstrap reset")
-				var layout := {"kind":"layout","routes":bad.routes,"spawnPortalId":bad.spawnPortalId}
-				check(not runtime.process_command({"epoch":1,"sequence":1,"commands":[layout]}).accepted and runtime.sequence == 0,"malformed named layout portal rejected before mutation")
 
 func _shipped_boundary(catalog) -> void:
 	var legacy: Dictionary = catalog._data.duplicate(true)
