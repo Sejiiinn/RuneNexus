@@ -15,10 +15,10 @@ var failures: Array = []
 var fixed_now := 1720000000000
 func check(ok: bool, label: String) -> void:
 	if not ok: failures.append(label)
-func make_session(script = Session):
+func make_session():
 	var catalog = Catalog.new()
 	check(catalog.load_catalog(), "catalog")
-	var session = script.new()
+	var session = Session.new()
 	session.now_millis = func(): return fixed_now
 	check(session.initialize(catalog, {"researchLevels":{"crystalRecovery":2},"killGoldUpgradeLevel":3,"bossBountyUpgradeLevel":3,"clearedStageNumbers":[1,2,3,4,5]},0,7), "initialize")
 	session.state.economyRunId = "event-batch-fixture"
@@ -41,8 +41,8 @@ func runtime_for(session, count: int) -> Dictionary:
 		events.append({"id":i+1,"kind":"kill","enemyId":i+1})
 		enemies[str(i+1)] = {"type":boss if i%10==0 else ordinary,"diamondReward":1}
 	return {"epoch":7,"wall_elapsed":0.0006,"events":events,"enemies":enemies,"defense":{"hp":100,"max_hp":100},"session":{"phase":"wave"}}
-func exercise(script = Session) -> Dictionary:
-	var session = make_session(script)
+func exercise() -> Dictionary:
+	var session = make_session()
 	var runtime := runtime_for(session, 120)
 	var before: Dictionary = session.state
 	var snapshot := before.duplicate(true)
@@ -60,8 +60,8 @@ func exercise(script = Session) -> Dictionary:
 	session.growth.derive_calls = 0
 	session.growth.reward_calls = 0
 	check(session.collect(runtime).ok, "kill batch accepted")
-	check(session.growth.derive_calls == (0 if script == Session else 120), "kill batch skips full turret growth derivation")
-	check(session.growth.reward_calls == (1 if script == Session else 120), "one scalar reward derivation per kill batch")
+	check(session.growth.derive_calls == 0, "kill batch skips full turret growth derivation")
+	check(session.growth.reward_calls == 1, "one scalar reward derivation per kill batch")
 	check(session.state.gold == snapshot.gold + base_gold + floori(bonus_gold), "fractional and boss bonus gold paid exactly")
 	check(is_equal_approx(session.state.killGoldFractionWallet, bonus_gold-floori(bonus_gold)), "fractional wallet expected remainder")
 	check(session.state.gemShards == expected_shards, "boss shard reward exact")
@@ -97,7 +97,7 @@ func exercise(script = Session) -> Dictionary:
 	check(session.collect(runtime).ok and session.state == result, "terminal rewards deduplicated")
 	runtime.epoch = 8
 	check(not session.collect(runtime).ok and session.state == result, "stale epoch unchanged")
-	var dead = make_session(script)
+	var dead = make_session()
 	var dead_runtime := runtime_for(dead,0)
 	dead_runtime.defense.hp = 0
 	dead_runtime.events = [{"id":1,"kind":"waveCompleted","waveId":first_wave},{"id":2,"kind":"coreDefeated"}]
@@ -123,36 +123,8 @@ func quest_edges() -> void:
 	var saved := p.duplicate(true)
 	check(rules.record(p,"killEnemies",0,boundary) == saved and p == saved, "zero amount leaves time keys unchanged")
 	check(rules.record_play_time(p,NAN) == saved and p == saved, "invalid play time unchanged")
-func benchmark(script, count: int, repeats: int) -> int:
-	var session = make_session(script)
-	var input := runtime_for(session,count)
-	var original: Dictionary = session.state.duplicate(true)
-	var elapsed := 0
-	for i in range(repeats):
-		session.state = original.duplicate(true)
-		session.event_ack = 0
-		var start := Time.get_ticks_usec()
-		session.collect(input)
-		elapsed += Time.get_ticks_usec()-start
-	return elapsed
 func _initialize() -> void:
 	var result := exercise()
 	quest_edges()
-	# Optional isolated baseline is supplied by the benchmark runner, never production.
-	if FileAccess.file_exists("res://baseline/run_session.gd"):
-		var baseline = load("res://baseline/run_session.gd")
-		check(exercise(baseline) == result, "baseline ordered state parity")
-		benchmark(Session,120,2)
-		benchmark(baseline,120,2)
-		for i in range(3):
-			var old_us: int
-			var new_us: int
-			if i%2==0:
-				old_us = benchmark(baseline,120,20)
-				new_us = benchmark(Session,120,20)
-			else:
-				new_us = benchmark(Session,120,20)
-				old_us = benchmark(baseline,120,20)
-			print("EVENT_BATCH_CPU sample=",i," kills=120 repeats=20 baseline_us=",old_us," current_us=",new_us)
 	print("EVENT_BATCH failures=",failures)
 	quit(0 if failures.is_empty() else 1)

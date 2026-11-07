@@ -11,13 +11,6 @@ func _verify() -> void:
 	await process_frame
 	var output := ProjectSettings.globalize_path("res://../captures")
 	DirAccess.make_dir_recursive_absolute(output)
-	if "--native-materials" in OS.get_cmdline_user_args():
-		var success: bool = await load("res://tests/verify_support_native_materials.gd").run(scene, output.path_join("native-materials"))
-		scene.queue_free()
-		for index in range(8):
-			await process_frame
-		quit(0 if success else 1)
-		return
 	if "--turret-labels" in OS.get_cmdline_user_args():
 		scene.options["turret_levels"] = true
 		var labels_frame: Dictionary = FrameRows.serialized(scene.last_frame.duplicate(true))

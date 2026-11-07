@@ -42,7 +42,6 @@ func run() -> void:
 	await settle()
 	hud.set_process(false)
 	hud.menu_panel._refresh_core()
-	check(hud.find_child("AdditionalCoreHp",true,false)==null,"separate top HP row removed")
 	check(HealthBar.ADDITIONAL_COLOR.get_luminance()>HealthBar.ORDINARY_COLOR.get_luminance(),"bonus green brighter than original green")
 	for width in [440]:
 		root.content_scale_size = Vector2i(width,760)

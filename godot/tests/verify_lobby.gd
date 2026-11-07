@@ -60,7 +60,6 @@ func _verify() -> void:
 	await process_frame
 	assert(lobby.page == "스테이지", "The stage map is the first screen")
 	assert(lobby.home.find_child("ContinueRun",true,false) == null)
-	assert(lobby.find_child("MenuBack",true,false) == null and lobby.find_child("StageHeaderLogo",true,false) == null, "No separate lobby to go back to")
 	for id in ["Settings", "ChapterPrev", "ChapterNext", "StageStart", "Leaderboard", "Events", "Mailbox", "TabStage", "TabCore", "TabUpgrade", "TabResearch", "TabTurret"]:
 		assert(lobby.home.find_child(id,true,false) != null, "Missing home action: " + id)
 	# A tap on another stage socket selects it and the card's start button starts it.

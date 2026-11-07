@@ -175,6 +175,9 @@ jobs:
       - name: Verify Android patch decoder
         run: python3 scripts/run_apk_delta_kotlin_tests.py
 
+      - name: Verify Android update downloader
+        run: python3 android-godot-only/app/src/test/run_progress_harness.py
+
       - name: Prepare verified differential updates
         run: |
           python3 - <<'PY'

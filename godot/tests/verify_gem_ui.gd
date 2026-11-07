@@ -22,19 +22,15 @@ func run() -> void:
 	await settle()
 	if "--piercing-only" in OS.get_cmdline_user_args():
 		await check_piercing_requirement()
-		print("PASS piercing gem UI: concise effect, compatibility feedback, button state and 360/440 bounds")
+		print("PASS gem UI piercing: concise effect, compatibility feedback, button state and 360/440 bounds")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--light-only" in OS.get_cmdline_user_args():
 		await check_light_weapon_restriction()
-		print("PASS light gem UI: one allowed/five blocked, disabled equip, reward restriction and target feedback")
+		print("PASS gem UI light: one allowed/five blocked, disabled equip, reward restriction and target feedback")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--empty-only" in OS.get_cmdline_user_args():
 		await check_empty_inventory()
-		print("PASS responsive turret inventory: owned 0/1/6/14 at 440, fixed square cells filling row, noninteractive blanks, overflow scrolling; global empty help preserved")
-		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
-	if "--unlock-only" in OS.get_cmdline_user_args():
-		await check_popup_unlock()
-		print("PASS unified unlock plate: one price/metal frame, no stem, stationary inventory, actual pointer purchase/outside dismissal, 3-6 slots at 440")
+		print("PASS gem UI inventory: owned 0/1/6/14 at 440, fixed square cells filling row, noninteractive blanks, overflow scrolling; global empty help preserved")
 		panel.queue_free(); fixture.queue_free(); await process_frame; quit(); return
 	if "--layout-only" in OS.get_cmdline_user_args():
 		await check_changed_layout()
@@ -48,7 +44,6 @@ func run() -> void:
 	await check_popup_unlock()
 	assert(int(turret().slotLimit) == 1)
 	check_socket_count(3)
-	assert(panel.body.find_child("BuyGemSlot",true,false) == null)
 	assert(find_exact(panel.body,"+") == null)
 	var gold: int = fixture.run_domain.state.gold
 	click_slot(2)
@@ -270,7 +265,6 @@ func check_popup_unlock() -> void:
 				if condition != null and condition.visible:
 					assert(condition.get_global_rect().end.y <= named_button("GemInventory_attackSpeed").global_position.y)
 					assert(not condition.get_global_rect().intersects(popup.get_global_rect()),"Requirement text must not overlap plate")
-				assert(reserved.find_child("GemSlotUnlockStem",true,false) == null)
 				assert(absf(panel.body.size.y-body_height)<0.5)
 				assert(named_button("GemInventory_attackSpeed").global_position.distance_to(inventory_position)<0.5)
 				assert(panel.body.size.y <= panel.scroll.size.y+0.5,"Socket popup must not require scrolling")

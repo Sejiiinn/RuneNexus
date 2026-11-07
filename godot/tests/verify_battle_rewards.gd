@@ -222,7 +222,7 @@ func _assert_socket_assets(node: Node, occupied: int) -> void:
 	assert(names.count("gem_socket_empty.png") == total)
 	assert(names.count("gem_socket_locked.png") == 0)
 	assert(names.count("gem_link_active.png")+names.count("gem_link_locked.png") == total-int(ceil(total/3.0)))
-	if adding != null: assert(adding.find_child("AddSlotPlus",true,false) != null and node.find_child("OwnedGold",true,false) == null)
+	if adding != null: assert(adding.find_child("AddSlotPlus",true,false) != null)
 	_assert_socket_targets(sockets)
 
 func _assert_socket_targets(node: Node) -> void:

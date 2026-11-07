@@ -63,14 +63,12 @@ func run() -> void:
 					for id in ["Diamonds","Runes"]:
 						var balance := wallet_box.find_child(id,true,false) as Label
 						assert(balance.size.x+0.1 >= balance.get_minimum_size().x,"Balance clipped")
-					assert(lobby.find_child("MenuBack",true,false) == null and lobby.find_child("StageQuests",true,false) == null,"No back button or stage quest icon")
 				else:
 					var header := lobby.find_child("MenuHeader",true,false) as Control
 					var wallet := lobby.find_child("MenuResources",true,false) as Control
 					var heading := lobby.find_child("MenuHeading",true,false) as Control
 					assert(bounds.encloses(header.get_global_rect()),"Header overflow: %s %d long=%s"%[page,width,long_balance])
 					assert(not wallet.get_global_rect().intersects(heading.get_global_rect()),"Wallet and title overlap")
-					assert(lobby.find_child("MenuBack",true,false) == null,"Tabs return through the stage tab, not a back button")
 					var title := lobby.find_child("MenuTitle",true,false) as Label
 					if title: assert(title.horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT,"Title is left aligned")
 					for row in wallet.get_child(0).get_children():

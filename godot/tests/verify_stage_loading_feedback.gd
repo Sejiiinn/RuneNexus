@@ -164,8 +164,8 @@ func capture(label: String) -> void:
 	capture_now(label)
 
 func verify_failed_threaded_request() -> void:
-	# Run separately with --threaded-failure-only: the intentional corrupt loader
-	# emits engine errors between these markers; assertions still fail normally.
+	# The intentional corrupt loader emits one engine error, which the runner
+	# expects between these markers; assertions still fail normally.
 	var loader := FailingLoader.new()
 	var owner := FeedbackOwner.new()
 	root.add_child(owner)
@@ -180,13 +180,8 @@ func verify_failed_threaded_request() -> void:
 	Resources.clear()
 	ResourceLoader.remove_resource_format_loader(loader)
 	owner.free()
-	print("STAGE_LOADING_FEEDBACK_FAILED_TOKEN checks=", checks, " failures=", failures)
-	quit(0 if failures.is_empty() else 1)
 
 func run() -> void:
-	if "--threaded-failure-only" in OS.get_cmdline_user_args():
-		await verify_failed_threaded_request()
-		return
 	root.size = Vector2i(440, 900)
 	root.content_scale_size = Vector2i(440, 760)
 	capture_folder = OS.get_environment("RUNE_STAGE_FEEDBACK_CAPTURE_DIR")
@@ -359,5 +354,6 @@ func run() -> void:
 	boot.game = null
 	scene.free()
 	boot.free()
+	await verify_failed_threaded_request()
 	print("STAGE_LOADING_FEEDBACK checks=", checks, " failures=", failures)
 	quit(0 if failures.is_empty() else 1)

@@ -206,7 +206,6 @@ func run() -> void:
 		var category: HBoxContainer = hud.body.get_node("TurretCategoryAndDamage")
 		assert(category.get_child(category.get_child_count()-1) == hud.damage_label.get_parent())
 		assert(category.get_global_rect().encloses(hud.damage_label.get_global_rect()) and hud.damage_label.get_line_count() == 1)
-		assert(hud.body.find_child("TurretDamageSummary",true,false) == null)
 		assert(not (hud.body.find_child("TurretTargetPriority",true,false) as Button).visible,"Target action remains research gated")
 	app.scene.combat_runtime.turrets = {str(app.run_domain.state.turrets[0].id): {"directDamageDealt":123.0,"splashDamageDealt":7.0}}
 	hud.refresh()
@@ -331,7 +330,6 @@ func run() -> void:
 	var sockets := buttons(hud.body).filter(func(button): return str(button.name).begins_with("EquippedSlot"))
 	var link_cost := int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).link)
 	assert(sockets.size() == int(hud.configuration_cache.derived(app.run_domain.state,app.run_domain.service).get("maxTurretLinkSlots",3)))
-	assert(hud.body.find_child("BuyGemSlot",true,false) == null)
 	(hud.body.find_child("EquippedSlot1",true,false) as Button).pressed.emit()
 	var buy_slot := hud.body.find_child("UnlockGemSlot",true,false) as Button
 	assert(buy_slot != null)

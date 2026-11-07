@@ -72,7 +72,7 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_environment_resource_lifetime.gd": ("Environment resource lifetime:", {}),
     "verify_frost_charge.gd": ("FROST_CHARGE_CHECK failures=[]", {}),
     "verify_gem_orbit.gd": ("gem_orbit: PASS", {}),
-    "verify_gem_ui.gd": ("PASS gem UI:", {}),
+    "verify_gem_ui.gd": ("PASS gem UI", {"steps": [[], ["--piercing-only"], ["--light-only"], ["--empty-only"], ["--layout-only"], ["--strip-only"]]}),
     "verify_graphics_options.gd": ("Graphics options verification: PASS", {}),
     "verify_hud_native_frames.gd": ("PASS native HUD frames:", {}),
     "verify_impact_motion.gd": ("IMPACT_MOTION_CONTRACT PASS", {}),
@@ -83,7 +83,7 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_machinegun.gd": ("Machinegun verification: 0 failures", {"renderer": True}),
     "verify_machinegun_ricochet.gd": ("MACHINEGUN_RICOCHET checks=", {"renderer": True}),
     "verify_menu_shell_parity.gd": ("PASS menu shell:", {}),
-    "verify_native_contracts.gd": ("Native candidate contracts:", {}),
+    "verify_native_contracts.gd": ("Native import contracts:", {}),
     "verify_overlay_cache_integration.gd": ("PASS overlay cache integration:", {}),
     "verify_presentation_protocol.gd": ("Presentation protocol: 0 failures", {}),
     "verify_projectiles.gd": ("Projectile verification: 0 failures", {}),
@@ -108,7 +108,9 @@ CASES: dict[str, tuple[str, dict]] = {
     "verify_sniper_model.gd": ("SNIPER_MODEL failures=[]", {}),
     "verify_sniper_vfx.gd": ("failures=[]", {}),
     "verify_stage_effect_cache.gd": ("STAGE_EFFECT_CACHE failures=[]", {}),
-    "verify_stage_loading_feedback.gd": ("STAGE_LOADING_FEEDBACK checks=", {}),
+    "verify_stage_loading_feedback.gd": ("STAGE_LOADING_FEEDBACK checks=", {"expected_errors": (
+        "ERROR: Failed loading resource: res://failed-threaded-recovery.stageprobe.",
+    )}),
     "verify_stage_resource_lifecycle.gd": ("STAGE_RESOURCE_LIFECYCLE checks=", {}),
     "verify_standalone_session.gd": ("PASS standalone stages", {}),
     "verify_target_geometry_preparation.gd": ("failures=[]", {}),
@@ -210,7 +212,7 @@ def run_case(executable: str, name: str, marker: str, options: dict, work: Path)
 
 
 def validate_project() -> None:
-    covered = set(CASES) | {path.name for path in (SOURCE / "tests").glob("verify_support_*.gd")}
+    covered = set(CASES)
     for runner in (NATIVE_RUNNER, *SERVICE_RUNNERS):
         covered |= set(re.findall(r"verify_[a-z0-9_]+\.gd", runner.read_text()))
     unassigned = sorted(path.name for path in (SOURCE / "tests").glob("verify_*.gd") if path.name not in covered)
