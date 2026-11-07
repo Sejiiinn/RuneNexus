@@ -8,6 +8,10 @@ const Progression = preload("res://content/stage_progression.gd")
 const StageDifficulty = preload("res://content/stage_difficulty.gd")
 const ROOT := "core_passive_tree/expanded/"
 const DETAIL_ZOOM := 0.40
+const LEVEL_ZOOM := 0.30
+const LEVEL_SIZE := 11
+## Nodes whose space below is taken by the core or another node.
+const LABEL_ABOVE := ["S1","S2","B01","C15","C16","K1","K3"]
 ## Node bounds including frames; the overview fits these, not the 2800-unit art square.
 const NODE_EXTENT := 2470.0
 const GROW_SECONDS_PER_RANK := 0.33
@@ -25,7 +29,9 @@ const PLANNED := Color("f4faff")
 const CREAM := Color("f3e2b3")
 const SELECT := Color("e8fff6")
 const MUTED := Color("8ea4ab")
-const LOCKED_TINT := Color(0.46,0.49,0.53)
+const LOCKED_TINT := Color(0.38,0.41,0.45)
+const OPEN_TINT := Color(0.86,0.87,0.88)
+const LIT_TINT := Color(1.2,1.2,1.2)
 const HUB_GLYPH := 0xf0616
 const SKILL_TEXT := {
 	"guardianBeam":"5초마다 자동 발동 · 가장 앞선 적에게 광선을 발사하며 포탑 화력에 비례해 피해가 증가합니다.",
@@ -38,6 +44,7 @@ var camera := {}
 var wave := {}
 var shade: GradientTexture2D
 var aura: GradientTexture2D
+var soft_glow: GradientTexture2D
 var point_bar: PanelContainer
 var remaining_label: Label
 var earned_label: Label
@@ -54,7 +61,7 @@ class NodeArt extends Control:
 	var id := ""
 	func _draw() -> void:
 		var side := minf(size.x,size.y)
-		tree.draw_node_art(self,core,id,size/2,side/float(tree.visuals[id].diameter)*0.98,tree.is_locked(core,id))
+		tree.draw_node_art(self,core,id,size/2,side/float(tree.visuals[id].diameter)*0.98,tree.node_tint(core,id))
 
 class Dots extends Control:
 	func _draw() -> void:
@@ -96,6 +103,10 @@ func hit_rect(owner, id: String) -> Rect2:
 # ---- rules shown on the map ----
 func is_locked(owner, id: String) -> bool:
 	return int(owner.lobby.core_draft.get(id,0)) <= 0 and not owner.accessible_nodes().has(id)
+
+func node_tint(owner, id: String) -> Color:
+	if is_locked(owner,id): return LOCKED_TINT
+	return LIT_TINT if int(owner.lobby.core_draft.get(id,0)) > 0 else OPEN_TINT
 
 func applied_rank(owner, id: String) -> int:
 	return mini(owner.rendered_rank(id),int(owner.lobby.core_draft.get(id,0)))

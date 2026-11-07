@@ -24,6 +24,17 @@ func _textures() -> void:
 	aura.gradient = Gradient.new()
 	aura.gradient.offsets = PackedFloat32Array([0.0,0.3,1.0])
 	aura.gradient.colors = PackedColorArray([Color(1,1,1,1),Color(1,1,1,1),Color(1,1,1,0)])
+	# Eased falloff so a lit node's glow has no visible disc edge.
+	soft_glow = GradientTexture2D.new()
+	soft_glow.width = 128
+	soft_glow.height = 128
+	soft_glow.fill = GradientTexture2D.FILL_RADIAL
+	soft_glow.fill_from = Vector2(0.5,0.5)
+	soft_glow.fill_to = Vector2(1.0,0.5)
+	soft_glow.gradient = Gradient.new()
+	soft_glow.gradient.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CUBIC
+	soft_glow.gradient.offsets = PackedFloat32Array([0.0,0.38,0.68,1.0])
+	soft_glow.gradient.colors = PackedColorArray([Color(1,1,1,1),Color(1,1,1,0.82),Color(1,1,1,0.24),Color(1,1,1,0)])
 
 func screen(owner, world: Vector2) -> Vector2:
 	return owner.offset+world*owner.zoom
@@ -43,11 +54,10 @@ func _glow_arc(canvas: CanvasItem, at: Vector2, radius: float, from: float, to: 
 	canvas.draw_arc(at,radius,from,to,32,Color(color,0.22),width+4,true)
 	canvas.draw_arc(at,radius,from,to,32,color,width,true)
 
-func draw_node_art(canvas: CanvasItem, owner, id: String, at: Vector2, scale: float, locked: bool) -> void:
+func draw_node_art(canvas: CanvasItem, owner, id: String, at: Vector2, scale: float, tint: Color) -> void:
 	var v: Dictionary = visuals[id]
 	var radius := float(v.diameter)/2*scale
 	canvas.draw_circle(at,radius*0.79,Color("07131e"))
-	var tint := LOCKED_TINT if locked else Color.WHITE
 	var icon_size := float(v.iconSize)*scale
 	var icon: Texture2D = owner.tex(ROOT+str(v.icon)+".png")
 	if icon: canvas.draw_texture_rect(icon,Rect2(at-Vector2.ONE*icon_size/2,Vector2.ONE*icon_size),false,tint)
@@ -122,41 +132,37 @@ func _draw_node(owner, canvas: Control, id: String, available: Array, hint: Arra
 	if bool(d.get("terminal",false)):
 		var halo := radius*2.1
 		canvas.draw_texture_rect(aura,Rect2(at-Vector2.ONE*halo,Vector2.ONE*halo*2),false,Color(color,0.45 if unlocked else 0.3))
-	draw_node_art(canvas,owner,id,at,zoom,not unlocked)
-	var kk := maxf(zoom/0.46,0.45)
-	var gauge := radius+5*kk+1.5
-	var width := maxf(2.8,4.2*kk)
-	if applied == maximum:
-		_glow_arc(canvas,at,gauge,0,TAU,MAX_GOLD,width+0.6)
-		canvas.draw_arc(at,gauge+width/2+2.5,0,TAU,48,Color(1,0.96,0.84,0.9),1,true)
-	elif rank > 0:
-		var gap := 0.22 if maximum > 1 else 0.0
-		var seg := (TAU-gap*maximum)/maximum
-		for i in maximum:
-			var from := -PI/2+gap/2+i*(seg+gap)
-			if i < applied: _glow_arc(canvas,at,gauge,from,from+seg,GOLD,width)
-			elif i < rank:
-				var dash := (3*kk+1)/gauge
-				var pause := (2*kk+1)/gauge
-				var t := from
-				while t < from+seg:
-					canvas.draw_arc(at,gauge,t,minf(t+dash,from+seg),6,PLANNED,width,true)
-					t += dash+pause
-			else: canvas.draw_arc(at,gauge,from,from+seg,24,Color(0.16,0.23,0.27,0.95),width,true)
-	elif unlocked:
-		_glow_arc(canvas,at,gauge,0,TAU,Color(CREAM,0.85),maxf(1.1,2*kk))
+	# State reads from the node itself: dim, brighter, then lit over a soft glow.
+	if rank > 0:
+		var full := applied == maximum
+		var glow := radius*(2.7 if full else 2.2)
+		var tone := MAX_GOLD if full else (GOLD if applied > 0 else PLANNED)
+		canvas.draw_texture_rect(soft_glow,Rect2(at-Vector2.ONE*glow,Vector2.ONE*glow*2),false,Color(tone,0.62 if full else 0.42))
+	draw_node_art(canvas,owner,id,at,zoom,LIT_TINT if rank > 0 else (OPEN_TINT if unlocked else LOCKED_TINT))
+	var gauge := radius+5*maxf(zoom/0.46,0.45)+1.5
 	if hint.has(id):
 		var glow := gauge+16
 		canvas.draw_texture_rect(aura,Rect2(at-Vector2.ONE*glow,Vector2.ONE*glow*2),false,Color(CREAM,0.4))
 	if owner.selected == id: _glow_arc(canvas,at,gauge+9,0,TAU,SELECT,2.5)
+	# Name and level stay attached to their node, stacked below it unless blocked.
+	var shows_level := rank > 0 and maximum > 1 and zoom >= LEVEL_ZOOM
+	var above: bool = id in LABEL_ABOVE
+	var level_y := at.y-radius-8 if above else at.y+radius+8
 	if detailed:
-		var label := Vector2(float(v.labelPosition[0]),float(v.labelPosition[1]))
-		var label_at := screen(owner,label)
 		var tint := Color("f3e6c4") if rank > 0 else (color if unlocked or hint.has(id) else Color("7f8f96"))
-		_text(canvas,owner.node_name(id),label_at,int(maxf(float(v.labelSize)*zoom,11.5)),tint)
-		if rank > 0:
-			var below := label_at.y < at.y
-			_text(canvas,"%d/%d" % [rank,maximum],at+Vector2(0,gauge+15 if below else -gauge-6),12,Color("f1f5f4"))
+		var name_size := int(maxf(float(v.labelSize)*zoom,11.5))
+		var baseline := at.y-radius-(18 if shows_level else 6) if above else at.y+radius+name_size+2
+		_text(canvas,owner.node_name(id),Vector2(at.x,baseline),name_size,tint)
+		if not above: level_y = baseline+10
+	if shows_level:
+		_draw_level(canvas,Vector2(at.x,level_y),"%d/%d" % [rank,maximum],PLANNED if rank != applied else GOLD)
+
+## Small rank readout under a node, outlined so it stays legible over lit links.
+func _draw_level(canvas: Control, center: Vector2, value: String, color: Color) -> void:
+	var font := AppTheme.font(800)
+	var at := center+Vector2(-font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,LEVEL_SIZE).x/2,font.get_ascent(LEVEL_SIZE)-font.get_height(LEVEL_SIZE)/2)
+	canvas.draw_string_outline(font,at,value,HORIZONTAL_ALIGNMENT_LEFT,-1,LEVEL_SIZE,4,Color("04111b"))
+	canvas.draw_string(font,at,value,HORIZONTAL_ALIGNMENT_LEFT,-1,LEVEL_SIZE,color)
 
 ## The equipped skill stays identifiable: a medallion in the overview, the
 ## nameplate with the skill icon and name once zoomed in.
@@ -198,15 +204,11 @@ func _draw_overview(owner, canvas: Control) -> void:
 	var y := view_size.y-30
 	for entry in [["locked","잠김"],["open","투자 가능"],["applied","투자 중"],["max","최대"],["plan","계획"]]:
 		var at := Vector2(x+7,y)
-		canvas.draw_circle(at,4.5,Color("07131e"))
-		match entry[0]:
-			"locked": canvas.draw_arc(at,5.5,0,TAU,24,Color("55656c"),1.8,true)
-			"open": canvas.draw_arc(at,6,0,TAU,24,CREAM,1.8,true)
-			"max": canvas.draw_arc(at,6,0,TAU,24,MAX_GOLD,2.4,true)
-			_:
-				for i in 3:
-					var from := -PI/2+i*2.09+0.15
-					canvas.draw_arc(at,6,from,from+1.8,8,GOLD if entry[0] == "applied" else PLANNED,2.2,true)
+		var tone: Color = {"locked":Color("4d5b63"),"open":Color("a3afb1"),"applied":GOLD,"max":MAX_GOLD,"plan":PLANNED}[entry[0]]
+		if not entry[0] in ["locked","open"]:
+			var glow := 13.0 if entry[0] == "max" else 10.0
+			canvas.draw_texture_rect(soft_glow,Rect2(at-Vector2.ONE*glow,Vector2.ONE*glow*2),false,Color(tone,0.6))
+		canvas.draw_circle(at,4,tone)
 		canvas.draw_string(small,Vector2(x+16,y+4),entry[1],HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("b7cbcf"))
 		x += 16+small.get_string_size(entry[1],HORIZONTAL_ALIGNMENT_LEFT,-1,10).x+9
 
