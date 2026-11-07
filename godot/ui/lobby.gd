@@ -354,13 +354,17 @@ func _footer(parent: Node) -> void:
 		box.add_child(label)
 
 func open_page(value: String) -> void:
+	if page == "코어" and value != page and core.pending_plan():
+		core.confirm_leave(value)
+		return
 	if value == "퀘스트":
 		open_quests()
 		return
 	if value == "스테이지" and page != value: stages.reset_navigation()
+	var arriving := page != value
 	page = value
 	message = ""
-	if page == "코어": core_draft = progression().get("corePassiveNodeRanks", {}).duplicate()
+	if page == "코어" and arriving: core_draft = progression().get("corePassiveNodeRanks", {}).duplicate()
 	refresh()
 
 func open_challenges() -> void:

@@ -9,6 +9,7 @@ var inline_scroll: ScrollContainer
 var zoom_controls: Control
 const ROOT := "core_passive_tree/"
 const CENTER := Vector2(360, 360)
+const RESET_GUARD_MS := 400
 const POLAR := {"attackHaste":[110,300],"attackOutput":[110,0],"efficiencySaving":[110,60],"efficiencyDiversity":[110,120],"controlSelfRepair":[110,180],"controlThreatSense":[110,240],"attackPrecompute":[180,310],"attackFocus":[180,350],"attackGuardianBeam":[245,300],"attackRiftMark":[245,0],"attackOverclock":[300,330],"efficiencySupplyRecovery":[180,70],"efficiencyGemSpectrum":[180,110],"efficiencyFirstDeploy":[245,60],"efficiencyFirstLink":[245,120],"efficiencyCombinedFront":[300,90],"controlRetarget":[180,190],"controlRearLock":[180,230],"controlBufferShell":[245,180],"controlEmergencyCharge":[245,240],"controlFinalLine":[300,210]}
 const GLYPHS := {"attackOutput":0xe0ee,"attackPrecompute":0xe660,"attackFocus":0xe14b,"attackGuardianBeam":0xe0c1,"attackRiftMark":0xe272,"attackOverclock":0xf079c,"controlThreatSense":0xe0ea,"controlSelfRepair":0xf379,"controlRetarget":0xe304,"controlRearLock":0xf0c8,"controlEmergencyCharge":0xe0d1,"controlBufferShell":0xe582,"controlFinalLine":0xe569,"efficiencyDiversity":0xf0616,"efficiencyFirstDeploy":0xe683,"efficiencyFirstLink":0xe1c8,"efficiencyGemSpectrum":0xe0b7,"efficiencySupplyRecovery":0xf336,"efficiencyCombinedFront":0xee36}
 var lobby
@@ -20,6 +21,8 @@ var remaining_summary: Label
 var apply_button: Button
 var cancel_button: Button
 var reset_button: Button
+var reset_guard_until := 0
+var plan_base := {}
 var zoom := 1.0
 var offset := Vector2.ZERO
 var viewport_size := Vector2.ZERO
@@ -72,6 +75,8 @@ func spent(ranks: Dictionary) -> int:
 		for rank in range(mini(int(ranks[id]),data().nodes[id].rankCosts.size())): count += int(data().nodes[id].rankCosts[rank])
 	return count
 func changed() -> bool: return lobby.core_draft != actual()
+## An unsaved plan that leaving the page would discard.
+func pending_plan() -> bool: return expanded() and changed() and not allocating
 func point(id: String) -> Vector2:
 	if id == "CORE": return center()
 	if expanded():
@@ -82,6 +87,15 @@ func point(id: String) -> Vector2:
 func tex(path: String) -> Texture2D:
 	if not textures.has(path): textures[path] = AppTheme.texture(path)
 	return textures[path]
+
+## Sync or an account swap can replace the saved ranks under a plan; applying
+## that plan would overwrite them, so it is dropped instead.
+func _rebase_plan() -> void:
+	if actual() == plan_base: return
+	if expanded() and changed():
+		if lobby.core_draft != plan_base: lobby.message = "저장된 코어 투자가 바뀌어 계획을 취소했습니다."
+		lobby.core_draft = actual().duplicate()
+	plan_base = actual().duplicate()
 
 func render() -> void:
 	var next_revision := int(data().get("revision",4))
@@ -100,6 +114,7 @@ func render() -> void:
 		allocation_steps.clear()
 		if allocation_tween and allocation_tween.is_valid(): allocation_tween.kill()
 	catalog_revision = next_revision
+	_rebase_plan()
 	if not selected.is_empty() and not data().nodes.has(selected): selected = ""
 	view = TreeCanvas.new()
 	view.owner_helper = self
@@ -189,6 +204,7 @@ func action(parent: Node, title: String, callback: Callable) -> Button:
 	return b
 
 func update_state() -> void:
+	if not changed(): plan_base = actual().duplicate()
 	if not is_instance_valid(view): return
 	if expanded():
 		expanded_tree.update_overlay(self)
@@ -386,7 +402,7 @@ func cancel() -> void:
 	update_state()
 	if not selected.is_empty(): node_details(selected)
 func apply() -> void:
-	if allocating or not changed() or not valid(lobby.core_draft): return
+	if allocating or not changed() or not valid(lobby.core_draft) or Time.get_ticks_msec() < reset_guard_until: return
 	# Keep the exact view at the press, even if a selection is still easing.
 	if expanded(): expanded_tree.interrupt()
 	allocation_base = actual().duplicate()
@@ -471,6 +487,42 @@ func activation_glow(id: String) -> float:
 		if t < 0 or t > 1: return -1.0
 		return 1.0-pow(1.0-t/0.45,3) if t < 0.45 else 1.0-pow((t-0.45)/0.55,3)
 	return -1.0
+
+## Clears the plan only: the tree previews empty and saving stays on apply.
+func plan_reset() -> void:
+	if allocating: return
+	selected = ""
+	selecting_skill = false
+	_close_inline()
+	lobby.core_draft = {}
+	# Apply appears where reset was pressed; a double tap must not confirm it.
+	reset_guard_until = Time.get_ticks_msec()+RESET_GUARD_MS
+	update_state()
+
+func confirm_leave(next_page: String) -> void:
+	var box: VBoxContainer = lobby.open_modal("적용하지 않은 계획")
+	lobby.modal.set_meta("refresh",_close_stale_leave)
+	box.add_child(AppTheme.label("코어 포인트 계획을 적용할까요?",14))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation",8)
+	box.add_child(row)
+	for entry in [["버리기","secondary","CoreLeaveDiscard",false],["적용","primary","CoreLeaveApply",true]]:
+		var b := AppTheme.button(entry[0],_leave.bind(next_page,entry[3]),entry[1])
+		b.name = entry[2]
+		b.custom_minimum_size.y = 44
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(b)
+
+func _close_stale_leave() -> void:
+	if not pending_plan(): lobby.close_modal()
+
+func _leave(next_page: String, keep: bool) -> void:
+	lobby.close_modal()
+	if keep:
+		lobby.apply_growth_change({"kind":"setCorePassiveRanks","ranks":lobby.core_draft.duplicate()},false)
+		if changed(): return
+	else: lobby.core_draft = actual().duplicate()
+	lobby.open_page(next_page)
 
 func confirm_reset() -> void:
 	if allocating: return

@@ -115,6 +115,9 @@ func draw_tree(owner, canvas: Control) -> void:
 	for id in owner.node_ids():
 		_draw_node(owner,canvas,id,available,hint,detailed)
 	_draw_core(owner,canvas,core,detailed)
+	# Text goes over every node so a neighbor never covers a name or level.
+	for id in owner.node_ids():
+		_draw_node_text(owner,canvas,id,available,hint,detailed)
 	if owner.allocating and not wave.is_empty(): _draw_wave_bursts(owner,canvas,core,k)
 	if not detailed: _draw_overview(owner,canvas)
 
@@ -144,7 +147,18 @@ func _draw_node(owner, canvas: Control, id: String, available: Array, hint: Arra
 		var glow := gauge+16
 		canvas.draw_texture_rect(aura,Rect2(at-Vector2.ONE*glow,Vector2.ONE*glow*2),false,Color(CREAM,0.4))
 	if owner.selected == id: _glow_arc(canvas,at,gauge+9,0,TAU,SELECT,2.5)
-	# Name and level stay attached to their node, stacked below it unless blocked.
+
+## Name and level stay attached to their node, stacked below it unless blocked.
+func _draw_node_text(owner, canvas: Control, id: String, available: Array, hint: Array, detailed: bool) -> void:
+	var d: Dictionary = owner.data().nodes[id]
+	var v: Dictionary = visuals[id]
+	var at := screen(owner,owner.point(id))
+	var zoom: float = owner.zoom
+	var rank := int(owner.lobby.core_draft.get(id,0))
+	var maximum := int(d.maxRank)
+	var unlocked := rank > 0 or available.has(id)
+	var color := Color(str(v.color))
+	var radius := float(v.diameter)/2*zoom
 	var shows_level := rank > 0 and maximum > 1 and zoom >= LEVEL_ZOOM
 	var above: bool = id in LABEL_ABOVE
 	var level_y := at.y-radius-8 if above else at.y+radius+8
@@ -155,7 +169,7 @@ func _draw_node(owner, canvas: Control, id: String, available: Array, hint: Arra
 		_text(canvas,owner.node_name(id),Vector2(at.x,baseline),name_size,tint)
 		if not above: level_y = baseline+10
 	if shows_level:
-		_draw_level(canvas,Vector2(at.x,level_y),"%d/%d" % [rank,maximum],PLANNED if rank != applied else GOLD)
+		_draw_level(canvas,Vector2(at.x,level_y),"%d/%d" % [rank,maximum],PLANNED if rank != applied_rank(owner,id) else GOLD)
 
 ## Small rank readout under a node, outlined so it stays legible over lit links.
 func _draw_level(canvas: Control, center: Vector2, value: String, color: Color) -> void:

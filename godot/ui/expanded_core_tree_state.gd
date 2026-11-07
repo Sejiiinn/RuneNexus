@@ -49,8 +49,6 @@ var point_bar: PanelContainer
 var remaining_label: Label
 var earned_label: Label
 var draft_chip: Label
-var menu_button: Button
-var menu: PanelContainer
 var points_info_button: Button
 var points_info: PanelContainer
 var points_info_rows: Dictionary = {}
@@ -62,10 +60,6 @@ class NodeArt extends Control:
 	func _draw() -> void:
 		var side := minf(size.x,size.y)
 		tree.draw_node_art(self,core,id,size/2,side/float(tree.visuals[id].diameter)*0.98,tree.node_tint(core,id))
-
-class Dots extends Control:
-	func _draw() -> void:
-		for i in 3: draw_circle(size/2+Vector2((i-1)*7,0),2.2,Color("cfe0e6"))
 
 class RankBar extends Control:
 	var applied := 0

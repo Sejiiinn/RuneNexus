@@ -3,7 +3,7 @@ extends "res://ui/expanded_core_tree_drawing.gd"
 ## Drawn in screen space: the background always covers the view, each rank up to 3
 ## grows a link toward unranked neighbours, and the point bar and sheets reuse the
 ## shipped frames (design/core_tree_concepts/ui-redesign-2026-10-13).
-## This entry owns the overlay: point bar, menu, node sheets and skills. The
+## This entry owns the overlay: point bar, node sheets and skills. The
 ## layers below it (state -> drawing) may only call downward; GDScript rejects
 ## an upward call at parse time.
 const StageChallenges = preload("res://content/stage_challenges.gd")
@@ -19,7 +19,7 @@ class InfoMark extends Control:
 
 # ---- input ----
 func select_at(owner, location: Vector2) -> void:
-	close_menu()
+	close_points_info()
 	var world: Vector2 = (location-owner.offset)/owner.zoom
 	if owner.zoom < DETAIL_ZOOM:
 		animate_to(owner,destination(owner,owner.scale_at.bind(DETAIL_ZOOM/owner.zoom,location)),0.38)
@@ -134,7 +134,6 @@ func build_overlay(owner) -> void:
 	points_info_button.add_child(info_glyph)
 	points_info_button.pressed.connect(func():
 		points_info.visible = not points_info.visible
-		menu.visible = false
 		layout(owner))
 	values.add_child(points_info_button)
 	var spacer := Control.new()
@@ -161,23 +160,10 @@ func build_overlay(owner) -> void:
 	owner.apply_button.name = "CoreApplyDraft"
 	owner.apply_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(owner.apply_button)
-	menu_button = _button("","secondary",func(): menu.visible = not menu.visible; layout(owner))
-	menu_button.name = "CorePointMenuButton"
-	menu_button.tooltip_text = "더보기"
-	menu_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var dots := Dots.new()
-	dots.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	menu_button.add_child(dots)
-	dots.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.add_child(menu_button)
-	menu = PanelContainer.new()
-	menu.name = "CorePointMenu"
-	menu.add_theme_stylebox_override("panel",_frame("ui/components/panel_frame.png",10))
-	menu.visible = false
-	owner.view.add_child(menu)
-	owner.reset_button = _button("전체 초기화","danger",func(): close_menu(); owner.confirm_reset())
-	owner.reset_button.custom_minimum_size.x = 150
-	menu.add_child(owner.reset_button)
+	owner.reset_button = _button("초기화","secondary",owner.plan_reset)
+	owner.reset_button.name = "CoreResetPlan"
+	owner.reset_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(owner.reset_button)
 	_build_points_info(owner)
 	# One grouped camera control; hidden while a sheet is open (pinch still works).
 	var group := PanelContainer.new()
@@ -213,8 +199,7 @@ func build_overlay(owner) -> void:
 		buttons.add_child(button)
 	owner.zoom_controls = group
 
-func close_menu() -> void:
-	if is_instance_valid(menu): menu.visible = false
+func close_points_info() -> void:
 	if is_instance_valid(points_info): points_info.visible = false
 
 func _build_points_info(owner) -> void:
@@ -270,18 +255,18 @@ func update_overlay(owner) -> void:
 	if not is_instance_valid(point_bar): return
 	var drafting: bool = owner.changed()
 	var delta: int = owner.spent(owner.lobby.core_draft)-owner.spent(owner.actual())
-	remaining_label.text = str(owner.total()-owner.spent(owner.actual()))
+	remaining_label.text = str(owner.total()-owner.spent(owner.lobby.core_draft))
 	earned_label.text = "· 획득 %d" % owner.total()
 	_update_points_info(owner)
 	draft_chip.text = ("−%dP 예정" % delta) if delta >= 0 else ("+%dP 반환" % -delta)
 	draft_chip.visible = drafting
 	owner.cancel_button.visible = drafting
 	owner.apply_button.visible = drafting
-	menu_button.visible = not drafting
-	if drafting: close_menu()
+	owner.reset_button.visible = not drafting and owner.spent(owner.actual()) > 0
+	if drafting: close_points_info()
 	owner.apply_button.disabled = owner.allocating or not owner.valid(owner.lobby.core_draft)
 	owner.cancel_button.disabled = owner.allocating
-	owner.reset_button.disabled = owner.allocating or owner.spent(owner.actual()) <= 0
+	owner.reset_button.disabled = owner.allocating
 	owner.view.set_process(true)
 
 func layout(owner) -> void:
@@ -300,9 +285,6 @@ func layout(owner) -> void:
 		owner.zoom_controls.visible = not is_instance_valid(owner.inline_panel)
 		owner.zoom_controls.size = owner.zoom_controls.get_combined_minimum_size()
 		owner.zoom_controls.position = view_size-owner.zoom_controls.size-Vector2(8,8)
-	if is_instance_valid(menu) and is_instance_valid(point_bar):
-		menu.size = menu.get_combined_minimum_size()
-		menu.position = Vector2(view_size.x-menu.size.x-12,point_bar.position.y+point_bar.size.y+4)
 	if is_instance_valid(points_info) and is_instance_valid(point_bar):
 		points_info.size = points_info.get_combined_minimum_size()
 		points_info.position = Vector2(12,point_bar.position.y+point_bar.size.y+4)
