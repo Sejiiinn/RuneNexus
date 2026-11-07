@@ -64,7 +64,7 @@ class ProjectChecksTest(unittest.TestCase):
                 patch.object(runner, "source_revision", return_value={"head": "fixture", "tracked_dirty": True}), \
                 patch.object(runner, "validate_project"), patch.object(runner, "godot_executable", return_value="godot"), \
                 patch.object(runner.subprocess, "check_output", return_value="4.7.2.fixture\n"), \
-                patch.object(runner, "import_project"), \
+                patch.object(runner, "sync_fixtures"), patch.object(runner, "import_project"), \
                 patch.object(runner, "run_case", return_value=None) as run:
             report, code = runner.execute(selected, headless_only=True, require_complete=strict)
             return report, code, run.call_count
@@ -158,6 +158,17 @@ class ProjectChecksTest(unittest.TestCase):
             path.write_text("not a copied runtime input")
         with patch.object(runner, "SOURCE", source), patch.object(runner, "PROJECT", project):
             self.assertEqual(runner.stale_project_files(), [])
+
+    def test_fixtures_beside_the_project_replace_a_stale_copy(self):
+        source = self.work / "repository"
+        build = self.work / "build"
+        (source / "test/fixtures").mkdir(parents=True)
+        (source / "test/fixtures/current.json").write_text("{}")
+        (build / "test/fixtures").mkdir(parents=True)
+        (build / "test/fixtures/stale.json").write_text("{}")
+        with patch.object(runner, "ROOT", source), patch.object(runner, "BUILD", build):
+            runner.sync_fixtures()
+        self.assertEqual([path.name for path in (build / "test/fixtures").iterdir()], ["current.json"])
 
     def test_release_workflow_checks_prepared_project_before_apk(self):
         workflows = runner.ROOT / ".github/workflows"

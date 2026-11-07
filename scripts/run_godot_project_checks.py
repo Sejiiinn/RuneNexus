@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -165,6 +166,13 @@ def stale_project_files() -> list[str]:
     return stale
 
 
+def sync_fixtures() -> None:
+    """Cases read res://../test/fixtures, which resolves beside the prepared project."""
+    target = BUILD / "test/fixtures"
+    shutil.rmtree(target, ignore_errors=True)
+    shutil.copytree(ROOT / "test/fixtures", target)
+
+
 def import_project(executable: str, work: Path) -> None:
     """prepare_godot_project.py rewrites .import settings without importing, so
     resources fail to load until the editor imports them. With a current cache
@@ -253,6 +261,7 @@ def execute(selected: list[str], headless_only: bool, require_complete: bool) ->
         version = subprocess.check_output([executable, "--version"], text=True, timeout=20).strip()
         report["engine"] = {"path": str(executable), "version": version}
         with tempfile.TemporaryDirectory(prefix="godot-project-checks-") as directory:
+            sync_fixtures()
             import_project(executable, Path(directory))
             for result in report["cases"]:
                 name = result["name"]
