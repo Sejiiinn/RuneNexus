@@ -42,7 +42,8 @@ static func create(catalog, stage_id: int, round_number: int) -> Dictionary:
 		var type: String = types[placed % types.size()]
 		var id := 1000+placed
 		commands.append({"kind":"build","type":type,"x":cell%int(map.columns),"y":int(cell/int(map.columns))})
-		for level in range(9): commands.append({"kind":"level","id":id})
+		# Maxed research can place turrets above level 1.
+		for level in range(9-int(derived.turretStartLevelBonus)): commands.append({"kind":"level","id":id})
 		commands.append({"kind":"link","id":id})
 		commands.append({"kind":"link","id":id})
 		var compatible: Array = domain.growth.data.turretRules[type].compatibleGems
