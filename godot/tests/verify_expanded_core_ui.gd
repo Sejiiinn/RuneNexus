@@ -246,10 +246,11 @@ func run() -> void:
 	await settle()
 	check(core.reset_button.visible,"invested tree offers reset without a plan")
 	var reset_zoom: float = core.zoom
+	var reset_offset: Vector2 = core.offset
 	core.reset_button.pressed.emit()
 	await settle()
 	check(lobby.core_draft.is_empty() and app.progression_inputs.corePassiveNodeRanks==saved_ranks,"reset clears only the plan")
-	check(core.selected.is_empty() and not is_instance_valid(core.inline_panel) and core.zoom==reset_zoom,"reset closes the sheet and keeps the camera")
+	check(core.selected=="S1" and is_instance_valid(core.inline_panel) and core.zoom==reset_zoom and core.offset==reset_offset,"reset keeps the open sheet and the camera")
 	check(core.apply_button.visible and core.cancel_button.visible and not core.reset_button.visible,"reset hands over to apply and cancel")
 	check(core.expanded_tree.remaining_label.text=="60" and core.expanded_tree.draft_chip.text=="+8P 반환","point bar shows the wiped plan")
 	core.apply()
@@ -260,13 +261,28 @@ func run() -> void:
 	lobby.open_page("연구")
 	await settle()
 	check(lobby.page=="코어" and is_instance_valid(lobby.modal),"leaving with a plan asks first")
+	core.reset_guard_until = Time.get_ticks_msec()+60000
+	lobby.modal.find_child("CoreLeaveApply",true,false).pressed.emit()
+	check(lobby.page=="코어" and is_instance_valid(lobby.modal) and app.progression_inputs.corePassiveNodeRanks==saved_ranks,"leave prompt apply honors the reset guard")
+	core.reset_guard_until = 0
 	lobby.modal.find_child("CoreLeaveDiscard",true,false).pressed.emit()
 	await settle()
 	check(lobby.page=="연구" and app.progression_inputs.corePassiveNodeRanks==saved_ranks,"discard leaves without saving")
 	lobby.open_page("코어")
 	await settle()
 	check(lobby.core_draft==saved_ranks,"discarded plan returns to saved ranks")
+	core.zoom = 0.6
+	core.offset = core.view.size/2-core.point("C12")*core.zoom
+	core._clamp()
+	core.expanded_tree.select_at(core,core.offset+core.point("C12")*core.zoom)
+	await settle()
+	core.settle_camera()
+	reset_offset = core.offset
 	core.plan_reset()
+	await settle()
+	core.settle_camera()
+	check(core.selected=="C12" and core.offset.distance_to(reset_offset) < 1.0,"reset from a low node's sheet holds the camera")
+	core.reset_guard_until = 0
 	lobby.open_page("연구")
 	await settle()
 	lobby.modal.find_child("CoreLeaveApply",true,false).pressed.emit()
@@ -294,6 +310,19 @@ func run() -> void:
 	lobby.refresh()
 	await settle()
 	check(lobby.page=="코어" and not is_instance_valid(lobby.modal) and lobby.core_draft.is_empty(),"saved ranks catching up to the plan close the leave prompt")
+	app.progression_inputs.corePassiveNodeRanks = {"S2":3}
+	lobby.refresh()
+	await settle()
+	core.plan_reset()
+	core.reset_guard_until = 0
+	lobby.open_page("연구")
+	await settle()
+	var stale_prompt: Button = lobby.modal.find_child("CoreLeaveApply",true,false)
+	app.progression_inputs.corePassiveNodeRanks = {}
+	lobby.refresh()
+	stale_prompt.pressed.emit()
+	await settle()
+	check(lobby.page=="코어" and not is_instance_valid(lobby.modal),"pressing a stale leave prompt stays on the tab")
 	app.progression_inputs.corePassiveTreeRevision = 4
 	app.progression_inputs.corePassiveNodeRanks = {"attackHaste":1}
 	lobby.open_page("코어")

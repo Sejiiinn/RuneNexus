@@ -491,13 +491,12 @@ func activation_glow(id: String) -> float:
 ## Clears the plan only: the tree previews empty and saving stays on apply.
 func plan_reset() -> void:
 	if allocating: return
-	selected = ""
-	selecting_skill = false
-	_close_inline()
 	lobby.core_draft = {}
 	# Apply appears where reset was pressed; a double tap must not confirm it.
 	reset_guard_until = Time.get_ticks_msec()+RESET_GUARD_MS
 	update_state()
+	# Like cancel, an open sheet stays: closing it would ease the camera to new bounds.
+	if not selected.is_empty(): node_details(selected)
 
 func confirm_leave(next_page: String) -> void:
 	var box: VBoxContainer = lobby.open_modal("적용하지 않은 계획")
@@ -517,7 +516,10 @@ func _close_stale_leave() -> void:
 	if not pending_plan(): lobby.close_modal()
 
 func _leave(next_page: String, keep: bool) -> void:
+	if keep and Time.get_ticks_msec() < reset_guard_until: return
 	lobby.close_modal()
+	# Saved ranks can reach the plan before the stale prompt closes itself.
+	if not pending_plan(): return
 	if keep:
 		lobby.apply_growth_change({"kind":"setCorePassiveRanks","ranks":lobby.core_draft.duplicate()},false)
 		if changed(): return
