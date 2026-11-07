@@ -1,7 +1,9 @@
 name: Checks
 
-# Full regression on main pushes, so a broken commit surfaces before the next
+# Headless regression on main pushes, so a broken commit surfaces before the next
 # APK release instead of at it. Local work keeps running only related checks.
+# Not covered here: renderer cases of run_godot_project_checks.py and Go DB
+# integration tests (server/Makefile), which need a GPU and a database.
 on:
   push:
     branches: [main]

@@ -9,6 +9,7 @@ const SEED := 271828
 const TILE_SIZE := 48.0
 const START_GOLD := 60000
 const TURRET_COUNT := 12
+const TURRET_LEVEL := 10
 
 static func create(catalog, stage_id: int, round_number: int) -> Dictionary:
 	var domain = Domain.new()
@@ -42,8 +43,7 @@ static func create(catalog, stage_id: int, round_number: int) -> Dictionary:
 		var type: String = types[placed % types.size()]
 		var id := 1000+placed
 		commands.append({"kind":"build","type":type,"x":cell%int(map.columns),"y":int(cell/int(map.columns))})
-		# Maxed research can place turrets above level 1.
-		for level in range(9-int(derived.turretStartLevelBonus)): commands.append({"kind":"level","id":id})
+		for level in range(TURRET_LEVEL-domain.service.start_turret_level_from_derived(type,derived)): commands.append({"kind":"level","id":id})
 		commands.append({"kind":"link","id":id})
 		commands.append({"kind":"link","id":id})
 		var compatible: Array = domain.growth.data.turretRules[type].compatibleGems

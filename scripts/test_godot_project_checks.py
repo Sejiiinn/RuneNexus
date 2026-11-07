@@ -169,7 +169,7 @@ class ProjectChecksTest(unittest.TestCase):
         self.assertLess(names.index("godot-pack"), names.index("prepared-project"))
         self.assertEqual(stages["prepared-project"].needs, ("godot-pack",))
         command = " ".join(stages["prepared-project"].command)
-        self.assertIn("--preset session --preset lifecycle --headless-only --require-complete", command)
+        self.assertIn("--preset headless --headless-only --require-complete", command)
         self.assertIn("--output build/godot-project-checks.json", command)
         uses = workflow.index("uses: ./.github/actions/godot-checks")
         apk = workflow.index(":app:assembleProductionRelease")
@@ -182,8 +182,9 @@ class ProjectChecksTest(unittest.TestCase):
         self.assertEqual(sparse(push), sparse(workflow))
         for preset in ("session", "lifecycle"):
             for name in runner.PRESETS[preset]:
-                self.assertIn(name, runner.CASES)
-                self.assertFalse(runner.CASES[name][1].get("renderer", False))
+                self.assertIn(name, runner.PRESETS["headless"])
+        renderer = {name for name, (_, options) in runner.CASES.items() if options.get("renderer")}
+        self.assertEqual(set(runner.PRESETS["headless"]), set(runner.CASES) - renderer)
 
 
 if __name__ == "__main__":

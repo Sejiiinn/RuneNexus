@@ -125,6 +125,8 @@ PRESETS = {
         "verify_combat_presentation_determinism.gd",
     ),
     "lifecycle": ("verify_app_lifecycle.gd", "verify_app_resume.gd"),
+    # Everything a machine without a rendering device can run; CI uses this one.
+    "headless": tuple(name for name, (_, options) in CASES.items() if not options.get("renderer")),
 }
 FAILURE = re.compile(r"(?:^|\n)\s*(?:SCRIPT ERROR:|ERROR:|Parse Error|Assertion failed)|: SKIP\b", re.I)
 

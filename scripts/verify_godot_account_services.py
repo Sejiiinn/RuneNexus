@@ -17,6 +17,8 @@ import subprocess
 import tempfile
 import threading
 
+from verify_godot_app_services import copy_with_references
+
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE_ERROR = re.compile(r"(?:^|\n)(?:SCRIPT ERROR:|ERROR:)|Parse Error:|Compile Error:")
 GODOT = Path(os.environ.get("GODOT_BIN", ROOT / "build/godot-preview/tools/Godot.app/Contents/MacOS/Godot"))
@@ -40,20 +42,8 @@ def main():
         project = Path(directory)
         environment = dict(os.environ, XDG_DATA_HOME=str(project / "user"), XDG_CACHE_HOME=str(project / "cache"), XDG_CONFIG_HOME=str(project / "config"))
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Isolated account checks"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-        for folder, files in {
-            "app": ["save_codec.gd", "save_json.gd", "local_save_slot.gd", "local_save_store.gd", "local_save_order.gd",
-                    "run_transition_journal.gd", "reward_outbox.gd", "reward_settlement.gd", "gem_reroll.gd", "gem_command_result.gd"],
-            "content": ["stage_progression.gd", "stage_difficulty.gd", "turret_identity.gd", "generated_progression.gd", "generated_core_tree.gd", "generated_content_registry.gd"],
-            # SaveCodec validates optional enemy rarity with the combat rules and boss types.
-            "combat": ["enemy_rarity.gd", "combat_kinds.gd"],
-            "services": ["http_transport.gd", "durable_record.gd", "account_session.gd", "online_save.gd", "save_payload_hash.gd"],
-        }.items():
-            (project / folder).mkdir()
-            for name in files:
-                shutil.copyfile(ROOT / "godot" / folder / name, project / folder / name)
-        (project / "tests").mkdir()
+        copy_with_references(project, ("tests/verify_account_services.gd", "tests/verify_durable_record.gd"))
         shutil.copyfile(ROOT / "godot/tests/verify_account_services.gd", project / "verify.gd")
-        shutil.copyfile(ROOT / "godot/tests/verify_durable_record.gd", project / "tests/verify_durable_record.gd")
         imported = subprocess.run([str(GODOT), "--headless", "--editor", "--path", str(project), "--quit"], env=environment, capture_output=True, text=True, timeout=60)
         if imported.returncode or ENGINE_ERROR.search(imported.stdout + imported.stderr):
             raise SystemExit(imported.stdout + imported.stderr)

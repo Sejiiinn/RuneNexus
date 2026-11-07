@@ -16,6 +16,22 @@ SCRIPTS = {"tests/verify_app_services.gd": "APP_SERVICES failures=0",
            "tests/verify_mailbox_notifications.gd": "MAILBOX_NOTIFICATIONS checks="}
 GODOT = Path(os.environ.get("GODOT_BIN", ROOT / "build/godot-preview/tools/Godot.app/Contents/MacOS/Godot"))
 
+def copy_with_references(project: Path, scripts) -> None:
+    """Copies scripts and every res:// file they reach, so a new preload needs no list edit."""
+    pending=list(scripts)
+    seen=set()
+    while pending:
+        relative=pending.pop()
+        if relative in seen: continue
+        seen.add(relative)
+        origin=SOURCE / relative
+        if not origin.is_file(): continue
+        destination=project / relative
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copyfile(origin,destination)
+        if origin.suffix == ".gd":
+            pending.extend(re.findall(r'["\']res://([^"\']+)["\']',origin.read_text()))
+
 def main():
     if not GODOT.is_file(): raise SystemExit("Set GODOT_BIN; native checks cannot be skipped.")
     with tempfile.TemporaryDirectory(prefix="rune-app-services-") as directory:
@@ -25,19 +41,7 @@ def main():
                          XDG_CACHE_HOME=str(project / "cache"),
                          XDG_CONFIG_HOME=str(project / "config"))
         (project / "project.godot").write_text('config_version=5\n[application]\nconfig/name="Isolated app services"\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n')
-        pending=list(SCRIPTS)
-        seen=set()
-        while pending:
-            relative=pending.pop()
-            if relative in seen: continue
-            seen.add(relative)
-            origin=SOURCE / relative
-            if not origin.is_file(): continue
-            destination=project / relative
-            destination.parent.mkdir(parents=True,exist_ok=True)
-            shutil.copyfile(origin,destination)
-            if origin.suffix == ".gd":
-                pending.extend(re.findall(r'["\']res://([^"\']+)["\']',origin.read_text()))
+        copy_with_references(project,SCRIPTS)
         imported=subprocess.run([str(GODOT),"--headless","--editor","--path",str(project),"--quit"],env=environment,capture_output=True,text=True,timeout=90)
         if imported.returncode or ENGINE_ERROR.search(imported.stdout + imported.stderr): raise SystemExit(imported.stdout+imported.stderr)
         for script, marker in SCRIPTS.items():

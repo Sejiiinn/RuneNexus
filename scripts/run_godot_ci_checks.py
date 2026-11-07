@@ -44,7 +44,7 @@ STAGES = (
     Stage("godot-pack", "packaging", script("build_godot_pack.py")),
     # Runs inside the project the pack step prepares, so the two share a runner.
     Stage("prepared-project", "packaging", script("run_godot_project_checks.py",
-                                     "--preset", "session", "--preset", "lifecycle",
+                                     "--preset", "headless",
                                      "--headless-only", "--require-complete",
                                      "--output", "build/godot-project-checks.json"),
           needs=("godot-pack",)),
